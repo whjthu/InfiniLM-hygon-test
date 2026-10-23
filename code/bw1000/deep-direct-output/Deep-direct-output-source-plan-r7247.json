@@ -1,0 +1,57 @@
+{
+  "state": "PRIVATE_SOURCE_AND_FINITE_PLAN_ONLY_NO_BUILD_NO_GPU",
+  "parent_full_DSO_SHA256": "0e0512551483457af01944e9c9298442f499d959836a1c5b66dfa438a3c6c4ea",
+  "actual_linked_source": {
+    "source": "/refactor/candidates/deep-combined-r7169/incoming/deepseek_v4_attention_output.cpp",
+    "source_SHA256": "31e80fb1109308809a030896681ceacc17fbe5b76f1a61b528389456f683f960",
+    "object": "/refactor/candidates/deep-combined-r7169/objects/unit-2.o",
+    "object_SHA256": "b6d87d042a48665fee3310249506a3b1f6768001fc3b564f0a4fda69afa4dd99",
+    "linked_actual_parent": true
+  },
+  "new_source": "deep_attention_output_direct_r7247.cpp",
+  "new_source_SHA256": "b7bb5669834b68acf8024c86a6c7ca93ed6f88c35d4daa37f04916718115951c",
+  "diff": "Deep-direct-output-source-r7247.diff",
+  "default_OFF": "INFINILM_DEEP_OUTPUT_DIRECT_R7247 unset or0; strict1 optin onlyatallownerquiescence; caller setsenv only beforeownerbarrier, never concurrentforward",
+  "bounded_dispatch": "TP8 groups1 tile16 tokens17..64; TP1groups8 andallotherpath exactoldfallback",
+  "math_preservation": [
+    "SameGEMM input shape/stride, sameweight input, M16andlastremainder unchanged, same alpha1 beta0 andimplementation",
+    "Canonical outputview squeeze0 thenview makesCshape/stridesidenticaloldpart; onlyoutputpointer changes tosamealignedoffsetofparentgrouped",
+    "Existingquant/int8gemm/scales/TP SUM/layout/FP32tree andoldtilecounter untouched"
+  ],
+  "actual_Runtime_findings": {
+    "narrow": "retainsparentstridesandsharesMemory+offset",
+    "is_contiguous": "requiresstridematch even size1 dimensions",
+    "same_shape_view": "canretainsingletonstride, notcanonicalize",
+    "required_solution": "narrow(dim1)->squeeze(0)->view({1,width,1024}); validatecanonicalstrides",
+    "lifetime": "Work holds grouped allocation andeverydirectpartview until existingRuntimeowner sync; eager submit consumesTensorViews synchronously toenqueue, no graph allowed; no input/weight/output alias"
+  },
+  "CPU_next_before_GPU": [
+    "Private1TU recompile usingexact7169 flags+unchangedSDK; freshM equalsMD/dependencySHA check; replaceONLYunit2 in0e051full/39a3partial link maps",
+    "ActualRuntime Tensor metadata CPUfixture from_blob onownedCPUbuffer: N17/32/64 everytile offset, canonicalshape/stride pointerequalityandstoragebounds; noCPUdlopenModel",
+    "DefaultOFF/strictflag/guard branchsourcechecks; dladdr/providerclosure fromGPUstep later"
+  ],
+  "finite_GPU_proposal": {
+    "baseline_and_candidate": "OneprivatepartialDSO usesdefaultOFF/ON/OFF restore, current0e051 otherobjects unchanged; exactsameconfigbaseline, notcrossBhistoricalB1gold",
+    "existing_component": "Reuseactual deep_layer0_r7003 CAPI+current7212partial39a3parent andexistingstatefulr4808/4814 embedding+frozenprefix protocol, one layer0weightload notfullweights",
+    "bounded_workload": "NaturalB32 I512 prefillcohort4, then teacher36 decodeM32 (tile16fixed). ThreearmsOFF/ON/OFFrestore samefrozeninputs. Compareexisting17stagesatselecteddecode steps25/35 plusfull finalhidden finite/numeric envelope; rawremoteonly. IncludeoneuntimedN17 and64 componentfixture onlyifsource/CPUedgevalidations insufficient; no broadmatrix",
+    "timing": "Reportwholelayerdrainedwall/CPU aroundexistingCAPI aswholelayer ONLY. Projection-onlytiming notmeasured bythisreusedbridge, nofalse isolatedspeedup. Atleast4pairedmeasureddecodepassesfromresidentlayer weights ifcorrect, enoughrepeatstoquantifynoise; avoidone-shotTPSclaims",
+    "resources": "OwnedDeep8DCU one node, normal8ownerC4, freshidle, independentanyterminalpostKFD, actualsource/rootGO beforeGPU",
+    "qualification": "No servingTPS ormodeltokenqualification fromlayerfixture. Onlyifrealgainwithoutnumericregression, onefullmodelmatched-config ordinary IDs/EOS/QA plusseparatehistoricalB32tile16 anchor required"
+  },
+  "saved_work_source_arithmetic": {
+    "N32_TP8_perlayer": "2part allocationsand2copycallsavoided;65536logicalcopybytes(131072logicalreadwritebytes)",
+    "43layer_trajectory": "86copycallsavoided;2818048logicalcopybytes perN32fullforward",
+    "not_hardware_ceiling": "Copy kernel/dispatch/allocatorlatency measuredneeded; bandwidthbytesalone implyverysmallfloor. Likelyincrementalgain, notmulti-xpromise"
+  },
+  "notes": [
+    "HistoricalcrossB3509source notindependentB1gold; usematchedconfigbaseline forcandidate",
+    "Root owns canonicalandGit; no model/SDK/sharedsourcehotedit",
+    "No build/GPUlaunch done yet; root reviewrequestedfirst"
+  ],
+  "evidence_SHA256": {
+    "r7242-Deep-projection-actual.json": "883c9c56be4ff25f4cac7ee1ee62edbc5931647186d0b0d30e7262b4744eb16a",
+    "r7243-Deep-projection-view-contract.json": "4735c056c4e2bb393c1ead5a5dfef81182823077ac95a64ce31c6cce41e56339",
+    "r7246-Deep-tensor-view-impl.json": "941a87ec62d257c94e20218078d3e7427e79b0dfe92fc45e60f626376ca04758",
+    "Deep-direct-output-source-r7247.diff": "3c5dcb1a1c7cef5ce53fa6aa9b670db0458c230842eced44f9a5fbe320f899e2"
+  }
+}
