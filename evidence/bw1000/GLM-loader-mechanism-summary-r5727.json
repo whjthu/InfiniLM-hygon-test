@@ -1,0 +1,72 @@
+{
+  "evidence_SHA256": {
+    "r5724-GLM-loader-source-and-flags.json": "629e06c1c03a2d5d950d2321cb6935033452153691f802fadae6995808689ce2",
+    "r5725-GLM-DTK-flag-ELF.json": "e754a274854f262e605c47e7bf3f68d0fa579fb5d3cba915bc3c17c3680fb196",
+    "r5726-GLM-loader-size-headers.json": "e1d7e07eaf1bb29ee240126bb17cc8ad1998516bbaf4be552279c5e4203ae938",
+    "glm_loader_staging_env_r5727.py": "4087b9c407dba752b29f05d24d06f310533d6461aa52fd11d44b2ad94fa224b4"
+  },
+  "actual_chain": [
+    "safetensors safe_open frameworkpt/devicecpu; mmap-backed contiguous CPU tensor can retain file-backed storage",
+    "get_tensor.contiguous; F8 viewU8 only; no Torch.toGPU",
+    "Python 2048 named tensors or endshard flush, ctypesmodern_glm_model_load_batch",
+    "CPU Tensor::from_blob borrowed pointer; own raw torch tensors retained until CAPI sync returns",
+    "ModelWeights::load_parameters_no_sync: LoadBatch capacity256 holds ancestors and async H2D, not byte chunking/pinned staging",
+    "tp_dim1 or noncontiguous fallback drains LoadBatch before Tensor.copy_from",
+    "Runtime.memcpyH2D -> infini::rt::runtime::MemcpyAsync -> actual libinfinirt CUDAshim importcudaMemcpyAsync -> mapped DTKlibgalaxyhip"
+  ],
+  "actual_source_SHA256": {
+    "Model/weights/weights.cpp": "789c8a895d21ac8e4377b785d025c0e2200b6565233de0b3916a16b891d4ea11",
+    "Model/weights/weights.hpp": "1056d753a7c5be68ef493b547062eea63a48bb218d710b2616aeac60ca379cca",
+    "Model/runtime/runtime.cc": "a4742905290618c740bc81f4e0316b289de86819ece50d7a95da62652bb0a4e9",
+    "Common/weights/weights.cpp": "789c8a895d21ac8e4377b785d025c0e2200b6565233de0b3916a16b891d4ea11",
+    "Common/weights/weights.hpp": "1056d753a7c5be68ef493b547062eea63a48bb218d710b2616aeac60ca379cca",
+    "Common/runtime/runtime.cc": "a4742905290618c740bc81f4e0316b289de86819ece50d7a95da62652bb0a4e9"
+  },
+  "existing_staging": "No explicit pinned staging/chunk-byte threshold in this loader or LoadBatch. Decode pinned projectedKV bank is distinct. Runtime may internally stage depending on vendor thresholds; cannot assert current transfers register userptr without observed events.",
+  "flag": {
+    "all18_actualprocess_env": "UNSET",
+    "actual_DTK_flag_string_present": true,
+    "library": "libgalaxyhip.so.5.2.26113.2065-6699a1f0",
+    "library_SHA256": "b125b6b4153f5d25dd8e445b43b2f57b0eab9b6305eb765430a82a4359e1870b",
+    "actual_DTK_unit_default_acceptance": "UNKNOWN: no installed flag definition or public ELF object; same-name string is not proof of KB parsing",
+    "upstream_trial_value": "4194304",
+    "upstream_unit": "KB -> 4GiB; not4294967296bytes",
+    "candidate": "opt-in freshprocess wrapper preserving operatorvalues; no live472/defaultSDK edit"
+  },
+  "sizes": {
+    "tensor_count": 118629,
+    "header_bytes": 14908776,
+    "above1MiB_count": 59101,
+    "above128MiB_count": 3,
+    "above4GiB_count": 0,
+    "full_source_total_bytes_not_perrank_shard": 755617140416,
+    "sizeofF32_BF16_FP8": {
+      "F32": 4,
+      "BF16": 2,
+      "F8_E4M3": 1
+    },
+    "payload_read": false,
+    "scope": "Full source sizes upper-bound direct TP-narrowed transfer bytes, not actual perrank copied volumes or wall."
+  },
+  "maximum_full_source_bytes": 1903165440,
+  "observability": {
+    "existing_progress": "Cumulative time after complete flush and final Model.finish; cannot separate mmapfault/storage, CPUgather, H2D, postprocessing, streamwait, vendor queue suspension. 2048/256 are tensor counts, not copy byte caps.",
+    "prior_proc_counters": "CPU/io/majorfault deltas support I/O or pagecache activity; not causal separation from MMU or H2D.",
+    "USERPTR_SMI": "NOT_OBSERVED: installed actual kfd header onlydefines VMFAULT/thermal/pre-post reset; no guessed eviction IDs or ioctls. This does not prove absence of evictions."
+  },
+  "minimal_next_component": {
+    "owner": "root implementation, no launch bythisagent",
+    "entry": "fresh process unset vs4194304 ABBA before loading DTK; existing CUDAshim/cudaMemcpyAsync+streamsync, CPU mmap-generated U8 source, no Model/weights",
+    "bounds": "Suggested256MiB device destination perowner and\u2264512MiB sharedsourcefile/node; small8MiB/64MiB/256MiB contiguous sizes, finite repeated mmap/copy/drain/unmap, no globalreclaim/reset. Allallocation/lifetimes normal.",
+    "measure": "Paired drained wall across slowest8owner, distinguish total mmap lifecycle from H2Dsync span, CPU+bytes/actualflag/librarySHA. D2H fullbytecheck outsidetiming. A negative bounded test cannot disprove high-pressure wholeloader evictions.",
+    "exit": "Existing uniquecontroller, timeout/noautoretry, all8 normalclose/process0/postKFD; no invalid pointers/GPUfault. Do not infer wholeModel12x from another GPU."
+  },
+  "wrapper_CPU_contracts_passed": 4,
+  "new_GPU_or_Model_load": false,
+  "live472_modified": false,
+  "primary_sources": [
+    "https://github.com/sgl-project/sglang/releases/tag/v0.5.20",
+    "https://github.com/sgl-project/sglang/pull/37720",
+    "https://github.com/sgl-project/sglang/commit/2c05ed4e7776c876478f4b2db61acb12b9a27d01"
+  ]
+}

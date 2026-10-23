@@ -1,0 +1,94 @@
+{
+  "revision": "r8413",
+  "reviewer": "Astra32 independent review",
+  "scope": "Local evidence/source read only; this JSON is the sole write. No SSH, GPU, scheduling, Git or canonical state mutation.",
+  "decision": "CONTINUE_GLM5722_WITHOUT_REVIEW_WAIT; KIMI_W_REJECTED_AND_CAUSAL_SLICE_SHORTENED_TO_FIRST_DECODE; DEEP_ONE_EXISTING_PREPARE_WALL_TIMER_ONLY; INTEGER_REFERENCE_CLOSED",
+  "review_is_not_launch_approval": true,
+  "trigger_accounting": {
+    "completed_experiments_since_readcut": ["910374.699: baseline repeat and sampled causal diagnostic", "910374.702: integer arithmetic primitive diagnostic", "910375.594: four-epoch policy experiment with six comparisons"],
+    "count": 3,
+    "qualification": "Three discriminating experiments, not three Model improvements. Six Kimi pairs count once; CPU preparation/builds do not count. Root owns canonical counters."
+  },
+  "review31_implementation_audit": [
+    {
+      "card": "DEEP-699-ONE-MEASURED-CAUSE",
+      "actual": "Completed699 qualification, perstep analysis, source component assignment and clock-scope correction. r7288 prepared defaultOFF prepare_impl timer, not compiled. Collection has yielded its useful information; no further broad trace analysis or copy replay is justified.",
+      "remaining": "Ordinary prepare_impl inclusive wall UNKNOWN; measured next only in an otherwise necessary session. Existing source timer is the shortest actionable continuation."
+    },
+    {
+      "card": "KIMI-FIRSTDIFF-CAUSAL-SLICE",
+      "actual": "594 terminal/audit/post clean; six pairs complete. New r8505 history join completed and r8504 actual source hooks inspected. This is real CPU causal progress, not another GPU round. No native state was recorded in594.",
+      "new_information": "req0 O1/W1 first available top2 difference is ordinal1/past512, not ordinal26. Both choose1938 at25.125; runner-up19327 is23.25 versus23.125. Prefill top2 agree but full state equality remains UNKNOWN. Slice should stop at first decode initially, saving25 target decode iterations per prefix replay relative to the old26 endpoint.",
+      "remaining": "Hook reuse and bounded faithful input/state capture; operator cause not yet identified. Current-source to historical object mapping is explicitly qualified in r8504, so record exact dependencies in any incremental build without rebuilding unaffected units."
+    },
+    {
+      "card": "KIMI-REQUEST-STABLE-NATIVE-SHAPE-FALLBACK",
+      "actual": "Root accepted producer decoupling and deferred wholeModel splitting. No completed producer CPU-check receipt was observed in this readcut; do not mark it implemented merely from dispatch.",
+      "decision": "Keep deferred wholeModel N1 splitting and N16/N32 scaling; no replacement card or dedicated GPU allocation. Producer repair remains already assigned CPU work, not a cure for native numerical divergence."
+    },
+    {
+      "card": "GLM-ROWS16-I512-ONELOAD",
+      "actual": "5722 replaces5721 mechanically; private8d787047 Model DSO already compiled. Source manifest b202c71b39ceebc6f0b22397c5c5e3e79b8dc1553bb4fb2503445ff95de332c2 and launch13242f6d74aa8506a400de47ef283da11eaa816876a50c2353f0bf9b9717a3a4 agree with mechanical receipt. Candidate-rejected generation preservation and profile/knownanswer audit separation are addressed. No new native compile is needed.",
+      "decision": "Execution is the next useful result, not another source seal or H2D instrumentation gate. Root GO continues independently."
+    }
+  ],
+  "result_scope": {
+    "GLM": "468 is an accepted scoped wholeModel short-input B16M8/16card gain:33.450482->35.306875 useful decode tok/s (+5.55%),2.090655->2.206680/card; I79..99, not I512 or an all-batch record. ROWS16 resident I512 remains unmeasured at readcut.",
+    "Deep": "699 same0e051 B32M32 I512/maxO128 baseline: CAPI57.853489/58.181637 and driver56.825681/57.142474 tok/s; CAPI7.231686/7.272705/card. Three4096-ID trajectories match frozen679 and freshQA12 passes;8 normal owners/audit0/post empty. This is qualified measurement, not code gain or independent original math. NoEOS through128 does not establish natural completion.",
+    "Kimi": "594 W is FAILED_OBSERVED for user final-token invariance. O1/O2 all8 exact; W1/W2 differ req4/5/6; eitherO versusW1 differs req0..6, versusW2 req0..3. All1666 owntrace jobs passing means MATCHED_SHAPE_JOBTRACE_ONLY. Service-window15.66/15.73 versus17.34/17.52 is diagnostic; all-decode29.16/29.24 versus28.24/28.38 is worse, and actual ingress/grouping differ.32 normal owners and cleanup do not promote failed outputs.",
+    "integer": "702 is a57s,8card,96case primitive reference with exact CPU oracle/guards and root independent recomputation.2560blocks/4chains medians approximately736.054 INT8 and1440.032 signedINT4 TOPS per card. Source loads fragments then repeatedly executes register-resident du_mma_sync and stores every chain. Count2ops/MAC. Not physical peak, full GEMM, unpack/quantization, FP4 E2M1, Model speed or a valid fullModel utilization denominator. No further hardware experiment."
+  },
+  "cards": [
+    {
+      "id": "KIMI-FIRST-DECODE-EXISTING-HOOK-REUSE",
+      "refines_existing_card": "KIMI-FIRSTDIFF-CAUSAL-SLICE; no duplicate framework",
+      "owner": "online_service_scheduler with native owner",
+      "resources": "CPU source preparation now. Only a necessary32card loaded session for genuinely missing native evidence; no reload to repeat final IDs.",
+      "single_hypothesis": "The req0 logit change is already observable at the first decode and can be localized before replaying ordinal26.",
+      "first_action_and_necessity": "Reuse actual text_model stage_input/decoder-boundary/final_norm trace_hidden, decoder entry/attn_norm/attn_output/ffn_output/exit, and existing KDA/MLA raw_trace. r8504 confirms hooks exist. trace_hidden filenames omit call/seq and overwrite raw snapshots: use a unique immutable job-seq TRACE_DIR at each drained CAPI boundary. Add only a defaultOFF point/layer/packed-request selector before trace_hidden contiguous/D2H; global text_model calls are not restricted by trace_detail_layer. This small source boundary change is necessary to obtain correctly identified, bounded evidence instead of a whole-layer dump. Keep all owners/stages synchronized and use actual request offsets; copying only the packed target row must preserve stride semantics.",
+      "minimal_cut": "Replay actual O1/W1 companion prefixes and target physicalrow1 through postprefill plus ordinal1/past512. Capture per-stage target boundaries first, then use existing decoder detail only inside the first differing stage while still loaded. Existing KDA captures conv/ssm before/after and read/write indices; use those indices to select target state. MLA projection/key/value traces do not capture pagedKV pool/slotmap or implement full restore. Add only the missing pool/slot mapping observation at the implicated boundary if necessary; never claim complete state clone from hidden tensors alone. Keep ordinal26 fallback only if ordinal1 cannot distinguish the relevant mechanism.",
+      "falsification": [
+        "Equal row IDs, tokens and past do not exclude stride/addressing/cache history errors. Compare logical target tensors with original shapes/strides, offsets and read/write rows; contiguous trace copies remove original physical-layout information unless recorded separately.",
+        "Postprefill state mismatch directs investigation to prefill/history. Equal restored complete state with N1/N4 output difference supports current-call shape/layout/math. Stable repeated identical-state identical-shape calls weaken a nondeterminism explanation; W1/W2 policy labels alone do not test determinism.",
+        "A captured failing component with equal logical inputs/state can test its original strided view against a correct contiguous copy; correction only there supports addressing/layout, persistence under equivalent layouts supports arithmetic/backend investigation. Do not change precision or blame rounding before this evidence."
+      ],
+      "wall_and_first_result": "No proven throughput saving yet. CPU gate/consumer should become runnable in one bounded work block (target30-60min, estimate not measured). First GPU causal result follows one load plus two actual prefix cuts and first decode;594 load758.74s is the measured historical loading reference, queue/new load duration UNKNOWN. Save25 target decode iterations versus26-first investigation, but whole-job wall saving depends on companion histories and capture overhead.",
+      "exit": "Stop after one discriminating native boundary/component cut and choose one supported local repair. Hash differences are diagnostic, not an element-bitwise optimization acceptance gate. W stays off until original required full IDs/EOS and quality pass; no teacher-forced replacement gold. If cause remains unresolved, report UNKNOWN and preserve accepted geometry; do not expand into repeated wholeModel loads."
+    },
+    {
+      "id": "DEEP-REUSE-PREPARE-INCLUSIVE-WALL",
+      "refines_existing_card": "DEEP-699-ONE-MEASURED-CAUSE",
+      "owner": "deep_remaining_cause",
+      "resources": "One private compressor translation-unit incremental closure only when next necessary Deep session is scheduled; reuse existing0e051 unaffected objects and owner/controller. No dedicated timer load.",
+      "single_hypothesis": "TemporalCompressor::prepare_impl inclusive ordinary wall is large enough to justify one localized follow-on optimization.",
+      "minimal_source_action": "Use already prepared deep_compressor_light_timer_r7288.cpp. Guard is before positionsD2H and before Work declaration, so its destructor runs after Work's original stream drain and temporary destruction. It measures actual host wall including existing CPU preparation/GPU work/waits, without new HIP calls or synchronization. Retain that ordering, defaultOFF and three ratio/dim buckets. No new broad profiler, runtime Get/Set rewrite, copy redo or arithmetic change. Existing exported counters suffice; caller uses only validated device0..7/kind0..2 and idle enable toggles.",
+      "measurement": "In the next necessary same-prefix formal trajectories, read counter deltas outside CAPI and enable bounded decode windows covering all mod4 phases. Compare timerOFF/ON ordinary perstep CAPI and driver wall with matched context/mod4; reuse planned repeated trajectories instead of adding another full128/QA matrix. Record per-owner calls and inclusive ns, choose critical owner; never sum eight owners as elapsed wall. Entry positionsD2H can wait for upstream work, so even this timer is inclusive wait attribution, not exclusive compressor GPU cost. ON cost above ordinary repeat noise invalidates attribution.",
+      "proven_and_unknown": "5138 BF16 Copy kernels/card comprise Csa2709,compressor2127,AttentionOut172,Swa130, but compressor count spans prepare/commit/gather. Ordinary prepare share and removable Get/Set/source cost UNKNOWN. Trace1,378,140records is one forward;3.821s versus0.589/0.588s is6.494x, without absolute cross-clock calibration. No ordinary GPU-idle claim. Mod4 boundary586-589ms versus538-542ms indicates roughly47ms periodic excess; eliminating only that entire excess would save about11-12ms averaged over steps, roughly2% current wall, not the whole compressor share or a guaranteed gain.",
+      "first_result_and_exit": "First boundary wall arrives after next necessary load/prefill and one bounded mod4-covered decode window;699 measured load410.87s and prefill about151s are historical reference, incremental compile/queue/new runtime UNKNOWN. If no otherwise necessary session exists, stop at source readiness. If prepare is small relative to target headroom, close this route; if material, select one lifetime-safe source operation from this boundary. No claim of improvement until paired Model wall and required fullID/EOS/QA pass."
+    },
+    {
+      "id": "GLM-EXECUTE-EXISTING-5722",
+      "refines_existing_card": "GLM-ROWS16-I512-ONELOAD; execution reminder, not new approval",
+      "owner": "glm_critical_path_profile / root ordinary scheduling",
+      "resources": "Existing8d787047 DSO,16cards TP8PP2, one load, ROWS16/cap640/B16M8, VfixedON/TfixedOFF",
+      "single_hypothesis": "Fixed admitted projected-resident mask improves same-I512 wholeModel useful decode/card by avoiding repeated prefix transfers.",
+      "minimal_change": "No new source or compile requested. Execute5722 shortO/R, I512O/R/R/O, shortR/O, then existing QA/profile sequence. Source reset/control/counters already implement all-owner policy agreement and fixedmask. Reuse128MiB physical bank/layer admission,6GiB+64MiB reserve and512MiB floor; full40 is5GiB, not automatic fit.",
+      "wall_and_first_result": "I512 gain and exclusiveH2Dwall UNKNOWN. First directional short pair is available early; decision-grade I512 evidence after its O/R/R/O before18B1generations/fourQA/two full128TLSprofiles. Queue/load/I512 duration not measured yet; report phase timestamps, do not promise a fabricated completion time. Prior468 total55:07 is a different workload, not this run's ETA.",
+      "exit": "Stop failed arm on finalID/EOS mismatch or memory floor/admission failure; preserve failed generation records. No gain exceeding same-session spread closes resident expansion. Retain468 short scoped B gain. I512 ownOFF is regression reference, not independent original math. Full required qualification remains before adoption; do not rerun unchanged quality just to publish an early directional performance result."
+    }
+  ],
+  "iteration_efficiency": {
+    "measured_time": "69920:57 includes load410.87s, approximately3x151s prefill and3x70-74s decode plus remaining preparation/QA/cleanup; do not invent the unseparated remainder.59436:27 includes owner0 load758.74s and costly1666 owntrace job replay.70257s is bounded arithmetic; it cannot substitute for Model progress.",
+    "criticism": "More audit manifests after terminal qualification have diminishing optimization value. Existing evidence now supports proceeding withGLM and narrowingKimi; do not spend another loaded session reproducing known IDs or6.49x distorted trace. No independent ready work waits for this review. Preserve necessary numeric acceptance while moving performance pairs before repeated quality workloads.",
+    "priority": "GLM5722 is immediate Model-performance allocation. Kimi only prepares the bounded first-decode missing-evidence route; Deep only reuses existing timer in a necessary session. No new hardware benchmark, broad profiler or wholeModel splitting benchmark.",
+    "time_reporting": "Owners report preparation, queue, load, measurement, QA separately. The next useful checkpoint is an executable source change or new causal observation, not another seal. If90min passes without either, escalate route ROI using the existing policy instead of silently extending investigation.",
+    "objective": "Three-model user-throughput objective remains incomplete;15tok/s/user not achieved. No GPUF64, weakened finaltoken contract, elementwise bit-equality promotion gate or substitute benchmark."
+  },
+  "principal_evidence_read": [
+    "astra-review-r8406.json", "astra-review-implementation-r8411.json", "astra-review-policy-r8411.json",
+    "Deep699-qualified-performance-r7286.json", "r7281-Deep699-perstep-summary.json", "r7285-Deep699-component-attribution.json", "r7287-Deep699-ROI-clock-scope.json", "Deep-compressor-light-timer-design-r7288.json", "deep_compressor_light_timer_r7288.cpp",
+    "integer-arithmetic-qualified-r8410.json", "hardware_dumma_r8403.hip", "hardware_dumma_r8405.py",
+    "Kimi-bounded-terminal-r8499.json", "Kimi-pair-bundle-r8496-final.json", "Kimi-firstdiff-oracle-snapshot-r8497.json", "Kimi594-history-join-r8505.json", "Kimi594-actual-tracer-sources-r8504.json",
+    "GLM468-qualified-scope-r5721.json", "GLM-ROWS16-Model-source-manifest-r5722.json", "GLM-ROWS16-mechanical-CPU-r5722.json", "glm_rows16_probe_r5722.py", "glm_rows16_control_r5721.py", "glm_rows16_resident_base_r5721.py"
+  ]
+}
