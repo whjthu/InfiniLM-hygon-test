@@ -4,6 +4,8 @@
 
 先读 [协作流程](coordination/PROTOCOL.zh-CN.md)、[Agent 约定](AGENTS.md)；BW1100 接入使用 [这份任务书](handoff/BW1100_AGENT_START.zh-CN.md)。
 
+[两端每 10 分钟检查的沟通约定](coordination/COMMUNICATION.zh-CN.md)：检查不产生提交，实质更新才发布；BW1100 的定时器需要在其所在机器启用。
+
 ## 当前入口
 
 - [BW1000 状态](status/bw1000/latest.json)：包含观测时间与证据，不把历史运行状态当作当前进程存活证明。
