@@ -1,0 +1,33 @@
+{
+  "status": "MEASUREMENT_CONTRACT_NO_NEW_PERFORMANCE_RESULT",
+  "batch": "B is the number of logical requests circulating in the closed batch. M is the number of requests per microbatch. PP is the number of pipeline stages. Simultaneously executing requests are not the full denominator of user throughput.",
+  "steady_equal_length_rule": "For a stable closed batch whose B requests generate at approximately the same rate over the same measurement window, aggregate decode tok/s divided by B approximates each user's decode rate. Individual measured intervals and the distribution remain authoritative.",
+  "PP2_B16_M4_example": {
+    "microbatches": 4,
+    "maximum_simultaneously_computing_microbatches_in_ideal_two_stage_example": 2,
+    "other_microbatches_waiting": 2,
+    "aggregate_tok_s": 60,
+    "ideal_output_tick_ms": 66.6666666667,
+    "same_user_output_interval_ms": 266.6666666667,
+    "user_tok_s": 3.75,
+    "interpretation": "60/8=7.5 counts only the8 currently computing users and omits waiting for the other two microbatches. If B is actually reduced to8 and measured total remains60, then7.5/user is valid; unchanged total is not guaranteed."
+  },
+  "actual_latest_Kimi_N4_configuration": {
+    "evidence": "Kimi-N4-Model-terminal-r8227.json",
+    "cards": 32,
+    "TP": 8,
+    "PP": 4,
+    "B": 16,
+    "M": 4,
+    "paired_ON_aggregate_decode_tok_s": 61.85686432720944,
+    "aggregate_divided_by16": 3.86605402045059,
+    "measured_postanchor_request_mean_approx": 3.877386,
+    "measured_first_ready_request_mean": 3.1261126266143258,
+    "difference": "Actual per-request windows are not exactly the aggregate window; first-ready-to-last-ready also retains waiting while other cohorts still prefill. Neither metric is HTTP client delivery speed."
+  },
+  "15_user_target": {
+    "ordinary_decode_average_intertoken_budget_ms": 66.6666666667,
+    "B16_same_window_required_aggregate_tok_s_at_least": 240,
+    "hardware_reachability": "Not yet proved; achieved large-GEMM/read benchmarks are references, not physical peaks or a small-M inference roof. No physical maximum TPS or15/user achieved claim."
+  }
+}

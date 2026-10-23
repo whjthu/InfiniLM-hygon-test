@@ -1,0 +1,128 @@
+{
+  "revision": "r8452",
+  "status": "CPU_CONTROL_IMPLEMENTED_GPU_NOT_RUN",
+  "source_observed_remote": [
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/engine/infer_engine.cpp",
+      "SHA256": "074d1a1ee5153058e7c97bfeaa3b9142e428b8b9f53f21d053e19cb8182a8d00"
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/engine/rank_worker.cpp",
+      "SHA256": "2503f72854e871f1f79d9ffa66bbe9119ff9db0213797876b0b022dd19b670ce"
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/engine/rank_worker.hpp",
+      "SHA256": "cc366867e69dc74db254ac0fbe634e70d0e3196e859bd6156f1bed62dc017c02"
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/kimi-serving-MoE-5f91ad7-r4665/kimi_engine_probe_r2475.cpp",
+      "SHA256": "b8af82658ae161572b39e41ca87d547dc41755c05d0d7fc6e93cbdb4f8864cda"
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/kimi_engine_input_r145.hpp",
+      "SHA256": "734276a9cedfe16f17f2c4a5021369d4e1004558b1ee73cf74cddc49c5c7f14c"
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/engine/nsa_owner_input.hpp",
+      "SHA256": "66536c6ded111bf7d2f75a8ccb3169d52a609b12294882c818a6c55997c748b9"
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/engine/compiler/paged_prepare_inputs.hpp",
+      "SHA256": "581512845c7340fa4ad45483a516537d414880ea7d73bd34ae1a615caca6c662"
+    }
+  ],
+  "source_closure_limit": "Actual remote candidate source bytes observed. Compiled-object reuse provenance must still be checked against selected DSO receipt before GPU adaptation; source availability alone is not DSO identity proof.",
+  "source_findings": [
+    {
+      "source": "online-source-r8450-4.hpp",
+      "lines": [
+        24,
+        49
+      ],
+      "finding": "freeze_input validates each physical row unique, past == persisted row history; arbitrary row subsets/orders are accepted at input contract level. commit updates only selected rows. This is not model numeric qualification for regrouping."
+    },
+    {
+      "source": "online-source-r8450-3.cpp",
+      "lines": [
+        38,
+        48
+      ],
+      "finding": "CAPI builds owned fixed four-page physical map from row IDs and sets defer_pipeline_feedback from flag2. Cap128 native guard, current Modelcap32; lengths<=1024, totalpacked<=8192."
+    },
+    {
+      "source": "online-source-r8450-1.cpp",
+      "lines": [
+        947,
+        973,
+        1040,
+        1064
+      ],
+      "finding": "Non-tail deferred path publishes local job_done without waiting for tail token. Tail copies sampledIDs toCPU and syncs. Same job order on all PP owners plus previous token dependency required; concurrent calls to same owner prohibited."
+    },
+    {
+      "source": "online-source-r8450-0.cpp",
+      "lines": [
+        479,
+        634
+      ],
+      "finding": "Engine serializes each local forward; reset_cache waits owners and sets all persisted lengths to0. No selected-row reset API found in observed bridge. Epoch-wide reset, never silently reassign completed KDA/cache rows."
+    },
+    {
+      "source": "kimi_cohort_feedback_idle_r4915.py",
+      "finding": "Current decode_cohorts fixes initial membership and loops cohorts; EOS only removes members. Current r4917 prefill loop completes all before anchor. Not arbitrary online ready queue."
+    }
+  ],
+  "implementation": {
+    "scheduler": "online_service_core_r8451.py",
+    "metrics": "online_service_metrics_r8451.py",
+    "tests": "test_online_service_r8451.py",
+    "source_SHA256": {
+      "online_service_core_r8451.py": "97ce8cbed7f389e5fa3145fffa3809e2ae6b593f71909085d1470032d7f9aad9",
+      "online_service_metrics_r8451.py": "802953741e3db9bcd018734f43c31ba7f1b685083b3ec5c9f883e845be427699",
+      "test_online_service_r8451.py": "1250751923eb535b3ac8e21fa43ec893ffba41cf4e774de2e946355ef14ab0a6"
+    },
+    "CPU_test": {
+      "CPU_contract_passed": true,
+      "synthetic_fixture_only": true,
+      "actual_GPU_or_Model_performance": "NOT_RUN",
+      "checks": [
+        "ordered PP jobs; no simultaneous owner calls",
+        "new arrivals while prior cohort is in flight",
+        "emitter-ready decode reentry before other cohort finishes",
+        "EOS survivor regrouping; exact physical row/past",
+        "row exhaustion waits for verified native world reset",
+        "reject duplicate request and stale completion",
+        "reject pad numerator and fabricated client boundary",
+        "queue occupancy and single-token undefined speed",
+        "failure latch prevents new work"
+      ]
+    },
+    "test_stdout_SHA256": "00051e967a6d3a8a4992155f5b28f4bc2a69b07978dab41e26760ee9ac4f7f0c"
+  },
+  "implemented_boundaries": {
+    "immutable_global_job_order": true,
+    "one_busy_job_per_owner": true,
+    "emitter_completion_requeues_requests": true,
+    "changing_microbatch_membership": true,
+    "max_resident_users_and_inflight_jobs": true,
+    "no_epoch_row_reuse": true,
+    "separate_prefill_decode_jobs": true,
+    "decode_burst_admission_fairness": true,
+    "padding": "DISABLED: dummy rows must not alias real state; padding not yet numerically qualified",
+    "online_TCP_transport": "NOT_IMPLEMENTED",
+    "actual_Engine_adapter": "NOT_IMPLEMENTED",
+    "cancellation_native_drain": "NOT_IMPLEMENTED; no cancellation support claim",
+    "client_timestamps": "NOT_MEASURED"
+  },
+  "next_finite_validation": {
+    "phase1": "Implement authenticated bounded CPU work broker using existing length-bounded TCP framing; every owner consumes same job index; emitter completion publishes immutable token payload. CPU multi-process test order/skips/duplicates/disconnect/failure/arrival while busy. No Engine calls from handler threads.",
+    "phase2": "Before full load, source/dependency receipt identity and preengine on root-approved spare375 nodes only; no modification of371/500 or cacheprotected384.",
+    "phase3": "One fresh candidate load; OFF static controls and full QA plus dynamic small finite variable-arrival cases; no partial numeric adoption. Keep original static baseline protocol available. At most32new requests per epoch at cap32; queue/drain/reset stall included. Complete output token/EOS comparison per identical prompt against independent frozen baseline, not regenerated after failure.",
+    "model_matrix": "Closed-loop resident N1,4,8,16,32 and M1,4,8 where valid, max-inflight1,PP,2PP under maxusers; adaptive ragged final groups unpadded. Narrow first qualification N8/M4 then expand after exactIDs/EOS/QA. Head flag OFF first; do not combine unqualified methods.",
+    "open_loop": "Real wall-clock arrivals from fixed recorded traces; arrival producer independent of decode duration. Sweep fractions0.25/0.5/0.75/1.0/1.25 of measured stable request completion capacity for chosen workload, retain queue/rejections and unfinished tail. No time dilation when worker busy. Compare burst and Poisson traces separately.",
+    "metrics": "Every real token emitter stamp plus arrival/admit/dispatch/stageStart/stageEnd/terminal in explicit clock domains. Request rate from ordinal0 to last (EOS decision wait included, EOS not useful token); ITLp50/95/99 and TTFT; timeweighted queued/admitted N(t); decode/card and SLO goodput/card. Client metrics only after actual client receive instrumentation; CAPI and stage events are localclock and do not prove crosshost clock alignment.",
+    "instrumentation": "First actual service evaluate emitter boundary. CPU scheduling timestamps on one coordinator clock only; owner-stage stamps retained as localclock diagnostic or broker receive observation, never mixed as aligned GPU timeline. ProfileOFF performance, separate timeline diagnostic. No pertoken fileflush inside timing; buffer and write after drain.",
+    "GO_required": "Root source review of broker, adapter, source closure, lifecycle and actual preengine before any new Model launch. No GPU launch requested by r8452."
+  },
+  "performance": "NO_NEW_PERFORMANCE_RESULT; synthetic unit fixtures excluded from any speed claim"
+}

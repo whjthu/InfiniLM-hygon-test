@@ -1,0 +1,43 @@
+{
+  "status": "CPU_DESIGN_ONLY_NO_GPU_LAUNCH",
+  "objective": "Locate the remaining DeepSeek final-token divergence without another blind full-model performance run; preserve the three-model hardware-aware optimization objective.",
+  "authoritative_evidence": {
+    "observation": "r8356-Deep-current-handle.json",
+    "actual_step": "910374.679",
+    "Slurm": "COMPLETED 0:0 / 00:21:13",
+    "report_SHA256": "a7234079accbdcacbb10beacc87002b2a0149dbfd73597fcc7e2a8f019dfbaee",
+    "Model_DSO_SHA256": "0e0512551483457af01944e9c9298442f499d959836a1c5b66dfa438a3c6c4ea",
+    "one_weights_load_seconds": 386.8261,
+    "OFF_pure_B32_full128_and_restore": "exact historical IDs",
+    "ON_mixed_B33_row32_and_ON_B1": "both first differ at zero-based output index35: actual6533, frozen5078",
+    "QA": "18 exact EOS cases; all8 owners normal; no native GPU failure",
+    "terminal_audit": "unique r7221 audit already completed, candidate NOT qualified",
+    "post_KFD": "unique r7221 watcher already checked empty; do not repeat",
+    "performance": "ABBA skipped, no candidate throughput adopted"
+  },
+  "causal_scope": {
+    "proved": "674 repaired actual layer0 GPU-cast MoE output and final hidden for the finite prefill fixture; 679 proves that repair is insufficient for full final-token equivalence.",
+    "not_proved": "The remaining cause may be later prefill/cache divergence, decode batch geometry, or their interaction. Same output index does not identify the cause.",
+    "prohibited_inference": "Do not label all43 layers repaired from the layer0 result; do not pad every operation for intermediate bit equality or introduce GPU F64."
+  },
+  "next_bounded_experiment": {
+    "first_action": "Inspect existing raw 679 and prior teacher/trace evidence and actual current source. Prefer CPU analysis if the needed discriminating evidence already exists.",
+    "resident_one_load_only_if_needed": true,
+    "first_question": "Does changing only decode geometry change the natural0 output when prefill geometry and teacher-forced history are identical?",
+    "core_comparison": [
+      "Reference: reset, OFF original B32 prefill in four-row cohorts, teacher-forced decode M32 through output index35.",
+      "Decode isolation: same reset and identical B32 prefill, then teacher-forced decode only natural0 row0 with M1 through index35; other rows remain allocated but dormant. Do not reindex or recycle any cache row.",
+      "Prefill isolation: reset, B1 single512 prefill with tail correction ON, then the same natural0 teacher-forced M1 history through index35. Compare with the prior row0 M1 case.",
+      "Only if source/evidence requires it: OFF B1 single512 control and targeted restore; do not expand to a shape grid."
+    ],
+    "teacher_history": "Freeze natural0 prefix from the unchanged historical source before any candidate. Feed identical reference IDs even after a diagnostic argmax mismatch, so later differences are not caused by different generated histories.",
+    "diagnostic_outputs": [
+      "For every teacher step: top1/top2 IDs and margins, finite checks, output hash, equality to frozen and matched-geometry controls.",
+      "If necessary, immutable opt-in layer-boundary capture at prefill and selected teacher steps; first locate the differing layer/cache boundary, then expand only that layer's component stages.",
+      "Keep raw logits/activations on the cluster; upload only necessary source/design/verification JSON."
+    ],
+    "qualification": "Teacher-forced and intermediate captures are diagnostic only, never serving TPS or final model qualification. A repaired candidate still requires complete ordinary final IDs/EOS/QA/restore and normal shutdown.",
+    "runtime_contract": "Use actual 0e051 parent, unchanged SDK, eager owner-bound stream and validated full metadata. Any new hooks need actual dependency closure and CPU compile, then finite GPU review.",
+    "resource_contract": "Deep lease only, fresh existing-step/KFD check, unique numerical intent, no reset/cancel of parent holds, and independent post-KFD on any actual terminal. Do not relaunch or re-audit679."
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "utc": "2026-10-23T18:17:48.004112+00:00",
+  "status": "SOURCE_DESIGN_ONLY_NO_NEW_GPU",
+  "evidence": "GLM-stage1-layer-evidence-r5676.json",
+  "candidate1_routed": {
+    "priority": 1,
+    "actual_dispatch": "Policy0 or routes64<4096 => f359 glm_grouped_gate/down forwards scalar glm_routed_gate/down_r19; decode dedup scope isOFF and routes128 branch does not apply. No ATen BMM on measured path.",
+    "actual_source": {
+      "native_CPP_SHA256": "d1b7b39996e11675fb998f555fce63329cf76f0fb1efc66eaa02f3b439210100",
+      "scalar_CU_SHA256": "c9b899fbf5a6f8eb715d806bc592e79b8b738b4334dd938d83e6f1e40f4e326a",
+      "scalar_object_SHA256": "e10632453a7b950afd3078076da7f2a68e0828436ee2d5c725045c30e4a4ef69"
+    },
+    "mechanism": "gate_up W64/V2: four output rows/256thread block, 48xK128 blocks, software decode(e,m)->ldexpf, explicit F32 tree reduction and scale per block; down W32/V4 eight outputrows/block, twoK128 blocks, same scalar decode/F32 reduction. Source has no matrix instruction intrinsic. Actual gfx936 ISA disassembly still needed before claiming precise instruction cost.",
+    "measured": "gateup stream1.083..1.091ms versusCPU.019..030ms; down .653..655ms versusCPU.012..017ms, all8owners. Combined primary nativeGPU cost, not descriptor microoverhead.",
+    "specific_minimum_candidate": "One-layer opt-in persistent BF16 block-major weight predecode, no scale folding, reuse existing FP8 activation quant/scales. Gateup pack [expert,48,128,512], down[expert,2,128,6144]; decoded FP8 values exactly representable BF16, keep scalesF32 and blockwise accumulate. SmallM grouped BF16 matrix path (actual supported ATenBMM proven in existing prefill branch) plus bounded GPU route grouping, no host ID D2H. First controlledU1/8/32/actual49..59 same loadedweights and full output vscurrentf359; CPU selected oracle, finalModel IDs later. Do not reuse old per-call pack+absoluteBMM+bit-repair pipeline or merely relax threshold4096.",
+    "memory_tradeoff": {
+      "all256_packed_BF16_extra_bytes_perrank_layer": 2415919104,
+      "keep_FP8_plus_BF16_raw_bytes": 3623878656,
+      "note": "Extra2.25GiB/layer before scales/scratch; feasible component, not automatic40layer Modelfit. Fourlayers BF16extra9GiB may need different placement/parallelism; total/card and finaltokens decide."
+    },
+    "numeric_gate": "BF16 GEMM may change reduction order; user only finaltokens hardgate, not F64/intermediatebit repair. Component errors diagnose then fullModel finalIDs/EOS mandatory.",
+    "NOT_RUN": [
+      "actual ISA disassembly",
+      "predecode candidate source",
+      "matrix candidate compile",
+      "candidate GPU",
+      "CPUoracle"
+    ]
+  },
+  "candidate2_attention": {
+    "priority": 2,
+    "actual_calls": "prepare_impl: q_a FP8projection -> RMS(ones)+Mul -> q_b FP8projection; independently kv_a quant/projection -> RMS(ones)+Mul -> contiguous rotary views/rotary/copyback; positionD2H; later kb projection+8 keyrotary broadcast copies. Decoder lease already defers nested projection success fences. r601 still explicitly syncStream for EACH of8rows after5submit operations. Host4504 default eachrow write2 synchronousD2H then read2 asyncH2D; 16syncD2H perlayer before/around8perrowdrains.",
+    "measured": "prepare CPU.613..646ms; hostprefix_rowsetupCPU.667..720ms; rowcomputeCPU.819..867ms. Not solelywire/PCIe. Current native476 ~3usguard saving not this target.",
+    "specific_minimum_candidate": "Runtime-owned shared transient M8 K/V staging banks [8,640,8,256], logical40MiB/physical64MiB total reused across layers, NOT persistent perlayerresident. New bounded packed synchronous append: two D2H of packed fresh8 KV to Runtime-pinned64KiB slab then CPU scatter into actual Bank rows, publish allmetadata after bothcopies; sixteen exact-length asyncH2D into distinct slots, then existing exactPi5555 sharedenddrain over8contiguous leadingprefixviews. No padding/mask fiction, no full40resident banks, no new stream/Runtime. DefaultOFF, allowner metadata validate first, allparents held through drain, hostpoison on partialenqueue, normalreset. This changes 16 D2H synchronization points to2 and8 attention enddrains to1, rather than shaving guards.",
+    "existing_API_limits": "Bank::copy_batch requires uniformprefix and cannot directly accept mixedP; Bank::write_group uses separate commit stream and existing5030 behavior, do not claim newcandidate by toggling flags. New packed-sync append API needed; originalhostbank remains authoritative.",
+    "prepare_followup": "If staging does not dominate after source integration, bounded combine q_a/kv_a activation BlockQuant once and fuse RMS-normalizedBF16-thenweightMul preserving intermediate BF16 rounding; combine real ops/submits, not repeatedgenericchecks. CPUdispatch ledger first, no claimed speedup.",
+    "acceptance": "Reuse same layer38 weightload next necessary wave for samehistory/off-on fullhidden numeric, counter bytes, unmodified othercohort state, outputcanary, failurecleanup; then one fullModel ON/OFF finaltokens/QA. No repeat identical prior QKV matrix or fullModel load just for bookkeeping.",
+    "NOT_RUN": [
+      "new append/staging code",
+      "GPU",
+      "Model"
+    ]
+  },
+  "PP42": "GLM-PP42-CPU-budget-r5679.json only; no new Model load",
+  "resource_status": "159 and160 COMPLETED0; no remaining numeric task in latest910406/910407 snapshot. n19/n20 leases remain assigned; no newGPU scheduled."
+}
