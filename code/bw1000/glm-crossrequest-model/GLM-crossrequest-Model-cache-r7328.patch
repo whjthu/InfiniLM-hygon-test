@@ -1,0 +1,49 @@
+--- actual5681-cache-view
++++ private7328-cache-view
+@@ -15,6 +15,8 @@
+ #include <atomic>
+ namespace infinilm::models::glm_moe_dsa {
+ namespace rt=infinilm::runtime;namespace ex=infinilm::execution;
++bool glm_crossrequest_fullprefix_r7328(rt::Runtime&,const std::vector<rt::Tensor>&,const rt::Tensor&);
++rt::Tensor glm_crossrequest_prefill_r7328(rt::Runtime&,const rt::Tensor&,const rt::Tensor&,const rt::Tensor&);
+ namespace {std::array<std::atomic<uint64_t>,8>view_calls927{},copy_calls927{},proven_prefix_calls1669{},trusted_decode_calls1669{};}
+ extern "C" uint64_t modern_glm_cache_view_calls_r927(int device,int kind){if(device<0||device>=8||kind<0||kind>1)return 0;return kind?copy_calls927[size_t(device)].load():view_calls927[size_t(device)].load();}
+ namespace {thread_local std::map<const rt::Runtime*,bool> selection_policy998;}
+@@ -75,6 +77,14 @@
+   // sparse selection/order and length publication remain unchanged.
+ glm_layer_mark_r5670(r,"attn.projectedKV.begin");  auto fresh_all=prepare_->expand_cached(r,prepared.kv_latent,prepared.k_rot);
+   work.held.insert(work.held.end(),{fresh_all.first,fresh_all.second});
++  const char*cross_flag7328=std::getenv("GLM_CROSSREQUEST_PREFILL_R7328");
++  if(cross_flag7328&&std::string(cross_flag7328)!="0"&&std::string(cross_flag7328)!="1")throw std::invalid_argument("7328 crossprefill flag 0/1");
++  bool cross7328=cross_flag7328&&std::string(cross_flag7328)=="1"&&tokens==4096&&requests.size()==8&&prepare_->local_heads()==8&&topk_>=512;
++  for(auto request:requests)cross7328=cross7328&&request.past==0&&request.tokens==512;
++  // Validate complete causal sets before projected-K/V cache writes below.
++  // Indexer work above retains its original state/ordering. Other geometries
++  // and selections keep the original per-request attention path.
++  if(cross7328)cross7328=glm_crossrequest_fullprefix_r7328(r,selection,positions);
+ glm_layer_mark_r5670(r,"attn.cache.begin");  const char*group_flag=std::getenv("GLM_GROUP_PROJECTED_HOST_R5030");
+   if(group_flag&&std::string(group_flag)!="0"&&std::string(group_flag)!="1")throw std::invalid_argument("5026 group flag 0/1");
+   const bool group5026=!resident5640&&host_bank_r4504_&&group_flag&&std::string(group_flag)=="1"&&requests.size()>=8;
+@@ -140,6 +150,7 @@
+     if(!kr->is_contiguous()||!vr->is_contiguous()||kr->nbytes()!=4096*prefix||vr->nbytes()!=4096*prefix||reinterpret_cast<uintptr_t>(kr->data())%256||reinterpret_cast<uintptr_t>(vr->data())%256)throw std::logic_error("5640 exactprefix layout");
+     resident_keys5640.push_back(kr);resident_values5640.push_back(vr);work.held.insert(work.held.end(),{key_row,value_row,kr,vr});begin+=count;continue;}
+    if(batch5055){begin+=count;continue;}
++    if(cross7328){begin+=count;continue;}
+ glm_layer_mark_r5670(r,"attn.row.compute.begin");   auto chosen=selection[i];rt::Tensor result;
+    const bool certified=owned_prefix_policy_r1669_&&*owned_prefix_policy_r1669_&&bounded_policy_r1406_&&*bounded_policy_r1406_&&capacity_<=topk_&&!selection_proofs.empty();
+    if(certified){
+@@ -173,7 +184,13 @@
+    if(resident5640&&count==1)++resident_row601_calls_r5640_;
+    work.held.push_back(result);attention->narrow({{0,begin,count}})->copy_from(r,result);begin+=count;glm_layer_mark_r5670(r,"attn.row.compute.end");
+   }
+-  if(staged5680){auto joined=sparse_attention_exact_rows_r5555(r,prepared.query,stageLease5680->keys,stageLease5680->values,1);work.held.push_back(joined);attention->copy_from(r,joined);}
++   if(cross7328){
++    // Fresh tensors are immutable and held for this entire forward. Original
++    // cache writes/host roundtrip above still run and publish identical state.
++    auto joined=glm_crossrequest_prefill_r7328(r,prepared.query,fresh_all.first,fresh_all.second);
++    work.held.push_back(joined);attention->copy_from(r,joined);
++   }
++   if(staged5680){auto joined=sparse_attention_exact_rows_r5555(r,prepared.query,stageLease5680->keys,stageLease5680->values,1);work.held.push_back(joined);attention->copy_from(r,joined);}
+   if(shared5640){auto joined=sparse_attention_exact_rows_r5555(r,prepared.query,resident_keys5640,resident_values5640,1);work.held.push_back(joined);attention->copy_from(r,joined);++resident_shared_calls_r5640_;}
+   if(batch5055){auto joined=sparse_attention_all_selected_decode_batch_r5096(r,prepared.query,batch_key5055,batch_value5055);work.held.push_back(joined);attention->copy_from(r,joined);view_calls927.at(r.device().index()).fetch_add(requests.size(),std::memory_order_relaxed);trusted_decode_calls1669.at(r.device().index()).fetch_add(requests.size(),std::memory_order_relaxed);}
+   glm_layer_mark_r5670(r,"attn.output.begin");auto projected=output_->forward(r,attention);glm_layer_mark_r5670(r,"attn.output.end");work.held.insert(work.held.end(),{projected.local,projected.hidden});if(stageLease5680)stageLease5680->finish();else r.syncStream();for(auto request:requests)lengths_[request.row]=request.past+request.tokens;if(resident5640)resident_slots_r5640_=std::move(resident_next5640);return {projected.hidden,selection,prepared,attention,selection_proofs};
