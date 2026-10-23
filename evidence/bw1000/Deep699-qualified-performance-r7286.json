@@ -1,0 +1,111 @@
+{
+  "status": "QUALIFIED_FIXED_B32_REGRESSION_AND_MEASURED_TIMING_SCOPE_ONLY",
+  "actual_step": "910374.699",
+  "Slurm": "COMPLETED0/00:20:57",
+  "hardware": {
+    "node": "a02r4n05",
+    "nodes": 1,
+    "owned_DCU": 8,
+    "runtime_owners": 8,
+    "TP": 8,
+    "PP": 1,
+    "hardware_model_scope": "Existing Hygon BW1000 project inventory context; no new hardware peak or model-name probe in this session"
+  },
+  "model": "DeepSeek-V4-Flash-Channel-INT8-w8a8",
+  "geometry": {
+    "B": 32,
+    "M": 32,
+    "input_tokens_each": 512,
+    "max_output_tokens_each": 128,
+    "decode_useful_output_tokens": 4064,
+    "prefill_input_tokens": 16384,
+    "projection_tile": 16,
+    "C4_tile": 16,
+    "layout_HC_tail": [
+      0,
+      0,
+      0
+    ],
+    "precision_policy": 5
+  },
+  "actual_precision": "Attention BF16->F32 SUM->BF16, MoE/indexer F32SUM;C4BF16 tiled, C128 explicitF32GEMM. NoGPUF64SUM. Mode5 source/linked proof preserved.",
+  "measurement_level": "Native CAPI forward windows including mandatory completed full-logits/IDs D2H and FFI. Driverdecode includes per-call fullvocabCPUfinite/argmax/inputprepare. Neither is clientHTTP service or pureGPU throughput.",
+  "formal_repeats": [
+    {
+      "trial": "baseline-r1",
+      "native_prefill_seconds": 150.87072534,
+      "native_decode_seconds": 70.24641155399995,
+      "native_CAPI_prefill_input_tok_s": 108.5962830965203,
+      "native_CAPI_decode_output_tok_s": 57.85348902663753,
+      "driver_decode_output_tok_s": 56.825680710055046,
+      "per_user_decode_CAPI_tok_s": 1.8079215320824213,
+      "per_user_decode_driver_tok_s": 1.7758025221892202,
+      "CAPI_decode_output_tok_s_per_card": 7.231686128329692,
+      "driver_decode_output_tok_s_per_card": 7.103210088756881
+    },
+    {
+      "trial": "baseline-r2",
+      "native_prefill_seconds": 151.619297623,
+      "native_decode_seconds": 69.85021720400007,
+      "native_CAPI_prefill_input_tok_s": 108.06012332769583,
+      "native_CAPI_decode_output_tok_s": 58.181637261498295,
+      "driver_decode_output_tok_s": 57.14247402724478,
+      "per_user_decode_CAPI_tok_s": 1.8181761644218235,
+      "per_user_decode_driver_tok_s": 1.7857023133513994,
+      "CAPI_decode_output_tok_s_per_card": 7.272704657687287,
+      "driver_decode_output_tok_s_per_card": 7.142809253405598
+    }
+  ],
+  "repeat_spread_fraction": {
+    "decode": 0.005656015473209589,
+    "prefill": 0.004949401475575603
+  },
+  "quality": {
+    "three_trials_4096_final_IDs_each_exact_frozen679": true,
+    "fullvocab_finite_CPUargmax_every_CAPI_window": true,
+    "fresh_QA12_fullIDs_EOS_exact_816": true,
+    "old_QA18_retained_separate_reference": true,
+    "natural_EOS_scope": "All32 natural rows have noEOS through cap128; not natural completion/O512/broadquality.",
+    "reference_scope": "Frozen samegeometry679 ordinary-generation regression; no independent originalModel math claim, no B1 crossB gold, does not qualify formerly failing mixed layout/HC/tail candidate."
+  },
+  "lifecycle": {
+    "normal8owner_shutdown": true,
+    "unique_audit_exit": 0,
+    "unique_watcher_status": "TERMINAL_POSTKFD_VERIFIED",
+    "postKFDempty": true,
+    "no_audit_or_postKFD_repeat": true
+  },
+  "profiling_limit": {
+    "baseline_runtime": "trace-off with profiling runtime present; not uninstrumented peak",
+    "one_warmup_ROI": {
+      "step": 64,
+      "past": 575,
+      "total_tokens_after_input": 576,
+      "C4_boundary": true,
+      "C128_boundary": false,
+      "traced_CAPI_seconds": 3.821082096,
+      "trace_off_same_step_CAPI_seconds": [
+        0.589041224,
+        0.587735091
+      ],
+      "traced_over_mean_same_step_ratio": 6.494151942546532,
+      "warning": "Single sampled C4boundary; instrumentation overhead and boundary work mean its device gaps are not automatically the unprofiled average decode utilization. Per-step modulo4 observations distinguish periodic costs without a new GPU run."
+    },
+    "all1378140_records": "Exactly one3.820756s trace event span; ROI scope/endpoints undergoing separate CPU correlation check. Do not call wholeprocess or ordinaryGPU utilization fromcounts alone.",
+    "layers": "UNASSIGNED; no verified per-layer API",
+    "no_code_gain": "Same0e051math; reproducible baseline measurement, not optimizationgain or comparable to oldB16/O512 as codegain."
+  },
+  "sources_SHA256": {
+    "actual_report": "af961df349e65b155bd7f03af0f1fac9c6dc8a5aedf4673a4da930e7a5d592cb",
+    "unique_audit": "4b89993ff9e35c33f599e3807f7ef2a647e607ddc8416eced1de85366b99b0bb",
+    "unique_watcher": "6d7218f2cd13023a2f85aefe16fe327178d405afcce81229d5a5d0a92a08c2a8",
+    "full_evidence_local": "011d109c693baf35d76c4aef5aebc939cf4a0f32a7cbb58c79d774c5a7ba0d49",
+    "perstep_summary_local": "94cdbbc14a6ef85c88c0c6e1aa2811a5a5efbc7e7ba698c5eb81b23a5feba143",
+    "DSO": "0e0512551483457af01944e9c9298442f499d959836a1c5b66dfa438a3c6c4ea",
+    "SDK": "e1d9432e6de79cf09782fc3b3b332fb969d1a948dbac513b3da677d78f7f1f09",
+    "frozen_B32_reference": "ba577de61c056f6e701005f9b1622cfac284d38e1671bb480087187544f35797",
+    "mode5_linked_source_proof": "8f9fb29abf8602f14718a5e3b09e31c7ec3613991873c70ee497eba908c84cdb"
+  },
+  "performance_adopted_as_new_candidate": false,
+  "optimization_goal_complete": false
+}
