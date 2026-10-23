@@ -1,0 +1,88 @@
+{
+  "status": "CPU_SOURCE_CONFIRMED_COMPONENT_BUILT_GPU_NOT_RUN",
+  "actual_Model_DSO_SHA256": "8d787047018228c1ed03f8b953e5ae19827cccd58d2e8faca874ad21e36bc2c8",
+  "evidence": {
+    "GLM472-qualified-scope-r5737.json": "afa2a48081fcdb8d2446db9135cba6a899b5d3c04a4fc169fb65119d31c91da8",
+    "r7311-GLM-prefill-actualsources.json": "30b262a6f389a154de8a2ad663181c5ea80c70b629087437b078759ab76632da",
+    "r7313-GLM-prefill-dependencies.json": "0770942faebcd89260bda0a8c45b630b2a22848627e44e654998462a0cc405cd",
+    "r7315-GLM-crossrequest-CPU-observed-a.json": "2f5389a64603c0d3be3f297eaacdfa2494537e74abd063fb89e5c65b8d08edc9",
+    "GLM-crossrequest-GPU-manifest-r7316.json": "c00d972b6bd7ef40a2f3737bf4b8e13b7b44cab7b5323334475be536ee221ba1"
+  },
+  "measured": {
+    "hardware": "BW1000 16cards TP8PP2",
+    "geometry": "B16/M8 I512/maxO128, 2cohorts each4096inputtokens",
+    "inputtok_s_OFF": 72.74718249632791,
+    "inputtok_s_resident": 72.82131887880543,
+    "stage0_stream_layers_seconds_one_cohort": 36.07139453125,
+    "stage1_stream_layers_seconds_one_cohort": 38.33,
+    "attribution_limit": "Stream event windows include waits/host-enqueue gaps, not GPUbusy. Stage1hostlayers74.4s includes priorstage dependency. Existing perlayer dispatch/byte counters cumulative and untimed. No exclusive attention/MoE/H2D/NIC time or hardware utilization inferred."
+  },
+  "confirmed_source_structure": [
+    {
+      "source": "/refactor/candidates/glm-transient-layer-r5681/src/glm_moe_dsa_dense_modes_r48.cpp",
+      "SHA256": "5d27978cced7d942a0f91ee8233aae30a29198cc8f494779db788e3f88f4a435",
+      "lines": [
+        47,
+        48,
+        56,
+        63,
+        66
+      ],
+      "finding": "Actual mode2 vectorizes Softmax, while QK and PV remain one GEMM per querytoken per request. Full512prefix is complete because selected=min(topk2048,total512); source-order/casual filtering still applied.",
+      "dispatch_counts_per_owner_per_4096token_cohort": {
+        "per_layer": 8192,
+        "stage0_38layers": 311296,
+        "stage1_40layers": 327680
+      },
+      "dispatch_not_wall": "638976 across two stage-local owners of one TPindex, not additional elapsedseconds, not 8ownerGPUtime sum."
+    },
+    {
+      "source": "/refactor/candidates/glm-vector-model-r8542/src/glm_moe_dsa_routed_ffn_r19.cpp",
+      "SHA256": "c716b37fd3fe786cece00a5b4a309d9eb13b76e4bbdb8cc8843be936c708e64b",
+      "lines": [
+        109,
+        114,
+        119,
+        122,
+        124,
+        128
+      ],
+      "finding": "Prefill4096 inputtokens ->32768 routes; currentvector switch admits routes32/64 only and prefill remains grouped path. BF16 local[32768,6144]402653184B then twoF32 buffers805306368B each coexist. This is a structural allocation/traffic observation, not measured bottleneck or new MoE matrix proposal."
+    },
+    {
+      "source": "glm_moe_dsa_projected_cache_view_r927.cpp",
+      "lines": [
+        48,
+        51,
+        106,
+        151,
+        171
+      ],
+      "finding": "Perlayer synchronous metadata D2H/shared-selection checks and request loop remain. Host-bank/copy dependencies present; no exclusivecost can be derived from6TLS."
+    }
+  ],
+  "single_candidate": {
+    "name": "Cross-request same-position QK/PV batch",
+    "source": "glm_crossrequest_attention_r7314.cpp",
+    "source_SHA256": "b42172e17b0f37757d05ab31714a01b6231ee8df1be1ceab04848d13a768fdb3",
+    "baseline": "Actual linked sparse_attention_mapped_bounded, mode2, perrequest pertoken M1",
+    "candidate": "Batch8independentrequests into64heads; each head still QK(M1,Nprefix,K256), PV(M1,N256,Kprefix), preserves F32scale->BF16round->F32logits->causalmask->F32Softmax->BF16P",
+    "dispatch_target_per_layer": 1024,
+    "not_8x_gain_claim": true,
+    "strides": "Q/K/V packed transpose changes headbatch/strides; algorithm/rounding may differ despite unchanged M/N/K. Component outputs observed fully, Model finalIDs/EOS+QA required later.",
+    "all_component_costs": "Metadata D2H/validation, QKVpacking, attention/Softmax, outputscatter+drain inside measured work. Separate completeCAPIwall includes wrapper/predrain/destructors; CPUfulltensor observation outside clocks. No projection/cache/TPcommunication included.",
+    "CPU_producer": "910374.713 COMPLETED0/10s",
+    "DSO_SHA256": "cb532ff5870415b450ed89dbfdf77f82430aaa6e947d6d2068df006d1236036f",
+    "CPU_closure": "1TU, freshM==MD/noincomingheader, parentdirectNEEDED/-zdefs, originalRuntime/SDKhashes, noCPUdlopen",
+    "GPU_plan": "Only rootGO: fresh n04eightcard finite10min, noModelload/weights/CCL, unique watcherready/controller/audit/postKFD, samehandle onunknown",
+    "first_test_cost": "No checkpointI/O. Eleven4096token wholeattention forwards perowner including warmup/2ABBA/restore, 510s internaldeadline. Syntheticinputs not actualModelactivations.",
+    "adoption": "finite+NRMSE<.01 componentguard only; reportexactfraction/amax/NRMSE/attentionargmax, no bitwise100% requirement. Wholeattention gain must exceed OFF/ON spread; Modelqualification absent."
+  },
+  "next_if_positive": "Integrate defaultOFF samegeometry route in later necessary loadedModel session; finalIDs/EOS/QA then real prefill endpoint. Reuse existingmarks for bounded attention/indexer/cache/FFN boundaries if criticalpath attribution needed; no broadprofiler/repeatbaselineModelload.",
+  "stop_conditions": [
+    "Componentpacking/validation cancels GEMMsubmission benefit beyond observedspread",
+    "shape/mask/causal/finite guard failure; preserveactualfirstdifference",
+    "Memory/resource or watcherUNKNOWN: observe samehandle, no blindretry",
+    "Componentonly microgain cannot support GPUbusy/ModelTPS/peak claims"
+  ]
+}
