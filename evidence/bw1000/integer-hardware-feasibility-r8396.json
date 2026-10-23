@@ -1,0 +1,130 @@
+{
+  "utc": "2026-10-23T21:20:21.436297+00:00",
+  "scope": "Hardware capability lead plus executed CPU value-domain check; no compiler, GPU or model gain claim.",
+  "primary_project_source": {
+    "url": "https://flagos-ai.github.io/FlagGems/optimization/hygon/",
+    "accessed_utc": "2026-10-23",
+    "scope": "FlagGems Hygon backend maintainers document gfx936/DTK26.04.1 instruction interfaces; not a vendor board peak datasheet.",
+    "capabilities": {
+      "INT8_INT32_accumulator": "16x16x32 on gfx936",
+      "INT4_INT32_accumulator": "16x16x64 on gfx936; experimental packed interface",
+      "BF16_FP32_accumulator": "16x16x16 on gfx936",
+      "FP8_FP32_accumulator": "listed for gfx938, not gfx936"
+    },
+    "install_and_generated_assembly_validation": "PENDING; do not change current pinned DTK or running libraries"
+  },
+  "existing_decode_source": {
+    "file": "kimi_mxfp4_bits_decode_r16.cuh",
+    "SHA256": "e5498906c971999124807cd12fa4871158377053aa3e6996650922ea1e4df021",
+    "scope": "Old local decoder arithmetic evidence; not proof this source is linked in latest Model DSO."
+  },
+  "CPU_actual_checks": {
+    "passed": true,
+    "all16_codes": [
+      {
+        "code": 0,
+        "FP4_E2M1": 0.0,
+        "twice_value": 0,
+        "signed_INT4_reinterpret": 0
+      },
+      {
+        "code": 1,
+        "FP4_E2M1": 0.5,
+        "twice_value": 1,
+        "signed_INT4_reinterpret": 1
+      },
+      {
+        "code": 2,
+        "FP4_E2M1": 1.0,
+        "twice_value": 2,
+        "signed_INT4_reinterpret": 2
+      },
+      {
+        "code": 3,
+        "FP4_E2M1": 1.5,
+        "twice_value": 3,
+        "signed_INT4_reinterpret": 3
+      },
+      {
+        "code": 4,
+        "FP4_E2M1": 2.0,
+        "twice_value": 4,
+        "signed_INT4_reinterpret": 4
+      },
+      {
+        "code": 5,
+        "FP4_E2M1": 3.0,
+        "twice_value": 6,
+        "signed_INT4_reinterpret": 5
+      },
+      {
+        "code": 6,
+        "FP4_E2M1": 4.0,
+        "twice_value": 8,
+        "signed_INT4_reinterpret": 6
+      },
+      {
+        "code": 7,
+        "FP4_E2M1": 6.0,
+        "twice_value": 12,
+        "signed_INT4_reinterpret": 7
+      },
+      {
+        "code": 8,
+        "FP4_E2M1": -0.0,
+        "twice_value": 0,
+        "signed_INT4_reinterpret": -8
+      },
+      {
+        "code": 9,
+        "FP4_E2M1": -0.5,
+        "twice_value": -1,
+        "signed_INT4_reinterpret": -7
+      },
+      {
+        "code": 10,
+        "FP4_E2M1": -1.0,
+        "twice_value": -2,
+        "signed_INT4_reinterpret": -6
+      },
+      {
+        "code": 11,
+        "FP4_E2M1": -1.5,
+        "twice_value": -3,
+        "signed_INT4_reinterpret": -5
+      },
+      {
+        "code": 12,
+        "FP4_E2M1": -2.0,
+        "twice_value": -4,
+        "signed_INT4_reinterpret": -4
+      },
+      {
+        "code": 13,
+        "FP4_E2M1": -3.0,
+        "twice_value": -6,
+        "signed_INT4_reinterpret": -3
+      },
+      {
+        "code": 14,
+        "FP4_E2M1": -4.0,
+        "twice_value": -8,
+        "signed_INT4_reinterpret": -2
+      },
+      {
+        "code": 15,
+        "FP4_E2M1": -6.0,
+        "twice_value": -12,
+        "signed_INT4_reinterpret": -1
+      }
+    ],
+    "conclusion": "E2M1 packed FP4 is not packed signed INT4. Exact doubled levels need signed INT8 domain, not signed INT4. Nibble reinterpretation is invalid."
+  },
+  "candidate_implications": [
+    "An INT8 DUMMA route would still require activation representation/quantization, per32-input weight scales, scaling accumulation and reduction changes. Exact weight-level conversion alone proves no final-token equivalence or gain.",
+    "Check installed headers/compiler/assembly and shape-specific end-to-end component wall before any actual quantized Model experiment. Include depack, padding, routing and scales; do not use dense peak for M1/M4 expert shapes.",
+    "Current Kimi bounded-prefill and GLM transient/vector comparisons remain unchanged. This source lead does not justify another Model load or a pinned dependency upgrade."
+  ],
+  "physical_BF16_or_INT8_or_INT4_peak": null,
+  "maximum_model_tok_s": null
+}
