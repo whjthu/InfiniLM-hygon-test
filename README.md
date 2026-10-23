@@ -6,6 +6,8 @@
 
 [两端每 10 分钟检查的沟通约定](coordination/COMMUNICATION.zh-CN.md)：检查不产生提交，实质更新才发布；BW1100 的定时器需要在其所在机器启用。
 
+[Astra 周期审核](coordination/ASTRA_REVIEW.zh-CN.md)：每 3 轮实验审效果与下一步，连续无收益或久无可测进展提前触发；审核结论必须落实到实际任务。
+
 ## 当前入口
 
 - [BW1000 状态](status/bw1000/latest.json)：包含观测时间与证据，不把历史运行状态当作当前进程存活证明。

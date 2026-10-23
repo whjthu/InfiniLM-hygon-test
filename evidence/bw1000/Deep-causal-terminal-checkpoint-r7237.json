@@ -1,0 +1,182 @@
+{
+  "utc": "2026-10-23T18:52:33.616470+00:00",
+  "state": "DIAGNOSTIC_COMPLETED_AUDITED_POSTKFD_EMPTY",
+  "step": "910374.682",
+  "Slurm": "COMPLETED0 /00:18:46",
+  "node": "a02r4n05",
+  "report_SHA256": "274a518ff5792e230375e1f4f864c875351698f551f8f4d440112197225d3727",
+  "DSO_SHA256": "0e0512551483457af01944e9c9298442f499d959836a1c5b66dfa438a3c6c4ea",
+  "one_weights_load_seconds": 414.5654825977981,
+  "normal8owners": true,
+  "postKFD_empty": true,
+  "watcher_status": "TERMINAL_POSTKFD_VERIFIED",
+  "arms": [
+    {
+      "label": "A-B32-M32-tile16",
+      "frozen_mismatch_steps": [],
+      "step35_ID": 5078,
+      "step35_top2_IDs": [
+        5078,
+        6533
+      ],
+      "step35_top2_logits": [
+        41.25,
+        41.0
+      ],
+      "step35_margin": 0.25
+    },
+    {
+      "label": "B-B32-M32-tile0",
+      "frozen_mismatch_steps": [
+        25,
+        35
+      ],
+      "step35_ID": 6533,
+      "step35_top2_IDs": [
+        6533,
+        79896
+      ],
+      "step35_top2_logits": [
+        41.0,
+        40.75
+      ],
+      "step35_margin": 0.25
+    },
+    {
+      "label": "C-B32-prefill-row0-only-decode",
+      "frozen_mismatch_steps": [
+        25,
+        35
+      ],
+      "step35_ID": 6533,
+      "step35_top2_IDs": [
+        6533,
+        5078
+      ],
+      "step35_top2_logits": [
+        41.0,
+        40.5
+      ],
+      "step35_margin": 0.5
+    },
+    {
+      "label": "D-B1-tailON-prefill-decodeOFF",
+      "frozen_mismatch_steps": [
+        17,
+        35
+      ],
+      "step35_ID": 6533,
+      "step35_top2_IDs": [
+        6533,
+        79896
+      ],
+      "step35_top2_logits": [
+        41.5,
+        41.0
+      ],
+      "step35_margin": 0.5
+    },
+    {
+      "label": "E-B1-tailON-prefill-decodeON",
+      "frozen_mismatch_steps": [
+        35
+      ],
+      "step35_ID": 6533,
+      "step35_top2_IDs": [
+        6533,
+        79896
+      ],
+      "step35_top2_logits": [
+        41.75,
+        41.5
+      ],
+      "step35_margin": 0.25
+    }
+  ],
+  "matched_pair_comparisons": [
+    {
+      "left": "A-B32-M32-tile16",
+      "right": "B-B32-M32-tile0",
+      "factor": "tile/C4 only",
+      "first_ID_difference": {
+        "step": 25,
+        "leftID": 389,
+        "rightID": 118082,
+        "left_margin": 0.0,
+        "right_margin": 0.25
+      },
+      "ID_difference_steps": [
+        25,
+        35
+      ],
+      "first_logit_hash_difference_diagnostic_only": 1
+    },
+    {
+      "left": "B-B32-M32-tile0",
+      "right": "C-B32-prefill-row0-only-decode",
+      "factor": "decode geometry only;same B32prefill",
+      "first_ID_difference": null,
+      "ID_difference_steps": [],
+      "first_logit_hash_difference_diagnostic_only": 1
+    },
+    {
+      "left": "C-B32-prefill-row0-only-decode",
+      "right": "D-B1-tailON-prefill-decodeOFF",
+      "factor": "prefill geometry/policy only;same M1OFFdecode",
+      "first_ID_difference": {
+        "step": 17,
+        "leftID": 3774,
+        "rightID": 19,
+        "left_margin": 0.75,
+        "right_margin": 0.0
+      },
+      "ID_difference_steps": [
+        17,
+        25
+      ],
+      "first_logit_hash_difference_diagnostic_only": 0
+    },
+    {
+      "left": "D-B1-tailON-prefill-decodeOFF",
+      "right": "E-B1-tailON-prefill-decodeON",
+      "factor": "persistent ON decode policy only;same B1ONprefill",
+      "first_ID_difference": {
+        "step": 17,
+        "leftID": 19,
+        "rightID": 3774,
+        "left_margin": 0.0,
+        "right_margin": 1.0
+      },
+      "ID_difference_steps": [
+        17
+      ],
+      "first_logit_hash_difference_diagnostic_only": 1
+    }
+  ],
+  "proved_in_this_finite_scope": [
+    "A oldtile16 baseline natural0 matches unchanged frozen36teacherIDs",
+    "Removing projection+C4 decode tile bundle with same B32prefill is sufficient to reproduce output35=6533 instead5078; also changes25",
+    "Changing decode32rows->onlyrow0 with identical B32prefill and tileOFF changes logitbits but no extra selectedIDs in these36steps",
+    "Single512ONprefill plus OFFdecode adds17 mismatch; persistentONdecode corrects17 but not35; E reproduces679first35"
+  ],
+  "not_proved": [
+    "Which of outputprojection and C4attention tile change is responsible; A/B changes both, cannot attribute to one",
+    "No proof all43prefill caches or intermediate bits match",
+    "No proof geometry irrelevant to otherprompts/longercontexts",
+    "No serving qualification, TPS or physicalceiling measurement"
+  ],
+  "next_minimal_question": "Separate existing projection tile and C4 tile controls before further prefill padding work. Need root review of bounded causal nexttest, no implicit newlaunch. Can first inspect existing component/reference evidence.",
+  "performance_adopted": false,
+  "goal_complete": false,
+  "root_only_canonical": true,
+  "no_reaudit_or_postKFD_repeat": "Already completed by unique7233watcher; never rerun682 or launch7233/7234",
+  "artifacts_SHA256": {
+    "r7236-Deep-causal-summary-c.json": "b21f233ecdccfb283b72063878ad3fac4cf11befc8d6265ad764a88a614bd54e",
+    "Deep-causal-launch-readiness-review-r7234.json": "1c777618fe02e47bff21015d8a5d91e7a61b64361a94b9446655dfffb6d6a2d9",
+    "r7234-Deep-readiness-upload-verified.json": "6d08000c29b1fdded233bce1bb98e94c629eac289243caa5d13fd2148bd0ecc3",
+    "Deep-causal-teacher-review-r7233.json": "b9208e35905c49b4676f1db4bbcb0170687d357f9236aed032fe533c39df7486",
+    "r7233-Deep-causal-upload-verified.json": "501882a583dc77849de02a898df37e8512c9f5bad7de67b5425c24f01debcb62",
+    "observe_Deep_causal_r7235.py": "37092364138d3cc93e941c0ff602d208989cb24f066b857a5b4cd9989ef52f5d",
+    "summarize_Deep_causal_r7236.py": "b3512edeaca886c0f3960aea8bbf7b0506672b48e158e546199a3cded18c6136"
+  }
+}

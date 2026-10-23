@@ -1,0 +1,118 @@
+{
+  "revision": "r8375",
+  "reviewer": "Astra28 / gpt-6-astra",
+  "scope": "Local read-only evidence and selected source review; no cluster access, GPU execution, builds, SDK changes or canonical-ledger writes.",
+  "decision": "MODEL_PROGRESS_MARGINAL; EXECUTE_TWO_GLM_FINITE_CANDIDATES_AND_ONE_DEEP_SPLIT_MATRIX; FINISH_ONE_KIMI_ENGINE_INTEGRATION",
+  "verdict": "现阶段没有显著的新整 Model 吞吐提升。Kimi head B16 +0.063%、B1 +0.743% 为点变化；GLM resident 同进程 +1.46% 有局部收益，但33.9603低于历史34.0033。Deep682新增有效因果证据，没有新增TPS。不能以编译/ISA、组件5倍或320张卡已分配来替代优化进展。",
+  "authoritative_corrections": [
+    "Deep-causal-terminal-checkpoint-r7237.json 优先于 r8371 的 Deep682 RUNNING：682 已 COMPLETED0、8 owners normal、独立 postKFD empty，不再观察/重跑682。",
+    "当前资料没有已知仍活跃的 owned GPU Model；不是实时集群观测。40nodes/320allocated/319healthy只说明分配，外部373n17 excluded，不能报告利用率。",
+    "主指标为有用完成输出token/服务wall/所有参与服务卡数；纯decode与含prefill、单用户速度、TTFT和ITL分列；没有达到15/user的证据。"
+  ],
+  "slow_iteration_causes": [
+    {
+      "cause": "启动前闭包反复串行化，候选长期没有实际GPU答案",
+      "evidence": "GLM transient 已20TU编译161，matrix已CPU449/ISA/link闭包；两者仍GPU_NOT_RUN。online8456已真TCP测试但没有Engine runner。registry持有大量空闲节点。",
+      "action": "冻结未变源码和既有闭包；每候选只补具体缺口并直接进入有限实验。禁止为获得一个相同sourceGO重造清单/全重编。独立GLM两路线并行；审阅不作全局屏障。"
+    },
+    {
+      "cause": "低收益组件继续消耗整Model加载和验收预算",
+      "evidence": "Kimi500耗40:37，head组件收益最终B16仅+0.063%；native476已经证实3–4us CPU节省大体不降低drained wall。",
+      "action": "停止head/N4/通用guard的下一轮无新证据复验；将时间投入GLM实际5.36–5.66ms层关键路径和真实在线Engine。组件阳性后才做必要整Model晋级。"
+    },
+    {
+      "cause": "数值诊断混合开关，且状态滞后导致重复观察",
+      "evidence": "Deep682 18:46，其中load414.565s约36.8%；A/B同时变化projection与C4，虽排除single512prefill是35错的必要条件，尚不能指认单开关。",
+      "action": "复用同一load拆现有两个开关，不再盲修tailSUM/五形状重载。每终态只登记一次，根账本立即更新terminal与可用资源。"
+    }
+  ],
+  "review_policy": {
+    "adopt": "astra-review-policy-r8374.json 正确：全局每3个独立有区分力完成实验；同路线连续2次无收益或90分钟无可测候选/新因果证据提前触发；最多1项在途Astra，不阻塞独立工作。",
+    "implementation": [
+      "每实验一行记录experiment_id、hypothesis、parent/source hash、固定对照、变更、开始/首数值/首wall/终态时间、load秒数、数值结果、paired wall结果、next decision。复用现有ledger，不再创建一套账本。",
+      "矩阵所有arms只算一轮；包含可解释反例的因果实验算一轮。准备、轮询、清单、相同重编/重复验证不算。失败实验只有给出新边界或因果结果才计数。",
+      "90分钟从最近可测候选或新因果证据计时，不因新JSON/源码空改而重置。审阅开始记录watermark；审阅期间新完成实验计入下一周期，不能清零丢失。",
+      "两次无收益冻结的是具体路线/配置，不是整个模型。重开须指出新瓶颈/新机制证据。根本轮对下列卡登记采纳/停用，下一轮先检查执行结果。"
+    ]
+  },
+  "wall_opportunity": [
+    {"candidate":"GLM transient r5680","Model_wall_upper_bound":"UNKNOWN","evidence":"prepare约0.63ms与rowsetup约0.70ms CPU是约1.3ms可调查预算；不是可直接消除的wall上界。D2H次数16L→2L，H2D精确每行仍保留。CPU/stream/wall重叠，不可相加或乘40推Model。"},
+    {"candidate":"GLM matrix r8508","Model_wall_upper_bound":"UNKNOWN","evidence":"gateup约1.09ms、down约0.65ms为该层stream区间；在完全串行且全部可消除的理想假设下仅给该fixture约1.74ms区间预算，非实测可得节省。M16复制只有row0有用，16倍算术膨胀且专家常1–3rows，完全可能变慢。"},
+    {"candidate":"Kimi vocab head/N4","Model_wall_upper_bound":"UNKNOWN","evidence":"head已观测B16+0.063%、B1+0.743%；N4约+0.9%接近重复波动。不要把观测点值称为上界，也不值得无新profile重复扫。"},
+    {"candidate":"Deep projection/C4 split","Model_wall_upper_bound":"UNKNOWN","evidence":"当前只解决错误归因；没有性能证据，正确性诊断不能称吞吐优化。"},
+    {"candidate":"Kimi online TCP Engine","Model_wall_upper_bound":"UNKNOWN","evidence":"8456只验证CPU控制面；动态到达可能改善服务利用，也可能被同步fsync/反馈开销抵消。必须实际Engine测量。"},
+    {"candidate":"native guard/prebuilt views","Model_wall_upper_bound":"UNKNOWN","evidence":"guard约0.18us；预建view省3–4us CPU但drained大体不变。停用通用重写，除非新Model profile证明关键路径。"}
+  ],
+  "experiment_cards": [
+    {
+      "rank":1,"id":"GLM-T","model":"GLM","one_change":"仅开关现有transient staging模块，其他math/SDK/host策略固定。",
+      "files":"GLM_transient_finite_r5682.py; glm-transient-layer-r5680-src/*; GLM-transient-GPU-manifest-r5682.json",
+      "reuse":"161 compiled DSO、45 geometry checks、30 restore cases、159/5679层对照与SDK闭包。仅改Python runner不触发20TU重编。",
+      "minimal_remaining":"worker在ctx创建后增加try/finally及失败结果保存，当前异常可越过尾部destroy；所有rank一致的负例检查避免单rank断言后其余rank卡collective。补一次metadata拒绝不入队、边界canary、失败drain/poison及reset恢复。复用已有terminal控制器并绑定新step；不再新建通用观察框架。",
+      "run":"先406/a14r2n19单层38，一次load；extra0与126、两个M8cohort、OFF/ON/ON/OFF×2，profileOFF计时。若明确变慢或无可辨收益即停；阳性再407/a14r2n20 full/shared38..41一次load，覆盖extra63与共享生命周期。",
+      "numeric":"有限hidden误差只用于筛选，rawbits差异不否决；all-rank finite、精确Pi、计数16L→2L、canary、restore、normalclose必须通过。层通过后只用一个目标整Model配置B16M8做完整frozen IDs/EOS/QA及paired wall，不能由层误差阈值认定Model合格。",
+      "samples":"每arm每cohort4个独立时间次序样本，rank不是重复样本。比较每trial最慢owner drained wall；报告paired差值及离散。近零且置信不明记inconclusive，不自动无限加样。明显阳性才扩至8个pairs并做一次Model晋级。",
+      "exit":"单层无收益停止四层/Model；四层无收益停止Model。阳性需收益超过配对波动且完整tokens一致；否则保留默认OFF。",
+      "budget":"补闭包≤45分钟目标；首单层GPU结果≤15分钟目标，四层≤25分钟目标，均为调度预算非实测承诺。超过90分钟无可测候选立即说明具体阻塞。",
+      "fallback":"保留已合格resident配置；转matrix路线，不做通用Runtime重写。"
+    },
+    {
+      "rank":2,"id":"GLM-M","model":"GLM","one_change":"仅将gateup provider切换为r8508 matrix，down保持scalar；本轮不同时替换两者。",
+      "files":"glm_routed_BF16_matrix_r8508.cu; GLM-matrix-finite-design-r8512.json; GLM-matrix-source-checkpoint-r8517.json",
+      "reuse":"CPU449的现成DSO/ISA/scalar object；不再证明mmac存在。",
+      "run":"379/a14r2n06，单次实际layer38权重load。先atom layout和FP8边界小负例；主性能只跑M8/64routes、profile-derived U49与59两组，保持同一activation/scale/routeID，不称真实Model routing。M1只作小数值边界，不展开全B/U交叉矩阵。",
+      "numeric":"F32 CPU小切片oracle、finite/NaN rejection/canary/TP offset、原始FP8字节和F32 blockscale不变。GPU F64禁用。中间bits仅诊断；Model完整tokens资格尚未取得。",
+      "samples":"暖身后ABBA×2；计包含packing/decode的gateup drained wall及FFN wholewall，oracle/D2H另列。若gateup阳性且FFN不退化，再补ABBA×2确认；不能只展示matrix atom/event时间。",
+      "exit":"主shape无可辨wholewall收益即停止M16复制路线，不再全形状扫或直接整Model。阳性再在下一轮单独考虑down或Model集成，不能捆绑归因。",
+      "budget":"wrapper/closure≤45分钟目标；首GPU结论≤15分钟目标；380备用保持空闲直至确有需要。",
+      "fallback":"回scalar；下一候选需实测证明weight reuse/route grouping能抵消开销，再设计真实小M复用，不为凑M16复制padding。"
+    },
+    {
+      "rank":3,"id":"DEEP-P","model":"Deep","one_change":"相对A只关decode output-projection tile16，C4 tile16固定ON，B32 prefill与M32 decode固定。",
+      "reuse":"r7237终态、冻结prompt/36teacher、r7233/7234已修复监督器、原DSO与现有两个开关。",
+      "run":"374/a02r4n05私有lease确认空闲后单次load；同会话运行A控制、projection-only-OFF、C4-only-OFF，每arm独立reset相同历史；与DEEP-C合并为一轮因果实验。",
+      "numeric":"所有36 teacher选中IDs包括25/35，记录top2/margin；A必须再现36gold才能归因。hash/中间bits不作门槛；保留tie-first-argmax规则。",
+      "samples":"因果筛选各一次；异常差异仅将有区分力pair同load复做一次。此次不报serving TPS。",
+      "exit":"projection关即错则保持projection ON；只C4关错则转C4；两单关均错说明两者皆影响，不能声称唯一原因；两单关均过但双关错提示交互，复用历史双关证据并按需同load确认。",
+      "budget":"无需新math build；首因果结果目标25分钟，已知load约6.9分钟。",
+      "fallback":"保持合格tile bundle，停止tailSUM盲修；有正确配置后才做普通生成全序列及wall。"
+    },
+    {
+      "rank":4,"id":"DEEP-C","model":"Deep","one_change":"相对A只关decode C4 tile16，projection tile16固定ON。",
+      "reuse":"与DEEP-P同一load、prompt、teacher和终态控制。",
+      "run":"DEEP-P矩阵中的第三arm，不另占节点/另load；不再加B1prefill/五形状。",
+      "numeric":"同DEEP-P；保留36teacher全部选中ID比较与25/35细节。",
+      "samples":"同DEEP-P；诊断不是性能样本。",
+      "exit":"依照与A单开关差异归因；没有新增信息就结束，不能为满足轮次拆成两轮。",
+      "budget":"计入同一个25分钟目标，无额外资源。",
+      "fallback":"同DEEP-P。"
+    },
+    {
+      "rank":5,"id":"KIMI-O","model":"Kimi","one_change":"将已验证有限TCP owner的mock adapter换为实际已加载Kimi Engine adapter；不同时改scheduler、journal或数学策略。",
+      "files":"online_broker_r8455.py; online_kimi_adapter_r8455.py; online-TCP-review-r8456.json",
+      "reuse":"8456真实TCP异常/ACK/队列测试、已有Kimi load/owner/完整token基准；复用现有runner加载和销毁流程。",
+      "run":"375/a02r4n08..11 32cards，一次load，N8M4有限singleepoch动态到达、earlyEOS。已有每stage adapter内由native管理TP8；不能误当32个独立Python网络owner。",
+      "numeric":"同冻结prompt的每请求完整IDs/EOS、动态past/row一致、所有owners正常close及terminal/postKFD。未知native执行后failstop不重放；packed8192/context1024与有限row容量保留。",
+      "samples":"首epoch先取得真实Engine正确性和clock证据，不称速度提升。仅当已有可验证all-owner empty reset可复用时，同load做固定arrival trace的baseline/candidate ABBA×2；否则本轮以资格结果终止，不伪造无限连续吞吐或强行新增reset子项目。",
+      "exit":"一个真实Engine epoch成功后才讨论服务性能；CPU协议测试不再迭代。exporter必须把overflow/rejection与完成/未完成请求合并；时钟为coordinator收帧/反馈，不称client latency。",
+      "budget":"runner闭包≤60分钟目标；首Engine结果≤45分钟目标，不承诺实际load时长。",
+      "fallback":"若runner仍无法形成，提交唯一具体ABI/生命周期缺口并冻结控制面扩展；沿用现有合格native B64M16服务基准。"
+    }
+  ],
+  "root_adopt_now": [
+    "记录r7237覆盖r8371陈旧running；本review消耗的完成实验按ID去重，不按JSON数量。",
+    "给GLM两owner明确单个有限测试和退出预算，补实际缺口后按既有授权派发；无需再让用户审批相同低影响步骤。",
+    "停止Kimi head/N4无新profile复验、native通用guard重写、Deep tailSUM盲修和CPU-only online循环。",
+    "所有候选默认OFF、私有DSO与私有lease；不修改共享SDK、不终止他人作业、不占外部373n17。",
+    "next review优先读这5张卡的真实结果与时间分解，不重复生成同一套计划。"
+  ],
+  "validation_reuse_and_boundaries": {
+    "reuse":"未变源码/对象/DSO/SDK及prompt证据按hash复用；CPU几何、TCP fault matrix和既有terminal证据不重复跑。Python controller修改只检查改变分支与语法/小mock，不重编math。低影响日志/账本/指标改动不重新加载全部三模型。",
+    "must_refresh":"每新实际GPU step只需本step的资源/owner、实际DSO身份、最小对应数值边界与terminal/postKFD。一次监督器失败应记录并恢复观察同一handle，不能自动重提数值任务。",
+    "cannot_delete":"GPU F64禁用；完整生成tokens逐位一致含EOS/重复（Model晋级时）；finite与确定argmax；正确row/past/Pi与所有rank一致控制；源buffer生命周期、stream drain、failure poison、正常销毁、真实Slurm终态及postKFD。",
+    "not_required":"中间activation/logit逐bit一致不作验收；CPU F64 oracle可用但不是GPU F64。fixture通过不能代替Model完整tokens；每个小步骤都做全模型全矩阵验收同样不必要。",
+    "performance_decision":"先同load配对、相同有用输出数/停止条件及计时边界；报告原始paired样本与波动。近零/inconclusive就停该路线，不以重复到显著为策略；Model晋级后才登记有效总吞吐和全卡分母。"
+  },
+  "new_performance_adopted": false,
+  "actions_performed": ["Read bounded local evidence and selected source", "Write astra-review-r8375.json only"]
+}
