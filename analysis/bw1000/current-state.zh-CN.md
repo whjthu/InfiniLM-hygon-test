@@ -17,3 +17,9 @@ Kimi B16最新first-ready用户均值3.126 tok/s，postanchor约3.877；二者�
 GLM真实layer38/真实权重、合成hidden测试约5.36–5.66ms热态wall、3.66–3.84ms owner CPU；gateup约1.09ms、down约.65ms对应低ownerCPU大项，attention prepare与row setup有明显CPU成本。stream事件含host发射空隙/依赖等待，不能把全部当纯GPU时间或PCIe延迟。单层结果不能乘层数作为模型极限。
 
 正在推进：Kimi词表头32卡同次加载B1/B16；DeepSeek五组teacher36诊断区分tile/单行decode/prefill/layout；在线动态调度仅完成CPU控制核心及指标，尚未接Engine/broker。未得到新的15tok/s用户结果、在线goodput、训练草稿投机加速或硬件物理上限结论。
+
+## 词表头整模型终态补充
+
+500已COMPLETED0/40:37，32owner关闭、独立501四节点KFD空。B1配对5.30629→5.34573 tok/s（约+0.74%）；B16配对59.83117→59.86904（约+0.063%），first-ready用户均值3.03590→3.03494。完整对照通过，但未建立明显整模型收益；组件3–5倍不能外推。B1只具同次加载matched reference，不能当独立历史gold；现有总吞吐纪录和15/user未改变。
+
+在线控制原型已修复有界队列/事件与回收、8192 packed-token上限，并通过1000个CPU epoch；完整请求与censored prefix指标分开。实际跨节点broker/Engine适配仍未执行，不列服务性能。

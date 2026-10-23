@@ -1,0 +1,141 @@
+{
+  "revision": "r8362",
+  "reviewer": "Astra27 independent source reviewer",
+  "scope": "Three-model BW1000 adaptation. Local source/evidence inspection only; no remote execution, upload, GPU submission, model modification, Git mutation or root canonical write.",
+  "decision": "DEEP_MATRIX_SOURCE_GO_DIAGNOSTIC_ONLY; SEALED_LAUNCH_HOLD_FOR_TWO_CONCRETE_GAPS",
+  "source_SHA256": {
+    "Deep-causal-teacher-review-r7232.json": "127d317cdac92fb829284bfed331e7ebc2913ba2130ed0a8b4798d31a39c837a",
+    "modern_Deep_causal_teacher_r7231.py": "8d71c77ca57ad5befc8ee4061c1c0805d3d4400a900d3155bc607e17e4fd73be",
+    "Deep_causal_teacher_matrix_r7231.py": "cfd5c1a384ed64f15a078a01ac9f477968e1eeaf7589cb3d35b328d63ef4c812",
+    "launch_Deep_causal_teacher_r7231.py": "73cf804c7b2d9f20d07689870b85b4773ced831b96bdb2e0b0ef4e1ef81b590e",
+    "audit_Deep_causal_teacher_r7231.py": "d768b612a79f3fc20ccc5ac798e25d9fb26df6b5b860e31cccd9367a84624256",
+    "watch_Deep_causal_teacher_r7231.py": "31d78a6485e076a5202a15ee8893726e3091ca14e3f2a06151fe65411169a25c",
+    "Deep_causal_teacher_r7231_inside.sh": "dc2e79ccfc9ad1fc32c039d9a3c1052759b5acbca5e647cf575e470307157098",
+    "build_deep_serving_cases_r2130.py": "122afbf4f4d6778757bbd3f91ae0e930bb85f826e282b272351a6689ac5491d9",
+    "Deep-causal-teacher-CPU-fixture-r7231.json": "6cfc9180ed7ac875aa9c9fc3464583b4dc97ce96d594fdda1dd715b3b4da0319",
+    "GLM-stage1-layer-evidence-r5676.json": "2faa702913e80e25eb6043849f35b2f30cf1e8ed56bc92e5e71e82d92d3e2b10",
+    "native-runtime-final-r8414.json": "a3b88e8f0e9349f2fbb6c87d19c7980ac4460fa9da98fd18ae6a0a65b8b3fd7f",
+    "online_service_core_r8451.py": "97ce8cbed7f389e5fa3145fffa3809e2ae6b593f71909085d1470032d7f9aad9",
+    "online_service_metrics_r8451.py": "802953741e3db9bcd018734f43c31ba7f1b685083b3ec5c9f883e845be427699",
+    "online-service-review-r8452.json": "8e77ae7a2373b3018802e5585a9b445d98f21c7a9da50a6bc653ab52da8210a5",
+    "online-source-r8450-3.cpp": "dd87ff573ab8cc9692f4a75e1fa42e61896ac862389a38b6feb11167b19936d6",
+    "online-source-r8450-4.hpp": "9a0c52a0ebccf010a303daf335db76d71a84981e91adb56a34bfbed19ce0feca",
+    "Deep-tailSUM-rejection-next-design-r8358.json": "780443e51e43b64f5dc5bf12eaa638e1d44f8d601a9b2604b5f5736d125ab152"
+  },
+  "Deep": {
+    "parent_DSO_SHA256_declared_and_runtime_enforced": "0e0512551483457af01944e9c9298442f499d959836a1c5b66dfa438a3c6c4ea",
+    "DSO_observation_boundary": "Local Python verifies remote DSO/build/object/dependency/DTK hashes at runtime. This review did not independently read the remote binary.",
+    "current_qualification": "679 remains rejected at output index35 (6533 versus5078), per frozen r8358 evidence. No rerun or re-audit of679 authorized by this review.",
+    "matrix_source_GO": true,
+    "matrix_reason": "Single Engine create/load/finish, five reset-separated arms, frozen teacher inputs through output index35, dormant rows retain identity. 36 outputs use frozen prior IDs through index34. Intermediate bit mismatches only enter diagnostics; finite and first-argmax remain hard checks.",
+    "contrasts": [
+      {
+        "pair": "A-B",
+        "isolates": "Combined output-projection tile16 and C4 tile16 policy at identical B32 prefill/M32 decode; does not separate these two tile mechanisms."
+      },
+      {
+        "pair": "B-C",
+        "isolates": "Decode M32 versus row0 M1 with identical B32 prefill, all policies OFF and identical row0 history. Includes all shape-dependent backend/math dispatch differences."
+      },
+      {
+        "pair": "C-D",
+        "isolates": "B32-in-cohorts-of4 OFF prefill versus B1 layout3/HC1/tail1 prefill, with matched M1 OFF decoder. Prefill geometry and prefill correction policies are deliberately bundled; cannot individually attribute HC, tail or layout."
+      },
+      {
+        "pair": "D-E",
+        "isolates": "Persistent ON decoder policy under identical ON prefill. At M1 one-token decode, tail512 and HC512 do not select their target paths; principally tests single-row attention layout bit2 and any associated policy effects."
+      }
+    ],
+    "single_row_F32_boundary": "modern_Deep_causal_teacher_r7231.py:149-150 explicitly expects FP32 counter delta43 only when len(rows)>1. B-C therefore diagnoses geometry-dependent execution, not an isolated F32 versus non-F32 experiment. No GPU F64 or padding-to-bit-equality recommendation.",
+    "normal_cleanup": "GO: ctx is protected by outer try/finally; native destroy executes after normal collection or Python exception, shutdown flag is set only on successful destroy, completed requires collection plus shutdown. Force kill cannot execute Python finally and must be covered externally.",
+    "blocking_findings": [
+      {
+        "id": "DEEP-PROMPT-BINDING",
+        "priority": "P1",
+        "sources": [
+          "Deep_causal_teacher_matrix_r7231.py:8-11",
+          "Deep_causal_teacher_matrix_r7231.py:39",
+          "build_deep_serving_cases_r2130.py"
+        ],
+        "finding": "Frozen generated IDs have a pinned source hash, but the freshly generated natural prompt is not checked against the prompt that produced those IDs. Generator permits480..512 tokens; matrix never asserts natural0 length512. Runtime layout/tail assertions derive expected activation from actual length, so a non512 prompt can pass while D/E never exercise the advertised512 tail correction.",
+        "required_fix": "Before weight load where possible, bind input_ids/order to immutable historical prompt evidence and assert natural0 length512; include tokenizer/template dependency identity or frozen prompt hash. Assert D/E prefill dispatch actually selects tail/HC512, rather than merely validating the optional path against the observed length. Reseal affected source hashes.",
+        "boundary": "This is a missing fail-closed source condition, not evidence that today's generated prompt actually differs. Same fresh prompts across arms still support relative contrasts, but do not alone reproduce679 or establish correct historical teacher pairing."
+      },
+      {
+        "id": "DEEP-TERMINAL-WATCHER",
+        "priority": "P1",
+        "sources": [
+          "watch_Deep_causal_teacher_r7231.py:6-9",
+          "watch_Deep_causal_teacher_r7231.py:17-20",
+          "launch_Deep_causal_teacher_r7231.py:17-18"
+        ],
+        "finding": "Watcher treats every state outside RUNNING/PENDING/CONFIGURING/COMPLETING as terminal, including nonterminal SUSPENDED. A transient sacct failure exits the loop without a record; postKFD timeout raises before writing watcher.json. Launcher starts GPU process before confirming watcher readiness. Thus the claimed independent any-actual-terminal postKFD guarantee is not yet fail-closed.",
+        "required_fix": "Use explicit normalized terminal states; treat other states as observation-only. Persist observer failures and continue same handle without resubmission. Wrap postKFD result/timeout in a persisted final record and require successful parsed passed/node evidence before adoption. Establish watcher-ready receipt before launching numerical work, or equivalent independently supervised lifecycle coverage.",
+        "boundary": "For an observed genuine terminal and successful subprocess calls, existing finally correctly attempts postKFD even when audit fails and on nonzero terminal exit. No automatic rerun is proposed."
+      }
+    ],
+    "audit_limits": "Audit accepts mismatching diagnostic argmax deliberately and never claims serving qualification. Final token IDs/EOS/QA/restore/normal shutdown remain mandatory for any repaired ordinary Model candidate. For stronger independent audit, check unique expected arm labels/policies, all three raw capture steps and B/C comparison flags as well as A.",
+    "CPU_fixture": "Recorded fixture201 calls supports orchestration only; no numeric Model evidence. No new fixture/GPU execution was performed in this review."
+  },
+  "GLM": {
+    "layer_evidence": "910406.159: production layer38 weights and native+SDK, synthetic hidden/routing workload, TP8, logicalactive16/cohort8. Terminal normal close and postKFD passed. Actual layer finite profile, not fullModel activation/quality/TPS evidence.",
+    "layer_DSO_SHA256": "c0b544ee2c49c35b68bd93cc8d1744cadc3a478c946b75d06b18166d0eafb5cd",
+    "layer_medians_ms": [
+      {
+        "extra_decode_steps": 0,
+        "wall": 5.655458,
+        "threadCPU": 3.7382905,
+        "gateup_stream": 1.0876,
+        "down_stream": 0.654639,
+        "prepare_CPU": 0.6458585,
+        "rowsetup_CPU": 0.674553
+      },
+      {
+        "extra_decode_steps": 63,
+        "wall": 5.3622905,
+        "threadCPU": 3.660136,
+        "gateup_stream": 1.0827195,
+        "down_stream": 0.65328,
+        "prepare_CPU": 0.613247,
+        "rowsetup_CPU": 0.6672085
+      },
+      {
+        "extra_decode_steps": 126,
+        "wall": 5.542937,
+        "threadCPU": 3.8426265,
+        "gateup_stream": 1.091279,
+        "down_stream": 0.65328,
+        "prepare_CPU": 0.6323515,
+        "rowsetup_CPU": 0.7203135
+      }
+    ],
+    "measurement_boundary": "CPU, submit wall, stream timeline and drained wall overlap and must not be summed. Adjacent stream intervals include enqueue idle/dependencies, not isolated kernel busy time. Low gateup/down CPU strongly prioritizes native execution investigation but does not quantify separate dequantization/compute fractions. Hot repeated prefix is not monotonically growing Model history.",
+    "native476": "910381.476 completed,15cases8arms oracles passed; sealed DSO4c429d8ebbcb3f5cdf8f9e5bca603c64baae122a09657e9609882b595da350e7. Structured synthetic weights/hidden and shape-specific dense probes; not GLM fullModel. M cases differ by owner/device/order, so M1/M4 speed ratios do not prove batching benefit or backend algorithm selection.",
+    "next_two_priorities": [
+      "First: source-level consolidation of actual attention.prepare and per-row hostprefix setup/submission. Preserve per-row growing past/positions, source lifetimes and synchronization; reuse invariant typed views/metadata and batch copy/submission only where the actual native contracts permit. These are roughly1.3ms CPU per sampled layer/cohort before row-compute submission; measure critical-path wall after the change, not CPU savings alone. Qualify full/shared attention cycle and ordinary Model IDs before throughput adoption.",
+      "Second: inspect actual routed small-M gateup/down provider and shapes, then bounded native kernel/layout specialization with unchanged numeric contract. About1.09ms plus0.65ms stream intervals are much larger than generic guard/key overhead. Obtain source/compiled-closure proof and shape-matched finite controls; do not infer a matrix-core backend or physical bandwidth from timing alone."
+    ],
+    "deprioritized": "General DeviceGuard/key/allocator rewrite: native476 guard~0.182us,key~0.225us,warm output lifetime~0.780us; combined metadata/prebuilt-view saves3-4us ownerCPU but usually not M1/M4 drained wall. No demonstrated route to15tok/s/user.",
+    "not_allowed": "No layer_ms*40 Model ceiling; no adding CPU and stream durations; no Model performance adoption from159 or476."
+  },
+  "Kimi_online_control": {
+    "protected_running_handle": "910371.500 unchanged; this review made no state observation or mutation of the running handle.",
+    "assessment": "r8451/r8452 correctly identify CPU scheduling/control prototype and explicitly leave Engine adapter, TCP transport, cancellation drain, client clocks and actual Model performance unimplemented. Source accepts physical rows1..capacity, so scheduler's1-based rows match inspected bridge contract.",
+    "positive_boundaries": "Immutable job order, one busy call per owner, frozen per-job rows/pasts, emitter requeue, no epoch row reuse, verified external reset prerequisite; final GPU numeric qualification remains absent.",
+    "prototype_limits": [
+      "Bounded resident users/inflight jobs does not bound queue or historical memory: arrive accepts unbounded requests; requests/jobs/events/acks/published accumulate across epochs. Add bounded admission/rejection and safe retirement after all owner acknowledgments before claiming a production bounded service.",
+      "Metrics correctly exclude ordinal0 and EOS from useful decode numerator, include EOS wait, reject padding and require explicit emitter/client boundary. Trace truth/clock domain still comes from the caller, not from verification of actual network/client measurement.",
+      "Per-user rates and TTFT/ITL distributions include observed unfinished/cancelled request prefixes although goodput requires completed requests. Keep completed-window and censored-prefix reporting separate; avoid presenting the overall user_decode_tok_s distribution as complete-request SLO proof.",
+      "Scheduler can construct prefills whose sum of prompt lengths exceeds bridge8192 tokens when micro is large; adapter/admission must enforce packed-token limit before any native call."
+    ],
+    "Model_gain_adopted": false
+  },
+  "hardware_and_goal_boundary": "333TFLOP/s and1.237TB/s are achieved reference measurements, not physical peaks.15tok/s/user remains an unproven target across the three models. No isolated operator/CPU prototype result changes this.",
+  "actions_performed": [
+    "Read local source and bounded evidence projections",
+    "Write this independent review JSON only"
+  ],
+  "GPU_submitted": false,
+  "model_modified": false,
+  "performance_adopted": false
+}

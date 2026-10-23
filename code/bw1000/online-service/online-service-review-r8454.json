@@ -1,0 +1,40 @@
+{
+  "revision": "r8454",
+  "status": "CPU_ONLY_CORRECTED_AFTER_ASTRA27_NO_GPU_OR_SERVICE_QUALIFICATION",
+  "review_source": {
+    "file": "astra-review-r8362.json",
+    "SHA256": "a97a068fd993184f1994e82fc885c6901a9586509299b5ca6f88c2a890fa3ed6",
+    "section": "Kimi_online_control"
+  },
+  "sources": {
+    "online_service_core_r8453.py": "f9151502f23ee96b9d1b4e0ee16c6c662c2a8938e9cbad027d9c4132aace4ef7",
+    "online_service_metrics_r8453.py": "b799170830d6bdde1da7176b4715d93b5e08770991dbaeaf49b5238e6721dae3",
+    "test_online_service_r8453.py": "f325073505f6497caf04a19e16a76d06d45a4b93a768a16f0c3de01687cabfad"
+  },
+  "CPU_receipt": {
+    "file": "online-service-CPU-receipt-r8453.json",
+    "SHA256": "4e3d6c7ea0fe2c1236aacf0a7cd5c84d441c056b43cc9792b55adca198534ba8"
+  },
+  "fixed": [
+    "Finite pending queue, max_queue1..1024. arrive returns False with arrival+terminal rejected events when queue full. Rejected payload not retained in requests. Invalid payload raises before ownership; valid payload max1024prompt+outputcontext and int token IDs.",
+    "Job seq monotonic global cursor, dict holds only unretired jobs. max_inflight bounds retained jobs including published jobs awaiting upstream host ack. Job/ack/published removed only after allowners ack. Completed requests freed only after no retained job references them; physical rows never reused until verified allowner reset.",
+    "At most rows+max_queue request payloads; at most max_inflight job payloads; each job <=8192inputtokens; at most max_events traceevents. Explicit bounded journal sink, no hidden archive. Full journal raises BufferError before each mutating operation; caller flushes/retries same operation. Failed persistence keeps events unchanged.",
+    "Broker-assigned strictly increasing int64 request keys and constant-space highwater prevent replay after historical request retirement. Keys are consumed for accepted and rejected valid arrivals; duplicate/out-of-order arrival cannot silently become a new request.",
+    "Dynamic prefill M is upper bound only; actual selected prompt widths stop at8192 packed tokens. No padding. Context rows remain1..rows, maxlogical1024.",
+    "completed_request_metrics holds full-window TTFT/ITL/user rates. unfinished/cancelled/failed prefixes have separate censored_prefix_metrics and observed_prefix_decode_tok_s, never qualify SLO goodput. Aggregate still includes actual observed useful tokens from all statuses in explicit observation window; statuses/rejections remain visible."
+  ],
+  "broker_interfaces": {
+    "ownership": "One coordinator serializes every Scheduler method. Network handlers validate/frame/enqueue commands only; never call Engine from socket threads. No TCP implementation in these files.",
+    "arrive(key,prompt,limit,now)": "key strict increasing nonnegative int64, coordinator receive monotonic time; bool True retained or False explicit queue_full rejection. Malformed payload assertion before mutation. Future broker rejects excess frame bytes before parsing to avoid unbounded network memory.",
+    "dispatch(now)": "Returns immutable Job(seq,kind,keys,rows,pasts,inputs) orNone. Broker publishes identical sequence/geometry to all owners; separate homogeneous prefill/decode. Distinct requests may regroup after preceding emitter token exists.",
+    "owner_take(stage,now)": "take returns next immutable job orNone; one busy per owner. Stage is PP owner index, not physical GPU rank; each owner invokes actual Engine managing8localranks, outside coordinator process.",
+    "owner_finish(stage,seq,now,ids)": "finish ack only after actual synchronous local Engine return; tail/emitter provides greedy IDs. Non-emitter ids mustNone. Tail completion produces token timestamp and requeues immediately. Local stage timestamps supplied here must be coordinator receipt observations, not unaligned remote perf_counter times.",
+    "event_clock": "All core now values one coordinator monotonic clock. Token event after actual native emitter return is observed at coordinator receipt, includes feedback latency; true emitter-ready local times retained separate diagnostic domain if later needed. No client delivery proof from boundary string alone.",
+    "event_persistence": "drain_events(sink) passes event-ID-keyed batch, clears only after sink returns. Sink durable/idempotent; if sink exception raises, retained events retry unchanged. Disk/stream retention managed outside core. Full journal backpressures before mutation; ACK/RPC retries cannot report success until core transition persisted appropriately.",
+    "epoch_reset": "can_reset_epoch requires no busy owner, all cursor==next_job, no unretiredjob/ack/published, no ready orrunningrequest. Adapter must ACTUALLY reset allnativeowners andworldack before reset_epoch_after_native_world_drain(owners_reset_verified=True). Boolean alone is not GPU evidence.",
+    "failure": "fail latches bounded reason and blocks new work. Native cancellation, collective abort and teardown remain unimplemented. Do not infer safe GPU abort from CPU latch.",
+    "metrics": "evaluate(trace) or CLI python online_service_metrics_r8453.py TRACE.json REPORT.json. Real events only; caller-provided synthetic fixtures must remain labelled synthetic. Client boundary requires real instrumented client receive events."
+  },
+  "next": "CPU real bounded multi-process TCP broker using existing framing, adversarial ordering/disconnect/journal failures, then source-reviewed actual Engine adapter and finite rootGO qualification. Keep static baseline. No GPU launch or Git mutation performed.",
+  "performance": "NO_NEW_PERFORMANCE_RESULT"
+}
