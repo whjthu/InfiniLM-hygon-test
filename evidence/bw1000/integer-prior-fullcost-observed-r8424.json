@@ -1,0 +1,663 @@
+{
+  "read_only": true,
+  "no_new_GPU_or_compile": true,
+  "prior_completecost": [
+    {
+      "revision": "4947",
+      "exists": true,
+      "SHA256": "c91de86c429f6c56e1569ed5449f23f3216973a85db0ccf36a7791f3340c7b1a",
+      "completed": true,
+      "scope": "Single GPU nativeTorchINT8 integerGEMM realW13/W2 matrixgeometries; randomint8/integeroracle capabilityprobe, not actualcheckpointquantizedModel. INT4 storage unpackedtoINT8 explicitly distinctfrom nativeINT4compute. All quantization/scale/unpack included in completecost; noGPUF64.",
+      "cases": [
+        {
+          "part": "W13",
+          "logical_rows": 1,
+          "padded_rows": 16,
+          "K": 3584,
+          "N": 768,
+          "INT8_kernel_supported": false,
+          "error": "RuntimeError('self.size(0) needs to be greater than 16, but got 16')"
+        },
+        {
+          "part": "W13",
+          "logical_rows": 8,
+          "padded_rows": 16,
+          "K": 3584,
+          "N": 768,
+          "INT8_kernel_supported": false,
+          "error": "RuntimeError('self.size(0) needs to be greater than 16, but got 16')"
+        },
+        {
+          "part": "W13",
+          "logical_rows": 16,
+          "padded_rows": 16,
+          "K": 3584,
+          "N": 768,
+          "INT8_kernel_supported": false,
+          "error": "RuntimeError('self.size(0) needs to be greater than 16, but got 16')"
+        },
+        {
+          "part": "W13",
+          "logical_rows": 32,
+          "padded_rows": 32,
+          "K": 3584,
+          "N": 768,
+          "INT8_kernel_supported": true,
+          "CPU_INT64_oracle_64outputs_exact": true,
+          "median_ms": {
+            "native_INT8_GEMM_only": 0.06616045720875263,
+            "quantizeA_INT8_GEMM_dequant": 0.24921074509620667,
+            "packed_INT4_unpack_to_INT8_compute_dequant": 0.5615719128400087,
+            "BF16_inputs_F32_output": 0.6986772641539574
+          },
+          "INT8_vs_F32_relative_RMS": 0.01211706455796957
+        },
+        {
+          "part": "W13",
+          "logical_rows": 64,
+          "padded_rows": 64,
+          "K": 3584,
+          "N": 768,
+          "INT8_kernel_supported": true,
+          "CPU_INT64_oracle_64outputs_exact": true,
+          "median_ms": {
+            "native_INT8_GEMM_only": 0.06879540160298347,
+            "quantizeA_INT8_GEMM_dequant": 0.24962588213384151,
+            "packed_INT4_unpack_to_INT8_compute_dequant": 0.5621018353849649,
+            "BF16_inputs_F32_output": 0.6964970380067825
+          },
+          "INT8_vs_F32_relative_RMS": 0.012218092568218708
+        },
+        {
+          "part": "W13",
+          "logical_rows": 128,
+          "padded_rows": 128,
+          "K": 3584,
+          "N": 768,
+          "INT8_kernel_supported": true,
+          "CPU_INT64_oracle_64outputs_exact": true,
+          "median_ms": {
+            "native_INT8_GEMM_only": 0.06743567064404488,
+            "quantizeA_INT8_GEMM_dequant": 0.25083054788410664,
+            "packed_INT4_unpack_to_INT8_compute_dequant": 0.5666122306138277,
+            "BF16_inputs_F32_output": 0.6921975873410702
+          },
+          "INT8_vs_F32_relative_RMS": 0.01213369332253933
+        },
+        {
+          "part": "W2",
+          "logical_rows": 1,
+          "padded_rows": 16,
+          "K": 384,
+          "N": 3584,
+          "INT8_kernel_supported": false,
+          "error": "RuntimeError('self.size(0) needs to be greater than 16, but got 16')"
+        },
+        {
+          "part": "W2",
+          "logical_rows": 8,
+          "padded_rows": 16,
+          "K": 384,
+          "N": 3584,
+          "INT8_kernel_supported": false,
+          "error": "RuntimeError('self.size(0) needs to be greater than 16, but got 16')"
+        },
+        {
+          "part": "W2",
+          "logical_rows": 16,
+          "padded_rows": 16,
+          "K": 384,
+          "N": 3584,
+          "INT8_kernel_supported": false,
+          "error": "RuntimeError('self.size(0) needs to be greater than 16, but got 16')"
+        },
+        {
+          "part": "W2",
+          "logical_rows": 32,
+          "padded_rows": 32,
+          "K": 384,
+          "N": 3584,
+          "INT8_kernel_supported": true,
+          "CPU_INT64_oracle_64outputs_exact": true,
+          "median_ms": {
+            "native_INT8_GEMM_only": 0.06653508171439171,
+            "quantizeA_INT8_GEMM_dequant": 0.2521802671253681,
+            "packed_INT4_unpack_to_INT8_compute_dequant": 0.5737668834626675,
+            "BF16_inputs_F32_output": 0.13791071251034737
+          },
+          "INT8_vs_F32_relative_RMS": 0.010170947760343552
+        },
+        {
+          "part": "W2",
+          "logical_rows": 64,
+          "padded_rows": 64,
+          "K": 384,
+          "N": 3584,
+          "INT8_kernel_supported": true,
+          "CPU_INT64_oracle_64outputs_exact": true,
+          "median_ms": {
+            "native_INT8_GEMM_only": 0.06645498797297478,
+            "quantizeA_INT8_GEMM_dequant": 0.2526754979044199,
+            "packed_INT4_unpack_to_INT8_compute_dequant": 0.5722870118916035,
+            "BF16_inputs_F32_output": 0.13865577057003975
+          },
+          "INT8_vs_F32_relative_RMS": 0.010273299179971218
+        },
+        {
+          "part": "W2",
+          "logical_rows": 128,
+          "padded_rows": 128,
+          "K": 384,
+          "N": 3584,
+          "INT8_kernel_supported": true,
+          "CPU_INT64_oracle_64outputs_exact": true,
+          "median_ms": {
+            "native_INT8_GEMM_only": 0.06646476686000824,
+            "quantizeA_INT8_GEMM_dequant": 0.25288062170147896,
+            "packed_INT4_unpack_to_INT8_compute_dequant": 0.5690669640898705,
+            "BF16_inputs_F32_output": 0.13729045167565346
+          },
+          "INT8_vs_F32_relative_RMS": 0.010277984663844109
+        }
+      ]
+    },
+    {
+      "revision": "4957",
+      "exists": true,
+      "SHA256": "32924c16478dcd44b8158429128f3e624ec26103e20e7b1385c9f3a1303fb13d",
+      "completed": true,
+      "scope": "FAIR cachedBF16bank baseline unpaddedM; INT8 paddedto32 includesBF16Afloatconversion/amax/scale/pad/quant/intgemm/dequant, INT4 includesunpack; offlineweightquantsetupnotperstep, activationpaddingcharged. Single GPU nativeTorchINT8 integerGEMM realW13/W2 matrixgeometries; randomint8/integeroracle capabilityprobe, not actualcheckpointquantizedModel. INT4 storage unpackedtoINT8 explicitly distinctfrom nativeINT4compute. All quantization/scale/unpack included in completecost; noGPUF64.",
+      "cases": [
+        {
+          "part": "W13",
+          "logical_rows": 1,
+          "padded_rows": 32,
+          "K": 3584,
+          "N": 768,
+          "INT8_kernel_supported": true,
+          "CPU_INT64_oracle_64outputs_exact": true,
+          "median_ms": {
+            "native_INT8_GEMM_only": 0.07617566734552383,
+            "BF16_A_to_quant_scale_pad_INT8_GEMM_dequant": 0.5301113706082106,
+            "packed_INT4_unpack_to_INT8_compute_full": 0.8965381421148777,
+            "cached_BF16_inputs_F32_output_no_pad": 0.6164021324366331
+          },
+          "INT8_vs_F32_relative_RMS": 0.012804027646780014
+        },
+        {
+          "part": "W13",
+          "logical_rows": 8,
+          "padded_rows": 32,
+          "K": 3584,
+          "N": 768,
+          "INT8_kernel_supported": true,
+          "CPU_INT64_oracle_64outputs_exact": true,
+          "median_ms": {
+            "native_INT8_GEMM_only": 0.07382500916719437,
+            "BF16_A_to_quant_scale_pad_INT8_GEMM_dequant": 0.52887131460011,
+            "packed_INT4_unpack_to_INT8_compute_full": 0.8990629576146603,
+            "cached_BF16_inputs_F32_output_no_pad": 0.6192019209265709
+          },
+          "INT8_vs_F32_relative_RMS": 0.011698893271386623
+        },
+        {
+          "part": "W13",
+          "logical_rows": 16,
+          "padded_rows": 32,
+          "K": 3584,
+          "N": 768,
+          "INT8_kernel_supported": true,
+          "CPU_INT64_oracle_64outputs_exact": true,
+          "median_ms": {
+            "native_INT8_GEMM_only": 0.07508601993322372,
+            "BF16_A_to_quant_scale_pad_INT8_GEMM_dequant": 0.5244167987257242,
+            "packed_INT4_unpack_to_INT8_compute_full": 0.8991474751383066,
+            "cached_BF16_inputs_F32_output_no_pad": 0.6191418506205082
+          },
+          "INT8_vs_F32_relative_RMS": 0.0119735486805439
+        },
+        {
+          "part": "W13",
+          "logical_rows": 32,
+          "padded_rows": 32,
+          "K": 3584,
+          "N": 768,
+          "INT8_kernel_supported": true,
+          "CPU_INT64_oracle_64outputs_exact": true,
+          "median_ms": {
+            "native_INT8_GEMM_only": 0.07372512482106686,
+            "BF16_A_to_quant_scale_pad_INT8_GEMM_dequant": 0.503661809489131,
+            "packed_INT4_unpack_to_INT8_compute_full": 0.8713179267942905,
+            "cached_BF16_inputs_F32_output_no_pad": 0.6274220068007708
+          },
+          "INT8_vs_F32_relative_RMS": 0.012147016823291779
+        },
+        {
+          "part": "W13",
+          "logical_rows": 64,
+          "padded_rows": 64,
+          "K": 3584,
+          "N": 768,
+          "INT8_kernel_supported": true,
+          "CPU_INT64_oracle_64outputs_exact": true,
+          "median_ms": {
+            "native_INT8_GEMM_only": 0.07567508146166801,
+            "BF16_A_to_quant_scale_pad_INT8_GEMM_dequant": 0.5008622538298368,
+            "packed_INT4_unpack_to_INT8_compute_full": 0.8733631111681461,
+            "cached_BF16_inputs_F32_output_no_pad": 0.6229518912732601
+          },
+          "INT8_vs_F32_relative_RMS": 0.012203747406601906
+        },
+        {
+          "part": "W13",
+          "logical_rows": 128,
+          "padded_rows": 128,
+          "K": 3584,
+          "N": 768,
+          "INT8_kernel_supported": true,
+          "CPU_INT64_oracle_64outputs_exact": true,
+          "median_ms": {
+            "native_INT8_GEMM_only": 0.07548043504357338,
+            "BF16_A_to_quant_scale_pad_INT8_GEMM_dequant": 0.49824686720967293,
+            "packed_INT4_unpack_to_INT8_compute_full": 0.8675025310367346,
+            "cached_BF16_inputs_F32_output_no_pad": 0.6166871171444654
+          },
+          "INT8_vs_F32_relative_RMS": 0.012206369079649448
+        },
+        {
+          "part": "W2",
+          "logical_rows": 1,
+          "padded_rows": 32,
+          "K": 384,
+          "N": 3584,
+          "INT8_kernel_supported": true,
+          "CPU_INT64_oracle_64outputs_exact": true,
+          "median_ms": {
+            "native_INT8_GEMM_only": 0.07795076817274094,
+            "BF16_A_to_quant_scale_pad_INT8_GEMM_dequant": 0.5285420920699835,
+            "packed_INT4_unpack_to_INT8_compute_full": 0.9012129157781601,
+            "cached_BF16_inputs_F32_output_no_pad": 0.07561501115560532
+          },
+          "INT8_vs_F32_relative_RMS": 0.010330810211598873
+        },
+        {
+          "part": "W2",
+          "logical_rows": 8,
+          "padded_rows": 32,
+          "K": 384,
+          "N": 3584,
+          "INT8_kernel_supported": true,
+          "CPU_INT64_oracle_64outputs_exact": true,
+          "median_ms": {
+            "native_INT8_GEMM_only": 0.07771025411784649,
+            "BF16_A_to_quant_scale_pad_INT8_GEMM_dequant": 0.5232165567576885,
+            "packed_INT4_unpack_to_INT8_compute_full": 0.9032280649989843,
+            "cached_BF16_inputs_F32_output_no_pad": 0.07625040598213673
+          },
+          "INT8_vs_F32_relative_RMS": 0.01026410423219204
+        },
+        {
+          "part": "W2",
+          "logical_rows": 16,
+          "padded_rows": 32,
+          "K": 384,
+          "N": 3584,
+          "INT8_kernel_supported": true,
+          "CPU_INT64_oracle_64outputs_exact": true,
+          "median_ms": {
+            "native_INT8_GEMM_only": 0.06325473077595234,
+            "BF16_A_to_quant_scale_pad_INT8_GEMM_dequant": 0.4335767589509487,
+            "packed_INT4_unpack_to_INT8_compute_full": 0.7382668554782867,
+            "cached_BF16_inputs_F32_output_no_pad": 0.06510503590106964
+          },
+          "INT8_vs_F32_relative_RMS": 0.010196875780820847
+        },
+        {
+          "part": "W2",
+          "logical_rows": 32,
+          "padded_rows": 32,
+          "K": 384,
+          "N": 3584,
+          "INT8_kernel_supported": true,
+          "CPU_INT64_oracle_64outputs_exact": true,
+          "median_ms": {
+            "native_INT8_GEMM_only": 0.06363051943480968,
+            "BF16_A_to_quant_scale_pad_INT8_GEMM_dequant": 0.40996167808771133,
+            "packed_INT4_unpack_to_INT8_compute_full": 0.7173418998718262,
+            "cached_BF16_inputs_F32_output_no_pad": 0.06627500988543034
+          },
+          "INT8_vs_F32_relative_RMS": 0.010192102752625942
+        },
+        {
+          "part": "W2",
+          "logical_rows": 64,
+          "padded_rows": 64,
+          "K": 384,
+          "N": 3584,
+          "INT8_kernel_supported": true,
+          "CPU_INT64_oracle_64outputs_exact": true,
+          "median_ms": {
+            "native_INT8_GEMM_only": 0.06429990753531456,
+            "BF16_A_to_quant_scale_pad_INT8_GEMM_dequant": 0.41258102282881737,
+            "packed_INT4_unpack_to_INT8_compute_full": 0.7174417842179537,
+            "cached_BF16_inputs_F32_output_no_pad": 0.0666098203510046
+          },
+          "INT8_vs_F32_relative_RMS": 0.010267453268170357
+        },
+        {
+          "part": "W2",
+          "logical_rows": 128,
+          "padded_rows": 128,
+          "K": 384,
+          "N": 3584,
+          "INT8_kernel_supported": true,
+          "CPU_INT64_oracle_64outputs_exact": true,
+          "median_ms": {
+            "native_INT8_GEMM_only": 0.06452039815485477,
+            "BF16_A_to_quant_scale_pad_INT8_GEMM_dequant": 0.40876097045838833,
+            "packed_INT4_unpack_to_INT8_compute_full": 0.7171968463808298,
+            "cached_BF16_inputs_F32_output_no_pad": 0.06631994619965553
+          },
+          "INT8_vs_F32_relative_RMS": 0.010303674265742302
+        }
+      ]
+    },
+    {
+      "revision": "4966",
+      "exists": true,
+      "SHA256": "5d0262c0debf37918d7e7f8284cba95b3bf6e0f139c3749a47e18775e468934b",
+      "completed": true,
+      "scope": "FAIR cachedBF16bank baseline unpaddedM; INT8 paddedto32 includesBF16Afloatconversion/amax/scale/pad/quant/intgemm/dequant, INT4 includesunpack; offlineweightquantsetupnotperstep, activationpaddingcharged. Single GPU nativeTorchINT8 integerGEMM realW13/W2 matrixgeometries; randomint8/integeroracle capabilityprobe, not actualcheckpointquantizedModel. INT4 storage unpackedtoINT8 explicitly distinctfrom nativeINT4compute. All quantization/scale/unpack included in completecost; noGPUF64.",
+      "cases": [
+        {
+          "part": "W13",
+          "logical_rows": 1,
+          "padded_rows": 32,
+          "K": 3584,
+          "N": 768,
+          "BF16_weight_stride": [
+            1,
+            3584
+          ],
+          "INT8_weight_stride": [
+            1,
+            3584
+          ],
+          "INT8_kernel_supported": true,
+          "CPU_INT64_oracle_64outputs_exact": true,
+          "median_ms": {
+            "native_INT8_GEMM_only": 0.08636037819087505,
+            "BF16_A_to_quant_scale_pad_INT8_GEMM_dequant": 0.531176570802927,
+            "packed_INT4_unpack_to_INT8_compute_full": 0.9163778740912676,
+            "cached_BF16_inputs_F32_output_no_pad": 0.6538168527185917
+          },
+          "INT8_vs_F32_relative_RMS": 0.011551967822015285
+        },
+        {
+          "part": "W13",
+          "logical_rows": 8,
+          "padded_rows": 32,
+          "K": 3584,
+          "N": 768,
+          "BF16_weight_stride": [
+            1,
+            3584
+          ],
+          "INT8_weight_stride": [
+            1,
+            3584
+          ],
+          "INT8_kernel_supported": true,
+          "CPU_INT64_oracle_64outputs_exact": true,
+          "median_ms": {
+            "native_INT8_GEMM_only": 0.08441018871963024,
+            "BF16_A_to_quant_scale_pad_INT8_GEMM_dequant": 0.5315670277923346,
+            "packed_INT4_unpack_to_INT8_compute_full": 0.914048170670867,
+            "cached_BF16_inputs_F32_output_no_pad": 0.657171942293644
+          },
+          "INT8_vs_F32_relative_RMS": 0.011865700595080853
+        },
+        {
+          "part": "W13",
+          "logical_rows": 16,
+          "padded_rows": 32,
+          "K": 3584,
+          "N": 768,
+          "BF16_weight_stride": [
+            1,
+            3584
+          ],
+          "INT8_weight_stride": [
+            1,
+            3584
+          ],
+          "INT8_kernel_supported": true,
+          "CPU_INT64_oracle_64outputs_exact": true,
+          "median_ms": {
+            "native_INT8_GEMM_only": 0.0842600129544735,
+            "BF16_A_to_quant_scale_pad_INT8_GEMM_dequant": 0.5293814465403557,
+            "packed_INT4_unpack_to_INT8_compute_full": 0.914757838472724,
+            "cached_BF16_inputs_F32_output_no_pad": 0.6570219993591309
+          },
+          "INT8_vs_F32_relative_RMS": 0.012006901204586029
+        },
+        {
+          "part": "W13",
+          "logical_rows": 32,
+          "padded_rows": 32,
+          "K": 3584,
+          "N": 768,
+          "BF16_weight_stride": [
+            1,
+            3584
+          ],
+          "INT8_weight_stride": [
+            1,
+            3584
+          ],
+          "INT8_kernel_supported": true,
+          "CPU_INT64_oracle_64outputs_exact": true,
+          "median_ms": {
+            "native_INT8_GEMM_only": 0.08352985605597496,
+            "BF16_A_to_quant_scale_pad_INT8_GEMM_dequant": 0.5027169827371836,
+            "packed_INT4_unpack_to_INT8_compute_full": 0.8834074251353741,
+            "cached_BF16_inputs_F32_output_no_pad": 0.6615021266043186
+          },
+          "INT8_vs_F32_relative_RMS": 0.012170941568911076
+        },
+        {
+          "part": "W13",
+          "logical_rows": 64,
+          "padded_rows": 64,
+          "K": 3584,
+          "N": 768,
+          "BF16_weight_stride": [
+            1,
+            3584
+          ],
+          "INT8_weight_stride": [
+            1,
+            3584
+          ],
+          "INT8_kernel_supported": true,
+          "CPU_INT64_oracle_64outputs_exact": true,
+          "median_ms": {
+            "native_INT8_GEMM_only": 0.06702053360641003,
+            "BF16_A_to_quant_scale_pad_INT8_GEMM_dequant": 0.419246731325984,
+            "packed_INT4_unpack_to_INT8_compute_full": 0.738607021048665,
+            "cached_BF16_inputs_F32_output_no_pad": 0.6575218867510557
+          },
+          "INT8_vs_F32_relative_RMS": 0.012267730198800564
+        },
+        {
+          "part": "W13",
+          "logical_rows": 128,
+          "padded_rows": 128,
+          "K": 3584,
+          "N": 768,
+          "BF16_weight_stride": [
+            1,
+            3584
+          ],
+          "INT8_weight_stride": [
+            1,
+            3584
+          ],
+          "INT8_kernel_supported": true,
+          "CPU_INT64_oracle_64outputs_exact": true,
+          "median_ms": {
+            "native_INT8_GEMM_only": 0.06669503636658192,
+            "BF16_A_to_quant_scale_pad_INT8_GEMM_dequant": 0.4146567080169916,
+            "packed_INT4_unpack_to_INT8_compute_full": 0.7331869564950466,
+            "cached_BF16_inputs_F32_output_no_pad": 0.6532419938594103
+          },
+          "INT8_vs_F32_relative_RMS": 0.012143181636929512
+        },
+        {
+          "part": "W2",
+          "logical_rows": 1,
+          "padded_rows": 32,
+          "K": 384,
+          "N": 3584,
+          "BF16_weight_stride": [
+            1,
+            384
+          ],
+          "INT8_weight_stride": [
+            1,
+            384
+          ],
+          "INT8_kernel_supported": true,
+          "CPU_INT64_oracle_64outputs_exact": true,
+          "median_ms": {
+            "native_INT8_GEMM_only": 0.06633973680436611,
+            "BF16_A_to_quant_scale_pad_INT8_GEMM_dequant": 0.43462635949254036,
+            "packed_INT4_unpack_to_INT8_compute_full": 0.7567673455923796,
+            "cached_BF16_inputs_F32_output_no_pad": 0.06765522994101048
+          },
+          "INT8_vs_F32_relative_RMS": 0.010398590937256813
+        },
+        {
+          "part": "W2",
+          "logical_rows": 8,
+          "padded_rows": 32,
+          "K": 384,
+          "N": 3584,
+          "BF16_weight_stride": [
+            1,
+            384
+          ],
+          "INT8_weight_stride": [
+            1,
+            384
+          ],
+          "INT8_kernel_supported": true,
+          "CPU_INT64_oracle_64outputs_exact": true,
+          "median_ms": {
+            "native_INT8_GEMM_only": 0.06559048779308796,
+            "BF16_A_to_quant_scale_pad_INT8_GEMM_dequant": 0.4345159977674484,
+            "packed_INT4_unpack_to_INT8_compute_full": 0.7584376726299524,
+            "cached_BF16_inputs_F32_output_no_pad": 0.06929063238203526
+          },
+          "INT8_vs_F32_relative_RMS": 0.01031490694731474
+        },
+        {
+          "part": "W2",
+          "logical_rows": 16,
+          "padded_rows": 32,
+          "K": 384,
+          "N": 3584,
+          "BF16_weight_stride": [
+            1,
+            384
+          ],
+          "INT8_weight_stride": [
+            1,
+            384
+          ],
+          "INT8_kernel_supported": true,
+          "CPU_INT64_oracle_64outputs_exact": true,
+          "median_ms": {
+            "native_INT8_GEMM_only": 0.06494554691016674,
+            "BF16_A_to_quant_scale_pad_INT8_GEMM_dequant": 0.4343516193330288,
+            "packed_INT4_unpack_to_INT8_compute_full": 0.7576474454253912,
+            "cached_BF16_inputs_F32_output_no_pad": 0.06868992932140827
+          },
+          "INT8_vs_F32_relative_RMS": 0.010169059969484806
+        },
+        {
+          "part": "W2",
+          "logical_rows": 32,
+          "padded_rows": 32,
+          "K": 384,
+          "N": 3584,
+          "BF16_weight_stride": [
+            1,
+            384
+          ],
+          "INT8_weight_stride": [
+            1,
+            384
+          ],
+          "INT8_kernel_supported": true,
+          "CPU_INT64_oracle_64outputs_exact": true,
+          "median_ms": {
+            "native_INT8_GEMM_only": 0.06552995182573795,
+            "BF16_A_to_quant_scale_pad_INT8_GEMM_dequant": 0.4128257278352976,
+            "packed_INT4_unpack_to_INT8_compute_full": 0.7372971158474684,
+            "cached_BF16_inputs_F32_output_no_pad": 0.06856024265289307
+          },
+          "INT8_vs_F32_relative_RMS": 0.010134074836969376
+        },
+        {
+          "part": "W2",
+          "logical_rows": 64,
+          "padded_rows": 64,
+          "K": 384,
+          "N": 3584,
+          "BF16_weight_stride": [
+            1,
+            384
+          ],
+          "INT8_weight_stride": [
+            1,
+            384
+          ],
+          "INT8_kernel_supported": true,
+          "CPU_INT64_oracle_64outputs_exact": true,
+          "median_ms": {
+            "native_INT8_GEMM_only": 0.06463518366217613,
+            "BF16_A_to_quant_scale_pad_INT8_GEMM_dequant": 0.41221105493605137,
+            "packed_INT4_unpack_to_INT8_compute_full": 0.7346025668084621,
+            "cached_BF16_inputs_F32_output_no_pad": 0.06832997314631939
+          },
+          "INT8_vs_F32_relative_RMS": 0.010256735607981682
+        },
+        {
+          "part": "W2",
+          "logical_rows": 128,
+          "padded_rows": 128,
+          "K": 384,
+          "N": 3584,
+          "BF16_weight_stride": [
+            1,
+            384
+          ],
+          "INT8_weight_stride": [
+            1,
+            384
+          ],
+          "INT8_kernel_supported": true,
+          "CPU_INT64_oracle_64outputs_exact": true,
+          "median_ms": {
+            "native_INT8_GEMM_only": 0.06540562026202679,
+            "BF16_A_to_quant_scale_pad_INT8_GEMM_dequant": 0.41333609260618687,
+            "packed_INT4_unpack_to_INT8_compute_full": 0.7363224867731333,
+            "cached_BF16_inputs_F32_output_no_pad": 0.06949552334845066
+          },
+          "INT8_vs_F32_relative_RMS": 0.010274236090481281
+        }
+      ]
+    }
+  ]
+}

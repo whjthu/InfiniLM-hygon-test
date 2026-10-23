@@ -6,7 +6,7 @@
 |---|---:|---|
 | Kimi TP8×PP4，B64/M16，32卡 | 133.59 tok/s | 先前已验收静态512输入/max128输出，约4.175/card；非单用户/在线速度 |
 | Kimi TP8×PP4，B16/M4，32卡 | OFF61.305→ON61.857 | N4候选配对约+0.90%，完整token通过，但收益与波动接近 |
-| GLM TP8×PP2，B16/M8，16卡 | OFF33.471→ON33.960 | resident K/V约+1.46%；未超过历史同形状34.003点值 |
+| GLM TP8×PP2，B16/M8，16卡 | I512 OFF31.635→ON37.990 | 最新472完整验收，resident约+20.09%；prefill基本不变 |
 | GLM TP8×PP2，B32/M16，16卡 | 历史43.50058 | 工作负载/轮次不同，不能与B16直接当代码加速 |
 | DeepSeek tailSUM组合 | 不采用 | 第35索引最终token仍不同，纯B32控制与restore通过，QA18通过，ABBA跳过 |
 
@@ -66,3 +66,10 @@ Kimi594已COMPLETED0/36:27，32owner正常关闭、1666job同轨迹oracle通过�
 Deep699已COMPLETED0/20:57，8卡B32/M32、I512/maxO128，正式prefill108.5963/108.0601inputtok/s、CAPIdecode57.8535/58.1816outputtok/s，driverdecode56.8257/57.1425；质量、审计及清理通过。它是同几何正式基线，不是新增代码收益；单用户CAPI约1.81tok/s，采样步有6.494倍开销，不能拿采样空隙当普通利用率。
 
 整数702已在8卡完成96个精确CPUoracle/guard测试并独立复核：寄存器MMAC的单卡达成INT8中位736.05TOPS、INT4中位1440.03TOPS。仅是整数指令算术参考，非物理峰值、完整GEMM、FP4或模型加速。
+
+
+## 07:10 北京时间：GLM 实测收益与并行推进
+
+GLM472已COMPLETED0/49:28，16owner正常退出，唯一独立audit0及postKFD空。真实16个I512输入、maxO128、B16/M8，配对O/R/R/O的decode均值31.6355→37.9903tok/s（+20.0876%），每卡1.9772→2.3744；含prefill11.5798→12.3373（+6.54%），prefill72.7472→72.8213inputtok/s没有实质改善，用户时间线均值1.6092→1.8801。I512完整最终token/EOS匹配同次OFF，不能冒充独立原模型数学证明或I512/O512。短79–99输入配对34.5297→38.1137（+10.38%）另列。详见results/bw1000/2026-10-24/glm-rows16-resident-qualified.json。
+
+B32/M8的真实32条I512夹具162、私有6TU库168已CPU完成；下一轮先配对吞吐，减少全128step仪器采样等待。Kimi实际599为32卡首decode原生边界因果定位，尚无新性能结果。InfiniLoader典型16.99GB原始分片已单片预置并完整校验，首次copy含源SHA45.79s、目标verify17.45s须单独计费；不把它当整模型加载加速。Astra32已落实，新增707及472共2轮有效实验，达到3轮或提前触发条件后再审核。

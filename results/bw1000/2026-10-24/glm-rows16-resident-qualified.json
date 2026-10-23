@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-23T23:13:26.233456+00:00",
+  "hardware": "BW1000",
+  "model": "GLM-5.3",
+  "level": "model",
+  "status": "qualified_scoped_paired_gain",
+  "actual_handle": "910376.472",
+  "geometry": {
+    "cards": 16,
+    "TP": 8,
+    "PP": 2,
+    "B": 16,
+    "M": 8,
+    "constructor_rows": 16,
+    "input_each": 512,
+    "max_output": 128
+  },
+  "variable": "Resident K/V OFF vs ON[38,40]; fixedVON/TOFF. Source and pinnedSDK unchanged withinpair.",
+  "metrics": {
+    "decode": {
+      "OFF": 31.635460896971587,
+      "ON": 37.99026356797155
+    },
+    "E2E": {
+      "OFF": 11.579756196108926,
+      "ON": 12.337280052923969
+    },
+    "mean_request": {
+      "OFF": 1.6092013468172761,
+      "ON": 1.8801481449211406
+    },
+    "prefill_input_tok_s": {
+      "OFF": 72.74718249632791,
+      "ON": 72.82131887880543
+    },
+    "decode_tok_s_per_card": {
+      "OFF": 1.9772163060607242,
+      "ON": 2.374391472998222
+    }
+  },
+  "decode_gain_percent": 20.087593133843985,
+  "E2E_gain_percent": 6.541794524737821,
+  "prefill_gain_percent": 0.10190962719589525,
+  "short_input_paired_result": {
+    "arms": {
+      "O": {
+        "decode": 34.52967783082772,
+        "E2E": 26.6059754727912,
+        "mean_request": 2.06040645127002,
+        "prefill_input_tok_s": 77.99912854053395,
+        "individual_decode_tok_s": [
+          34.82331084686336,
+          34.236044814792095
+        ],
+        "decode_tok_s_per_card": 2.1581048644267327,
+        "endpoint_decode_drift_percent": 1.6864164198912124
+      },
+      "R": {
+        "decode": 38.113744706623095,
+        "E2E": 28.78162983090737,
+        "mean_request": 2.264711080378321,
+        "prefill_input_tok_s": 79.21917706455943,
+        "individual_decode_tok_s": [
+          38.3193444536092,
+          37.908144959636985
+        ],
+        "decode_tok_s_per_card": 2.3821090441639434,
+        "endpoint_decode_drift_percent": 1.0730859304496354
+      }
+    },
+    "decode_gain_percent": 10.379670767143834,
+    "E2E_gain_percent": 8.177314755255338,
+    "prefill_gain_percent": 1.564182250307411
+  },
+  "qualification": {
+    "geometry": "16cards TP8PP2 B16/M8, ROWS16, cap640; V fixedON/T fixedOFF; resident-only variable all78layers selected[38,40]",
+    "short_inputs": "16 distinct actualchat-template prompts I79..99 maxO128; historical454 complete128IDs+EOS matched",
+    "I512_inputs": "16 distinct actualchat-template prompts I512 maxO128/noPAD; same-session OFF full finalIDs/EOS reference. Not independent original-model math proof.",
+    "all_performance_outputs": "16*128 tokens in every timing arm; all EOSfalse at128",
+    "QA": "Before/candidate/restore B1QA and per-row B16M8 Beijing/retrieval finalIDs+EOS; existing same-input logical-row dependency pattern retained, not universal batch-invariance proof.",
+    "normal_closes": 16,
+    "preengine_records": 18,
+    "raw_CPUargmax": {
+      "snapshots": 156,
+      "rows": 1216,
+      "bytes": 376668160
+    },
+    "resident_mask": [
+      38,
+      40
+    ],
+    "H2D_exclusive_wall_seconds": "UNKNOWN",
+    "prefill": "Input throughput measured to first-ready endpoint, includes model/pipeline/prefill stages. Resident gains apply primarily decode; no material prefill improvement."
+  },
+  "evidence": "evidence/bw1000/GLM472-qualified-scope-r5737.json",
+  "evidence_SHA256": "afa2a48081fcdb8d2446db9135cba6a899b5d3c04a4fc169fb65119d31c91da8",
+  "limits": [
+    "Same-session OFF full finalIDs/EOS for trueI512; not independent original-model math proof.",
+    "Static closed batch; mean request timeline metric differs from aggregate decode dividedbyB.",
+    "All outputmax128/EOSfalse in performancearms; not naturalcompletion or I512/O512.",
+    "No material prefill gain; global all-batch Modelrecord unchanged; no15tok/s/user claim."
+  ]
+}

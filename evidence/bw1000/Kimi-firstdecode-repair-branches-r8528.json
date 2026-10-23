@@ -1,0 +1,50 @@
+{
+  "revision": 8528,
+  "CPU_design_only": true,
+  "new_GPU_or_compile": false,
+  "source_basis": [
+    "Kimi-native-tracer-source-r8504",
+    "Kimi-causal-source-package-r8526",
+    "Kimi594-history-join-r8505.json"
+  ],
+  "primary_acceptance": "FAILED_OBSERVED; no branch adopted before native evidence and finaltoken/QA verification",
+  "branches": [
+    {
+      "observed": "First postprefill target qkv/input/gate projection differs although its complete target input bytes match",
+      "next_action": "Use captured actual companion operands to replay ONLY this GEMM under two actual M values and repeat; test fixed implementation/accumulation/outputdtype or bounded fixed-M tile selection at this operation.",
+      "benefit": "Preserve batched serving while changing only identified kernel; no whole-request serial splitting.",
+      "stop": "If input or weight/state is not equal, do not attribute to GEMM geometry. Any proposed math change needs finite matched baselines and original output QA."
+    },
+    {
+      "observed": "KDA target before states equal; qkv equal; first difference conv_output",
+      "next_action": "Faithful CausalConv1d component consumes actual offsets/init/final indices and entire active union snapshots, with independent copies of touched state for each replay. Compare read/updated target and companion rows.",
+      "benefit": "Distinguish owned-index/state alias/packed boundary implementation from projection rounding.",
+      "stop": "No same-state claim until complete touched pool+metadata restored; existing observational snapshots do not implement GPU restore."
+    },
+    {
+      "observed": "KDA q/k/v/gate/beta and read SSM equal but output/updated SSM differs",
+      "next_action": "Replay one actual KDA invocation using captured active union and exact offsets/indices. Separate prefill chunk boundary from firstdecode; preserve BF16/F32 storage and actual row strides.",
+      "benefit": "Localize recurrent-state accumulation or row ownership at one operation, avoiding whole-model F64 reductions.",
+      "stop": "If earlier input differs, keep classification upstream/history; do not rerun known whole128 discrepancy."
+    },
+    {
+      "observed": "MLA target q/key/value and valid pre-call KV equal but attention output differs",
+      "next_action": "Consume actual companion q/k/v and actual blocktable/slot metadata plus valid KV prefix; use native backend component with cloned touched pages. Compare only valid tokens and V actual width, keep raw page tail remote.",
+      "benefit": "Resolve batched attention geometry/metadata/reduction cause without treating unused page tail as evidence.",
+      "stop": "Full touched KV/companion inputs required; no row*4 assumption and no claimed numerical proof from same target row/past alone."
+    },
+    {
+      "observed": "Selected target gated KDA/MLA input equals but final row-parallel projection output differs",
+      "next_action": "Use existing output-boundary operand capture to separate a local GEMM replay and actual same communicator reduction in a bounded later component. Current linked DSO has no observed row_output_local/reduced hooks.",
+      "benefit": "Distinguish GEMM/collective pathway before considering precision changes.",
+      "stop": "Projection pre/postreduce hooks remain UNKNOWN; do not infer slow management network or FP64 necessity from this endpoint alone."
+    },
+    {
+      "observed": "All selected final hidden hashes equal but perrequest full BF16 logits differ",
+      "next_action": "Investigate the ordinary vocabulary head and actual hidden full bytes; use perrequest full-logit SHA/top2 to localize head output. Only then evaluate a head-specific GEMM/collective change.",
+      "benefit": "Avoid changing all layers for a head-only defect.",
+      "stop": "FNV equal is a diagnostic hash, not full native-state equality; preserve uncertainty and compare actual selected full bytes if needed."
+    }
+  ],
+  "execution_policy": "Prepare narrowly during current loading; do not alter sealed run, add load or compile before first actual boundaries. Next test must distinguish a new causal factor, not repeat already-known crosspolicy failure."
+}
