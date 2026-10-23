@@ -1,0 +1,44 @@
+{
+  "source_evidence_SHA256": {
+    "r5731-GLM-ROWS32-memory-source.json": "884dfc92d9874ad0b255c9a28b991501188183dbc91ea56bf38675648e839be5",
+    "GLM-resident-allocator-source-budget-r5663.json": "b33a3c2d780eec93d773ae3b795942e69610a81f0eca4be2ee455c92f1279da4"
+  },
+  "projected_KV_formula": "2*K/V *32rows*640capacity*8heads*256dim*2BF16bytes=167772160bytes logical/layer. Two80MiB allocations budget128MiB each =>268435456bytes physical/layer.",
+  "stages": [
+    {
+      "stage": 0,
+      "layers": 38,
+      "full_indexer_layers": 11,
+      "rows16_actual_min_fresh_after_reset_trim": 18779996160,
+      "rows16_to32_compressed_cache_exact_delta": 448266240,
+      "indexer_normal_pool_delta_estimate": 46137344,
+      "prefix_bank_pool_delta_estimate": 1441792,
+      "rows32_fresh_estimate_NOT_admission": 18284150784,
+      "estimated_max_resident_count_NOT_selected": 38,
+      "whole_stage_physical_bytes": 10200547328,
+      "whole_stage_admit_by_old_loadfree": true
+    },
+    {
+      "stage": 1,
+      "layers": 40,
+      "full_indexer_layers": 10,
+      "rows16_actual_min_fresh_after_reset_trim": 14393802752,
+      "rows16_to32_compressed_cache_exact_delta": 471859200,
+      "indexer_normal_pool_delta_estimate": 41943040,
+      "prefix_bank_pool_delta_estimate": 1310720,
+      "rows32_fresh_estimate_NOT_admission": 13878689792,
+      "estimated_max_resident_count_NOT_selected": 27,
+      "whole_stage_physical_bytes": 10737418240,
+      "whole_stage_admit_by_old_loadfree": false
+    }
+  ],
+  "runtime_rule": "Only actual new-session allowner freshfree determines chosen fixed masks. Recheck postallocation >=6GiB+64MiB, runtime observedfloor>=512MiB; no lower gate, no full40fit assumption, no afterphase-as-peak claim.",
+  "layer_priority": "Current472 sixTLS cannot rank per-layer prepare/cache benefit. Fixed stage-local prefix is explainable fallback, not measured savings sort.",
+  "B32_vs_history": "Old43.5tok/s is B32M16 with16short79..99prompts duplicatedtwice/dedupOFF. New32distinctI512 M8 workload must use own same-sessionOFF; not direct comparison.",
+  "input": "32real coherentEnglish doc-review prompts, actual512 chat-template tokens each; first16 unchanged5713 plus16newunique,16384inputtokens,noPAD.",
+  "host_pinned_logical_per_GPU": [
+    6375342080,
+    6710886400
+  ],
+  "loading": "One necessary load only; current472 rows16 weightsready~16min. NewROWS32 CPU/pinned/GPUcache cost measured, no speedup assumed."
+}
