@@ -16,10 +16,18 @@ Kimi B16最新first-ready用户均值3.126 tok/s，postanchor约3.877；二者�
 
 GLM真实layer38/真实权重、合成hidden测试约5.36–5.66ms热态wall、3.66–3.84ms owner CPU；gateup约1.09ms、down约.65ms对应低ownerCPU大项，attention prepare与row setup有明显CPU成本。stream事件含host发射空隙/依赖等待，不能把全部当纯GPU时间或PCIe延迟。单层结果不能乘层数作为模型极限。
 
-正在推进：Kimi词表头32卡同次加载B1/B16；DeepSeek五组teacher36诊断区分tile/单行decode/prefill/layout；在线动态调度仅完成CPU控制核心及指标，尚未接Engine/broker。未得到新的15tok/s用户结果、在线goodput、训练草稿投机加速或硬件物理上限结论。
+截至2026-10-24 04:00北京时间，当前周期没有新增合格整模型吞吐纪录。GLM瞬态K/V组件已经完成单层及四层对照，配对中位加速分别约5.24%/5.50%；向量加载组件在M8约7.05%加速，M1 down反而变慢，因此只准备M4/8的受限整模型分派。逐专家M16矩阵化组件慢约5.52倍，已停止。组件倍率不能外推为整模型收益。
+
+GLM整模型私有接入已经通过166增量CPU编译链接，单TU约9.745秒，23个未变对象按SHA复用。当前正在完成一次加载的B16/M8有限对照；尚未执行新整模型。Kimi实际Engine/broker测试582已FAILED1，32owner正常销毁、583四节点KFD空；动态阶段未到达，没有在线性能数值。失败静态门错误复用了不同batch几何的参考输出，且断言前未保存实际输出；下一次加载前先完成同几何、同调用轨迹的独立full-logit参考与token-only候选对照。
+
+Deep685已COMPLETED0/18:31、8owner正常退出、独立audit0/postKFD空。在固定B32/M32 teacher36中，两个tile均开启的A全部token匹配；单独关闭projection或C4都使索引35从5078变为6533。两者都影响当前夹具，先保留；这不是普通自由生成验收或性能结果。没有新增15tok/s用户、在线goodput、投机加速或硬件物理上限结论。
 
 ## 词表头整模型终态补充
 
 500已COMPLETED0/40:37，32owner关闭、独立501四节点KFD空。B1配对5.30629→5.34573 tok/s（约+0.74%）；B16配对59.83117→59.86904（约+0.063%），first-ready用户均值3.03590→3.03494。完整对照通过，但未建立明显整模型收益；组件3–5倍不能外推。B1只具同次加载matched reference，不能当独立历史gold；现有总吞吐纪录和15/user未改变。
 
-在线控制原型已修复有界队列/事件与回收、8192 packed-token上限，并通过1000个CPU epoch；完整请求与censored prefix指标分开。实际跨节点broker/Engine适配仍未执行，不列服务性能。
+在线控制原型已修复有界队列/事件与回收、8192 packed-token上限，并通过1000个CPU epoch；完整请求与censored prefix指标分开。实际跨节点broker/Engine已在582进入QA及静态校验，但未通过静态参考门，动态服务指标未测。
+
+## 周期审核落实
+
+Astra29已实际完成，审核451/163/159/456四轮，结论及逐项采纳/暂缓、负责人、资源和退出条件见`reviews/astra-review-r8381.json`及`reviews/astra-review-implementation-r8383.json`。685结果在审核水位之后收到，计为下轮第1轮；582重复已知不兼容参考门且无新增首差证据，记录为效率事故，不凑性能轮次。每3轮新结论审核；同路线2轮无收益、90分钟无可测进展提前触发。下一轮首先核对这些安排是否产生整模型结果。

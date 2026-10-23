@@ -1,0 +1,69 @@
+{
+  "updated_at_utc": "2026-10-23T20:02:22.906677+00:00",
+  "review": "astra-review-r8381.json",
+  "reviewer": "/root/astra_review_29",
+  "model": "gpt-6-astra high",
+  "decisions": [
+    {
+      "card": "GLM-ONELOAD",
+      "decision": "ACCEPT",
+      "owner": "glm_critical_path_profile",
+      "resources": "406n19 + 407n20, TP8PP2/16cards; existing private leases",
+      "action": "CPU166 private closure passed; finish frozen runner with unanimous enable/reset/failure handling. One load B16M8 O/T/V/both bounded paired full128/EOS/QA; if vector late30min after transient closure, O/T ABBA x2 first.",
+      "exit": "No Model promotion before complete token/EOS/QA, normal16owners and terminal/postKFD; stop failing arm; preserve defaultOFF."
+    },
+    {
+      "card": "GLM-vector-dispatch",
+      "decision": "ACCEPT",
+      "owner": "glm_fp8_matrix_path",
+      "resources": "CPU preparation; coordinate source ownership with GLM owner; no independent GPU load",
+      "action": "Actual Model defaultOFF callsite for measured kernel M4/8 only; M1 down and unmeasured shapes scalar; preserve math and count actual dispatch.",
+      "exit": "No new component repetitions; do not block transient Model >30min."
+    },
+    {
+      "card": "GLM-SCALE-AFTER-QUALIFICATION",
+      "decision": "DEFER_UNTIL_QUALIFIED",
+      "owner": "glm_critical_path_profile",
+      "reason": "Current component gains have no new whole-Model token/performance qualification.",
+      "action": "If finite session budget permits after qualification, N16 to N32 at fixed M8; M16 a separate unmeasured mechanism, not extrapolated gain."
+    },
+    {
+      "card": "KIMI-STATIC-DIAGNOSIS-THEN-EPOCHS",
+      "decision": "ACCEPT_CPU_PREPARATION",
+      "owner": "online_service_scheduler",
+      "resources": "375n08..11 existing lease, no new GPU launch yet",
+      "action": "Consume489/8466. Existing full-logit CPU deterministic argmax independent reference emits immutable actual trace/fullIDs/EOS; token-only adapter replays same trace. Preserve actuals/firstdiff/phase wall before assert; old B16 anchor separate.",
+      "exit": "No crossgeometry gold, candidate selfgold, replay-as-serviceTPS, or blind reload. Root reviews concrete finite plan before next necessary load."
+    },
+    {
+      "card": "KIMI-LOAD-CAUSAL-SLICE",
+      "decision": "ACCEPT_METADATA_FIRST",
+      "owner": "online_service_scheduler",
+      "resources": "CPU only; no fullweight/preload allocation",
+      "action": "Resolve prospective Model cgroup ancestors, cache identity and selected useful bytes; host free RAM is not admission budget. At most8GiB representative partial group only if true headroom established.",
+      "exit": "Unknown headroom/coverage means metadata only; prioritize multi-epoch reuse after correctness."
+    },
+    {
+      "card": "DEEP-COLLECT685",
+      "decision": "COMPLETED_AFTER_REVIEW",
+      "owner": "root",
+      "resources": "374n05,8cards; existing685 only",
+      "outcome": "685 COMPLETED0/18:31; normal8owners/audit0/postKFDempty. A36matches; independently disabling projection or C4 changes step35 token5078 to6533.",
+      "scope": "Both switches independently affect this teacher fixture. No ordinary freegeneration or performance qualification."
+    },
+    {
+      "card": "DEEP-NEXT-ONE-CAUSE",
+      "decision": "ACCEPT_CONDITIONAL",
+      "owner": "root",
+      "action": "Retain both correctness-required switches; next ordinary fullIDs/EOS+QA under same geometry before performance. If wrong, capture only first divergent operator and faithful finite component replay.",
+      "exit": "No broad shape sweep, blind tailSUM, GPU F64 or teacher-diagnostic TPS."
+    },
+    {
+      "card": "PREPARATION_EFFICIENCY",
+      "decision": "IMPLEMENTED_AND_ASSIGNED",
+      "action": "experiment_package.py preserves originals, resolves required aliases, Path-to-string, LF-before-SHA, AST/JSON checks without experiment imports. Smoke checks passed. Reuse future wrappers, no resealing live packages."
+    }
+  ],
+  "whole_Model_record_changed": false,
+  "accountability": "Next review starts with actual outcome of these cards and reasons for any unimplemented action."
+}
