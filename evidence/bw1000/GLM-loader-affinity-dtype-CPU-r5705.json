@@ -1,0 +1,145 @@
+{
+  "utc": "2026-10-23T21:10:06.339788+00:00",
+  "evidence_SHA256": {
+    "r5703-GLM468-loader-CPU.json": "b268e850f84e63f8ca785183bf5bbc17e4e7fefcd1c06ca87d580ee2f9281c73",
+    "r5704-GLM-checkpoint-dtype-headers.json": "32b705559eef91a39da68501c5088b018079084c4c64ed681215a5b1c5806386",
+    "GLM-ROWS16-source-design-r5702.json": "1d194fe7334199fd2867429f507c0985f67f1aed2ee00430dc6d63ca233b5bfa",
+    "GLM_rows16_budget_CPU_r5702.cpp": "5c5eff86b3ec2d1586e67df7264b9dedebbf458ce604aa8c9999d7263888906f",
+    "GLM_rows16_budget_CPU_r5702.exe": "2b7240319ac5fef01e626423b700caa5541e36b410250fc8ab5b01b74f97f0c4",
+    "owner_affinity_r2392.hpp": "de2ffe645329558634740ed6b8a9ac7c70030160786eab38d065ce513afce71d"
+  },
+  "loader_observation": [
+    {
+      "node": "a02r4n12",
+      "CPU_probe_step": "469",
+      "interval_seconds": 2.3892202260904014,
+      "KFD_process_count": 9,
+      "sum_proc_CPU_core_equivalents": 0.9082461199279557,
+      "actual_Model_cgroup_CPU_core_equivalents": {
+        "/sys/fs/cgroup/cpuacct/slurm/uid_154459/job_910376/step_468/task_0": 0.9347508917813326
+      },
+      "accounted_read_bytes": 814727168,
+      "accounted_read_bytes_per_second_not_storage_bandwidth": 341001285.3160791,
+      "major_faults": 15439,
+      "minor_faults": 47263,
+      "KFD_process_cpu_sets": [
+        {
+          "pid": 221169,
+          "cpuset": "0-7,16-23,32-39,48-55,64-71,80-87,96-103,112-119"
+        },
+        {
+          "pid": 223961,
+          "cpuset": "0-3"
+        },
+        {
+          "pid": 223962,
+          "cpuset": "4-7"
+        },
+        {
+          "pid": 223963,
+          "cpuset": "16-19"
+        },
+        {
+          "pid": 223964,
+          "cpuset": "20-23"
+        },
+        {
+          "pid": 223965,
+          "cpuset": "32-35"
+        },
+        {
+          "pid": 223966,
+          "cpuset": "36-39"
+        },
+        {
+          "pid": 223967,
+          "cpuset": "48-51"
+        },
+        {
+          "pid": 223968,
+          "cpuset": "52-55"
+        }
+      ]
+    },
+    {
+      "node": "a02r4n13",
+      "CPU_probe_step": "469",
+      "interval_seconds": 2.582706614397466,
+      "KFD_process_count": 9,
+      "sum_proc_CPU_core_equivalents": 1.1228530502976068,
+      "actual_Model_cgroup_CPU_core_equivalents": {
+        "/sys/fs/cgroup/cpuacct/slurm/uid_154459/job_910376/step_468/task_1": 1.1101872481435238
+      },
+      "accounted_read_bytes": 1109495808,
+      "accounted_read_bytes_per_second_not_storage_bandwidth": 429586466.3121407,
+      "major_faults": 27071,
+      "minor_faults": 80796,
+      "KFD_process_cpu_sets": [
+        {
+          "pid": 168262,
+          "cpuset": "0-7,16-23,32-39,48-55,64-71,80-87,96-103,112-119"
+        },
+        {
+          "pid": 172101,
+          "cpuset": "0-3"
+        },
+        {
+          "pid": 172102,
+          "cpuset": "4-7"
+        },
+        {
+          "pid": 172103,
+          "cpuset": "16-19"
+        },
+        {
+          "pid": 172104,
+          "cpuset": "20-23"
+        },
+        {
+          "pid": 172105,
+          "cpuset": "32-35"
+        },
+        {
+          "pid": 172106,
+          "cpuset": "36-39"
+        },
+        {
+          "pid": 172107,
+          "cpuset": "48-51"
+        },
+        {
+          "pid": 172108,
+          "cpuset": "52-55"
+        }
+      ]
+    }
+  ],
+  "interpretation": "Two~2.5s samples duringactual468loading show~1CPUcore/node with manymajorfaultsandaccountedreads. Supportsinvestigating mmap/storage/pagecache before CPUcompute acceleration; cannotpartition conversion/H2D/IOwait or establishlongrun throughput.",
+  "affinity_source": {
+    "actual5681_dependency_path": "/refactor/candidates/rebased-5f91ad7-r3668/Model/GLM/InfiniLM/csrc/execution/owner_affinity_r2392.hpp",
+    "SHA256": "de2ffe645329558634740ed6b8a9ac7c70030160786eab38d065ce513afce71d",
+    "source_rule": "desired CPU subset = sorted(originalallowed)[device*width:device*width+width], width4. NoGPU/NUMA lookup.",
+    "observed": "Eightworker masks occupyfirst32of64allowedCPUs(physicalNUMAnodes0..3). NUMA-awaremapping candidateonly; actualGPUindex\u2192BDF canuseexistingCCLlogs andpostloadownerreports before anychange. Neverhotedit468."
+  },
+  "dtype_header_check": {
+    "tensor_count": 118629,
+    "header_total_bytes": 14908776,
+    "dtype_counts": {
+      "F32": 59120,
+      "BF16": 465,
+      "F8_E4M3": 59044
+    },
+    "unsupported": [],
+    "all_index_entries_resolved_once": true,
+    "passed": true
+  },
+  "dtype_scope": "IndependentCPU headers only, not a gate insertedintolive468. Existingloader actualdtype map F32/BF16/U8, F8_E4M3viewU8 iscompletefor118629keys.",
+  "ROWS16_new_physical_budget_CPU": {
+    "passed": true,
+    "new_physical_budget_checks": 8,
+    "scope": "CPU only,noRuntime/GPU; existing25geometrytests not repeated"
+  },
+  "local_build_note": "MinGW relativeinclude path initiallyfailed; exactoriginal5640header copied alongside helper, SHA-identical. NoModelclassheader changed. Newhelperbudget8checks pass;25unchangedgeometrychecks not repeated.",
+  "candidate_native_compile_GPU_Model": "NOT_RUN",
+  "active_Model_handle": "910376.468, frozen5696 unchanged"
+}

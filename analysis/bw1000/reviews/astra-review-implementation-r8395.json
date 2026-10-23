@@ -1,0 +1,73 @@
+{
+  "updated_at_utc": "2026-10-23T21:13:33.101294+00:00",
+  "review": "astra-review-r8393.json",
+  "reviewer": "/root/astra_review_30",
+  "model": "gpt-6-astra high",
+  "decisions": [
+    {
+      "card": "EXECUTED_IO_CONTRACT",
+      "decision": "ACCEPT",
+      "owner": "each experiment owner; root verifies once",
+      "action": "Use actual runtime file/producer/namespace expressions in CPU preparation. Immediate repairs5696/7259/8479 have executed checks; reuse their helpers in subsequent wrappers, no hot edit or extra GPU gate.",
+      "evidence": [
+        "GLM-source-path-closure-CPU-r5696.json",
+        "Kimi-audit-path-fix-r8479.json",
+        "preflight_Deep_direct_inputs_r7259.py"
+      ]
+    },
+    {
+      "card": "LOADER_DOMAIN_COVERAGE",
+      "decision": "ACCEPT",
+      "owner": "native wrapper owners",
+      "action": "Reuse authoritative native dtype adapter and validate metadata domain before owner creation. Deep7259 covers all1564 tensors, including I64. GLM later header-only audit covered118629 keys/F32/BF16/F8_E4M3 with0unsupported; this was not a pre-launch gate for468.",
+      "evidence": [
+        "Deep-direct-dtype-CPU-contract-r7259.json",
+        "GLM-loader-affinity-dtype-CPU-r5705.json"
+      ]
+    },
+    {
+      "card": "KIMI-EXISTING-LIVE-CRITICAL-PATH",
+      "decision": "ACCEPT_EXECUTED",
+      "owner": "online_service_scheduler",
+      "resources": "CPU; immutable588 events/jobs",
+      "evidence": [
+        "Kimi-live-critical-path-r8481.json"
+      ],
+      "outcome": "Largest early-request gaps overlap coordinator-observed prefill intervals by98.93-99.67%; native entry is not device-kernel timing. Preserve full timeline and perrequest tails."
+    },
+    {
+      "card": "KIMI-ONE-POLICY-PAIR-AFTER-TIMELINE",
+      "decision": "ACCEPT_SOURCE_PREPARATION",
+      "owner": "online_service_scheduler",
+      "resources": "CPU now; existing375n08..11/32cards for next necessary qualified session",
+      "action": "One change: bounded10ms wait for underfilled prefill to form M4; decode policy unchanged. Freeze external arrival offsets and O,W,W,O; independently validate each actual trace. No blind reload before runnable source and fair paired timing are ready.",
+      "exit": "Stop on final token/EOS mismatch, no target-gap reduction beyond paired drift, or unexplained aggregate-throughput regression."
+    },
+    {
+      "card": "GLM-FINISH-ONELOAD-5696",
+      "decision": "ACCEPT_IN_PROGRESS",
+      "owner": "glm_critical_path_profile",
+      "resources": "910376.468 existing376n12..13/16cards",
+      "action": "Continue same frozen O,T,V,B,B,V,T,O session and existing profile; no new review barrier. Full IDs/EOS/QA, terminal and cleanup required.",
+      "exit": "Stop failing arm; wholeModel gain must exceed paired spread, not component extrapolation."
+    },
+    {
+      "card": "GLM-ROWS16-CONTINGENT-CAPACITY",
+      "decision": "ACCEPT_CPU_ONLY_DEFER_GPU",
+      "owner": "glm_critical_path_profile",
+      "action": "Minimal private source prepared. Budget actual pooled128MiB/layer, full40layers5GiB rather than logical3.125GiB; retain6GiB admission/512MiB running floors. Native/GPU expansion depends on468 actual critical-path transfer evidence and peak margin.",
+      "exit": "No physical fit or no measured critical transfer opportunity: stop expansion; latent path remains a separate hypothesis."
+    },
+    {
+      "card": "DEEP-DIRECT-COPY-COMPONENT",
+      "decision": "CLOSED_NO_ROBUST_GAIN_DEFER_MODEL",
+      "owner": "deep_remaining_cause; root integration",
+      "resources": "Completed910374.695; no additional GPU",
+      "action": "Completed0/2:36,8owners,uniqueaudit0/postKFDempty. Perstep-max ABBA pointgain6.33% is below7.95% OFF drift; firstdecode explains88.45% apparent savings. Posthoc excludingfirst only0.758%,lateOFF/ON effectively equal.24480 captured stage hashes exact. KeepdefaultOFF; do not pay43layer Model load.",
+      "exit": "At most one future short warmed/readback-separated component confirmation if resource opportunity warrants; not required to advance other routes."
+    }
+  ],
+  "whole_Model_record_changed": false,
+  "post_review_evidence": "Kimi8479 offline audit now qualified, issues=[]; original path failure preserved. This resolves review read-watermark uncertainty, not a second experiment.",
+  "accountability": "Next review first checks actual result or reason for deferral for each accepted card."
+}

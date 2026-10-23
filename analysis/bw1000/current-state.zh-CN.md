@@ -37,3 +37,12 @@ Astra29已实际完成，审核451/163/159/456四轮，结论及逐项采纳/暂
 Kimi实际任务910375.588（32卡）及GLM实际任务910376.463（16卡）均已观测到RUNNING并进入权重加载。Kimi同一次加载做同轨迹参考/回放及真实动态到达测试；GLM同一次加载做瞬态K/V、向量加载、组合与基线对照。尚无新的性能结果。具体时间、句柄及限制见`evidence/bw1000/active-model-sessions-r8387.json`，后续跟踪同一任务，不因观察超时重提。
 
 两项任务的实际日志均显示使用IBext_v8/SHCA高速网络，同时显示GPU Direct RDMA Disabled。这与回退管理网Socket是两回事；是否限制当前性能仍需profile和带宽/等待证据，不能凭初始化日志下结论。DeepSeek省去投影tile临时分配/拷贝的私有一TU编译687已通过，正在准备真实单层有限对照；尚未验证GPU收益。
+
+
+## 05:06 北京时间执行补充（取代上文运行状态）
+
+Astra30已完成并逐条落实，见reviews/astra-review-r8393.json与astra-review-implementation-r8395.json；每3轮全局有效实验审核，同路线2轮无收益或90分钟无可测进展、重复测试代码事故提前审核，独立实验继续。下一轮首先检查本轮卡片实际结果。
+
+Kimi588已COMPLETED0，32owner正常关闭，590四节点KFD空，原审计命名空间错误保留、离线修复审计通过。有限8请求真实到达epoch的用户decode均值3.3552tok/s（2.5427–4.1341），TTFT均18.203s；含prefill服务窗有效post-first输出15.7158tok/s/32卡，绝非纯decode总吞吐。513job逐轨迹完整token/EOS/独立CPUargmax通过。最大ITL15.949s，不能只看pooledP99=.254s。现有日志表明早期最大gap与prefill区间重叠98.93–99.67%；下步仅测试欠满prefill最多等待10ms合到M4，固定外部到达时间与O,W,W,O，不盲重载。历史静态decode133.59纪录未改变。
+
+GLM463因旧probe文件名在加载后失败，零性能arm，464清理空；修复468已实测RUNNING，继续同一次16卡加载的O/T/V/组合对照。ROWS16仅CPU源准备，按实际128MiB/layer、40层5GiB预算；是否进一步测试取决于当前profile，不以逻辑3.125GiB推断可容纳。Deep695单层copy-elision已COMPLETED0/2:36，8owner/audit0/postKFD空、24480stage哈希一致；逐step关键owner的ABBA点收益6.33%，低于OFF自身7.95%漂移，首decode贡献表观省时88.45%。保留默认OFF，暂不投入整模型加载。
