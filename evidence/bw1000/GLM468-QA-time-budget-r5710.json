@@ -1,0 +1,96 @@
+{
+  "utc": "2026-10-23T21:26:07.626650+00:00",
+  "evidence_SHA256": {
+    "r5709-GLM468-QA-cost-snapshot.json": "77b5cdea4dbfb458a6e97702662375428f9e3e4aedc1266dcb97f5df4c24e60d",
+    "glm_vector_transient_probe_r5696.py": "bddb35f2755b522c0020d872ae8e979bc91cfb08500da1ddecf0bb27c72ac388",
+    "glm_large_chat_r3627.py": "cd2821b69de0b44a58116f9dd7e3c79fec27b2f8de751c0824f785e657f1d21d"
+  },
+  "frozen_source_plan": {
+    "batch_QA": {
+      "arms_and_geometry": [
+        "O:M16",
+        "O:M8",
+        "T:M8",
+        "V:M8",
+        "B:M8"
+      ],
+      "cases_each": 3,
+      "generation_phases": 15,
+      "requests_each": 16,
+      "repeats_each": 1
+    },
+    "B1_QA": {
+      "epochs": [
+        "before_select",
+        "candidate_T",
+        "candidate_V",
+        "candidate_B",
+        "after_select"
+      ],
+      "cases_each": 3,
+      "repeats_each": 2,
+      "generation_runs": 30,
+      "scope": "Candidate T/V/B B1 uses scalar/fallback shape bydesign; still genuinecurrentquality/lifecycle gate, not removed live."
+    },
+    "official_performance": {
+      "order": [
+        "O",
+        "T",
+        "V",
+        "B",
+        "B",
+        "V",
+        "T",
+        "O"
+      ],
+      "phases": 8,
+      "B": 16,
+      "M": 8,
+      "output_cap": 128
+    },
+    "other_full128": [
+      "anchorO",
+      "profileO",
+      "restoreO"
+    ],
+    "optional_full128": "winnerprofile",
+    "mandatory_plan_phases": 26,
+    "maximum_plan_phases": 27
+  },
+  "actual_completed": {
+    "B1_before_seconds_sum": 79.5534779895097,
+    "batch_QA_O_M16_seconds": 168.93106397846714,
+    "batch_QA_O_M8_seconds": 158.59795353515074,
+    "QA_generation_seconds_sum_before_anchor": 407.0824955031276,
+    "retrieval_O_M16_seconds": 113.67170144477859,
+    "retrieval_O_M8_seconds": 114.44401009287685,
+    "retrieval_share_completed_batch_QA": 0.6964748139549832,
+    "retrieval_input_tokens": 518,
+    "first_official_perf_before_all_candidate_QA": false
+  },
+  "duration_scenario_not_prediction": {
+    "B1_sixrun_warmed_proxy_seconds": 58.490340946707875,
+    "M8_threebatch_QA_measured_seconds": 158.59795353515074,
+    "measured_short_QA_mean_decode_round_seconds": 0.46483014422246133,
+    "full128_perphase_scenario_seconds": 89.03342831625258,
+    "full128_prefill_observer_assumed_seconds": 30,
+    "remaining_QA_using_OFFtimings_seconds": 709.7552243922837,
+    "remaining_full128_upper_phase_count": 12,
+    "additional_control_report_close_cushion_seconds": 300,
+    "remaining_total_scenario_seconds": 2078.1563641873145,
+    "already_elapsed_at_snapshot_approximately_minutes": 27,
+    "total_scenario_minutes": 61.63593940312191,
+    "Slurm_limit_minutes": 130,
+    "fit_under_scenario": true,
+    "limits": "Not a worstcase guarantee. ON mayreject/hang/slowdown; actualanchor notyetcomplete. Do not add perowner nativewindows orspatialranks. Preserveexistingtimeoutsandnoautoretry."
+  },
+  "next_load_order_candidate_NOT_IMPLEMENTED": [
+    "KeepinitialOFF frozenB1 and firstfull128anchor, then getO/T/V/B performance early with fullIDs/EOS eachtrial. Keepadoptionpending untilrequiredQA andrestore/terminal pass.",
+    "Move already-requiredperarmbatch/B1 QA afterfirstpairedsamples; a correctnessfailure invalidatesassociatedperf ratherthanpublishingit. No weakeningofcurrentrun.",
+    "ReusequalifiedM16\u2192M8 geometryevidence whenDSOchangeonlytouchesM8kernels, orplaceM16referencechecklate ifstillrequired.",
+    "ReviewwhethereachcandidateB1 needs2repeats\u00d73cases whenT/V/B allfallbackforB1. Preserveoneimage fallback/lifetimecheck andfinalOFFrestore, noautomaticremoval.",
+    "Long518token retrievalprefill dominatesQA; retain explicitlongcontextgate fornewresidentcache, but avoidduplicateM16/M8 baselineprefixwork unlessnewgeometryrequiresit."
+  ],
+  "live_468_changed": false,
+  "new_GPU_or_Model_load": false
+}

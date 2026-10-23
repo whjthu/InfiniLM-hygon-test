@@ -46,3 +46,10 @@ Astra30已完成并逐条落实，见reviews/astra-review-r8393.json与astra-rev
 Kimi588已COMPLETED0，32owner正常关闭，590四节点KFD空，原审计命名空间错误保留、离线修复审计通过。有限8请求真实到达epoch的用户decode均值3.3552tok/s（2.5427–4.1341），TTFT均18.203s；含prefill服务窗有效post-first输出15.7158tok/s/32卡，绝非纯decode总吞吐。513job逐轨迹完整token/EOS/独立CPUargmax通过。最大ITL15.949s，不能只看pooledP99=.254s。现有日志表明早期最大gap与prefill区间重叠98.93–99.67%；下步仅测试欠满prefill最多等待10ms合到M4，固定外部到达时间与O,W,W,O，不盲重载。历史静态decode133.59纪录未改变。
 
 GLM463因旧probe文件名在加载后失败，零性能arm，464清理空；修复468已实测RUNNING，继续同一次16卡加载的O/T/V/组合对照。ROWS16仅CPU源准备，按实际128MiB/layer、40层5GiB预算；是否进一步测试取决于当前profile，不以逻辑3.125GiB推断可容纳。Deep695单层copy-elision已COMPLETED0/2:36，8owner/audit0/postKFD空、24480stage哈希一致；逐step关键owner的ABBA点收益6.33%，低于OFF自身7.95%漂移，首decode贡献表观省时88.45%。保留默认OFF，暂不投入整模型加载。
+
+
+## 05:32 北京时间执行补充
+
+Kimi新合批对照594已实测RUNNING并进入四阶段权重加载，前置592完成0。GLM468首个完整128-token OFF锚为33.9883decode tok/s、26.2581含prefill tok/s、用户均2.02869，16owner完整输出通过；实际输入79–99token（共1412），**不是512输入**，当前任务未终态、候选尚未给收益。新ROWS16私有CPU库167已完成0/15秒，实际2TU13.33秒；尚无GPU或加载收益。
+
+Deep679已有B32/M32、I512/maxO128两次普通生成全32×128历史输出匹配，18QA/8owner/audit0/清理空；整体mixed/B1候选仍拒绝。质量窗口离线decode观测57.28/57.91tok/s含CPUargmax/观察开销，不改原profile未请求、TPS置空的结论，也不把它当正式新纪录。下一必要加载将提供同几何正式计时与真实HIP关键路径，避免重复旧门。
