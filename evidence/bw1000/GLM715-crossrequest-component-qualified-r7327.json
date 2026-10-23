@@ -1,0 +1,91 @@
+{
+  "status": "QUALIFIED_COMPONENT_ONLY",
+  "producer": "910374.715",
+  "Slurm": [
+    [
+      "910374.715",
+      "GLM-crossrequest-component-r7316",
+      "COMPLETED",
+      "0:0",
+      "00:00:51",
+      "a02r4n04"
+    ]
+  ],
+  "hardware": "BW1000 single-node 8cards a02r4n04",
+  "scope": "Eight independent owner attention components. Perowner8distinctrequests512tokens/H8/D256 BF16 QKV, same production shapes. NoModelweights,collective,finaltoken/EOS/QA or serviceTPS.",
+  "input_source": "Deterministic synthetic finite independentQKV, not actualModelactivations",
+  "parent_Model_DSO_SHA256": "8d787047018228c1ed03f8b953e5ae19827cccd58d2e8faca874ad21e36bc2c8",
+  "component_DSO_SHA256": "cb532ff5870415b450ed89dbfdf77f82430aaa6e947d6d2068df006d1236036f",
+  "component_source_SHA256": "b42172e17b0f37757d05ab31714a01b6231ee8df1be1ceab04848d13a768fdb3",
+  "manifest_SHA256": "c00d972b6bd7ef40a2f3737bf4b8e13b7b44cab7b5323334475be536ee221ba1",
+  "performance": {
+    "native_attention_work_wall_seconds": {
+      "per_arm_max8owner_seconds": {
+        "warm-O": 7.032545245,
+        "warm-N": 0.260529118,
+        "O0": 0.451409882,
+        "N0": 0.141630294,
+        "N1": 0.142108206,
+        "O1": 0.460995161,
+        "O2": 0.455110703,
+        "N2": 0.144373982,
+        "N3": 0.144522693,
+        "O3": 0.460642251,
+        "restore": 0.457413181
+      },
+      "ABBA_ratios": [
+        3.21565470671058,
+        3.1698286385608276
+      ],
+      "OFF_spread_over_mean": 0.0209691106806563,
+      "ON_spread_over_mean": 0.02020413084124647
+    },
+    "complete_CAPI_call_wall_seconds": {
+      "per_arm_max8owner_seconds": {
+        "warm-O": 7.037899491842836,
+        "warm-N": 0.2607514881528914,
+        "O0": 0.45148510206490755,
+        "N0": 0.14169910410419106,
+        "N1": 0.142191955819726,
+        "O1": 0.46109189186245203,
+        "O2": 0.4563159169629216,
+        "N2": 0.14445799170061946,
+        "N3": 0.14459172310307622,
+        "O3": 0.46074416069313884,
+        "restore": 0.4575501708313823
+      },
+      "ABBA_ratios": [
+        3.2145323426948726,
+        3.17267248742615
+      ],
+      "OFF_spread_over_mean": 0.021001319042427136,
+      "ON_spread_over_mean": 0.02019489012811394
+    }
+  },
+  "numerics": {
+    "max_NRMSE": 7.971753254302073e-06,
+    "min_exact_fraction": 0.9999772310256958,
+    "max_abs_error": 0.00048828125,
+    "component_argmax_differences": 0
+  },
+  "normal8owner_closes": true,
+  "unique_audit_exit": 0,
+  "postKFD": {
+    "node": "a02r4n04",
+    "uid": 154459,
+    "GPU_processes_owned_by_user": [],
+    "scratch_free_bytes": 545814127575040,
+    "passed": true
+  },
+  "report_SHA256": "823b35cee7a70674c922580f0812977e9ae48ce46c04d5e4242a2fb55592daee",
+  "unique_audit_SHA256": "fc7bd4f0eeb03a703b71d69e9ca6baf5dc5d6346c6624c7510f9095e1ae75c95",
+  "unique_watcher_SHA256": "617eb3fc4a0bcfab5ff750734865979b0821561bc15c20fe3d61a87adb289e6b",
+  "interpretation": [
+    "Warmup7.03s excluded; two ABBA completeCAPI ratios3.21453/3.17267, ~2.10%OFF/~2.02%ON spread. Clear component benefit.",
+    "Full componentwall includes metadataD2H/validation/pack/QK/scale/round/mask/Softmax/PV/scatter/drain. Nativeclock excludes wrapper/predrain/destructor; completeCAPIclock includes those. CPUobservations outside both.",
+    "Headbatch8->64 and packedstrides can alter kernelalgorithm/rounding despite same perheadM/N/K. Intermediateexactnessnotadoptiongate; attentionargmax is not finaltoken proof.",
+    "DefaultOFF privateModel integration justified next; no inference of3.2xwholeModelspeedup or73tok/s-prefill improvement yet.",
+    "No secondGPUstep/load/audit/postKFD run by observer."
+  ],
+  "next": "BoundedI512/8requests/past0 branch retains cache/lengthpublication and originalFP8/TPmath; must pass samegeometry completefinalIDs/EOS+QA in next necessaryModelsession before throughput qualification."
+}
