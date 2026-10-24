@@ -1,0 +1,138 @@
+{
+  "state": "CPU_BUDGET_ONLY_NOT_READY_FOR_GPU_CACHE",
+  "actual_route_source": {
+    "step": "910374.748",
+    "layer": 20,
+    "tokens": 8,
+    "routes": 128,
+    "raw_SHA256": "265efc7e2d35ff60c503f2312ef2c22dba6a746bba39c97728e3dc1576c2158f",
+    "time_sequence_available": false,
+    "cache_hit_rate": "UNKNOWN; repeatedABBA arms reuseidenticalinput and are not temporal locality evidence"
+  },
+  "actual_route_stats": {
+    "raw_SHA256": "265efc7e2d35ff60c503f2312ef2c22dba6a746bba39c97728e3dc1576c2158f",
+    "active_experts": 76,
+    "max_count": 5,
+    "top1_share": 0.0390625,
+    "top8_share": 0.234375,
+    "mod8_hypothetical_route_loads": [
+      5,
+      12,
+      14,
+      25,
+      16,
+      18,
+      23,
+      15
+    ]
+  },
+  "expert_modulo8_EP_hypothesis": {
+    "loads": [
+      5,
+      12,
+      14,
+      25,
+      16,
+      18,
+      23,
+      15
+    ],
+    "max_over_mean": 1.5625,
+    "note": "HypotheticalexpertID%8 assignment of128routes, not measuredEP, notbytesorlatency balance. CurrentTP8 shards all896experts on everyrank."
+  },
+  "selected_main_source_binding": {
+    "CPU8606_linked_moe_object": "/refactor/candidates/kimi-N4-tile-CPU-r8174/moe.o",
+    "moe_object_SHA256": "33ad6fc01b70a4e66b8061deea330bc52266911929b01b986fe94c19d20aa9ae",
+    "moe_source": "Kimi-N4-tile-private-r8171/kimi_k3_moe_N4_r8171.cpp",
+    "source_SHA256": "02612a6903cd262417c8d0f57e4edbeccf79048bffd3476cc99b2d46f22ae377",
+    "MD_source_SHA_matches_local": true,
+    "new_delta_only": "8606 only replacesDeltaTU in175/e3eparent; MoEobject/hash retained. Oldlegacyrepo csrc alone is not the actualselectedMoEsource.",
+    "source_receipts": [
+      "Kimi-N4-CPU-observed-r8175.json",
+      "Kimi-CCL512-CPU-observed-r8606.json"
+    ],
+    "current_protocol_source": [
+      "Kimi_CCL512_r8607_inside.sh",
+      "kimi_CCL512_protocol_r8607.py",
+      "kimi_prefill512_scope_r8563.py"
+    ],
+    "flags": "workspace1; shellserving0 then protocolstaticdefaultserving1; N4_TILE=0; AUX/router envunset. Engineflags64 scopedmath path retained byprovider, not an assumption of ordinaryB64.",
+    "decode_shape": "8607 static decode_micro4 and dynamic batches<=4, TP8PP4/8requests repeat2prompts; not B64/M16. Mainactualdispatchcountersafterload notreadhere, sourcecontract only.",
+    "provider_selection": "ActualN4MoEsource lines316-350: serving1 activates only8<=T<=64 =>fixed4 atT8..63/fixed9at64. M4 misses thatguard; N4tile0 means noN4hook; fallbackFusedMoeMxfp4 implementation1. M1 may selecttiled1861ifqualifiedflagtrue. ExistingM16serving1 wouldfixed4 and differsfrom748group0.",
+    "difference_from748": "748group0 hardfixed, N8, math11/router1/AUX1or0. CurrentM4 falls same fallbackexpertoperatorbranch butdifferentshape/rowmath/outerFFNflags; ifcurrentM16 usesgroup4 itisNOTsamekernel. N8route/locality cannotbeusedasproductionB64M16."
+  },
+  "weight_layout_per_TP_rank": {
+    "expert_count": 896,
+    "expert_hidden": 3584,
+    "local_intermediate": 384,
+    "dtype": "UInt8packed E2M1 FP4 with UInt8E8M0 microscales; NOT signedINT4",
+    "actual_constructor_shapes": {
+      "w13_packed": [
+        896,
+        768,
+        1792
+      ],
+      "w13_scale": [
+        896,
+        768,
+        112
+      ],
+      "w2_packed": [
+        896,
+        3584,
+        192
+      ],
+      "w2_scale": [
+        896,
+        3584,
+        12
+      ]
+    },
+    "per_expert_packed_bytes": 2064384,
+    "per_expert_scale_bytes": 129024,
+    "per_expert_total_quantized_bytes": 2193408,
+    "per_expert_BF16_expanded_bytes": 8257536,
+    "BF16_over_quantized_ratio": 3.764705882352941,
+    "source": "ActualMoEsource register_mxfp4_experts lines148-197 (same shapesin748source); no weightload performed."
+  },
+  "traffic_CPU_budget": {
+    "scope": "ExpertW13+W2 weightandscale payload only. Excludesdown/up/sharedFFN weights, activations, outputs, routepack andCCL. PerGPU currentTPshard, not all8rank sum.",
+    "ideal_unique_once_per_window_no_prior_cache_bytes": 166699008,
+    "route_independent_fullweight_once_each_bytes": 280756224,
+    "ideal_dedup_fraction_reduction": 0.40625,
+    "assumptions": "76distinctexperts eachfullyread once is a compulsory payload lowerbound only for coldwindow/no priorcache/perfectwithinwindowreuse. 128fullreads is route-independent illustrativepayload, NOT measuredHBMtraffic; cachelineoverfetch/repeatedscale load couldincrease, previousL2reuse coulddecreaseHBMbytes. Currentkernel route/outputloopreadsweights repeatedly, actualmemorytransactionsUNKNOWN.",
+    "time_at_empirical_1_237TB_s_ms_unique": 0.13476071786580437,
+    "time_at_empirical_1_237TB_s_ms_routewise": 0.22696541956346,
+    "empirical_reference_note": "1.237TB/s supplied measured achieved capability/lowerbound on achievable hardwarebandwidth, notphysicalceiling; these quotients are referencecosts, not minimumlatencybounds. NoHBMcountermeasurement establishesmemorybound.",
+    "measured748_wholeMoE_baseline_ms": 5.3809857
+  },
+  "kernel_arithmetic_evidence": {
+    "serving4_9_source": "kimi_joint_expert_r4620.cu groupedW134531 + kimi_grouped_W2_r4620.cuh: mxfp4DecodePair + float sums, multiply/add perroute, explicitreuseTT rows; no explicitMMAintrinsics in these functions. Grouping alreadyimplementswithinwindowreuse; do not claim it as anewcacheoptimization.",
+    "fallback_source": "MXFP4-kernel-source-r4585.cuh / inspect-mxfp4_kernel.cuh show SIMTpairdecode andF32dots/route16W2 source. ExactcurrentSDKkernel-sourceSHA-to-binary/ISA mapping NOT_ESTABLISHED inthisbudget; actualMMAISA UNKNOWN, notinferredfromgenericcode.",
+    "tiled_M1_source": "kimi_tiled_w13_r1858.cuh F32sums with mxfp4DecodePair; staticW2R326U similarlySIMTsource. N4gpuobject linked butN4flag0, cannotassumeactive.",
+    "INT4_warning": "IntegerMMAC measurements cannotbeusedasMXFP4 E2M1 decode throughput; convertingnibbles to signedINT4 changesweights."
+  },
+  "one_candidate": {
+    "name": "Boundedhotexpert BF16 cache only if temporalreuse laterproven",
+    "current_decision": "NO_CURRENT_GPU_ATTEMPT; no cacheframeworkimplementation",
+    "CPU_memory_budget": {
+      "BF16_cache_8experts_per_MoE_bytes": 66060288,
+      "BF16_cache_8experts_per_GPU_23MoEs_bytes": 1519386624,
+      "cache76activeexperts_per_MoE_bytes": 627572736,
+      "cold_fill_min_read_plus_write_per_expert_bytes": 10450944,
+      "existing_packed_storage_retained": true,
+      "available_GPU_headroom_now": "UNKNOWN; no currentModelGPUquery/assumption from oldidleholds. Mustreserveactualruntime/cache/workspace plusgrowth beforeallocation."
+    },
+    "opportunity_limit": "Top8coveronly23.44%ofthissinglewindow. BF16 multipliesweightreadpayload3.765x, so unpackamortization alone doesnotguaranteegain; a supportedBF16compute path wouldneedactualsemanticproof and dispatch/lifecycleownership. No existing readyboundedhotcachebinding established.",
+    "minimum_missing_evidence": "At nextotherwise-neededcompatibleload obtain a boundedsequence ofsame-layer actualdecode routing IDs (e.g16consecutiveM4steps, noactivations/newrouterrun) plusactualpostload GPUfree/reserve snapshot andselectedprovider counters; CPUreplaycacheK8/16hit-distanceandfill/readbudget before consideringanyGPUcandidate. CurrentonlyC396N8 doesnotjustifycachehitforecast."
+  },
+  "recommendation": "Preserve routebudget; do notbuild/runhotcache now. Minimalnext evidence is short actualmainM4 routeIDtime-sequence+postloadheadroom in an alreadynecessarysession; no newfullModelload/GPUrouterprobe for it.",
+  "boundaries": {
+    "CPU_only": true,
+    "GPU": false,
+    "native_compile": false,
+    "new_weightload": false,
+    "Git": false,
+    "large_trace_scan": false
+  }
+}
