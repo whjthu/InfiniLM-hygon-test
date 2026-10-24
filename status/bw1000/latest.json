@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-10-24T23:04:23.296029+00:00",
+  "updated_at_utc": "2026-10-24T23:10:32.508290+00:00",
   "owner": "bw1000-agent",
   "hardware": "BW1000",
   "goal_complete": false,
@@ -19,14 +19,15 @@
     "InfiniCCL": "51cc9db31d58aac21643d72f0f77cf5c9ecfaee5"
   },
   "current_cycle_checkpoint": {
-    "utc": "2026-10-24T22:43:29.811332+00:00",
+    "utc": "2026-10-24T23:10:32.508290+00:00",
     "review": "64_COMPLETED_IMPLEMENTED",
     "ledger": "optimization-review-ledger-after-64.json",
     "new_valid_rounds": 0,
-    "Kimi": "889qualified negative/cyclicSTOP;actualModel2hostTU/conditionalscheduler CPUimplementation",
-    "Deep": "891RUNNINGoriginalwatch/loading;no Modelresultyet",
-    "GLM": "M16minimalimplementation+DPservicepacket CPU;M32/routerfusionparked",
-    "goal_complete": false
+    "Kimi": "eventsCPU222missingincludeFAIL preserved;CPU2232TUready/schedulerconsumer prep",
+    "Deep": "891FAILED124/post894empty;guardCPU2113TU24s/fake214oldFAIL-newPASS;actualno-weightprobeCPUprep,noGPUyet",
+    "GLM": "564RUNNINGsource49acbb5/B32M8M16;no newperformanceyet",
+    "goal_complete": false,
+    "quantization": "Officialgfx936FP4BF16provider candidate pinned46ae5db;packingCPU384pass;notcompiled/GPU/Modelgain"
   },
   "last_observed_Model_steps": [
     {
@@ -73,8 +74,8 @@
     {
       "model": "DeepSeek-v4-Flash",
       "handle": "910374.891",
-      "state": "RUNNING",
-      "observed_utc": "2026-10-24T22:37:41.012745+00:00",
+      "state": "FAILED",
+      "observed_utc": "2026-10-24T23:01:05.678553+00:00",
       "owner": "/root/transport_gdr_probe_1;rootwatch",
       "nodes": [
         "a02r4n05"
@@ -84,37 +85,56 @@
       "watch": "deep-owner-events-model-r8904-watch.json",
       "hard_minutes": 30,
       "inner_seconds": 1740,
-      "scope": "AcceptedA full128/twoownerstreamwindows;loading,no completeprofile orqualityresult yet"
+      "scope": "before6QA passed; no profilewindow/full128;originaltimeout/audit1/post894empty",
+      "exitcode": "124:0",
+      "result": "results/bw1000/2026-10-25/deep891-owner-events-timeout.json"
+    },
+    {
+      "model": "GLM-5.3",
+      "handle": "910376.564",
+      "state": "RUNNING",
+      "observed_utc": "2026-10-24T23:08:18.941883+00:00",
+      "owner": "/root/moe_decode_arithmetic_audit",
+      "nodes": [
+        "a02r4n12",
+        "a02r4n13"
+      ],
+      "cards": 16,
+      "source_commit": "49acbb5a0c1e0973eb2751d71b9973e6badee345",
+      "watch": "results/GLM-transient-Model-watch-r8862.json",
+      "hard_minutes": 45,
+      "inner_seconds": 2600,
+      "scope": "One load B32M8/M16 same32distinctI512/full128/477gold/EOS/QA;actualmaxM8onlyqualifiedpreviously;M16quality/fit/performanceunknown"
     }
   ],
   "current_actual_GPU_jobs": [
     {
-      "model": "DeepSeek-v4-Flash",
-      "handle": "910374.891",
+      "model": "GLM-5.3",
+      "handle": "910376.564",
       "state": "RUNNING",
-      "observed_utc": "2026-10-24T22:37:41.012745+00:00",
-      "owner": "/root/transport_gdr_probe_1;rootwatch",
+      "observed_utc": "2026-10-24T23:08:18.941883+00:00",
+      "owner": "/root/moe_decode_arithmetic_audit",
       "nodes": [
-        "a02r4n05"
+        "a02r4n12",
+        "a02r4n13"
       ],
-      "cards": 8,
-      "source_commit": "b7312a7",
-      "watch": "deep-owner-events-model-r8904-watch.json",
-      "hard_minutes": 30,
-      "inner_seconds": 1740,
-      "scope": "AcceptedA full128/twoownerstreamwindows;loading,no completeprofile orqualityresult yet"
+      "cards": 16,
+      "source_commit": "49acbb5a0c1e0973eb2751d71b9973e6badee345",
+      "watch": "results/GLM-transient-Model-watch-r8862.json",
+      "hard_minutes": 45,
+      "inner_seconds": 2600,
+      "scope": "One load B32M8/M16 same32distinctI512/full128/477gold/EOS/QA;actualmaxM8onlyqualifiedpreviously;M16quality/fit/performanceunknown"
     }
   ],
-  "last_slurm_observation_utc": "2026-10-24T21:41:37.886004+00:00",
+  "last_slurm_observation_utc": "2026-10-24T23:08:18.941883+00:00",
   "resource_observation": {
-    "evidence": "analysis/bw1000/owned-allocations-cyclic889-r8907.json",
+    "evidence": "analysis/bw1000/owned-allocations-GLM564-r8919.json",
     "reserved_DCU": 320,
     "actual_active_steps_at_census": [
-      "910374.889",
-      "910374.891"
+      "910376.564"
     ],
     "later_known_Model_steps": [
-      "910374.891"
+      "910376.564"
     ],
     "actual_compute_utilization": "UNKNOWN;active allocations/reservations are not GPU utilization. Most nodes idle during CPU preparation;do not claimfulluse.",
     "protected": "910384/a14r2n17+n18;910406/407CPUonly;otherbadnodes retainexisting exclusions",
@@ -122,9 +142,10 @@
       "910374.877",
       "910374.886",
       "910376.561",
-      "910374.889"
+      "910374.889",
+      "910374.891"
     ],
-    "current_owner_report": "Census22:32:34 had88916DCU+8918DCU;889terminal22:32:53/post892empty.891watch22:37:41stillRUNNING. Not utilization or current allcluster census."
+    "current_owner_report": "Fresh23:08:18census only56416DCUactive numericstep;320reservedisnotutilization. Kimi/deep minimalCPU work separate."
   },
   "qualified_performance": {
     "Kimi_highest_retained_aggregate": {
@@ -274,5 +295,7 @@
     "Model_adoption": false,
     "M16_current_quality_performance_peak": "UNKNOWN_beforeModel",
     "reviewledger": "root owns,untouched"
-  }
+  },
+  "current_Deep891": "results/bw1000/2026-10-25/deep891-owner-events-timeout.json",
+  "current_quantization_feasibility": "analysis/bw1000/quantized-moe-feasibility-r8912.json"
 }

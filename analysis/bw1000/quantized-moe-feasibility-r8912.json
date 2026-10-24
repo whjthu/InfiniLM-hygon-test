@@ -1,0 +1,521 @@
+{
+  "schema": "quantized-moe-feasibility-r8912",
+  "hardware": "BW1000 gfx936",
+  "level": "CPU source-and-official-provider feasibility",
+  "status": "CONDITIONAL_COMPONENT_CARD_NOT_GPU_READY",
+  "created_utc": "2026-10-24T23:00:12.300879+00:00",
+  "actions": {
+    "GPU": false,
+    "SSH": false,
+    "framework_installed": false,
+    "model_weights_downloaded": false,
+    "Git_mutated": false,
+    "small_public_source_download_only": true
+  },
+  "source_pins": {
+    "InfiniLM": "5f91ad738583db8f5617aeae53b76523f85d1ec6",
+    "InfiniCore": "2b4f2f20584a69b074f62a455e3de7368e3446c2",
+    "InfiniRT": "cd1d48258f0a6b8d9f66111d5d6cb1664205e78d",
+    "InfiniOps": "1ca4777610d77e9063fffdb975ab35da8466104d",
+    "InfiniCCL": "51cc9db31d58aac21643d72f0f77cf5c9ecfaee5"
+  },
+  "findings": {
+    "Kimi651": {
+      "actual_native_SHA256": "6125640af7f5878e08f00f92527b3c975738bf3fc3563cb2b6afabb5dbbf6fc8",
+      "format": "uint8packed E2M1 MXFP4 2weights/byte; uint8 E8M0 block32scale",
+      "activation": "BF16 source/activated, input convertstoFP32",
+      "arithmetic": "Eachforward fusedperinnerloop decode; FP32 vector multiply/reduce and FP32 SITU then BF16; no fullBF16 decodedbank and no integerMMA",
+      "dispatch": {
+        "T": 16,
+        "E": 896,
+        "H": 3584,
+        "I_local": 192,
+        "topk": 16,
+        "TP": 16
+      },
+      "per_rank_per_layer_resident_bytes": {
+        "W13": 616562688,
+        "S13": 38535168,
+        "W2": 308281344,
+        "S2": 19267584,
+        "total": 982646784
+      },
+      "runtime_dequant_removed_by_INT8": false,
+      "int4_is_float_not_signed_integer": true
+    },
+    "GLM561": {
+      "actual_native_SHA256": "68acfe089f757014e564c0d0ca5c896ac1f47cd98fa3a843df8b2dd5bf8c63c6",
+      "format": "E4M3FN UINT8weights E256/H6144/I256-local; globalblock128FP32scales; residentoriginalFP8weights",
+      "activation": "BF16 -> pertokenblock128 E4M3FN dynamicquant eachforward and afterBF16SiLU*up",
+      "arithmetic": "Vector T4/T8 route path softwareE4M3decode FP32mul+ordered128reduce, FP32scaleproducts, BF16outputs; larger routes use grouped fallback",
+      "same_size_integer_byte_reinterpret_is_invalid": true,
+      "routed_bank_bytes_per_rank_per_sparse_layer": 1207959552,
+      "routed_scale_bytes": 2359296,
+      "whole_FP8_to_BF16_bank_extra_bytes": 1207959552,
+      "INT4_conversion_requires_new_weightquantization_and_scales": true,
+      "no_current_token_equivalence": true
+    },
+    "integer_MMA": {
+      "available_reference": "signed8 16x16x32 and signed4 16x16x64 in existingdu_mma.h/gfx936",
+      "missing_for_real_MoE": [
+        "Groupedroute-compatible input packing and egress",
+        "Kimi block32 weights-exponent epilogue with activation signed8 scale",
+        "GLM E4M3 to integer requantization contract and block128 scales",
+        "Current Runtime.stream CABI and actual smallroute numerics/performance"
+      ],
+      "signed8_weight_codebook_lossless_before_scale": true,
+      "signed8_values": "0, ±1, ±2, ±3, ±4, ±6, ±8, ±12 times2^(scale-128)",
+      "signed4_linear_scale_lossless": false,
+      "INT8activation_quantization_lossy": true,
+      "736TOPS_or1440TOPS_not_Model_bound": true,
+      "INT8_wholebank_doubles_Kimi_weight_bytes_and_does_not_remove_activation_quant": true
+    }
+  },
+  "cpu_contract_checks": {
+    "E2M1_signed8_symbolic_encodings": 16,
+    "signed4_impossibility_witness": "positive .5 and6 need integer ratio12 > signed4positive7",
+    "provider_word_decode_output_order": [
+      0,
+      4,
+      1,
+      5,
+      2,
+      6,
+      3,
+      7
+    ],
+    "adjacent_original_nibbles_not_same_layout": true,
+    "packing_inverse_cases": 384,
+    "identity_wrong_cases": 346,
+    "repack_is_lossless_permutation_not_requant": true,
+    "repack_required_even_though_official_FP4_shuffle_is_identity": "Kernel expects blocked qword. Current original bytes are adjacent E2M1 pairs; cannot reinterpretuint32 withoutCPU/GPU roundtripvalidation. No fullcheckpoint rewrite proposed."
+  },
+  "new_official_provider": {
+    "repo": "https://github.com/HYGON-AI/Moe",
+    "commit": "46ae5dbf6486e5d16f2a71e5d45fc8d55d41bf09",
+    "license": "MIT",
+    "source_compatibility": "gfx936 normalBF16MMAC branch actualsource; gfx938interleave/lit/pkBF16 are excludedon936. No claimthatunbuilt entiredependencyclosurecompiles.",
+    "entry": "moe_c_moe_gemm_marlin_wfp4a16",
+    "kernel": "GEMM_NT_1STAGE_WFP4A16<BF16,...>",
+    "mode114": "M16,N64,K64,warpM16N32K64,stage1; FP4decodeE8M0 block32->BF16, FP32accumulator;16KiB+64B LDS",
+    "size_k192_supported": "WFP4A16_STAGE1_SCALE_SWITCH -> PACK_SCALES3;size384->6; H3584 ->8 (512block divides3584)",
+    "not_drop_in": [
+      "Torch/ATen dependencies in utils+opt; launcher gets currentHIPStream instead of Runtime.stream",
+      "Officialfirstprojection outputsBF16 whilecurrentFP32gate/up feedSITU directly; newrounding boundary mustnotbesilently introduced",
+      "Officialdownprojection applies topk weight before BF16 routeoutput; original FP32weightedroute reduction differs",
+      "Sorting/padded16/expertIDs differs from currentTT2 grouping and cancostmore atlowexpertoccupancy",
+      "intrinsic.h/intrinsic_2.h and finite minimaltransitivedependencies need sourceclosure; notfetched/compiledhere"
+    ],
+    "weight_and_scale_contract": "uint32 word FP4blocked order with E8M0uint8 scales [E,N,K/32]; logicalE2M1values/E8M0scale unchanged; no generalmarlinN/Ktransposeassumed fromINT4helpers",
+    "small_component_memory": {
+      "duplicate_W13_packed_bytes": 616562688,
+      "reuse_S13_no_copy": true,
+      "FP32gate_up_routes_output_bytes": 393216,
+      "BF16activated_output_bytes": 98304,
+      "max_sorted_ids_if_eachroute_separateexpert_bytes": 16384,
+      "max_expert_ids_bytes": 1024,
+      "LDS_bytes_per_mode114_CTA": 16448,
+      "CPU_repack_row_bounded_bytes": 1792,
+      "CPU_fullbank_memory_required": false,
+      "no_fullBF16bank": true,
+      "one_layer_duplicate_is_not_wholeModel_fit_proof": true
+    }
+  },
+  "STOP_routes": [
+    {
+      "route": "Replayoldshared902/pitch/hybrid",
+      "reason": "Alreadytested MXFP4decode->BF16LDS->MMAC and directfragment. Actual663laterstepsregress;I384TP8 geometry differsfromI192TP16butinsufficientjustificationforrepeat."
+    },
+    {
+      "route": "Direct signedINT4 reinterpret of MXFP4",
+      "reason": "NonlinearE2M1 codebook/codeorder; even scaledcodebook signed4positive range cannot represent .5and6 losslessly."
+    },
+    {
+      "route": "Fullresident BF16/INT8 expertbanks on allModel layers",
+      "reason": "Largeextraresidentbytes perlayer, currentlimitedfree, noendtoendfit/benefit. Minimumcard duplicatesW13onecomponentlayeronly."
+    },
+    {
+      "route": "QuantizedGLM5.3 replacegold with ownquantizedgold",
+      "reason": "GLM5BW1000recipe not5.3 andnewquantweights canchangetokens. Must keeporiginalgold or reportclearly as qualityfailedexperiment."
+    },
+    {
+      "route": "RepeatGLM1513directBF16MMAC",
+      "reason": "192case oldscope alreadymeasured paddedexpertgeometry, casesnumericaldifferencesandlargeperformance regressions;notanewprovider."
+    }
+  ],
+  "real_impact_intervals": {
+    "Kimi": "886 L1 T16 fullMoE componentprovider ~1.35-1.41ms of~2.2msOFF (roughly62%), includesW13+W2 and enqueue/dependencygaps. ThiscandidateW13only and actualwholeModelfractionUNKNOWN. Cannot mapcomponentgain directlyto48.72/136.64TPS.",
+    "GLM": "540 onefullindexlayer38 T8 FFN~2.62ms, gate/up~1.023ms/down~.622ms, fullselectedlayer~5.56ms. Thesearestreamspans includinghostenqueuegaps; gateup ~18% ofthatlayer only, notglobal78layer/Model fraction.",
+    "model_bound_formula": "Given actualcriticalpathfraction f andmeasured kernelspeedup s, ideal nooverlap Amdahl 1/(1-f+f/s) is onlyconditional; f unavailablegloballyso no numericmaximumTPS.",
+    "current_hardware_references": "BF16333.752TF/INT8736TOPS/INT41440TOPS achieveddense orregister arithmetic only, notphysicalpeak/Model roof."
+  },
+  "minimal_falsifiable_card": {
+    "id": "KIMI-FP4A16-936-W13-ONLY-r8912",
+    "state": "CPU implementation proposal; no GPU GO",
+    "priority": "After actualModel owner profile confirmsW13dominance; independentofpending scheduler/GLMM16work",
+    "scope": "T16 E896 H3584 I192 topk16 oneexisting TP16 fullMoEcomponent, noextraModelweightload",
+    "changes": "OneprivateHIPproviderTU with officialmode114minimalinstantiation/rawRuntime.streamCABI and FP32 gate/up output; originalfusedMoeMxfp4Activate(SITU) in sameTU secondboundedkernel; oneprivate MoE hostTU optin dispatch. Reuse originalW2/router/routeweights/shared/TP/SDKobjects. No fullframework install.",
+    "TUs_min_estimate": {
+      "new_or_changed_provider_HIP": 1,
+      "MoE_host": 1,
+      "extra_GPU_SITU_kernel_in_same_HIP_TU": 1,
+      "thin_component_wrapper_ifexistingcannotsetflag": 1,
+      "min2_max3_TUs": "Conditionalonminimalheaderclosure; notbuildreceipt"
+    },
+    "pre_GPU_gates": [
+      "Pinremainingintrinsicdependencies atsamecommit+license; rawstream/sourcecompilationgfx936 and inspectno938onlyactiveinstructions",
+      "Proveall896expertword/per-rowrepackbijection CPUmetadata; block32scalesidentity and BF16decodedomainincludingextremescalequalification",
+      "ProveoutputFP32 variant no prematureBF16gate/up and sameSITU/S2/W2 retained",
+      "Recordsource/manifest/DSOSHA/exports/originalentrypathclosure and nofullbankmemoryclaims"
+    ],
+    "resource_proposal": "Rootchoose freshhealthy2nodes/16DCU inownedallocation, sameactualcomponentprovenance; ≤8minGPUhard and onecomponentCPUload; NOTlaunchedbythisagent",
+    "comparison": "OnepairedOFF/ON/ON/OFF run with unmarkedcomponenttimingsincludingpack/sort/SITU/W2/TP; warmupfinite. Sameactualearly+laterroute samples ifalreadyavailablewithoutdump; lowreuseadversarialcontrol. No oldnegativebankreplay.",
+    "qualification": "Originalfinite/ownrepeat/numericscreen plus actualfullModel originalgold token/EOS/QA gate beforeadoption. Intermediatebitidentitynotrequired, noGPUF64; changedreductionmayfailtokenqualification.",
+    "stop": "StopbeforeGPU ifdependencyclosure bloatsbeyond3TUs orCPUbuild>45min, layouts/scalesnotproven, memoryguardfails. Stopcomponentif>3%wholeforwardregression eitherpairedblock or unstable/screenfailure; promoteonlyif>=5%bothpairedwholeforwardgain outsideOFFdrift. DoNOTclaimcomponentpassasModelgain.",
+    "fallback": "If no minimalproviderclosure, leaveexplicitmissingAPI/CPU_SOURCE_ONLY; do not replacewithold902rerun."
+  },
+  "official_context": [
+    {
+      "url": "https://raw.githubusercontent.com/HYGON-AI/TileKernels-das/staging/README.md",
+      "scope": "routing/gating/quant transforms; broadBW1000support notspecificMMAprovider ormodelbenchmark; noinstall"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/HYGON-AI/inference-cookbook-das/main/docs/model-deployment/sglang/kimi-k3.md",
+      "lines": [
+        4,
+        11
+      ],
+      "scope": "KimiFP4/INT4 deploymenttableBW1100only; noBW1000performanceproof"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/HYGON-AI/inference-cookbook-das/main/docs/model-deployment/sglang/glm-5.md",
+      "lines": [
+        8,
+        28
+      ],
+      "scope": "GLM5 BW1000INT8/INT4recipe; notGLM5.3 outputequivalence"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "kimi_I192_grouped_provider_r8669y.cu",
+      "SHA256": "1cf1389954e4ae4441ab5e9e23a9d9cb68deb84539bebe62565d3e0ee545c99c",
+      "lines": [
+        [
+          18,
+          43
+        ],
+        [
+          47,
+          94
+        ],
+        [
+          97,
+          109
+        ]
+      ],
+      "proves": "Actual I192 grouped W13 FP32 decode-and-dot/SITU; W2 FP32 route sum; original packed parameters and Runtime stream CABI"
+    },
+    {
+      "path": "kimi_k3_moe_I192_compact_r8669zc.cpp",
+      "SHA256": "6c5f50225a44f09969800da36fcec5c83f45dc0e89ab1380dd880ead408b45d0",
+      "lines": [
+        [
+          166,
+          216
+        ],
+        [
+          349,
+          354
+        ]
+      ],
+      "proves": "Resident uint8 packed E2M1/block32scale geometry and exact adopted dispatch"
+    },
+    {
+      "path": "refactor-adapters/InfiniOps/src/native/cuda/ops/fused_moe_mxfp4/mxfp4_math.cuh",
+      "SHA256": "27dc470d4d8056aff8f2b71a5b64b7924ebc489cbf8e72064e55cfed385641f1",
+      "lines": [
+        [
+          8,
+          20
+        ]
+      ],
+      "proves": "E2M1 codebook, adjacent low/high nibbles, E8M0 scale exponent"
+    },
+    {
+      "path": "Kimi651-full-model-positive-compact-r8669zh.json",
+      "SHA256": "261f8c85a096e61c4690383a4c1cc80c5f8ac0e35b585c708d2ea430b559d820",
+      "lines": null,
+      "proves": "Actual adopted model native6125640a, sourcea4ae419, matched decode48.724868 and scope"
+    },
+    {
+      "path": "Kimi-I192-CPU-compact-r8669y.json",
+      "SHA256": "a871c24b09207cc1565ee77e25ed8dba5106fa2f177fdf460b90720d79a75fec",
+      "lines": null,
+      "proves": "Original provider source SHA1cf13899 and native object receipt; later caller linked in651"
+    },
+    {
+      "path": "GLM-decode-MoE-source-r8756-b.json",
+      "SHA256": "1add0603960489f180d24530905f95072a8c4dc37083b05f6b5fdc4bd1710a04",
+      "lines": null,
+      "proves": "Actual remote source bytes/SHA c716b37f and dispatcher3a39b491; not filename-based inference"
+    },
+    {
+      "path": "InfiniLM-hygon-test/code/bw1000/glm-model-candidates/glm_moe_dsa_routed_ffn_vector_r8540.cpp",
+      "SHA256": "c716b37fd3fe786cece00a5b4a309d9eb13b76e4bbdb8cc8843be936c708e64b",
+      "lines": [
+        [
+          60,
+          95
+        ],
+        [
+          109,
+          131
+        ]
+      ],
+      "proves": "GLM FP8 routed UINT8 weights+F32 block scales, dynamic activation FP8 quant, vector gate/up and down callsites"
+    },
+    {
+      "path": "InfiniLM-hygon-test/code/bw1000/glm-model-candidates/glm_scalar_vectorload_r8528.cu",
+      "SHA256": "b257ff25f042d86a166bf7873c1b1a781b106a870dd7b62fae297f1de90b5eb0",
+      "lines": [
+        [
+          23,
+          27
+        ],
+        [
+          54,
+          116
+        ]
+      ],
+      "proves": "GLM finite E4M3FN decode to float, 128wide FP32 reduction, scale afterward, BF16 outputs"
+    },
+    {
+      "path": "InfiniLM-hygon-test/code/bw1000/glm-model-candidates/glm_vector_dispatch_r8540.cpp",
+      "SHA256": "3a39b4916568d577e8fe7ee994fc1db18754fce90ea8a63d5b1b9079c047140e",
+      "lines": [
+        [
+          12,
+          13
+        ],
+        [
+          34,
+          42
+        ]
+      ],
+      "proves": "Vector path actual routes32/64; M16 routes128 does not reuse this specialized path"
+    },
+    {
+      "path": "GLM-exact-budget-actual-metadata-symbols-r8855.json",
+      "SHA256": "c45c7bf7d0a39c88ab4a64d29c8b00ee61d932f7190a37aacd25e748d8631edd",
+      "lines": null,
+      "proves": "Actual561 DSO68acfe08 metadata and vector policy/count exports"
+    },
+    {
+      "path": "GLM561-exactbank-B16-B32-compact-r8855.json",
+      "SHA256": "93a9d6c7d50b5540568d46aaa68ceee56b2e81e75256f02124741e94b8738ff7",
+      "lines": null,
+      "proves": "Actual561 qualified B16/B32 throughput and original source claim"
+    },
+    {
+      "path": "hardware_dumma_r8403.hip",
+      "SHA256": "1d3096441f0352eee7af674447001656a21a498d4d923760c752ede298bf4c55",
+      "lines": [
+        [
+          10,
+          39
+        ]
+      ],
+      "proves": "Register-resident signedINT8 K32 and signedINT4 K64 MMA reference, not deployable MoE provider"
+    },
+    {
+      "path": "r8401-DUMMA-API.json",
+      "SHA256": "8c0f516c033bdbcdaf929e7cb6562c44719de9afec45436df081f1247d111012",
+      "lines": null,
+      "proves": "Header gfx936 BF16/INT8/INT4 support and gfx938-only FP8 MMA"
+    },
+    {
+      "path": "kimi_mmac_w13_r902.cuh",
+      "SHA256": "8cec8485478c0c4cc6a2126366cd978bf0b3470c48b3bf7778c62451d2b30951",
+      "lines": [
+        [
+          47,
+          96
+        ],
+        [
+          97,
+          125
+        ]
+      ],
+      "proves": "Old direct register and shared pitched MXFP4 to BF16 MMAC routes already implemented; not a new candidate"
+    },
+    {
+      "path": "r856-mmac-audit.json",
+      "SHA256": "a5efea2b1998deed6df9230bf5e85153072fb257cb49f47e3f78eaaf03dd5a6d",
+      "lines": null,
+      "proves": "61case old same-expert MMAC performance varied by actual663 time/routing; no adoption"
+    },
+    {
+      "path": "r893-completed-evidence/results/kimi-mmac-r900-audit.json",
+      "SHA256": "dfc0e521a0ec6c433ab3def03e536f8a7f810b5edcdbc97091714f813b9c1d5c",
+      "lines": null,
+      "proves": "Pitch68 improved against oldMMAC but lateactual routes still0.73-0.80x original; STOP"
+    },
+    {
+      "path": "r1516-glm-direct-mmac-audit.json",
+      "SHA256": "192cc4b3a031183c10b93b879d86f136f08010ec2a90887be95a56325c52d157",
+      "lines": null,
+      "proves": "192case GLM direct BF16 MMAC diagnostic has padding/regressions; no new retry"
+    },
+    {
+      "path": "GLM540-decode-profile-compact-r8812.json",
+      "SHA256": "7fc0003a86d2b241faf07571b1c14be24a23a6c45e7f8bd7eaa2da9e4ec206f3",
+      "lines": null,
+      "proves": "Actual one selectedlayer38 T8 profile only; not all78layer fractions"
+    },
+    {
+      "path": "Kimi886-provider-load-diagnostic-compact-r8669zn2.json",
+      "SHA256": "3952fbeac8a04a02366203a71205fa4fbfbbd4cfb7dc93e915341b21b3261d10",
+      "lines": null,
+      "proves": "Actual L1 T16 ownerstream component timings/hist33active/256routes; not wholeModel fraction"
+    },
+    {
+      "path": "GLM-FP8-block-semantics-r8506.json",
+      "SHA256": "10859799ee5297f5eac4c7afebf8ffc03a1f5ba35dc698f503cb8fca94c300f6",
+      "lines": null,
+      "proves": "E4M3 exact BF16 unscaled but arbitraryF32 scale fold not exact"
+    },
+    {
+      "path": "quantized-moe-public-r8912/csrc/moe_c_wfp4a16.cu",
+      "SHA256": "64f35367fd73532506d27b1cb20fe530cbb813db7939d0a75e70f40adac641d1",
+      "lines": [
+        [
+          57,
+          120
+        ],
+        [
+          137,
+          155
+        ]
+      ],
+      "proves": "Torch FP4/BF16 entry, uint32packed/E8M0scale, separate projection and topk-weight stage switch"
+    },
+    {
+      "path": "quantized-moe-public-r8912/csrc_for_aiter/936_938/moe_wfp4a16_utils.h",
+      "SHA256": "1c026c134e1950bcd1be0f7f8c2bb942a4359eebab2362f83c94e703459184ac",
+      "lines": [
+        [
+          41,
+          45
+        ],
+        [
+          253,
+          307
+        ],
+        [
+          518,
+          546
+        ],
+        [
+          941,
+          980
+        ],
+        [
+          1166,
+          1172
+        ],
+        [
+          1214,
+          1228
+        ]
+      ],
+      "proves": "gfx936 BF16 to FP32 MMA, special192/384 scales, boundedLDS decode and packing order"
+    },
+    {
+      "path": "quantized-moe-public-r8912/csrc_for_aiter/936_938/moe_wfp4a16_opt.h",
+      "SHA256": "06688c8b815967d4da142503d4ce8589bbe78f05fde341dd55988e2dfd8fa4f2",
+      "lines": [
+        [
+          799,
+          840
+        ],
+        [
+          908,
+          940
+        ]
+      ],
+      "proves": "Top32groupkernel launch uses current Torch HIP stream, must inject original Runtime stream"
+    },
+    {
+      "path": "quantized-moe-public-r8912/csrc_for_aiter/936_938/moe_wfp4a16_config.h",
+      "SHA256": "34f89f2478b51887ded6ea92f613fba7a192c91fff73733ceed50c872edbadb1",
+      "lines": [
+        [
+          98,
+          124
+        ]
+      ],
+      "proves": "Concrete decode modes114/115 firstprojection and111..113down; FP4 scale32"
+    },
+    {
+      "path": "quantized-moe-public-r8912/moe_utils/shuffle.py",
+      "SHA256": "5a5534e6500cccbe36b79abc096a3483da919ae2ff3f2b959c6842dae4e23ac5",
+      "lines": [
+        [
+          50,
+          51
+        ],
+        [
+          71,
+          72
+        ],
+        [
+          98,
+          117
+        ]
+      ],
+      "proves": "WFP4 helpers return input; separateblocked nibble layout helper demonstrates potential layout mismatch"
+    },
+    {
+      "path": "quantized-moe-public-r8912/CMakeLists.txt",
+      "SHA256": "0c3387821f9e59408d257357a6f07905a2941a23b3faffb6b2136373defb54f6",
+      "lines": [
+        [
+          32,
+          35
+        ],
+        [
+          100,
+          116
+        ],
+        [
+          280,
+          294
+        ]
+      ],
+      "proves": "Current build Torch coupling and explicit936_938 subset/splitprecision targets"
+    },
+    {
+      "path": "quantized-moe-public-r8912/LICENSE",
+      "SHA256": "6f5db8cccd7efc9d4f1d3cb018635ab103604f4d346e5f36540378f670b417ab",
+      "lines": [
+        [
+          1,
+          21
+        ]
+      ],
+      "proves": "MIT license preservecopyright/notice"
+    },
+    {
+      "path": "quantized-moe-public-r8912/pinned-verification.json",
+      "SHA256": "b58e5c67691da6a29f4b35e084660135106db97f4feafb4bd0e278038da93b8f",
+      "lines": null,
+      "proves": "Fixed commit46ae5db checked against previouslyfetchedmain bytes"
+    }
+  ],
+  "limits": [
+    "No actualnewGPUperformance orcompilevalidated here",
+    "OneboundedCPU/read-onlystudy only; currentpendingjobs areownedbyotheragents",
+    "No numeric promisedmaximumtok/s; actualpinnedModel, outputqualityand criticalpathmustdecidepromotion"
+  ]
+}
