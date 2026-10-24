@@ -1,0 +1,96 @@
+{
+  "CPU_only": true,
+  "GPU_or_new_build": false,
+  "status": "STOP_FIXED_CYCLIC_EP2_NO_COMPONENT_GAIN_AND_NOT_MODEL_READY",
+  "basis": "889 currentI192ON vsfixedcyclic unmarked fullMoE ABBA no gain; noModelpermission/implementation requested.",
+  "source_evidence": [
+    {
+      "file": "kimi_k3_moe_cyclic_EP2_r8669zp.cpp",
+      "SHA256": "18d66f3413f467d9d466740e355bfa9cab5dd70a48e67e4f0533b1ee85b73908",
+      "lines": [
+        202,
+        248,
+        319,
+        425,
+        427,
+        445,
+        489
+      ],
+      "facts": [
+        "Constructor binds onlyglobalgroup+2local expertFQNs, local448expert xI384/TP8; originalattention/shared/globalcommTP16 unchanged.",
+        "DynamicCyclicExperts branch is unconditionalifep2 thenrequires routedinput[16,3584], selectedids[16,16], original19148544Bscratch, so prefillT512 andotherdecodeT throw beforegenericprefillfallback.",
+        "Existingnormalgroupedprefill branch takesparameterized experts/intermediate, but isunreachable forcyclic module currently."
+      ]
+    },
+    {
+      "file": "kimi_cyclic_EP2_mask_r8669zp.cu",
+      "SHA256": "1797c2ff830caf54ef87816f8d58760ed07378d3da70f8bd6a73ac970fae6f16",
+      "lines": [
+        5,
+        10
+      ],
+      "facts": [
+        "Mask exactlyone256-threadblock/T16topk16, notgeneralprefill; wouldneedboundedtoken-count geometry andlarger outputIDs."
+      ]
+    },
+    {
+      "file": "kimi_helper_bounded_bf16_r6054.cpp",
+      "SHA256": "28c57095dbbc68aafe03210b251d823be5708ff9d20147e810a5c2a6518984b1",
+      "lines": [
+        50,
+        54,
+        70,
+        91,
+        94
+      ],
+      "actual_library_SHA256": "85a54291b8aedd1e59556013ab38d15cc077940e70dd8dfd70acbe50b78c25e4",
+      "binding": "CPU221 preserved actual6054 helper DSO; localbuild_moe_bounded_bf16_r6054.py maps thishelper source.",
+      "facts": [
+        "Hostgroup builder rejectsnegative/outofbank selectedexpertIDs; rawglobal896 IDs cannotindex448bank andmasked-1cannotpass unchanged.",
+        "BF16 mode explicitfixed experts896/H3584/I384/topk16 guard needsnarrow448support to reuse olddecode/gather/GEMM.",
+        "Contributionstensor isempty/uninitialized andalltoken16routesummed; merelyskipmaskedroutes wouldsum unwritten entries. Mustinitializeexcluded contributions tozero orotherwise mathematicallyremove them. Noimplementation performed."
+      ]
+    },
+    {
+      "file": "kimi_bounded_bf16_r6054.cu",
+      "SHA256": "012acba914ce74b1e45923b2953a0da5b6d9cd2738d0e8e773162fc85ccc56fb",
+      "lines": [
+        15,
+        16,
+        17,
+        19,
+        20
+      ],
+      "facts": [
+        "ExistingBF16dequant kernel acceptsW13 rows768/columns3584 andW2 rows3584/columns384; unchangedI384 physicalbank couldbereused, because localexpertIDindexesactualE448storage. NoE448prefillGPUqualification yet."
+      ]
+    }
+  ],
+  "minimum_migration_scope": {
+    "resident_weights": "Singlecyclicvariant doesnotmathematicallyrequiredual weights forprefill/decode: sameE448/I384FQNbank canbeconsumedwithlocalIDs. CurrentcomponentkeepsbothI192+cyclic onlyforpairedtest. FullModelmustnotholdbothcompleteweightlayouts.",
+    "necessary_changes_not_implemented": [
+      "OneprivateMoEhostTU dispatch/eligibility fornonT16 plusmasksubmission/metadata/ref-lifetime",
+      "Tiny paritymask kernel generalT orCPUroutegrouping equivalents; notcurrentoneblock256 launch",
+      "Privateprefillhelper hostTU: acceptmaskedIDs/448E, initializeomittedroutecontributions, preserveoriginalGEMM/Situ/streamowner",
+      "Modelconstructor/loaderEPconfig wiring foractualTP16stage/allMoElayers, independentfullIDs/EOS+QA validation"
+    ],
+    "not_a_drop_in": "Atleast3necessarysourceunits plusexistingModelEPconfigbinding, notjusttoggle r8669zp onfullModel. Currentprefillshapealwaysfails.",
+    "numerical_risk": "TP8expertswithglobal16sumchangesdownassociation. Middlebitdifferences nothardreject; fullModelindependentgold128IDs/EOS/QA mandatory.",
+    "general_variable_shapes": "T1/T8/etcdecodecurrentlyunsupported. Generalservingcapacity/fallbacknotqualified."
+  },
+  "memory_cost_known": {
+    "routed_weights_bytes_per_owner_each_variant": 982646784,
+    "same_singlevariant_routed_weight_capacity": true,
+    "dualcontext_routed_bytes_per_owner": 1965293568,
+    "current_cyclic_requires_workspace_bytes_per_MoE": 19148544,
+    "accepted_TP16_compact_workspace_bytes_per_MoE": 4468480,
+    "additional_persistent_workspace_per_MoE": 14680064,
+    "46MoE_layers_additional_GiB": 0.62890625,
+    "47MoE_layers_additional_GiB": 0.642578125,
+    "T512_mask_bytes": 32768,
+    "T512_F32_route_contributions_bytes": 117440512,
+    "boundedprefill_temporaries": "Existinggroupedhelperalsoallocatesdequantbank/gather/GEMMworkspaces; activeexpert/paddingdependent, actualpeakUNKNOWN. NoModelmemoryfitclaim.",
+    "compact_caveat": "Currentconstructor compactflagmayallocate4468480butcyclicforwardexplicitrequires19148544, so simplyreusingacceptedcompactModelenvwouldthrow. Provingvariant4offsetfootprint/allowingsmallerworkspacewouldbeextraimplementation, notdone."
+  },
+  "decision": "STOPcyclicproductionmigration: noordinarycomponentbenefit,nonT16prefillnotimplemented,andoriginalworkspacecostreducescurrentnarrowmemorymargin. KeepacceptedI192 TP16baseline/defaultOFF; noModelreload/prefillrouteimplementation."
+}
