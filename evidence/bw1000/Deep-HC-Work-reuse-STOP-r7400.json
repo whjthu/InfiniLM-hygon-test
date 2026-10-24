@@ -1,0 +1,157 @@
+{
+  "status": "STOP_NO_CHEAP_LIFETIME_CLOSED_ONE_TU_CHANGE",
+  "task": "DEEP38 original-arithmetic HC Work temporary memory reuse, CPU feasibility only",
+  "baseline_retained": "Deep699 qualified mode5/layout0 B32M32, tile16; 732 RMS final-token rejection remains frozen, not promoted",
+  "proven_source_facts": [
+    "Each Runtime constructs its own ReusableMemoryPool and borrows its execution stream. allocateMemory delegates to that pool, then creates a shared Memory owner wrapper.",
+    "Memory deleter captures shared Runtime. Memory destruction returns the block to that Runtime. Same-owner release returns to the pool without a stream drain; foreign-owner release first drains the Runtime stream.",
+    "Original HC Work allocates Tensor objects and holds all allocations in a vector; its destructor syncs before vector destruction. The existing explicit pre return drain is retained. Returned collapsed/post/comb Tensor handles independently share their own Memory and survive Work destruction.",
+    "The SDK pool header explicitly documents cached-block reuse/capture-cache-miss behavior. A warm HC Tensor::empty call cannot be equated to an unconditional fresh device malloc/free.",
+    "Current Runtime public API has no generic owner-scoped scratch slot or execution-resource retirement callback. Graph allocation leases serve graph lifetime; they do not provide an eager HC scratch retirement hook."
+  ],
+  "one_TU_design_boundary": {
+    "safe_outputs": "collapsed/post/comb remain independently allocated, never scratch-backed; retaining outputs across alternating inputs must not alias a later call.",
+    "strong_TLS_or_global_cache": "Cached Tensor -> shared Memory -> deleter shared Runtime. Keeping Tensor wrappers across calls keeps the Runtime alive past engine cleanup. A weak Runtime key does not fix the strong value chain. This conflicts with existing collection-before-destroy checks.",
+    "weak_only_cache": "Weak Tensor/Memory entries do not retain scratch after Work destruction, so they do not remove the next wrapper allocation.",
+    "raw_blob_or_to_blob_bypass": "Would require external memory/owner lifecycle and explicit cleanup integration; cannot safely infer retirement from raw Runtime pointer or reuse after address recycling. Not introduced.",
+    "Runtime_attached_strong_Tensors": "Would introduce a Runtime -> Tensor -> Memory -> Runtime ownership cycle unless a separate explicit cleanup/retirement mechanism is implemented. Existing API provides no such cheap eager hook."
+  },
+  "opportunity_limits": {
+    "existing_pool": "Device-block reuse already exists. Per-call metadata/shared_ptr/vector and pool-lookup costs may remain.",
+    "UNKNOWN": [
+      "Actual ordinary HC host wrapper/pool lookup wall and cache-hit rate",
+      "WholeModel wall attributable to these costs",
+      "Benefit of adding an arena"
+    ],
+    "not_claimed": [
+      "Pool allocation is free",
+      "Source-visible pool design proves measured allocator latency",
+      "Historical Runtime MD is known",
+      "A scratch arena is fundamentally impossible"
+    ],
+    "reason_to_stop": "No measured criticalpath budget plus no cheap lifetime-closed one-TU wrapper cache under current constraints. Do not extend Runtime/shared SDK or add a cleanup framework just to pursue an unmeasured residual cost."
+  },
+  "source_evidence": [
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Common/Deep/InfiniLM/csrc/runtime/runtime.cc",
+      "SHA256": "a4742905290618c740bc81f4e0316b289de86819ece50d7a95da62652bb0a4e9",
+      "scope": "Current Common source; actual bound Runtime DSO c04e19d... has historical MD UNKNOWN, retained explicitly.",
+      "locations": {
+        "ReusableMemoryPool>(device)": [
+          70
+        ],
+        "allocateMemory(size_t size)": [
+          206
+        ],
+        "shared_from_this()": [
+          208,
+          223,
+          242,
+          277,
+          435
+        ],
+        "device_memory_allocator_->allocate(size)": [
+          209
+        ],
+        "runtime->releaseDeviceMemory(p)": [
+          213,
+          228,
+          289
+        ],
+        "currentOwnerGeneration() != owner_generation_": [
+          107,
+          184
+        ],
+        "device_memory_allocator_->deallocate(ptr)": [
+          197
+        ]
+      }
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Common/Deep/InfiniLM/csrc/runtime/memory.cc",
+      "SHA256": "762eb19d3c0b9ec27c87fe512d53b2c2b264851144a0280b904f819e69638479",
+      "scope": "Current Common source ownership chain.",
+      "locations": {
+        "Memory::~Memory()": [
+          18
+        ],
+        "deleter_(data_)": [
+          20
+        ]
+      }
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/install/hygon-deep-5f91ad7-r3672/include/infini/rt/reusable_memory_pool.h",
+      "SHA256": "9a11965d7d2c3a0414607d86897eb32ad5046cdc9b1d2357e2a329036207c67f",
+      "scope": "Actual installed SDK header, fresh MD of CPU730 included this exact path; declaration proves reusable-cache API, not measured latency/hit rate.",
+      "locations": {
+        "Block reuse and capture retention": [
+          11
+        ],
+        "Preallocate before capture": [
+          41
+        ],
+        "std::byte* allocate(std::size_t size)": [
+          42
+        ],
+        "void deallocate(std::byte* ptr)": [
+          44
+        ]
+      }
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Common/Deep/InfiniLM/csrc/runtime/tensor.hpp",
+      "SHA256": "dfc787f233bef2fb5888d0954440746334386023bad3f6207164024b377eb658",
+      "scope": "Current Common Tensor ABI ownership; actual HC CPU730 header Model-side counterpart is recorded by its fresh MD.",
+      "locations": {
+        "std::shared_ptr<Memory> memory": [
+          34
+        ],
+        "Tensor(const Tensor &) = default": [
+          110
+        ],
+        "std::shared_ptr<TensorImpl> impl_": [
+          122
+        ],
+        "allocation_owner()": [
+          161
+        ]
+      }
+    },
+    {
+      "path": "/refactor/candidates/deep-combined-r7169/incoming/deepseek_v4_hyper_connection_r177.cpp",
+      "SHA256": "4b178cd98cd9e8dd2e24614bf022c1297d6332f22b2c790530fbb06866c5d313",
+      "scope": "Actual linked original7169 HC TU consumer in parent7212, original arithmetic, no RMS replacement.",
+      "locations": {
+        "struct Work": [
+          21
+        ],
+        "~Work()": [
+          24
+        ],
+        "held.push_back(t)": [
+          25
+        ],
+        "HyperConnection::pre": [
+          41
+        ],
+        "auto weighted=": [
+          70
+        ],
+        "r.syncStream();return {collapsed,post,comb}": [
+          70
+        ]
+      }
+    }
+  ],
+  "actions": {
+    "CPU_source_read_only": true,
+    "CPU_compile": false,
+    "GPU": false,
+    "Model_load": false,
+    "new_framework": false,
+    "Git_clone_modified": false,
+    "native_diff": null
+  },
+  "next": "STOP this candidate in the current scope. No component/GPU requested; root may select another independently justified cause. Do not reopen RMS or collapse."
+}
