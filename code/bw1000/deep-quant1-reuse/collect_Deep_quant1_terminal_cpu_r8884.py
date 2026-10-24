@@ -1,0 +1,12 @@
+import pathlib,json,hashlib,datetime
+r=pathlib.Path.home()/'hygon-inference-refactor-20261014';label='deep-quant1-r8884';w=json.loads((r/(label+'-watch.json')).read_text());assert w['actual_handle']=='910374.871' and w['terminal'] and w.get('post_KFD');p=r/'results'/f'{label}-910374.871.json';q=json.loads(p.read_text());d={'utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'actual_handle':w['actual_handle'],'scope':'Existing terminal results only, numeric summary/hash export; original audit/post reused, no newGPU/Model/audit/KFD','input_proof':q['input_proof'],'files':{},'quant1_quality_summary':{},'counter_summary':{},'error_distribution':{},'max_expert_rows':q['max_expert_rows']}
+for n in ['deep-quant1-r8884-watch.json','results/deep-quant1-r8884-910374.871.json','logs/deep-quant1-r8884-910374.871.log','incoming/Deep-quant1-manifest-r8884.json','incoming/Deep_quant1_r8884.py','incoming/verify_Deep_quant1_r8884.py','incoming/launch_Deep_quant1_r8884.py','results/deep-quant1-CPU-r8883.json','candidates/deep-quant1-r8883/libdeep_quant1_r8883.so']:
+ p=r/n;raw=p.read_bytes();d['files'][n]={'SHA256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw)}
+for o in q['owners']:
+ d['quant1_quality_summary'][str(o['dev'])]={'cases':len(o['quant1_boundary_actual_quality']),'all_packed_scales_byteexact':all(x['packed_and_scale_bytes_exact'] for x in o['quant1_boundary_actual_quality']),'CPU_duplicate_copy_cases':sum(x['CPU_duplicate_rowcopy_oracle'] for x in o['quant1_boundary_actual_quality'])}
+for mode in [0,1,2]:
+ records=[z for o in q['owners'] for z in o['records'] if z['mode']==mode]
+ d['counter_summary'][str(mode)]={k:[min(z[k] for z in records),max(z[k] for z in records)] for k in ['quant1_calls','quant1_rows','gather_scale_calls','gather_route_rows','unique_experts','routes','bank_success_fence_calls_source_contract','scatter_post_fences','scatter_post_fences_skipped']}
+ d['error_distribution'][str(mode)]={'maxabs':max(z['maxabs'] for z in records),'NRMSE_max':max(z['NRMSE'] for z in records),'all_finite':all(z['finite'] for z in records),'all_original_tolerance_passed':all(z['numeric_guard'] for z in records),'abs_error_percentiles_0_50_95_99_100_max_across_outputs':[max(z['absolute_error_percentiles_0_50_95_99_100'][i] for z in records) for i in range(5)]}
+d['all_owners_same_reference_output_hash']=len({o['records'][0]['output_SHA256'] for o in q['owners']})==1
+print(json.dumps(d))
