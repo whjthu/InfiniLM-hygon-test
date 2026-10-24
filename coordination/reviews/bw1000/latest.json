@@ -1,127 +1,87 @@
 {
-  "updated_at_utc": "2026-10-24T18:13:03.988509+00:00",
+  "updated_at_utc": "2026-10-24T18:23:55.087540+00:00",
   "policy": "coordination/ASTRA_REVIEW.zh-CN.md",
-  "status": "RUNNING_NOT_COMPLETED",
+  "status": "COMPLETED_IMPLEMENTED_FOLLOWTHROUGH",
   "review_id": "astra-review-57-current",
   "model": "gpt-6-astra",
   "agent": "/root/astra_review_57",
-  "report": null,
-  "implementation": "analysis/bw1000/reviews/astra-review-implementation-56-current.json",
-  "ledger": "analysis/bw1000/reviews/optimization-review-ledger-before-57.json",
-  "completed_rounds_since_review": 3,
+  "report": "analysis/bw1000/reviews/astra-review-57-current.json",
+  "implementation": "analysis/bw1000/reviews/astra-review-implementation-57-current.json",
+  "ledger": "analysis/bw1000/reviews/optimization-review-ledger-after-57-round1.json",
+  "completed_rounds_since_review": 1,
   "normal_trigger": 3,
-  "early_trigger": "Directuserrequestafter2validrounds",
   "independent_work_continues": true,
-  "report_available": false,
+  "report_available": true,
   "unreviewed_completed_experiments": [
     {
-      "handle": "910375.645",
-      "evidence": "results/bw1000/2026-10-25/kimi645-b16-capacity-negative.json",
-      "scope": "ActualB16TP16PP2capacitynegative:QA8x4exact;pregeometry2.484375GiB<4GiB;32normal/post646empty;zeroformalTPS. Newgateevidenceexcludescompact-onlyreload."
-    },
-    {
-      "handle": "910374.844",
-      "evidence": "results/bw1000/2026-10-25/Deep844-bank-lease-component-r8823.json",
-      "scope": "PairedcurrentPACKON/scatterON bankretirecomponent +2.08755percent;8normal/88byteexact/audit0/post845empty;notModel/TP8/decode"
-    },
-    {
-      "handle": "910376.540",
-      "evidence": "results/bw1000/2026-10-25/glm540-bounded-decode-profile.json",
-      "scope": "QualifiedwholeModelbaseline128+diag128+anchor/fullIDs/EOS/QA,64windowsall16,audit0/post541empty;criticalpathdiagnostic,notnewgain"
+      "handle": "910374.847",
+      "evidence": "results/bw1000/2026-10-25/deep847-four-expert-profile.json",
+      "scope": "Qualifiedrealprefill4expert/40eventperownerdiagnostic;320events/32byteexact/8normal/audit0/post848empty;materialGemm+submitANDquantactivation;notperformancegain/Model/decode"
     }
   ],
+  "pending_report": null,
   "current_followthrough": [
     {
-      "id": "KIMI56-FINISH645-UNCHANGED",
+      "id": "KIMI57-FINISH648",
       "model": "Kimi",
       "owner": "/root/online_service_scheduler",
-      "action": "Complete original645 TP16PP2/32cards B16M16 cap16 KDA17 KV68 I512O128. Same load OFFfull128+QA,ON128qualification,ordinaryOFF/ON/ON/OFF,restoreOFFQA. Original3GiBaftercreate/4GiBpregeometry/512MiBruntime floors unchanged. No cancellation,reload,livepatch or threshold relaxation.",
-      "cost": "Existing32DCU;50minhard/2900sinner, no extension/retry.",
-      "acceptance": "Allsame-geometry full128IDs/EOS/QA,expectedcandidatecounts,32normal,terminal0,auditpass,postempty. ReportpairedModel andactualrequest clocks. Consistentpositiveordinarybalancedpairs with correctness can support exactscopeModel adoption; inconsistent/nonpositive leavesOFF. If memory/otherfailure, retain firstexactphase/error and cleanup, noTPS claim.",
       "decision": "ACCEPT",
-      "state": "TERMINAL_CAPACITY_NEGATIVE_QA_EXACT_32NORMAL_POST646EMPTY",
-      "actual_handle": "910375.645",
-      "evidence": "results/bw1000/2026-10-25/kimi645-b16-capacity-negative.json"
+      "state": "FOLLOW_ORIGINAL648_RUNNING_LOADING_PRELOAD4GiB_PASSED_POSTQA_UNKNOWN",
+      "card_reference": "astra-review-57-current.json#KIMI57-FINISH648",
+      "action": "Finish unchanged648 combined compact-workspace plus existing postQA reset/trim run. Original QA, OFF128, ON128, ordinary OFF/ON/ON/OFF, restoreQA in one load; flags3/7/head0. Do not modify live old-label8669za nonce or files.",
+      "resource_source": "Existing910375/n08..11/32DCU;sourcebc0d1f5/manifestd4b686/nativeeaa128. Original50minhard2900inner, runtimefloor0.5GiB; no retry or extension.",
+      "quality": "Unchanged4GiB pregeometry and0.5GiB runtime floor; exact full128 IDs/EOS/QA, candidate counters, paired ordinary clocks and actual per-user clocks,32normal,terminal0,audit,postempty for adoption.",
+      "exit_fallback": "Capacity failure: preserve exact postreset deficit and stop this compact/reset route; no threshold relaxation or automatic third load. Existing PP-boundary47/46 fallback remains parked for a concrete memory-accounted root decision. Correct but nonpositive performance: retain OFF; positive balanced pairs may qualify exact scope, never the memory change alone."
     },
     {
-      "id": "KIMI56-CONDITIONAL-UNUSED-WORKSPACE-FEASIBILITY",
-      "model": "Kimi",
-      "owner": "/root/online_service_scheduler",
-      "action": "Prioritize the narrower newlyreportedprivateMoE workspace candidate before changingPPpartition: current19,148,544B/layer allocation includes14,680,064B partial region reportedly unused byTP16I192. Verify everyTP16 OFFgenericfallback,ONcustomdispatch andwrongshape/fallback access, maximumoffset/end andlifetime. Only if allcurrentpaths exclude partial mayallocation end atpartial_offset4,468,480B withoffsetsretained andexplicitbranchguard. No kernel/API/math/SDK changes. CPU review first, noimplementation orGPUadmission granted by thisreview.",
-      "cost": "0GPU,10minCPU read-only branch feasibility alreadydispatched; atmostoneprivateMoEhostTU proposed ifproven, noimplementation/build/GPU GO fromthiscard.",
-      "acceptance": "Return exactbranch/access proof,actualallocationlayercounts,expectedmaxoffset andbothstagefreebounds withtransientuncertainty. If anyOFF/ONfallback usespartial, STOP shrinkproposal ratherthan disablefallback/changequalification. Rootmay separatelyadmitminimalimplementation onlyafterproof and645terminal; original3/4GiB/512MiBguards preserved.",
-      "decision": "ACCEPT",
-      "state": "COMPACT_ONLY_RELOAD_STOPPED_ACTUAL_GATE_INSUFFICIENT;COMBINED_EXISTING_RESET_TRIM_PLUS_COMPACT_CPU_GO",
-      "evidence": "Kimi-TP16-I192-workspace-reference-audit-r8669zb.json",
-      "evidence_SHA256": "0b1c33bfbed4f3879c9313d8675945dcfe795180a2adc791e3095a6c4fefc304",
-      "finding": "Actual eligible TP16I192 uses at most4468228B; preserve original offsets and allocate4468480B only on proveneligible branch. Other constructors retain19148544B. Payload saving tail47layers0.6426GiB; actual driverfree UNKNOWN. No sourceimplementation/build/upload/GPU GO yet.",
-      "activation": "Only after645 terminal capacity failure at original guard; if645 qualifies, do not reload solely for this.",
-      "action_followthrough": "OneprivateMoEhostTU15minCPU,originalSDK/kernel/head/math/offsets. Existingallownerreset+trimafterQA;noactivebufferclear. Preload4GiBearlyfail;original4GiBpregeometry/.5GiBfloorretained. ActualreadypackagebeforeoneModelGO.",
-      "budget": "QAafterfree2.484375+.642578compact=3.126953<4;onlyifexistingtrimrecoversenoughmayfit;4.383predictednotproved.",
-      "reset_contract": "analysis/bw1000/Kimi645-existing-owner-reset-trim-contract-r8669zb.json"
-    },
-    {
-      "id": "GLM56-BOUNDED-PP2-DECODE-ATTRIBUTION",
+      "id": "GLM57-T8-ROUTED-CANDIDATE",
       "model": "GLM",
       "owner": "/root/moe_decode_arithmetic_audit",
-      "action": "Finish minimal existing512eventpool/originaldrainQuery windowobserver,bridge,TextModel3hostTUs and only necessaryFFNhostTU. NoSDK/math rebuild,newGPUstream/sync,eventpool expansion or alloperatorframework. OriginalTP8PP2/16cards,I512O128,B16M8: oneOFF128+QA and oneboundeddiagnostic128; round63/64 xcohort0/1 fourwindows,all16owners. LabelPP/layers/layer38attention,routed/sharedFFN,TP,lease,RoPE/D2H. Preserveoriginaldrain/retirement lifetime.",
-      "cost": "Original20minCPU bound; GPU onlyafteractualready artifact and originalowneradmission. Rootaccepted35minhard/2000sinner for sameone16cardload,maximum560card-minutes;1350s core+240s QA/reset/destroy/report+90s softexit=1680s estimated,320s remaininginneruncertainty. Noextraarm/retry; diagnostic is notordinaryperformancegain.",
-      "acceptance": "Compile/linkready receipt, bounded eventcount<=existing512 capacity accounting for actualnestedrecords, correctwindow/cohort/owner coverage,nochangednumericpath. Runtime fullIDs/EOS/QA and16normal/audit/post. Outputonecriticalpath ledger inms plus one prioritized candidate or exactunresolvedcause. Missingevents/overflow/timingdistortion meansdiagnosticinvalid; do not claimTPS or automaticallyloadagain.",
       "decision": "ACCEPT",
-      "state": "RUNNING_ORIGINAL540_WEIGHT_LOADING",
-      "actual_CPU": "910407.187",
-      "native_SHA256": "464ce86f4aba87c1e471ae355498e1c68c02c31a8c6e642313f52757cc63d4eb",
-      "budget": "35minhard/2000sinner.1350historicalcore+240QA/reset/destroy/report+90softexit=1680s;320sremaining. No addedarms/retries.",
-      "resources": "Original910376 n12+n13,16DCU; freshbusyfail/admission and actualpackage binding before rootGPU GO.",
-      "actual_handle": "910376.540",
-      "run": "prefix-8708-4ceea1ee2c0c4ef9b783",
-      "manifest_SHA256": "15e250309b07376e1a453094e73bb4ea2cc6653488ed1cdd500529bb37d70cb2",
-      "source_commit": "4a48288dbd0253669bd2641f22475bf6ea8415bd",
-      "metadata_errata": "Originallaunchscopehasstale2TU/prefill/60mintext;effectiveargs35min/inner2000/actual3TU/fourround63,64cohort0,1decodewindowsareauthoritative;rawliveunchanged."
+      "state": "DISPATCHED_PRIVATE_TILE2_KERNEL_DISPATCH_CPU_GO_30MIN",
+      "card_reference": "astra-review-57-current.json#GLM57-T8-ROUTED-CANDIDATE",
+      "action": "Implement one new defaultOFF T8 gate/up microtile candidate at actual c716b37 source line114, retaining current vector path as control and down at line122 unchanged initially. Concrete direction: share FP8 input decode and scale loads across a small output-channel tile, keep gate/up accumulators paired, preserve each output's original K reduction and BF16 boundaries. Existing W64V2 cooperative widefetch/lane redistribution is already active; a new implementation must change reuse across output channels, not replay that optimization or toggle base vector mode. Route order and offsets remain exact. Bound register pressure with one small tile choice before considering a second.",
+      "resource_source": "Current MoE sourcec716b37fd3fe786cece00a5b4a309d9eb13b76e4bbdb8cc8843be936c708e64b and linked vector provider75f6ecd450268db5b0f062c2859e1a9f8f8bd2814730afccbc17f9486bd4fd80. At most one private kernelTU plus dispatch glue,30min CPU preparation; reuse SDK and otherobjects. GPU only root admission of actual ready artifact on original GLM resources, finite retained fixture if available; no load solely to capture fixture.",
+      "quality": "Original full output comparison on retained exact route/shape, unchanged BF16 math boundaries, ordinary direction-balanced native wall and original fullFFN envelope. Adopt only after necessary same-load Model full128 IDs/EOS/QA and actual aggregate/card/user clocks. No diagnostic TPS adoption.",
+      "exit_fallback": "Fail correctness or lack repeatable enclosing-wall benefit: keep current vector. MMAC is a later alternative only with actual small-Me distribution and padding/scale/reduction costs; do not pad64routes across256experts or infer gain from dense peak. Avoid a new large kernel tuning matrix."
     },
     {
-      "id": "DEEP56-BANK-LEASE-CPU-FEASIBILITY",
+      "id": "GLM57-ATTENTION-PREPARE-REUSE",
+      "model": "GLM",
+      "owner": "/root/moe_decode_arithmetic_audit",
+      "decision": "ACCEPT",
+      "state": "DISPATCHED_CURRENT_SOURCE_CHECK_AND_SMALLEST_REUSE_CPU_GO_20MIN",
+      "card_reference": "astra-review-57-current.json#GLM57-ATTENTION-PREPARE-REUSE",
+      "action": "Use current540-bound attention prepare implementation to implement defaultOFF reuse of identical input BlockQuantF8E4m3 result for q_a and kv_a projections where both consume the same x/quant configuration. Preserve separate original projection math/scales, q/kv BF16 normalization boundaries and downstream cache semantics. Bind to actual current dependency before editing as part of normal implementation; historical glm_moe_dsa_attention_prepare_r809.cpp is explanatory only. This targets duplicate quantization/allocation/dispatch within measured0.741ms prepare, not a new timing framework or unproven removal of waits. If quantization is already shared, end this card with that precise finding rather than patch obsolete source.",
+      "resource_source": "Original GLM owner/current540 provider; at most2private hostTUs,20min implementation/readiness decision,0new GPU now. Can prepare alongside routed candidate; measure each independently and select one for next necessary Model load. Keep original owner/stream/drain and lease lifetimes.",
+      "quality": "Identical quant bytes/scales for eligible shared input, original projection/normalization outputs and request/cache semantics, lease retains shared buffers until both consumers complete. Noneligible inputs fallback. Ordinary component wall then original Model IDs/EOS/QA/normal/audit/post on necessary load.",
+      "exit_fallback": "Already shared, incompatible quant layout, unclear ownership, or no enclosing-wall benefit: retain original. Do not remove validation/driver waits or build a generalized cache to rescue this hypothesis."
+    },
+    {
+      "id": "DEEP57-FINISH-FOUR-EXPERT-PROFILE",
       "model": "Deep",
       "owner": "/root/deep_bank_lease_56",
-      "action": "At most15min inspect exactcurrentbank2f9f4ab4 source and I8Gemm scratch/submit lifetime. Root already found forward_local owns input,w13,s13,w2,s2,packed,xs,out,gateup,clamped,activated; twoI8Gemm calls then successsync,catchsync/terminate. Currentprefilllease retains onlygathered/tail_local and relies on nextbankfence for previousscatter. Therefore do not simply removebankfence. Determine whether bounded retirement can hold everybanktemporary,gathered/localbuffer and internalGEMMworkspace until actualsumdrain/completion while preservingfailurecleanup.",
-      "cost": "0GPU,15minCPU, noSDKrebuild, no broadprovider/ISAsearch. Sourcefeasibility only; atmost2privatehostTUs described as futurecandidate, notauthorizedGPUbenchmark.",
-      "acceptance": "Deliver concreteownershiptimeline,lastconsumer/retirementpoint,internalworkspaceownership and peakextraresident-byte bound from actualretainedroute totals/Mexpert shapes, including concurrentbanks. Compare bound against existingmeasuredheadroom and originalmemoryreserve. If scratchlifetime/routebound cannot be closed within15min, STOP withoneexactblocker. Countoffences alone is not benefit. Only if feasible mayroot separatelyadmit a minimalcomponentimplementation usingexistingactualprefillfixture.",
       "decision": "ACCEPT",
-      "state": "CPU188_COMPLETED0_19S_MINIMAL2TU;ORIGINAL844_RUNNING",
-      "original_owner": "/root/glm_critical_path_profile",
-      "output": "Deep-bank-lease-feasibility-r8819.json",
-      "actual_handle": "910374.844",
-      "native_SHA256": "4e08bf0f717889fb2e314238d5afa163fb03c908795dab190ba77cf754634160",
-      "resources": "Original910374/n05/8DCU32CPU64GB/10minhard540inner",
-      "matrix": "real591T2048/U251;PACKON+scatterONfixed;bankOFF/ON;2warm+ABBA+BAAB+restore;notTP8Model",
-      "evidence": "analysis/bw1000/Deep-bank-lease-CPU-ready-r8820.json"
+      "state": "847COMPLETED0_320EVENTS_32BYTEEXACT_8NORMAL_AUDIT0_POST848EMPTY",
+      "card_reference": "astra-review-57-current.json#DEEP57-FINISH-FOUR-EXPERT-PROFILE",
+      "action": "Finish actual CPU189 package/audit and dispatch the already-authorized bounded profile once root sees ready artifacts. Existing591 T2048/R12288/U251, PACKON+scatterON, bankOFF originaldrain. Exactly4experts25/7/45/134 atM4/40/92/154, fivephases quant1/Gemm1/clampSilu/quant2/Gemm2,40events/owner,Query after originaldrain. No new sync/stream/SDK/math or expanded observer.",
+      "resource_source": "Original910374/n05/8independent copies;2hostTU CPU189 compiled20.4s per parent. One finite component <=10minhard540inner after readyGO, no Model load. Keep original6GiBafterload/0.5GiBruntime reserve.",
+      "quality": "All8 finite/originaltolerance, normal8/audit/post, all40 bounded events ready at existingdrain; no eventoverflow. Instrumented wall is not performance gain.",
+      "exit_fallback": "Invalid profile: preserve one exact reason and stop, no automatic rerun. If GEMM/submit contribution is small, do not implement batching; select measured quant/activation/allocation cause. Keep826/844 defaultOFF and only share an independently necessary Model load."
     },
     {
-      "id": "DEEP56-826-SHARED-LOAD-ONLY",
+      "id": "DEEP57-CONDITIONAL-EXACT-M-BATCH",
       "model": "Deep",
-      "owner": "/root/glm_critical_path_profile",
-      "action": "Existing826 remainsdefaultOFF and may join only another independentlynecessaryDeepModel load withPACKONfixed,ordinaryOFF/ON/ON/OFF,originalB32M32I512O128,fullIDs/EOS/QA and realrequestclocks. Keepitsattributionseparatefromfuturebankretirecandidate.",
-      "cost": "0newwork/load now; ifactivated,share original8card/30minModelbound and onecheckpointload.",
-      "acceptance": "ExactscopepositivepairedModelwall andcompletecorrectness/normal/audit/post; otherwiseOFF. Do not reopen8810providerlookup or repeat826component tofillidlecards.",
-      "decision": "ACCEPT",
-      "state": "HOLD_UNTIL_INDEPENDENT_NECESSARY_DEEP_MODEL_LOAD"
+      "owner": "/root/deep_bank_lease_56",
+      "decision": "ACCEPT_CONDITIONAL_ACTIVATED_CPU_ONLY",
+      "state": "CPU_GO_30MIN_MATERIAL_GEMM_SUBMIT_SEEN_IN4SAMPLES_NO_WHOLE_MODEL_EXTRAPOLATION",
+      "card_reference": "astra-review-57-current.json#DEEP57-CONDITIONAL-EXACT-M-BATCH",
+      "action": "If profile supports material GEMM/submission cost, build one exact-M pointer-array GemmBatchedEx candidate, starting with current real bins and original INT8->INT32 operation, original FP32 scaling/BF16 epilogue. First finite samefixture GPU call tests actual I8/I32 datatype/shape/alignment support, then compare outputs before timing. ExactM57bins means114calls versus502 without padding; preserve quant/activation stage dependency and final scatter route order. Reuse vendor/SDK, do not create a new provider search.",
+      "resource_source": "Current DTK symbols and API recordedr8826; original591fixture on n05 only after independent readyGO. At most2private hostTUs/30min preparation; finite component10minhard540inner if admitted, no Model load. Pointertables/retained intermediates must fit original reserve.",
+      "quality": "Exact INT32 accumulations and unchanged FP32/BF16 epilogue semantics, all fullcomponent outputs against existing bank control, finite8normal/audit/post, balanced ordinary native wholecomponent wall. Modelgain remains unknown until necessary shared Model qualification.",
+      "exit_fallback": "Unsupported datatype/shape or numeric failure: fallback originalGemmEx and stop batching route. Nonpositive enclosingwall: stop; no padded sweep or SDK rebuild.844+826 sharedload options remain parked, not reasons for standalone Model work."
     }
   ],
-  "pending_report": "analysis/bw1000/reviews/astra-review-57-current.json",
   "wholeModel_gain_count_this_review": 0,
-  "latest_completed_report": "analysis/bw1000/reviews/astra-review-56-current.json",
-  "inflight_review": {
-    "id": "astra-review-57-current",
-    "agent": "/root/astra_review_57",
-    "model": "gpt-6-astra",
-    "reasoning_effort": "high",
-    "state": "RUNNING_NOT_COMPLETED",
-    "started_at_utc": "2026-10-24T18:13:03.988509+00:00",
-    "trigger": "Threevalidglobalrounds645/844/540since56",
-    "target_minutes": 10,
-    "independent_work_continues": [
-      "648Modeloriginal",
-      "Deep2TU40eventprofileCPU"
-    ]
-  }
+  "after_report_pending_experiment": null
 }
