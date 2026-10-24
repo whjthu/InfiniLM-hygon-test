@@ -1,0 +1,144 @@
+{
+  "scope": "Read-onlyCPUbranch/dataflowaudit of actualCPU209MoETU+provider reusedbyCPU210 nativeb6 andlive645. No source/compile/GPU/upload/livecodechange.",
+  "source_binding": {
+    "MoE_source_SHA256": "98f498dd091e708be56678b63dbd4fb22c7f6b0e4cfdfcd65c850e6f0c65c44e",
+    "provider_source_SHA256": "1cf1389954e4ae4441ab5e9e23a9d9cb68deb84539bebe62565d3e0ee545c99c",
+    "servingheader": {
+      "actual_MD_path": "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/models/kimi_k3/kimi_serving_workspace_r4665.hpp",
+      "SHA256": "e2f6e82c878161ced7fce25523794add5281d3001eb951d60aa60c1cb139c482"
+    },
+    "native_b6_reused_same_MoE_provider": true
+  },
+  "original_workspace_bytes": 19148544,
+  "possible_compact_bytes": 4468480,
+  "max_access_end_exclusive": 4468228,
+  "alignment_padding_bytes": 252,
+  "paths": [
+    {
+      "path": "I192ON exactT16",
+      "guard": "tp_size16,policy1,Math0,Hygon,BF16contiguousH3584,T16,topk16,packedshapesW13[896,384,1792]/S13[896,384,112]/W2[896,3584,96]/S2[896,3584,6]",
+      "member_access": [
+        {
+          "name": "activation",
+          "offset": 0,
+          "span": 98304,
+          "access": "W13write/W2read",
+          "end_exclusive": 98304
+        },
+        {
+          "name": "counts",
+          "offset": 786432,
+          "span": 3584,
+          "access": "cudaMemsetAsync/packatomicAdd/buildJobs/readW13",
+          "end_exclusive": 790016
+        },
+        {
+          "name": "routes",
+          "offset": 790016,
+          "span": 917504,
+          "access": "packwrite/W13read",
+          "end_exclusive": 1707520
+        },
+        {
+          "name": "jobExpert",
+          "offset": 4460032,
+          "span": 1024,
+          "access": "buildJobswrite/W13read",
+          "end_exclusive": 4461056
+        },
+        {
+          "name": "jobStart",
+          "offset": 4464128,
+          "span": 1024,
+          "access": "buildJobswrite/W13read",
+          "end_exclusive": 4465152
+        },
+        {
+          "name": "jobs",
+          "offset": 4468224,
+          "span": 4,
+          "access": "cudaMemsetAsync/buildJobsatomicAdd/W13read",
+          "end_exclusive": 4468228
+        }
+      ],
+      "max_end_exclusive": 4468228,
+      "line": 322
+    },
+    {
+      "path": "OFF / ONunsupportedN (1,4,8,32,64) generic",
+      "guard": "I192guardnotselected,weightsW2localI192\u2260I384 meansoldserving/N4/tiledbranchesfalse",
+      "member_access": [],
+      "max_end_exclusive": 0,
+      "line": 346,
+      "callee": "execution::submit FusedMoeMxfp4 implementation1 usesownworkspace,Modelmemberpointer notargument"
+    },
+    {
+      "path": "largepackedprefill grouped",
+      "guard": "qualify_grouped_prefill and N>=512; sameI192weights",
+      "member_access": [],
+      "max_end_exclusive": 0,
+      "line": 329,
+      "callee": "modern_grouped_mxfp4_owned(Runtime*,...routed,input,ids,rw,weightptrs);noModelworkspaceargument"
+    },
+    {
+      "path": "I384serving variant4/9",
+      "guard": "Requiresweights.packed_w2->size(2)*2==384;cannotwithfixedTP16localI192",
+      "reachable_compact_scope": false,
+      "max_end_exclusive_if_I384_othergeometry": 19148544,
+      "action": "MustretainoriginalfullworkspaceforallnoneligibleTP16I192constructorconfigs;doNOTglobalchangeheader/constants",
+      "line": 326
+    },
+    {
+      "path": "N4tile",
+      "guard": "RequiresI384;cannotwithI192 regardlessN4flag",
+      "reachable_compact_scope": false,
+      "line": 333,
+      "member_access": [],
+      "max_end_exclusive_compact_scope": 0
+    },
+    {
+      "path": "tiledM1",
+      "guard": "RequiresI384 andqualifytileflag;wideTPflags3/7not64;cannotwithI192",
+      "reachable_compact_scope": false,
+      "line": 335,
+      "member_access": [],
+      "max_end_exclusive_compact_scope": 0
+    },
+    {
+      "path": "router/projection/AUX/shared/allreduce/postnorm/Add/weightload",
+      "member_access": [],
+      "max_end_exclusive": 0,
+      "basis": "Alltiled_scratch_r1861_ references inthewholecompiledMoETU enumerated;noadditionalreference before/afterroutedbranch."
+    },
+    {
+      "path": "standalone servingUnit APIs",
+      "member_access": [],
+      "max_end_exclusive": 0,
+      "basis": "OwnUnitworkspace constructedfull19MB;noModelmemberpointer supplied;outsideModelconstructorcompactchange."
+    }
+  ],
+  "proof_of_bounds": [
+    "packRoutesaccepts\u2264T*16=256validroutes;invalidexpertIDskipsbeforewrite. Eachperexpertslot\u2264255.",
+    "buildJobsceil(count_e/2),sumjobs\u2264sumcounts\u2264256;expert/startarraysneed\u2264256I32each.",
+    "W13rowindicesareoriginalrouteID0..255;I192lastactivationelement49151,end98304B.",
+    "Allsixpointersalreadypassedunchanged;partialptrNOTpassedtoI192API. Samekernel/launch/reduction/activation/W2 untouched.",
+    "Preserveoriginaloffsets includinggaps;do not compactlayout orchangeGPUmath inminimalmemoryhypothesis."
+  ],
+  "possible_constructor_scope": "Onlyexplicitprivateoptin + runtimeHygon/eager + tp_size16 + expert_intermediate_size3072/localI192 + routedH3584 +E896/topk16/BF16 fixedcheckpoint; otherwiseoriginal19MBallocation. Current645sourceunchanged.",
+  "necessary_corresponding_guard": "Newbranchcurrentlyrequiresworkspace19MBexact. A futurehostTUchange mustaccepttheexplicitcompact4,468,480Bonlywhenexactconstructor/weightgeometryeligible,otherwisefailclosed/fullworkspace;sameowner/dtype/contiguous/graph checksretained. Notsafejustshrinkconstructorwithoutguardchange.",
+  "classlayout_lifetime": "No newfieldneeded;sameexistingTensor ownsallocation;Modeldrains/teardownoriginal;standaloneUnitunmodified. No newcompletionboundary/copy/sync.",
+  "savings_by_stage": [
+    {
+      "MoE_layers": 45,
+      "payload_saved_bytes": 660602880,
+      "GiB": 0.615234375
+    },
+    {
+      "MoE_layers": 47,
+      "payload_saved_bytes": 689963008,
+      "GiB": 0.642578125
+    }
+  ],
+  "actual_driver_savings": "UNKNOWN_allocatorpoolsizeclasses;payloadonlynotruntimefitproof",
+  "decision": "SOURCE_FEASIBLE_FUTURE_SINGLE_HOST_MOE_TU_HYPOTHESIS;wait645afterfinish4GiBresult. Ifexisting645fits,noadditionalmemoryload. Noimplementation/build/GPUauthorizedbythisaudit."
+}
