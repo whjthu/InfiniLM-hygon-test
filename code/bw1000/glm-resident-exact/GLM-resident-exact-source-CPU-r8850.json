@@ -1,0 +1,559 @@
+{
+  "CPU_only": true,
+  "GPU": false,
+  "sources": {
+    "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Common/GLM/InfiniLM/csrc/runtime/runtime.cc": {
+      "SHA256": "a4742905290618c740bc81f4e0316b289de86819ece50d7a95da62652bb0a4e9",
+      "lines": [
+        "62:         throw std::invalid_argument(\"device index is unavailable for the requested backend\");",
+        "63:     }",
+        "64:     infini::rt::DeviceGuard guard{device.type(), device.index(), true};",
+        "65:     return std::shared_ptr<Runtime>(new Runtime(device));",
+        "66: }",
+        "67: ",
+        "68: Runtime::Runtime(Device device) : device_(device), owner_generation_(currentOwnerGeneration()), graph_manager_(std::make_unique<::infinilm::execution::graph::GraphManager>()) {",
+        "69:     try {",
+        "70:         device_memory_allocator_ = std::make_unique<infini::rt::ReusableMemoryPool>(device);",
+        "71:         // Borrow the RT-owned execution stream. Pin leases retain its state;",
+        "72:         // Runtime never independently destroys this queue.",
+        "73:         stream_ = device_memory_allocator_->stream();",
+        "74:     } catch (...) {",
+        "75:         device_memory_allocator_.reset();",
+        "76:         stream_ = nullptr;",
+        "77:         throw;",
+        "78:     }",
+        "79: }",
+        "80: Runtime::~Runtime() noexcept {",
+        "81:     infini::rt::DeviceGuard device_guard{device_.type(), device_.index()};",
+        "82: ",
+        "83:     try {",
+        "84:         if (stream_ != nullptr) {",
+        "85:             const auto synchronize_status = infini::rt::runtime::StreamSynchronize(stream_);",
+        "86:             warn_runtime_cleanup_failure(\"synchronizing the runtime stream\", synchronize_status);",
+        "87:         }",
+        "88:     } catch (const std::exception &error) {",
+        "89:         warn_runtime_cleanup_failure(\"synchronizing the runtime stream\", error.what());",
+        "90:     } catch (...) {",
+        "91:         warn_runtime_cleanup_failure(\"synchronizing the runtime stream\", \"unknown error\");",
+        "92:     }",
+        "93: ",
+        "94:     graph_manager_.reset();",
+        "198:         } catch (const std::exception &error) {",
+        "199:             warn_runtime_cleanup_failure(\"releasing device memory\", error.what());",
+        "200:         } catch (...) {",
+        "201:             warn_runtime_cleanup_failure(\"releasing device memory\", \"unknown error\");",
+        "202:         }",
+        "203:     }",
+        "204: }",
+        "205: ",
+        "206: std::shared_ptr<Memory> Runtime::allocateMemory(size_t size) {",
+        "207:     infini::rt::DeviceGuard device_guard{device_.type(), device_.index(), true};",
+        "208:     auto runtime = shared_from_this();",
+        "209:     std::byte *data_ptr = runtime->device_memory_allocator_->allocate(size);",
+        "210:     try {",
+        "211:         return std::make_shared<Memory>(",
+        "212:             data_ptr, size, device_,",
+        "213:             [runtime](std::byte *p) { runtime->releaseDeviceMemory(p); },",
+        "214:             false, size > 0, runtime); // Zero allocations have no allocator block to pin.",
+        "215:     } catch (...) {",
+        "216:         runtime->device_memory_allocator_->deallocate(data_ptr);",
+        "217:         throw;",
+        "218:     }",
+        "219: }",
+        "220: ",
+        "221: std::shared_ptr<Memory> Runtime::allocateParameterMemory(size_t size) {",
+        "222:     infini::rt::DeviceGuard device_guard{device_.type(), device_.index(), true};",
+        "223:     auto runtime = shared_from_this();",
+        "224:     std::byte *data_ptr = runtime->device_memory_allocator_->allocate_exact(size);",
+        "225:     try {",
+        "226:         return std::make_shared<Memory>(",
+        "227:             data_ptr, size, device_,",
+        "228:             [runtime](std::byte *p) { runtime->releaseDeviceMemory(p); },",
+        "229:             false, true, runtime);",
+        "230:     } catch (...) {",
+        "231:         runtime->device_memory_allocator_->deallocate(data_ptr);",
+        "232:         throw;",
+        "233:     }",
+        "234: }",
+        "235: ",
+        "236: std::shared_ptr<Memory> Runtime::allocatePinnedHostMemory(size_t size) {",
+        "237:     infini::rt::DeviceGuard device_guard{device_.type(), device_.index(), true};",
+        "238:     if (device_.type() == Device::Type::kCpu) {",
+        "239:         spdlog::warn(\"For CPU devices, pinned memory is not supported, falling back to regular host memory\");",
+        "240:         return allocateMemory(size);",
+        "241:     }",
+        "242:     auto runtime = shared_from_this();",
+        "243:     void *data_ptr = nullptr;",
+        "244:     if (size != 0) {",
+        "245:         INFINILM_CHECK_ERROR(infini::rt::runtime::MallocHost(&data_ptr, size));",
+        "246:     }",
+        "247:     try {",
+        "248:         return std::make_shared<Memory>(",
+        "249:             static_cast<std::byte *>(data_ptr), size, Device{Device::Type::kCpu},",
+        "250:             [runtime](std::byte *p) {",
+        "251:                 infini::rt::DeviceGuard guard{runtime->device_.type(), runtime->device_.index()};",
+        "252:                 if (!guard.active() || p == nullptr) {",
+        "253:                     return;",
+        "254:                 }",
+        "255:                 try {",
+        "256:                     INFINILM_CHECK_ERROR(infini::rt::runtime::FreeHost(p));",
+        "257:                 } catch (const std::exception &error) {",
+        "258:                     warn_runtime_cleanup_failure(\"releasing pinned host memory\", error.what());",
+        "259:                 } catch (...) {",
+        "260:                     warn_runtime_cleanup_failure(\"releasing pinned host memory\", \"unknown error\");",
+        "261:                 }",
+        "262:             },",
+        "263:             true, false, runtime);",
+        "264:     } catch (...) {",
+        "415:         try {",
+        "416:             device_memory_allocator_->cancel_pin_mode();",
+        "417:         } catch (...) {",
+        "418:         }",
+        "419:         graph_manager_->finish_recording();",
+        "420:         std::rethrow_exception(original_error);",
+        "421:     }",
+        "422: ",
+        "423:     std::shared_ptr<infini::rt::ReusableMemoryPool::PinLease> allocation_lease;",
+        "424:     try {",
+        "425:         allocation_lease = device_memory_allocator_->commit_pin_mode();",
+        "426:     } catch (...) {",
+        "427:         const auto original_error = std::current_exception();",
+        "428:         try {",
+        "429:             device_memory_allocator_->cancel_pin_mode();",
+        "430:         } catch (...) {",
+        "431:         }",
+        "432:         graph_manager_->finish_recording();",
+        "433:         std::rethrow_exception(original_error);",
+        "434:     }",
+        "435:     graph->retain_runtime(shared_from_this(), std::move(allocation_lease));",
+        "436:     try {",
+        "437:         graph->instantiate();",
+        "438:     } catch (...) {",
+        "439:         graph_manager_->finish_recording();",
+        "440:         throw;",
+        "441:     }",
+        "442:     graph_manager_->finish_recording();",
+        "443:     return graph;",
+        "444: }",
+        "445: ",
+        "446: void Runtime::cancelGraphRecording() noexcept {",
+        "447:     try {"
+      ]
+    },
+    "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Common/GLM/InfiniLM/csrc/runtime/runtime.hpp": {
+      "SHA256": "c127b4cf91ab3b64721efe7c9a3e90a84cca9e35dc004ddb6abd9c5e067896d4",
+      "lines": [
+        "12: namespace infinilm::runtime {",
+        "13: class Runtime : public std::enable_shared_from_this<Runtime> {",
+        "14: private:",
+        "15:     Device device_;",
+        "16:     bool owner_drain_fail_stop_{false};",
+        "17:     void drainBeforeHostCopyUnwind() noexcept;",
+        "18:     const uint64_t owner_generation_;",
+        "19:     infini::rt::runtime::Stream stream_ = nullptr;",
+        "20:     std::unique_ptr<infini::rt::ReusableMemoryPool> device_memory_allocator_;",
+        "21:     std::unique_ptr<::infinilm::execution::graph::GraphManager> graph_manager_;",
+        "22: ",
+        "23:     void releaseDeviceMemory(std::byte *ptr) noexcept;",
+        "24:     void syncStreamForCleanup() noexcept;",
+        "25: ",
+        "26:     Runtime(Device device);",
+        "27: ",
+        "28: public:",
+        "29:     static std::shared_ptr<Runtime> create(Device device);",
+        "30:     ~Runtime() noexcept;",
+        "31: ",
+        "32:     Runtime *activate();",
+        "33:     void assertOwnerThread() const;",
+        "34:     // Owner-thread, monotonic opt-in before dedicated job-host allocations.",
+        "35:     // Existing host-copy/sync failures require proven completion or fail-stop;",
+        "36:     // CCL submission failure terminates the entire host process, all engines included.",
+        "37:     void enableOwnerDrainFailStop();",
+        "38:     // Read only after assertOwnerThread(); not a cross-thread/provider capability.",
+        "39:     bool ownerDrainFailStopEnabled() const noexcept { return owner_drain_fail_stop_; }",
+        "40: ",
+        "41:     Device device() const;",
+        "42:     infini::rt::runtime::Stream stream() const;",
+        "43: ",
+        "44:     void syncStream();",
+        "45:     void syncDevice();",
+        "46:     void trimMemory();",
+        "47: ",
+        "48:     // LM graph budgeting: unique InfiniCore allocator blocks retained by any",
+        "49:     // live capture. Excludes driver-internal CUDA Graph allocations.",
+        "50:     size_t graphPinnedMemoryBytes();",
+        "51: ",
+        "52:     std::shared_ptr<Memory> allocateMemory(size_t size);",
+        "53:     // Initial physical Parameter storage, tracked by the same owner/graph allocator.",
+        "54:     std::shared_ptr<Memory> allocateParameterMemory(size_t size);",
+        "55:     std::shared_ptr<Memory> allocatePinnedHostMemory(size_t size);",
+        "56:     std::shared_ptr<Memory> reinstantiateBlob(std::shared_ptr<Memory> blob);",
+        "57:     bool retainGraphMemory(const std::shared_ptr<Memory> &memory);",
+        "58: ",
+        "59:     void memcpyH2D(void *dst, const void *src, size_t size, bool async = true);",
+        "60:     void memcpyD2H(void *dst, const void *src, size_t size);",
+        "61:     void memcpyD2D(void *dst, const void *src, size_t size, bool async = true);",
+        "62: ",
+        "63:     void setDeviceMemory(void *ptr, int value, size_t count);",
+        "64:     void setDeviceMemoryAsync(void *ptr, int value, size_t count, infini::rt::runtime::Stream stream);",
+        "65: ",
+        "66:     // Graph",
+        "67:     ::infinilm::execution::graph::GraphManager::CaptureState graphCaptureState() const;",
+        "68:     bool isGraphRecording() const;",
+        "69:     void startGraphRecording(bool require_device_graph = false);",
+        "70:     void addGraphOperator(std::shared_ptr<::infinilm::execution::graph::RecordedCall> op);",
+        "71:     std::shared_ptr<::infinilm::execution::graph::Graph> stopGraphRecording();",
+        "72:     void cancelGraphRecording() noexcept;",
+        "73: ",
+        "74:     friend class ::infinilm::execution::graph::Graph;",
+        "75: };",
+        "76: } // namespace infinilm::runtime"
+      ]
+    },
+    "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Common/GLM/InfiniLM/csrc/runtime/tensor.hpp": {
+      "SHA256": "dfc787f233bef2fb5888d0954440746334386023bad3f6207164024b377eb658",
+      "lines": [
+        "37: struct TensorSliceParams {",
+        "38:     size_t dim;",
+        "39:     size_t start;",
+        "40:     Size len;",
+        "41: };",
+        "42: ",
+        "43: class Tensor {",
+        "44: public:",
+        "45:     static Tensor empty(Runtime &runtime, const Shape &shape, const DataType &dtype,",
+        "46:                         bool pin_memory = false);",
+        "47: ",
+        "48:     static Tensor empty(const Shape &shape,",
+        "49:                         const DataType &dtype,",
+        "50:                         const Device &device,",
+        "51:                         bool pin_memory = false);",
+        "52: ",
+        "53:     // Internal physical storage path for Parameter(shape), not Tensor views.",
+        "54:     static Tensor empty_parameter(Runtime &runtime,",
+        "55:                                   const Shape &shape,",
+        "56:                                   const DataType &dtype);",
+        "57: ",
+        "58:     static Tensor strided_empty(Runtime &runtime,",
+        "59:                                 const Shape &shape,",
+        "60:                                 const Strides &strides,",
+        "61:                                 const DataType &dtype,",
+        "62:                                 bool pin_memory = false);",
+        "63: ",
+        "64:     static Tensor ones(const Shape &shape,",
+        "65:                        const DataType &dtype,",
+        "66:                        const Device &device,",
+        "67:                        bool pin_memory = false);",
+        "68: ",
+        "69:     static Tensor from_blob(void *raw_ptr,",
+        "70:                             const Shape &shape,",
+        "71:                             const DataType &dtype,",
+        "72:                             const Device &device);",
+        "73: ",
+        "74:     static Tensor from_blob(void *raw_ptr,",
+        "75:                             const Shape &shape,",
+        "76:                             const DataType &dtype,",
+        "77:                             const Device &device,",
+        "78:                             std::shared_ptr<void> owner);",
+        "79: ",
+        "80:     static Tensor strided_from_blob(void *raw_ptr,",
+        "81:                                     const Shape &shape,",
+        "82:                                     const Strides &strides,"
+      ]
+    },
+    "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Common/GLM/InfiniLM/csrc/runtime/memory.cc": {
+      "SHA256": "762eb19d3c0b9ec27c87fe512d53b2c2b264851144a0280b904f819e69638479",
+      "lines": []
+    }
+  },
+  "history": {
+    "results/glm-exact-banks-component-r4189.json": {
+      "SHA256": "e4e5177e528f3517d9ac1edc529ea1ccab2baef324376ebb4cc8b8c2ae52feef",
+      "completed": true,
+      "state": null,
+      "error": null,
+      "owners": [
+        {
+          "device": 0,
+          "completed": true,
+          "case_count": 16,
+          "normal_owner_closed": true,
+          "stats_weak_lifetime": true,
+          "counts": [
+            16,
+            16,
+            0,
+            813301760
+          ]
+        },
+        {
+          "device": 1,
+          "completed": true,
+          "case_count": 16,
+          "normal_owner_closed": true,
+          "stats_weak_lifetime": true,
+          "counts": [
+            16,
+            16,
+            0,
+            813301760
+          ]
+        },
+        {
+          "device": 2,
+          "completed": true,
+          "case_count": 16,
+          "normal_owner_closed": true,
+          "stats_weak_lifetime": true,
+          "counts": [
+            16,
+            16,
+            0,
+            813301760
+          ]
+        },
+        {
+          "device": 3,
+          "completed": true,
+          "case_count": 16,
+          "normal_owner_closed": true,
+          "stats_weak_lifetime": true,
+          "counts": [
+            16,
+            16,
+            0,
+            813301760
+          ]
+        },
+        {
+          "device": 4,
+          "completed": true,
+          "case_count": 16,
+          "normal_owner_closed": true,
+          "stats_weak_lifetime": true,
+          "counts": [
+            16,
+            16,
+            0,
+            813301760
+          ]
+        },
+        {
+          "device": 5,
+          "completed": true,
+          "case_count": 16,
+          "normal_owner_closed": true,
+          "stats_weak_lifetime": true,
+          "counts": [
+            16,
+            16,
+            0,
+            813301760
+          ]
+        },
+        {
+          "device": 6,
+          "completed": true,
+          "case_count": 16,
+          "normal_owner_closed": true,
+          "stats_weak_lifetime": true,
+          "counts": [
+            16,
+            16,
+            0,
+            813301760
+          ]
+        },
+        {
+          "device": 7,
+          "completed": true,
+          "case_count": 16,
+          "normal_owner_closed": true,
+          "stats_weak_lifetime": true,
+          "counts": [
+            16,
+            16,
+            0,
+            813301760
+          ]
+        }
+      ]
+    },
+    "results/glm-exact-census-r4191-audit.json": {
+      "SHA256": "e593b205a97daafd328ef55d4bf173db5aea2fd9933d85e788768440b2b10e13",
+      "completed": true,
+      "state": null,
+      "error": null,
+      "all_trials_component_qualified": true,
+      "trials": [
+        {
+          "exact": 0,
+          "rows": 32,
+          "producer": [
+            "910379.254",
+            "glm-exact-census-r4190-e0-c0",
+            "COMPLETED",
+            "0:0",
+            "00:02:22"
+          ],
+          "qualified_component": true,
+          "model_qualified": false,
+          "reason": null,
+          "error": null,
+          "stage_memory": [
+            {
+              "stage": 0,
+              "min_free_GiB": 8.046875,
+              "max_free_GiB": 8.1796875
+            },
+            {
+              "stage": 1,
+              "min_free_GiB": 3.33203125,
+              "max_free_GiB": 3.46484375
+            }
+          ]
+        },
+        {
+          "exact": 1,
+          "rows": 32,
+          "producer": [
+            "910379.255",
+            "glm-exact-census-r4190-e1-c0",
+            "COMPLETED",
+            "0:0",
+            "00:02:20"
+          ],
+          "qualified_component": true,
+          "model_qualified": false,
+          "reason": null,
+          "error": null,
+          "stage_memory": [
+            {
+              "stage": 0,
+              "min_free_GiB": 12.0546875,
+              "max_free_GiB": 12.1875
+            },
+            {
+              "stage": 1,
+              "min_free_GiB": 7.55078125,
+              "max_free_GiB": 7.68359375
+            }
+          ]
+        },
+        {
+          "exact": 1,
+          "rows": 32,
+          "producer": [
+            "910380.253",
+            "glm-exact-census-r4190-e1-c8",
+            "COMPLETED",
+            "0:0",
+            "00:02:29"
+          ],
+          "qualified_component": true,
+          "model_qualified": false,
+          "reason": null,
+          "error": null,
+          "stage_memory": [
+            {
+              "stage": 0,
+              "min_free_GiB": 12.701171875,
+              "max_free_GiB": 12.744140625
+            },
+            {
+              "stage": 1,
+              "min_free_GiB": 8.197265625,
+              "max_free_GiB": 8.240234375
+            }
+          ]
+        },
+        {
+          "exact": 1,
+          "rows": 32,
+          "producer": [
+            "910380.254",
+            "glm-exact-census-r4190-e1-c16",
+            "COMPLETED",
+            "0:0",
+            "00:02:32"
+          ],
+          "qualified_component": true,
+          "model_qualified": false,
+          "reason": null,
+          "error": null,
+          "stage_memory": [
+            {
+              "stage": 0,
+              "min_free_GiB": 12.423828125,
+              "max_free_GiB": 12.509765625
+            },
+            {
+              "stage": 1,
+              "min_free_GiB": 7.91796875,
+              "max_free_GiB": 8.00390625
+            }
+          ]
+        }
+      ]
+    },
+    "glm-exact-census-r4190-queue.json": {
+      "SHA256": "f9b11a3119cf777b2e09142649a40bec4d99ebe486d5342f6bab175114d5b528",
+      "completed": null,
+      "state": "audited",
+      "error": null,
+      "build": [
+        "910373.1150",
+        "glm-exact-banks-r4188-build",
+        "COMPLETED",
+        "0:0"
+      ],
+      "component": [
+        "910373.1152",
+        "glm-exact-banks-contract-r4189",
+        "COMPLETED",
+        "0:0"
+      ],
+      "producers": [
+        [
+          "910379.254",
+          "glm-exact-census-r4190-e0-c0",
+          "COMPLETED",
+          "0:0"
+        ],
+        [
+          "910379.255",
+          "glm-exact-census-r4190-e1-c0",
+          "COMPLETED",
+          "0:0"
+        ],
+        [
+          "910380.253",
+          "glm-exact-census-r4190-e1-c8",
+          "COMPLETED",
+          "0:0"
+        ],
+        [
+          "910380.254",
+          "glm-exact-census-r4190-e1-c16",
+          "COMPLETED",
+          "0:0"
+        ]
+      ]
+    },
+    "results/glm-exact-banks-r4188-build.json": {
+      "SHA256": "347f62bf25013d3ce666e1b909f748ce08abd2bcb5377198ed8dc84f87837c46",
+      "completed": true,
+      "state": null,
+      "error": null,
+      "library": "/refactor/candidates/glm-exact-banks-5f91ad7-r4188/libmodern_glm_exact_banks_r4188.so",
+      "library_sha256": "0191240319afd1afd9663dfdce40f67838f51ba711519a0f3137efb7a5a6e5b5",
+      "pins": {
+        "InfiniLM": "5f91ad738583db8f5617aeae53b76523f85d1ec6",
+        "InfiniCore": "2b4f2f20584a69b074f62a455e3de7368e3446c2",
+        "InfiniRT": "cd1d48258f0a6b8d9f66111d5d6cb1664205e78d",
+        "InfiniOps": "1ca4777610d77e9063fffdb975ab35da8466104d",
+        "InfiniCCL": "51cc9db31d58aac21643d72f0f77cf5c9ecfaee5"
+      }
+    }
+  }
+}

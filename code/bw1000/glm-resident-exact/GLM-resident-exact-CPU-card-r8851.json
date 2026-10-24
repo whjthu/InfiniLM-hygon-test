@@ -1,0 +1,326 @@
+{
+  "status": "CPU_READY_LOCAL_DRAFT_PENDING_ROOT_READ_NO_COMPILE_NO_GPU",
+  "task": "Reuse existing exact allocation for current ROWS32 resident KV only",
+  "source_evidence_SHA256": {
+    "GLM-resident-exact-source-CPU-r8850.json": "44e69a18e4e506b2bf906b5cadc623e5a83e28618bd29e278b18a64689548b1b",
+    "GLM-exact-pool-source-CPU-r8850.json": "360f83ea2e32b1971956219465a9f8e5595df92863cbafaa9ddb80a970a7c09b",
+    "GLM-exact-RT-pool-CPU-r8850.json": "ce0c4a98bbf39e277c025900e4769d1b1d9d0cd9c2116743cb0c99baece4735a",
+    "glm_exact_banks_r4188.hpp": "e725c4c38714f176ab5572da9e5f2983ae2e7dc55750c662616c2716aebbaa90",
+    "glm_exact_banks_contract_r4189.cpp": "68efc9efc0a17b827224bdf2e414bdb2aece38d97da97911a6702239e8072033",
+    "GLM-private-resident-directview-budget-r5644.json": "91037c28267ef217c776eb14f7b76cca9701a8ff2899d990500af7665e2a362a"
+  },
+  "actual_callchain": {
+    "current_resident": {
+      "source": "GLM_PP2_B32_r8843_glm_model_resident_methods_r5640.cpp",
+      "SHA256": "912fcf88dc6f0d9252f20e5bd09f614e0ba64d334a54e6ef3e902e657d8570cb",
+      "lines": [
+        25,
+        26
+      ],
+      "calls": "Tensor::empty twice, not exact_banks_r4188::allocate. Existing GLM_EXACT_BANKS_R4188=1 covers constructor banks, not these later resident banks."
+    },
+    "Tensor::empty_parameter": {
+      "path": "Common/GLM/InfiniLM/csrc/runtime/tensor/tensor.cc",
+      "SHA256": "b14418b342f8520e5d43c7aec7a0676a8dccf1d0133cd334d75571555f339392",
+      "lines": "74..88: owner assert, normal TensorImpl(shape,dtype), allocateParameterMemory(bytes). No Weight registration/loading."
+    },
+    "Runtime": {
+      "path": "Common/GLM/InfiniLM/csrc/runtime/runtime.cc",
+      "SHA256": "a4742905290618c740bc81f4e0316b289de86819ece50d7a95da62652bb0a4e9",
+      "lines": "206..233: same ReusableMemoryPool/Memory ownership; allocate vs allocate_exact; deleter captures shared Runtime; allocation failure deallocates."
+    },
+    "pool": {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/upstream-5f91ad7-r3667/InfiniTensor-InfiniRT-cd1d48258f0a/src/reusable_memory_pool.cc",
+      "SHA256": "499fc5fcb9a8f5a03fa0d64c482c95e61d05f368840def6234d3ecdf025f08ac",
+      "pin": "InfiniRT cd1d48258f0a6b8d9f66111d5d6cb1664205e78d",
+      "lines": "67..71 fixed classes64/128MiB;130..179 align256 and first fitting class only when !exact;183..206 Exact blocks match exact requested aligned size;223..240 deallocate caches until trim."
+    }
+  },
+  "deduplication": {
+    "r4189_component": {
+      "SHA256": "e4e5177e528f3517d9ac1edc529ea1ccab2baef324376ebb4cc8b8c2ae52feef",
+      "completed": true,
+      "state": null,
+      "error": null,
+      "owners": [
+        {
+          "device": 0,
+          "completed": true,
+          "case_count": 16,
+          "normal_owner_closed": true,
+          "stats_weak_lifetime": true,
+          "counts": [
+            16,
+            16,
+            0,
+            813301760
+          ]
+        },
+        {
+          "device": 1,
+          "completed": true,
+          "case_count": 16,
+          "normal_owner_closed": true,
+          "stats_weak_lifetime": true,
+          "counts": [
+            16,
+            16,
+            0,
+            813301760
+          ]
+        },
+        {
+          "device": 2,
+          "completed": true,
+          "case_count": 16,
+          "normal_owner_closed": true,
+          "stats_weak_lifetime": true,
+          "counts": [
+            16,
+            16,
+            0,
+            813301760
+          ]
+        },
+        {
+          "device": 3,
+          "completed": true,
+          "case_count": 16,
+          "normal_owner_closed": true,
+          "stats_weak_lifetime": true,
+          "counts": [
+            16,
+            16,
+            0,
+            813301760
+          ]
+        },
+        {
+          "device": 4,
+          "completed": true,
+          "case_count": 16,
+          "normal_owner_closed": true,
+          "stats_weak_lifetime": true,
+          "counts": [
+            16,
+            16,
+            0,
+            813301760
+          ]
+        },
+        {
+          "device": 5,
+          "completed": true,
+          "case_count": 16,
+          "normal_owner_closed": true,
+          "stats_weak_lifetime": true,
+          "counts": [
+            16,
+            16,
+            0,
+            813301760
+          ]
+        },
+        {
+          "device": 6,
+          "completed": true,
+          "case_count": 16,
+          "normal_owner_closed": true,
+          "stats_weak_lifetime": true,
+          "counts": [
+            16,
+            16,
+            0,
+            813301760
+          ]
+        },
+        {
+          "device": 7,
+          "completed": true,
+          "case_count": 16,
+          "normal_owner_closed": true,
+          "stats_weak_lifetime": true,
+          "counts": [
+            16,
+            16,
+            0,
+            813301760
+          ]
+        }
+      ]
+    },
+    "r4190_census": {
+      "SHA256": "e593b205a97daafd328ef55d4bf173db5aea2fd9933d85e788768440b2b10e13",
+      "completed": true,
+      "state": null,
+      "error": null,
+      "all_trials_component_qualified": true,
+      "trials": [
+        {
+          "exact": 0,
+          "rows": 32,
+          "producer": [
+            "910379.254",
+            "glm-exact-census-r4190-e0-c0",
+            "COMPLETED",
+            "0:0",
+            "00:02:22"
+          ],
+          "qualified_component": true,
+          "model_qualified": false,
+          "reason": null,
+          "error": null,
+          "stage_memory": [
+            {
+              "stage": 0,
+              "min_free_GiB": 8.046875,
+              "max_free_GiB": 8.1796875
+            },
+            {
+              "stage": 1,
+              "min_free_GiB": 3.33203125,
+              "max_free_GiB": 3.46484375
+            }
+          ]
+        },
+        {
+          "exact": 1,
+          "rows": 32,
+          "producer": [
+            "910379.255",
+            "glm-exact-census-r4190-e1-c0",
+            "COMPLETED",
+            "0:0",
+            "00:02:20"
+          ],
+          "qualified_component": true,
+          "model_qualified": false,
+          "reason": null,
+          "error": null,
+          "stage_memory": [
+            {
+              "stage": 0,
+              "min_free_GiB": 12.0546875,
+              "max_free_GiB": 12.1875
+            },
+            {
+              "stage": 1,
+              "min_free_GiB": 7.55078125,
+              "max_free_GiB": 7.68359375
+            }
+          ]
+        },
+        {
+          "exact": 1,
+          "rows": 32,
+          "producer": [
+            "910380.253",
+            "glm-exact-census-r4190-e1-c8",
+            "COMPLETED",
+            "0:0",
+            "00:02:29"
+          ],
+          "qualified_component": true,
+          "model_qualified": false,
+          "reason": null,
+          "error": null,
+          "stage_memory": [
+            {
+              "stage": 0,
+              "min_free_GiB": 12.701171875,
+              "max_free_GiB": 12.744140625
+            },
+            {
+              "stage": 1,
+              "min_free_GiB": 8.197265625,
+              "max_free_GiB": 8.240234375
+            }
+          ]
+        },
+        {
+          "exact": 1,
+          "rows": 32,
+          "producer": [
+            "910380.254",
+            "glm-exact-census-r4190-e1-c16",
+            "COMPLETED",
+            "0:0",
+            "00:02:32"
+          ],
+          "qualified_component": true,
+          "model_qualified": false,
+          "reason": null,
+          "error": null,
+          "stage_memory": [
+            {
+              "stage": 0,
+              "min_free_GiB": 12.423828125,
+              "max_free_GiB": 12.509765625
+            },
+            {
+              "stage": 1,
+              "min_free_GiB": 7.91796875,
+              "max_free_GiB": 8.00390625
+            }
+          ]
+        }
+      ]
+    },
+    "meaning": "4189 real8owner16cases each passed copy/neighbors/liveview trim/weakowner. 4190 constructor rows32 all4 trials componentPASS, not weightload/Modeltoken/performance. e0 stage1minfree3.33203125GiB vs e1/c0 7.55078125GiB descriptive, different full constructor4bank changes. Reuse API/lifecycle evidence; do not rerun whole census or call current resident path already covered. 5644 directview is not allocator."
+  },
+  "minimal_local_draft": {
+    "path": "GLM-resident-exact-private-r8851\\glm_model_resident_methods_r5640.cpp",
+    "SHA256": "3ffc5c125ff6983d1708ce2e80aa74f199015de96586f8e02a2d3e79f8dc781b",
+    "diff": "GLM-resident-exact-private-r8851\\resident-factory-only.diff",
+    "change": "Only two resident K/V Tensor::empty -> Tensor::empty_parameter. One current CPU198 host TU replaced/relink27others, no changed headers/SDK/kernel. Existing resident mask defaultOFF unchanged; allocator choice applies only to candidate resident banks. No new flags/globalpool/arena/ABI/cache/proof framework. Existing constructor exact stats unaffected because direct internal factory adds no r4188 helper counters.",
+    "unchanged": "eager owner/device/capture checks; READY/EMPTY/history; staged ResidentBuffers and Drain-before-unwind; mask publish noexcept; reset/retained views/RAII; slot32/cap640/cohort8; stride/layout/BF16/math; noeviction/admission6GiB+64MiB/runtime512MiB."
+  },
+  "bytes_verified_from_implementation": {
+    "shape_each": [
+      32,
+      640,
+      8,
+      256
+    ],
+    "dtype": "BF16",
+    "logical_each_bytes": 83886080,
+    "ordinary_pool_each_bytes": 134217728,
+    "exact_pool_each_bytes_aligned256": 83886080,
+    "per_layer_KV_logical_bytes": 167772160,
+    "old_per_layer_physical_bytes": 268435456,
+    "new_source_physical_bytes": 167772160,
+    "saving_per_layer_bytes": 100663296,
+    "stage1_40_old_GiB": 10,
+    "stage1_40_exact_GiB": 6.25,
+    "stage1_40_saving_GiB": 3.75,
+    "stage1_30_exact_GiB": 4.6875,
+    "555_saved_fresh_min_MiB": 13171,
+    "reserve_plus_allowance_MiB": 6208,
+    "snapshot_after40_exact_MiB": 6771,
+    "snapshot_margin_afterreserve_MiB": 563,
+    "qualification": "Source allocator block sizes, not GPUdriver peak/currentfit proof. Backend allocation granularity/CCL/scratch peak still UNKNOWN. No current Modelfit or throughput claim."
+  },
+  "one_finite_synthetic_card": {
+    "purpose": "Narrow current resident32 K/V layout allocation and lifecycle/physicaldriver observation; no checkpoint/Modelconstructor/forward/CCL. Not real540M8 fixture/performance.",
+    "proposed_scope": "One job8existingowners on one fresh910376 n12 ORn13, c16/32GiB/hard3min/inside140s; pending rootGO. No GPU now.",
+    "reuse": "4189 Runtime/DeviceGuard/ownerDrainFailStop, current SDK/Runtime provider. Reuse its narrow/copy/sentinel/view-retains-owner contract, restrict actual shape32,640,8,256 two banks; no repeat16/24/64 grid.",
+    "steps": [
+      "Each owner creates same Runtime/stream, baseline sync+trim then memGetInfo. Allocate pooled K/V pair, record free delta and ordinary layout/alignment/owner. Fill only initialized prefixes via original tensor copy, append counts through512..640, compare all initialized bank bytes with CPU deterministic BF16 reference; untouched sentinel neighbors remain unchanged.",
+      "Keep row views alive after parent bank handles reset, trim and verify exact contents still live; release views, original streamdrain+trim, record reclamation. Exact pair uses the same tests/shape/copy order with empty_parameter. No new kernel/stream or custom raw pointer owner.",
+      "Repeat one exact OFF/ON lifetime (not timing sweep), verify staged holders release after drain and all Runtime weakowners expire at final close. Existing slot32 CPU plan contract reused; no fake ready/finish.",
+      "Record observed ordinary/exact memGetInfo pair deltas and reclaimedfree, not allocatorpeak. Expect source256MiB vs160MiB pair; if actual physical evidence is inconsistent, STOP UNKNOWN, do not change reserve or launch Model. Raw/source/normal/audit/post all preserved."
+    ],
+    "acceptance": "Both pairs all initialized outputs exact, no neighbor modification/live-view prematurefree, alignment>=256, owner identity and normal8shutdown, noGPUerrors, source/provider SHA; physical saving actually observed. No speedadoption.",
+    "why_not_repeat4189": "Old component tested generic API/lifetime; new bounded card additionally targets exact resident32 two-bank size and measures physical delta on currentprovider. Does not reload Model or redo constructor capacity matrix."
+  },
+  "later_controls_only_after_root_component_acceptance": "Current private Python bank budget/expected physical accounting becomes160MiB/layer for exact candidate, keeping6GiB+64MiB gate and512MiB runtimefloor. Legacy pooled control retains256MiB. OFF/drain/trim before allocator-mode switch to avoid simultaneous cached128MiB plus new80MiB blocks. Do not infer all40 fits from563MiB snapshotmargin; actual fresh/postallocation and eventual Modelpeak/IDs/EOS/QA remain required.",
+  "performed": {
+    "local_source_draft": true,
+    "CPU_read_existing_source_results": true,
+    "native_compile": false,
+    "upload_source_or_build": false,
+    "GPU": false,
+    "new_Model_load": false,
+    "Git_index": false
+  }
+}
