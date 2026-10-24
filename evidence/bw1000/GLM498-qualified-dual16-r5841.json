@@ -1,0 +1,247 @@
+{
+  "status": "QUALIFIED_TESTED_DUAL16_SERVICE_REPLICATION",
+  "producer": "910376.498",
+  "run": "dual-5836-6206f352aae344268ed1",
+  "scope": {
+    "model": "GLM-5.3",
+    "hardware": "BW1000/gfx936/80CU",
+    "nodes": [
+      "a02r4n12",
+      "a02r4n13",
+      "a02r4n14",
+      "a02r4n15"
+    ],
+    "all_service_cards": 32,
+    "instances": 2,
+    "per_instance": {
+      "cards": 16,
+      "TP": 8,
+      "PP": 2,
+      "bounds": [
+        0,
+        38,
+        78
+      ],
+      "B": 16,
+      "M": 8,
+      "constructor_rows": 16,
+      "capacity": 640
+    },
+    "I_each": 512,
+    "maxO": 128,
+    "requests_total": 32,
+    "input_diversity": "32unique real512token prompts, disjoint16request halves of5732 fixture, noPAD or duplicatedprompt reuse",
+    "fixed_policies": "VON/TOFF/resident38/40/crossrequestOFF/sharedvalidationON; original5817 privateimage unchanged",
+    "matrix": "isolatedA1,isolatedB1,concurrent1,concurrent2,isolatedB2,isolatedA2; once weight load per image",
+    "timing": "Single CPU coordinator accepted packet receipt, not client/tailready; globalanchor=maxfirstdecision of all32 actual requests, nonEOS useful tokens strictly after anchor through lastdecision. Original tail-local metrics separately.",
+    "output_scope": "All requests reached128 withoutEOS; EOS handling plus frozenQA separately qualified, not naturalcompletion throughput/onlinearrivals."
+  },
+  "primary_actual_concurrent": {
+    "decode_tokens_s": 76.53036371222407,
+    "decode_tokens_s_per_all32cards": 2.3915738660070023,
+    "decode_repeats": [
+      76.72122762889632,
+      76.33949979555182
+    ],
+    "repeat2_vs1_percent": -0.4975517795295592,
+    "E2E_output_tokens_s": 24.459615355134126,
+    "E2E_per_all32cards": 0.7643629798479414,
+    "collector_input_tokens_s_lastfirst_includes_policy_argmax_transport": 142.9445881118491,
+    "collector_mean_user_decode_tokens_s": 1.9061394631309405,
+    "collector_max_user_decode_tokens_s": 2.433601042877948,
+    "collector_TTFT_mean_seconds": 94.6372629320831,
+    "collector_TTFT_max_seconds": 114.86564997024834
+  },
+  "tail_local_separate_scope": {
+    "mean_user_decode_tokens_s": 1.9061443723961429,
+    "max_user_decode_tokens_s": 2.433608441921747,
+    "per_replica_native_prefill_input_tokens_s": [
+      {
+        "phase": "concurrent-1",
+        "replica": 0,
+        "tokens_s": 72.76683702216586
+      },
+      {
+        "phase": "concurrent-2",
+        "replica": 0,
+        "tokens_s": 72.72192328735179
+      },
+      {
+        "phase": "concurrent-1",
+        "replica": 1,
+        "tokens_s": 72.04483353595013
+      },
+      {
+        "phase": "concurrent-2",
+        "replica": 1,
+        "tokens_s": 71.79722631800989
+      }
+    ],
+    "native_prefill_scope": "Phase start to last own tail prefillCAPI return includes PP scheduling/wait, excludes argmax/feedback. Two clocks cannot be simply added into a jointly measured nativeprefill rate.",
+    "ITL_concurrent_seconds": [
+      {
+        "phase": "concurrent-1",
+        "ITL_seconds": {
+          "count": 4064,
+          "median": 0.4042803121265024,
+          "P95": 0.4354716236703098,
+          "P99": 0.5629127779975533,
+          "min": 0.3983857939019799,
+          "max": 39.62815213622525,
+          "mean": 0.5641995244567818
+        }
+      },
+      {
+        "phase": "concurrent-2",
+        "ITL_seconds": {
+          "count": 4064,
+          "median": 0.40428305976092815,
+          "P95": 0.4352417509071529,
+          "P99": 0.5897412546910346,
+          "min": 0.3987429430708289,
+          "max": 40.008250158280134,
+          "mean": 0.566175496487101
+        }
+      }
+    ]
+  },
+  "scaling_comparison": {
+    "actual_concurrent_common_window_mean": 76.53036371222407,
+    "actual_concurrent_all32cards_mean": 2.3915738660070023,
+    "isolated_A_reference_mean": 38.88273115385945,
+    "isolated_B_reference_mean": 38.68328978072941,
+    "concurrency_efficiency_against_sum_of_separate_references": 0.9866480552968141,
+    "sum_isolated_scope": "Counterfactual capacity reference only; not a measured simultaneous32card phase."
+  },
+  "all6_common_phases": [
+    {
+      "label": "isolated-A-1",
+      "active": [
+        0
+      ],
+      "requests": 16,
+      "decode_useful_tokens": 2032,
+      "global_decode_tokens_s": 39.139720632320945,
+      "decode_per_all32_cards": 1.2231162697600295,
+      "collector_E2E_useful_tokens_s": 12.340831885563839
+    },
+    {
+      "label": "isolated-B-1",
+      "active": [
+        1
+      ],
+      "requests": 16,
+      "decode_useful_tokens": 2032,
+      "global_decode_tokens_s": 38.955666067580204,
+      "decode_per_all32_cards": 1.2173645646118814,
+      "collector_E2E_useful_tokens_s": 12.271303074737876
+    },
+    {
+      "label": "concurrent-1",
+      "active": [
+        0,
+        1
+      ],
+      "requests": 32,
+      "decode_useful_tokens": 4048,
+      "global_decode_tokens_s": 76.72122762889632,
+      "decode_per_all32_cards": 2.39753836340301,
+      "collector_E2E_useful_tokens_s": 24.507347745214325
+    },
+    {
+      "label": "concurrent-2",
+      "active": [
+        0,
+        1
+      ],
+      "requests": 32,
+      "decode_useful_tokens": 4040,
+      "global_decode_tokens_s": 76.33949979555182,
+      "decode_per_all32_cards": 2.3856093686109943,
+      "collector_E2E_useful_tokens_s": 24.411882965053927
+    },
+    {
+      "label": "isolated-B-2",
+      "active": [
+        1
+      ],
+      "requests": 16,
+      "decode_useful_tokens": 2032,
+      "global_decode_tokens_s": 38.41091349387861,
+      "decode_per_all32_cards": 1.2003410466837066,
+      "collector_E2E_useful_tokens_s": 12.217156111833349
+    },
+    {
+      "label": "isolated-A-2",
+      "active": [
+        0
+      ],
+      "requests": 16,
+      "decode_useful_tokens": 2032,
+      "global_decode_tokens_s": 38.62574167539797,
+      "decode_per_all32_cards": 1.2070544273561865,
+      "collector_E2E_useful_tokens_s": 12.307905154787338
+    }
+  ],
+  "drift": {
+    "isolated_A_endpoint_percent": -1.3131901521508116,
+    "isolated_B_endpoint_percent": -1.3983911166004948,
+    "scope": "Two concurrent repetitions;32owners are participants, not32 independent repetitions. Isolated summedmeans only counterfactual capacity reference, not simultaneous throughput."
+  },
+  "quality": {
+    "32_unique_replica_stage_rank_normal_closed": true,
+    "all_full128_IDs_EOS_all6phases": true,
+    "A_exact_historical495": true,
+    "B_first_isolated_own_logicalrow_frozen_then_repeats": true,
+    "B_never_reuses_B32_outputs": true,
+    "independent_frozen_QA_before_after_both_instances": true,
+    "flags_and_Model_policies_restored_OFF": true,
+    "no_censored_or_padded_requests": true,
+    "original_audit_returncode": 0,
+    "original_audit_SHA256": "777dadb411e5bb2ab3f9570b9c18f1ea64b34a55fa6322b53ac40538270e3ba7",
+    "original_raw_CPUargmax": {
+      "snapshots": 96,
+      "rows": 768,
+      "bytes": 237895680
+    },
+    "preengine_records": 36,
+    "original_postKFD": "910376.499 all4nodes empty",
+    "all4_actual_IBext_v8_noSocket_datafallback": true,
+    "strict_errors_and709": 0
+  },
+  "code": {
+    "temporarybranch_commit": "b025f1a",
+    "manifest_SHA256": "1cb8520e6b516c80e7966df53b71377fbe5deededdc50b6bfdbcde91084cef5f",
+    "native_Model_SHA256": "1af0b95df9db1c68f9e8c00124dbb0b331cd1b3650afd4506e3befa30f98be9d",
+    "native_recompiled": false,
+    "math_provider_stream_unchanged": true,
+    "common_clock_SHA256": "3f8cad336fb593ae2bd4014727a056ede745c59887ee6a5cf5b5a2d7b4e228b6",
+    "terminal_metadata_SHA256": "d46b2150c1cf0d9321253eea5e82b693d49bd1810b5ad996c270997ed2cccfd6"
+  },
+  "time_budget": {
+    "Slurm": [
+      "910376.498",
+      "COMPLETED",
+      "0:0",
+      "00:36:43",
+      "a02r4n[12-15]"
+    ],
+    "job_wall_seconds": 2203,
+    "launch_UTC": "2026-10-24T06:18:49.877613+00:00",
+    "original_audit_post_done_UTC": "2026-10-24T06:56:36.442742+00:00",
+    "max_owner_weight_load_seconds": 911.511245497968,
+    "per_replica_max_load_seconds": {
+      "0": 911.511245497968,
+      "1": 718.5559760890901
+    },
+    "first_timed_forward_after_launch_seconds": 1119.7869534492493,
+    "first_timed_phase_last_CAPI_return_after_launch_seconds": 1284.7476148605347,
+    "first_result_scope": "Saved native timestamps bound actual first timing work; lastCAPIreturn precedes argmax/finalID/phasequalification. Exact first fullyvalidated wall not instrumented.",
+    "preparation_seconds": "UNKNOWN",
+    "queue_seconds": "UNKNOWN",
+    "QA_only_seconds": "UNKNOWN",
+    "cleanup_only_seconds": "UNKNOWN",
+    "all6_collector_phase_wall_seconds_sum": "Phase endpoints available in original clock; do not attribute residual toQA."
+  },
+  "decision": "Adopt as qualified throughput scaling option on tested32card/2xTP8PP2 geometry:76.53tok/s,98.66% of isolated capacity reference. No singleuser15 gain; two replicas preserve per-instance latency approximately. HistoricalPP4 70.1499 I512/B128M16 has older image/two repeated promptfamilies, so no pureparallelism causal speedup claim. No new GPU/PP4 adaptation/extra batch sweep scheduled."
+}
