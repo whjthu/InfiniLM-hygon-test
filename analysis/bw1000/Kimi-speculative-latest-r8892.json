@@ -1,0 +1,115 @@
+{
+  "utc": "2026-10-24T21:45:58.621575+00:00",
+  "status": "EXISTING_EVIDENCE_RECONCILED_NO_NEW_GPU_OR_PERFORMANCE_ROUND",
+  "previous_feasibility": "analysis/bw1000/Kimi-speculative-current-feasibility-r8473.json",
+  "superseded_scope": "Its AUX0 CPU_READY dispatch state is historical: actual748 subsequently completed. Original evidence remains immutable.",
+  "source": {
+    "path": "evidence/bw1000/Kimi-AUX0-n01-component-result-r8476.json",
+    "SHA256": "1ebec4168cad1ecd00e2acc46ea1a99d8b2944a6d6a31d10c72e23908d62bf97"
+  },
+  "completed_AUX0": {
+    "actual": "910374.748 COMPLETED0/88s",
+    "unique_post": "749 COMPLETED0/1s KFDempty",
+    "full_MoE_component_speed_ratio": 1.2457585581999875,
+    "final_Model_tokens_EOS_and_user_decode": "NOT_TESTED",
+    "adopted": false,
+    "decision": "Do not repeat748 or pay a whole Model load for this single factor. Preserve for next necessary compatible load."
+  },
+  "older_trained_online": {
+    "scope": "518/357 whole wave FAILED; eight complete ID/EOS-matching cases are partial negative evidence, not qualified whole-wave results.",
+    "width_semantics": "Historical W8/W16 are K7/K15 additional proposals, not K8/K16.",
+    "user_metric": "Useful committed decode tokens/(last emission-first emission), excludes prefill and includes draft wait, verify, replay, commit; do not substitute aggregate throughput."
+  },
+  "target_budget_counterfactual": [
+    {
+      "case": "natural0-trained-K7-r0",
+      "old_r0_decode_seconds": 107.07831335486844,
+      "old_paired_AR_tok_s": 4.2348809542119366,
+      "old_verify_seconds": 77.25944290682673,
+      "old_replay_commit_seconds": 22.528154455125332,
+      "old_other_than_verify_seconds": 29.818870448041707,
+      "conditional_tok_s_if_verify_cost_were_zero": 4.259047981756816,
+      "target_tok_s": 15,
+      "target_127_token_budget_seconds": 8.466666666666667,
+      "zero_verify_other_cost_exceeds_target_budget": true,
+      "scope": "Counterfactual with this old trajectory, acceptance, replay and all non-verify costs held fixed. Not a hardware bound, improved-draft prediction, current ordinary Model ceiling or measured new speedup."
+    },
+    {
+      "case": "natural0-trained-K15-r0",
+      "old_r0_decode_seconds": 172.94452871195972,
+      "old_paired_AR_tok_s": 4.2348809542119366,
+      "old_verify_seconds": 139.23200505273417,
+      "old_replay_commit_seconds": 22.656631245743483,
+      "old_other_than_verify_seconds": 33.71252365922555,
+      "conditional_tok_s_if_verify_cost_were_zero": 3.767146039962689,
+      "target_tok_s": 15,
+      "target_127_token_budget_seconds": 8.466666666666667,
+      "zero_verify_other_cost_exceeds_target_budget": true,
+      "scope": "Counterfactual with this old trajectory, acceptance, replay and all non-verify costs held fixed. Not a hardware bound, improved-draft prediction, current ordinary Model ceiling or measured new speedup."
+    },
+    {
+      "case": "natural1-trained-K7-r0",
+      "old_r0_decode_seconds": 91.90353538561612,
+      "old_paired_AR_tok_s": 2.4616618765948863,
+      "old_verify_seconds": 56.45842100074515,
+      "old_replay_commit_seconds": 21.194894783664495,
+      "old_other_than_verify_seconds": 35.445114384870976,
+      "conditional_tok_s_if_verify_cost_were_zero": 3.5830043774441127,
+      "target_tok_s": 15,
+      "target_127_token_budget_seconds": 8.466666666666667,
+      "zero_verify_other_cost_exceeds_target_budget": true,
+      "scope": "Counterfactual with this old trajectory, acceptance, replay and all non-verify costs held fixed. Not a hardware bound, improved-draft prediction, current ordinary Model ceiling or measured new speedup."
+    },
+    {
+      "case": "natural1-trained-K15-r0",
+      "old_r0_decode_seconds": 144.8077057208866,
+      "old_paired_AR_tok_s": 2.4616618765948863,
+      "old_verify_seconds": 105.18302019033581,
+      "old_replay_commit_seconds": 21.531639146152884,
+      "old_other_than_verify_seconds": 39.62468553055078,
+      "conditional_tok_s_if_verify_cost_were_zero": 3.205072754510128,
+      "target_tok_s": 15,
+      "target_127_token_budget_seconds": 8.466666666666667,
+      "zero_verify_other_cost_exceeds_target_budget": true,
+      "scope": "Counterfactual with this old trajectory, acceptance, replay and all non-verify costs held fixed. Not a hardware bound, improved-draft prediction, current ordinary Model ceiling or measured new speedup."
+    }
+  ],
+  "already_checked_semantics": {
+    "config_taps": [
+      19,
+      37,
+      54,
+      66,
+      78,
+      90
+    ],
+    "protocol_next_consumers": [
+      20,
+      38,
+      55,
+      67,
+      79,
+      91
+    ],
+    "semantic": "Existing protocol captures next-attention AttnRes mixture, not plain residual. Matching indices do not prove compatibility with training activations; no new alignment bug established.",
+    "all_accepted_replay": "Existing protocol already skips replay when retained==verification length. Do not propose that existing branch as a new optimization."
+  },
+  "next_decision": "Use new ordinary MoE phase evidence to choose a concrete bottleneck change. A future speculative proposal must reduce verification and/or replay/state-commit cost or demonstrate a stronger draft; longer width alone is not justified. No new speculative GPU launch authorized by this CPU reconciliation.",
+  "hardware_ceiling": "UNKNOWN; component25% and old conditional timings are not physical/model maxima.",
+  "new_round_count": 0,
+  "goal_complete": false,
+  "inspected_local_sources": [
+    {
+      "file": "kimi_trained_protocol_r4860.py",
+      "SHA256": "37fdffcd0a598db99d8dc354e2db540f9655f4a40c0055e4e8de89de34bc5b80"
+    },
+    {
+      "file": "modal_rpc_worker_r4859.py",
+      "SHA256": "a4d9ba11043c33d6666642b69a05ee7dc67fa31eec397d1a4f85056d9cf9ca30"
+    },
+    {
+      "file": "modal_reference_contract_r4258.json",
+      "SHA256": "f1a35eb53d47af372dbfbd498af15cba7b5c13aa0aebcec9b723f185b27abf0d"
+    }
+  ]
+}
