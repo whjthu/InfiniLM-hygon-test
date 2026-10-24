@@ -1,0 +1,80 @@
+{
+  "hardware": "BW1000",
+  "level": "COMPONENT_PENDING",
+  "status": "CPU_READY_STAGED_NO_GPU_GO",
+  "utc": "2026-10-24T21:03:20.966982+00:00",
+  "route": "Astra61 Deep quant1 reuse",
+  "resource": {
+    "parent": "910374",
+    "node": "a02r4n05",
+    "DCU": 8,
+    "CPU": 32,
+    "memory_MiB": 64000,
+    "hard_minutes": 8,
+    "inside_seconds": 450
+  },
+  "baseline": "acceptedA PACKON, originalscatter/bankfence, activationOFF",
+  "newarms": "0 original A /1 quantonce twoIndexSelect /2 quantonce fusedbytecopy; sameweights, 3warm+12balancedformal+restore, fixed beforelaunch",
+  "geometry": {
+    "T": 2048,
+    "H": 4096,
+    "I": 256,
+    "experts": 256,
+    "routes": 12288,
+    "U": 251,
+    "owners": 8,
+    "topology": "8 independent TP0 real591 routedFFN replicas;notTP8Model"
+  },
+  "CPU": {
+    "handle": "910407.205",
+    "actual_state": "COMPLETED0/14s",
+    "compile_seconds": 12.756914142053574,
+    "new_units": 1,
+    "reused": "8881bank+fusedcopyCUDA+197activation object",
+    "receipt_path": "results/deep-quant1-CPU-r8883.json",
+    "receipt_SHA256": "bafcb50d240f088607229f3cc7895b65d8438b86ff013d3336ba892a12d40827",
+    "DSO": "/refactor/candidates/deep-quant1-r8883/libdeep_quant1_r8883.so",
+    "DSO_SHA256": "6e1e60cfa5ad640702578144aa34342695bac91f0270951d1dac603a952d1ff7",
+    "actual_nm": [
+      "0000000000022e30 T deep_activation_count_r8840",
+      "0000000000022de0 T deep_activation_set_r8840",
+      "0000000000032850 T deep_prefill_pack_counts_r8767",
+      "0000000000035100 T deep_prefill_pack_create_r8750",
+      "0000000000033140 T deep_prefill_pack_destroy_r8750",
+      "00000000000328b0 T deep_prefill_pack_error_r8750",
+      "000000000003b1e0 T deep_prefill_pack_forward_r8750",
+      "0000000000032970 T deep_prefill_pack_report_r8750",
+      "00000000000229d0 T deep_quant1_gather_r8881",
+      "0000000000037c50 T deep_quant1_quality_r8880",
+      "0000000000026a80 T _ZNK8infinilm6models11deepseek_v424DeepseekV4Int8MLPBankR2026forward_local_prequantizedERNS_7runtime7RuntimeERKNS3_6TensorES8_"
+    ],
+    "NOT_RUN": [
+      "CPUdlopen",
+      "GPU",
+      "weights",
+      "Model"
+    ]
+  },
+  "manifest": "code/bw1000/deep-quant1-reuse/Deep-quant1-manifest-r8884.json",
+  "manifest_SHA256": "b4c44736fcd91be7836371a9a130d999e2e8e6af75ed93ddb83371e9287d8a82",
+  "entry": "Deep_quant1_r8884.py",
+  "entry_SHA256": "2fc6c6edbe96e65f8e5077243d9fdb7dcdf1d1078a4d46b7c65c3a53e212a4c9",
+  "launcher": "launch_Deep_quant1_r8884.py",
+  "launcher_SHA256": "a263a6ebf7efbcb1fa2a7d323ea501903a5189bc9773ec038490da9ce9025995",
+  "staged_SHA256": "29f923ef683983202f2d14e79168a07a337da09b09e8d0e606880dbbdeabfdf2",
+  "CPU_pre_CUDA": "runner verifies CPU_only receipt, receipt SHA, actualDSO SHA and dependency/DTK hashes before first torchCUDA query or CDLL",
+  "ownership": "sourcePacked/sourceScale+onlycurrentQ/currentScale in original Lease; each previous expert drains via originalbank/scatter fence before overwrite; fail Lease sync before heldbuffers release; no accumulated routebank",
+  "memory": {
+    "precreate_min_bytes": 8589934592,
+    "afterload_min_bytes": 6442450944,
+    "afterquality_min_bytes": 6442450944,
+    "runtime_floor_bytes": 536870912,
+    "extra_sourcebank_bytes": 8396800,
+    "transient_perexpert_bytes": "rows*4096 I8 + rows*4 F32; no fullroutebank; originals retained until originalbank+scatterfences/finalSumdrain"
+  },
+  "goldscope": "Actual591 T2048 input/routes/routeweights and exactTP0expertweights used by original847/859;runtimegold freshacceptedA;not865Cbundle/notoldroutedpack/not850batchedGemm",
+  "sourceclaim": "AUTHORIZED_NEXT_COMMIT_BEFORE_GPU; exactcommit recorded in dispatch evidence",
+  "GPU": "NOT_SUBMITTED; rootnewGO/freshparentactive+KFD aftersourceclaim required",
+  "no_gain_claim": true,
+  "old_packet": "8882 remains uninvolved/never invoked, superseded forGPU by8884"
+}
