@@ -1,5 +1,14 @@
 # BW1000 当前性能与后续方向
 
+## 第42次审核落实：2026-10-24 14:34 北京时间
+
+Astra42已完成并逐条落实，报告与执行见`reviews/astra-review-42-current.json`及`reviews/astra-review-implementation-42-current.json`。本次提前审核消费495/636两轮；随后751离线恢复形成新的有区分力定位，计为下轮第1轮。498/754原作业继续，不加新的审批或无关门禁。报告修复仅CPU，不为补JSON重载模型。下一次必要且兼容的Kimi高batch加载才合并AUX/actualprofile验证；EP不是当前实现的配置开关，源码可行性已明确STOP新native/GPU。
+
+751实际8卡组件运行FAILED1/90秒，原因是多线程共享报告在序列化期间改变字典；8worker正常关闭、752节点清理为空。预建6目录中实际只有Oa/Na/Nb/Nca/Ncb五次捕获，Ob未运行，O重复未知。离线逐点核验五次8rank数据完整：Oa复现621观测，两个N对各自重复一致；183修正Nc恢复全部KDA及FFN输入边界，首个剩余差异是layer0 **denseMLP输出**，随后exit。真实denseMLP顺序为GateUp → SituAndMul(beta=4,linear_beta=25) → RowParallel（含TP归约），仍不能区分这几段；不能称MoE原因或整模型token修复；没有新TPS。
+
+GLM498（32卡、两个独立16卡实例）及Deep754（8卡、B64/M32vsM64）已实际RUNNING/加载，只有带时间的最后观测，尚无新性能结果。Kimi636已公开：prefill72.75→203.58inputtok/s、含prefill8.478→12.096outputtok/s、puredecode15.758→15.743不增；尾ready用户均值1.47667→1.79641、TTFT31.694→13.588秒。旧B64M16的133.59decode纪录保持独立。下文为历史路径，不能把历史RUNNING当当前状态。
+
+
 ## 最新闭环：2026-10-24 13:46 北京时间
 
 GLM495（16卡、TP8/PP2、B16/M8、真实I512/maxO128）两轮O/N/N/O完整通过。decode均值37.9131→38.7834 tok/s（+2.2955%），每卡2.36957→2.42396；prefill72.4527→72.4729 inputtok/s基本不变，含prefill12.2866→12.3784（+0.747%），逐用户decode均值1.87580→1.91177。完整token/EOS、QA、短输入续写、16owner退出、原审计0和496节点清理均通过；网络实际IBext_v8，无Socket数据回退。仅保留已测范围的opt-in小收益/defaultOFF；不称全batch极限，约39秒初始token间隔与长prefill仍未解决。详见`../../results/bw1000/2026-10-24/glm-shared-validation-qualified.json`。

@@ -1,0 +1,120 @@
+{
+  "state": "SOURCE_FEASIBLE_COMMUNICATION_HYPOTHESIS_BUT_NO_CHEAP_SAFE_CONFIG_CONTRACT_STOP_NATIVE_GPU",
+  "utc": "2026-10-24T06:33:48.308674+00:00",
+  "scope": "CPU/source only; no native edit/compile/weights/GPU. One bounded exact actualheader read; no EP framework or performance claim.",
+  "actual_MoE": {
+    "source": "Kimi-N4-tile-private-r8171/kimi_k3_moe_N4_r8171.cpp",
+    "SHA256": "02612a6903cd262417c8d0f57e4edbeccf79048bffd3476cc99b2d46f22ae377",
+    "CPU_receipt": "Kimi-N4-CPU-observed-r8175.json",
+    "CPU_receipt_SHA256": "b7ac3580d478a95d6bd545522c9c2c6b4c936c6da7b6da6e9394530501e66e63",
+    "EPConfig_ignored_line": 223,
+    "source_to_current_ISA": "UNKNOWN; no new binary/ISA inference"
+  },
+  "replicated_projection": {
+    "actual_header": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/models/kimi_k3/kimi_k3_moe.hpp",
+    "actual_header_SHA256": "3f415dcb1585d2236397bde988bdbbec4a0d73dc48fe2e2b371310b706ac67fd",
+    "actual_header_lines": [
+      [
+        86,
+        "    std::shared_ptr<infinilm::layers::linear::ReplicatedLinear> routed_expert_down_proj_;"
+      ],
+      [
+        89,
+        "    std::shared_ptr<infinilm::layers::linear::ReplicatedLinear> routed_expert_up_proj_;"
+      ]
+    ],
+    "header_read_evidence": "r8644-Kimi-EP-actual-header.json",
+    "header_read_evidence_SHA256": "2c6de0af4876cc476de7d7ab9053fabf1ff43b282dd91812fbc337f0441912da",
+    "linear_alias_source": "latest-experimental-source-r3696/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/csrc/layers/linear/linear.hpp",
+    "linear_header_SHA256": "811cc1c0ed04c9e045b7e7fe88dec7c28c79f79767d1656acb0ffdab6f646310",
+    "linear_alias_line": 79,
+    "linear_cpp_source": "latest-experimental-source-r3696/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/csrc/layers/linear/linear.cpp",
+    "linear_cpp_SHA256": "07b4ed6fc6d21fb25b04ecfa09c3a89e98ac9f9fa73b607b192c2c0630858e89",
+    "linear_constructor_lines": [
+      21,
+      27
+    ],
+    "contract": "ReplicatedLinear aliases nn::Linear; constructor uses tp_dim=-1/rank0/size1. Actual8171 lines236-248 construct down/up without TP rank. Same fullprojection weights and replicated flattened inputs would yield replicated latent. Per-rank latent/route bit-equality NOT measured by this audit."
+  },
+  "communication": {
+    "actual_source_lines": [
+      356,
+      365
+    ],
+    "contract": "Existing routed[B,3584] AllReduce SUM before routednorm can retain same shape/topology if each expert contribution exists on exactly one rank; inputA2A is not logically required given truly replicated inputs/routerIDs. This is a conditional source hypothesis, not implemented EP."
+  },
+  "ownership_loader": {
+    "actual_source_lines": [
+      129,
+      138,
+      154,
+      193
+    ],
+    "current": "All896experts on each rank; I3072/TP8=384; W1/W3 packed/scales shard axis0 and W2 packed/scales shard axis1 via Weight(tp_rank,tp_size).",
+    "proposed": "112wholeexperts/rank with I3072 needs new globalexpert ownership, exactglobalcheckpointkey binding, fullI tensors and rank-local loading behavior. Existing EPConfig is ignored; cannot obtain by a flag.",
+    "Weight_header_source": "latest-experimental-source-r3696/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/csrc/weights/weights.hpp",
+    "Weight_header_SHA256": "1056d753a7c5be68ef493b547062eea63a48bb218d710b2616aeac60ca379cca",
+    "Weight_cpp_source": "latest-experimental-source-r3696/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/csrc/weights/weights.cpp",
+    "Weight_cpp_SHA256": "789c8a895d21ac8e4377b785d025c0e2200b6565233de0b3916a16b891d4ea11",
+    "Weight_cpp_lines": [
+      77,
+      105
+    ],
+    "weight_api": "Current Weight::select_source slices a selected tensor axis using TP rank/size; no expert-key ownership policy in this call. Registration/Engine shared key assumptions and H2D costs need separate contract. No 8x weight-memory reduction.",
+    "same_quantized_bytes_per_rank": 1965293568,
+    "identity": "112*3072 == 896*384; includes packedE2M1+E8M0 only, excludesothermodel/storage"
+  },
+  "provider_and_remap": {
+    "actual_source_lines": [
+      317,
+      326
+    ],
+    "existing_serving_constants": "kimi_serving_workspace_r4665.hpp:16 fixed896/H3584/I384/T<=64; 112/I3072 misses current serving/N4/tiled guards and falls genericprovider1.",
+    "serving_header_SHA256": "e2f6e82c878161ced7fce25523794add5281d3001eb951d60aa60c1cb139c482",
+    "generic_descriptor": "refactor-adapters/InfiniOps/src/base/fused_moe_mxfp4.h",
+    "generic_descriptor_SHA256": "bd9c2d4e99521e423abccbc37f4662c0320fedb4f94c4c5c9f375c644c091384",
+    "generic_descriptor_lines": [
+      18,
+      19,
+      37,
+      40
+    ],
+    "generic_source": "MXFP4-kernel-source-r4585.cuh",
+    "generic_source_SHA256": "e33d9e0ab3ead7f6d9a9c928bc99dc92276acf399c682941f256bfc4c84b1897",
+    "generic_source_lines": [
+      51,
+      55,
+      149,
+      189
+    ],
+    "contract": "Source descriptor accepts positiveE112/I3072,k16 and dimensionsmultiple32. Invalid expertIDs writezeroW13/skipW2 without route renormalization. A localmap(globalID)->[0,111] or remote=-1 could express ownership, but no existing safe device remap/filter callsite was found. Routingweight=0 does NOT skip validexpert computation. Exactcurrent SDK source-to-binary/ISA mapping not newly established.",
+    "uncompacted_B64_workspace_bytes_current": 786432,
+    "uncompacted_B64_workspace_bytes_sliced": 6291456,
+    "inactive_launch_warning": "Keeping16route slots while I grows8x makes generic W13 routeCount*I launch8x larger; maskedremote blocks still launch and zero. Cannot assume ideal1/8routing compute without a new compact/remap contract."
+  },
+  "numerics": {
+    "contract": "W13 eachneuron retains same H dot only if same latent/weightbits and reduction tree. W2 changes from per-rank I384 partial dots and per-rank weighted16route F32 accumulation->BF16 then TP SUM, to fullI3072 dots and localexpert route partitions->BF16 then TP SUM. F32 grouping/routeaddition and BF16 rounding boundaries differ; algebraic equivalence is not bit or finaltoken proof.",
+    "full_ID_EOS_qualification": "UNPROVEN; existing current reference cannot be silently rebaselined."
+  },
+  "routing_balance": {
+    "sample": "actual748 N8/128routes expertIDmod8 hypothesis",
+    "loads": [
+      5,
+      12,
+      14,
+      25,
+      16,
+      18,
+      23,
+      15
+    ],
+    "max_over_mean": 1.5625,
+    "scope": "One saved N8sample only, not actualEP or B64forecast; no weightzero/renormalization assumption"
+  },
+  "decision": {
+    "action": "STOP_NATIVE_GPU",
+    "minimum_before_any_runtime": "Concrete ownership/keyloader + device IDremap/invalidentry contract and CPU metadata/routing partition oracle first. Existing callsites do not make this a pure configuration change. No new native/framework requested.",
+    "performance_gain": "UNKNOWN",
+    "new_GPU_authorized": false
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "actual_source": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/kimi-N4-tile-CPU-r8174/kimi_k3_moe_N4_r8171.cpp",
+  "source_SHA256": "02612a6903cd262417c8d0f57e4edbeccf79048bffd3476cc99b2d46f22ae377",
+  "selected_object_SHA256": "33ad6fc01b70a4e66b8061deea330bc52266911929b01b986fe94c19d20aa9ae",
+  "methods": [
+    {
+      "line": 63,
+      "text": "KimiK3MLP::KimiK3MLP(\n    infinilm::runtime::Runtime &runtime,\n    std::shared_ptr<infinilm::config::ModelConfig> model_config,\n    size_t intermediate_size,\n    const engine::distributed::RankInfo &rank_info) {\n    runtime.assertOwnerThread();\n    if (runtime.isGraphRecording()) {\n        throw std::logic_error(\"KimiK3MLP construction requires eager Runtime\");\n    }\n    if (!model_config || rank_info.device != runtime.device() || rank_info.tp_size <= 0 || rank_info.tp_rank < 0 || rank_info.tp_rank >= rank_info.tp_size || (rank_info.tp_size > 1 && !rank_info.comm)) {\n        throw std::invalid_argument(\"Invalid explicit KimiK3MLP construction resources\");\n    }\n    try {\n        const size_t hidden_size = model_config->get<size_t>(\"hidden_size\");\n        const auto &dtype = model_config->get_dtype();\n        situ_beta_ = model_config->get_or<float>(\"activation_situ_beta\", 4.0f);\n        situ_linear_beta_ = model_config->get_or<float>(\"activation_situ_linear_beta\", 25.0f);\n        auto register_fn = [this](const std::string &name, infinilm::weights::Weight parameter) {\n            this->bind_weight(name, std::move(parameter));\n        };\n        gate_up_proj_ = std::make_shared<infinilm::layers::linear::GateUpParallelLinear>(\n            runtime, hidden_size,\n            intermediate_size,\n            \"gate_proj\",\n            \"up_proj\",\n            register_fn,\n            model_config->get_quantization_method(),\n            false,\n            dtype,\n            rank_info);\n        down_proj_ = std::make_shared<infinilm::layers::linear::RowParallelLinear>(\n            runtime, intermediate_size, hidden_size, model_config->get_quantization_method(), false, dtype, rank_info.tp_rank, rank_info.tp_size, rank_info.comm);\n        this->bind_child(\"down_proj\", down_proj_);\n    } catch (...) {\n        try {\n            runtime.syncStream();\n        } catch (...) {\n            std::terminate();\n        }\n        throw;\n    }\n}"
+    },
+    {
+      "line": 106,
+      "text": "infinilm::runtime::Tensor KimiK3MLP::forward(infinilm::runtime::Runtime &runtime, const infinilm::runtime::Tensor &hidden_states) const {\n    auto input = hidden_states;\n    auto [gate, up] = gate_up_proj_->forward_split(runtime, input);\n    auto activated = infinilm::runtime::Tensor::empty(runtime, gate->shape(), gate->dtype());\n    infinilm::execution::submit<infini::ops::SituAndMul>(\n        runtime, infinilm::execution::RecordingPolicy::AllowHostReplay,\n        infini::ops::SituAndMul::DefaultConfig(runtime.device().type()),\n        activated, gate, up, situ_beta_, situ_linear_beta_);\n    return down_proj_->forward(runtime, activated);\n}"
+    }
+  ],
+  "offline_raw_SHA256": "e594760617d9b8850f45654d606ac8bb88a6096c1a326973f2ca452953df9d7a"
+}

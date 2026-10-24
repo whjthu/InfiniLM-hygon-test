@@ -142,8 +142,8 @@
     "prior_paths_distinguished": {
       "r8425": "SignedINT8 / signedINT4-storage INT8compute with activationquant/pad/dequant cost: different arithmetic and not E2M1 fuseddecode. Itsnegative doesnot byitself rejectthisidea.",
       "r727_736_744": "Decodecomplete selectedexpertW13 matrices into globalBF16 decodedbank, gatherpad16, BLASbatched compute. Differentglobalmaterializationcost; nottheproposedonchipfusion.",
-      "r4913_4916_4920": "ActualFP4\u2192globalBF16bank +torch.bmm/reuse experiments; notinregister/LDSfusion.",
-      "r831_853_879_902_909": "Alreadyexactlytheproposedclass: E2M1+E8M0 decode directtoBF16 WMMAfragments orLDS tile, F32accumulate, fuseSiTU\u2192BF16 activation, originalSIMTW2. No full-expertBF16globalweightbuffer."
+      "r4913_4916_4920": "ActualFP4→globalBF16bank +torch.bmm/reuse experiments; notinregister/LDSfusion.",
+      "r831_853_879_902_909": "Alreadyexactlytheproposedclass: E2M1+E8M0 decode directtoBF16 WMMAfragments orLDS tile, F32accumulate, fuseSiTU→BF16 activation, originalSIMTW2. No full-expertBF16globalweightbuffer."
     },
     "actual_existing_source": {
       "register_direct": "kimi_mmac_w13_r909.cuh::direct909, weight909, fp4bits909",
@@ -151,7 +151,7 @@
       "layout": "W13 perTP H3584/I384, group16 sameexpert routes, A16xK rowmajor BF16, B Kx16 colmajor BF16 for eachgate/up;4waves/block,eachwave16outputchannels;groupCTA covers64channels;6channelCTAs for384. Kstep64 splitinto4K16 MMAupdates;56K64iterations.",
       "actual_wave_contract": "InstalledHygonDTK native-mmac-r832 audit proves nvcudaWMMA16x16x16 BF16/F32 on64lanes; existingdirect code useslane=threadIdx%64, a/g/u.x[0..3], not32lane. A generic32laneMFMAoperandmap is NOT proven bythiscode and cannotreplace64 by32.",
       "input_preservation": "OriginalBF16 activations remainBF16 withonlyroutegather/zero-fillpadding; no activationquantization. Weightnibbles remainE2M1 values[0,.5,1,1.5,2,3,4,6]plus sign andE8M0scale, never signedINT4. fp4bits909 includesoriginaldecode/RNEfallbackat exponentextremes.",
-      "decode_validation": "r853/r879/r902/r909 report all65536packedbyte\u00d7scalebyte pairs per8devices exact tooldGPU andcontrolledIEEECPU BF16rounding; this validatesweightdecode intoBF16, notSIMTF32dot reductionidentity/finaltokens.",
+      "decode_validation": "r853/r879/r902/r909 report all65536packedbyte×scalebyte pairs per8devices exact tooldGPU andcontrolledIEEECPU BF16rounding; this validatesweightdecode intoBF16, notSIMTF32dot reductionidentity/finaltokens.",
       "old_failure_not_repeated": "r831 launched512/1024groupthreads beyond256max forlargerrealcases; r853 fixed256stride grouping and61caseaudit. Do notcopyr831launchpolicy."
     },
     "prior_measured_evidence": {
@@ -247,7 +247,15 @@
       "candidate": "Reuse existing shared909<68> W13 fuseddecode kernel only as historicalreference, not a newimplementation request",
       "decision": "STOP currentblindGPUattempt. Theclass, directfragments, LDSpadding, hybridselection andpersistentlaunch variants alreadyexistwithmixed/negative sparse-route results. No newkernel/cacheframework proposed.",
       "missing_minimum_evidence": "A distinct actualcurrentM4/8/16 provider/routing reuse distribution showinga regionnotcovered byold61cases, andfullcostcomparison againstcurrentselectedgroup0/group4path includinggrouping/padding/activation/originalW2. Onlyafterthat an otherwise-necessarycompatibleloadfinaltoken/EOSgate. Current748histogramactuallyfailsoldTCreuse threshold.",
-      "expected_gain": "UNKNOWN; no registerTOPS\u2192Modelconversion and no newfullModelloadfor thisidea."
+      "expected_gain": "UNKNOWN; no registerTOPS→Modelconversion and no newfullModelloadfor thisidea."
     }
+  },
+  "replicated_input_expert_slicing_feasibility": {
+    "state": "SOURCE_FEASIBLE_COMMUNICATION_HYPOTHESIS_BUT_NO_CHEAP_SAFE_CONFIG_CONTRACT_STOP_NATIVE_GPU",
+    "evidence": "Kimi-MoE-EP-feasibility-r8644.json",
+    "evidence_SHA256": "72419f45cec3d2a5bb40250e27f7aec9593cefdfc8b33649be097167f52aaebb",
+    "bytes": 6998,
+    "actual_header_SHA256": "3f415dcb1585d2236397bde988bdbbec4a0d73dc48fe2e2b371310b706ac67fd",
+    "decision": "STOP native/GPU: currentloader/provider/remap/numericalcontract not a cheap configuration. Conditional noinputA2A sourcehypothesis only; gainUNKNOWN."
   }
 }
