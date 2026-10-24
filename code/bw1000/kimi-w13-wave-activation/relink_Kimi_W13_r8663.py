@@ -1,0 +1,12 @@
+import pathlib,json,subprocess,hashlib,os
+r=pathlib.Path('/refactor');b=r/'candidates/Kimi-W13-wave-relink-r8663';b.mkdir(exist_ok=False);sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest();old=r/'candidates/Kimi-W13-wave-activation-r8661';actual=r/'candidates/kimi-packed-reuse-r6136/packed.o';out={'completed':False,'CPU_only':True,'GPU':False,'dlopen':False}
+try:
+ assert sha(actual)=='355607f22e0232b6422cef6f81224af24f62b585e5e251fbb656e7eb0da4700c'
+ receipt=r/'results/Kimi-W13-wave-CPU-r8661.json';assert sha(receipt)=='2e00fb792ed1ee9fad322d394634b8d79aaafaa5389af6c8532c9d74e875066f'
+ previous=json.loads(receipt.read_text());record=next(v for v in previous['retained_files']if v['file']=='wave.o');assert sha(old/'wave.o')==record['SHA256'];lib=b/'libKimi_W13_wave_r8663.so'
+ command=['g++','-shared','-fPIC',str(old/'wave.o'),'-Wl,-Bsymbolic',str(actual),'-L/opt/dtk/cuda/cuda/lib64','-lcudart','-lcuda','-o',str(lib)];z=subprocess.run(command,capture_output=True,text=True,timeout=60);assert z.returncode==0,z.stderr
+ defined=subprocess.check_output(['nm','-D','-C','--defined-only',str(lib)],text=True);undefined=subprocess.check_output(['nm','-D','-C','--undefined-only',str(lib)],text=True);terms=['__device_stub__packRoutes4531','__device_stub__buildJobs4531<2>','__device_stub__staticW2R326U','modern_kimi_grouped_r4620','modern_kimi_grouped_events_r8661'];missing=[v for v in undefined.splitlines()if any(t in v for t in terms)];assert not missing,missing;assert all(any(t in v for v in defined.splitlines())for t in terms)
+ out.update(completed=True,step=os.environ['SLURM_JOB_ID']+'.'+os.environ['SLURM_STEP_ID'],command=command,library=str(lib),library_SHA256=sha(lib),unchanged_wave_object_SHA256=sha(old/'wave.o'),actual_original_provider_object=str(actual),actual_original_provider_object_SHA256=sha(actual),defined_actual_launches=[v for v in defined.splitlines()if any(t in v for t in terms)],unresolved_actual_launches=missing,needed=subprocess.check_output(['readelf','-d',str(lib)],text=True),noGPU_no_dlopen=True,scope='Only mechanical relink same193wave.o with correctlymappedcurrentpacked.o; no compiler/source/math/SDKchange')
+except BaseException as e:out['error']=repr(e);raise
+finally:
+ p=r/'results/Kimi-W13-relink-CPU-r8663.json';assert not p.exists();p.write_text(json.dumps(out,indent=2));print(json.dumps({k:out.get(k)for k in ['completed','step','error','library','library_SHA256']}))
