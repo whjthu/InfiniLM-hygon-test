@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-10-24T20:27:12.182127+00:00",
+  "updated_at_utc": "2026-10-24T20:39:50.588778+00:00",
   "owner": "bw1000-agent",
   "hardware": "BW1000",
   "last_slurm_observation_utc": "2026-10-24T06:31:38+00:00",
@@ -251,62 +251,88 @@
     "local_poll_state": "gitignored local-only/; never committed"
   },
   "astra_review": {
-    "updated_at_utc": "2026-10-24T20:20:27.713585+00:00",
+    "updated_at_utc": "2026-10-24T20:39:50.588778+00:00",
     "policy": "coordination/ASTRA_REVIEW.zh-CN.md",
     "status": "COMPLETED_IMPLEMENTED_FOLLOWTHROUGH",
-    "review_id": "astra-review-60-current",
+    "review_id": "astra-review-61-current",
     "model": "gpt-6-astra",
-    "agent": "/root/astra_review_60",
-    "report": "analysis/bw1000/reviews/astra-review-60-current.json",
-    "implementation": "analysis/bw1000/reviews/astra-review-implementation-60-current.json",
-    "ledger": "analysis/bw1000/reviews/optimization-review-ledger-after-60-round1.json",
-    "completed_rounds_since_review": 1,
+    "agent": "/root/astra_review_61",
+    "report": "analysis/bw1000/reviews/astra-review-61-current.json",
+    "implementation": "analysis/bw1000/reviews/astra-review-implementation-61-current.json",
+    "ledger": "analysis/bw1000/reviews/optimization-review-ledger-after-61.json",
+    "completed_rounds_since_review": 0,
     "normal_trigger": 3,
     "independent_work_continues": true,
     "report_available": true,
-    "unreviewed_completed_experiments": [
-      {
-        "handle": "910375.651",
-        "evidence": "results/bw1000/2026-10-25/kimi651-full-model-positive.json",
-        "SHA256": "261f8c85a096e61c4690383a4c1cc80c5f8ac0e35b585c708d2ea430b559d820",
-        "scope": "Qualified matched TP16PP2 B16M16 full Model decode +12.7641%; final IDs/EOS/QA/32normal/audit/post652. Not B64 maximum, not15/user."
-      }
-    ],
+    "unreviewed_completed_experiments": [],
     "inflight_review": null,
     "current_followthrough": [
       {
-        "card": "KIMI60-CLOSE651",
+        "id": "KIMI61-EP2-PLACEMENT",
         "model": "Kimi",
+        "decision": "ACCEPT_IMPLEMENT_NOW",
+        "state": "CPU_SOURCE_IMPLEMENTATION_DISPATCHED_60MIN_NO_GPU_GO",
         "owner": "/root/online_service_scheduler",
-        "decision": "ACCEPT",
-        "action": "Finish910375.651 TP16PP2 B16M16 I512O128 on n08..11/32DCU. Preserve QA8, freshOFF and ON full128 against independent648 frozen gold, ordinary flags7 OFF/ON/ON/OFF and restore. Report first completed qualification promptly as provisional quality only; no extra measurement or schedule mutation.",
-        "acceptance": "AllIDs/EOS/QA, actual branch counts,32normal/audit/post; distinct decode aggregate/card and user latency, ordinary matched output flags. Flags3 reference is outside ordinary pairs.",
-        "stop": "Original50minhard/2900inner and memory guards; explicit ownnonce native failure/quality/capacity failure stops with original cleanup. No extension/reload/retry; nonpositive qualified Model staysOFF.",
-        "next_optimization": "Use this run's enclosing decode result to decide whether841/caller work translates. Until it does, no new topology, profiler or speculative new load. Model benefitUNKNOWN."
+        "hypothesis": "Partition routed experts E896xI192 to E448xI384 perowner while retaining globalTP16 attention/shared/reduction; improved local expert geometry may beat current qualified I192ON fullMoE despite identical weight bytes and unchanged collectives.",
+        "minimal_change": "One privateMoE hostTU with expert-only TP8 slice and globalFQNoffset448; one routeID mask/remap op; thinCPU202 actualfullMoE consumer. GlobalRankInfo remains16, router896 unchanged, ranks0..7 own0..447 and8..15 own448..895. Routeweights unchanged; disownedslots zero; original global16sum remains before routedRMSNorm; shared branch added once after routedprojection. Do not fakecomm8, addsubcomm/alltoall, changeattentionTP or kernelmath.",
+        "resources": "CPU build first; then existing parent910374 a02r4n01+n04,16DCU,64CPU/node,128000MiB host/node; finite component hard8min, one-layerload not fullModel.",
+        "memory": "W13/S13/W2/S2 each OFF=ON;982646784 bytes perowner. IDmask1024B plus boundedmetadata, retained I384 workspace19148544B. Validate actual runtime owned tensors/guard before component; equal packedweights is not Model peakfit. Do not instantiate simultaneous fullModel contexts.",
+        "acceptance": "Disjoint exhaustive globalexpert coverage896; exact FQN shard/scale shapes, no dropped/doubledroute; finite all16 owner outputs and repeat/agreement versus currentI192ON. Retain maxabs/relativeRMS/error distribution and existing tolerance; altered reduction association must not get relaxed gold. Actual E448 provider counters required. Component result cannot adopt Model. Later positive component must pass same geometry full128 finalIDs/EOS/QA against frozen648+freshOFF, all32normal/audit/post and original memory guards before Model adoption.",
+        "matched_timing": "Warm ordinary ABBA fullMoE wall versus current I192ON, same real input and global16barrier outside timer; include mask/remap, projections/shared and collective, not groupedkernel-only. Require stable>3% fullMoE benefit to justify later necessary Model load.",
+        "first_result": "Implementation/build firstpass1-2h, then<8min component if retained constructors suffice; estimate, not completion claim.",
+        "stop": "Stop on unsupportedE448, FQN/mask/nonfinite errors, denseBF16bank/newframework need, extra collectives, no material fullMoE gain or bounded extension exceeded. Original8min is hard cap; no retry/reload to rescue result.",
+        "fallback": "Retain651 I192ON at validated geometry and existing faster B64 operational configuration. Do not revive registerdequant+WMMA/LDS/pad/persistent/fdot2 negatives."
       },
       {
-        "card": "GLM60-CLOSE555",
+        "id": "GLM61-REUSE-EXACT-BANKS",
         "model": "GLM",
+        "decision": "ACCEPT_PRIORITY",
+        "state": "CPU_30MIN_4188_DEDUP_AND_CURRENT_CALLSITE_IMPLEMENTATION_NO_GPU_GO",
         "owner": "/root/moe_decode_arithmetic_audit",
-        "decision": "ACCEPT",
-        "action": "Finish555 on n12+n13/16DCU, sameconstructor32 B16M8 first16 subset and B32M8 all32 distinct477 prompts, I512O128. Existing prefix/vector and new kernel optsOFF; no549/546 arms. Use current result writes for earliest qualified arm summary, without hotpatching or shortening full128.",
-        "acceptance": "Original477 gold/fullIDs/EOS/QA; admission6GiB+64MiB/runtime512MiB and16normal/audit/post. Publish aggregate/card/E2E and perrequest TTFT/ITL P95/P99/maxgap separately. B16 uses32-row bank, so522 39.1958 is operational context and not a matched baseline. CrossB compares capacity/throughput/latency tradeoff, not fixed-workload kernel speedup.",
-        "stop": "Original35minhard/2000inner. Any guard/token/native failure stops; no OOMretry, rebaseline or best-arm substitution. Negative throughput/card or unacceptable user-latency tradeoff remains explicit.",
-        "next_optimization": "Choose decode/latency bottleneck from555 before further resident/vector work. Larger M16/M32 remains source-guard constrained; changing launch batch alone does not admit it. No repeated decoder/tilegrid research."
+        "hypothesis": "Current constructor32 bank uses160MiB logical versus256MiB pooled physical perlayer; reuse existing exact persistent allocation can restore resident coverage under unchanged reserve and make current B32 capacity question testable.",
+        "minimal_change": "Owner first establish existing4188/4190 outcome and whether currentpersistentbank calls helper; if alreadyactive or negative for this samebank, STOP duplicate. Otherwise route only model-lifetime ROWS32 bank creation through existinghelper and prove actualcounter/physicalallocation delta. No rawmalloc, no transientpool rewrite/newframework. Preserve views, ownerthread, graph guard and model-lifetime destruction.",
+        "resources": "CPU existing build/object reuse; future one already-needed current Model load on n12+n13/16DCU under910376, same host allocation as555. Avoid concurrent duplicatecontexts; retain original35minhard/2000inner for original two-arm capacity question, do not add an eightarm factorial into that budget.",
+        "memory": "Ideal40x160=6400MiB versus10240MiB, but actual runtime rounding/alignment/cache/CCL peak must be measured. At saved13171MiB, ideal subtraction6771MiB is only arithmetic, not fit. Preserve6208MiB admission and512MiB runtime floor on everyowner. Select one fixedmask from maximumshape allowance for bothB16/B32; do not adopt firstB16 freshsnapshot mask38/30 blindly. NativeOFF/idletrim/freshguard unchanged.",
+        "acceptance": "Use existing477 distinct32 prompt/globalrow mapping, full128 IDs/EOS/QA and all16normal/ordinaryaudit/post. Ensure after_select expected record actually produced, or clearly preserve diagnostic-only rejectedpacket. Allocation stats verify exact path physically; no token-only claim from ABI/hash. No B32forward after failedguard.",
+        "matched_timing": "Sameconstructor32/currentprefix/vector and one fixedmask; B16/B32 comparison is capacity/throughput/card/userlatency tradeoff, not kernelgain. To claim allocation throughput gain need sameB/mask matchedOFF/ON later, not historical522 baseline. Original two-arm first question may report descriptive results without causalclaim.",
+        "first_result": "Existing4188/4190 audit+finitecallerlink decision within30min CPU; implementation/build estimate1h if onlyhelper call; existingload~14min, firstcompletedB16~17-22min after launch, fullmatrix within originalbudget only if actualtimings permit.",
+        "stop": "Stop if alreadyimplemented with same physicalresult, unsupported lifecycle, duplicatebank requirement, bad numerics or freshguardfailure. No lowerreserve, rebase, hotpatch or OOMtrial.",
+        "fallback": "GLM61-FIXEDMASK only if exactallocation unavailable or current evidence negative; do not run both routes as separate speculative longloads."
       },
       {
-        "card": "DEEP60-CLOSE865",
+        "id": "GLM61-FIXEDMASK",
+        "model": "GLM",
+        "decision": "DEFER_CONDITIONAL_FALLBACK",
+        "state": "ONLY_IF_EXACT_BANK_PATH_UNAVAILABLE_OR_QUALIFIED_NEGATIVE_NO_PARALLEL_LOAD",
+        "owner": "/root/moe_decode_arithmetic_audit",
+        "hypothesis": "Current B32 could trade lower residentcoverage for more PP2 cohorts; capacity experiment remains discriminating even if throughput fails.",
+        "minimal_change": "One explicit common cap<=27 chosen before measuredarms from currentmaximumshape allowance, fixed acrossB16/B32 and owners/stages as agreed. At555savedstage1 snapshot27 leaves6259MiB, only51MiB above6208;26 leaves6515MiB,307MiB margin. Prefer26 if no exactallocation and insufficient new headroom evidence; neither number provesfit. Do not create maximumshape prewarm merely to cosmetically improve clocks; any necessarypreparation outside timing is symmetric and fully disclosed.",
+        "resources": "n12+n13/16DCU under910376, existing555 hostlimits; same35minhard/2000inner, one load two geometryarms and originalQA/cleanup only.",
+        "memory": "All16 fresh admission6208MiB after nativeOFF/idletrim; runtime512MiBfloor, originalallowances unchanged. Guardfailure terminal with cleanup, no decrementmask retryloop.",
+        "acceptance": "Original477 full128 perrowIDs/EOS/QA,all16normal/audit/post; qualify B16 andB32 independently. Preserve failed555 originalaudit. No shortenedoutput or promptduplication changes.",
+        "matched_timing": "Report aggregate/card,E2E,actual perrequest first-last,TTFT,ITL P95/P99/maxgap under commonmask. Compare B16/B32 as capacity/latency tradeoff. Do not call historical36.1 a new gain. Adopt only useful wholeModel tradeoff, not capacity alone.",
+        "first_result": "Sourcechange/CPUcheck<30min if unchangedpacket reusable; firstarm after~14min load plus~2.5min work; finite fullresult within35min originalcap.",
+        "stop": "Anyfreshguard/token/nativefailure or harddeadline; no forwardonreject or masksearch retry. Negativecardthroughput or unacceptable userlatency kept explicit.",
+        "fallback": "Keep qualified currentB16 operational configuration; stop largerbatch route until genuinely changed memory/provider evidence."
+      },
+      {
+        "id": "DEEP61-QUANT1-REUSE",
         "model": "Deep",
-        "owner": "/root",
-        "decision": "ACCEPT",
-        "action": "Root owns original r8849 watch of865 n05/8DCU. Preserve TP8PP1 B32I512O128 A/C/C/A fourfull128, folded firstA/C qualification, finalA endpoint/restore. B is optional already-budgeted short retrievalQA only and may be omitted by existing protocol; no claim of B128, B performance or activation-only causality.",
-        "acceptance": "Frozen814 plus freshA fullIDs/EOS/QA, eight normal/audit/post, actual344eligible prefillcalls and Cfusionhits=sumU/Ahits0, unchangeddecodecounts5461, endpoint drift. This is PACKON A versus scatter/banklease+activation C bundle.",
-        "stop": "Original30minhard/1740inner, create8GiB/phase6GiB. Retained814 planning1583.23s leaves156.77s inner margin but is not a guarantee. No shortprimary, extension, reload or retry; nonpositive qualified result returnsA.",
-        "next_optimization": "Only if enclosing result and retained timing justify it, prepare a bounded source design for reducing per-expert host submissions and intermediate traffic around global route gather/quant1 and activation/quant2/scatter, preserving ordinary502GemmEx. Treat as hypothesis. Two GEMMs separate phases, so this is not one monolithic fusion promise. Preserve perexpert scales, rounding, clip/Silu math, route duplicates/weights and stream dependencies. No850batchedGemm retry or extra profile merely to fill resources."
+        "decision": "ACCEPT_BOUNDED_IMPLEMENTATION",
+        "state": "CPU_SOURCE_60MIN_ACTUAL_BANK_ROW_SEMANTICS_THEN_MINIMAL_COMPONENT_NO_GPU_GO",
+        "owner": "/root/transport_gdr_probe_1",
+        "hypothesis": "Actualexpert loop gathers identical inputrows for multipleexperts, then quant1 repeats PerChannelQuantI8. Quantize originalrows once and gather int8+row-scales perexpert may remove quant1 submissions/repeatedreads without changing two ordinaryGemmEx phases.",
+        "minimal_change": "One private caller plusbank overload taking packedinput+scales for firstlinear only. Quantize original x once with exact sameexistingop; gather packedrows and scales using unchanged row_index/order and preserve duplicateweights. quant2,clamp/Silu,secondGemm,scatter/reduction and streamdependencies stay as acceptedA. No activationC bundle and no850GemmBatched. First prove actualquantimplementation row independence, finite/NaN/zero/rounding behavior; if batchshape changes quant algorithm or math STOP rather than rewritequant.",
+        "resources": "Existing one-node n05/8DCU parent910374 component ownership; private CPU rebuild minimalcaller/bank only. Finitecomponent hard8min, no wholeModelload. Hold known6GiBphase/8GiBcreate floor where applicable; explicit extraint8 T*H+4*T sourcebank and transient perexpertgathers accounted beforelaunch, no fullroute duplicatebank by default.",
+        "memory": "Retain globalpacked/scales through everyconsumer and drain; lease ownership and async completion match currentcaller. Existing sourceBF16 retention is not a freebank. Peak unknown until bounded actualmeasurement; guards stay unchanged.",
+        "acceptance": "Byteexact quant1 packed/scales versus original perexpertquant on actualgathered rows including duplicate routes; unchanged fullFFN output reference,8normal/audit/post and noNaN divergence. Final Model adoption later requires full128 IDs/EOS/QA against frozen814+freshA,original B32I512 geometry, all8normal/audit/post; component is not wholeModelgain.",
+        "matched_timing": "Ordinary warm ABBA actualfullFFN against acceptedPACKON A, include quantonce+bothgathers+twooriginalGemm phases+scatter; no profiler/interposer. Require stable materialwholeFFN reduction, not removedsubmitcount alone, to justify subsequent Model test. Then decodewall must not regress; bundle865 cannot be reused as positivebaseline.",
+        "first_result": "Row-semantics/source feasibility30min; privatecode/build1-2h if existingop/consumer fit; finitecomponent<8min. Explicitly not yetimplemented/qualified.",
+        "stop": "Crossrowquantdependency, byte/scale mismatch, unsafeasyncownership, capexceeded or absentmaterialfullFFNgain stops. No mathrelaxation, goldreplacement, quant2/globalfusion expansion or repeated850.",
+        "fallback": "Retain acceptedA PACKON; leave865C OFF. A secondDeepcard adds insufficient value now."
       }
     ],
-    "wholeModel_gain_count_this_review": 0,
-    "post_review_qualified_Model_gains": 1
+    "wholeModel_gain_count_this_review": 1
   },
   "latest_results": [
     "results/bw1000/2026-10-24/glm-shared-validation-qualified.json",
@@ -323,62 +349,88 @@
   "Kimi_candidate_adopted": false,
   "latest_hardware_reference": "results/bw1000/2026-10-24/integer-arithmetic-qualified-reference.json",
   "latest_review": {
-    "updated_at_utc": "2026-10-24T20:20:27.713585+00:00",
+    "updated_at_utc": "2026-10-24T20:39:50.588778+00:00",
     "policy": "coordination/ASTRA_REVIEW.zh-CN.md",
     "status": "COMPLETED_IMPLEMENTED_FOLLOWTHROUGH",
-    "review_id": "astra-review-60-current",
+    "review_id": "astra-review-61-current",
     "model": "gpt-6-astra",
-    "agent": "/root/astra_review_60",
-    "report": "analysis/bw1000/reviews/astra-review-60-current.json",
-    "implementation": "analysis/bw1000/reviews/astra-review-implementation-60-current.json",
-    "ledger": "analysis/bw1000/reviews/optimization-review-ledger-after-60-round1.json",
-    "completed_rounds_since_review": 1,
+    "agent": "/root/astra_review_61",
+    "report": "analysis/bw1000/reviews/astra-review-61-current.json",
+    "implementation": "analysis/bw1000/reviews/astra-review-implementation-61-current.json",
+    "ledger": "analysis/bw1000/reviews/optimization-review-ledger-after-61.json",
+    "completed_rounds_since_review": 0,
     "normal_trigger": 3,
     "independent_work_continues": true,
     "report_available": true,
-    "unreviewed_completed_experiments": [
-      {
-        "handle": "910375.651",
-        "evidence": "results/bw1000/2026-10-25/kimi651-full-model-positive.json",
-        "SHA256": "261f8c85a096e61c4690383a4c1cc80c5f8ac0e35b585c708d2ea430b559d820",
-        "scope": "Qualified matched TP16PP2 B16M16 full Model decode +12.7641%; final IDs/EOS/QA/32normal/audit/post652. Not B64 maximum, not15/user."
-      }
-    ],
+    "unreviewed_completed_experiments": [],
     "inflight_review": null,
     "current_followthrough": [
       {
-        "card": "KIMI60-CLOSE651",
+        "id": "KIMI61-EP2-PLACEMENT",
         "model": "Kimi",
+        "decision": "ACCEPT_IMPLEMENT_NOW",
+        "state": "CPU_SOURCE_IMPLEMENTATION_DISPATCHED_60MIN_NO_GPU_GO",
         "owner": "/root/online_service_scheduler",
-        "decision": "ACCEPT",
-        "action": "Finish910375.651 TP16PP2 B16M16 I512O128 on n08..11/32DCU. Preserve QA8, freshOFF and ON full128 against independent648 frozen gold, ordinary flags7 OFF/ON/ON/OFF and restore. Report first completed qualification promptly as provisional quality only; no extra measurement or schedule mutation.",
-        "acceptance": "AllIDs/EOS/QA, actual branch counts,32normal/audit/post; distinct decode aggregate/card and user latency, ordinary matched output flags. Flags3 reference is outside ordinary pairs.",
-        "stop": "Original50minhard/2900inner and memory guards; explicit ownnonce native failure/quality/capacity failure stops with original cleanup. No extension/reload/retry; nonpositive qualified Model staysOFF.",
-        "next_optimization": "Use this run's enclosing decode result to decide whether841/caller work translates. Until it does, no new topology, profiler or speculative new load. Model benefitUNKNOWN."
+        "hypothesis": "Partition routed experts E896xI192 to E448xI384 perowner while retaining globalTP16 attention/shared/reduction; improved local expert geometry may beat current qualified I192ON fullMoE despite identical weight bytes and unchanged collectives.",
+        "minimal_change": "One privateMoE hostTU with expert-only TP8 slice and globalFQNoffset448; one routeID mask/remap op; thinCPU202 actualfullMoE consumer. GlobalRankInfo remains16, router896 unchanged, ranks0..7 own0..447 and8..15 own448..895. Routeweights unchanged; disownedslots zero; original global16sum remains before routedRMSNorm; shared branch added once after routedprojection. Do not fakecomm8, addsubcomm/alltoall, changeattentionTP or kernelmath.",
+        "resources": "CPU build first; then existing parent910374 a02r4n01+n04,16DCU,64CPU/node,128000MiB host/node; finite component hard8min, one-layerload not fullModel.",
+        "memory": "W13/S13/W2/S2 each OFF=ON;982646784 bytes perowner. IDmask1024B plus boundedmetadata, retained I384 workspace19148544B. Validate actual runtime owned tensors/guard before component; equal packedweights is not Model peakfit. Do not instantiate simultaneous fullModel contexts.",
+        "acceptance": "Disjoint exhaustive globalexpert coverage896; exact FQN shard/scale shapes, no dropped/doubledroute; finite all16 owner outputs and repeat/agreement versus currentI192ON. Retain maxabs/relativeRMS/error distribution and existing tolerance; altered reduction association must not get relaxed gold. Actual E448 provider counters required. Component result cannot adopt Model. Later positive component must pass same geometry full128 finalIDs/EOS/QA against frozen648+freshOFF, all32normal/audit/post and original memory guards before Model adoption.",
+        "matched_timing": "Warm ordinary ABBA fullMoE wall versus current I192ON, same real input and global16barrier outside timer; include mask/remap, projections/shared and collective, not groupedkernel-only. Require stable>3% fullMoE benefit to justify later necessary Model load.",
+        "first_result": "Implementation/build firstpass1-2h, then<8min component if retained constructors suffice; estimate, not completion claim.",
+        "stop": "Stop on unsupportedE448, FQN/mask/nonfinite errors, denseBF16bank/newframework need, extra collectives, no material fullMoE gain or bounded extension exceeded. Original8min is hard cap; no retry/reload to rescue result.",
+        "fallback": "Retain651 I192ON at validated geometry and existing faster B64 operational configuration. Do not revive registerdequant+WMMA/LDS/pad/persistent/fdot2 negatives."
       },
       {
-        "card": "GLM60-CLOSE555",
+        "id": "GLM61-REUSE-EXACT-BANKS",
         "model": "GLM",
+        "decision": "ACCEPT_PRIORITY",
+        "state": "CPU_30MIN_4188_DEDUP_AND_CURRENT_CALLSITE_IMPLEMENTATION_NO_GPU_GO",
         "owner": "/root/moe_decode_arithmetic_audit",
-        "decision": "ACCEPT",
-        "action": "Finish555 on n12+n13/16DCU, sameconstructor32 B16M8 first16 subset and B32M8 all32 distinct477 prompts, I512O128. Existing prefix/vector and new kernel optsOFF; no549/546 arms. Use current result writes for earliest qualified arm summary, without hotpatching or shortening full128.",
-        "acceptance": "Original477 gold/fullIDs/EOS/QA; admission6GiB+64MiB/runtime512MiB and16normal/audit/post. Publish aggregate/card/E2E and perrequest TTFT/ITL P95/P99/maxgap separately. B16 uses32-row bank, so522 39.1958 is operational context and not a matched baseline. CrossB compares capacity/throughput/latency tradeoff, not fixed-workload kernel speedup.",
-        "stop": "Original35minhard/2000inner. Any guard/token/native failure stops; no OOMretry, rebaseline or best-arm substitution. Negative throughput/card or unacceptable user-latency tradeoff remains explicit.",
-        "next_optimization": "Choose decode/latency bottleneck from555 before further resident/vector work. Larger M16/M32 remains source-guard constrained; changing launch batch alone does not admit it. No repeated decoder/tilegrid research."
+        "hypothesis": "Current constructor32 bank uses160MiB logical versus256MiB pooled physical perlayer; reuse existing exact persistent allocation can restore resident coverage under unchanged reserve and make current B32 capacity question testable.",
+        "minimal_change": "Owner first establish existing4188/4190 outcome and whether currentpersistentbank calls helper; if alreadyactive or negative for this samebank, STOP duplicate. Otherwise route only model-lifetime ROWS32 bank creation through existinghelper and prove actualcounter/physicalallocation delta. No rawmalloc, no transientpool rewrite/newframework. Preserve views, ownerthread, graph guard and model-lifetime destruction.",
+        "resources": "CPU existing build/object reuse; future one already-needed current Model load on n12+n13/16DCU under910376, same host allocation as555. Avoid concurrent duplicatecontexts; retain original35minhard/2000inner for original two-arm capacity question, do not add an eightarm factorial into that budget.",
+        "memory": "Ideal40x160=6400MiB versus10240MiB, but actual runtime rounding/alignment/cache/CCL peak must be measured. At saved13171MiB, ideal subtraction6771MiB is only arithmetic, not fit. Preserve6208MiB admission and512MiB runtime floor on everyowner. Select one fixedmask from maximumshape allowance for bothB16/B32; do not adopt firstB16 freshsnapshot mask38/30 blindly. NativeOFF/idletrim/freshguard unchanged.",
+        "acceptance": "Use existing477 distinct32 prompt/globalrow mapping, full128 IDs/EOS/QA and all16normal/ordinaryaudit/post. Ensure after_select expected record actually produced, or clearly preserve diagnostic-only rejectedpacket. Allocation stats verify exact path physically; no token-only claim from ABI/hash. No B32forward after failedguard.",
+        "matched_timing": "Sameconstructor32/currentprefix/vector and one fixedmask; B16/B32 comparison is capacity/throughput/card/userlatency tradeoff, not kernelgain. To claim allocation throughput gain need sameB/mask matchedOFF/ON later, not historical522 baseline. Original two-arm first question may report descriptive results without causalclaim.",
+        "first_result": "Existing4188/4190 audit+finitecallerlink decision within30min CPU; implementation/build estimate1h if onlyhelper call; existingload~14min, firstcompletedB16~17-22min after launch, fullmatrix within originalbudget only if actualtimings permit.",
+        "stop": "Stop if alreadyimplemented with same physicalresult, unsupported lifecycle, duplicatebank requirement, bad numerics or freshguardfailure. No lowerreserve, rebase, hotpatch or OOMtrial.",
+        "fallback": "GLM61-FIXEDMASK only if exactallocation unavailable or current evidence negative; do not run both routes as separate speculative longloads."
       },
       {
-        "card": "DEEP60-CLOSE865",
+        "id": "GLM61-FIXEDMASK",
+        "model": "GLM",
+        "decision": "DEFER_CONDITIONAL_FALLBACK",
+        "state": "ONLY_IF_EXACT_BANK_PATH_UNAVAILABLE_OR_QUALIFIED_NEGATIVE_NO_PARALLEL_LOAD",
+        "owner": "/root/moe_decode_arithmetic_audit",
+        "hypothesis": "Current B32 could trade lower residentcoverage for more PP2 cohorts; capacity experiment remains discriminating even if throughput fails.",
+        "minimal_change": "One explicit common cap<=27 chosen before measuredarms from currentmaximumshape allowance, fixed acrossB16/B32 and owners/stages as agreed. At555savedstage1 snapshot27 leaves6259MiB, only51MiB above6208;26 leaves6515MiB,307MiB margin. Prefer26 if no exactallocation and insufficient new headroom evidence; neither number provesfit. Do not create maximumshape prewarm merely to cosmetically improve clocks; any necessarypreparation outside timing is symmetric and fully disclosed.",
+        "resources": "n12+n13/16DCU under910376, existing555 hostlimits; same35minhard/2000inner, one load two geometryarms and originalQA/cleanup only.",
+        "memory": "All16 fresh admission6208MiB after nativeOFF/idletrim; runtime512MiBfloor, originalallowances unchanged. Guardfailure terminal with cleanup, no decrementmask retryloop.",
+        "acceptance": "Original477 full128 perrowIDs/EOS/QA,all16normal/audit/post; qualify B16 andB32 independently. Preserve failed555 originalaudit. No shortenedoutput or promptduplication changes.",
+        "matched_timing": "Report aggregate/card,E2E,actual perrequest first-last,TTFT,ITL P95/P99/maxgap under commonmask. Compare B16/B32 as capacity/latency tradeoff. Do not call historical36.1 a new gain. Adopt only useful wholeModel tradeoff, not capacity alone.",
+        "first_result": "Sourcechange/CPUcheck<30min if unchangedpacket reusable; firstarm after~14min load plus~2.5min work; finite fullresult within35min originalcap.",
+        "stop": "Anyfreshguard/token/nativefailure or harddeadline; no forwardonreject or masksearch retry. Negativecardthroughput or unacceptable userlatency kept explicit.",
+        "fallback": "Keep qualified currentB16 operational configuration; stop largerbatch route until genuinely changed memory/provider evidence."
+      },
+      {
+        "id": "DEEP61-QUANT1-REUSE",
         "model": "Deep",
-        "owner": "/root",
-        "decision": "ACCEPT",
-        "action": "Root owns original r8849 watch of865 n05/8DCU. Preserve TP8PP1 B32I512O128 A/C/C/A fourfull128, folded firstA/C qualification, finalA endpoint/restore. B is optional already-budgeted short retrievalQA only and may be omitted by existing protocol; no claim of B128, B performance or activation-only causality.",
-        "acceptance": "Frozen814 plus freshA fullIDs/EOS/QA, eight normal/audit/post, actual344eligible prefillcalls and Cfusionhits=sumU/Ahits0, unchangeddecodecounts5461, endpoint drift. This is PACKON A versus scatter/banklease+activation C bundle.",
-        "stop": "Original30minhard/1740inner, create8GiB/phase6GiB. Retained814 planning1583.23s leaves156.77s inner margin but is not a guarantee. No shortprimary, extension, reload or retry; nonpositive qualified result returnsA.",
-        "next_optimization": "Only if enclosing result and retained timing justify it, prepare a bounded source design for reducing per-expert host submissions and intermediate traffic around global route gather/quant1 and activation/quant2/scatter, preserving ordinary502GemmEx. Treat as hypothesis. Two GEMMs separate phases, so this is not one monolithic fusion promise. Preserve perexpert scales, rounding, clip/Silu math, route duplicates/weights and stream dependencies. No850batchedGemm retry or extra profile merely to fill resources."
+        "decision": "ACCEPT_BOUNDED_IMPLEMENTATION",
+        "state": "CPU_SOURCE_60MIN_ACTUAL_BANK_ROW_SEMANTICS_THEN_MINIMAL_COMPONENT_NO_GPU_GO",
+        "owner": "/root/transport_gdr_probe_1",
+        "hypothesis": "Actualexpert loop gathers identical inputrows for multipleexperts, then quant1 repeats PerChannelQuantI8. Quantize originalrows once and gather int8+row-scales perexpert may remove quant1 submissions/repeatedreads without changing two ordinaryGemmEx phases.",
+        "minimal_change": "One private caller plusbank overload taking packedinput+scales for firstlinear only. Quantize original x once with exact sameexistingop; gather packedrows and scales using unchanged row_index/order and preserve duplicateweights. quant2,clamp/Silu,secondGemm,scatter/reduction and streamdependencies stay as acceptedA. No activationC bundle and no850GemmBatched. First prove actualquantimplementation row independence, finite/NaN/zero/rounding behavior; if batchshape changes quant algorithm or math STOP rather than rewritequant.",
+        "resources": "Existing one-node n05/8DCU parent910374 component ownership; private CPU rebuild minimalcaller/bank only. Finitecomponent hard8min, no wholeModelload. Hold known6GiBphase/8GiBcreate floor where applicable; explicit extraint8 T*H+4*T sourcebank and transient perexpertgathers accounted beforelaunch, no fullroute duplicatebank by default.",
+        "memory": "Retain globalpacked/scales through everyconsumer and drain; lease ownership and async completion match currentcaller. Existing sourceBF16 retention is not a freebank. Peak unknown until bounded actualmeasurement; guards stay unchanged.",
+        "acceptance": "Byteexact quant1 packed/scales versus original perexpertquant on actualgathered rows including duplicate routes; unchanged fullFFN output reference,8normal/audit/post and noNaN divergence. Final Model adoption later requires full128 IDs/EOS/QA against frozen814+freshA,original B32I512 geometry, all8normal/audit/post; component is not wholeModelgain.",
+        "matched_timing": "Ordinary warm ABBA actualfullFFN against acceptedPACKON A, include quantonce+bothgathers+twooriginalGemm phases+scatter; no profiler/interposer. Require stable materialwholeFFN reduction, not removedsubmitcount alone, to justify subsequent Model test. Then decodewall must not regress; bundle865 cannot be reused as positivebaseline.",
+        "first_result": "Row-semantics/source feasibility30min; privatecode/build1-2h if existingop/consumer fit; finitecomponent<8min. Explicitly not yetimplemented/qualified.",
+        "stop": "Crossrowquantdependency, byte/scale mismatch, unsafeasyncownership, capexceeded or absentmaterialfullFFNgain stops. No mathrelaxation, goldreplacement, quant2/globalfusion expansion or repeated850.",
+        "fallback": "Retain acceptedA PACKON; leave865C OFF. A secondDeepcard adds insufficient value now."
       }
     ],
-    "wholeModel_gain_count_this_review": 0,
-    "post_review_qualified_Model_gains": 1
+    "wholeModel_gain_count_this_review": 1
   },
   "latest_completed_experiments": [
     "910375.642",
@@ -1563,10 +1615,12 @@
     "next": "No more position microtiming. Actual INT8 routed ISA/native instruction feasibility, then one minimal source candidate."
   },
   "current_actual_GPU_jobs": {
-    "scope": "Latest verified individual step states, not hardware compute utilization or full cluster census",
+    "scope": "Authoritative census20:34:52UTC,notcurrenthardwareutilization",
+    "reserved_DCU": 320,
+    "active_numeric_steps": [],
     "Kimi651": "COMPLETED0/post652empty",
-    "GLM555": "RUNNING16DCU n12+n13",
-    "Deep865": "RUNNING8DCU n05"
+    "GLM555": "COMPLETED0/16normal/post556empty/originalaudit1",
+    "Deep865": "COMPLETED0/8normal/audit0/post866empty"
   },
   "current_optimization_dispatch49": [
     {
@@ -3011,15 +3065,117 @@
   },
   "current_Kimi651": "results/bw1000/2026-10-25/kimi651-full-model-positive.json",
   "current_cycle_checkpoint": {
-    "utc": "2026-10-24T20:20:27.713585+00:00",
-    "review": "60_COMPLETED_IMPLEMENTED",
-    "ledger": "optimization-review-ledger-after-60-round1.json",
-    "new_valid_rounds": 1,
-    "Kimi651": "COMPLETED0;32normal/QA/fullIDsEOS/audit/post652;43.209555->48.724868 matched decode +12.7641%;mean user2.41215/max3.04961",
-    "GLM555": "RUNNING original35min;16loaded;actual mask[38,30];B16 first prefill thenB32;not qualified performance yet",
-    "Deep865": "RUNNING original30min;A0/C1 full128 exact;C2 pending;balanced final gain UNKNOWN",
-    "GDR": "CPU static/sysfs blocker on n03/n07;no GPU launch;SYS cannot provide missing registration capability",
-    "Kimi_next": "CPU20min MMAC/prior negative/profile dedup;one minimal candidate card only;no GPU or weight reload"
+    "utc": "2026-10-24T20:39:50.588778+00:00",
+    "review": "61_COMPLETED_IMPLEMENTED",
+    "ledger": "optimization-review-ledger-after-61.json",
+    "new_valid_rounds": 0,
+    "Kimi651": "QUALIFIED43.209555->48.724868 +12.7641% matchedB16;EP2implementationCPU60min",
+    "GLM555": "TERMINALB16numeric37.0931,B32admissionrejected;audit1;exactbank4188reuseCPU30min",
+    "Deep865": "TERMINALall4full128exact/audit0/post866;C_OFFdecodewall+2.8585%;quant1-onlyimplementationCPU60min",
+    "actual_steps_snapshot": "20:34:52UTC320reserved/zeroactive numericsteps;no computeutilizationclaim",
+    "pending_GPU_resources": {
+      "KimiEP2": "910374 n01+n04/16DCU;NOT_DISPATCHED",
+      "GLMexactbank": "910376 n12+n13;CPUonly;finitecomponent scope pendingready",
+      "Deepquant1": "910374 n05/8DCU;NOT_DISPATCHED"
+    }
   },
-  "post_review60_accepted_wholeModel_gains": 1
+  "post_review60_accepted_wholeModel_gains": 1,
+  "current_optimization_dispatch61": {
+    "utc": "2026-10-24T20:39:50.588778+00:00",
+    "report": "astra-review-61-current.json",
+    "report_SHA256": "3e11eeb37515888bbd25a018ae267dcf8aebe52e91f861646731c89b70a57985",
+    "reviewer_model": "gpt-6-astra high",
+    "status": "IMPLEMENTED_CONCRETE_OWNERS_WORKING_CPU_NO_NEW_GPU_CLAIM",
+    "decisions": [
+      {
+        "id": "KIMI61-EP2-PLACEMENT",
+        "model": "Kimi",
+        "decision": "ACCEPT_IMPLEMENT_NOW",
+        "state": "CPU_SOURCE_IMPLEMENTATION_DISPATCHED_60MIN_NO_GPU_GO",
+        "owner": "/root/online_service_scheduler",
+        "hypothesis": "Partition routed experts E896xI192 to E448xI384 perowner while retaining globalTP16 attention/shared/reduction; improved local expert geometry may beat current qualified I192ON fullMoE despite identical weight bytes and unchanged collectives.",
+        "minimal_change": "One privateMoE hostTU with expert-only TP8 slice and globalFQNoffset448; one routeID mask/remap op; thinCPU202 actualfullMoE consumer. GlobalRankInfo remains16, router896 unchanged, ranks0..7 own0..447 and8..15 own448..895. Routeweights unchanged; disownedslots zero; original global16sum remains before routedRMSNorm; shared branch added once after routedprojection. Do not fakecomm8, addsubcomm/alltoall, changeattentionTP or kernelmath.",
+        "resources": "CPU build first; then existing parent910374 a02r4n01+n04,16DCU,64CPU/node,128000MiB host/node; finite component hard8min, one-layerload not fullModel.",
+        "memory": "W13/S13/W2/S2 each OFF=ON;982646784 bytes perowner. IDmask1024B plus boundedmetadata, retained I384 workspace19148544B. Validate actual runtime owned tensors/guard before component; equal packedweights is not Model peakfit. Do not instantiate simultaneous fullModel contexts.",
+        "acceptance": "Disjoint exhaustive globalexpert coverage896; exact FQN shard/scale shapes, no dropped/doubledroute; finite all16 owner outputs and repeat/agreement versus currentI192ON. Retain maxabs/relativeRMS/error distribution and existing tolerance; altered reduction association must not get relaxed gold. Actual E448 provider counters required. Component result cannot adopt Model. Later positive component must pass same geometry full128 finalIDs/EOS/QA against frozen648+freshOFF, all32normal/audit/post and original memory guards before Model adoption.",
+        "matched_timing": "Warm ordinary ABBA fullMoE wall versus current I192ON, same real input and global16barrier outside timer; include mask/remap, projections/shared and collective, not groupedkernel-only. Require stable>3% fullMoE benefit to justify later necessary Model load.",
+        "first_result": "Implementation/build firstpass1-2h, then<8min component if retained constructors suffice; estimate, not completion claim.",
+        "stop": "Stop on unsupportedE448, FQN/mask/nonfinite errors, denseBF16bank/newframework need, extra collectives, no material fullMoE gain or bounded extension exceeded. Original8min is hard cap; no retry/reload to rescue result.",
+        "fallback": "Retain651 I192ON at validated geometry and existing faster B64 operational configuration. Do not revive registerdequant+WMMA/LDS/pad/persistent/fdot2 negatives."
+      },
+      {
+        "id": "GLM61-REUSE-EXACT-BANKS",
+        "model": "GLM",
+        "decision": "ACCEPT_PRIORITY",
+        "state": "CPU_30MIN_4188_DEDUP_AND_CURRENT_CALLSITE_IMPLEMENTATION_NO_GPU_GO",
+        "owner": "/root/moe_decode_arithmetic_audit",
+        "hypothesis": "Current constructor32 bank uses160MiB logical versus256MiB pooled physical perlayer; reuse existing exact persistent allocation can restore resident coverage under unchanged reserve and make current B32 capacity question testable.",
+        "minimal_change": "Owner first establish existing4188/4190 outcome and whether currentpersistentbank calls helper; if alreadyactive or negative for this samebank, STOP duplicate. Otherwise route only model-lifetime ROWS32 bank creation through existinghelper and prove actualcounter/physicalallocation delta. No rawmalloc, no transientpool rewrite/newframework. Preserve views, ownerthread, graph guard and model-lifetime destruction.",
+        "resources": "CPU existing build/object reuse; future one already-needed current Model load on n12+n13/16DCU under910376, same host allocation as555. Avoid concurrent duplicatecontexts; retain original35minhard/2000inner for original two-arm capacity question, do not add an eightarm factorial into that budget.",
+        "memory": "Ideal40x160=6400MiB versus10240MiB, but actual runtime rounding/alignment/cache/CCL peak must be measured. At saved13171MiB, ideal subtraction6771MiB is only arithmetic, not fit. Preserve6208MiB admission and512MiB runtime floor on everyowner. Select one fixedmask from maximumshape allowance for bothB16/B32; do not adopt firstB16 freshsnapshot mask38/30 blindly. NativeOFF/idletrim/freshguard unchanged.",
+        "acceptance": "Use existing477 distinct32 prompt/globalrow mapping, full128 IDs/EOS/QA and all16normal/ordinaryaudit/post. Ensure after_select expected record actually produced, or clearly preserve diagnostic-only rejectedpacket. Allocation stats verify exact path physically; no token-only claim from ABI/hash. No B32forward after failedguard.",
+        "matched_timing": "Sameconstructor32/currentprefix/vector and one fixedmask; B16/B32 comparison is capacity/throughput/card/userlatency tradeoff, not kernelgain. To claim allocation throughput gain need sameB/mask matchedOFF/ON later, not historical522 baseline. Original two-arm first question may report descriptive results without causalclaim.",
+        "first_result": "Existing4188/4190 audit+finitecallerlink decision within30min CPU; implementation/build estimate1h if onlyhelper call; existingload~14min, firstcompletedB16~17-22min after launch, fullmatrix within originalbudget only if actualtimings permit.",
+        "stop": "Stop if alreadyimplemented with same physicalresult, unsupported lifecycle, duplicatebank requirement, bad numerics or freshguardfailure. No lowerreserve, rebase, hotpatch or OOMtrial.",
+        "fallback": "GLM61-FIXEDMASK only if exactallocation unavailable or current evidence negative; do not run both routes as separate speculative longloads."
+      },
+      {
+        "id": "GLM61-FIXEDMASK",
+        "model": "GLM",
+        "decision": "DEFER_CONDITIONAL_FALLBACK",
+        "state": "ONLY_IF_EXACT_BANK_PATH_UNAVAILABLE_OR_QUALIFIED_NEGATIVE_NO_PARALLEL_LOAD",
+        "owner": "/root/moe_decode_arithmetic_audit",
+        "hypothesis": "Current B32 could trade lower residentcoverage for more PP2 cohorts; capacity experiment remains discriminating even if throughput fails.",
+        "minimal_change": "One explicit common cap<=27 chosen before measuredarms from currentmaximumshape allowance, fixed acrossB16/B32 and owners/stages as agreed. At555savedstage1 snapshot27 leaves6259MiB, only51MiB above6208;26 leaves6515MiB,307MiB margin. Prefer26 if no exactallocation and insufficient new headroom evidence; neither number provesfit. Do not create maximumshape prewarm merely to cosmetically improve clocks; any necessarypreparation outside timing is symmetric and fully disclosed.",
+        "resources": "n12+n13/16DCU under910376, existing555 hostlimits; same35minhard/2000inner, one load two geometryarms and originalQA/cleanup only.",
+        "memory": "All16 fresh admission6208MiB after nativeOFF/idletrim; runtime512MiBfloor, originalallowances unchanged. Guardfailure terminal with cleanup, no decrementmask retryloop.",
+        "acceptance": "Original477 full128 perrowIDs/EOS/QA,all16normal/audit/post; qualify B16 andB32 independently. Preserve failed555 originalaudit. No shortenedoutput or promptduplication changes.",
+        "matched_timing": "Report aggregate/card,E2E,actual perrequest first-last,TTFT,ITL P95/P99/maxgap under commonmask. Compare B16/B32 as capacity/latency tradeoff. Do not call historical36.1 a new gain. Adopt only useful wholeModel tradeoff, not capacity alone.",
+        "first_result": "Sourcechange/CPUcheck<30min if unchangedpacket reusable; firstarm after~14min load plus~2.5min work; finite fullresult within35min originalcap.",
+        "stop": "Anyfreshguard/token/nativefailure or harddeadline; no forwardonreject or masksearch retry. Negativecardthroughput or unacceptable userlatency kept explicit.",
+        "fallback": "Keep qualified currentB16 operational configuration; stop largerbatch route until genuinely changed memory/provider evidence."
+      },
+      {
+        "id": "DEEP61-QUANT1-REUSE",
+        "model": "Deep",
+        "decision": "ACCEPT_BOUNDED_IMPLEMENTATION",
+        "state": "CPU_SOURCE_60MIN_ACTUAL_BANK_ROW_SEMANTICS_THEN_MINIMAL_COMPONENT_NO_GPU_GO",
+        "owner": "/root/transport_gdr_probe_1",
+        "hypothesis": "Actualexpert loop gathers identical inputrows for multipleexperts, then quant1 repeats PerChannelQuantI8. Quantize originalrows once and gather int8+row-scales perexpert may remove quant1 submissions/repeatedreads without changing two ordinaryGemmEx phases.",
+        "minimal_change": "One private caller plusbank overload taking packedinput+scales for firstlinear only. Quantize original x once with exact sameexistingop; gather packedrows and scales using unchanged row_index/order and preserve duplicateweights. quant2,clamp/Silu,secondGemm,scatter/reduction and streamdependencies stay as acceptedA. No activationC bundle and no850GemmBatched. First prove actualquantimplementation row independence, finite/NaN/zero/rounding behavior; if batchshape changes quant algorithm or math STOP rather than rewritequant.",
+        "resources": "Existing one-node n05/8DCU parent910374 component ownership; private CPU rebuild minimalcaller/bank only. Finitecomponent hard8min, no wholeModelload. Hold known6GiBphase/8GiBcreate floor where applicable; explicit extraint8 T*H+4*T sourcebank and transient perexpertgathers accounted beforelaunch, no fullroute duplicatebank by default.",
+        "memory": "Retain globalpacked/scales through everyconsumer and drain; lease ownership and async completion match currentcaller. Existing sourceBF16 retention is not a freebank. Peak unknown until bounded actualmeasurement; guards stay unchanged.",
+        "acceptance": "Byteexact quant1 packed/scales versus original perexpertquant on actualgathered rows including duplicate routes; unchanged fullFFN output reference,8normal/audit/post and noNaN divergence. Final Model adoption later requires full128 IDs/EOS/QA against frozen814+freshA,original B32I512 geometry, all8normal/audit/post; component is not wholeModelgain.",
+        "matched_timing": "Ordinary warm ABBA actualfullFFN against acceptedPACKON A, include quantonce+bothgathers+twooriginalGemm phases+scatter; no profiler/interposer. Require stable materialwholeFFN reduction, not removedsubmitcount alone, to justify subsequent Model test. Then decodewall must not regress; bundle865 cannot be reused as positivebaseline.",
+        "first_result": "Row-semantics/source feasibility30min; privatecode/build1-2h if existingop/consumer fit; finitecomponent<8min. Explicitly not yetimplemented/qualified.",
+        "stop": "Crossrowquantdependency, byte/scale mismatch, unsafeasyncownership, capexceeded or absentmaterialfullFFNgain stops. No mathrelaxation, goldreplacement, quant2/globalfusion expansion or repeated850.",
+        "fallback": "Retain acceptedA PACKON; leave865C OFF. A secondDeepcard adds insufficient value now."
+      }
+    ],
+    "consume_once": [
+      "910375.651",
+      "910376.555",
+      "910374.865"
+    ],
+    "new_accepted_wholeModel_gain_count": 1,
+    "goal_complete": false,
+    "finite_engineering_carryover": [
+      {
+        "owner": "/root/transport_gdr_probe_1",
+        "action": "Next otherwise-needed Deep entry moves receipt/actual DSO hash before CUDA and explicitly requires CPU_only. Dispatched with quant1 packet, not a standalone job."
+      },
+      {
+        "owner": "/root/moe_decode_arithmetic_audit",
+        "action": "quant_reuse_hits single actual field only in next otherwise-needed quant-pair packet; not claimed implemented by555 or exactbank work."
+      }
+    ],
+    "result_decisions": {
+      "Kimi651": "ACCEPT exactTP16PP2 B16M16 +12.7641%decode;notB64max/not15user",
+      "GLM555": "KEEP_DIAGNOSTIC_ONLY:completeB16 numeric/scope;B32admission beforeforward;originalaudit1 and missingafter_selectQA preserved",
+      "Deep865": "KEEP_A_C_OFF:prefill+3.314%/E2E+1.294% butdecodewall+2.8585%;noactivation-only attribution;no rerun"
+    },
+    "root_corrected_dispatch": "InitialDeepmessage proposed859strongcomponent comparator; final61 explicitly corrected to acceptedA PACKON originalscatter/bank/activationOFF, quant1-only change. Owner notified before implementation.",
+    "resource_snapshot": "owned-allocations-after865-r8869.json:320DCUreserved,zeroactive numericsteps at20:34:52UTC;not compute-utilization measurement. CPUimplementation interval must not be described as full GPU usage."
+  },
+  "current_Deep865": "results/bw1000/2026-10-25/deep865-bundle-acca-r8867.json"
 }

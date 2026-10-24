@@ -1,0 +1,98 @@
+{
+  "status": "CPU_ONLY_SINGLE_FALSIFIABLE_CARD_PENDING_ROOT_DECISION",
+  "candidate": "Replicated-input routed expert TP8xEP2 placement with the original global TP16 sum; attention/shared remain TP16 initially",
+  "why_this_one": "Direct register-dequant+BF16MMAC, coalescedLDS, padding, persistent/hybrid and guardedFDOT2 already have qualified sparse-route negatives. Changeexpertplacement/localI instead of repeatingnumeric kernel ideas. Parameterbytes remain same, currentI384 provider can be reused. This pilot does not promise less communication.",
+  "actual_caller": {
+    "source": "kimi_k3_moe_I192_caller_smoke_r8669zf.cpp",
+    "source_SHA256": "1a87d380f37c0e0002f621aeb5e6369b2df5818289cd1f6118cfc62482c8203a",
+    "current_native_SHA256": "6125640af7f5878e08f00f92527b3c975738bf3fc3563cb2b6afabb5dbbf6fc8",
+    "lines": [
+      "158..209 KimiK3Experts allocates all896 and TP-slices intermediate; registers FQN perexpert",
+      "252 explicit(void)ep_config: customKimi ignoresEP",
+      "263..280 router/projections/shared/experts constructors currently shareRankInfo",
+      "405..412 routed global TP allreduce BEFORE routed RMSNorm",
+      "414..442 routed norm/upprojection and shared add: EPsum must not include replicated shared branch"
+    ]
+  },
+  "placement": {
+    "OFF": "Current TP16/E896/localI192/Math0 serving1 I192ON qualified651",
+    "ON": "Keep globalRankInfo/attention/sharedTP16 and originalglobal16sum. Expertweight partition is logically TP8xEP2: ranks0..7 ownexperts0..447, ranks8..15 own448..895, ownedexpertI384 slicedrank%8. SameT16replicatedinput. PrivateExpertconfig validatesglobalRankInfo16 then controls expertTP8 slice/EPoffset; do not falselylabel16comm as8. MaskoffgrouprouteIDs to-1, remapownIDs0..447. The unchangedglobal16sum combinesbothexpertgroups before routedRMSNorm. No extraTP8/EP2subcomm needed for this replicated-input linear sum pilot.",
+    "not_true_DP": "No duplicateattention work, no requestshard change/alltoall. No TP8attention fit or wholeModelclaim.",
+    "local_weights_OFF": {
+      "W13": 616562688,
+      "S13": 38535168,
+      "W2": 308281344,
+      "S2": 19267584
+    },
+    "local_weights_ON": {
+      "W13": 616562688,
+      "S13": 38535168,
+      "W2": 308281344,
+      "S2": 19267584
+    },
+    "total_each_bytes": 982646784,
+    "total_each_GiB": 0.9151611328125,
+    "known_extra": "Mask IDs16x16 I32=1024B plus tiny boundedmetadata; original standaloneI384 workspace19,148,544B can be retainedforcomponent. Modelcompact/scratchfit UNKNOWN, not inferredfromone-layer.",
+    "attention_TP8_alternative": "Would increaseattention/otherTPshard weights; defer. CurrentCPUproof only routed weights equality."
+  },
+  "reuse": {
+    "provider_source": "kimi_packed_auto_r6136.cu",
+    "provider_source_SHA256": "20ab0541db687a1e31d1778861680652567d2102c8873b278e2621fdba66bbf0",
+    "provider_contract": "L147..156 actual modern_kimi_grouped_r4620 accepts16<=E<=896/T<=512, variant4 TT2Tile4, fixedI384; L184 originalstaticW2 usesruntimeE. PACKED_W2/AUTO bothOFF as639/793. E448 supportedby retainedsource, NOT already GPUqualified.",
+    "fullMoE_fixture": "CPU202/205 fullMoE adapter + r8778 teacher0 BF16[16,7168] realL1 decode prefix; use same actualcheckpoint/routing/shared/projection paths. No synthetic companion/data or rawgrouped-only replacement.",
+    "current_positive": "651 sameTP16 ordinary43.209555->48.724868TPS/+12.7641%, frozen648/fullIDs/EOS/QA/32normal/audit/post652. NotbestB64throughput.",
+    "actual_packed_object_SHA256": "355607f22e0232b6422cef6f81224af24f62b585e5e251fbb656e7eb0da4700c"
+  },
+  "minimal_implementation_not_done": [
+    "OneprivateMoE hostTU: explicitEP2optin privateexpertconfig validatesfullglobalRankInfo16 then storeslocalE448/expertTP8/FQNglobaloffset; router896/sharedTP16 andoriginalglobal16comm stayunchanged. No fakecomm8/extraalltoall ornewlayoutfields. WholeModelattention remainsTP16, not TP8 yet.",
+    "One tiny route-ID mask/remap GPU op (or existing proven equivalent if available); eachtoken stilltopk16 globalweights, offgroup slots producezero; originalroute-order/W13/W2 remain. No newalltoall framework/SDK/Common build.",
+    "ThinCPU202 fullMoE component consumer selectscurrentI192ON vsnewEP2placement, same global16barrier/timing as835/841. DefaultOFF. Reuse actualpacked.o355607 original4620variant4 forE448 after expliciteligibleguard; countersmustprovehit, notenv-onlyclaim."
+  ],
+  "scope_size_estimate": "Not a config-only switch. Approximately1MoEhostTU+1boundedrouteopTU+thinadapterconsumer. No implementationauthorized here; estimate1-2h source/buildfirstpass + <8min finitecomponent if existingconstructors suffice. If this exceedsboundedprivateextension, PARK ratherthannewframework.",
+  "expected_wall": "UNKNOWN. 835 genericTP16~2.56..2.78ms fullMoE,841 I192specialized+21.47%;651 actualModel+12.76%. Newplacement sameFLOP/payload, changes locality/activeexperts/localI and reduction association. Cannot claim2x or useMMACpeak. Compare againstcurrentI192ON, notslowgeneric-only. Since originalglobal16sum stays, firstpilot claims no fewerTPcollectives/bytes. TP8attention orhierarchicalTP8+EP2communicators would be separate later work, not silentlyincluded.",
+  "resources_if_later_GO": {
+    "nodes": [
+      "a02r4n01",
+      "a02r4n04"
+    ],
+    "parent": "910374",
+    "DCU": 16,
+    "TP_stage": 16,
+    "cpus_per_node": 64,
+    "mem_MiB_per_node": 128000,
+    "hard_minutes": 8,
+    "GPU_weight_bytes_per_owner": 982646784,
+    "checkpoint_loader": "Same one layer load perarm; do not fullModelreload/profile-onlyload."
+  },
+  "numeric_and_timing_contract": [
+    "First exactshard/FQN/scale shapes + globalexpertcoverage each448disjointcover896; maskIDs no missed/doubledroute and selectedrouteweights unchanged.",
+    "All16owners finite/ownrepeat/globalrankagreement; comparefullMoE output to currentTP16I192ON sameinput, maxabs/relativeRMS/error distribution retained; crossreductionintermediatebits notautomaticrejection.",
+    "Warm ordinary ABBA completefullMoE wall usingtrueglobal16phasebarrier outsidetiming, noAPIinterposer/PMC/capture. Counters proveI384E448 actuallycalled.",
+    "Onlystable>3% fullMoE improvement and no meaningfulnumeric/path errors justify one later necessaryModel full128IDs/EOS/QA; componentdoesnotadoptModeltokens."
+  ],
+  "exit": [
+    "STOP if source/binary reuse requiresgenericdenseBF16experts allocation or unseen EP runtime/framework.",
+    "STOP if actualE448 provider rejects/requiresnewkernel math, wrongshard/mask/finite failure, no materialwall gain or extra collectiveserasegain.",
+    "No fullModelload until boundedcomponentpositive and separatememorybudget; no forcedtolerance/goldreplacement."
+  ],
+  "dedup": {
+    "r853": "Direct register FP4bits->BF16fragments->wmma F32 already exists;lateactual148..164experts W13speed0.35..0.38x vsold617,notnewhypothesis.",
+    "r900_903_910": "LDS pad68 /hybrid/persistent all8/61qualified;latecombinedroughly0.69..0.80x, notfixedbybankpadding orpersistentscheduling.",
+    "r938_943": "Guarded exactlyrepresentableBF16->F16 FDOT2 pluspostscale all8/69/bitexact butactualfullprovider0.698..0.860x. Do notproposeblockscale/DOT2equivalentagain.",
+    "781": "Universal cold BF16bank229negative,309MiB realfootprint; no modelwidecache.",
+    "823": "Get+Set~10us vs3.2msfullMoE, no supportedglobalRuntimeguard rewrite.",
+    "639": "PPpipeline/deferredfeedback alreadyworks; no same scheduler; CCL/blank totals notremovablewall.",
+    "EP_Common": "r3848 Common genericEPConfig/factory supports ep_size==tp_size anddense FusedMoeExperts, not provenhybrid8x2 MXFP4 Kimi caller. CurrentKimi explicitlyignores it."
+  },
+  "evidence_SHA256": {
+    "r856-mmac-audit.json": "a5efea2b1998deed6df9230bf5e85153072fb257cb49f47e3f78eaaf03dd5a6d",
+    "r900-padding-audit.json": "680e75a85d3be404dc67886340b3efbfa5995b7bab9e11716f5772e0c640a344",
+    "r903-hybrid-audit.json": "e0675f6db6bc40c965cef5bcab78f2bfb9d5d9ae04e759f4df9555a9457c7f8d",
+    "r910-persistent-hybrid-audit.json": "a332690d79f2ef2eb7002843e057cdf805dd373fcd40a1f2111dec41a94fcb59",
+    "r943-fdot2-audit.json": "8256fb0cfd60a20daf4455402d9fb7f8f4765225ee8b735c854a5d67fd175ce7",
+    "Kimi639-profile-compact-r8677.json": "1303fae8b477dbb93954cf95290e72ce6a50ccde27614f038b1baca1e18378bb",
+    "Kimi793-provider-PMC-compact-r8669g.json": "d52f92e83a03173a1d3f58e9a77edc614a28f6d8a04d739f059fbc48c170bad3",
+    "Kimi651-full-model-positive-compact-r8669zh.json": "261f8c85a096e61c4690383a4c1cc80c5f8ac0e35b585c708d2ea430b559d820"
+  },
+  "new_TU_upload_GPU_Model_Git": false
+}
