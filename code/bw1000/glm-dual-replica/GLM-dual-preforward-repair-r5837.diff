@@ -1,0 +1,41 @@
+--- glm_dual_clock_r5833.py renamed-only
++++ glm_dual_clock_r5837.py
+@@ -149,10 +149,13 @@
+             active = replica in self.phase.active
+             if active:
+                 histories = self.phase.rows[replica]
+-                assert len(generated) == len(stopped) == 16
+-                assert all(type(v) is bool for v in stopped)
+-                assert generated == [[v['id'] for v in h] for h in histories], 'receipt/owner final IDs mismatch'
+-                assert stopped == [bool(h and h[-1]['id'] in self.eos) for h in histories]
++                if generated == stopped == [] and not quality:
++                    assert not any(histories), 'pre-forward rejection cannot hide emitted decisions'
++                else:
++                    assert len(generated) == len(stopped) == 16
++                    assert all(type(v) is bool for v in stopped)
++                    assert generated == [[v['id'] for v in h] for h in histories], 'receipt/owner final IDs mismatch'
++                    assert stopped == [bool(h and h[-1]['id'] in self.eos) for h in histories]
+             else:
+                 assert generated == stopped == [], 'inactive replica emitted decisions'
+             self.done[replica] = quality
+--- glm_dual_probe_r5834.py renamed-only
++++ glm_dual_probe_r5837.py
+@@ -440,14 +440,14 @@
+                 try:
+                     row=generate(label,i512_inputs,8,True,128,set(payload['chat_eos_token_ids']),False,1,True,False,True,'I512',0,False,-1,True)
+                 except CandidateRejected as exc:
+-                    local_ok=False;row=report.get('last_completed_generation')
++                    local_ok=False;last=report.get('last_completed_generation');row=last if last and last['phase']==label else None
+                     report['dual_quality_rejection']=str(exc);save()
+             outcome=None
+             if participant==emitter:
+-                assert not active or row is not None
++                assert not active or not local_ok or row is not None
+                 outcome=dual_request('dual_done',label,quality=local_ok,
+-                    generated=row['generated_ids']if active else[],
+-                    stopped=row['stopped_at_EOS']if active else[])
++                    generated=row['generated_ids']if active and row is not None else[],
++                    stopped=row['stopped_at_EOS']if active and row is not None else[])
+             agreed=torch.tensor([float(outcome['qualified'])if participant==emitter else 0.],device='cuda');control(agreed)
+             assert agreed.item()in(0.,1.)
+             report['dual_phase_results'].append({'label':label,'active':active,'qualified':agreed.item()==1.})
