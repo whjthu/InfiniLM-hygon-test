@@ -1,0 +1,49 @@
+{
+  "CPU_only": true,
+  "GPU": false,
+  "rows": [
+    [
+      "910407.191",
+      "GLM-quant-pair-CPU-r8833",
+      "FAILED",
+      "1:0",
+      "00:00:07"
+    ]
+  ],
+  "receipt": {
+    "completed": false,
+    "producer": "910407.191",
+    "GPU": false,
+    "dlopen": false,
+    "failure": "AssertionError(('prepare', '-r3672/include/infini/ops.h:5,\\n                 from /refactor/candidates/rebased-5f91ad7-r3668/Model/GLM/InfiniLM/csrc/execution/submit.hpp:6,\\n                 from /refactor/incoming/glm_attention_quant_pair_r8832.cpp:6:\\n/refactor/install/hygon-glm-5f91ad7-r3672/include/infini/operator_call_instantiations.h:8425:50: warning: ‘CausalSoftmaxInfinilm’ is deprecated: Migrate to an open-source-aligned operator when available. [-Wdeprecated-declarations]\\n 8425 |   static std::unique_ptr<Operator<::infini::ops::CausalSoftmaxInfinilm>> Make(const Config& config, const Tensor& input, const Tensor& out);\\n      |                                                  ^~~~~~~~~~~~~~~~~~~~~\\nIn file included from /refactor/install/hygon-glm-5f91ad7-r3672/include/infini/operator_call_instantiations.h:528,\\n                 from /refactor/install/hygon-glm-5f91ad7-r3672/include/infini/ops.h:5,\\n                 from /refactor/candidates/rebased-5f91ad7-r3668/Model/GLM/InfiniLM/csrc/execution/submit.hpp:6,\\n                 from /refactor/incoming/glm_attention_quant_pair_r8832.cpp:6:\\n/refactor/install/hygon-glm-5f91ad7-r3672/include/base/causal_softmax_infinilm.h:16:1: note: declared here\\n   16 | CausalSoftmaxInfinilm : public Operator<CausalSoftmaxInfinilm> {\\n      | ^~~~~~~~~~~~~~~~~~~~~\\n/refactor/incoming/glm_attention_quant_pair_r8832.cpp: In constructor ‘infinilm::models::glm_moe_dsa::AttentionPrepare::AttentionPrepare(infinilm::runtime::Runtime&, const json&, const infinilm::engine::distributed::RankInfo&)’:\\n/refactor/incoming/glm_attention_quant_pair_r8832.cpp:66:53: error: no match for ‘operator=’ (operand types are ‘std::unique_ptr<infinilm::layers::RoPE>’ and ‘std::shared_ptr<infinilm::layers::RoPE>’)\\n   66 |  rope_=shared_rope_r3783::get(r,64,64,maximum_,theta);\\n      |                                                     ^\\nIn file included from /usr/include/c++/11/memory:76,\\n                 from /refactor/candidates/rebased-5f91ad7-r3668/Model/GLM/InfiniLM/csrc/layers/rotary_embedding/../../weights/weights.hpp:4,\\n                 from /refactor/candidates/rebased-5f91ad7-r3668/Model/GLM/InfiniLM/csrc/layers/rotary_embedding/rope.hpp:3,\\n                 from /refactor/incoming/glm_shared_rope_r3783.hpp:2,\\n                 from /refactor/incoming/glm_attention_quant_pair_r8832.cpp:1:\\n/usr/include/c++/11/bits/unique_ptr.h:386:9: note: candidate: ‘template<class _Up, class _Ep> typename std::enable_if<std::__and_<std::__and_<std::is_convertible<typename std::unique_ptr<_Up, _Ep>::pointer, typename std::__uniq_ptr_impl<_Tp, _Dp>::pointer>, std::__not_<std::is_array<_Up> > >, std::is_assignable<_T2&, _U2&&> >::value, std::unique_ptr<_Tp, _Dp>&>::type std::unique_ptr<_Tp, _Dp>::operator=(std::unique_ptr<_Up, _Ep>&&) [with _Up = _Up; _Ep = _Ep; _Tp = infinilm::layers::RoPE; _Dp = std::default_delete<infinilm::layers::RoPE>]’\\n  386 |         operator=(unique_ptr<_Up, _Ep>&& __u) noexcept\\n      |         ^~~~~~~~\\n/usr/include/c++/11/bits/unique_ptr.h:386:9: note:   template argument deduction/substitution failed:\\n/refactor/incoming/glm_attention_quant_pair_r8832.cpp:66:53: note:   ‘std::shared_ptr<infinilm::layers::RoPE>’ is not derived from ‘std::unique_ptr<_Tp, _Dp>’\\n   66 |  rope_=shared_rope_r3783::get(r,64,64,maximum_,theta);\\n      |                                                     ^\\nIn file included from /usr/include/c++/11/memory:76,\\n                 from /refactor/candidates/rebased-5f91ad7-r3668/Model/GLM/InfiniLM/csrc/layers/rotary_embedding/../../weights/weights.hpp:4,\\n                 from /refactor/candidates/rebased-5f91ad7-r3668/Model/GLM/InfiniLM/csrc/layers/rotary_embedding/rope.hpp:3,\\n                 from /refactor/incoming/glm_shared_rope_r3783.hpp:2,\\n                 from /refactor/incoming/glm_attention_quant_pair_r8832.cpp:1:\\n/usr/include/c++/11/bits/unique_ptr.h:371:19: note: candidate: ‘std::unique_ptr<_Tp, _Dp>& std::unique_ptr<_Tp, _Dp>::operator=(std::unique_ptr<_Tp, _Dp>&&) [with _Tp = infinilm::layers::RoPE; _Dp = std::default_delete<infinilm::layers::RoPE>]’\\n  371 |       unique_ptr& operator=(unique_ptr&&) = default;\\n      |                   ^~~~~~~~\\n/usr/include/c++/11/bits/unique_ptr.h:371:29: note:   no known conversion for argument 1 from ‘std::shared_ptr<infinilm::layers::RoPE>’ to ‘std::unique_ptr<infinilm::layers::RoPE>&&’\\n  371 |       unique_ptr& operator=(unique_ptr&&) = default;\\n      |                             ^~~~~~~~~~~~\\n/usr/include/c++/11/bits/unique_ptr.h:395:7: note: candidate: ‘std::unique_ptr<_Tp, _Dp>& std::unique_ptr<_Tp, _Dp>::operator=(std::nullptr_t) [with _Tp = infinilm::layers::RoPE; _Dp = std::default_delete<infinilm::layers::RoPE>; std::nullptr_t = std::nullptr_t]’\\n  395 |       operator=(nullptr_t) noexcept\\n      |       ^~~~~~~~\\n/usr/include/c++/11/bits/unique_ptr.h:395:17: note:   no known conversion for argument 1 from ‘std::shared_ptr<infinilm::layers::RoPE>’ to ‘std::nullptr_t’\\n  395 |       operator=(nullptr_t) noexcept\\n      |                 ^~~~~~~~~\\n'))",
+    "commands": [
+      [
+        "/usr/bin/g++",
+        "-I/refactor/candidates/glm-transient-layer-r5681/src",
+        "-I/refactor/candidates/glm-transient-layer-r5681/src",
+        "-std=c++17",
+        "-O2",
+        "-fPIC",
+        "-D_GLIBCXX_USE_CXX11_ABI=1",
+        "-I/refactor/candidates/glm-deferred-attention-model-5f91ad7-r5096/src",
+        "-I/refactor/incoming",
+        "-I/refactor/candidates/rebased-5f91ad7-r3668/Model/GLM/InfiniLM/csrc",
+        "-I/refactor/install/hygon-glm-5f91ad7-r3672/include",
+        "-I/refactor/install/hygon-glm-5f91ad7-r3672/include/infiniccl",
+        "-I/refactor/candidates/rebased-5f91ad7-r3668/Model/GLM/InfiniLM/third_party/json/include",
+        "-I/refactor/candidates/rebased-5f91ad7-r3668/Model/GLM/InfiniLM/third_party/spdlog/include",
+        "-I/opt/dtk/cuda/cuda/include",
+        "-pthread",
+        "-MD",
+        "-MF",
+        "/refactor/candidates/glm-quant-pair-r8833/prepare.d",
+        "-c",
+        "/refactor/incoming/glm_attention_quant_pair_r8832.cpp",
+        "-o",
+        "/refactor/candidates/glm-quant-pair-r8833/prepare.o"
+      ]
+    ]
+  },
+  "results/GLM-quant-pair-CPU-r8833-launch.json": "{\n  \"CPU_only\": true,\n  \"dlopen\": false,\n  \"GPU\": false,\n  \"source_manifest_SHA256\": \"b30ab56d5d4aef2a47683342b8f3f164461c313d069e27f8a8931158cfd5743f\",\n  \"args\": [\n    \"srun\",\n    \"--jobid=910407\",\n    \"--overlap\",\n    \"--exact\",\n    \"--kill-on-bad-exit=1\",\n    \"-N1\",\n    \"-n1\",\n    \"-c4\",\n    \"-w\",\n    \"a14r2n20\",\n    \"--gres=none\",\n    \"--mem=4096M\",\n    \"-t\",\n    \"00:05:00\",\n    \"--job-name=GLM-quant-pair-CPU-r8833\",\n    \"--output=/public/home/aclsylqidf/hygon-inference-refactor-20261014/logs/GLM-quant-pair-CPU-r8833-%J.log\",\n    \"env\",\n    \"WAVE_INSIDE_R2323=GLM_quant_pair_CPU_r8833_inside.sh\",\n    \"bash\",\n    \"/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/resource_wave_local_r3097_outer.sh\",\n    \"probe\"\n  ],\n  \"actual_node\": \"a14r2n20\",\n  \"utc\": \"2026-10-24T18:31:16.438240+00:00\",\n  \"no_replay\": true,\n  \"pid\": 53372\n}",
+  "logs/GLM-quant-pair-CPU-r8833-controller.log": "srun: error: a14r2n20: task 0: Exited with exit code 1\nsrun: Terminating StepId=910407.191\n"
+}
