@@ -1,0 +1,95 @@
+--- sealed8562_Delta.cpp
++++ kimi_k3_delta_attention_CCL512_r8603.cpp
+@@ -5,6 +5,7 @@
+ #include "kimi_owned_indices_r1213.hpp"
+ #include "kimi_k3_kda_trace.hpp"
+ #include "execution/submit.hpp"
++#include "engine/distributed/communication_group.hpp"
+ #include "../../weights/weights.hpp"
+ #include "../../layers/normalization/rmsnorm.hpp"
+ #include "kimi_k3_delta_attention.hpp"
+@@ -31,6 +32,11 @@
+ #include <utility>
+ 
+ namespace infinilm::models::kimi_k3 {
++inline std::array<std::array<std::atomic<uint64_t>,3>,8> ccl512_counts_r8603{};
++extern "C" int modern_kimi_CCL512_counts_r8603(int device,uint64_t*out,size_t n){
++    if(device<0||device>=8||!out||n!=3)return 1;
++    for(size_t i=0;i<3;++i)out[i]=ccl512_counts_r8603[device][i].load();return 0;
++}
+ // Default-OFF scoped uniform512 prefill candidate; no weight/layout changes.
+ inline std::array<std::array<std::atomic<uint64_t>,3>,8> prefill512_counts_r8562{};
+ extern "C" int modern_kimi_prefill512_counts_r8562(int device,uint64_t*out,size_t n){
+@@ -53,6 +59,44 @@
+ 
+ 
+ namespace {
++
++// Private actual constructed type; KDA header/base pointer layout is unchanged.
++class Prefill512RowR8603 final : public infinilm::layers::linear::RowParallelLinear {
++public:
++    using infinilm::layers::linear::RowParallelLinear::RowParallelLinear;
++    infinilm::runtime::Tensor forward_prefill512(
++        infinilm::runtime::Runtime &runtime, infinilm::runtime::Tensor &input) const {
++        // Unsupported scopes use the original actual provider unchanged.
++        if (tp_size_ != 8 || !communicator_ || runtime.isGraphRecording()
++            || runtime.device().type() != infinilm::runtime::Device::Type::kHygon
++            || input->dtype() != infinilm::runtime::DataType::kBFloat16
++            || input->ndim() != 3 || input->size(0) != 1
++            || input->size(1) <= 512 || input->size(1) > 8192
++            || input->size(1) % 512 || has_bias() || alpha() != 1.0F
++            || output_dtype() != input->dtype()) {
++            return infinilm::layers::linear::RowParallelLinear::forward(runtime,input);
++        }
++        runtime.assertOwnerThread();
++        auto output = compute_linear(runtime,input); // Original fullM local GEMM.
++        const size_t tokens=input->size(1),width=output->shape().back();
++        if(width!=7168 || !output->is_contiguous())
++            throw std::logic_error("8603 actual contiguous KDA output geometry");
++        auto matrix=output->view({tokens,width});
++        if(matrix->data()!=output->data() || !matrix->is_contiguous()
++            || matrix->strides().size()!=2 || matrix->strides()[0]!=width
++            || matrix->strides()[1]!=1)
++            throw std::logic_error("8603 zero-copy KDA output view");
++        for(size_t pos=0;pos<tokens;pos+=512){
++            auto part=matrix->narrow({{0,pos,512}});
++            if(!part->is_contiguous() || part->data()!=output->data()+pos*width*2)
++                throw std::logic_error("8603 actual zero-copy512 row slice");
++            infinilm::engine::distributed::allreduce_(runtime,part,part,infinicclSum,communicator_);
++        }
++        auto &counts=ccl512_counts_r8603.at(runtime.device().index());
++        counts[0].fetch_add(1);counts[1].fetch_add(tokens);counts[2].fetch_add(tokens/512);
++        return output;
++    }
++};
+ 
+ void checked_construction_rank(infinilm::runtime::Runtime &runtime,
+                                const engine::distributed::RankInfo &rank_info) {
+@@ -210,7 +254,7 @@
+         this->bind_child("g_proj", g_proj_);
+         o_norm_ = std::make_shared<infinilm::layers::RMSNorm>(runtime, head_dim_, eps, infinilm::runtime::DataType::kFloat32);
+         this->bind_child("o_norm", o_norm_);
+-        o_proj_ = std::make_shared<infinilm::layers::linear::RowParallelLinear>(
++        o_proj_ = std::make_shared<Prefill512RowR8603>(
+             runtime, projection_size, hidden_size, false, dtype,
+             rank_info.tp_rank, rank_info.tp_size, rank_info.comm);
+         this->bind_child("o_proj", o_proj_);
+@@ -506,6 +550,18 @@
+     // KDA layers. This includes the existing same-owner collective per row;
+     // it deliberately avoids new broadcast-batched GEMM or unproven reduction.
+     auto result = [&]() {
++        const char *cc=std::getenv("INFINILM_KIMI_CCL512_R8603");
++        if(cc && std::string(cc)!="0" && std::string(cc)!="1")
++            throw std::invalid_argument("8603 flag must be0or1");
++        const char *eligible=std::getenv("INFINILM_KIMI_PREFILL512_ELIGIBLE_R8562");
++        if(cc && std::string(cc)=="1" && eligible && std::string(eligible)=="1"
++            && batch_size==1 && seq_len>512 && seq_len<=8192 && seq_len%512==0){
++            // This object was constructed as this private derived type above.
++            // Checked RTTI, never an arbitrary base-to-derived reinterpretation.
++            auto selected=std::dynamic_pointer_cast<Prefill512RowR8603>(o_proj_);
++            if(!selected)throw std::logic_error("8603 actual constructed Row type");
++            return selected->forward_prefill512(runtime,gated);
++        }
+         const int mode = infinilm::models::kimi_native::spec_math_mode_r3676(runtime);
+         const bool selected = mode == 4 || mode >= 6 || ((mode == 3 || mode == 5) && layer_idx_ == 1);
+         if (!selected) return o_proj_->forward(runtime, gated);
