@@ -1,0 +1,95 @@
+{
+  "revision": 8555,
+  "scope": "Actual602 fiveprojection\u00d78rank prefill components only, noModel/TPS",
+  "root_GPU_GO": "REQUIRED_NOT_YET_GRANTED",
+  "incoming_source_SHA256": {
+    "launch_Kimi_projection_bundle_r8555.py": "ca022742b4c1dffaa9063de7b26976f1f0425e02235ed28f762b0ad7f53fc311",
+    "Kimi_projection_bundle_r8555_inside.sh": "3358a9f3c3f355be4b30b184df136d5266451b08c448e5864e6f18de389dca8e",
+    "kimi_projection_bundle_r8555.py": "d27c93362be8d287f6c15425ff0f89cf2143b034195aaca7b09ada418abfc4ae"
+  },
+  "existing_remote_SHA256": {
+    "candidates/Kimi-projection-component-r8553/libKimi_projection_component_r8553.so": "2f95714e5ad65776ce55b0fe55de468ced3286a5edf08f8ba70077622394d796",
+    "candidates/Kimi-projection-bundle-r8552/operands.json": "e5ed4c833cd4b145734a3d3d080ccf7e320ff4e6fc75e6a3995ed28e20cebdc7",
+    "candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/python/infinilm/_lib/libinfinilm_runtime.so": "04a6a1a86c97d176e4304b9bb4c1d6fcb8550784beaa47e0f5841fb7603ffabf",
+    "install/hygon-kimi-5f91ad7-r3672/lib/libinfiniops.so": "6d5a6204f7eef70e84deb9cc737a36c6ae2c1fbc75a0f70645557c8441ed85ca",
+    "install/hygon-kimi-5f91ad7-r3672/lib/libinfinirt.so": "e78b7b4aed105e5968fc598f60a2cacafcaf7c07c13dd4a971abfbdd92d47560",
+    "install/hygon-kimi-5f91ad7-r3672/lib/libinfiniccl.so": "76eb65adacc8a6832970991ca276b32562543b7fb7e8dd09cda9f4c269f24809"
+  },
+  "CPU_native": {
+    "handle": "910406.171",
+    "terminal": "COMPLETED0",
+    "elapsed_s": 8,
+    "source_SHA256": "9cb0c68e81cd5ca78f0d173ff15d7ab0b36649039c8b29e33532d77c62ca09ec",
+    "library_SHA256": "2f95714e5ad65776ce55b0fe55de468ced3286a5edf08f8ba70077622394d796",
+    "actual_MD_header_count": 582,
+    "dlopen": false,
+    "change": "Only existing608 CAPI N/K whitelist; same actual2475 provider"
+  },
+  "source_callee_map": {
+    "qkv": "input[7168] to4608, q/k/v local1536 concat",
+    "f_a": "input[7168] to128 replicated control; no observed602targetdiff",
+    "f_b": "Actual captured f_a[128] to1536; gate_projected",
+    "beta": "input[7168] to12; observedtargetdiff rank5/6",
+    "g_proj": "input[7168] to1536; output_gate_input"
+  },
+  "actual_operands": {
+    "manifest_SHA256": "e5ed4c833cd4b145734a3d3d080ccf7e320ff4e6fc75e6a3995ed28e20cebdc7",
+    "ranks": 8,
+    "operations": 40,
+    "cases_per_op": 2,
+    "O_M": 512,
+    "W_M": 2048,
+    "target_rows": [
+      0,
+      512
+    ],
+    "all_companions_preserved": true,
+    "raw_snapshot_bytes": 613908480,
+    "new_weight_bytes": 711000064,
+    "raw_storage": "REMOTE_ONLY",
+    "scales": null,
+    "bias": null,
+    "native_weight_readback": "NOT_CAPTURED; all originalO/W fulloutputreplay prerequisite perrank"
+  },
+  "single_factor": "Same actual2048rows/provider, four512-row calls. Perop originalinput fixed; f_a->f_b candidate composition checked separately using actual computed candidatef_a output.",
+  "timing": {
+    "host_buffers": "Preallocated and sharedCPUinput readcache; validation/hash outside timed sample",
+    "warmup_bundles": 4,
+    "order": [
+      "A",
+      "B",
+      "B",
+      "A",
+      "A",
+      "B",
+      "B",
+      "A"
+    ],
+    "per_op": "Complete CAPI wall including H2D/D2H/alloc, inherited native Cast/Gemm/sync span separately; not pure kernel timer",
+    "bundle": "Timing wraps only5CAPI calls; no validation/persistence/weightsload inside",
+    "no_new_perop_sync": true
+  },
+  "requested_GPU": {
+    "parent": "910375",
+    "node": "a02r4n08",
+    "cards": 8,
+    "cpus": 16,
+    "memory_MiB": 32000,
+    "hardlimit_minutes": 10,
+    "new_root_fresh_lease_required": true
+  },
+  "expected_first_result_minutes": [
+    2,
+    3
+  ],
+  "expected_all_result_minutes": [
+    3,
+    5
+  ],
+  "GPU_budget": "Named tensors/cached percontext conservatively <=4GiB/card; extra native runtime/SDKworkspace UNKNOWN, card64GiB. Fivecontexts/rank all destroy beforeprocess exit.",
+  "host_budget": "SharedCPUinput perrank readcache; arrays+comparisons<1GiB/rank estimate plus torch/process. 32GiB reserved; total unique raw+weight1.325GB remainsremote.",
+  "stop": "If any original op fullO/W notfaithful perrank, skip allcandidate/ABBA onthat rank, preserve actualdiagnosis/normalclose; finite errors stop ownindependent worker. No blind Model/retry.",
+  "acceptance": "Component target equality/stability only. Allusers/fullModel finalIDs/EOS and serviceperformance NOT_MEASURED.",
+  "source_parent": "608 actualfaithful rank0 QKV + 602raw, no newcapture/reset/QA",
+  "mechanical_device_fix": "Before CDLL/Runtime create, torch.set_num_threads(1), assert8visibledevices, torch.cuda.set_device(device). No CAPI/math/operands/ABBA changes."
+}
