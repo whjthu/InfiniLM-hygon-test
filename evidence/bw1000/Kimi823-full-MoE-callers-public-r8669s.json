@@ -1,0 +1,232 @@
+{
+  "decision": "ACTUAL_FULL_MOE_CALLER_DIAGNOSTIC_COMPLETE_NO_PERFORMANCE_PROMOTION",
+  "actual_handle": "910374.823",
+  "terminal": {
+    "JobID": "910374.823",
+    "State": "COMPLETED",
+    "ExitCode": "0:0",
+    "NodeList": "a02r4n01",
+    "observed_utc": "2026-10-24T14:27:52.365851+00:00"
+  },
+  "post_KFD": {
+    "utc": "2026-10-24T14:27:52.624325+00:00",
+    "node": "a02r4n01",
+    "step": "910374.824",
+    "kfd_pids": [],
+    "ib0_ipv4": [
+      "12.1.2.61"
+    ],
+    "passed": true,
+    "CUDA_initialized": false,
+    "IPv4_source": "Linux SIOCGIFADDR ib0; no external binary"
+  },
+  "watch_errors": 0,
+  "normal_owners": 8,
+  "normal_CUDA_cleanup": true,
+  "result_SHA256": "1e9eca723659f73404e121b90a7209304075ab143a1de1b08d69823c1be5e0f6",
+  "source_commit": "49d53bf140e47577e6833fa4341ef8688cec939e",
+  "entry_SHA256": "d57cfa63e9628229ab80751358ced8df1ff5d877b78bfb7bda7f13ffd7924784",
+  "manifest_SHA256": "fbf0116033eb2274b91fb9e3f5286efb9a0f61cc228ac7a1bc8cb4a3a77ec849",
+  "adapter_SHA256": "2721e1a67b5b626842449093f387586a11c6f42900a354c864f3d42455a0f87c",
+  "sampler_SHA256": "f0eb0fe7448c9d5acc34171dc77265f5aef4e28d67c62c652e830eb0769a3d4d",
+  "fixture": {
+    "producer": "910373.2050 historical6110/8778audited",
+    "shape": [
+      16,
+      7168
+    ],
+    "dtype": "BF16",
+    "past": 512,
+    "SHA256": "0d0f2385a5006dfe0ac1b6f9ad6539fe5793393aca4bc4125eaf135a0ae47e4a",
+    "scope": "Retainedfirst-two-layer TP8PP1 teacherforceddecode input, originalB64gold first16requests. Current183 fullMoEL1 replay/SpecMath0/serving1; not literal639whole93runtime/laterlayertraffic."
+  },
+  "loading": {
+    "CPU_weight_seconds": 20.816031911876053,
+    "CPU_weight_bytes": 16102205952,
+    "weight_count": 5384,
+    "native_session_seconds": 9.863013163674623,
+    "Slurm_elapsed_seconds": 73
+  },
+  "ordinary_and_instrumented_full_MoE_wall": [
+    {
+      "arm": 0,
+      "kind": "warm",
+      "owner_min_ms": 5478.839372,
+      "owner_median_ms": 5490.3228995,
+      "owner_max_ms": 5502.214749
+    },
+    {
+      "arm": 1,
+      "kind": "ordinary",
+      "owner_min_ms": 3.260701,
+      "owner_median_ms": 3.275746,
+      "owner_max_ms": 3.281931
+    },
+    {
+      "arm": 2,
+      "kind": "instrumented",
+      "owner_min_ms": 46.247001,
+      "owner_median_ms": 46.323121,
+      "owner_max_ms": 46.355882
+    },
+    {
+      "arm": 3,
+      "kind": "instrumented",
+      "owner_min_ms": 3.561891,
+      "owner_median_ms": 3.6112469999999997,
+      "owner_max_ms": 3.614252
+    },
+    {
+      "arm": 4,
+      "kind": "ordinary",
+      "owner_min_ms": 3.121561,
+      "owner_median_ms": 3.135471,
+      "owner_max_ms": 3.140931
+    }
+  ],
+  "provider_delta_all40": [
+    1,
+    16,
+    0,
+    0
+  ],
+  "full_output_ownrepeat_all40_exact": true,
+  "output_files": 40,
+  "API_counts_each_owner_each_profiled_forward": [
+    {
+      "phase": "fullMoEforward",
+      "API": "hipGetDevice",
+      "calls": 46
+    },
+    {
+      "phase": "fullMoEforward",
+      "API": "hipSetDevice",
+      "calls": 36
+    },
+    {
+      "phase": "fullMoEforward",
+      "API": "hipMemcpyAsync",
+      "calls": 0
+    },
+    {
+      "phase": "fullMoEforward",
+      "API": "hipStreamSynchronize",
+      "calls": 0
+    },
+    {
+      "phase": "outercompletiondrain",
+      "API": "hipGetDevice",
+      "calls": 1
+    },
+    {
+      "phase": "outercompletiondrain",
+      "API": "hipSetDevice",
+      "calls": 1
+    },
+    {
+      "phase": "outercompletiondrain",
+      "API": "hipMemcpyAsync",
+      "calls": 0
+    },
+    {
+      "phase": "outercompletiondrain",
+      "API": "hipStreamSynchronize",
+      "calls": 1
+    }
+  ],
+  "conclusions": [
+    "Actualforward device queries/setters reached allocation/ReusableMemoryPool, dense_projection/TopKRouter, originalallreduce and HygonGemmHandle. OriginalRuntime7-method candidate does not cover these paths.",
+    "Within these4APIexports noforward memcpyAsync orStreamSync observed; singleoutercompletiondrain is explicitCAPI completion, not proven removable.",
+    "Get+Set native call time totals160901ns across16owner-forwards, approximately10.06microseconds perowner-forward arithmeticmean. This is not measured recoverablewall; cumulative API sums overlap and are not Modelcriticalpath.",
+    "Firstinstrumented forward ~46ms and second~3.6ms versus ordinary~3.2ms show sampler perturbation; nativeAPIcounts cannot be extrapolated into ModelTPSgain.",
+    "No new optimizedkernel/Runtime/globalguard/TLScache orModelqualification. Source-backed attribution complete; no furtherGPUauthorized by thisreport."
+  ],
+  "limits": "Sparsefirst2/every17families not exactcallerfamily totals. Only4exports, unknownsymbols retained. Ordinaryarms stilltransparentinterposer wrappers. Finite/sameinputoutputrepeat iscomponentdiagnostic, not completeModeltoken/EOS acceptance. Client/userthroughputNOT_MEASURED. Rawactivations/fullstacks/weights remainremote. Prior811FAILED89/post812,816FAILED1/post817 and819FAILED1/post820 preserved as engineeringfailures, not performance rounds.",
+  "full_CPU_analysis": {
+    "file": "Kimi823-full-MoE-callers-final-r8669s.json",
+    "SHA256": "d59a9dcb2c06786387f9515148ad0a0adb9ddf017346439ac963ae6e067baf24",
+    "remote_analysis_SHA256": "d69e2a894ee481b0d9be3dddda90ddd416f79faf051d2c0fd676fbcb85e88baf"
+  },
+  "actual_sampled_callers": {
+    "GetDevice": [
+      "Runtime::allocateMemory -> Tensor::empty -> dense_projection",
+      "ReusableMemoryPool::allocate",
+      "Runtime::allocateMemory -> KimiK3MoE::forward",
+      "HygonGemmHandle::Current -> BlasGemm"
+    ],
+    "SetDevice": [
+      "ReusableMemoryPool::allocate",
+      "Runtime::allocateMemory -> TopKRouter::forward",
+      "distributed::allreduce_ -> KimiK3MoE::forward"
+    ],
+    "outerdrain": [
+      "Runtime::syncStream -> explicit component completion"
+    ]
+  },
+  "instrumented_cumulative_API_time": [
+    {
+      "phase": "fullMoEforward",
+      "API": "hipGetDevice",
+      "calls": 736,
+      "native_ns": 95071,
+      "wrapper_ns": 349899566,
+      "sampled_records": 64
+    },
+    {
+      "phase": "fullMoEforward",
+      "API": "hipSetDevice",
+      "calls": 576,
+      "native_ns": 65830,
+      "wrapper_ns": 19621906,
+      "sampled_records": 64
+    },
+    {
+      "phase": "fullMoEforward",
+      "API": "hipMemcpyAsync",
+      "calls": 0,
+      "native_ns": 0,
+      "wrapper_ns": 0,
+      "sampled_records": 0
+    },
+    {
+      "phase": "fullMoEforward",
+      "API": "hipStreamSynchronize",
+      "calls": 0,
+      "native_ns": 0,
+      "wrapper_ns": 0,
+      "sampled_records": 0
+    },
+    {
+      "phase": "outercompletiondrain",
+      "API": "hipGetDevice",
+      "calls": 16,
+      "native_ns": 2540,
+      "wrapper_ns": 465820,
+      "sampled_records": 16
+    },
+    {
+      "phase": "outercompletiondrain",
+      "API": "hipSetDevice",
+      "calls": 16,
+      "native_ns": 2490,
+      "wrapper_ns": 631207,
+      "sampled_records": 16
+    },
+    {
+      "phase": "outercompletiondrain",
+      "API": "hipMemcpyAsync",
+      "calls": 0,
+      "native_ns": 0,
+      "wrapper_ns": 0,
+      "sampled_records": 0
+    },
+    {
+      "phase": "outercompletiondrain",
+      "API": "hipStreamSynchronize",
+      "calls": 16,
+      "native_ns": 20578855,
+      "wrapper_ns": 20806695,
+      "sampled_records": 16
+    }
+  ]
+}
