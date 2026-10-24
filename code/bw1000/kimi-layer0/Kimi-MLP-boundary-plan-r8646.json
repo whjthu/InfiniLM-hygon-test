@@ -1,0 +1,37 @@
+{
+  "status": "CPU_SOURCE_PREPARED_NOT_COMPILED_NOT_GPU",
+  "source": "kimi_k3_moe_MLP_boundary_r8646.cpp",
+  "source_SHA256": "21cafeea08a8399e09245ce3933e3d741880980ba88522eae52082d324dc6369",
+  "base_source_SHA256": "02612a6903cd262417c8d0f57e4edbeccf79048bffd3476cc99b2d46f22ae377",
+  "base_object_SHA256": "33ad6fc01b70a4e66b8061deea330bc52266911929b01b986fe94c19d20aa9ae",
+  "actual_MD_critical_headers_SHA256": {
+    "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/runtime/runtime.hpp": "c127b4cf91ab3b64721efe7c9a3e90a84cca9e35dc004ddb6abd9c5e067896d4",
+    "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/runtime/tensor.hpp": "dfc787f233bef2fb5888d0954440746334386023bad3f6207164024b377eb658",
+    "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/models/kimi_k3/kimi_k3_moe.hpp": "3f415dcb1585d2236397bde988bdbbec4a0d73dc48fe2e2b371310b706ac67fd",
+    "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/models/kimi_k3/../../config/../layers/quantization/quantization.hpp": "c801dc8ecb1e5499e42e607f07a4b195fc98447541471f6c023f4069424e96fc",
+    "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/models/kimi_k3/../../config/../layers/quantization/base_quantization.hpp": "e1aa152de58b9b057f8e3ab6c80526b352d78baa05210e2bfcc9540b1e86550e",
+    "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/models/kimi_k3/../../config/../layers/quantization/none_quantization.hpp": "2426c4f48ebbae55a92722ec261b68eb9ecb73d1bf1a385cc29728daf5cb316e",
+    "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/models/kimi_k3/../../layers/linear/linear.hpp": "811cc1c0ed04c9e045b7e7fe88dec7c28c79f79767d1656acb0ffdab6f646310",
+    "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/models/kimi_k3/../../layers/linear/base_linear.hpp": "cc4d6e0c8bfbc24dc3f588ce20c2d3a8df28a5b66a2d0e9d1cab26f1fc5c2029",
+    "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/models/kimi_k3/../../layers/linear/fused_linear.hpp": "2fe235572f88368920fde3334909925ed5eb0ce308cfcc4d5741511639555c16"
+  },
+  "change": "Only same MoE TU MLP forward+file-local helper; no constructor/member/class/header/Common/SDK changes; all nonMLP text identical",
+  "diag": "DefaultOFF 4 snapshots gate/up/activated/row_reduced, all actual full companion rows all8TP; MLP lacks ForwardContext, does not misuse KDA active scope. New per-arm mlp-rank journal separate from old boundary parser.",
+  "single_factor": "Preserve original full fused combined storage {1,2048,8448}, gate/up narrow rowstride8448; DefaultOFF and unique layer0-component optin. Native GateUp M2048->4xM512 with real input views; original SituAndMul dtype/config/betas and original Down fullM/CCL unchanged. Noneligible fallback original. Not Model/shared MLP global candidate.",
+  "planned_base": "Model183 f6f10c2b... / Common2e145860... / Runtime04a6a1... / original 187 layer0 wrapper; substitute sole actual8174 moe.o. No wholeSDK/Model rebuild. New MD must select original8174 private helper headers plus actual Modelheaders.",
+  "raw_budget": {
+    "MLP_width": 4224,
+    "points": [
+      "gate",
+      "up",
+      "activated",
+      "row_reduced"
+    ],
+    "bytes_per_token_per_rank": 39680,
+    "six_arms_2O512_4N2048_bytes": 2925527040,
+    "seven_arms_with_one_candidate2048_bytes": 3575644160,
+    "combined_with_old_KDA_boundary_upper_plan_bytes": 17179869184,
+    "note": "Source only. Final runlist/budget pending root review; old6arm raw ~6.5GB, finer six arms2.93GB; one candidate adds0.65GB. 16GiB conservative whole-session metadata/raw bound, not RAM request."
+  },
+  "future_gate": "Existing O621 boundary exact; O own-repeat; correctedN own-repeat; first differing finer point selects whether GateUp-only candidate is causally relevant. Candidate not evaluated when inputs/gate chain fail source-faithfulness. No GPU allowed by this source preparation."
+}
