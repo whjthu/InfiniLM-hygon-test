@@ -1,0 +1,71 @@
+{
+  "status": "CPU_TOOL_OPTIONS_CONFIRMED_GFX936_PMC_RUNTIME_NOT_QUALIFIED",
+  "prior_evidence": "639 records timestamps only; no saved hardwarePMC W13/W2 counters found. 8692/507 proves 8spawn trace visibility only, notPMC.",
+  "actual_tools": {
+    "hipprof": {
+      "ELF_SHA256": "5fe2db93fb58b7c4e6e5cbf792fa90f81bb660ff54c3556dead235294f3b6a94",
+      "options": "--pmc --pmc-off --pmc-type2 --kernel-name --kernel-profile-mode",
+      "help_evidence": "r1729-hipprof-help.json",
+      "current_host_help": "libnsl.so.1 absent onSSH host; not evidence containerPMC unavailable"
+    },
+    "rocprof": {
+      "path": "/opt/dtk/rocprofiler/bin/rocprof",
+      "actual_h_command": "ExecutedCPUhelp return1 withusage; noGPU/Model",
+      "options": "--list-basic --list-derived -i metrics.txt/xml -o CSV; kernel filter supports comma separated exactsubstrings; one pmc line required toavoid automatic app reruns",
+      "metrics_SHA256": "5ba7b0b93404196807b898c940ab4a033b5566c0ee2e71c05636c99f1dc5d093",
+      "architecture_definition_tags": [
+        "gfx8_expr",
+        "gfx9_expr",
+        "gfx940_expr",
+        "gfx10_expr",
+        "gfx11_expr",
+        "global"
+      ],
+      "gfx936_mapping": "NOT_PROVEN bygenericgfx9xml; requires actualdevice listing/collection"
+    }
+  },
+  "minimum_metric_questions": {
+    "memory": [
+      "FetchSize",
+      "WriteSize",
+      "L2CacheHit",
+      "MemUnitBusy"
+    ],
+    "execution": [
+      "VALUInsts",
+      "SALUInsts",
+      "VALUBusy",
+      "VALUUtilization",
+      "Wavefronts"
+    ],
+    "known_limits": [
+      "No explicit MFMA/INT-vs-FP VALU split found in actualselectedmetricfiles. Do not relabelgenericVALU asintegerconversion.",
+      "No qualified residentoccupancy formula found; SQ_LEVEL_WAVES rawlevel event needs ACCUM_PREV semantics. KeepoccupancyUNKNOWN unlessactualtoolexports calibratedmetric.",
+      "Use actualreportedunits/formulas; counterreplaywall notnormalperformance; avoid fixedregisterINT4TOPS roofline."
+    ]
+  },
+  "finite_proposal": {
+    "resource": "PROPOSED910374/n01 8DCU/c64/128000M/hard10min; freshSlurm/KFD/host32GiB/readywatch; rootGPU_GO_REQUIRED",
+    "reuse": "8667actualL1TP8checkpointloader andcaptured21/seed229 T16 fixtures, originalactualpacked.o355607f2 provider grouped4/staticW2; bothpackedflagsOFF. NoColdBF16candidate, noModel/CCL/Runtime.",
+    "sequence": [
+      "Atentry, insideactualDTKcontainer listPMCmetrics/device; gfx936missing/permissionfailure/unsupportedSTOP beforeweightload. Do notassumeCLIhelp=driverqualification.",
+      "Oneweightload perrank; ordinaryPMCoff2warm+3completeprovider event/hostsamples bothfixtures. Originaloutputsfinite/ownrepeat andmetadata checked, notnewfullnetworkbitgate.",
+      "Rank0only boundedPMCwindow, other7ownersidle: originalW13 andoriginalW2 onceperfixture, atmost4selecteddispatches. Ordinarytimings remainseparate frominstrumenteddiagnostic.",
+      "Close8workers/originalaudit/unique postKFD. Missing/zero/corruptcounters or unsupportedPMC ->stopwithspecificerror, noModelreload/toolgrid."
+    ],
+    "one_minimal_host_wrapper": "Ifnecessary, CPU1TU launch-only CAPI linkedtoactualpacked.o, declaresoriginalW13/W2 hoststubs, noGPUmathrecompile. Preparecounts/routes viaoriginalfullprovider beforePMC; insidewindow callonlyidempotentW13/W2 withsameactualoperands. Nevercapture/replay packRoutes atomiccounts kernel.",
+    "control_qualification": "hipprof--pmc-off +rank0hipProfilerStart/Stop isPROPOSED, notprovedbyoldtrace. Mustverify actualselectedkernelcounterCSV and noPMCsamplesordinaryphase. IfdynamicPMCcontrol/filtereddispatch cannotbeprovenSTOP, notpretend ordinaryphaseunprofiled.",
+    "selected_metric_count": "Prefer vendorbasicexport(--pmc-type2) withonly4selecteddispatches ifhipprofdoesnotexposeexplicitmetricselection; export/interpret onlyabove minimumset. rocprof explicitonepmcline mayrequirepassesthatmustremainoutsideperformancetiming. Noassumption allmetricssimultaneouslyfit hardware.",
+    "outcomes": "Measuredmemorytraffic/VALUload/hardwareoccupancywhereavailable; unsupporteddimensionsUNKNOWN. Nooptimizationgain/ModelTPSclaim."
+  },
+  "CPU_only": true,
+  "new_GPU": false,
+  "new_Model": false,
+  "evidence_SHA256": {
+    "r1729-hipprof-help.json": "fe6148a69bbdfa55ef52d45f4927c2af6611530df231ae398fe4732f1e285163",
+    "Kimi-PMC-tools-r8669e.json": "15ca028b3efadddbab93cac14ffb3ff1f84c5a5ec94ea95c0c1f6c72467145a4",
+    "Kimi-PMC-metrics-r8669e.json": "b0bd5de59616ef12a84d7cd5a0bca4b188522decbd9113518d5e5406d06238fc",
+    "Kimi-PMC-CLI-r8669e.json": "1820e883911637b6c6e0e786c4bb6c4051aea17758d214d554f6e403a5200e5e",
+    "Kimi-rocprof-metrics-r8669e.json": "4efa36bf11f8b0fae101b44600d3dd0e3ea0e687ecec5213890c3303a344ef7d"
+  }
+}
