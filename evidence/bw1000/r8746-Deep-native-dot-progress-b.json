@@ -1,0 +1,251 @@
+{
+  "launch": {
+    "created_utc": "2026-10-24T12:36:48.762328+00:00",
+    "state": "GPU_srun_returned_watch_same_handle",
+    "label": "Deep-native-dot-r8745",
+    "parent": "910374",
+    "node": "a02r4n05",
+    "scope": "Actual retained591 TP0 routed32rows, 8 independent replicas, native dot4 vs original software dp4a, NOT Model TPS",
+    "pid": 3765650,
+    "watcher_pid": 3765629,
+    "submitted_utc": "2026-10-24T12:36:51.132501+00:00",
+    "srun_returncode": 1,
+    "returned_utc": "2026-10-24T12:37:47.918185+00:00"
+  },
+  "controller_tail": "",
+  "watch": {
+    "ready": true,
+    "label": "Deep-native-dot-r8745",
+    "actual_handle": "910374.799",
+    "terminal": {
+      "JobID": "910374.799",
+      "State": "FAILED",
+      "ExitCode": "1:0",
+      "NodeList": "a02r4n05",
+      "observed_utc": "2026-10-24T12:37:51.569380+00:00"
+    },
+    "post_KFD": {
+      "utc": "2026-10-24T12:37:51.918354+00:00",
+      "node": "a02r4n05",
+      "step": "910374.800",
+      "kfd_pids": [],
+      "ib0_ipv4": [
+        "12.1.2.65"
+      ],
+      "passed": true,
+      "CUDA_initialized": false,
+      "IPv4_source": "Linux SIOCGIFADDR ib0; no external binary"
+    },
+    "read_errors": 0,
+    "actual": {
+      "JobID": "910374.799",
+      "State": "FAILED",
+      "ExitCode": "1:0",
+      "NodeList": "a02r4n05"
+    },
+    "result_exists": true,
+    "CPU_result_audit_returncode": 1,
+    "CPU_result_audit_stdout": "",
+    "CPU_result_audit_stderr": "Traceback (most recent call last):\n  File \"/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/verify_Deep_native_dot_r8745.py\", line 2, in <module>\n    p=pathlib.Path(sys.argv[1]);d=json.loads(p.read_text());assert d['completed']and d['no_Model_TPS'];arms=[0,1,1,0,0,1,1,0,0,1,1,0,0];assert d['arms']==arms and d['formal_trials']==list(range(4,12));assert sorted(o['dev']for o in d['owners'])==list(range(8));assert d['weight_keys']==1536\n                                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
+    "result_SHA256": "0e588ff585e49af41223868cce7e6dd41b165248910d63683532ea069ae0fc16",
+    "error_warning_lines": [
+      "WARNING: Could not find any rocm files on this host!",
+      "WARNING: Environment variable TMPDIR already has value [/tmp], will not forward new value [/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/runtime-raw-sdk-graph-r2323-910374.799-rank0] from parent process environment",
+      "WARNING: /opt/hyhal/lib/cmake/rocm_smi doesn't exist, please install the latest driver(version >= 6.3.15)",
+      "Traceback (most recent call last):",
+      "    if code:raise RuntimeError(lib.deep_native_dot_error_r8742().decode())",
+      "RuntimeError: 2392 owner mask too narrow for eight disjoint requested subsets"
+    ],
+    "qualified_component_only": false
+  },
+  "result_exists": true,
+  "result_SHA256": "0e588ff585e49af41223868cce7e6dd41b165248910d63683532ea069ae0fc16",
+  "result": {
+    "completed": false,
+    "step": "910374.799",
+    "scope": "Eight concurrent independent TP0 routed-component replicas, each same retained591 real fourprefillprompts last8rows =32rows. NOT TP8 collective execution, not699decode/32users/ModelTPS. Originalquant+W13+Clamp+SiluAndMul+quant+W2+routeweight+Sum+originaldrain retained. Only dp4a lowering changed.",
+    "library_SHA256": "0fd6ffbb354900425e97a36d43eb4b56269f82032cac2995b80d0fa17387e5cb",
+    "CPU_receipt_SHA256": "c58a2991dc85ddbaac39e51498a164a1a9542ccac8383dbbb67d4a116522dbbf",
+    "providers": {
+      "deep_native_dot_forward_r8742": {
+        "path": "/refactor/candidates/deep-native-dot-r8743/libdeep_native_dot_r8743.so",
+        "SHA256": "0fd6ffbb354900425e97a36d43eb4b56269f82032cac2995b80d0fa17387e5cb"
+      },
+      "deep_routed_dot_sdot4_r8740": {
+        "path": "/refactor/candidates/deep-native-dot-r8743/libdeep_native_dot_r8743.so",
+        "SHA256": "0fd6ffbb354900425e97a36d43eb4b56269f82032cac2995b80d0fa17387e5cb"
+      },
+      "deep_routed_dot_r20": {
+        "path": "/refactor/candidates/deep-tailSUM-r7212/libdeep_tailSUM_full_r7212.so",
+        "SHA256": "0e0512551483457af01944e9c9298442f499d959836a1c5b66dfa438a3c6c4ea"
+      },
+      "deep_routed_validate_r20": {
+        "path": "/refactor/candidates/deep-tailSUM-r7212/libdeep_tailSUM_full_r7212.so",
+        "SHA256": "0e0512551483457af01944e9c9298442f499d959836a1c5b66dfa438a3c6c4ea"
+      }
+    },
+    "no_Model_TPS": true,
+    "performance_adopted": false,
+    "input_proof": [
+      {
+        "name": "ffn_norm",
+        "source_SHA256": "38422ffbfad9a8cc33d2a128f725649a5753e07c51b4a443782b0ee0cb5a7773",
+        "selected_SHA256": "256ff9d3a5d0be9815191b291401a19a2cbb4e8a455429106675de8b5ea8653c",
+        "shape": [
+          32,
+          4096
+        ]
+      },
+      {
+        "name": "moe_indices",
+        "source_SHA256": "4217cd123f46a7d44de04824156a8911d3f1d11195b7ebe300125cfcb9c1410a",
+        "selected_SHA256": "38425d500f45749eff1987e8e13a7fb9af608743f27730983aaafece79b43e84",
+        "shape": [
+          32,
+          6
+        ]
+      },
+      {
+        "name": "moe_weights",
+        "source_SHA256": "04353c690044915ef901aa222a7fb4dec25083ee381278180cf5f441c68973f4",
+        "selected_SHA256": "e160ad69043545eb6a256455daa34b9ac1ffa3ed257db70aff948705f45af2c8",
+        "shape": [
+          32,
+          6
+        ]
+      }
+    ],
+    "selected_prefill_tensor_rows": [
+      504,
+      505,
+      506,
+      507,
+      508,
+      509,
+      510,
+      511,
+      1016,
+      1017,
+      1018,
+      1019,
+      1020,
+      1021,
+      1022,
+      1023,
+      1528,
+      1529,
+      1530,
+      1531,
+      1532,
+      1533,
+      1534,
+      1535,
+      2040,
+      2041,
+      2042,
+      2043,
+      2044,
+      2045,
+      2046,
+      2047
+    ],
+    "input_prepare_seconds": 0.08484923932701349,
+    "CPU_checkpoint_read_hash_slice_seconds": 9.39580640476197,
+    "full_source_tensor_bytes_read_hashed": 6450839552,
+    "weight_keys": 1536,
+    "source_weight_manifest_SHA256": "21efc8ee645ed29d2f3c8a490e8429a501dfd05b6680212d08ab23b0527b2390",
+    "TP0_bank_SHA256": [
+      "36486557e7ffc4f9b3da1b890248c1fa8f8a9c2bab6197e4ce1a641fe807e7a6",
+      "29a535f966b1faf0ceb00329072f105bb9f83697ebaa6098d97432919a6d07c8",
+      "02f866159920345edc7cbdf7aa8c7542145c8baf9129c0334826d32eb20a163b",
+      "8a199fe17c97a048d09d41893118267dd8da3c208a7a6557a479c8de04505164"
+    ],
+    "CPU_bank_bytes": 810024960,
+    "arms": [
+      0,
+      1,
+      1,
+      0,
+      0,
+      1,
+      1,
+      0,
+      0,
+      1,
+      1,
+      0,
+      0
+    ],
+    "warm_trials": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "formal_trials": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "restore_trial": 12,
+    "error": "RuntimeError('2392 owner mask too narrow for eight disjoint requested subsets')",
+    "traceback": "Traceback (most recent call last):\n  File \"/refactor/incoming/Deep_native_dot_r8745.py\", line 80, in <module>\n    with concurrent.futures.ThreadPoolExecutor(max_workers=8)as pool:report['owners']=list(pool.map(owner,range(8)))\n  File \"/usr/lib/python3.10/concurrent/futures/_base.py\", line 621, in result_iterator\n    yield _result_or_cancel(fs.pop())\n  File \"/usr/lib/python3.10/concurrent/futures/_base.py\", line 319, in _result_or_cancel\n    return fut.result(timeout)\n  File \"/usr/lib/python3.10/concurrent/futures/_base.py\", line 458, in result\n    return self.__get_result()\n  File \"/usr/lib/python3.10/concurrent/futures/_base.py\", line 403, in __get_result\n    raise self._exception\n  File \"/usr/lib/python3.10/concurrent/futures/thread.py\", line 58, in run\n    result = self.fn(*self.args, **self.kwargs)\n  File \"/refactor/incoming/Deep_native_dot_r8745.py\", line 66, in owner\n    barrier.wait(timeout=180);begin=time.perf_counter();cpu=time.thread_time();check(lib.deep_native_dot_forward_r8742(ctx,mode,ptrs));end=time.perf_counter();cpuseconds=time.thread_time()-cpu;native=json.loads(lib.deep_native_dot_report_r8742().decode());assert native['mode']==mode and native['native_gate_calls']==mode and native['native_down_calls']==mode\n  File \"/refactor/incoming/Deep_native_dot_r8745.py\", line 30, in check\n    if code:raise RuntimeError(lib.deep_native_dot_error_r8742().decode())\nRuntimeError: 2392 owner mask too narrow for eight disjoint requested subsets\n",
+    "driver_wall_includes_CPUweights_H2D_readback_seconds": 12.341213155072182
+  },
+  "owner_files": [
+    {
+      "dev": 0,
+      "calls": 0,
+      "closed": true,
+      "error": "RuntimeError('2392 owner mask too narrow for eight disjoint requested subsets')"
+    },
+    {
+      "dev": 1,
+      "calls": 0,
+      "closed": true,
+      "error": "RuntimeError('2392 owner mask too narrow for eight disjoint requested subsets')"
+    },
+    {
+      "dev": 2,
+      "calls": 0,
+      "closed": true,
+      "error": "RuntimeError('2392 owner mask too narrow for eight disjoint requested subsets')"
+    },
+    {
+      "dev": 3,
+      "calls": 0,
+      "closed": true,
+      "error": "RuntimeError('2392 owner mask too narrow for eight disjoint requested subsets')"
+    },
+    {
+      "dev": 4,
+      "calls": 0,
+      "closed": true,
+      "error": "RuntimeError('2392 owner mask too narrow for eight disjoint requested subsets')"
+    },
+    {
+      "dev": 5,
+      "calls": 0,
+      "closed": true,
+      "error": "RuntimeError('2392 owner mask too narrow for eight disjoint requested subsets')"
+    },
+    {
+      "dev": 6,
+      "calls": 0,
+      "closed": true,
+      "error": "RuntimeError('2392 owner mask too narrow for eight disjoint requested subsets')"
+    },
+    {
+      "dev": 7,
+      "calls": 0,
+      "closed": true,
+      "error": "RuntimeError('2392 owner mask too narrow for eight disjoint requested subsets')"
+    }
+  ],
+  "numeric_tail": "LOCAL_PYCACHE_R3097 node=a02r4n05 filesystem=tmpfs root=/dev/shm/infini-pyc-910374.799-0\nSHARED_CACHED_R1780_START node=a02r4n05 step=910374.799 scratch=runtime-raw-sdk-graph-r2323-910374.799-rank0\nWARNING: Could not find any rocm files on this host!\nWARNING: Environment variable TMPDIR already has value [/tmp], will not forward new value [/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/runtime-raw-sdk-graph-r2323-910374.799-rank0] from parent process environment\nWARNING: /opt/hyhal/lib/cmake/rocm_smi doesn't exist, please install the latest driver(version >= 6.3.15)\nThe rocm_smi_lib will be used in default\n{\"CPU_preflight_passed\": true, \"env_key\": \"INFINILM_OWNER_CPU_WIDTH_R2392\", \"requested_width\": 4, \"actual_affinity_verified\": false, \"actual_gate\": \"Read actual worker owner report under configured width after Engine; missing terminal report remains unverified, never fabricated\"}\nTraceback (most recent call last):\n  File \"/refactor/incoming/Deep_native_dot_r8745.py\", line 80, in <module>\n    with concurrent.futures.ThreadPoolExecutor(max_workers=8)as pool:report['owners']=list(pool.map(owner,range(8)))\n  File \"/usr/lib/python3.10/concurrent/futures/_base.py\", line 621, in result_iterator\n    yield _result_or_cancel(fs.pop())\n  File \"/usr/lib/python3.10/concurrent/futures/_base.py\", line 319, in _result_or_cancel\n    return fut.result(timeout)\n  File \"/usr/lib/python3.10/concurrent/futures/_base.py\", line 458, in result\n    return self.__get_result()\n  File \"/usr/lib/python3.10/concurrent/futures/_base.py\", line 403, in __get_result\n    raise self._exception\n  File \"/usr/lib/python3.10/concurrent/futures/thread.py\", line 58, in run\n    result = self.fn(*self.args, **self.kwargs)\n  File \"/refactor/incoming/Deep_native_dot_r8745.py\", line 66, in owner\n    barrier.wait(timeout=180);begin=time.perf_counter();cpu=time.thread_time();check(lib.deep_native_dot_forward_r8742(ctx,mode,ptrs));end=time.perf_counter();cpuseconds=time.thread_time()-cpu;native=json.loads(lib.deep_native_dot_report_r8742().decode());assert native['mode']==mode and native['native_gate_calls']==mode and native['native_down_calls']==mode\n  File \"/refactor/incoming/Deep_native_dot_r8745.py\", line 30, in check\n    if code:raise RuntimeError(lib.deep_native_dot_error_r8742().decode())\nRuntimeError: 2392 owner mask too narrow for eight disjoint requested subsets\n"
+}
