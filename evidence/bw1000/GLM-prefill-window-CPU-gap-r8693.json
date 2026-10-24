@@ -1,0 +1,47 @@
+{
+  "CPU_only": true,
+  "GPU_GO": false,
+  "state": "PREFILL_OBSERVATION_HOOK_REVIEW_NEEDED_NOT_PERMANENT_ROUTE_REJECTION",
+  "utc": "2026-10-24T08:46:37.306339+00:00",
+  "Model": "Current1af0B16M8/TP8PP2/I512O128/cache16x640/VON-TOFF/resident38/40/sharedON/crossOFF; original5848 fullgold/QA/normal/post required",
+  "source_SHA256": {
+    "glm_model_window_r5797.cpp": "0ef9739d29f2797879f48ca12c81f79e02e74aa4f47407bbd4018177de0063bc",
+    "glm_model_window_r5797.hpp": "95c720c6feacc03a58e3070d3f8aa7ce4e079a0d8c5443c847eeea0394bd8ae7",
+    "glm_window_control_r5819.py": "d2f620dd3fe293f159604aeb53ca3ca3d97f181b233fff3ed4fa81c3aa19015a",
+    "glm_lowbatch_profile_r8219.py": "71cc0505fc3270d3a0f0aa910abfe85f5bdf9f7e52b406c1f7b0e2d5348b75c6",
+    "glm-window-r5797-src/glm_moe_dsa_balanced_text_model_r126.cpp": "d94016e3adc4ffccac58adc24aef415c7069ad2503cb21e230f12753c0b2ad98",
+    "glm-window-r5797-src/modern_glm_cached_model_bridge_r809.cpp": "08d0a7b69b5e89e87141c34a1fd5396b91068f334a9ed7bbd5d3a5306a87fc3a",
+    "glm-window-r5797-src/glm_layer_bridge_r5670.cpp": "3ca3f9a68e96bfae6529273c93863bb220025eb1d2cb160da156c50740a784cb"
+  },
+  "proven_tool": "8692 eight spawned owners each hipProfilerStart/Stop0+sum120+exactPIDdeviceHIPOPS, original507/508closed. Does not prove boundedintraCAPIprefill control.",
+  "existing_native_hard_contracts": {
+    "glm_model_window_r5797.cpp:17": "request_matches: i<8,row=cohort*8+i,past=512+round-1,count1",
+    "glm_model_window_r5797.cpp:22": "arm accepts round63..65/cohort0..1 only; requires prepared512event pool and owner Runtime",
+    "glm_model_window_r5797.cpp:24": "enter fixed layer38/stage1; mark queues events in original stream; read_after_CAPI only queries after original drain",
+    "glm-window-r5797-src/glm_moe_dsa_balanced_text_model_r126.cpp:73": "Additional hard guard requests.size8,tokens8 before Scope. Python-only step0 change cannot enableprefill.",
+    "glm-window-r5797-src/modern_glm_cached_model_bridge_r809.cpp:209": "prepare only READY+EMPTY+drained; keep this ownership/lifetime guard"
+  },
+  "existing_TLS": "OwnerProfile.capture(prof-label,step0) reads same-owner 6fields incoming/layers/outgoing host+stream. Stream intervals include waits/enqueue gaps, fields overlap and cannot sum intoGPUbusy. Existing5321/498 data consistentstage0~36s,stage1~38s percohort; stage1hostlayers~74s includesPPincomingdependency.",
+  "shortest_current_safe_profiler_scope": "Start/Stop outside synchronousCAPI only: one full4096token/stage38or40layer forward. Current API cannot choose shortprefilllayer.",
+  "trace_budget": {
+    "structural_GEMM_dispatches_one_stage0_rank_one_cohort": 311296,
+    "all16owners_two4096cohorts": 10223616,
+    "exclusive_kernel_count_or_wall": "UNKNOWN; GEMMdispatch is structural, maylaunchmultiplekernels. Not hardwareutilization.",
+    "raw_upper_bytes": "UNKNOWN. HundredsMB-to-GB risk evenoneowner fromhundredsthousandkernel+APIevents; noverifiedupperbound. Tiny273277B doesnot scale safely.",
+    "45min_closure": "Knownmaxload911.51s/firsttimedforward1119.79s plusbaselineI512full128~165s; diagnosticfull128~165s uninstrumented,QA/shutdown/post andprofiler slowdownUNKNOWN. Cannot close45min guarantee forblindfullprefilltrace.",
+    "decision": "Do not launchblindfullprefill. ModelGO deferred to concrete boundedhook review."
+  },
+  "minimal_existing_event_hook_candidate": {
+    "type": "Boundedqueue-only prefillsinglelayer timing, no new math/kernel/framework; pendingAstra review, not implemented/compiled",
+    "TUs": [
+      "glm_model_window_r5797.cpp: extend explicitseparateprefillmode withround0/past0/count512 and fixed8rows/4096tokens, preservedecodecontract; allowselectedfixedlayer with stageidentity",
+      "glm_moe_dsa_balanced_text_model_r126.cpp: change Scopevalidity to acceptonlyexplicitprefillcontract, keep originalrequests/forward/order; currenttokens8 guard otherwise rejects",
+      "glm_model_window_r5797.hpp: onlyiftypedmode/APIdeclarationneeded; preserveclass/tensor/KVownership"
+    ],
+    "unchanged_reuse": "Existing markerprovider glm_layer_bridge_r5670.cpp:30 routes marks to boundedpool; existingbridgeexports can remainifarmmode encodedwithoutABIchange. Existing originalCAPI drain/read/512pool/normalclose retained. NoextraGPU sync/newstream/weight/cache/mathchange.",
+    "measurement": "Same-input firstprefill fullgold baseline thenone diagnosticfull128 samegeometry same-load; perlayer attention/FFN/CCL adjacent event/hostCPU timings only. NoexclusiveGPUbusy/kernelhotspot claim."
+  },
+  "if_actual_kernel_trace_required": "Need a separate minimal native observationstart boundary and provenstop-after-drain. SimplyhipProfilerStart atlayerenter maycapturequeuedpriorlayerwork; Stop atlayerfinish beforeCAPI drain mayomitpendingkernels. Existingwindowevents avoidthis but arenot kerneltrace. A fixedlastlayer77 start + existingdrain thenownerPythonStop limitsremainingenqueue work, yet priorqueuebound/exclusivewindow mustbeprovenbeforequalification; do notsilentlyaddsync orforeignthreadtimer.",
+  "specific_next_question_for_Astra": "Is one small2TU event-onlyprefillwindow amendment worthusingin nextnecessarysame-load baseline/diagnostic, insteadofrepeatfullload orunboundedhipprof? If hardwarekernelnames essential, requireexplicitboundedstart/stop/draincontractfirst.",
+  "causal_limit": "GLM501 M4 tokenfailure causeUNKNOWN after originalstep0 margins/fullrowmapping. NoM4retest/newnativefix inferred."
+}
