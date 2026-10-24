@@ -1,0 +1,133 @@
+{
+  "revision": 8551,
+  "scope": "ACTUAL_QKV_CAUSAL_COMPONENT_QUALIFIED; MODEL_FINALTOKENS_NOT_QUALIFIED; PERFORMANCE_NA",
+  "actual": {
+    "handle": "910375.608",
+    "state": "COMPLETED0",
+    "elapsed_s": 62,
+    "node": "a02r4n08",
+    "cards": 1,
+    "root_public_GO": "8bb720a",
+    "normal_close": true,
+    "unique_post": {
+      "handle": "910375.609",
+      "passed": true,
+      "KFD_pids": []
+    },
+    "watch_errors": 0
+  },
+  "prior_harness_failure": {
+    "handle": "910375.605",
+    "state": "FAILED1/2s",
+    "reason": "Missing libtorch_python search path before Context/GPU create",
+    "unique_post": "910375.606 empty",
+    "fixed_without_native_rebuild": true
+  },
+  "actual_provider": {
+    "native_SHA256": "5117786f63d6a8ac0a46ad31637ca923458a225d6461d3507f791d4b91c2dea2",
+    "operands_manifest_SHA256": "26af700781641399c643050a44d4d66ac212a1c5390cd042100c38bb0a215b86",
+    "function": "unchanged actual dense_prefill_f32_r2475; BF16->F32 Gemm->BF16",
+    "all_real_companions_preserved": true,
+    "weight_native_readback": "NOT_CAPTURED; original O/W full output replay now passed"
+  },
+  "faithful_original_O_W_reproduced": true,
+  "baseline": [
+    {
+      "label": "Oconfirm",
+      "actual_full_token_range": [
+        0,
+        512
+      ],
+      "target_token_range": [
+        0,
+        512
+      ],
+      "elements": 2359296,
+      "changed": 0,
+      "max_abs": 0.0,
+      "nrmse": 0.0,
+      "SHA256": "6cc5507c5719b46f6d836fa64d29d47779d2d2a6ce6cb366ad19635801fff2ea",
+      "expected_SHA256": "6cc5507c5719b46f6d836fa64d29d47779d2d2a6ce6cb366ad19635801fff2ea",
+      "finite": true,
+      "full_CAPI_wall_s": 3.2622524281032383,
+      "component_wall_s": 3.256829944
+    },
+    {
+      "label": "Wmissing",
+      "actual_full_token_range": [
+        0,
+        2048
+      ],
+      "target_token_range": [
+        0,
+        512
+      ],
+      "elements": 9437184,
+      "changed": 0,
+      "max_abs": 0.0,
+      "nrmse": 0.0,
+      "SHA256": "10f7169f0081fe5a34a7b49920b9b9ef1679256321431ac63ad53bc27c0b9a53",
+      "expected_SHA256": "10f7169f0081fe5a34a7b49920b9b9ef1679256321431ac63ad53bc27c0b9a53",
+      "finite": true,
+      "full_CAPI_wall_s": 0.024581382982432842,
+      "component_wall_s": 0.003887918
+    }
+  ],
+  "single_factor": {
+    "single_factor": "Same actual2048 rows/weight; four512-row Gemm calls via unchanged actual2475 helper",
+    "return_code": 0,
+    "full_CAPI_wall_s": 0.009605804923921824,
+    "component_wall_s": 0.004437914,
+    "actual_full_token_range": [
+      0,
+      2048
+    ],
+    "target_token_range": [
+      0,
+      512
+    ],
+    "vs_original_W": {
+      "max_abs": 0.03125,
+      "nrmse": 5.446007008707068e-05,
+      "elements": 9437184,
+      "changed": 3006,
+      "firstdiff": [
+        0,
+        2283
+      ],
+      "SHA256": "ecf7bf295d1c88c3cf0063bb5d2dbd63009930ffcf65533ac80bf41dc9a1e98b",
+      "expected_SHA256": "10f7169f0081fe5a34a7b49920b9b9ef1679256321431ac63ad53bc27c0b9a53",
+      "finite": true
+    },
+    "target_vs_original_O": {
+      "max_abs": 0.0,
+      "nrmse": 0.0,
+      "elements": 2359296,
+      "changed": 0,
+      "firstdiff": null,
+      "SHA256": "6cc5507c5719b46f6d836fa64d29d47779d2d2a6ce6cb366ad19635801fff2ea",
+      "expected_SHA256": "6cc5507c5719b46f6d836fa64d29d47779d2d2a6ce6cb366ad19635801fff2ea",
+      "finite": true
+    },
+    "final_token_acceptance": "NOT_MEASURED",
+    "performance_promotion": false
+  },
+  "interpretation": [
+    "At rank0/layer0/QKV prefill, original O512 and original W2048 both reproduced every captured full output element with real companions and loader-equivalent weight.",
+    "Changing only the W2048 row partition into4x512 through the same provider restores target[0:512] exactly to original O512. This isolates row geometry as sufficient causal factor for this projection difference.",
+    "No assertion that internal bit equality is user acceptance; full model finaltokens, otherprojections and otherranks remain NOT_MEASURED for candidate.",
+    "Single cold O vs warm W/chunk measurements are unpaired and cannot establish speedup."
+  ],
+  "new_service_TPS": null,
+  "result_SHA256": "53ec531b38a52d93bcac90e2f3eab78b759076db4025e8fd3418c1764bc977d2",
+  "evidence_SHA256": {
+    "Kimi-qkv-component-observed-r8550-b.json": "eaf0b9f7da1a28b41bf436d33949e93269fb10499bc9e7ca99007809167a69b8",
+    "Kimi-qkv-component-manifest-r8549.json": "d0b0560579526fc9e8a53f16013ab5425015e2c8d0fabbb5dd637afd7acbe3dc"
+  },
+  "raw_storage": "REMOTE_ONLY",
+  "next_minimum": {
+    "CPU": "Read actual Hygon Gemm implementation/config alternatives and bind8rank operands from existing602 capture; no newModel needed.",
+    "GPU": "Fresh rootlease only if needed: onecard sequential8rank faithful O/W and same512partition. No Model reload. Alternative fixedkernel only after actualsource supports its selector.",
+    "fullmodel": "Only after component choice; one freshload with same-session original/candidate finalID/EOS acceptance, not repeatedQA/coarse. Not authorized/started."
+  }
+}

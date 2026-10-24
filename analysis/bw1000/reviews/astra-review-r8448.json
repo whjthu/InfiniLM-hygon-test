@@ -1,0 +1,67 @@
+{
+  "revision": "r8448",
+  "review": 35,
+  "reviewer": "/root/astra_review_35",
+  "scope": "Bounded CPU evidence/source review; sole write this report. Independent GPU work does not wait for review.",
+  "trigger": "EARLY: severe GLM479 final-token rejection plus avoidable Kimi harness failures CPU169/GPU605. Only 602 causal and 477 performance are completed discriminating experiments since review34. Partial479 restoration/QA/terminal is pending at review boundary; do not count it completed or treat failed timing as gain.",
+  "decision": "KEEP479_OFF_AND_FINISH_EXISTING_CLEANUP; CPU_LOGITS_AND_SOURCE_FIRST; RUN_READY_KIMI8549_AND_DEEP7342_FINITE_COMPONENTS; STOP_LARGER_B_AND_FINISHER_FUSION; SHORTEN_SOURCE_TO_FIRST_GPU",
+  "previous_five_cards": [
+    {"id":"GLM34-PREFILL-MODEL5742","outcome":"Executed actual479 using717; rejected:15/16 final sequences differ,5 first tokens differ despite all128 lengths/EOS equal. OFF72.15866 versus ON98.65677 prefill inputTPS is invalid for adoption. Counter76/80 NOT_VERIFIED because ID gate raised first. Existing restore/QA/normalclose/uniqueaudit/post still pending; no reload for review."},
+    {"id":"GLM34-FINISH477","outcome":"Completed0/53:29,16normal,uniqueaudit0/postempty; qualified16cards TP8PP2 B32M8 I512O128 resident[38,27]. Decode32.0671784 to36.11576,+12.6253%; E2E+4.6455%; prefill-0.0867% no benefit; user throughput0.80016. Qualified472 B16 decode37.99026/user1.88015 remains separate scope. Stop largerB expansion."},
+    {"id":"KIMI34-FINISH602","outcome":"Completed0/16:26,32normal,audit0/postempty. Oconfirm and oldOa all native hashes match; all8ranks earliest layer0 prefill QKV/gate differ with equal target inputs and observed actual-read beforestate. Decode QKV/gate equal but inheritedstate already differs. New causal boundary, no performance gain."},
+    {"id":"KIMI34-ACTUAL-FIRST-OP-REPLAY","outcome":"Real complete O512/W2048 operands plus66,060,288byte BF16 QKVweight ready; actualCommon2475 reused. CPU169 failed missingDTKinclude,170 succeeded9s. GPU605 failed2s before CDLL completed/CUDAinit, missinglibtorch_python;606postempty. Thus no numeric replay yet. Mechanical8549 fixes environment/importtorch only; originalnative reused. Incomplete due avoidable harness, not mathematical failure or GPU result."},
+    {"id":"DEEP34-DEFER-REUSE7288","outcome":"Correctly no timer-only Model load. Finisher fusion closed at1.6888ms traced across43layers. New bounded whole-routed component7338/7342 uses real591e0prefill32rows, not699decode; CPU718 completed11s. Original7288 still deferred; no new Deep performance result."}
+  ],
+  "source_review": {
+    "read": ["glm_crossrequest_Model_cache_view_r7328.cpp","glm_crossrequest_Model_helper_r7328.cpp","glm_crossrequest_attention_r7314.cpp","glm_selection_map_r302.hpp"],
+    "supported": "Model gate requires8 requests eachpast0/count512,4096tokens,8heads; fresh packedQKV reshapedB,L,H,D thenB,H,L,D and restored. Cache writes/length publication retained. Helper arithmetic matches715 candidate structurally, including BF16dots,F32scale,BF16round,F32softmax,BF16P. No source evidence sufficient to assert rowmix.",
+    "next_semantic_check": "fullprefix checks causal-set coverage via std::set, while selection_map_r302 preserves mapped per-row positions and replaces future IDs with a causal fallback. Set coverage alone is not a proof that old mapped_bounded handling of order/multiplicity/future masking equals canonical dense causal attention. Inspect exact linked old mode2 callee, including any internal dedup/fastpath, before alleging a bug. Historical copies are not automatically actual717 dependency evidence.",
+    "limits": "No actual479layerQKV captured. Synthetic715 error/argmax cannot prove actualModel numerical equivalence. Token swaps do not prove rowmix; unchanged packed dimensions do not exclude backend reduction differences. No new compiled source or tests in this review."
+  },
+  "cards": [
+    {
+      "id":"GLM35-CPU-REJECTION-DIAGNOSIS",
+      "owner":"glm_critical_path_profile",
+      "resource":"CPU only; same479 original handle finishes OFFrestore/QA/normalclose/audit/post independently",
+      "minimum":"Read retained remote O/N step0 BF16 logits for all16 request rows with existing prompt/request mapping. Compute finite/argmax, O top1-top2 and O winner versus N winner margins, per-row normalized/maxabs perturbation, own-row versus cross-row similarity without asserting permutation. CPU source compare actual717 old mode2 sparse path with7328 for selection order/multiplicity/masking, scale/casts and packed strides. Use real existing data; raw remains remote.",
+      "budget":"Model gain UNKNOWN; rejected observed prefill timing is only motivation. CPU target20min, no GPU, no new framework or ABI recertification.",
+      "stop":"Report explicit supported cause or unresolved boundary. Large margins with changed winners prioritize semantics; small margins only make sensitivity plausible, not proven. No candidate promotion and no repeating479 or715. Countergate remains NOT_VERIFIED."
+    },
+    {
+      "id":"GLM35-CONDITIONAL-ACTUAL-ONE-LAYER",
+      "owner":"glm_critical_path_profile/root",
+      "resource":"No allocation now. At most1 isolated GPU for real-operand replay once available; no blindfullModelcapture",
+      "minimum":"Only if CPU card isolates a concrete unresolved attention boundary, specify exact earliest-layer Q,K,V,selection,positions/request mapping and reference output needed. Reuse any retained actual operands; if absent attach one bounded capture to an independently justified future Model session. Reproduce actual baseline with same dependencies, then change one source-supported factor. No fresh fullModel load solely because synthetic715 passed.",
+      "budget":"UNKNOWN until actualattention wall/error characterized. Synthetic3.17x implies an idealized ceiling of68.5% of affectedwall only; actual share unknown and rejected479 cannot supply qualified Modelgain.",
+      "stop":"Missing realoperands: record precise gap and defer; no synthetic substitute. If baseline cannot reproduce, stop before candidate. Required finalIDs/EOS/QA stay later Model promotion criteria; intermediate bitwise equality is not user acceptance."
+    },
+    {
+      "id":"KIMI35-EXECUTE8549-FAITHFUL-REPLAY",
+      "owner":"online_service_scheduler/root",
+      "resource":"Existing freshlease protocol1GPU n08,4CPU/8GiB/5min; node availability checked by unique launcher. ReuseCPU170native, no rebuild/fullABI/Model load",
+      "minimum":"After minimal exact4runtimefiles+claim publication, run8549 with complete successful runtime environment recipe/dependency closure. Replay fullactualO512/W2048 with allcompanions and actualCommon2475 BF16castF32GEMMtoBF16 provider. Since historical nativeweightreadback absent, require faithful full original outputs as this diagnostic's provenance check. Onlythen W four512segments as singlefactor within same session.",
+      "budget":"Accepted Modelgain0; service gain UNKNOWN. Goal discriminate batch geometry arithmetic from wrong reconstructed operands/provider. CPU1695s and6052s are failed preparation, not useful rounds; completed1709s reused.",
+      "stop":"If original replay fails, name exact weight/layout/provider/output discrepancy and stop before split candidate; no automatic broad recapture. If replay succeeds, compare split target/full outputs and fullCAPIwall separately; do not turn causal improvement into performance gain. NoGPUF64."
+    },
+    {
+      "id":"DEEP35-EXECUTE7342-WHOLE-ROUTED-BUDGET",
+      "owner":"deep_remaining_cause/root",
+      "resource":"ReadyCPU718native;1GPU n04 under freshlease,8CPU/32GB/5min,810024960bytesTP0weights; noModel/CCL",
+      "minimum":"Run real591e0last8tokens each4prefillprompts,32rows. Existing3warmups,16ordinaryABBA,3sparseevent,2restore calls. Fulloriginal/privateOFF/observerONoutput checks; completeCAPI/nativewall/outputcopydrain and CPUread/H2D separated. No new per-op synchronization or extra observation matrix.",
+      "budget":"WholeModel payoff UNKNOWN; finisher1.6888ms/43layers is closed and cannot justify fusion. This component measures ordinary routed cost; neither singleGPU nor realprefill fixture can predict699decode/43layer savings.",
+      "stop":"Output mismatch or overhead comparable to attribution: stop timing inference. Small wholecomponent closes route. Only a clearly material group above repeatnoise/eventtax supports a specific optimization next; no default finisher fusion, no repeated profile or timer-only Modelload."
+    },
+    {
+      "id":"ROOT35-SHORTEN-PUBLICATION-CRITICAL-PATH",
+      "owner":"root",
+      "minimum":"Exact source review of changed logic, minimal taskclaim+runtimefiles then ordinaryGit push/SHA verification and unique finite launch. Complete necessary source handoff stays in user repository; result summaries/large report assembly follow asynchronously. Reuse successful DTK/Torch/SDK runtime recipe and check dependency closure once; do not cycle missinglibraries one by one. No API publication, fake matrices, broad unchanged environment/native revalidation, or waiting for this review.",
+      "evidence":"Kimi source-ready8547/rootGO00:23:14 to submission00:27:11 is~3m57; review/publication/queue decomposition UNKNOWN.605 starts then fails2s on loader dependency.8549 timestamp08:28:45 local; firstnewGPU timestamp UNKNOWN here. Deep sourceprep~08:20,CPU source~08:22,71811s compiled; exact ready-to-GPU lag UNKNOWN. These support eliminating avoidable serial handoff, not inventing report-caused minutes.479 actual load~964s and firstdecision~24:52 upperbound dominate native16.49s; accelerate reusable component discrimination before more Model loads.",
+      "budget":"Target source-ready to finitecomponent dispatch within5min excluding actualqueue/knownbusy resources; record available timestamps only, no timer-only work. Independent Kimi/Deep continue concurrently. Review preparation must not block already authorized work.",
+      "stop":"If blocked by a specific dependency, report that concrete missing item once; complete unaffected work. Builds, reports, polls and harness failures are not completed effective experiments."
+    }
+  ],
+  "closed_routes": ["LargerGLMB sweep after477","479adoption/repeatfullModelload","715syntheticrepeat and717rebuild","Kimi blindstate/decodeKDA blame after602","Deep finisherfusion andtimer-onlyModelload","Unchanged H2Dflag,naiveINT8/INT4 full-cost,registerpeak routes"],
+  "cadence": "Normal next review after3new effective completed discriminating experiments. Early on2same-route no-benefit outcomes,90min without new measurable candidate/cause, serious regression/conflict or recurring avoidable harness failure. This review consumes602 and477 evidence;479 remains partial until actualterminal/audit/cleanup. Do not count its rejection twice when terminal arrives; record completion/status then count once according to existing ledger policy.",
+  "promotion_contract": "Preserve original fullfinaltokenIDs/EOS/requiredQA plus normalclose/terminal qualification. All intermediate bits equal is not a user requirement. Diagnostic fidelity checks are narrow provenance controls, not expanded Model acceptance. NoGPUF64.",
+  "optimization_goal_complete": false
+}
