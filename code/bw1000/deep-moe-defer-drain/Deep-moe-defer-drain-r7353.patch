@@ -1,0 +1,19 @@
+--- /refactor/candidates/deep-tailSUM-r7212/incoming/deepseek_v4_moe_prefill_scatter_r194.cpp
++++ private/deep_moe_defer_drain_r7353.cpp
+@@ -10,6 +10,7 @@
+ extern "C" int deep_moe_tail_set_r7211(int p){if(p!=0&&p!=1)return 1;try{deep_tail_sum_r7211::initialize();namespace m=infinilm::models::deepseek_v4;std::lock_guard<std::mutex>lock(m::wide_r3443::policy_mutex);if(m::wide_r3443::in_flight)return 2;deep_tail_sum_r7211::policy.store(p);return 0;}catch(...){return 3;}}
+ extern "C" uint64_t deep_moe_tail_calls_r7211(int d,int k){if(d<0||d>=8||k<0||k>4)return UINT64_MAX;auto&c=deep_tail_sum_r7211::counts[d];return k==0?c.selected.load():k==1?c.bytes.load():k==2?c.elements.load():k==3?c.native_target.load():c.bypass.load();}
+ #include "deep_collective_layout_r7040.hpp"
++#include "deep_moe_defer_drain_r7353.hpp"
+ #include "deep_reduce_wide_r3443.hpp"
+ #include "deepseek_v4_moe_routed_r20.hpp"
+ #include "deepseek_routed_mlp_batch_r20.hpp"
+@@ -102,7 +103,7 @@
+  trace("tp_reduction");if(tp_size_>1){
+   deep_tail_sum_r7211::initialize();const bool target=deep_tail_prefill_r7211::target(r,combined);const bool selected=target&&deep_tail_sum_r7211::policy.load()==1;auto&counter=deep_tail_sum_r7211::counts.at(r.device().index());
+   if(selected){auto before=layout_r7040::counts.at(r.device().index()).pad_bytes.load();layout_r7040::reduce_moe_tail_r7211(r,combined,comm_,true);auto bytes=layout_r7040::counts.at(r.device().index()).pad_bytes.load()-before;if(bytes!=2048*4096*4)throw std::logic_error("7211 actual canonical payload differs");++counter.selected;counter.bytes.fetch_add(bytes);counter.elements.fetch_add(bytes/4);}
+-  else{layout_r7040::reduce_moe(r,combined,comm_);if(target)++counter.native_target;else ++counter.bypass;}
++  else{defer_drain_r7353::reduce_moe(r,combined,comm_);if(target)++counter.native_target;else ++counter.bypass;}
+  }
+  auto output=alloc({tokens,hidden_},rt::DataType::kBFloat16);ex::submit<infini::ops::Cast>(r,infini::ops::Cast::DefaultConfig(device_.type()),combined,output);return {output,route_weights,indices};
+ }
