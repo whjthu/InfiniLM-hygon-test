@@ -1,0 +1,102 @@
+{
+  "review": 50,
+  "date": "2026-10-24",
+  "reviewer": "/root/astra_review_50",
+  "status": "COMPLETE_EXECUTE_ORIGINAL_OWNERS_NO_REVIEW_BARRIER",
+  "scope": "本地CPU只读已有证据；唯一写入本报告；无SSH/GPU/Git操作。",
+  "consumes_once": ["910374.796", "910376.525", "910374.802"],
+  "excluded_performance_rounds": ["910374.799：重复manualpin破坏已有2392 affinity初始化，首forward前失败、0timing、post800空", "GLM CPU busyfilter误含batch/extern：未提交", "CPU编译、机械修复、轮询、上传和清理"],
+  "goal_complete": false,
+  "new_accepted_wholeModel_gain_count": 0,
+  "root_current_implementation": {
+    "status": "提前决策已派原owner执行；不是完成证明",
+    "Deep": "802已入after49round3；原owner已开始同序>64 PACK-UPLOAD CPU实现，不等本报告。",
+    "Kimi": "原owner已收到首版仅owner同device copy/memset/sync；foreign release、析构、allocator callback保原guard，禁止全TU替换。实际覆盖比例及可回收普通wall仍UNKNOWN。",
+    "GLM": "525 defaultOFF保留，暂不独立触发约13分钟Model权重加载。"
+  },
+  "decision": "停止W13 invalid-row guard和native-dot独立性能路线。Kimi唯一active卡为私有Runtime有限因果验证；Deep立即激活49 PACK-UPLOAD替补；GLM保存PV候选等下次必要整模加载，不为约3%层改善独立重载。三个原owner直接执行，审核不阻塞。",
+  "review49_followthrough": {
+    "Kimi": "49 whole-loop guard落实到actual ISA和796普通配对；21/229全部8平衡对负收益，数值零差不能挽救性能结论。STOP已落实。",
+    "GLM": "49 PV row-view落实到2f0bffb源码、fa2b7e84 DSO、525 layer38 TP8组件；两时间cycle同向改善，非仅派单；尚无新Model qualification。",
+    "Deep": "49 native dot4 CPU ISA、177 adapter及802真实组件均落实。799调用契约失败修复复用原初始化，无新编译；802完成104输出及全部清理。现有native候选不获性能晋级。PACK替补此前未实施，本轮明确激活。"
+  },
+  "accepted_evidence": {
+    "Kimi796": {
+      "source": "Kimi796-W13-valid-final-r8669j.json",
+      "scope": "真实TP0权重、单DCU，T16 captured21及seed229，组件而非整Model",
+      "complete_provider_ms_O_N": {"21": [2.450, 3.121], "229": [3.380, 5.121]},
+      "W13_ms_O_N": {"21": [1.331, 1.986], "229": [2.224, 3.982]},
+      "closure": "COMPLETED0/约40s/normal/audit/post797empty；原provider数值零差仅诊断",
+      "decision": "STOP，无进一步guard grid，无Model。ISA确实删除乘加并不等价wall改善；回归具体原因UNKNOWN。"
+    },
+    "GLM525": {
+      "source": "GLM-PV-row-component-compact-r8735.json",
+      "scope": "real checkpoint layer38 TP8/8owners、synthetic hidden I512、两臂proofON；PV copy变strided row输入，M1/count数学不变",
+      "wholelayer_percall_max_owner_mean_ms_O_N": [1171.3872005, 1137.53430775],
+      "wall_change_percent": -2.8899831529275888,
+      "two_temporal_cycle_rate_change_percent": [3.0363212732343, 2.91602609339463],
+      "closure": "COMPLETED0/146s/all8normal/auditPASS/post526empty/80callfinite",
+      "decision": "接受本组件同向小收益；不把rank当独立重复、不外推decode或整Model。defaultOFF待bundle。"
+    },
+    "Deep802": {
+      "source": "Deep802-native-dot4-component-r8749.json",
+      "scope": "720 TP0真实bank/591 retained32row，8独立同fixture副本；非TP8 collective、非699真实decode流量、无router/shared/CCL；计全部quant/W13/Clamp/Silu/quant/W2/weight/Sum/drain",
+      "native_wholeFFN_two_cycles_ms_O_N": [[1.0589805, 1.120576], [1.0510905, 1.1742715]],
+      "native_two_cycle_rate_change_percent": [-5.496771303329728, -10.489993157459754],
+      "outer_two_cycle_rate_change_percent": [0.6766064995920917, 6.755976706641365],
+      "commonhost_two_cycle_rate_change_percent": [-3.651313020863656, 3.073515830173812],
+      "closure": "COMPLETED0/约51s/all8normal/originalaudit0/post803empty；104完整F32输出零差，native gate/down执行计数1/1",
+      "decision": "功能合格；native整FFN两cycle负，outer/commonhost不一致，不挑outer升幅。defaultOFF/PARK/noModel/no更多DOT微计时；不混W16/width/layout修饰此负结果。"
+    }
+  },
+  "cards": [
+    {
+      "id": "KIMI50-OWNER-RUNTIME-NOOP-RESTORE",
+      "owner": "/root/online_service_scheduler",
+      "priority": "唯一Kimi active卡，直接decode高频host路径的有限因果验证，潜在收益UNKNOWN",
+      "sources": ["Kimi-hotpath-one-candidate-CPU-r8669k.json", "native-runtime-source-r8400.json", "actual device_guard.h SHA256 06b1ad7ec4920e906c0bace4b17b67e579139cd016bf7d50e16e05d5f3ba5712"],
+      "source_finding": "actual头same-device ctor active_=true后返回，未标restored_，析构仍SetDevice；fresh183 MD证明头依赖。8400 retained runtime.cc包含owner、foreign-thread释放、allocator、graph/cleanup不同语义，不能据17处文本命中全替换。8400本身不是现binary证明。",
+      "minimal_change": "先复用现构建MD/对象记录，最窄确认actual Runtime.cc对象映射。仅私有单host TU中已知body不泄漏device的owner copy/memset/sync路径允许同device免restore；同时检查真实type/index及owner，非owner或未知路径委托原DeviceGuard。保留跨device/nested/exception恢复。allocator、释放回调、析构、graph和任何未知第三方context mutation先保原guard；不改activate、不加TLS设备缓存、不改公共SDK。避免为判定same-device重复额外GetDevice抵消收益。",
+      "necessary_validation": "复用现CPU guard契约测试，覆盖same-device、不同type/index、nested、throw和foreign-owner fallback；同步/异常drain语义不变。映射成立后单TU构建，原真实layer/provider/route同加载OFF/ON两ABBA；普通完整组件wall+原数值+结束device状态，不能只量SetDevice本身。仅稳定、超过同轮基线漂移的收益再进入下一必要Model128 IDs/EOS/QA。",
+      "resources": "CPU n19/910406或n20/910407 c4/4GB/5min、noGPUinit；组件沿用原runner的n01/910374，必要TP8则8DCU、已支持单owner则1DCU；不用为了这张卡另造runner。fresh既有admission及唯一watch。",
+      "first_result_time": "owner开始后10-15分钟给actual映射/安全范围可行或拒绝结论；可行再约10-20分钟单TU与首组件对，排队另计。时间为估计，不能成为无限搜映射。",
+      "exit_or_replacement": "映射无法窄闭合、actual已省restore、无可证明body或组件无稳定收益即STOP；不扩公共SDK重建、不追全Model profile。已有trace/callstack若可用仅复用它定位，否则报告覆盖UNKNOWN；不为凑第二候选恢复W13/W2旧网格。"
+    },
+    {
+      "id": "DEEP50-PACK-UPLOAD",
+      "owner": "/root/glm_critical_path_profile",
+      "priority": "唯一Deep active卡；49替补现在因native真实负结果生效，仅prefill收益假设",
+      "sources": ["astra-review-49-current.json DEEP49-PACK-UPLOAD", "当前实际>64 routed forward源码及原provider依赖"],
+      "minimal_change": "确认当前prefill>64每expert两次H2D+sync后，按原排序pack完整row/routes并批量上传，逐expert narrow同一device数组；保原逐expert GEMM/scatter、dtype、排序、权重及最终drain。复用原初始化/owner affinity，不再manualpin。局部确保host/device缓冲寿命覆盖所有异步消费者；不做GroupedGEMM、不顺带改布局。",
+      "necessary_validation": "原组件一次加载两ABBA，必须执行实际>64分支且包含现有代表route规模；计pack、上传、GEMM/scatter到最终drain的完整wall，不能只计被删H2D。沿用既有finite/allclose数值标准、输出形状/route映射检查，bitexact仅诊断；<=64保原路径。稳定普通wall收益后才原Model128 IDs/EOS/QA，分别列prefill/decode、逐用户。",
+      "resources": "CPU n19/910406或n20/910407 c4/4GB/5min noGPUinit；n05/910374原短组件最多8DCU；fresh既有admission，原唯一watch至terminal/audit/post。",
+      "first_result_time": "源码核对+局部实现/单TU约10-20分钟；原组件首对再10-15分钟，排队另计；若原runner未覆盖>64只扩该输入分支，禁止新框架。",
+      "exit_or_replacement": "actual已合批、不能局部保持生命周期、数值失败或完整wall无稳定收益则STOP；不转回native-dot/W16/positions独立微计时。不得把prefill进展表述为decode突破。"
+    },
+    {
+      "id": "GLM50-PV-STAGE-FOR-NEXT-MODEL",
+      "owner": "/root/moe_decode_arithmetic_audit",
+      "priority": "唯一GLM卡为保存可用候选，无新增GPU实验",
+      "source": "2f0bffbaba95688d809eb337c931d9bbe038008f / DSO fa2b7e843f8527792c6ceb57b057f97172720bd557fb8e17bc777cc4097a10a9 / 525",
+      "minimal_change": "保留PV view defaultOFF及现组件回执，接入现有整模候选开关/manifest即可；不新建报告框架。等另一个有实证的高覆盖改动或本来就必要的整模验证时一起加载；同次加载保留能隔离PV贡献的原基线臂。",
+      "necessary_validation": "下一次必要Model仍完整128 gold IDs/EOS/QA，prefill、decode、E2E、实际逐用户first-last分别列；禁止用聚合/B代替逐用户。若bundle则不把总增益归因PV；最终质量失败即回退该候选。",
+      "resources": "本轮CPU本地整理、0新增GPU；下一必要Model复用原16卡TP8PP2同load流程，不为PV单独启动。",
+      "first_result_time": "5-10分钟内保存READY_DEFAULT_OFF即可，无需等新Model。",
+      "exit_or_replacement": "不继续PV微调、不重测501 M4、不重造已存在TLS cache。未有源码支持的decode候选不虚构第二卡；现有owner可限时复用已有decode源码证据找单点，但不因此启动新profile或整模。"
+    }
+  ],
+  "goal_and_priority": {
+    "single_user_15tok_s_achieved": false,
+    "Kimi": "639 actual32cards TP8PP4 B64M16用户均值约1.38、max2.14，均值到15约10.9倍；136.63665 instrumented结果不能与旧unwrapped133.59宣称增益。node3两轮247296 SetDevice/208160 GetDevice及458/426ms union互相和GPU重叠，不相加、不当可回收wall；私有TU实际可删数未知。",
+    "GLM": "522已合格prefill -19.18%、E2E +15.13%，decode38.7374→38.723近乎零，用户1.904→1.965，到15约7.63倍。PV约3%层改善不能填此数量级差距。",
+    "Deep": "699聚合decode57.85..58.18不是单用户速率；6.49x profile扰动不可当ordinary占比。PACK仅prefill，不能永久取代decode目标。",
+    "next_decode_decision": "本轮先用Kimi有限Runtime因果结果决定是否有可复用host方向；未验证前不跨模型推广。若该卡也负，下一轮应复用旧specK7/K15的具体负边界及已有真实decode路径证据选择突破点；没有新可改变旧结论的证据，不泛列speculation/graph/MMAC方法或重复B/M网格。"
+  },
+  "cost_and_process": {
+    "measured_cost": "Kimi796实际step约40s；GLM525 step146s、CPU176 step8s/compilelink6.465s；Deep802 step约51s，checkpoint read/hash/slice6.667s、driver含权重/H2D/readback9.242s。CPU175/177分别约8/10s。以上边界重叠不相加，step不是纯GPU计算。",
+    "unknown_cost": "源码准备、上传、排队、收尾拆分没有记录的保持UNKNOWN。GLM历史权重加载770..780s、522整step1735s，足以支持不为小组件收益重载的决策。",
+    "eliminate_avoidable_failures": "消费者复用既有batch/extern过滤与2392初始化；只修调用处，不再新增preflight/门禁。机械失败不计性能轮次，已有有限GO覆盖修复，不重求授权。",
+    "resource_accounting": "12个RUNNING holds、reserved320DCU不等于GPU利用率。保护910384 n17/n18；n19/n20坏GPU仅CPU。每个模型最多本报告一个active工作卡，独立worker继续。",
+    "root_actions": ["consume796/525/802一次，799排除", "确认W13及native-dot停止且defaultOFF", "派Kimi单TU有限验证并保未知路径原guard", "激活Deep PACK替补，无需新授权", "GLM PV READY_DEFAULT_OFF等待必要加载", "按source/上传/编译/实际step/清理记录下一首结果耗时，不加新框架"]
+  }
+}
