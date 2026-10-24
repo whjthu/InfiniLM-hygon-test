@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-10-24T16:25:29.173975+00:00",
+  "updated_at_utc": "2026-10-24T16:31:46.629321+00:00",
   "owner": "bw1000-agent",
   "hardware": "BW1000",
   "last_slurm_observation_utc": "2026-10-24T06:31:38+00:00",
@@ -251,7 +251,7 @@
     "local_poll_state": "gitignored local-only/; never committed"
   },
   "astra_review": {
-    "updated_at_utc": "2026-10-24T16:25:29.173975+00:00",
+    "updated_at_utc": "2026-10-24T16:31:46.629321+00:00",
     "policy": "coordination/ASTRA_REVIEW.zh-CN.md",
     "status": "COMPLETED_IMPLEMENTED_FOLLOWTHROUGH",
     "review_id": "astra-review-55-current",
@@ -281,12 +281,23 @@
       {
         "card": "GLM55-NEXT-NECESSARY-ENTRY-CPU-PREENGINE-FIX",
         "owner": "/root/moe_decode_arithmetic_audit",
-        "decision": "ACCEPT_CONDITIONAL",
+        "decision": "REJECT_INEFFECTIVE_QUERY_ONLY_FIX",
         "action": "Parent source finding: module-top-level preengine calls torch.cuda.current_device before worker set_device, initializing defaultGPU0 in spawned processes. Remove only this unnecessary GPU query from the CPU preengine or defer the hardware query until worker device binding; keep actual per-worker hardware checks/set_device. Use a focused CPU source/import contract check and preserve remaining SHA/geometry validation. Record startup timestamps next necessary run.",
-        "state": "PARKED_UNTIL_ACTIVATION",
+        "state": "STOP_SOURCE_CONTRACT_UNRESOLVED",
         "time_bound": "At most10min CPU edit/review, no compile/GPU campaign or new framework.",
         "activation": "Only for a later independently necessary Model entry; never mutate/import changes into live537 or reload to prove startup savings.",
-        "attribution": "Repeated default-device initialization is a concrete avoidable side effect. Its responsibility for the observed roughly40s spawn spacing is a hypothesis, not measured causal wall or Model speedup."
+        "attribution": "Repeated default-device initialization is a concrete avoidable side effect. Its responsibility for the observed roughly40s spawn spacing is a hypothesis, not measured causal wall or Model speedup.",
+        "root_correction": {
+          "utc": "2026-10-24T16:31:46.629321+00:00",
+          "status": "REJECT_INEFFECTIVE_QUERY_ONLY_PATCH",
+          "review": "astra-review-55-current.json",
+          "source": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\GLM-PP3-Model-private-r8800\\GLM_transient_preengine_r8800.py",
+          "source_SHA256": "039853531352b301125cb8d0404ef98761dd4a1941970ed4c04127e365651912",
+          "correction": "Root initial source diagnosis was incomplete. The preengine explicitly calls torch.cuda.set_device(0) before the later current_device metadata query. Deleting only the query does not remove default-device initialization.",
+          "action": "STOP query-only patch and further startup investigation in this card. Do not change live537 or its source/manifest. Preserve actual per-worker device binding/hardware checks.",
+          "uncertainty": "Existing comment ties set_device(0) to DSO static FlashAttention initialization. Safe removal and cause of40s rank spacing unproved. No new dependency investigation or GPU probe authorized by this correction.",
+          "Model_performance_claim": false
+        }
       },
       {
         "card": "KIMI55-BOUNDED-MODEL-PACKAGE",
@@ -310,7 +321,12 @@
         "activation": "Runnable package, supported3/7 flags, correctly bound current static receipt and original32card ownership/idle/admission checks pass. Root may dispatch without waiting for review56; reviewer itself authorizes no job submission.",
         "metrics": "Separate prefill elapsed/input throughput, decode aggregate useful tokens/wall, driver E2E output/wall, actual per-request TTFT and first-to-last useful-token rate/ITL. Use actual emitter timestamps including scheduling wait; no crosshost timestamp subtraction. Report request mean/min/max and repeat range; emitter-ready is not HTTP/client receipt. Aggregate/B is never measured user rate.",
         "acceptance": "Both ordinary OFF and ON use flags7; full-logit qualification uses3. Require all outputs/referenceIDs/EOS/QA, rank coverage, expected candidate counts on T16 only, no legacy wrong-shape dispatch, normal32owners,terminal0,auditpass,emptypost. All formal arm timings retained. Report both direction-balanced pair ratios plus mean/median; adopt Model benefit only if positive consistently with correctness, otherwise keepOFF. No magnitude is guaranteed by841.",
-        "attribution": "SameTP16 OFF/ON isolates I192 provider gain. Comparison to639 TP8PP4 is only descriptive: TP/PP and communication change, bit64 fast path67/71 is unavailable crossnode so flags3/7 change another performance path. Never label current-vs639 difference as only I192. Historical1634 B1 negative does not veto currentM16 candidate. No freshTP8 baseline load."
+        "attribution": "SameTP16 OFF/ON isolates I192 provider gain. Comparison to639 TP8PP4 is only descriptive: TP/PP and communication change, bit64 fast path67/71 is unavailable crossnode so flags3/7 change another performance path. Never label current-vs639 difference as only I192. Historical1634 B1 negative does not veto currentM16 candidate. No freshTP8 baseline load.",
+        "root_time_budget_adjustment": {
+          "hard_minutes": 50,
+          "inside_seconds": 2900,
+          "reason": "Original owner supplied conservative41-47minute one-load/6arm/QA budget; retain fullqualification andpairedtiming. Explicit prelaunch adjustment, no automatic timeout extension. Actual TP16 IO scaling remains unmeasured."
+        }
       },
       {
         "card": "DEEP55-STOP-I8-PROVIDER-LOOKUP",
@@ -349,7 +365,7 @@
   "Kimi_candidate_adopted": false,
   "latest_hardware_reference": "results/bw1000/2026-10-24/integer-arithmetic-qualified-reference.json",
   "latest_review": {
-    "updated_at_utc": "2026-10-24T16:25:29.173975+00:00",
+    "updated_at_utc": "2026-10-24T16:31:46.629321+00:00",
     "policy": "coordination/ASTRA_REVIEW.zh-CN.md",
     "status": "COMPLETED_IMPLEMENTED_FOLLOWTHROUGH",
     "review_id": "astra-review-55-current",
@@ -379,12 +395,23 @@
       {
         "card": "GLM55-NEXT-NECESSARY-ENTRY-CPU-PREENGINE-FIX",
         "owner": "/root/moe_decode_arithmetic_audit",
-        "decision": "ACCEPT_CONDITIONAL",
+        "decision": "REJECT_INEFFECTIVE_QUERY_ONLY_FIX",
         "action": "Parent source finding: module-top-level preengine calls torch.cuda.current_device before worker set_device, initializing defaultGPU0 in spawned processes. Remove only this unnecessary GPU query from the CPU preengine or defer the hardware query until worker device binding; keep actual per-worker hardware checks/set_device. Use a focused CPU source/import contract check and preserve remaining SHA/geometry validation. Record startup timestamps next necessary run.",
-        "state": "PARKED_UNTIL_ACTIVATION",
+        "state": "STOP_SOURCE_CONTRACT_UNRESOLVED",
         "time_bound": "At most10min CPU edit/review, no compile/GPU campaign or new framework.",
         "activation": "Only for a later independently necessary Model entry; never mutate/import changes into live537 or reload to prove startup savings.",
-        "attribution": "Repeated default-device initialization is a concrete avoidable side effect. Its responsibility for the observed roughly40s spawn spacing is a hypothesis, not measured causal wall or Model speedup."
+        "attribution": "Repeated default-device initialization is a concrete avoidable side effect. Its responsibility for the observed roughly40s spawn spacing is a hypothesis, not measured causal wall or Model speedup.",
+        "root_correction": {
+          "utc": "2026-10-24T16:31:46.629321+00:00",
+          "status": "REJECT_INEFFECTIVE_QUERY_ONLY_PATCH",
+          "review": "astra-review-55-current.json",
+          "source": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\GLM-PP3-Model-private-r8800\\GLM_transient_preengine_r8800.py",
+          "source_SHA256": "039853531352b301125cb8d0404ef98761dd4a1941970ed4c04127e365651912",
+          "correction": "Root initial source diagnosis was incomplete. The preengine explicitly calls torch.cuda.set_device(0) before the later current_device metadata query. Deleting only the query does not remove default-device initialization.",
+          "action": "STOP query-only patch and further startup investigation in this card. Do not change live537 or its source/manifest. Preserve actual per-worker device binding/hardware checks.",
+          "uncertainty": "Existing comment ties set_device(0) to DSO static FlashAttention initialization. Safe removal and cause of40s rank spacing unproved. No new dependency investigation or GPU probe authorized by this correction.",
+          "Model_performance_claim": false
+        }
       },
       {
         "card": "KIMI55-BOUNDED-MODEL-PACKAGE",
@@ -408,7 +435,12 @@
         "activation": "Runnable package, supported3/7 flags, correctly bound current static receipt and original32card ownership/idle/admission checks pass. Root may dispatch without waiting for review56; reviewer itself authorizes no job submission.",
         "metrics": "Separate prefill elapsed/input throughput, decode aggregate useful tokens/wall, driver E2E output/wall, actual per-request TTFT and first-to-last useful-token rate/ITL. Use actual emitter timestamps including scheduling wait; no crosshost timestamp subtraction. Report request mean/min/max and repeat range; emitter-ready is not HTTP/client receipt. Aggregate/B is never measured user rate.",
         "acceptance": "Both ordinary OFF and ON use flags7; full-logit qualification uses3. Require all outputs/referenceIDs/EOS/QA, rank coverage, expected candidate counts on T16 only, no legacy wrong-shape dispatch, normal32owners,terminal0,auditpass,emptypost. All formal arm timings retained. Report both direction-balanced pair ratios plus mean/median; adopt Model benefit only if positive consistently with correctness, otherwise keepOFF. No magnitude is guaranteed by841.",
-        "attribution": "SameTP16 OFF/ON isolates I192 provider gain. Comparison to639 TP8PP4 is only descriptive: TP/PP and communication change, bit64 fast path67/71 is unavailable crossnode so flags3/7 change another performance path. Never label current-vs639 difference as only I192. Historical1634 B1 negative does not veto currentM16 candidate. No freshTP8 baseline load."
+        "attribution": "SameTP16 OFF/ON isolates I192 provider gain. Comparison to639 TP8PP4 is only descriptive: TP/PP and communication change, bit64 fast path67/71 is unavailable crossnode so flags3/7 change another performance path. Never label current-vs639 difference as only I192. Historical1634 B1 negative does not veto currentM16 candidate. No freshTP8 baseline load.",
+        "root_time_budget_adjustment": {
+          "hard_minutes": 50,
+          "inside_seconds": 2900,
+          "reason": "Original owner supplied conservative41-47minute one-load/6arm/QA budget; retain fullqualification andpairedtiming. Explicit prelaunch adjustment, no automatic timeout extension. Actual TP16 IO scaling remains unmeasured."
+        }
       },
       {
         "card": "DEEP55-STOP-I8-PROVIDER-LOOKUP",
@@ -2293,7 +2325,7 @@
     "Model_adoption": false
   },
   "current_optimization_dispatch55": {
-    "utc": "2026-10-24T16:25:29.173975+00:00",
+    "utc": "2026-10-24T16:31:46.629321+00:00",
     "report": "astra-review-55-current.json",
     "report_SHA256": "db5ebee84a60e7f25f98f535f2730168d71c81106a6baef9be72e82eafebedc0",
     "status": "IMPLEMENTED_ORIGINAL_OWNERS_DISPATCHED",
@@ -2314,12 +2346,23 @@
       {
         "card": "GLM55-NEXT-NECESSARY-ENTRY-CPU-PREENGINE-FIX",
         "owner": "/root/moe_decode_arithmetic_audit",
-        "decision": "ACCEPT_CONDITIONAL",
+        "decision": "REJECT_INEFFECTIVE_QUERY_ONLY_FIX",
         "action": "Parent source finding: module-top-level preengine calls torch.cuda.current_device before worker set_device, initializing defaultGPU0 in spawned processes. Remove only this unnecessary GPU query from the CPU preengine or defer the hardware query until worker device binding; keep actual per-worker hardware checks/set_device. Use a focused CPU source/import contract check and preserve remaining SHA/geometry validation. Record startup timestamps next necessary run.",
-        "state": "PARKED_UNTIL_ACTIVATION",
+        "state": "STOP_SOURCE_CONTRACT_UNRESOLVED",
         "time_bound": "At most10min CPU edit/review, no compile/GPU campaign or new framework.",
         "activation": "Only for a later independently necessary Model entry; never mutate/import changes into live537 or reload to prove startup savings.",
-        "attribution": "Repeated default-device initialization is a concrete avoidable side effect. Its responsibility for the observed roughly40s spawn spacing is a hypothesis, not measured causal wall or Model speedup."
+        "attribution": "Repeated default-device initialization is a concrete avoidable side effect. Its responsibility for the observed roughly40s spawn spacing is a hypothesis, not measured causal wall or Model speedup.",
+        "root_correction": {
+          "utc": "2026-10-24T16:31:46.629321+00:00",
+          "status": "REJECT_INEFFECTIVE_QUERY_ONLY_PATCH",
+          "review": "astra-review-55-current.json",
+          "source": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\GLM-PP3-Model-private-r8800\\GLM_transient_preengine_r8800.py",
+          "source_SHA256": "039853531352b301125cb8d0404ef98761dd4a1941970ed4c04127e365651912",
+          "correction": "Root initial source diagnosis was incomplete. The preengine explicitly calls torch.cuda.set_device(0) before the later current_device metadata query. Deleting only the query does not remove default-device initialization.",
+          "action": "STOP query-only patch and further startup investigation in this card. Do not change live537 or its source/manifest. Preserve actual per-worker device binding/hardware checks.",
+          "uncertainty": "Existing comment ties set_device(0) to DSO static FlashAttention initialization. Safe removal and cause of40s rank spacing unproved. No new dependency investigation or GPU probe authorized by this correction.",
+          "Model_performance_claim": false
+        }
       },
       {
         "card": "KIMI55-BOUNDED-MODEL-PACKAGE",
@@ -2343,7 +2386,12 @@
         "activation": "Runnable package, supported3/7 flags, correctly bound current static receipt and original32card ownership/idle/admission checks pass. Root may dispatch without waiting for review56; reviewer itself authorizes no job submission.",
         "metrics": "Separate prefill elapsed/input throughput, decode aggregate useful tokens/wall, driver E2E output/wall, actual per-request TTFT and first-to-last useful-token rate/ITL. Use actual emitter timestamps including scheduling wait; no crosshost timestamp subtraction. Report request mean/min/max and repeat range; emitter-ready is not HTTP/client receipt. Aggregate/B is never measured user rate.",
         "acceptance": "Both ordinary OFF and ON use flags7; full-logit qualification uses3. Require all outputs/referenceIDs/EOS/QA, rank coverage, expected candidate counts on T16 only, no legacy wrong-shape dispatch, normal32owners,terminal0,auditpass,emptypost. All formal arm timings retained. Report both direction-balanced pair ratios plus mean/median; adopt Model benefit only if positive consistently with correctness, otherwise keepOFF. No magnitude is guaranteed by841.",
-        "attribution": "SameTP16 OFF/ON isolates I192 provider gain. Comparison to639 TP8PP4 is only descriptive: TP/PP and communication change, bit64 fast path67/71 is unavailable crossnode so flags3/7 change another performance path. Never label current-vs639 difference as only I192. Historical1634 B1 negative does not veto currentM16 candidate. No freshTP8 baseline load."
+        "attribution": "SameTP16 OFF/ON isolates I192 provider gain. Comparison to639 TP8PP4 is only descriptive: TP/PP and communication change, bit64 fast path67/71 is unavailable crossnode so flags3/7 change another performance path. Never label current-vs639 difference as only I192. Historical1634 B1 negative does not veto currentM16 candidate. No freshTP8 baseline load.",
+        "root_time_budget_adjustment": {
+          "hard_minutes": 50,
+          "inside_seconds": 2900,
+          "reason": "Original owner supplied conservative41-47minute one-load/6arm/QA budget; retain fullqualification andpairedtiming. Explicit prelaunch adjustment, no automatic timeout extension. Actual TP16 IO scaling remains unmeasured."
+        }
       },
       {
         "card": "DEEP55-STOP-I8-PROVIDER-LOOKUP",
