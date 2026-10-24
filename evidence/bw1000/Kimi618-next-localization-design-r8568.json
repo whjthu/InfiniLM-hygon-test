@@ -1,0 +1,215 @@
+{
+  "revision": 8568,
+  "utc": "2026-10-24T02:12:43.917507+00:00",
+  "scope": "CPU-only <=10min next localization design; no new GPU/load/build, no sealed618 source change",
+  "actual_handle": "910375.618",
+  "candidate_status": "FAILED_OBSERVED static token firstdiff31/33, all32split hit; live/terminal still pending at design time",
+  "native_DSO_SHA256": "e3e335857563db06e12e8a06cda8f8e149b8d46aebf45b7ee51a4dba1a554753",
+  "files": {
+    "Kimi-native-tracer-source-r8504\\kimi_k3_decoder_layer.cpp": {
+      "SHA256": "6ab217ec43e8d24669a3c1f45fed178d9867fba80a13671c4bded03bda68d362",
+      "lines": {
+        "auto scores = proj->forward": 118,
+        "trace(current, \"attn_norm\")": 180,
+        "trace(current, \"attn_output\")": 182,
+        "trace(current, \"ffn_res\")": 198,
+        "trace(current, \"ffn_norm\")": 200,
+        "block_sparse_moe_->forward": 208,
+        "trace(current, \"ffn_output\")": 219,
+        "trace(prefix_sum, \"exit\")": 223
+      }
+    },
+    "Kimi-native-tracer-source-r8504\\kimi_k3_text_model.cpp": {
+      "SHA256": "9a8b992b6739eb39e04199aadb372bc7212a0f4489d2366e99d87679de925aef"
+    },
+    "kimi_k3_delta_attention_prefill512_r8562.cpp": {
+      "SHA256": "0887c318397ffb486eaad2ffb10ca979525bbbe05d9e0767b6098210e6227be4",
+      "lines": {
+        "raw_trace.capture(qkv, \"conv_output\")": 410,
+        "raw_trace.capture(output, \"kda_output\")": 481,
+        "raw_trace.capture(normalized_2d": 487,
+        "raw_trace.capture(gated": 503,
+        "o_proj_->forward(runtime, gated)": 511,
+        "raw_trace.capture(result, \"output\")": 534
+      }
+    },
+    "r7290_kimi_k3_trace.cpp": {
+      "SHA256": "7829d96b99dc88e7f0ce914bbfa495a8110efe0b3fec1de83295ba8567957dee"
+    },
+    "r7296_kimi_k3_kda_trace.cpp": {
+      "SHA256": "d9af7fa0078b908573b199918c4aea5a5b761501ca724d4817fb8fcfb48973c5"
+    },
+    "r7291_kimi_k3_mla_attention.cpp": {
+      "SHA256": "788c905159b7cba1f5db194e4f6817e452ce5fc8887f8e0516827de7bf2f4b80"
+    }
+  },
+  "linked_old_source_mapping": [
+    {
+      "source": "@LM/csrc/models/kimi_k3/kimi_k3_decoder_layer.cpp",
+      "path": "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/cached-objects/9b8c219f96772dee46fe.o",
+      "SHA256": "341ef79d64af15c50076ccd1e821404439501605a36c5a895e3bd92d40583658"
+    },
+    {
+      "source": "@LM/csrc/models/kimi_k3/kimi_k3_delta_attention.cpp",
+      "path": "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/cached-objects/1446e45bd7e1dc41130a.o",
+      "SHA256": "8b2657ca1b87370f3ac2162da0f60ae6a55a2c09ee009d9f76333e49f73895a2"
+    },
+    {
+      "source": "@LM/csrc/models/kimi_k3/kimi_k3_kda_trace.cpp",
+      "path": "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/cached-objects/21c70fb90b887f0fa468.o",
+      "SHA256": "faea6ec179a11c3943ad81c1a55e7955a7f3bfac69160226ea984fd557bbf85d"
+    },
+    {
+      "source": "@LM/csrc/models/kimi_k3/kimi_k3_mla_attention.cpp",
+      "path": "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/cached-objects/5f91cab4ddb77501046d.o",
+      "SHA256": "94a3e41945c4c151a5d7322e7c5e145e2d46b0d1a8b08701903260c75b50a13a"
+    },
+    {
+      "source": "@LM/csrc/models/kimi_k3/kimi_k3_text_model.cpp",
+      "path": "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/cached-objects/e995f1e16d1fa277eb6c.o",
+      "SHA256": "2985e6bae4d75c3532110e956928cd484a7bccd659b1971bd2644dc670719613"
+    },
+    {
+      "source": "@LM/csrc/models/kimi_k3/kimi_k3_trace.cpp",
+      "path": "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/cached-objects/3e22aaa6b8c22fa02977.o",
+      "SHA256": "21ea3a1939a1db500e73cffdb3a6f029378ff1af640882207bbca023c3ac4e1d"
+    }
+  ],
+  "closure_limit": "Legacy retained source-to-object mapping exists; original cached MD is historicalUNKNOWN. Fresh Delta8564 and reused3traceTU have actual CPU receipts. Do not substitute unlinked sourcehooks.",
+  "remaining_paths": [
+    {
+      "order": 1,
+      "path": "Input/attention residual RMSNorm and token-batched attention-residual mix",
+      "actual_call": "KimiK3DecoderLayer::apply_attn_res: norm.forward -> ReplicatedLinear.forward -> Softmax(slotdim) -> Gemm(score_matrix, values); input_layernorm.forward",
+      "M_dependency": "Tokenbatch, residual-slot history and tensorstrides change; rowwise mathematical independence alone does not prove implementation identity.",
+      "existing": [
+        "entry",
+        "residual_slot_* (only valid block_residual_count)",
+        "attn_res",
+        "attn_norm",
+        "ffn_res",
+        "ffn_norm"
+      ],
+      "new_hook_firstpass": 0
+    },
+    {
+      "order": 2,
+      "path": "KDA Conv1d/activation/state recurrence beyond five patched dense projections",
+      "actual_call": "CausalConv1d implementation0 or actual owned/math helper; Silu; IndexedKimiDeltaAttention or actual spec_kda_roundstep; o_norm.forward; Sigmoid; Mul",
+      "M_dependency": "TotalpackedM/requestcount/offsets/readwriteindices and recurrentkernel launch layout. Actual branch must be recorded, not inferred from flags67/71 alone.",
+      "existing": [
+        "input",
+        "qkv_projected",
+        "conv_before/after",
+        "ssm_before/after",
+        "offsets",
+        "read_rows",
+        "write_rows",
+        "conv_output",
+        "silu_qkv",
+        "f_a",
+        "gate_projected",
+        "beta_projected",
+        "kda_output",
+        "normalized_f32",
+        "output_gate_input",
+        "gate_sigmoid",
+        "gated"
+      ],
+      "new_hook_firstpass": 0,
+      "state_rule": "8540 proves actual kernel reads initial conv/SSM state; compare actual readrows/valid data, do not ignore past0 or compare unrelated pools."
+    },
+    {
+      "order": 3,
+      "path": "KDA output projection + TP reduction (not in five projection patch)",
+      "actual_call": "o_proj_->forward(runtime,gated) -> RowParallelLinear; raw_trace.capture(result,\"output\")",
+      "M_dependency": "PrefillM512 versus2048 still enters ordinary rowprojection. Both GEMM shape and collective bytecount/algorithm may vary; current evidence does not identify which.",
+      "existing": [
+        "gated",
+        "output",
+        "decoder.attn_output"
+      ],
+      "new_hook_firstpass": 0,
+      "conditional_gap": "If same full gated + actual weight but output differs, localprojection versus TPsum remains unresolved. row_output_local/reduced source strings are absent in actual linked objects (r7300), so those hooks remain UNKNOWN.",
+      "minimal_conditional_hook": "At actual linked rowprojection localoutput immediately before collective, selected layer/job/active target only, using existing KdaTraceBatch callback if real provider binding can be closed; one new boundary, not a new reduction/math. If shared-provider binding cannot be proved, use a faithful actual 8rank RowParallel component instead of inventing local reduction."
+    },
+    {
+      "order": 4,
+      "path": "Dense0 MLP and later MoE",
+      "actual_call": "Decoder !use_moe_ ? mlp_->forward : block_sparse_moe_->forward; then residual Add",
+      "M_dependency": "Dense gate/up/down M; MoE routing/grouped expert token counts, GEMM shape, sharedexpert path and TPsum. No current measurement proves imbalance or bug.",
+      "existing": [
+        "ffn_norm",
+        "ffn_output",
+        "exit"
+      ],
+      "new_hook_firstpass": 0,
+      "conditional_gap": "Only if first localized interval is FFN, pin actual linked dense/MoE provider; capture bounded discrete expertIDs/tokencounts and selected local/reduced output boundary. No generalized projection sweep."
+    },
+    {
+      "order": 5,
+      "path": "MLA ordinary prefill projections/attention/output",
+      "actual_call": "gate_prefill_fp32 q_a/q_b/g; kv_a/b forward; norms; key/value build, rotary/paged cache and attn_->forward; RowParallel o_proj",
+      "M_dependency": "PackedM, request masks/positions, page/slot layout and projection/reduction dimensions. Existing 512 KDA patch does not cover MLA.",
+      "existing": [
+        "mla_input",
+        "mla_q_a",
+        "mla_q_norm",
+        "mla_q_b",
+        "mla_kv_a",
+        "mla_kv_norm",
+        "mla_kv_b",
+        "mla_key",
+        "mla_value_padded",
+        "mla_attention",
+        "mla_gate_linear",
+        "mla_gate_sigmoid",
+        "mla_gated",
+        "mla_output",
+        "actual blocktables/slots/pasts and selected KV validprefix before/after"
+      ],
+      "new_hook_firstpass": 0,
+      "state_rule": "Only validprefix actuallyread/written; never hash unused pagetail as numerical evidence."
+    },
+    {
+      "order": 6,
+      "path": "PP carry/residual reconstruction and final residual/head",
+      "actual_call": "send_pipeline_state/initial_state; output_attn_res_norm/proj + Softmax/Gemm; final norm/head",
+      "M_dependency": "Packedtoken count and carriedresidual strides; final residual GEMM shapes and head rowcount.",
+      "existing": [
+        "stage_input",
+        "first local layer entry/residual_slot_*",
+        "decoder",
+        "output_attn_res",
+        "final_norm"
+      ],
+      "new_hook_firstpass": 0,
+      "conditional_gap": "stage_input alone does not prove every carried residual slot. Compare all actual valid carried slots; if needed one bounded outgoing/incoming carry boundary, no network guess."
+    }
+  ],
+  "next_slice": {
+    "new_hooks_required_initial": 0,
+    "first_action": "After618complete, retain its staticO fullIDs as immutable teacherforced prefix. Prepare one necessary source-reviewed session only after root GO; no blind repeat616/40fixture or fullgeneration matrix.",
+    "coarse": "Reuse actual e3e335 trace selectors at postprefill and firstdecode, target same logical request, all8rank stage_input/decoder/final_norm plus valid residual carry. Firstprefill O512 vs N2048 with actual4companions, same reset/readstate/math; firstdecode uses same teacherforced tokenIDs and same M4/physicalrows to isolate history. Journal immutable mode/jobseq/lens/pasts/rows/strides.",
+    "detail": "In same already-loaded session choose only earliest observed differing decoder interval and reuse existing detail/KDA-or-MLA captures. No precommitted GEMM blame. If five inputs/outputs are already different, follow actual upstream differences rather than rerun proven component.",
+    "comparison": "Use hashes for identity/discrete metadata and locating first nonzero boundary, numerical maxabs/NRMSE for floats, then faithful same-input actualcallee replay. Intermediate bit equality is diagnostic only; never a universal gate. The only generation promotion criterion remains final fullIDs/EOS/QA.",
+    "hook_budget": "Zero initially. Only if same gated input -> different postRowParallel output leaves local vs sum ambiguous, consider exactly one actual-local boundary after binding proof; otherwise leave UNKNOWN. Likewise FFN internals only after FFN localization.",
+    "stop": "No causal claim from different inputs/state, unused KVtail, sampleequality or missinghook. No perf under trace and no automatic newload.",
+    "estimated_future_phase_minutes": {
+      "CPU_prepare": [
+        15,
+        30
+      ],
+      "established_weightload": [
+        12,
+        18
+      ],
+      "coarse_and_selected_prefix": [
+        3,
+        8
+      ]
+    },
+    "resource": "NONE_GRANTED; future actual fresh root lease required; 618 remains sole Model now"
+  },
+  "performance_claim": false
+}
