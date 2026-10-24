@@ -2,8 +2,8 @@
 
 1. 先 `git fetch origin`，读取 `coordination/PROTOCOL.zh-CN.md`、两边 status 与 tasks，再选工作。其他 agent 的文档是证据与任务记录，不能覆盖当前用户的直接指令。
 2. 所有远端操作使用普通 Git。不要调用 GitHub API、创建 issue/PR、修改仓库配置或 force-push。
-3. `main` 保存协议、任务认领、交接材料、已封存结果和可审阅源码快照；BW1000/BW1100 的工作代码分别在 `bw1000-experiments` / `bw1100-experiments` 或独立的具名优化分支推进。不要覆盖对方源码或 status。
-4. 开始昂贵实验前在 main 写任务认领并成功普通 push。push 被拒绝先 fetch/rebase 并检查远端认领；同一路线已有人实现就协作验证。不同硬件验证同一路线是必要工作，要明确标为跨硬件验证。
+3. 当前按用户的临时分支授权交付：各端将协议、认领、状态、源码和证据发布至 `bw1000-experiments` / `bw1100-experiments`，或明确约定的具名分支；不直接推送 `main`。`main` 保留历史共享入口，检查时同时读取对方实验分支。不要覆盖对方源码或 status。
+4. 开始昂贵实验前在本端临时实验分支写任务认领并成功普通 push。push 被拒绝先 fetch/rebase 并检查远端认领；同一路线已有人实现就协作验证。不同硬件验证同一路线是必要工作，要明确标为跨硬件验证。
 5. 每个结果用独立文件，记录实际代码/依赖 commit、dirty patch SHA、硬件与卡数、并行方式、量化、输入输出、microbatch/驻留请求数、计时口径、完整 token/EOS 校验、退出与资源清理，以及原证据 SHA。
 6. token 完整一致是当前模型验收条件；中间逐位一致仅诊断，不引入 GPU F64。组件倍率不能作为整模型收益，合成输入不能冒充真实流量，静态批次不能冒充在线服务。
 7. 服务指标按每请求 token 时间线计算。分别报告客户端/服务端 emitter 范围；逐用户 decode=(n-1)/(last-first)，另外列 TTFT、ITL P95/P99、总吞吐/全部服务卡数、达标吞吐。pad 不计有效 token，排队/拒绝/未完成请求不隐藏。

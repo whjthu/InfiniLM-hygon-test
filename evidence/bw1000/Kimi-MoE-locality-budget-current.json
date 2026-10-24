@@ -134,5 +134,120 @@
     "new_weightload": false,
     "Git": false,
     "large_trace_scan": false
+  },
+  "fused_E2M1_to_BF16_MMAC_followup": {
+    "state": "ALREADY_IMPLEMENTED_AND_MEASURED_MIXED_HIGH_REUSE_GAIN_SPARSE_ROUTE_REGRESSION_STOP_BLIND_REPEAT",
+    "new_GPU_compile_weightload_Git": false,
+    "current630_dependencies_modified": false,
+    "prior_paths_distinguished": {
+      "r8425": "SignedINT8 / signedINT4-storage INT8compute with activationquant/pad/dequant cost: different arithmetic and not E2M1 fuseddecode. Itsnegative doesnot byitself rejectthisidea.",
+      "r727_736_744": "Decodecomplete selectedexpertW13 matrices into globalBF16 decodedbank, gatherpad16, BLASbatched compute. Differentglobalmaterializationcost; nottheproposedonchipfusion.",
+      "r4913_4916_4920": "ActualFP4\u2192globalBF16bank +torch.bmm/reuse experiments; notinregister/LDSfusion.",
+      "r831_853_879_902_909": "Alreadyexactlytheproposedclass: E2M1+E8M0 decode directtoBF16 WMMAfragments orLDS tile, F32accumulate, fuseSiTU\u2192BF16 activation, originalSIMTW2. No full-expertBF16globalweightbuffer."
+    },
+    "actual_existing_source": {
+      "register_direct": "kimi_mmac_w13_r909.cuh::direct909, weight909, fp4bits909",
+      "shared_tile": "samefile shared909<Pitch>, hybridTC909<68>, persistentTC909<68>",
+      "layout": "W13 perTP H3584/I384, group16 sameexpert routes, A16xK rowmajor BF16, B Kx16 colmajor BF16 for eachgate/up;4waves/block,eachwave16outputchannels;groupCTA covers64channels;6channelCTAs for384. Kstep64 splitinto4K16 MMAupdates;56K64iterations.",
+      "actual_wave_contract": "InstalledHygonDTK native-mmac-r832 audit proves nvcudaWMMA16x16x16 BF16/F32 on64lanes; existingdirect code useslane=threadIdx%64, a/g/u.x[0..3], not32lane. A generic32laneMFMAoperandmap is NOT proven bythiscode and cannotreplace64 by32.",
+      "input_preservation": "OriginalBF16 activations remainBF16 withonlyroutegather/zero-fillpadding; no activationquantization. Weightnibbles remainE2M1 values[0,.5,1,1.5,2,3,4,6]plus sign andE8M0scale, never signedINT4. fp4bits909 includesoriginaldecode/RNEfallbackat exponentextremes.",
+      "decode_validation": "r853/r879/r902/r909 report all65536packedbyte\u00d7scalebyte pairs per8devices exact tooldGPU andcontrolledIEEECPU BF16rounding; this validatesweightdecode intoBF16, notSIMTF32dot reductionidentity/finaltokens.",
+      "old_failure_not_repeated": "r831 launched512/1024groupthreads beyond256max forlargerrealcases; r853 fixed256stride grouping and61caseaudit. Do notcopyr831launchpolicy."
+    },
+    "prior_measured_evidence": {
+      "r856": {
+        "file": "r856-mmac-audit.json",
+        "actual": "910373.453 COMPLETED0",
+        "cases": 61,
+        "actual_route_combined_speedups": [
+          1.1978395678816884,
+          1.1358073043488792,
+          0.891855030153276,
+          0.6549109474676369,
+          0.6000624048088677,
+          0.659475537459487
+        ],
+        "scope": "Savedactual663routingIDs/layer1, BF16latent inputs are synthesized; earlyhighreusewins/latesparseregress, no fullModeladoption."
+      },
+      "r900": {
+        "remote": "results/kimi-mmac-r900-audit.json",
+        "SHA256": "dfc0e521a0ec6c433ab3def03e536f8a7f810b5edcdbc97091714f813b9c1d5c",
+        "actual": "910373.457 COMPLETED0",
+        "padded68_combined_speedups": [
+          1.2216900660272825,
+          1.3097379954532569,
+          1.0626223885717951,
+          0.7988799243025213,
+          0.7296706752797005,
+          0.798836954206092
+        ],
+        "scope": "64/66/68/72LDSpitches alreadytested, numericalpathsbitexacttoownMMAC, lateactualroutingregressionpersists."
+      },
+      "r903": {
+        "remote": "results/kimi-mmac-r903-audit.json",
+        "SHA256": "fb54d179a7d2a777172c7d402a4249d7874951e58169550bfcfa82deb2594aa5",
+        "actual": "910373.466 COMPLETED0",
+        "hybrid_combined_speedups": [
+          1.0594566818883648,
+          1.0973119931722293,
+          0.9358781434152521,
+          0.9960295868330019,
+          1.0019111093085586,
+          1.0088316944379858
+        ],
+        "scope": "GPUgroupcountthresholdandSIMTfallbackalreadytested; notnewadaptivemethod."
+      },
+      "r909": {
+        "remote": "results/kimi-mmac-r909-summary.json",
+        "SHA256": "aa2cfe2822ff12af52ffaa7daff268c468a271d4fc3b98b45d35858656832560",
+        "passed": true,
+        "cases": 61,
+        "persistent_mode7_combined_speedups": [
+          1.2539550987883916,
+          1.2815233370548271,
+          1.0577200645578235,
+          0.7040149712754478,
+          0.6943196655612192,
+          0.7041683296169516
+        ],
+        "scope": "384persistentTC/320fallbackCTAs reducesinactivelaunchoverhead; lateactualroutingstillregresses. No finalModeladoption."
+      },
+      "native832": {
+        "remote": "results/native-mmac-r832-audit.json",
+        "SHA256": "8dd01f704611213d5dc5b4705fd23caaed7383d94a7ad8f6f87bf1e19813c41b",
+        "actual": "910373.444 COMPLETED0",
+        "scope": "Actual64lane16x16x16 BF16/F32mapping/CPUoracle tested; registerTOPSnotModelprediction."
+      }
+    },
+    "resource_and_real_route_budget": {
+      "existing_Pitch68_LDS_bytes_per_CTA": 19584,
+      "Pitch64_LDS_bytes": 18432,
+      "Pitch72_LDS_bytes": 20736,
+      "block_threads": 256,
+      "logical_FP32_accumulators_per_lane": 8,
+      "accumulator_note": "Two16x16 gate/up accumulatorfragments /64lanes =>8F32values/lane, plusA/G/U fragments, decode/indexregisters; exactVGPR/occupancy/spills UNKNOWN withoutexistingISAattributes, do notclaimcompilerresourcefit fromlogicalminimum.",
+      "full_expert_BF16_global_weight_buffer_bytes": 0,
+      "other_global_storage": "Existinggroupmetadata andBF16routeactivation remain; no claimzero globaltraffic.",
+      "actual748_group16_count": 76,
+      "actual748_routes": 128,
+      "actual748_padded_route_slots": 1216,
+      "actual748_group16_useful_fraction": 0.10526315789473684,
+      "actual748_max_group_useful_fraction": 0.3125,
+      "old_hybrid_TC_condition": "group16_count*2<=routes",
+      "old_hybrid_TC_for_actual748": false,
+      "M4_M8_M16_transfer": "M4individualexpert has atmost4distincttokenrows, soatmost25%of16rowtile evenifallexpertIDsrepeat. CurrentM4actualroutingsequenceUNKNOWN; M8C396sampleavg10.53%group16useful. M16couldfill16rowsbutrequiresactualsameexpertreuse, cannotinferfromcohortsize."
+    },
+    "what_a_real_32lane_operand_path_needs": [
+      "An actualsupported BF16/F32 matrixinstruction/interface andverified32laneelementownership; theavailableHygonWMMA pathis64lane, notgeneric32laneMFMA.",
+      "Defineeachlane BF16packedregisterelements/Arowmajor/Bcolmajor mapping, K16/32scale32boundary, lane-shuffleorLDSloadmatrix swizzle, accumulator-to-output mapping; no integerreinterpretationofBF16values.",
+      "Preservegroupownership/invalidrouteguards, BF16inputbits, gate/upSiTU andBF16storebeforeW2; zerosonlyforpaddedrows. Existing64lanevalidatedmappingisreusable; a32laneredesignwouldneednewmappingproof.",
+      "Matrixaccumulationchangesadditionorderandmayroundweights atBF16extremes. IntermediateMMACdifferencesneedquantificationbutnotautoreject; completefinaltokens/EOSandcontinuedstate againstsameordinarybaseline remainrequired."
+    ],
+    "one_candidate_decision": {
+      "candidate": "Reuse existing shared909<68> W13 fuseddecode kernel only as historicalreference, not a newimplementation request",
+      "decision": "STOP currentblindGPUattempt. Theclass, directfragments, LDSpadding, hybridselection andpersistentlaunch variants alreadyexistwithmixed/negative sparse-route results. No newkernel/cacheframework proposed.",
+      "missing_minimum_evidence": "A distinct actualcurrentM4/8/16 provider/routing reuse distribution showinga regionnotcovered byold61cases, andfullcostcomparison againstcurrentselectedgroup0/group4path includinggrouping/padding/activation/originalW2. Onlyafterthat an otherwise-necessarycompatibleloadfinaltoken/EOSgate. Current748histogramactuallyfailsoldTCreuse threshold.",
+      "expected_gain": "UNKNOWN; no registerTOPS\u2192Modelconversion and no newfullModelloadfor thisidea."
+    }
   }
 }

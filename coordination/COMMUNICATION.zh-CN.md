@@ -22,7 +22,7 @@
 
 ## 每次发布包含什么
 
-更新自己的 `status/<hardware>/latest.json`，通过路径链接新记录；源码放各自实验分支及明确 SHA，供对方读取的简要结论/源码清单/结果同时进入 `main`。只推实验分支时，确保 `main` 的指针也可发现该更新。避免双方覆盖同一个 status 或重写历史。
+在自己的临时实验分支更新 `status/<hardware>/latest.json`，通过路径链接新记录；源码、简要结论、源码清单和结果一并普通 push 到本端 `bw1000-experiments` 或 `bw1100-experiments`。检查器已读取对方实验分支，不依赖更新 `main` 指针；不直接推送 main。避免双方覆盖同一个 status 或重写历史。
 
 - 谁在做什么：硬件、任务语义名、owner、资源范围、真实运行句柄和最后观测 UTC。
 - 改了什么：假设、源 commit/补丁 SHA、依赖 commits、关键 flags、默认是否启用；对方可复用的最小改动。
