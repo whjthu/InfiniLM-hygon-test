@@ -1,0 +1,96 @@
+{
+  "utc": "2026-10-23T14:01:49.090316+00:00",
+  "objective": "Hardware-aware optimization of all three models; physical ceiling remains unproved, not redefined to this GLM diagnostic",
+  "evidence_SHA256": {
+    "GLM454-profile-window-analysis-r5581.json": "723fd88ae8462e13827906bb95807943e5856e9a6a27b8f9d22a472ea139ab5a",
+    "GLM-lowbatch-qualified-r8244.json": "6042853be335684ccff0ec04a399b664e9351ec013b17b227686955022e8bb73",
+    "r5975-hardware-reuse-audit.json": "fd7eb15440f8977199a5b6ceb49e4544da0d6284ee655e2d1c0ec5f8ddef862a",
+    "r5978-hardware-audit.json": "9af2f56ff38110b4ad22cfc6b0c1257324fd53e3613c12bc81932d9e128875cd"
+  },
+  "physical_peak_and_max_Model_tok_s": null,
+  "achieved_hardware_references": {
+    "BF16_effective_TFLOPS": 333.752,
+    "FP32_effective_TFLOPS": 54.51,
+    "FP32_effective_scope_correction": "54.51 is the retained dense GEMM reference, not a demonstrated scalar or packed-vector MoE arithmetic ceiling.",
+    "packed_vector_FP32_TFLOPS": 22.976228865898197,
+    "packed_vector_FP32_reference": {
+      "evidence": "Hardware838-packed-vector-FP32-reference-r8806.json",
+      "SHA256": "769bdefff8df0fa1fb7afc688835d257be184c55b1fdd57ea9cc62a88e08590c",
+      "actual_handle": "910374.838",
+      "qualification": "8normal/CPUaudit0/post839empty; allfinite/guards/512selectedCPUoracle/device; 3warm+5samples",
+      "method": "4 v_pk_fma_f32 instructions per loop, 8 independent FP32 chains, 16FLOPs/thread/loop; fixed1280x256x65536, 343597383680FLOPs/kernel",
+      "event_device_medians_min_max_TFLOPS": [22.974882391816745, 22.977097783387908],
+      "scope": "Achieved packed-vector arithmetic reference only. Native MoE packed ISA coverage, instruction throughput ceiling, physical card peak and Model maximum remain unproved; no kernel or Model utilization percent inferred. Original208 erroneous scalar regex failure preserved; qualification used same ELF without rebuilding."
+    },
+    "scope": "4096cubed reference GEMM,30nodes239cards; achieved rates are capability lowerbounds, not physical peaks.",
+    "read_TB_s": 1.23711,
+    "write_TB_s": 0.57279,
+    "copy_logical_read_plus_write_TB_s": 1.34956,
+    "memory_scope": "Existing1GiB kernels/fullCPUguards,7repetitions. Logical read+write copybytes differ from read-only HBM traffic; do not substitute or sum. Not inference/hostPCIe/interconnect bandwidth."
+  },
+  "GLM_snapshot_cycle_diagnostic": {
+    "16": {
+      "B": 16,
+      "micro": 16,
+      "cohorts": 1,
+      "stage1_CAPI_median_s": 0.6940794684924185,
+      "stage1_stream_incoming_median_s": 0.32413961791992185,
+      "stage1_stream_layers_median_s": 0.36833685302734376,
+      "approx_tokens_per_cycle_over_CAPI_s": 23.052115393577253,
+      "actual_ABBA_mean_decode_tok_s": 22.930846211245683,
+      "prediction_relative_error_percent": 0.5288473927843818,
+      "fixed_stream_layer_window_whatif_tok_s": 43.43849894056685,
+      "scope": "Calibrateddiagnostic at sampledrounds onall8spatialranks. Stage1CAPI includesdependency waits. Assumes serializedcohortcalls in steadycycle; nothardwareceiling/causal attribution. Fixedstreamwindow alreadyincludesdevice gaps/TPwaits; medianofwindows isnot exactcriticalpath. Neveradd host+stream."
+    },
+    "8": {
+      "B": 16,
+      "micro": 8,
+      "cohorts": 2,
+      "stage1_CAPI_median_s": 0.24064243980683386,
+      "stage1_stream_incoming_median_s": 0.013982635974884033,
+      "stage1_stream_layers_median_s": 0.2293802490234375,
+      "approx_tokens_per_cycle_over_CAPI_s": 33.24434379248183,
+      "actual_ABBA_mean_decode_tok_s": 34.003346131204346,
+      "prediction_relative_error_percent": -2.2321401423079146,
+      "fixed_stream_layer_window_whatif_tok_s": 34.87658607948664,
+      "scope": "Calibrateddiagnostic at sampledrounds onall8spatialranks. Stage1CAPI includesdependency waits. Assumes serializedcohortcalls in steadycycle; nothardwareceiling/causal attribution. Fixedstreamwindow alreadyincludesdevice gaps/TPwaits; medianofwindows isnot exactcriticalpath. Neveradd host+stream."
+    }
+  },
+  "primary_source_recheck": [
+    {
+      "url": "https://www.hygon.cn/product/accelerator",
+      "source_type": "vendor",
+      "result": "2026-10-23 webopen returned0lines; no numeric BW1000 peak admitted."
+    },
+    {
+      "url": "https://indico.cern.ch/event/1598655/contributions/7028377/attachments/3259850/5820311/IHEP%20%28China%29%20Facility%20Evolution%20Plans.pdf",
+      "source_type": "IHEP facility presentation hostedbyCERN, HEPiXSpring2026",
+      "result": "Search-index snippet lists BW1000 FP16 480TFLOPS/64GB/1.6TBps; actual PDF and contribution fetch403. Dense/sparse interpretation, BF16 equivalence and exactdeployedSKU not verified. New lead only, do not use480 as BF16 peak or calculate attainment percent."
+    },
+    {
+      "url": "https://developer.sourcefind.cn/codes/modelzoo/qwen3.5/-/blob/master/README.md",
+      "source_type": "platform-maintained model recipe",
+      "result": "Search-index describes BW1000 BF16/INT8 and restricts FP8 recipes toBW1100/1101; pagefetch403. Evidence lead supports integer/BF16 investigation, not native arithmetic peak or threeModel compatibility."
+    },
+    {
+      "url": "https://www.scnet.cn/home/subject/midsal/index.html",
+      "source_type": "serviceprovider",
+      "result": "Publicpage verified8BW/64GB/400GbIB resource configuration. Not HBM/compute peak nor proof any particular Slurm job usedthat link."
+    }
+  ],
+  "required_for_Model_hardware_bound": [
+    "Exact deployedSKU dense BF16/INT8 peak/clock andvalidvendororoperatorprimaryspec; cannot inferBF16 fromFP16 only",
+    "Perforward executedGEMM/FMA counts andactualuniqueexpert/weightbytes, includingquant depack/read amplification",
+    "GPUtimeline criticalpath separating TP/PP waits, launchgaps, copies andcompute; sixoverlapping host/streamevents insufficient",
+    "Actual host-device andintra/inter-node communication paths/rates plus measuredoverlap; no rawbandwidth-to-TPS multiplication"
+  ],
+  "reference_model_not_physical_roof": {
+    "formula": "t_compute_ref=executed_FLOPs/C_achieved; t_read_ref=actual_GPU_read_bytes/B_read_achieved. Under perfect overlap compare max; when measured serialized sum only nonoverlap stages. These are what-if reference costs, not lowerbounds on hardware time because C/B references are achieved lowerbounds not certified maxima.",
+    "Amdahl": "Speedup=1/(1-f+f/s) only for measured nonoverlapping criticalfractionf andcomponent speedups; funknown here, so no totalModel gain predicted from1.3-1.6xKV component."
+  },
+  "next_optimization_targets": [
+    "Qualified GLM B16M8 is baseline for further layer/cache work; removing residual PPwait alone is not a demonstrated route tolarge gains",
+    "Kimi capacity32/cache4 measuredadmission andsmallB completeIDs first, then actualwhole-target projection ratherthan another noisygroup4 sweep",
+    "Deep combine individuallycausal layout/HC factors inprivateCPU/finite-layer fixtures before nextnecessary fullModelcapture; do notcount rejectedfullModel numericdiagnostics as performance progress"
+  ]
+}

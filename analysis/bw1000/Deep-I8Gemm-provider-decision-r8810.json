@@ -1,0 +1,57 @@
+{
+  "status": "STOP_NO_EXISTING_ALTERNATIVE_HYGON_I8GEMM_PROVIDER",
+  "scope": "CPU-only exactcurrentSDKI8Gemm implementation/source lookup;noGPU/compile/dlopen/newSDK/fullbackendproofchain.",
+  "current_identity": {
+    "bank_source_SHA256": "2f9f4ab4140f2522069374cd731a7e6e99cd2a368edeadd7791d9fafb114dc9b",
+    "bank_object_SHA256": "4d428a9abc6dd9e9c30af5a5422266c8ebcde1bca8ed1678f3b8578193ba2302",
+    "SDK_DSO_SHA256": "e1d9432e6de79cf09782fc3b3b332fb969d1a948dbac513b3da677d78f7f1f09",
+    "Ops_root": "/refactor/candidates/rebased-5f91ad7-r3668/Ops/Deep/InfiniOps",
+    "Hygon_i8_header_SHA256": "df83819f17c1bd9cc5e52cdb120b573b3dfdced68462cbb934abdc3d76041c6e",
+    "Hygon_i8_kernel_SHA256": "b31ba913da037ed2d83a2c77f790325a5cfdf8423b652f70490d79db27651876"
+  },
+  "actual_call_chain": [
+    "currentbank forward_local:PerChannelQuantI8 impl0",
+    "I8Gemm impl0, originalINT8weights permute[1,0], BF16output",
+    "Operator<I8Gemm,kHygon,0>:HygonGemmHandle Acquire/setstream/4MiBworkspace",
+    "cublasGemmEx(OP_T,OP_N,Nout,Mexpert,K),A/B CUDA_R_8I,C CUDA_R_32I,computeCUBLAS_COMPUTE_32I,algorithmCUBLAS_GEMM_DEFAULT",
+    "customPost:float value=(input_scale[row]*weight_scale[col])*float(INT32accumulator),optionalbias,oneoutputBF16round",
+    "bankClamp/SiluAndMul originalBF16,secondquantI8/I8Gemm down,originalbankfence"
+  ],
+  "answer": {
+    "software_FP32_weight_dequant_GEMM": "NO onthisbankpath. IntegerinputsandintegeraccumulatorpassedtoactualvendorGEMM;F32scalingonlyepilogue.",
+    "matrix_API": "Already vendor INT8 matrixGEMM API, not customscalarDP4Ainbank.",
+    "actual_DUMMA_MMAC_device_opcode": "UNKNOWN fromtheseexistingSDKsources. cublasGemmEx mayinternallychoosedifferentkernelsbyshape; noactualvendorINT8deviceISAorselectedkernelproofwasavailableinthisboundedlookup. Do not inferphysicalMMACfromAPIalone.",
+    "alternative_provider": "No existing Hygon I8Gemm index1 or otherimplementation found inactualsrcI8Gemmreferences. OnlyHygon0 andseparateNvidia0 exist; NVIDIAproviderisnotHygonoption. Hygon0hardcodesCUBLAS_GEMM_DEFAULT; noexistingmodelconfig/typedalgorithmselectorinthisoperator.",
+    "whySTOP": "No existingprovider switch totry, currentpathalreadyquantizedvendorintegerGEMM. CustomDUkernel/privateproviderorvendoralgorithmoverridewouldbe newimplementation, not thesmall existing-switch opportunity requested."
+  },
+  "real_prefill_shapes": {
+    "H": 4096,
+    "TP8_local_intermediate": 256,
+    "gate_up": "C[Mexpert,512]=A_I8[Mexpert,4096]xW_I8[4096,512] ->I32accum ->scaleBF16",
+    "down": "C[Mexpert,4096]=A_I8[Mexpert,256]xW_I8[256,4096] ->I32accum ->scaleBF16",
+    "Mexpert": "Actualroutesassignedtoexpert,variable,notglobalbatch. T2048prefill canhave manythinperexpertGEMMs.",
+    "fixed_operator_workspace": "align256(Mexpert*Nout*4) +4MiB BLASworkspace; capture_safe=false",
+    "Model814_sourcecount_context": "sumU63784 routedprefillexpertcalls/owner/fullphase ->127568 bankGEMM calls perowner,plussharedbanks. This is sourcecallcount, notexclusive wall or GPU utilization."
+  },
+  "old_evidence_not_reopened": {
+    "838": "PackedvectorFP32reference notINT8GemmISA/attainmentproof.",
+    "802": "ScalarSDOT4negativeisroutednative<=64,notbankvendorGEMM;no repetition.",
+    "low_U": "8796STOP no currentrealT32decodefullFFNfixture;notreopened.",
+    "826": "PACKONscatterretirecandidate linkedready/defaultOFF; hold fornextindependentlynecessaryModelload."
+  },
+  "next": "NoGPU/compilecandidateproposedfromthiscard. ReusecurrentI8Gemm0 andqualifiedPACKON;retainretirecandidateforsharedload. Do not inventI8Gemm1,assumeDEFAULT_TENSOR_OPmapsMMAC,orquote736TOPStoModelTPS.",
+  "evidence": {
+    "callee_source_file": "r8809-Deep-I8Gemm-callee.json",
+    "callee_source_SHA256": "3a56c2530f5e0b745384f6ae43d88f2062d1b21a5133a597d1d4db2223414ed3",
+    "lookup_source_file": "r8807-Deep-I8Gemm-provider-source.json",
+    "lookup_source_SHA256": "0eebbd6e71a8ba012e148c5dae3d20760517ff1bb836ad5e420093a7f6819d0d",
+    "file_matches": [
+      "src/base/i8_gemm.h",
+      "src/native/cuda/hygon/ops/i8_gemm/kernel.h",
+      "src/native/cuda/hygon/ops/i8_gemm/kernel.cu",
+      "src/native/cuda/nvidia/ops/i8_gemm/kernel.h",
+      "src/native/cuda/nvidia/ops/i8_gemm/kernel.cu"
+    ]
+  },
+  "limitations": "SDKsource/APIandfixedDSOSHAidentified; no newcompiledbackendproofgate, no broadSDKhistorytrace or vendorbinarydisassembly. Hygonimplementation0only claim is scoped to I8Gemmclass references in thisactualsrc."
+}
