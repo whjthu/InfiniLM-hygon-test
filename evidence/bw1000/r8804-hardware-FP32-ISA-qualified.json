@@ -1,0 +1,64 @@
+{
+  "receipt": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/hardware-fp32-fma-r8800/CPU-ISA-qualified-r8804.json",
+  "receipt_SHA256": "e323bb698702ac9785d173440b24166e33fcce1422c88e1193178ad072630932",
+  "completed": true,
+  "CPU_only": true,
+  "GPU_initialized": false,
+  "original_CPU": "910406.208FAILED1/6s:sharedandassemblycompiled,oldregexexpected8scalarFMAandfailed",
+  "original_CPU_build_SHA256": "d28d687a57ba3f458b7fa6573820de9e1a921b928d303f7c11cb82a2c248ba2f",
+  "library": "/refactor/candidates/hardware-fp32-fma-r8800/libhardware_fp32_fma_r8800.so",
+  "library_SHA256": "7c7e394bd7d2aa8a63f49224fe9447606681cb33d22a7e275c7529c8139a014d",
+  "assembly_SHA256": "3e3c879b1389e6ea0f86b16fbb02028c6b8056f21caa5a9f5cc822ee593b52ef",
+  "source_SHA256": "e7f40ce87a86b616c7579c6caf5a8049dcfa74d4168d86cc81e540b3b2cbd997",
+  "fma_instruction_lines": [
+    "v_pk_fma_f32 v[4:5], v[12:13], v[18:19], v[4:5]",
+    "v_pk_fma_f32 v[6:7], v[14:15], v[18:19], v[6:7]",
+    "v_pk_fma_f32 v[0:1], v[8:9], v[18:19], v[0:1]",
+    "v_pk_fma_f32 v[2:3], v[10:11], v[18:19], v[2:3]"
+  ],
+  "matrix_instruction_lines": [],
+  "independent_FP32_chains": 8,
+  "packed_FMA_instructions_per_loop": 4,
+  "FP32_FLOPs_per_loop_per_thread": 16,
+  "register_destinations": [
+    4,
+    5,
+    6,
+    7,
+    0,
+    1,
+    2,
+    3
+  ],
+  "compiler_commands_unchanged": [
+    [
+      "/opt/dtk/bin/hipcc",
+      "-std=c++17",
+      "-O3",
+      "--offload-arch=gfx936",
+      "-fPIC",
+      "-shared",
+      "/refactor/incoming/hardware_fp32_fma_r8800.hip",
+      "-o",
+      "/refactor/candidates/hardware-fp32-fma-r8800/libhardware_fp32_fma_r8800.so"
+    ],
+    [
+      "/opt/dtk/bin/hipcc",
+      "-std=c++17",
+      "-O3",
+      "--offload-arch=gfx936",
+      "--cuda-device-only",
+      "-S",
+      "/refactor/incoming/hardware_fp32_fma_r8800.hip",
+      "-o",
+      "/refactor/candidates/hardware-fp32-fma-r8800/hardware_fp32_fma_r8800.s"
+    ]
+  ],
+  "scope": "CorrectedISAqualificationonly,same208ELF/no_recompile/no_dlopen/no_GPU. Achievedpacked-vectorFP32reference,notpure_scalar_v_fma/physicalpeak/Modelattainment.",
+  "loop_control_excerpt": [
+    "s_cbranch_scc1 .LBB0_3",
+    "s_add_i32 s7, s7, -1",
+    "s_cbranch_scc0 .LBB0_2",
+    "s_branch .LBB0_4"
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "actual": [
+    "910406.208|hardware-fp32-CPU-r8800|FAILED|1:0|00:00:06"
+  ],
+  "receipt": {
+    "completed": false,
+    "CPU_only": true,
+    "GPU_initialized": false,
+    "producer": "910406.208",
+    "source_SHA256": "e7f40ce87a86b616c7579c6caf5a8049dcfa74d4168d86cc81e540b3b2cbd997",
+    "compiler": "/opt/dtk/bin/hipcc",
+    "commands": [
+      [
+        "/opt/dtk/bin/hipcc",
+        "-std=c++17",
+        "-O3",
+        "--offload-arch=gfx936",
+        "-fPIC",
+        "-shared",
+        "/refactor/incoming/hardware_fp32_fma_r8800.hip",
+        "-o",
+        "/refactor/candidates/hardware-fp32-fma-r8800/libhardware_fp32_fma_r8800.so"
+      ],
+      [
+        "/opt/dtk/bin/hipcc",
+        "-std=c++17",
+        "-O3",
+        "--offload-arch=gfx936",
+        "--cuda-device-only",
+        "-S",
+        "/refactor/incoming/hardware_fp32_fma_r8800.hip",
+        "-o",
+        "/refactor/candidates/hardware-fp32-fma-r8800/hardware_fp32_fma_r8800.s"
+      ]
+    ],
+    "error": "AssertionError(('Expectedexact8v_fma_f32staticloopinstructionsandnomatrix', [], []))",
+    "utc": "2026-10-24T15:30:45.179419+00:00"
+  },
+  "receipt_SHA256": "d28d687a57ba3f458b7fa6573820de9e1a921b928d303f7c11cb82a2c248ba2f",
+  "hardware-fp32-CPU-r8800-910406.208.log": "LOCAL_PYCACHE_R3097 node=a14r2n19 filesystem=tmpfs root=/dev/shm/infini-pyc-910406.208-0\nSHARED_CACHED_R1780_START node=a14r2n19 step=910406.208 scratch=runtime-raw-sdk-graph-r2323-910406.208-rank0\nWARNING: Could not find any rocm files on this host!\nWARNING: Environment variable TMPDIR already has value [/tmp], will not forward new value [/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/runtime-raw-sdk-graph-r2323-910406.208-rank0] from parent process environment\nWARNING: /opt/hyhal/lib/cmake/rocm_smi doesn't exist, please install the latest driver(version >= 6.3.15)\nThe rocm_smi_lib will be used in default\n{\"completed\": false, \"CPU_only\": true, \"GPU_initialized\": false, \"producer\": \"910406.208\", \"source_SHA256\": \"e7f40ce87a86b616c7579c6caf5a8049dcfa74d4168d86cc81e540b3b2cbd997\", \"compiler\": \"/opt/dtk/bin/hipcc\", \"error\": \"AssertionError(('Expectedexact8v_fma_f32staticloopinstructionsandnomatrix', [], []))\", \"utc\": \"2026-10-24T15:30:45.179419+00:00\"}\nTraceback (most recent call last):\n  File \"/refactor/incoming/build_hardware_fp32_fma_r8800.py\", line 18, in <module>\n    assert len(fma)==8 and not matrix,('Expectedexact8v_fma_f32staticloopinstructionsandnomatrix',fma,matrix)\nAssertionError: ('Expectedexact8v_fma_f32staticloopinstructionsandnomatrix', [], [])\n",
+  "hardware-fp32-CPU-r8800-controller.log": "srun: error: a14r2n19: task 0: Exited with exit code 1\nsrun: Terminating StepId=910406.208\n"
+}
