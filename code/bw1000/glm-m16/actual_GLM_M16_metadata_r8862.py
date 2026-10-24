@@ -1,0 +1,9 @@
+import pathlib,json,hashlib,subprocess
+r=pathlib.Path.home()/'hygon-inference-refactor-20261014';mp=r/'incoming/GLM-CROSSREQUEST-Model-source-manifest-r8862.json';m=json.loads(mp.read_bytes());ns={};exec(compile((r/'incoming/glm_model_library_metadata_r8862.py').read_bytes(),'actual-Model-metadata-module','exec'),ns)
+meta,cpu=ns['read_model_library_metadata'](r,m);assert cpu['compiled_TUs']==7 and len(cpu['reused_objects_SHA256'])==21
+bad=dict(m);bad['model_SHA256']='0'*64
+try:ns['read_model_library_metadata'](r,bad)
+except AssertionError as e:assert str(e)=='CPU_receipt_manifest_ModelSHA_mismatch'
+else:raise AssertionError('bad expected ELF hash accepted')
+lib=pathlib.Path(meta['library_actual_path']);symbols=subprocess.check_output(['nm','-S','--defined-only',str(lib)],text=True,timeout=30);sym=next(v.split()for v in symbols.splitlines()if v.split()[-1]=='modern_glm_model_resident_mask_r5640');start=int(sym[0],16);size=int(sym[1],16);dis=subprocess.check_output(['objdump','-d','--start-address='+str(start),'--stop-address='+str(start+size),str(lib)],text=True,timeout=30);lines=dis.splitlines();hits=[i for i,v in enumerate(lines)if 'cmp    $0x20,%rax'in v];assert len(hits)==1;part=lines[max(0,hits[0]-4):hits[0]+35];text='\n'.join(part);assert 'lea    (%rdx,%rdx,4),%rdx'in text and 'shl    $0x19,%rdx'in text
+print(json.dumps({'passed':True,'CPU_only':True,'GPU':False,'dlopen':False,'actual_metadata':meta,'manifest_SHA256':hashlib.sha256(mp.read_bytes()).hexdigest(),'actual_bad_ModelSHA_rejected':True,'actual_current_DSO_setter_160MiB_per_layer':True,'actual_current_setter_disassembly_SHA256':hashlib.sha256(dis.encode()).hexdigest(),'selected_instructions':part,'actual_CPU_contract':cpu['CPU_contract'],'compiled_TUs':cpu['compiled_TUs'],'reused_objects':len(cpu['reused_objects_SHA256'])}))
