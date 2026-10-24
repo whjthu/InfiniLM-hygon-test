@@ -1,0 +1,72 @@
+{
+  "utc": "2026-10-24T20:17:12.715003+00:00",
+  "state": "STOP_NO_SAFE_SUPPORTED_GDR_CANDIDATE",
+  "owner": "bw1000-agent/transport_gdr_probe_1",
+  "GPU_launched": false,
+  "Model_loaded": false,
+  "resource_scope": "CPU static login-host inspection plus CPU-only 910371 n03/n07 sysfs read; no dlopen, GPU init or model load",
+  "plugin_SHA256": "20a0a2a10a6e6a6a55212990634f6de8d79cc0553a315d6a48ff110b114694d0",
+  "exact_blocker": {
+    "source_of_truth": "Actual SHCA plugin ELF static nm/objdump/strings, same SHA as current Kimi RDMA manifest",
+    "registration_gate": "nccl_p2p_gdr_support @0xf7f0 tests access(/sys/kernel/mm/memory_peers/amdkfd/version,F_OK). Absent path sets module_loaded=0 and returns2 (unsupported). Hyper-V UEFI/NUMA branch can further disable; does not create support.",
+    "actual_nodes": "a02r3n03 and a02r3n07 both missing that sysfs path; kernel5.10.134-17.1.3.sga8.x86_64, numa_balancing=0; CPU srun rc0",
+    "provider_properties": "nccl_p2p_ib_get_properties @0xf940 sets ptrSupport at+0x18 to1, adds2 only on gdr_support rc0, adds4 only on dmabuf_support rc0. No NET_GDR_LEVEL lookup in this support gate.",
+    "SYS_decision": "No GPU launch: SYS cannot supply missing plugin registration capability; no supported single-switch candidate established. No blind forced SYS or extra UCX flags.",
+    "DMA_BUF_decision": "BothTP16/TP32failedSIGSEGV11 duringinitialization at34s, noresult/CPUoracle/noEnabledconnection proof. Unsupported by current tested stack; hardwareDMA-BUF capability NOT disproven.",
+    "DMA_BUF_single_change": "Perprocess NCCL_DMABUF_ENABLE=1; same6173DSO, originalRuntime/same geometry/streams/CPUoracle harness. Globalnetwork/kernel/driver unchanged, noNET_GDR_LEVEL forcing.",
+    "hardware_limit": "Missing current plugin/driver gate is not proof that hardware or every HCA cannot support GDR. Host sysfs view measured here; container-specific sysfs view was not probed. No kernel/module/driver changes authorized or performed."
+  },
+  "current_Kimi_actual_network": {
+    "handle": "910375.651",
+    "Using_IBext_v8": 64,
+    "actual_data_NET_IBext_v8": 1632,
+    "actual_data_NET_Socket": 0,
+    "GDR": "Explicit Disabled HCA0/1 samples in actual logs; not generalized to all hardware",
+    "evidence_SHA256": "e7796751a339dae89f46e4845f6f8d75ff7b9b72a819ccd687d2771f2433fe2e"
+  },
+  "latency_conclusion": "No GDR Enabled candidate, no same-pair before/after and no candidate finite/reference pass. GDR latency effect and Model gain remain unmeasured; do not substitute previous host-staged RDMA measurements.",
+  "dedup_negative": {
+    "file": "moe-DMABUF-init-negative-r6253.json",
+    "SHA256": "ed0adfa406dc136eebed358d430320773c8752317be941a2f05da5d0d04b1321",
+    "actual_jobs": [
+      "910376.443|moe-tp2-r6246|FAILED|11:0|00:00:34|a02r4n[14-15]",
+      "910380.402|moe-tp4-r6246|FAILED|11:0|00:00:34|a14r2n[08-10,12]"
+    ]
+  },
+  "cpu_evidence": {
+    "inspect_GDR_support_cpu_r8861.py": {
+      "SHA256": "59cba2cda4e8ba03aac7505390703fa1dfce6ea3724131ede5ebc71c6e995313",
+      "bytes": 1372
+    },
+    "inspect_GDR_gates_cpu_r8862.py": {
+      "SHA256": "d5acb6685ce4f7b90e7f187839c1347eed03afa379a2c6c0167f862a69d1c180",
+      "bytes": 1030
+    },
+    "inspect_GDR_node_gates_cpu_r8863.py": {
+      "SHA256": "5398dd80eff33c3205a6d6bed31ca92fb764ebb1bd05705c196cea633ebd5d2f",
+      "bytes": 1270
+    },
+    "GDR-static-support-r8861.json": {
+      "SHA256": "a1e66c18568475c1346afcccbf6db9b116bd627dca2a46bb6a68eb0adc85bb9f",
+      "bytes": 8298
+    },
+    "GDR-static-gates-r8862.json": {
+      "SHA256": "c043f99009a866380f81ed3775b7d34cfb787fa864f706191a656694f00d8061",
+      "bytes": 19171
+    },
+    "GDR-static-node-gates-r8863.json": {
+      "SHA256": "7596fe3015c4d0c99c36e50a70380734499df54f41611eb2b4f34548139a3962",
+      "bytes": 1220
+    }
+  },
+  "inspection_entry": "code/bw1000/gdr-provider-static-r8863/inspect_GDR_node_gates_cpu_r8863.py",
+  "inspection_entry_SHA256": "5398dd80eff33c3205a6d6bed31ca92fb764ebb1bd05705c196cea633ebd5d2f",
+  "GPU_entry": null,
+  "CPU_compile": null,
+  "consumer_nm": "r8861 actual plugin nm contains ncclNetPlugin_v8 and nccl_p2p_gdr_support; no new adapter compiled or dlopened",
+  "next": "Reopen only with evidence of a driver/plugin registration capability change or a supported alternative. Do not repeat DMA-BUF flag or run SYS-only GPU trial against this unchanged gate.",
+  "hardware": "BW1000",
+  "level": "CPU_STATIC_PROVIDER_AND_SYSFS_NO_GPU",
+  "status": "STOP_NO_SAFE_SUPPORTED_GDR_CANDIDATE",
+  "original_agent_result_SHA256": "cde7fa23479b388f5921a5533cfac053ab6bdcefc43497d4e6bbf71d887bce60"
+}
