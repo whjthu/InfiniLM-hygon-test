@@ -1,0 +1,15 @@
+--- 5776normalizednames
++++ 5783
+@@ -65,8 +65,10 @@
+  for sym,expect in [('modern_glm_cross_control_r5775',private),('modern_glm_cross_journal_r5775',private),('modern_glm_crossrequest_prefill_calls_r7328',private),('modern_glm_model_create',private),('modern_glm_model_resident_mask_r5640',private),('modern_glm_model_resident_report_r5640',private),('modern_glm_vector_policy_r8540',private),('modern_glm_vector_counts_r8540',private),('glm_grouped_gate_r5123',r/'candidates/glm-hybrid-decode-r5386/libnative.so')]:
+   info=DlInfo();assert dl.dladdr(ctypes.cast(getattr(lib,sym),ctypes.c_void_p),ctypes.byref(info))
+   actual=pathlib.Path(info.fname.decode()).resolve();assert actual==expect.resolve(),(sym,str(actual),str(expect));owners[sym]={'file':str(actual),'SHA256':sha(actual)}
+- mapped=[v.split()[-1]for v in pathlib.Path('/proc/self/maps').read_text().splitlines()if 'libmodern_glm_'in v or 'libglm_crossrequest_model_r7328.so'in v]
+- assert str(private)in mapped and not any('glm-hybrid-decode-model-r5390'in p for p in mapped),mapped
++ mapped=sorted({str(pathlib.Path(v.split()[-1]).resolve())for v in pathlib.Path('/proc/self/maps').read_text().splitlines()if v.split()and v.split()[-1].startswith('/')and '.so'in pathlib.Path(v.split()[-1]).name})
++ assert str(private.resolve())in mapped and not any('glm-hybrid-decode-model-r5390'in p for p in mapped),mapped
++ assert sha(private.resolve())=='fb059e2a772afa32fa9617b252fa4d67ee749404a6dd80e3e1ddc03ccf919cf5'
++
+  policy=ctypes.CDLL(None);policy.modern_blas_policy_r243_json.restype=ctypes.c_char_p
+  policyq=json.loads(policy.modern_blas_policy_r243_json());assert policyq['failures']==0
+  lib.glm_dedup_scope_r5386.argtypes=[ctypes.c_int,ctypes.c_int,ctypes.c_void_p];lib.glm_dedup_scope_get_r5386.argtypes=[ctypes.c_int]
