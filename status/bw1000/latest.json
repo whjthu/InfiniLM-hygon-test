@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-10-24T15:04:28.176067+00:00",
+  "updated_at_utc": "2026-10-24T15:48:50.110414+00:00",
   "owner": "bw1000-agent",
   "hardware": "BW1000",
   "last_slurm_observation_utc": "2026-10-24T06:31:38+00:00",
@@ -251,86 +251,107 @@
     "local_poll_state": "gitignored local-only/; never committed"
   },
   "astra_review": {
-    "updated_at_utc": "2026-10-24T15:04:28.176067+00:00",
+    "updated_at_utc": "2026-10-24T15:48:50.110414+00:00",
     "policy": "coordination/ASTRA_REVIEW.zh-CN.md",
     "status": "COMPLETED_IMPLEMENTED_FOLLOWTHROUGH",
-    "review_id": "astra-review-53-current",
+    "review_id": "astra-review-54-current",
     "model": "gpt-6-astra",
-    "agent": "/root/astra_review_53",
-    "report": "analysis/bw1000/reviews/astra-review-53-current.json",
-    "implementation": "analysis/bw1000/reviews/astra-review-implementation-53-current.json",
-    "ledger": "analysis/bw1000/reviews/optimization-review-ledger-after-53.json",
-    "completed_rounds_since_review": 0,
+    "agent": "/root/astra_review_54",
+    "report": "analysis/bw1000/reviews/astra-review-54-current.json",
+    "implementation": "analysis/bw1000/reviews/astra-review-implementation-54-current.json",
+    "ledger": "analysis/bw1000/reviews/optimization-review-ledger-after-54.json",
+    "completed_rounds_since_review": 2,
     "normal_trigger": 3,
     "independent_work_continues": true,
-    "trigger": "Normal3validglobalrounds814823826",
     "report_available": true,
-    "previous_completed_report": "analysis/bw1000/reviews/astra-review-52-current.json",
-    "unreviewed_completed_experiments": [],
-    "current_followthrough": [
+    "unreviewed_completed_experiments": [
       {
-        "card": "DEEP53-RETAIN-SCATTER-RETIRE-FOR-SHARED-LOAD",
-        "owner": "/root/glm_critical_path_profile",
-        "decision": "ACCEPT",
-        "state": "DISPATCHED_TO_ORIGINAL_OWNER",
-        "action": "Retain826 as a ready defaultOFF candidate against PACKON. Reuse814 host/validator/ONNO and existing candidate source; within10min CPU identify the exact minimal Model linkage/toggle needed and leave it ready for the next independently necessary Model qualification. Do not repeat826 or build a new profile. Existing approved independent work may continue.",
-        "resources": "CPU existing n19/n20 only as needed;0 additionalGPU now. Preserve original n05/910374 and protected910384 n17/n18 ownership.",
-        "first_decision": "Ready/explicit exact linkage blocker within10min; no waiting for more reports."
+        "handle": "910376.534",
+        "evidence": "GLM-constructor-only-compact-r8790.json",
+        "scope": "Complete phase-instrumented unloaded constructor; no Model gain"
       },
       {
-        "card": "DEEP53-NEXT-NECESSARY-LOAD-ISOLATED-ARM",
-        "owner": "/root/glm_critical_path_profile",
-        "decision": "ACCEPT_CONDITIONAL",
-        "state": "PARKED_UNTIL_PRIMARY_CONDITION",
-        "action": "In that one load, keep PACKON fixed and compare scatter-retire OFF/ON/ON/OFF using original699 B32M32 I512O128 protocol. Isolate this toggle from other candidates; full finalIDs/EOS/QA/8normal and actual request clocks. No combination-only attribution.",
-        "resources": "Original n05/910374 8DCU, existing30min Model envelope; no separate baseline load.",
-        "first_decision": "At next necessary load, ETA UNKNOWN; no timer-based automatic reload.",
-        "activation": "Only when another independently justified currentModel run already requires this load; replaces parked primary."
-      },
-      {
-        "card": "KIMI53-REAL-TP16-I192-FULLMOE-BASELINE",
-        "owner": "/root/online_service_scheduler",
-        "decision": "ACCEPT_WITH_INTERMEDIATE_NUMERICS_SCOPE_CORRECTION",
-        "state": "DISPATCHED_TO_ORIGINAL_OWNER",
-        "action": "Continue already dispatched CPU202 thin-adapter preparation. Bind actualf6f Model CommunicationGroup, two real nodes with8owners each, tp_node_size2, globalTP16 ranks0..15, shared rendezvous, pp1 for this layer only. Load same real896expert checkpoint via existing Weight slicing, localI192/W2scale6. Same teacher0 decodeT16/fullH7168 layer1 router/shared/projections and real TP16 collective. SpecMath0/serving1, tile opt-inOFF; ordinary warm and bounded repeats without API interposer. Current variant4 counter0 is expected fallback, not a failure.",
-        "resources": "Original Kimi owner910374, n01 plus one actually free original-owned node,16DCU total; root chooses available second node without borrowing protected910384 n17/n18 or displacing Deep. CPU n19/n20 for thin adapter only. No32card/fullModel load.",
-        "first_decision": "Use in-flight CPU work now; readiness or specific build blocker within15min from dispatch. Once resources admitted, one component entry with8min hard envelope including layer load and cleanup; record queue separately. This is a budget, not a claim of measured startup time.",
-        "scope_correction": "CrossTP reduction-order BF16/F32 intermediate differences are diagnostic, not a new byteexact/1e-5 hard veto. Finite/shape/shard correctness and error distribution remain required; do not widen tolerance to call Model passed. Only subsequent fullModel finalIDs/EOS/QA qualify Model adoption, per direct user instruction.",
-        "selected_nodes": "910374 n01+n04,16DCU afterfreshadmission"
-      },
-      {
-        "card": "KIMI53-I192-LOCAL-PROVIDER-ONLY",
-        "owner": "/root/online_service_scheduler",
-        "decision": "ACCEPT_CONDITIONAL",
-        "state": "PARKED_UNTIL_PRIMARY_CONDITION",
-        "action": "One bounded15min CPU adaptation assessment of the existing currentvariant4 route to localI192: exact W13/W2 packed and scale strides, scratch bounds and dispatch guards. Retain H3584/16routes and original numerical math. If feasible as one private providerTU, prepare one candidate for the same fullMoE component paired baseline; do not reopen oldW13/W2/tile/activation grids. If routed share is not measured or implementation expands, park with exact reason; no new profiling campaign.",
-        "resources": "Same original owner16DCU component only after feasible local change; no SDK/Common rebuild or fullModel. One paired component entry <=8min; existing numeric/normal/post requirements.",
-        "first_decision": "15min CPU feasible-or-STOP, then one admitted component terminal; no further review gate.",
-        "activation": "Only after primary numerically qualifies I192 and identifies a slow generic routed fallback with sufficient measured wall to matter; never parallel with primary."
-      },
-      {
-        "card": "GLM53-EXACT-COMM-ONLY-PHASE-CONTROL",
-        "owner": "/root/moe_decode_arithmetic_audit",
-        "decision": "ACCEPT",
-        "state": "DISPATCHED_TO_ORIGINAL_OWNER",
-        "action": "In the current private bridge add one comm-only diagnostic entry reusing the actual Runtime/device guard and the exact528 sequence: world24 InitRank, localstageTP8 InitRank, then the original shared-control alias or separate control24 according to528's unchanged flag. Stop before TextModelProjectedR22 construction. Reuse528 unique-ID distribution, process startup, nodes, ranks, affinity, library and environment. Add flushed rank/stage/PID/device/monotonic enter+return markers around each call and persist each completed boundary before teardown. Log stable ID fingerprints to detect mismatched TP groups; never change group construction or reorder calls in this control.",
-        "resources": "Original910376 n12/n13/n14,24DCU,c64/node,240000M/node. One bridgeTU relink on existing CPU owners; no six-TU/SDK rebuild. Same hard300s/inside260s as528, no long weight load and no other-job interference.",
-        "first_decision": "15min CPU preparation bound, then first missing enter/return boundary or complete24rank comm result within original5min GPU envelope; queue separate. Save progress immediately, not only finally."
-      },
-      {
-        "card": "GLM53-CONSTRUCTOR-AFTER-COMM-PASS",
-        "owner": "/root/moe_decode_arithmetic_audit",
-        "decision": "ACCEPT_CONDITIONAL",
-        "state": "PARKED_UNTIL_PRIMARY_CONDITION",
-        "action": "One unchanged-size unloaded528 constructor run using the same phase-instrumented bridge, adding module.enter/module.return and sync.enter/return, CPU-host immediate snapshots/save beforecreate, aftercreate and beforecleanup. Same64rows/capacity640/TP8PP3; no checkpointIO, finish, forward or resident call. Measure actual parameter/basiccache allocation and free memory when phases return; do not demand an impossible opaque-scratch CPU maximum first.",
-        "resources": "Same original24DCU and hard300s/inside260s; no automatic extension or subsequent fullModel load.",
-        "first_decision": "Within original5min run envelope. Actual constructor timing remains unknown until observed.",
-        "activation": "Only if primary completes all24 ranks with ordinary teardown; replaces primary."
+        "handle": "910374.835",
+        "evidence": "Kimi-TP16-analysis-r8806.json",
+        "scope": "Actual RDMA restored; fullMoE component terminal; no paired Model gain"
       }
     ],
-    "latest_followthrough_result": "814 accepted pref/E2E Modelgain;823 MoEAPIrouteSTOP;826readyonly. KimiTP16 currentcomponent preparing, GLM exactcomm-only preparing;528 nofit/performanceclaim.",
+    "current_followthrough": [
+      {
+        "card": "GLM54-MINIMAL-PP3-MODEL-ENTRY",
+        "owner": "/root/moe_decode_arithmetic_audit",
+        "decision": "ACCEPT",
+        "action": "Repair the private resident_mask pp!=2 guard mechanically for the actual PP3 stage bounds[0,26,54,78], retaining READY/lifecycle checks. Finish exact24-owner loader, feedback, final-ID/EOS/QA and auditor dimensions. Keep original T8 vector/prefix/per-query math, PV OFF, M8, rows64/capacity640. Reuse534 bridge objects and existing522 loader/validator; check all24 stage/rank coverage and explicit mapping of64 requests to originalM8 prompts/gold. No six-TU or SDK rebuild. Produce a runnable package or one concrete blocker within20min; this is a preparation bound, not a compile-time promise.",
+        "resources": "Existing CPU owners; no additional GPU diagnostic. Original910376 n12/n13/n14 only for the conditional Model card.",
+        "exit": "If adaptation requires new numerical math or a new distributed protocol, park PP3 with the exact missing contract. No repeated531/534 and no opaque-scratch source archaeology.",
+        "state": "ORIGINAL_OWNER_PREPARING_MINIMAL_CPU_PACKAGE"
+      },
+      {
+        "card": "GLM54-ONE-LOAD-REAL-MODEL-SCREEN",
+        "owner": "/root/moe_decode_arithmetic_audit",
+        "decision": "ACCEPT_CONDITIONAL",
+        "action": "Load the actual checkpoint once on TP8PP3. Persist phase/free-memory snapshots before and after checkpoint postprocessing/finish, resident allocation and first real prefill/decode. Retain required6GiB reserve policy and measure available memory at phase boundaries; snapshots are not an exact transient peak. If initialization completes, run B16M8 and B64M8 in one load using the existing I/O length and natural EOS protocol; use order B16,B64,B64,B16 with state reset through existing supported lifecycle. Count the matrix once. These are operational concurrency comparisons, not isolated PP3 causal gain against historical522. Require full gold-mapped final IDs/EOS/QA for every request and24normal/clean postcheck. Measure aggregate decode, TTFT, full request elapsed and actual per-request decode intervals/mean/min/max. End after the finite matrix, not a new concurrency grid.",
+        "resources": "Original910376 n12/n13/n14,24DCU; one load, no fresh16card comparison load. Existing per-node CPU/memory admission and cleanup contract.",
+        "exit": "Compare each configuration on actual user latency as well as throughput; largerB may improve throughput while worsening per-user rates.24card aggregate>58.0844 beats522's38.723 per-card efficiency only as a descriptive screen. It neither proves same-workload causal acceleration nor15tok/s per user. If fullModel fails, retain first exact phase/allocation and stop rather than add another capacity probe.",
+        "state": "PARKED_UNTIL_ACTIVATION",
+        "activation": "Primary is concretely runnable and existing ownership admits24DCU; root dispatches without waiting for another periodic review."
+      },
+      {
+        "card": "KIMI54-CLOSE-INFLIGHT-835",
+        "owner": "/root/online_service_scheduler",
+        "decision": "ACCEPT",
+        "action": "CLOSED by supplemental835/8807 evidence: archive the single compact record and reuse verified IBext_v8 launch environment. No further GPU entry, transport sampler or compile; no GDR claim absent explicit evidence.",
+        "resources": "0 newGPU/CPU build; original16DCU entry has ended.",
+        "exit": "If repaired environment still does not select the expected backend, stop with the first actual loader/plugin/device error; one exact known-path correction is sufficient, no blind environment grid. If it works, close this transport question and move to one candidate, not another sampler campaign.",
+        "state": "COMPLETED_BY_ROOT_ORIGINAL_HANDLE",
+        "evidence": "Kimi-TP16-analysis-r8806.json",
+        "transport": "256 actual NET/IBext_v8 channel records, Socket0; GDR unknown",
+        "ordinary_fullMoE_ms_ranges": [
+          [
+            2.722799,
+            2.776109
+          ],
+          [
+            2.563519,
+            2.665119
+          ]
+        ],
+        "Model_gain": false
+      },
+      {
+        "card": "KIMI54-BOUNDED-I192-CANDIDATE",
+        "owner": "/root/online_service_scheduler",
+        "decision": "ACCEPT_CONDITIONAL",
+        "action": "Within15min assess an I192 specialization of the existing variant4 using the known W13/upoffset/W2/scale strides and conservative scratch. At most one private providerTU plus necessary Model MoE dispatchTU; unchanged routes/precision/activation. If concrete, run one finite paired generic/specialized fullMoE matrix in the existing repaired16DCU adapter with warmup and at least ABBA ordinary blocks in the same layer load. All end-to-end component costs and global completion are included. No old W13/W2/activation/tile grids and no separate profiler session.",
+        "resources": "Original910374 n01+n04,16DCU; existing CPU owners; component hard8min including load/cleanup. Root retains original ownership/protected-node rules.",
+        "exit": "Integration exceeds those private TUs, no repeatable positive fullMoE wall, or correctness/cleanup fails: STOP port. Intermediate crossTP differences remain diagnostic; candidate same-topology numeric checks and eventual Model finalIDs/EOS/QA are still required. No tolerance widening to declare Model success.",
+        "state": "ORIGINAL_OWNER_BOUNDED_CPU_FEASIBILITY_ONLY_GPU_CONDITIONAL",
+        "activation": "835 has completed with actual IBext_v8 datachannels and clean closure. Two ordinary ranges are close enough to justify one bounded candidate trial, not enough to certify a stable speedup. Proceed to15min feasibility; no additional baseline-only sampler."
+      },
+      {
+        "card": "DEEP54-CLOSE-BOUNDED-EMPIRICAL-REFERENCE",
+        "owner": "/root/glm_critical_path_profile",
+        "decision": "ACCEPT",
+        "action": "CLOSED by838 compact: preserve corrected ISA receipt and original erroneous gate receipt with sameELF. Reference is qualified22.9749..22.9771TFLOPS/device event medians. End this measurement route; no next benchmark grid or kernel recompile.",
+        "resources": "0 newGPU; original n07 8DCU entry ended49s with post839empty.",
+        "exit": "After one terminal result, close the empirical reference work. Achieved arithmetic throughput is neither a physical ceiling nor evidence of routed MoE utilization, attainable tokens/s or a decode gain. Do not wait for another review to stop it.",
+        "state": "COMPLETED_ORIGINAL_OWNER",
+        "evidence": "Hardware838-packed-vector-FP32-reference-r8806.json",
+        "scope": "Packed vector achieved reference only, not Model/physical peak"
+      },
+      {
+        "card": "DEEP54-REUSE-NEXT-NECESSARY-MODEL-LOAD",
+        "owner": "/root/glm_critical_path_profile",
+        "decision": "ACCEPT_CONDITIONAL",
+        "action": "Use ready8794 with PACKON fixed, scatter-retire OFF/ON/ON/OFF and original699 B32M32 I512O128 full validation/request clocks. Keep each candidate isolated. If a realT32 decode capture is possible through an already supported narrow hook, save one same-step hidden/routeIDs/weights/context/precision fixture outside timed arms plus actualU/maxexpertM; do not write a new capture framework or include capture overhead in performance arms. Capture alone does not revive the bank candidate.",
+        "resources": "Original Deep n05/910374 8DCU, existing30min Model envelope and one checkpoint load. No automatic timer-based reload.",
+        "exit": "Any quality failure or inconsistent/nonpositive Model wall retains defaultOFF. Low-U bank remains STOP unless both a real decode fixture and a new concrete reason to overcome the negative historical result exist. No synthetic-prefill substitute, old sdot4 rerun or extra Model solely to collect a fixture.",
+        "state": "PARKED_UNTIL_ACTIVATION",
+        "activation": "Only another independently justified currentModel candidate requires a load; this card does not create a standalone load for826 or a fixture."
+      }
+    ],
     "pending_report": null,
-    "report_scope": "COMPLETED_REVIEW53_THREE_VALID_ROUNDS"
+    "wholeModel_gain_count_this_review": 0
   },
   "latest_results": [
     "results/bw1000/2026-10-24/glm-shared-validation-qualified.json",
@@ -347,91 +368,112 @@
   "Kimi_candidate_adopted": false,
   "latest_hardware_reference": "results/bw1000/2026-10-24/integer-arithmetic-qualified-reference.json",
   "latest_review": {
-    "updated_at_utc": "2026-10-24T15:04:28.176067+00:00",
+    "updated_at_utc": "2026-10-24T15:48:50.110414+00:00",
     "policy": "coordination/ASTRA_REVIEW.zh-CN.md",
     "status": "COMPLETED_IMPLEMENTED_FOLLOWTHROUGH",
-    "review_id": "astra-review-53-current",
+    "review_id": "astra-review-54-current",
     "model": "gpt-6-astra",
-    "agent": "/root/astra_review_53",
-    "report": "analysis/bw1000/reviews/astra-review-53-current.json",
-    "implementation": "analysis/bw1000/reviews/astra-review-implementation-53-current.json",
-    "ledger": "analysis/bw1000/reviews/optimization-review-ledger-after-53.json",
-    "completed_rounds_since_review": 0,
+    "agent": "/root/astra_review_54",
+    "report": "analysis/bw1000/reviews/astra-review-54-current.json",
+    "implementation": "analysis/bw1000/reviews/astra-review-implementation-54-current.json",
+    "ledger": "analysis/bw1000/reviews/optimization-review-ledger-after-54.json",
+    "completed_rounds_since_review": 2,
     "normal_trigger": 3,
     "independent_work_continues": true,
-    "trigger": "Normal3validglobalrounds814823826",
     "report_available": true,
-    "previous_completed_report": "analysis/bw1000/reviews/astra-review-52-current.json",
-    "unreviewed_completed_experiments": [],
-    "current_followthrough": [
+    "unreviewed_completed_experiments": [
       {
-        "card": "DEEP53-RETAIN-SCATTER-RETIRE-FOR-SHARED-LOAD",
-        "owner": "/root/glm_critical_path_profile",
-        "decision": "ACCEPT",
-        "state": "DISPATCHED_TO_ORIGINAL_OWNER",
-        "action": "Retain826 as a ready defaultOFF candidate against PACKON. Reuse814 host/validator/ONNO and existing candidate source; within10min CPU identify the exact minimal Model linkage/toggle needed and leave it ready for the next independently necessary Model qualification. Do not repeat826 or build a new profile. Existing approved independent work may continue.",
-        "resources": "CPU existing n19/n20 only as needed;0 additionalGPU now. Preserve original n05/910374 and protected910384 n17/n18 ownership.",
-        "first_decision": "Ready/explicit exact linkage blocker within10min; no waiting for more reports."
+        "handle": "910376.534",
+        "evidence": "GLM-constructor-only-compact-r8790.json",
+        "scope": "Complete phase-instrumented unloaded constructor; no Model gain"
       },
       {
-        "card": "DEEP53-NEXT-NECESSARY-LOAD-ISOLATED-ARM",
-        "owner": "/root/glm_critical_path_profile",
-        "decision": "ACCEPT_CONDITIONAL",
-        "state": "PARKED_UNTIL_PRIMARY_CONDITION",
-        "action": "In that one load, keep PACKON fixed and compare scatter-retire OFF/ON/ON/OFF using original699 B32M32 I512O128 protocol. Isolate this toggle from other candidates; full finalIDs/EOS/QA/8normal and actual request clocks. No combination-only attribution.",
-        "resources": "Original n05/910374 8DCU, existing30min Model envelope; no separate baseline load.",
-        "first_decision": "At next necessary load, ETA UNKNOWN; no timer-based automatic reload.",
-        "activation": "Only when another independently justified currentModel run already requires this load; replaces parked primary."
-      },
-      {
-        "card": "KIMI53-REAL-TP16-I192-FULLMOE-BASELINE",
-        "owner": "/root/online_service_scheduler",
-        "decision": "ACCEPT_WITH_INTERMEDIATE_NUMERICS_SCOPE_CORRECTION",
-        "state": "DISPATCHED_TO_ORIGINAL_OWNER",
-        "action": "Continue already dispatched CPU202 thin-adapter preparation. Bind actualf6f Model CommunicationGroup, two real nodes with8owners each, tp_node_size2, globalTP16 ranks0..15, shared rendezvous, pp1 for this layer only. Load same real896expert checkpoint via existing Weight slicing, localI192/W2scale6. Same teacher0 decodeT16/fullH7168 layer1 router/shared/projections and real TP16 collective. SpecMath0/serving1, tile opt-inOFF; ordinary warm and bounded repeats without API interposer. Current variant4 counter0 is expected fallback, not a failure.",
-        "resources": "Original Kimi owner910374, n01 plus one actually free original-owned node,16DCU total; root chooses available second node without borrowing protected910384 n17/n18 or displacing Deep. CPU n19/n20 for thin adapter only. No32card/fullModel load.",
-        "first_decision": "Use in-flight CPU work now; readiness or specific build blocker within15min from dispatch. Once resources admitted, one component entry with8min hard envelope including layer load and cleanup; record queue separately. This is a budget, not a claim of measured startup time.",
-        "scope_correction": "CrossTP reduction-order BF16/F32 intermediate differences are diagnostic, not a new byteexact/1e-5 hard veto. Finite/shape/shard correctness and error distribution remain required; do not widen tolerance to call Model passed. Only subsequent fullModel finalIDs/EOS/QA qualify Model adoption, per direct user instruction.",
-        "selected_nodes": "910374 n01+n04,16DCU afterfreshadmission"
-      },
-      {
-        "card": "KIMI53-I192-LOCAL-PROVIDER-ONLY",
-        "owner": "/root/online_service_scheduler",
-        "decision": "ACCEPT_CONDITIONAL",
-        "state": "PARKED_UNTIL_PRIMARY_CONDITION",
-        "action": "One bounded15min CPU adaptation assessment of the existing currentvariant4 route to localI192: exact W13/W2 packed and scale strides, scratch bounds and dispatch guards. Retain H3584/16routes and original numerical math. If feasible as one private providerTU, prepare one candidate for the same fullMoE component paired baseline; do not reopen oldW13/W2/tile/activation grids. If routed share is not measured or implementation expands, park with exact reason; no new profiling campaign.",
-        "resources": "Same original owner16DCU component only after feasible local change; no SDK/Common rebuild or fullModel. One paired component entry <=8min; existing numeric/normal/post requirements.",
-        "first_decision": "15min CPU feasible-or-STOP, then one admitted component terminal; no further review gate.",
-        "activation": "Only after primary numerically qualifies I192 and identifies a slow generic routed fallback with sufficient measured wall to matter; never parallel with primary."
-      },
-      {
-        "card": "GLM53-EXACT-COMM-ONLY-PHASE-CONTROL",
-        "owner": "/root/moe_decode_arithmetic_audit",
-        "decision": "ACCEPT",
-        "state": "DISPATCHED_TO_ORIGINAL_OWNER",
-        "action": "In the current private bridge add one comm-only diagnostic entry reusing the actual Runtime/device guard and the exact528 sequence: world24 InitRank, localstageTP8 InitRank, then the original shared-control alias or separate control24 according to528's unchanged flag. Stop before TextModelProjectedR22 construction. Reuse528 unique-ID distribution, process startup, nodes, ranks, affinity, library and environment. Add flushed rank/stage/PID/device/monotonic enter+return markers around each call and persist each completed boundary before teardown. Log stable ID fingerprints to detect mismatched TP groups; never change group construction or reorder calls in this control.",
-        "resources": "Original910376 n12/n13/n14,24DCU,c64/node,240000M/node. One bridgeTU relink on existing CPU owners; no six-TU/SDK rebuild. Same hard300s/inside260s as528, no long weight load and no other-job interference.",
-        "first_decision": "15min CPU preparation bound, then first missing enter/return boundary or complete24rank comm result within original5min GPU envelope; queue separate. Save progress immediately, not only finally."
-      },
-      {
-        "card": "GLM53-CONSTRUCTOR-AFTER-COMM-PASS",
-        "owner": "/root/moe_decode_arithmetic_audit",
-        "decision": "ACCEPT_CONDITIONAL",
-        "state": "PARKED_UNTIL_PRIMARY_CONDITION",
-        "action": "One unchanged-size unloaded528 constructor run using the same phase-instrumented bridge, adding module.enter/module.return and sync.enter/return, CPU-host immediate snapshots/save beforecreate, aftercreate and beforecleanup. Same64rows/capacity640/TP8PP3; no checkpointIO, finish, forward or resident call. Measure actual parameter/basiccache allocation and free memory when phases return; do not demand an impossible opaque-scratch CPU maximum first.",
-        "resources": "Same original24DCU and hard300s/inside260s; no automatic extension or subsequent fullModel load.",
-        "first_decision": "Within original5min run envelope. Actual constructor timing remains unknown until observed.",
-        "activation": "Only if primary completes all24 ranks with ordinary teardown; replaces primary."
+        "handle": "910374.835",
+        "evidence": "Kimi-TP16-analysis-r8806.json",
+        "scope": "Actual RDMA restored; fullMoE component terminal; no paired Model gain"
       }
     ],
-    "latest_followthrough_result": "814 accepted pref/E2E Modelgain;823 MoEAPIrouteSTOP;826readyonly. KimiTP16 currentcomponent preparing, GLM exactcomm-only preparing;528 nofit/performanceclaim.",
+    "current_followthrough": [
+      {
+        "card": "GLM54-MINIMAL-PP3-MODEL-ENTRY",
+        "owner": "/root/moe_decode_arithmetic_audit",
+        "decision": "ACCEPT",
+        "action": "Repair the private resident_mask pp!=2 guard mechanically for the actual PP3 stage bounds[0,26,54,78], retaining READY/lifecycle checks. Finish exact24-owner loader, feedback, final-ID/EOS/QA and auditor dimensions. Keep original T8 vector/prefix/per-query math, PV OFF, M8, rows64/capacity640. Reuse534 bridge objects and existing522 loader/validator; check all24 stage/rank coverage and explicit mapping of64 requests to originalM8 prompts/gold. No six-TU or SDK rebuild. Produce a runnable package or one concrete blocker within20min; this is a preparation bound, not a compile-time promise.",
+        "resources": "Existing CPU owners; no additional GPU diagnostic. Original910376 n12/n13/n14 only for the conditional Model card.",
+        "exit": "If adaptation requires new numerical math or a new distributed protocol, park PP3 with the exact missing contract. No repeated531/534 and no opaque-scratch source archaeology.",
+        "state": "ORIGINAL_OWNER_PREPARING_MINIMAL_CPU_PACKAGE"
+      },
+      {
+        "card": "GLM54-ONE-LOAD-REAL-MODEL-SCREEN",
+        "owner": "/root/moe_decode_arithmetic_audit",
+        "decision": "ACCEPT_CONDITIONAL",
+        "action": "Load the actual checkpoint once on TP8PP3. Persist phase/free-memory snapshots before and after checkpoint postprocessing/finish, resident allocation and first real prefill/decode. Retain required6GiB reserve policy and measure available memory at phase boundaries; snapshots are not an exact transient peak. If initialization completes, run B16M8 and B64M8 in one load using the existing I/O length and natural EOS protocol; use order B16,B64,B64,B16 with state reset through existing supported lifecycle. Count the matrix once. These are operational concurrency comparisons, not isolated PP3 causal gain against historical522. Require full gold-mapped final IDs/EOS/QA for every request and24normal/clean postcheck. Measure aggregate decode, TTFT, full request elapsed and actual per-request decode intervals/mean/min/max. End after the finite matrix, not a new concurrency grid.",
+        "resources": "Original910376 n12/n13/n14,24DCU; one load, no fresh16card comparison load. Existing per-node CPU/memory admission and cleanup contract.",
+        "exit": "Compare each configuration on actual user latency as well as throughput; largerB may improve throughput while worsening per-user rates.24card aggregate>58.0844 beats522's38.723 per-card efficiency only as a descriptive screen. It neither proves same-workload causal acceleration nor15tok/s per user. If fullModel fails, retain first exact phase/allocation and stop rather than add another capacity probe.",
+        "state": "PARKED_UNTIL_ACTIVATION",
+        "activation": "Primary is concretely runnable and existing ownership admits24DCU; root dispatches without waiting for another periodic review."
+      },
+      {
+        "card": "KIMI54-CLOSE-INFLIGHT-835",
+        "owner": "/root/online_service_scheduler",
+        "decision": "ACCEPT",
+        "action": "CLOSED by supplemental835/8807 evidence: archive the single compact record and reuse verified IBext_v8 launch environment. No further GPU entry, transport sampler or compile; no GDR claim absent explicit evidence.",
+        "resources": "0 newGPU/CPU build; original16DCU entry has ended.",
+        "exit": "If repaired environment still does not select the expected backend, stop with the first actual loader/plugin/device error; one exact known-path correction is sufficient, no blind environment grid. If it works, close this transport question and move to one candidate, not another sampler campaign.",
+        "state": "COMPLETED_BY_ROOT_ORIGINAL_HANDLE",
+        "evidence": "Kimi-TP16-analysis-r8806.json",
+        "transport": "256 actual NET/IBext_v8 channel records, Socket0; GDR unknown",
+        "ordinary_fullMoE_ms_ranges": [
+          [
+            2.722799,
+            2.776109
+          ],
+          [
+            2.563519,
+            2.665119
+          ]
+        ],
+        "Model_gain": false
+      },
+      {
+        "card": "KIMI54-BOUNDED-I192-CANDIDATE",
+        "owner": "/root/online_service_scheduler",
+        "decision": "ACCEPT_CONDITIONAL",
+        "action": "Within15min assess an I192 specialization of the existing variant4 using the known W13/upoffset/W2/scale strides and conservative scratch. At most one private providerTU plus necessary Model MoE dispatchTU; unchanged routes/precision/activation. If concrete, run one finite paired generic/specialized fullMoE matrix in the existing repaired16DCU adapter with warmup and at least ABBA ordinary blocks in the same layer load. All end-to-end component costs and global completion are included. No old W13/W2/activation/tile grids and no separate profiler session.",
+        "resources": "Original910374 n01+n04,16DCU; existing CPU owners; component hard8min including load/cleanup. Root retains original ownership/protected-node rules.",
+        "exit": "Integration exceeds those private TUs, no repeatable positive fullMoE wall, or correctness/cleanup fails: STOP port. Intermediate crossTP differences remain diagnostic; candidate same-topology numeric checks and eventual Model finalIDs/EOS/QA are still required. No tolerance widening to declare Model success.",
+        "state": "ORIGINAL_OWNER_BOUNDED_CPU_FEASIBILITY_ONLY_GPU_CONDITIONAL",
+        "activation": "835 has completed with actual IBext_v8 datachannels and clean closure. Two ordinary ranges are close enough to justify one bounded candidate trial, not enough to certify a stable speedup. Proceed to15min feasibility; no additional baseline-only sampler."
+      },
+      {
+        "card": "DEEP54-CLOSE-BOUNDED-EMPIRICAL-REFERENCE",
+        "owner": "/root/glm_critical_path_profile",
+        "decision": "ACCEPT",
+        "action": "CLOSED by838 compact: preserve corrected ISA receipt and original erroneous gate receipt with sameELF. Reference is qualified22.9749..22.9771TFLOPS/device event medians. End this measurement route; no next benchmark grid or kernel recompile.",
+        "resources": "0 newGPU; original n07 8DCU entry ended49s with post839empty.",
+        "exit": "After one terminal result, close the empirical reference work. Achieved arithmetic throughput is neither a physical ceiling nor evidence of routed MoE utilization, attainable tokens/s or a decode gain. Do not wait for another review to stop it.",
+        "state": "COMPLETED_ORIGINAL_OWNER",
+        "evidence": "Hardware838-packed-vector-FP32-reference-r8806.json",
+        "scope": "Packed vector achieved reference only, not Model/physical peak"
+      },
+      {
+        "card": "DEEP54-REUSE-NEXT-NECESSARY-MODEL-LOAD",
+        "owner": "/root/glm_critical_path_profile",
+        "decision": "ACCEPT_CONDITIONAL",
+        "action": "Use ready8794 with PACKON fixed, scatter-retire OFF/ON/ON/OFF and original699 B32M32 I512O128 full validation/request clocks. Keep each candidate isolated. If a realT32 decode capture is possible through an already supported narrow hook, save one same-step hidden/routeIDs/weights/context/precision fixture outside timed arms plus actualU/maxexpertM; do not write a new capture framework or include capture overhead in performance arms. Capture alone does not revive the bank candidate.",
+        "resources": "Original Deep n05/910374 8DCU, existing30min Model envelope and one checkpoint load. No automatic timer-based reload.",
+        "exit": "Any quality failure or inconsistent/nonpositive Model wall retains defaultOFF. Low-U bank remains STOP unless both a real decode fixture and a new concrete reason to overcome the negative historical result exist. No synthetic-prefill substitute, old sdot4 rerun or extra Model solely to collect a fixture.",
+        "state": "PARKED_UNTIL_ACTIVATION",
+        "activation": "Only another independently justified currentModel candidate requires a load; this card does not create a standalone load for826 or a fixture."
+      }
+    ],
     "pending_report": null,
-    "report_scope": "COMPLETED_REVIEW53_THREE_VALID_ROUNDS"
+    "wholeModel_gain_count_this_review": 0
   },
   "latest_completed_experiments": [
-    "910374.814",
-    "910374.823",
-    "910374.826"
+    "910376.534",
+    "910374.835",
+    "910374.838"
   ],
   "performance_record_changed_by_latest_experiments": "Deep814 prefill/E2E qualified gain only;no newdecode maximum orsingleuser15 qualification",
   "current_Model_steps": [
@@ -1612,10 +1654,10 @@
     "next": "No more position microtiming. Actual INT8 routed ISA/native instruction feasibility, then one minimal source candidate."
   },
   "current_actual_GPU_jobs": {
-    "scope": "Last verified terminals, not current GPU utilization measurement;new finite CPU/adapters preparing;no newGPU handle reported at publication.",
-    "Deep826": "COMPLETED0/8normal/audit0/post827empty",
-    "Kimi823": "COMPLETED0/8normal/40outputs/post824empty",
-    "GLM528": "FAILED124/0normal/no capacity/post529all3empty"
+    "scope": "835/534/838 verified complete and cleaned; no current utilization claim",
+    "Kimi835": "COMPLETED0/16normal/auditpass/post836empty/actualIBext_v8",
+    "GLM534": "COMPLETED0/24normal/audit0/post535empty",
+    "hardware838": "COMPLETED0/8normal/audit0/post839empty"
   },
   "current_optimization_dispatch49": [
     {
@@ -2186,5 +2228,92 @@
     "CPU": "910407.185 COMPLETED0/10s,onebridgeTU+27reusedobjects",
     "scope": "Same64rows/cap640/TP8PP3 originalworldTPcontrol/RankInfo/rope/TextModel/sync, nativeimmediate13phases, readonlylogicalcensus/actualfree andestimatedfuture14GiBresident. Noextra barrier/newstream/weights/finish/resident/forward.",
     "updated_at_utc": "2026-10-24T15:31:51.519755+00:00"
-  }
+  },
+  "current_optimization_dispatch54": {
+    "utc": "2026-10-24T15:48:50.110414+00:00",
+    "report": "astra-review-54-current.json",
+    "report_SHA256": "c86b258a690662ed08d2554c5d3dfd95a6ede286b499b03cf4005508f50944ae",
+    "status": "IMPLEMENTED_ORIGINAL_OWNERS_DISPATCHED",
+    "reviewer_model": "gpt-6-astra high",
+    "decisions": [
+      {
+        "card": "GLM54-MINIMAL-PP3-MODEL-ENTRY",
+        "owner": "/root/moe_decode_arithmetic_audit",
+        "decision": "ACCEPT",
+        "action": "Repair the private resident_mask pp!=2 guard mechanically for the actual PP3 stage bounds[0,26,54,78], retaining READY/lifecycle checks. Finish exact24-owner loader, feedback, final-ID/EOS/QA and auditor dimensions. Keep original T8 vector/prefix/per-query math, PV OFF, M8, rows64/capacity640. Reuse534 bridge objects and existing522 loader/validator; check all24 stage/rank coverage and explicit mapping of64 requests to originalM8 prompts/gold. No six-TU or SDK rebuild. Produce a runnable package or one concrete blocker within20min; this is a preparation bound, not a compile-time promise.",
+        "resources": "Existing CPU owners; no additional GPU diagnostic. Original910376 n12/n13/n14 only for the conditional Model card.",
+        "exit": "If adaptation requires new numerical math or a new distributed protocol, park PP3 with the exact missing contract. No repeated531/534 and no opaque-scratch source archaeology.",
+        "state": "ORIGINAL_OWNER_PREPARING_MINIMAL_CPU_PACKAGE"
+      },
+      {
+        "card": "GLM54-ONE-LOAD-REAL-MODEL-SCREEN",
+        "owner": "/root/moe_decode_arithmetic_audit",
+        "decision": "ACCEPT_CONDITIONAL",
+        "action": "Load the actual checkpoint once on TP8PP3. Persist phase/free-memory snapshots before and after checkpoint postprocessing/finish, resident allocation and first real prefill/decode. Retain required6GiB reserve policy and measure available memory at phase boundaries; snapshots are not an exact transient peak. If initialization completes, run B16M8 and B64M8 in one load using the existing I/O length and natural EOS protocol; use order B16,B64,B64,B16 with state reset through existing supported lifecycle. Count the matrix once. These are operational concurrency comparisons, not isolated PP3 causal gain against historical522. Require full gold-mapped final IDs/EOS/QA for every request and24normal/clean postcheck. Measure aggregate decode, TTFT, full request elapsed and actual per-request decode intervals/mean/min/max. End after the finite matrix, not a new concurrency grid.",
+        "resources": "Original910376 n12/n13/n14,24DCU; one load, no fresh16card comparison load. Existing per-node CPU/memory admission and cleanup contract.",
+        "exit": "Compare each configuration on actual user latency as well as throughput; largerB may improve throughput while worsening per-user rates.24card aggregate>58.0844 beats522's38.723 per-card efficiency only as a descriptive screen. It neither proves same-workload causal acceleration nor15tok/s per user. If fullModel fails, retain first exact phase/allocation and stop rather than add another capacity probe.",
+        "state": "PARKED_UNTIL_ACTIVATION",
+        "activation": "Primary is concretely runnable and existing ownership admits24DCU; root dispatches without waiting for another periodic review."
+      },
+      {
+        "card": "KIMI54-CLOSE-INFLIGHT-835",
+        "owner": "/root/online_service_scheduler",
+        "decision": "ACCEPT",
+        "action": "CLOSED by supplemental835/8807 evidence: archive the single compact record and reuse verified IBext_v8 launch environment. No further GPU entry, transport sampler or compile; no GDR claim absent explicit evidence.",
+        "resources": "0 newGPU/CPU build; original16DCU entry has ended.",
+        "exit": "If repaired environment still does not select the expected backend, stop with the first actual loader/plugin/device error; one exact known-path correction is sufficient, no blind environment grid. If it works, close this transport question and move to one candidate, not another sampler campaign.",
+        "state": "COMPLETED_BY_ROOT_ORIGINAL_HANDLE",
+        "evidence": "Kimi-TP16-analysis-r8806.json",
+        "transport": "256 actual NET/IBext_v8 channel records, Socket0; GDR unknown",
+        "ordinary_fullMoE_ms_ranges": [
+          [
+            2.722799,
+            2.776109
+          ],
+          [
+            2.563519,
+            2.665119
+          ]
+        ],
+        "Model_gain": false
+      },
+      {
+        "card": "KIMI54-BOUNDED-I192-CANDIDATE",
+        "owner": "/root/online_service_scheduler",
+        "decision": "ACCEPT_CONDITIONAL",
+        "action": "Within15min assess an I192 specialization of the existing variant4 using the known W13/upoffset/W2/scale strides and conservative scratch. At most one private providerTU plus necessary Model MoE dispatchTU; unchanged routes/precision/activation. If concrete, run one finite paired generic/specialized fullMoE matrix in the existing repaired16DCU adapter with warmup and at least ABBA ordinary blocks in the same layer load. All end-to-end component costs and global completion are included. No old W13/W2/activation/tile grids and no separate profiler session.",
+        "resources": "Original910374 n01+n04,16DCU; existing CPU owners; component hard8min including load/cleanup. Root retains original ownership/protected-node rules.",
+        "exit": "Integration exceeds those private TUs, no repeatable positive fullMoE wall, or correctness/cleanup fails: STOP port. Intermediate crossTP differences remain diagnostic; candidate same-topology numeric checks and eventual Model finalIDs/EOS/QA are still required. No tolerance widening to declare Model success.",
+        "state": "ORIGINAL_OWNER_BOUNDED_CPU_FEASIBILITY_ONLY_GPU_CONDITIONAL",
+        "activation": "835 has completed with actual IBext_v8 datachannels and clean closure. Two ordinary ranges are close enough to justify one bounded candidate trial, not enough to certify a stable speedup. Proceed to15min feasibility; no additional baseline-only sampler."
+      },
+      {
+        "card": "DEEP54-CLOSE-BOUNDED-EMPIRICAL-REFERENCE",
+        "owner": "/root/glm_critical_path_profile",
+        "decision": "ACCEPT",
+        "action": "CLOSED by838 compact: preserve corrected ISA receipt and original erroneous gate receipt with sameELF. Reference is qualified22.9749..22.9771TFLOPS/device event medians. End this measurement route; no next benchmark grid or kernel recompile.",
+        "resources": "0 newGPU; original n07 8DCU entry ended49s with post839empty.",
+        "exit": "After one terminal result, close the empirical reference work. Achieved arithmetic throughput is neither a physical ceiling nor evidence of routed MoE utilization, attainable tokens/s or a decode gain. Do not wait for another review to stop it.",
+        "state": "COMPLETED_ORIGINAL_OWNER",
+        "evidence": "Hardware838-packed-vector-FP32-reference-r8806.json",
+        "scope": "Packed vector achieved reference only, not Model/physical peak"
+      },
+      {
+        "card": "DEEP54-REUSE-NEXT-NECESSARY-MODEL-LOAD",
+        "owner": "/root/glm_critical_path_profile",
+        "decision": "ACCEPT_CONDITIONAL",
+        "action": "Use ready8794 with PACKON fixed, scatter-retire OFF/ON/ON/OFF and original699 B32M32 I512O128 full validation/request clocks. Keep each candidate isolated. If a realT32 decode capture is possible through an already supported narrow hook, save one same-step hidden/routeIDs/weights/context/precision fixture outside timed arms plus actualU/maxexpertM; do not write a new capture framework or include capture overhead in performance arms. Capture alone does not revive the bank candidate.",
+        "resources": "Original Deep n05/910374 8DCU, existing30min Model envelope and one checkpoint load. No automatic timer-based reload.",
+        "exit": "Any quality failure or inconsistent/nonpositive Model wall retains defaultOFF. Low-U bank remains STOP unless both a real decode fixture and a new concrete reason to overcome the negative historical result exist. No synthetic-prefill substitute, old sdot4 rerun or extra Model solely to collect a fixture.",
+        "state": "PARKED_UNTIL_ACTIVATION",
+        "activation": "Only another independently justified currentModel candidate requires a load; this card does not create a standalone load for826 or a fixture."
+      }
+    ],
+    "cutoff_update": "835 and838 completed after reviewer initial snapshot; root inspected original terminal and actual data channel evidence. They are not wholeModel gains.",
+    "goal_complete": false,
+    "new_accepted_wholeModel_gain_count": 0
+  },
+  "current_Kimi835": "results/bw1000/2026-10-24/kimi835-rdma-full-moe-diagnostic.json",
+  "current_GLM534": "results/bw1000/2026-10-24/glm534-unloaded-constructor.json",
+  "current_hardware838": "results/bw1000/2026-10-24/hardware838-packed-vector-fp32-reference.json"
 }
