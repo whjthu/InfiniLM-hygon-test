@@ -1,0 +1,48 @@
+{
+  "status": "ALREADY_STAGE_LOCAL_DEFERRED_COHORT_PIPELINE_STOP_DUPLICATE_SCHEDULER",
+  "actual_baseline": "910375.639 B64/M16 TP8PP4; native183 f6f10c2b243e0336074b872859e6ca6acb08effdcd56d86b9ac4df1bf2ddb5e9",
+  "call_chain": [
+    {
+      "source": "kimi_current_profile_protocol_r8670.py",
+      "lines": "132-137;74-95",
+      "evidence": "pipeline=True,prefill_pipeline=True,continuous=True; owner_forward uses local_only=True, so no per-cohort StageControl.collect. Only case setup/end collect."
+    },
+    {
+      "source": "kimi_cohort_feedback_idle_r4915.py",
+      "lines": "decode_cohorts",
+      "evidence": "Non-emitter forward(c0) records outstanding and runs c1/c2/c3; takes feedback only before reusing same cohort. Emitter publishes each result without all-owner acknowledgment. Pending bound2*cohortcount provides backpressure, not a compulsory per-forward fullPP barrier."
+    },
+    {
+      "source": "Kimi-fixed512-PP-closure-r8619.json[kimi_compact_probe_r4974.cpp]",
+      "lines": "45-49",
+      "SHA256": "0371f6e9bfbeddb4fabe8322b7dc904a9830129021d8a74c0d0ac13b5624eb21",
+      "evidence": "flags67/71 both set bit2->Input.defer_pipeline_feedback; only tail copies greedy IDs toCPU."
+    },
+    {
+      "source": "Kimi-fixed512-PP-selected-source-r8620.json[engine/rank_worker.cpp]",
+      "lines": "947-974,1040-1063",
+      "SHA256": "2503f72854e871f1f79d9ffa66bbe9119ff9db0213797876b0b022dd19b670ce",
+      "evidence": "Non-tail defer branch skips stage0 tail-ID recv/sync and completes local job; tail skips GPU return-token send but synchronizes its own sampled IDs. Local forward completion does not mean all4stages completed."
+    }
+  ],
+  "native_source_mapping": {
+    "record": "Kimi-fixed512-PP-closure-r8619.json",
+    "infer_engine_MD_SHA256": "c244ddaa431ff8761599ddeb533a4fd2dc9c752d5cb15e8edc803ece15bd4340",
+    "rank_worker_MD_SHA256": "95e19bde1ea1c893c2bb1c794ed59e61ab1701625a9668e686e23b0fb6b0227d",
+    "selected_engine": "/refactor/candidates/kimi-compact-cache-r4974/kimi_compact_engine_r4974.cpp",
+    "selected_worker": "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/engine/rank_worker.cpp",
+    "engine_source_SHA256": "26800f2ff89467d9b6be016efbdd03eb082601593c2c9b6c9f2943bd7651ee14",
+    "scope": "Existing retained actualMD/source closure, unchanged Engine/worker lineage in current183; no new runtime probe."
+  },
+  "trace_limit": "r8675-Kimi-current-profile-CPUtrace-a.json contains8localCAPI calls/node and perdevice timelines. Separate host clocks cannot yield a cross-stage overlap percentage; sequential local CAPI calls do not prove globally serialized PP. No new overlap percentage claimed.",
+  "scope_text_correction": "Existing front-endcohortscompleteoneforwardbefore next describes stage-local synchronous native calls, not fullPP completion. Preserve sealed8670source/SHA; clarify in status only.",
+  "conclusion": "No new provable global per-cohort barrier found. Current fixed4cohort topology already permits inter-stage overlap and preserves token feedback dependency. No new adapter/build/GPU/Model load justified for this duplicate route. Actual criticalpath redesign remains separate.",
+  "not_performance_round": true,
+  "source_files_SHA256": {
+    "kimi_current_profile_protocol_r8670.py": "54cc71ee7700f9bc84ab9e504fbac388829863e64d67ca1bcae2de191bd4c1be",
+    "kimi_cohort_feedback_idle_r4915.py": "6b8d917174851def69fa16f03a2127013c79a58d0f19495639bda30e976db225",
+    "Kimi-fixed512-PP-closure-r8619.json": "52cd1825dfa45284c30ba76c05de25e3d2c0ff08595dc58951cc0bca31439caf",
+    "Kimi-fixed512-PP-selected-source-r8620.json": "f7c21d4eaad131b06cbaa278919754aacd6550fdeeb17547166e13f546c1f06d",
+    "r8675-Kimi-current-profile-CPUtrace-a.json": "0c8d3d96fa53eb13bed12fbd67da488c9f4368c8f1b58aa20568660618671265"
+  }
+}
