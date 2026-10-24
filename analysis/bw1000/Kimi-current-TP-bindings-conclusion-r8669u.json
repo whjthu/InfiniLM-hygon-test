@@ -1,0 +1,83 @@
+{
+  "utc": "2026-10-24T14:52:53.508097+00:00",
+  "scope": "Singlebounded5minCPUcard; no compile/dlopen/GPU/Model, oneexistingmetadataread",
+  "CommunicationGroup": {
+    "status": "ACTUAL_NATIVE_OBJECT_SOURCE_AND_HEADER_CLOSED_NOT_COMMON_ONLY",
+    "native_SHA256": "f6f10c2b243e0336074b872859e6ca6acb08effdcd56d86b9ac4df1bf2ddb5e9",
+    "native_defined_ctor": "0x136b40 CommunicationGroup::CommunicationGroup",
+    "native_defined_get_rank_info": "0x132400 CommunicationGroup::get_rank_info",
+    "cache_manifest_SHA256": "21409a5fb66089ae78e243d235d063c489c1c3c2210675c139371ab0778c06c5",
+    "linked_object": "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/cached-objects/d389c718fffe572a2af1.o",
+    "object_SHA256": "3dde4a941ddabb83abe42763106e67f5cb065d0199f71d19dc1f01daf7952c6f",
+    "actual_source_SHA256": "0e1a0c59dffc0eb55bf1bbb98e1a623e5a3f2369253e7f178e16b74fd1fcdf6e",
+    "header_SHA256": "4ca95d8824deda71d98f104ac63681d92c35a4dff045aaedbb61818f401ec585",
+    "global_layout_SHA256": "61271bd5446283031b52022c7308d262ce1359d5a6917a6e7774f7a1f3f171df",
+    "source_lines": [
+      {
+        "line": 425,
+        "fact": "cross_node_tp_(local8,tp_node_size,tp_node_rank,pp_size,pp_stage); topology_(globaltp_size,pp_size,pp_stage)"
+      },
+      {
+        "line": 456,
+        "fact": "node_size>1 requiresHygon/EPdisabled; same rendezvousparticipant ranks; initializeCommunicators globaltp_size andglobaltp_rank0."
+      },
+      {
+        "line": 556,
+        "fact": "RankInfo tp_size=topology_.tp_size();tp_rank=cross_node_tp_.tp_rank(localrank);comm=communicators_[localrank]."
+      }
+    ],
+    "runtime_resolution_limit": "Nativef6factualexports+actual linkedobjectsource areclosed; 823 didnotpersistdladdrforComm. Futureadapterbindsameactualnative andcheckruntimeCommprovideralongsideglobalRankInfo actual16; Common2e alsohasothernative symbols, do not assumeCommon-only."
+  },
+  "SDK_fallback": {
+    "base_validate_status": "ACTUAL_INSTALLED_HEADER_SHA_CLOSED_SHAPES_ACCEPTED",
+    "base_header_SHA256": "bd9c2d4e99521e423abccbc37f4662c0320fedb4f94c4c5c9f375c644c091384",
+    "lines": [
+      {
+        "line": 37,
+        "fact": "h/i positive, h%32==0,i%32==0,activation1or2"
+      },
+      {
+        "line": 38,
+        "fact": "w13[e,2*i,h/2],s13[e,2*i,h/32]"
+      },
+      {
+        "line": 39,
+        "fact": "w2[e,h,i/2],s2[e,h,i/32]"
+      }
+    ],
+    "qualified_metadata": [
+      {
+        "I": 192,
+        "packedW2last": 96,
+        "scaleW2last": 6,
+        "W13last": 1792,
+        "scaleW13last": 112
+      },
+      {
+        "I": 96,
+        "packedW2last": 48,
+        "scaleW2last": 3,
+        "W13last": 1792,
+        "scaleW13last": 112
+      }
+    ],
+    "available_impl_source": {
+      "kernel_h": "src/native/cuda/hygon/ops/fused_moe_mxfp4/kernel.h",
+      "fact": "implementation1 inheritsimplementation0, ParallelRoutes=true; BF16accepted; dispatchR330 I384staticguard fallsbackdynamiclaunch forI192/96. GenericW2Routes16 loops p<intermediate/2,scales strideintermediate/32. Tileoptin mustOFF.",
+      "source_SHA256": "bd495744e997943a7a82aae391eff7b5ba17bf2b819e2a38187110b59e942fb4",
+      "dispatch_SHA256": "27b726a61fcf12c1481f6b998908d460570bdee81b2945bd8bade8d4fa04b45f",
+      "generic_kernel_SHA256": "e33d9e0ab3ead7f6d9a9c928bc99dc92276acf399c682941f256bfc4c84b1897"
+    },
+    "actual_SDK_build_receipt_SHA256": "4ff09088a653ec288a405a699b02c029c7bd9bfbc6ac22454a06da0b50c186e3",
+    "actual_SDK_library_SHA256": "6d5a6204f7eef70e84deb9cc737a36c6ae2c1fbc75a0f70645557c8441ed85ca",
+    "remaining_blocker": "UNKNOWN: retained3672buildreceipt doesnotgivecompiledimplementation1TU freshMD/object/sourceSHA mapping totheseavailableprivatekernelheaders. Metadataacceptanceproved; compiledI192/I96executionnotqualified. Stopat5min, donotclaimbackendnumericpass."
+  },
+  "minimal_TP16_adapter_diff": [
+    "OnlyCPU202hostadapter: topology.localworkers8 perprocess, tp_node_size2,tp_node_rank0/1,pp1,sharedmasteraddr/port; originalactualCommunicationGroup lifetime unchanged.",
+    "Assertget_rank_info local0..7 ->globalTP16/tp_rank=node*8+localrank/realcomm, neverfake16rankwith8physical. Bothprocessesconsumeactualteacher0input andsamecheckpoint; Weight(tp_dim,tp_rank,tp_size) automatically slicesI192/W2scales6; no checkpointconverter/unsafeconstruct/newModel.",
+    "SameoriginalKimiK3MoE layer1/fullrouter/shared/projections/TP16CCL; noEngineCAPIorflags64 inthiscomponent. Currentservingvariant4counterexpected0 becauseI192genericfallback; donotrequire[1,16,0,0].",
+    "NoAPIinterposer neededfornewtopologycomponent; ordinarywarm/repeat/finite/actualoutputpersist and16normal/uniquepost. CrossTP8vs16BF16reduce canchangevalues; fullModel128IDs/EOSfuturegate, notintermediatebitwise."
+  ],
+  "decision": "RANKINFO_SOURCE_CLOSED;_FALLBACK_DESCRIPTOR_CLOSED;_COMPILED_BACKEND_MAPPING_UNKNOWN_STOP_CPU_BUDGET",
+  "no_new_GPU_or_compile": true
+}
