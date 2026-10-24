@@ -1,0 +1,81 @@
+{
+  "status": "CPU_ONLY_NO_GPU_COMPILE_GIT",
+  "source_SHA256": {
+    "glm_dual_probe_r5837.py": "1510d20e8d309bab7d1342ff4a75de01bc86a37ba922839cc7f9b1928000edf6",
+    "glm_large_schedule_r3627.py": "afbddb41273578c3981abf0c96fb560da2c3e12aed78f9824c9903f12e99280c",
+    "glm_shared_validation_cache_r5814.cpp": "4d7f4a9293cff492c1e8835560d345ea7aeace58d11b2b303188b312a0934962",
+    "glm_lowbatch_profile_r8219.py": "71cc0505fc3270d3a0f0aa910abfe85f5bdf9f7e52b406c1f7b0e2d5348b75c6",
+    "glm_window_control_r5819.py": "d2f620dd3fe293f159604aeb53ca3ca3d97f181b233fff3ed4fa81c3aa19015a",
+    "GLM-prefill-structure-next-component-r7321.json": "5a2afbf63335703b43dca10febd33da94d617b6dd8b11232293b44aed2b5e1b2",
+    "GLM489-qualified-scope-r5793.json": "758c89f34f5520e887a39e9da4c0f04356f56088f246756c2e4c3d3817bf437f",
+    "GLM-matrix-negative-result-r8523.json": "385f204c2261e2a35f93d2e3bb2c8cf0513d73e301bc2aa25d9dc40dacc0d6d1",
+    "r5840-GLM498-terminal-metadata.json": "d46b2150c1cf0d9321253eea5e82b693d49bd1810b5ad996c270997ed2cccfd6"
+  },
+  "observed498": [
+    {
+      "replica": 0,
+      "phase": "concurrent-1",
+      "first_cohort_TTFT": 74.28161269798875,
+      "second_cohort_TTFT": 112.59865553630516,
+      "cohort_gap": 38.31704283831641,
+      "initial_ITLmax": 38.963884068187326,
+      "prefill_input_tok_s": 72.76683702216586
+    },
+    {
+      "replica": 0,
+      "phase": "concurrent-2",
+      "first_cohort_TTFT": 74.33263346692547,
+      "second_cohort_TTFT": 112.66629877593368,
+      "cohort_gap": 38.33366530900821,
+      "initial_ITLmax": 38.993702420033514,
+      "prefill_input_tok_s": 72.72192328735179
+    },
+    {
+      "replica": 1,
+      "phase": "concurrent-1",
+      "first_cohort_TTFT": 74.89542330475524,
+      "second_cohort_TTFT": 113.73295020172372,
+      "cohort_gap": 38.837526896968484,
+      "initial_ITLmax": 39.47417914215475,
+      "prefill_input_tok_s": 72.04483353595013
+    },
+    {
+      "replica": 1,
+      "phase": "concurrent-2",
+      "first_cohort_TTFT": 74.93365640379488,
+      "second_cohort_TTFT": 114.12018121266738,
+      "cohort_gap": 39.18652480887249,
+      "initial_ITLmax": 39.85977530479431,
+      "prefill_input_tok_s": 71.79722631800989
+    }
+  ],
+  "causal_source_scope": "Current probe starts continuous decode only at step1 after all16 generated exactly1token. Prefill runs two8request cohorts. Firstcohort actual firsttoken~75s, second~114s; firstcohort cannot decode until otherprefill completes, explaining~39s initialITL. No firsttoken withheld. Native wholeforward/TLS includes PPdependency; not GPUbusy.",
+  "prefill_structure_budget": {
+    "previous_actual472_sixTLS_one4096cohort_stage0_stream_layers_s": 36.07139453125,
+    "stage1_stream_layers_s": 38.33,
+    "model": "Two-stage fill36+2*38~112s matches actual finalprefill~114s, consistent scheduling explanation, not exclusive peroperator attribution.",
+    "current_exclusive_prefill_profile": "NOT_AVAILABLE for498/5817; actual492 selectedwindow only decode63..65/layer38, cannot use as prefills. SixTLS host/stream overlap; hostlayers includes incomingwait.",
+    "source_hotspot_candidates_not_dominance_proof": "Mode2 perrequest pertokenQK/PV:8192 GEMMdispatch/layer per4096cohort, total638976 across78stage-local layers for one TPindex. Prefill groupedFFN routes32768 and large BF16/F32local buffers. Counts/bytes are structural, no measured exclusivewall share."
+  },
+  "same_load_config": {
+    "constructor16_cap640": "unchanged; decode remainsM8, native5817/SDK/provider/math unchanged",
+    "prefill4": "Host-only change round0 groups(active,4,True,lengths), keep feedback begin/decode cohorts8 and all16 firsttoken gate; four2048token forwards. Existing native allows up to4096. Must compare completeIDs/EOS against same logicalrow originalM8 and frozenQA; batchshape can change rounding despite same provider.",
+    "prefill8": "current qualified baseline, two4096token forwards",
+    "prefill16": "NOT_SUPPORTED as actual16x512 sameforward: schedule silently clips to8 and native hidden tokens>4096 rejects8192. No falseM16 arm; changing decode micro16 would change separate factor.",
+    "existing_current_prefill4_decode8_result": "NOT_FOUND in reviewed current qualified records. Historical micro4 changed both prefill/decode/olderlibrary and has frozenID rejects; not a direct falsification of isolatedprefill4."
+  },
+  "minimal_conditional_next_card": {
+    "prepare": "One host factor prefillMicro=4/8, immutable probe copy, no newnative/framework. One necessary future Model load carries baselineM8->candidateM4->M4->M8, B16/decodeM8/I512/O128 fixed; no new load now.",
+    "metrics": "True firstdecision TTFT/ITL/maxinitialgap/peruser(n-1)/(last-first), useful totaldecode andE2E/prefill; never delay firsttoken or remove its waiting from usermetric.",
+    "conditional_pipeline_model_NOT_PREDICTION": "If2048cohort stagecost halves:18+4*19=94s vs36+2*38=112s (~18s fill recovery), prefill8192/94~87tok/s vs72. Not measured. CPUdispatch/GEMMshape can cancel or reverse.",
+    "user_caveat": "Same allprefill barrier means firstTTFT could fall~75->37s but earliestfirstdecode waits~94-37=57s rather than39s; totalprefill may improve while firstITL and some userdecode worsen. Must report tradeoff; this is not verified user15 optimization.",
+    "stops": "FinalID/EOS/QA mismatch reject andrestore; bothdirections no gain beyonddrift close card; no blindmicrogrid.",
+    "short_existing_profile": "If nextcandidate necessary load proceeds, existing OwnerProfile.capture(label prof-...,step0) reads6TLS; use minimal K4 existingreference-supported profile arms, timings excluded. This resolves incoming/layers/outgoing at eachprefillshape but not exclusiveattention/MoE. Detailed selectedwindow needs explicit prefill metadata adaptation because current Window.before only63..65/past574..576; do not pretend existing finehook coversprefill."
+  },
+  "not_recommended_repeats": [
+    "479 all-layer crossrequest newhelper rejected finaltokens despite715component3.2x; fixed77-only489 tokenqualified but~0.48%prefill smallscope/no wholeModel advance; do not rerun unchanged.",
+    "Per-route M16 matrix replication8523 negative including5.52x slowdown; not prefillMicro4 scheduling evidence.",
+    "492185ms entrypositions D2H realizes incomingPP dependency, cannot delete/claimcopy bandwidth gain."
+  ],
+  "interleave_gap": "Current groups/step0->step1 runner has no existing prefill/decode interleave knob. CAPI supports per-request past/count validation in principle, but faithful mixedprefill/decode scheduler/cache/collective/finalIDs behavior not demonstrated. Do not call smallerprefillgroups interleave or promise removing39s."
+}
