@@ -1,0 +1,694 @@
+{
+  "revision": 8578,
+  "actual_handle": "910375.621",
+  "run": "static8572-791e994bf654c402",
+  "terminal": {
+    "JobID": "910375.621",
+    "JobName": "Kimi-prefill512-static8572-791e994bf654c402",
+    "State": "COMPLETED",
+    "ExitCode": "0:0",
+    "NodeList": "a02r4n[08-11]"
+  },
+  "all32normal": true,
+  "audit_exit": 0,
+  "unique_post_handle": "910375.622",
+  "post_KFD_empty_all4": true,
+  "generation_acceptance": "FAILED_OBSERVED_618_NOT_RECLASSIFIED",
+  "performance": "N/A_STATIC_DIAGNOSIS",
+  "source": {
+    "entry": "launch_Kimi_static_localize_r8572.py",
+    "entry_SHA256": "8d8232e120b2d65c6840f8a6d41f32e533f14a8a183c3ea7b9ef58e6dbe88444",
+    "manifest_SHA256": "38a970839c48bf8f4e57fd232fa1458358a48638f35e4f7bd973b5ca72dc5aff",
+    "native_DSO_SHA256": "e3e335857563db06e12e8a06cda8f8e149b8d46aebf45b7ee51a4dba1a554753",
+    "published_source_commit": "3ad19cb",
+    "new_native_hooks": 0,
+    "new_compilation": 0
+  },
+  "workload": {
+    "logical_target": 0,
+    "O_prefill_fullM": 512,
+    "N_prefill_fullM": 2048,
+    "real_companions": 4,
+    "decodeM": 4,
+    "physical_rows": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "teacher_token_prefix": "Same immutable618 OFF first2tokens; diagnostic only",
+    "flags_O": 67,
+    "flags_N": 67,
+    "flags_scope": "Matched logits-copy observation; not618 original timing replay"
+  },
+  "findings": {
+    "first_coarse": {
+      "ordinal0": 0,
+      "stage": 0,
+      "layer": 0,
+      "point": "decoder",
+      "different_ranks": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    "first_detail": {
+      "ordinal0": 0,
+      "layer": 0,
+      "interval": "gated -> RowParallelLinear o_proj -> raw output",
+      "different_ranks": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "input": "All captured target gated/input and actual conv/SSM read/write state hashes equal",
+      "callee": "kimi_k3_delta_attention_prefill512_r8562.cpp L503 gated, L511 original o_proj.forward, L534 output",
+      "scope": "First observed remaining interval; not yet separate localGEMM from TP collective; no finaltokenrepair claim"
+    },
+    "native_comparison": [
+      {
+        "ordinal0": 0,
+        "category": "intermediates",
+        "point": "beta_projected",
+        "equal_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "different_ranks": []
+      },
+      {
+        "ordinal0": 0,
+        "category": "intermediates",
+        "point": "conv_output",
+        "equal_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "different_ranks": []
+      },
+      {
+        "ordinal0": 0,
+        "category": "intermediates",
+        "point": "f_a",
+        "equal_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "different_ranks": []
+      },
+      {
+        "ordinal0": 0,
+        "category": "intermediates",
+        "point": "gate_projected",
+        "equal_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "different_ranks": []
+      },
+      {
+        "ordinal0": 0,
+        "category": "intermediates",
+        "point": "gate_sigmoid",
+        "equal_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "different_ranks": []
+      },
+      {
+        "ordinal0": 0,
+        "category": "intermediates",
+        "point": "gated",
+        "equal_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "different_ranks": []
+      },
+      {
+        "ordinal0": 0,
+        "category": "intermediates",
+        "point": "input",
+        "equal_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "different_ranks": []
+      },
+      {
+        "ordinal0": 0,
+        "category": "intermediates",
+        "point": "kda_output",
+        "equal_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "different_ranks": []
+      },
+      {
+        "ordinal0": 0,
+        "category": "intermediates",
+        "point": "normalized_f32",
+        "equal_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "different_ranks": []
+      },
+      {
+        "ordinal0": 0,
+        "category": "intermediates",
+        "point": "output",
+        "equal_ranks": [],
+        "different_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ]
+      },
+      {
+        "ordinal0": 0,
+        "category": "intermediates",
+        "point": "output_gate_input",
+        "equal_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "different_ranks": []
+      },
+      {
+        "ordinal0": 0,
+        "category": "intermediates",
+        "point": "qkv_projected",
+        "equal_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "different_ranks": []
+      },
+      {
+        "ordinal0": 0,
+        "category": "intermediates",
+        "point": "silu_qkv",
+        "equal_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "different_ranks": []
+      },
+      {
+        "ordinal0": 0,
+        "category": "states",
+        "point": "conv_after",
+        "equal_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "different_ranks": []
+      },
+      {
+        "ordinal0": 0,
+        "category": "states",
+        "point": "conv_before",
+        "equal_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "different_ranks": []
+      },
+      {
+        "ordinal0": 0,
+        "category": "states",
+        "point": "ssm_after",
+        "equal_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "different_ranks": []
+      },
+      {
+        "ordinal0": 0,
+        "category": "states",
+        "point": "ssm_before",
+        "equal_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "different_ranks": []
+      },
+      {
+        "ordinal0": 1,
+        "category": "intermediates",
+        "point": "beta_projected",
+        "equal_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "different_ranks": []
+      },
+      {
+        "ordinal0": 1,
+        "category": "intermediates",
+        "point": "conv_output",
+        "equal_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "different_ranks": []
+      },
+      {
+        "ordinal0": 1,
+        "category": "intermediates",
+        "point": "f_a",
+        "equal_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "different_ranks": []
+      },
+      {
+        "ordinal0": 1,
+        "category": "intermediates",
+        "point": "gate_projected",
+        "equal_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "different_ranks": []
+      },
+      {
+        "ordinal0": 1,
+        "category": "intermediates",
+        "point": "gate_sigmoid",
+        "equal_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "different_ranks": []
+      },
+      {
+        "ordinal0": 1,
+        "category": "intermediates",
+        "point": "gated",
+        "equal_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "different_ranks": []
+      },
+      {
+        "ordinal0": 1,
+        "category": "intermediates",
+        "point": "input",
+        "equal_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "different_ranks": []
+      },
+      {
+        "ordinal0": 1,
+        "category": "intermediates",
+        "point": "kda_output",
+        "equal_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "different_ranks": []
+      },
+      {
+        "ordinal0": 1,
+        "category": "intermediates",
+        "point": "normalized_f32",
+        "equal_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "different_ranks": []
+      },
+      {
+        "ordinal0": 1,
+        "category": "intermediates",
+        "point": "output",
+        "equal_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "different_ranks": []
+      },
+      {
+        "ordinal0": 1,
+        "category": "intermediates",
+        "point": "output_gate_input",
+        "equal_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "different_ranks": []
+      },
+      {
+        "ordinal0": 1,
+        "category": "intermediates",
+        "point": "qkv_projected",
+        "equal_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "different_ranks": []
+      },
+      {
+        "ordinal0": 1,
+        "category": "intermediates",
+        "point": "silu_qkv",
+        "equal_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "different_ranks": []
+      },
+      {
+        "ordinal0": 1,
+        "category": "states",
+        "point": "conv_after",
+        "equal_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "different_ranks": []
+      },
+      {
+        "ordinal0": 1,
+        "category": "states",
+        "point": "conv_before",
+        "equal_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "different_ranks": []
+      },
+      {
+        "ordinal0": 1,
+        "category": "states",
+        "point": "ssm_after",
+        "equal_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "different_ranks": []
+      },
+      {
+        "ordinal0": 1,
+        "category": "states",
+        "point": "ssm_before",
+        "equal_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "different_ranks": []
+      }
+    ],
+    "detail_matched_keys": 432,
+    "detail_differences": 56,
+    "all_teacherforced_prefix_IDs_equal_frozen": true,
+    "first_decode_layer0_all_observed_points_equal": true
+  },
+  "timing": {
+    "load_seconds": [
+      782.4259239211679,
+      701.1816422250122,
+      772.584026729688,
+      755.6987783368677
+    ],
+    "cases": [
+      {
+        "label": "coarse-O",
+        "wall_s": 91.67258818820119
+      },
+      {
+        "label": "coarse-N",
+        "wall_s": 18.26703634019941
+      },
+      {
+        "label": "detail-O",
+        "wall_s": 29.88413944793865
+      },
+      {
+        "label": "detail-N",
+        "wall_s": 19.337951112072915
+      }
+    ],
+    "one_detail_capture_s": 49.42991456389427,
+    "detail_budget_exceeded": false,
+    "offline_CPU_s": 6.741249888204038
+  },
+  "evidence": {
+    "full_remote_offline_path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Kimi-static-localize-offline-r8575-static8572-791e994bf654c402.json",
+    "full_remote_offline_SHA256": "0609429f18db053c2a27fc1a48ea4d6cadb74888db33dca0e8de58edfd2b7992",
+    "metadata_local": "Kimi621-offline-metadata-r8577.json",
+    "actual_snapshot_bytes": 1902239038,
+    "snapshot_upper_bytes": 10737418240,
+    "raw_storage": "REMOTE_ONLY",
+    "owners": [
+      {
+        "node": 0,
+        "SHA256": "a813a33521ec7ce544bd8ca7cc137be178c511c7bb45cdff55277264cf490da3"
+      },
+      {
+        "node": 1,
+        "SHA256": "af606aaa8c2d76ca9814772025a72d0efd398a22239108ae6411f8bf29d382f5"
+      },
+      {
+        "node": 2,
+        "SHA256": "68e0dfaa5a9397ed6bf53300e14bc7ff4d47b9144be962ed2dec56b4110f0c7c"
+      },
+      {
+        "node": 3,
+        "SHA256": "ef5766ba12845e4d5b3e40835fabd8729108904f7584e44e75e3300f19720cd9"
+      }
+    ]
+  },
+  "limits": [
+    "Hash equality/difference is diagnostic only, not proof of first harmful operation or Model acceptance",
+    "No residual_slot full array; fullhidden only rank0/6; wholecarry may be UNKNOWN",
+    "KDA read-state applicability follows pinned actualcallee8540: positive row read at past0; compare actual read/write row only",
+    "MLA compares target logical valid prefix, never unused raw page tails",
+    "Teacherforced prefix IDs are actual observations, not autonomous full128/EOS validation",
+    "Existing row_output_local/reduced hooks not linked"
+  ],
+  "next": "CPU close actual RowParallelLinear provider/weights; faithful o_proj+sameTP reduction component O512/N2048 then singlefactor512 partition; no newModel until actual operands/provider/entry/lease rootGO"
+}
