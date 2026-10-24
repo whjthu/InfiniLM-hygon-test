@@ -1,0 +1,95 @@
+{
+  "hardware": "BW1000",
+  "level": "TP8_LAYER0_COMPONENT",
+  "status": "CLOSED_NO_SIGNIFICANT_WHOLE_LAYER_GAIN",
+  "actual_Slurm": [
+    [
+      "910374.724",
+      "Deep-defer-layer-r7357",
+      "COMPLETED",
+      "0:0",
+      "00:01:57",
+      "a02r4n04"
+    ]
+  ],
+  "cards": 8,
+  "parallelism": "TP8/PP1",
+  "workload": "Same production layer0 checkpoint/embedding; I512 eight fourprompt prefill cohorts then35 frozen teacher decode steps B32/M32. This is not ordinary fullModel finalIDs/EOS/QA or TPS.",
+  "method": "DefaultOFF private1TU eliminates only immediate postF32MoE SUM drain, mode5/kind1/layout0/32singletoken requests. Original same AllReduce dtype/op/comm/stream/math, owner/device guards, scratch and finaldecoder/CAPI drain retained.",
+  "source_commit": "2e60396",
+  "CPU_handle": "910374.722",
+  "DSO_SHA256": "e23d2571c4c9bc40177b616eb145d3e62739cd976c4f77841494f45229f31262",
+  "CPU_receipt_SHA256": "ed50e6355fcad84ef39ad36e98d9f57943c2f0535f5b67dbabfb10391b976185",
+  "source_manifest": "Deep-defer-layer-GPU-manifest-r7357.json",
+  "source_manifest_SHA256": "a9b7b85fb60423577b5bdc81761ea1aef2d1dd7c734ffe34c31a1fb574bef223",
+  "ordinary_observer_OFF_ABBA": {
+    "arm_labels": [
+      "perfOFF0",
+      "perfON0",
+      "perfON1",
+      "perfOFF1"
+    ],
+    "sum_perstep_max8_seconds": [
+      0.3851621155627072,
+      0.38237911788746715,
+      0.38505150424316525,
+      0.38383124442771077
+    ],
+    "ratio": 1.0020363246067077,
+    "gain_fraction": 0.0020363246067076624,
+    "repeat_spread_fraction": 0.006964502793174218,
+    "adjacent_pair_OFF0_ON0_ratio": 1.0072781110292197,
+    "adjacent_pair_OFF1_ON1_ratio": 0.9968309179369317,
+    "benefit_exceeds_repeat_spread": false,
+    "two_ON_consistent_gain": false,
+    "timing": "Each native CAPI includes original finaldrain; Python fullhidden read/compare after timer. Only1 hidden fullread perdecode in performance arms; no17stage observer. All8owners measured; sum of perstep maximum primarycriticalpath estimate."
+  },
+  "secondary_max_owner_trajectory": {
+    "all7_seconds": [
+      0.4064247105270624,
+      0.3580707022920251,
+      0.3637294229120016,
+      0.3597028376534581,
+      0.35983985010534525,
+      0.3622771268710494,
+      0.3628850602544844
+    ],
+    "ABBA_ratio": 1.008983291935578,
+    "scope": "max of eachowner35step sums; cannot replace sum(perstepmax) when slowowner changes. Favorable secondary point estimate alone does not satisfy primary twoON qualification."
+  },
+  "independent_quality": {
+    "initial_OFF_ON_and_final_OFF_restore": "17fullstages atsteps1/35 plus completehidden everydecode",
+    "all_compared_outputs_exact": true,
+    "nonexact_comparisons": 0,
+    "amax": 0.0,
+    "new_defer_counter": "All8owners ON35/OFF0 perarm; prefill0",
+    "normal8owners": true,
+    "audit_exit": 0,
+    "postKFD_empty": true,
+    "postKFD_node": "a02r4n04",
+    "watcher_status": "TERMINAL_POSTKFD_VERIFIED"
+  },
+  "separate_validation_and_restore_seconds": {
+    "sum_perstep_max8": [
+      0.42642679810523987,
+      0.38202709471806884,
+      0.38435526518151164
+    ],
+    "labels": [
+      "validateOFF",
+      "validateON",
+      "restoreOFF"
+    ],
+    "not_formal_performance": true
+  },
+  "actual_sources": {
+    "remote_report": "results/Deep-defer-layer-r7357-910374.724.json",
+    "report_SHA256": "b9c48fd1f694013dfe6b386562421d9ae67504dd959e4ae7970e141700dde84b",
+    "remote_audit": "results/Deep-defer-layer-r7357-910374.724-audit.json",
+    "audit_SHA256": "f6edb3aa95c6e788b8b7931c2f9d67ee4edbbae87479f237b3b5c5628459aba6",
+    "watcher_SHA256": "c9482b784e30cec13e19732b58e2a4ac2d3f4b28efeed1fe257c3187d953c615",
+    "local_observation": "r7361-Deep-defer-observed-c.json",
+    "local_observation_SHA256": "0dc58337fe78cc550fbc4695fbe851f1b4330830bd3de1fd65ca01f0a3e18c57"
+  },
+  "decision": "Close this narrowly scoped drain-elision route. No repeatedtiming/profile/fullModel load or Modelgain claim. Deep699 baseline unchanged. Result proves this particular postSUM hostdrain is not a demonstrated large wholelayer bottleneck; it does not prove all synchronization/CCL/CPU costs negligible."
+}
