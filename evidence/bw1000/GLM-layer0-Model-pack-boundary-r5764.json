@@ -1,0 +1,23 @@
+{
+  "source": "/refactor/candidates/glm-crossrequest-model-r7328/src/glm_crossrequest_Model_cache_view_r7328.cpp",
+  "SHA256": "c3f7b82f8a687e470b9b8db6d7b87885272dbda19d2518e16276e04438633e0e",
+  "Model_lines": {
+    "78": "fresh_all=prepare_->expand_cached(r,prepared.kv_latent,prepared.k_rot)",
+    "79": "fresh K/V held in ModelWork",
+    "82_87": "runtime flag+geometry+fullprefix selection gate beforebankwrites",
+    "190": "glm_crossrequest_prefill_r7328(r,prepared.query,fresh_all.first,fresh_all.second)",
+    "191": "joined copied into attention buffer",
+    "196": "AttentionOutput projection/TP collective afterwards"
+  },
+  "helper_source": "/refactor/candidates/glm-crossrequest-model-r7328/src/glm_crossrequest_Model_helper_r7328.cpp",
+  "helper_SHA256": "659f61b9ef67ff77b2c19c1f4ef8097d8cc9583542bd23713a8829033966d67c",
+  "same_pack_contract": "Model calls helper with fresh prepared.query and fresh expandedK/V, NOT gathered/bankK/V. Helper itself requires allthree contiguous BF16[4096,8,256], then identical B,L,H,D->B,H,L,D contiguouspack. Fixture calls same compiled helper and same prepare/expand APIs andshapes. No extra Model input pack/stride conversion exists at this callsite.",
+  "not_covered": [
+    "Actual479QKVvalues/layer/rank states absent",
+    "Fixture canonical completeprefix selection; doesnot execute actualModel learnedindexer/TPallreduce or crossfullprefix eligibility;479actual76/80 countergate was not reached",
+    "Fixture runs only layer0 TP8rank0local, no TPconcurrency/PP/full78layer dependentnumerics",
+    "Model copiesjoined into attention then AttentionOutput FP8projection/TPallreduce/residual/FFN; fixture compares attentionoutput only",
+    "Lifetime/instrumentation/allocationpressure differ despite samehelperoperandlayout; cannot prove historical479inputsidentical or locate firstdivergence"
+  ],
+  "decision": "Same helper fresh-QKV pack path IS covered structurally. Modelendtoend/state/dispatch and downstreamnumerics are NOT. PARK; no newGPU/compile/Model."
+}

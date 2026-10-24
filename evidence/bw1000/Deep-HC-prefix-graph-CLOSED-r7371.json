@@ -1,0 +1,66 @@
+{
+  "hardware": "BW1000",
+  "level": "CPU_SOURCE_AND_STATIC_BINARY",
+  "status": "CLOSED_CAPTURE_UNQUALIFIED_NO_COMPILE_NO_GPU",
+  "candidate": "7363 fixedM32 HC-pre staticprefix reuse through existingRuntime Graph",
+  "original_candidate": "Deep-next-HC-prefix-source-UNKNOWN-r7363.json",
+  "actual_HC_source": "/refactor/candidates/deep-combined-r7169/incoming/deepseek_v4_hyper_connection_r177.cpp",
+  "HC_source_SHA256": "4b178cd98cd9e8dd2e24614bf022c1297d6332f22b2c790530fbb06866c5d313",
+  "actual_parent_DSO_SHA256": "0e0512551483457af01944e9c9298442f499d959836a1c5b66dfa438a3c6c4ea",
+  "Runtime_SHA256": "c04e19df5fa07bb52c0acf7be9768d258f5e2aa706647db32761e23426b153ec",
+  "SDK_SHA256": "e1d9432e6de79cf09782fc3b3b332fb969d1a948dbac513b3da677d78f7f1f09",
+  "real_Graph_mechanism": {
+    "compiled_GPU_backend": true,
+    "evidence": "Actual boundRuntime imports StreamBeginCapture/GraphInstantiate/GraphLaunch. Common/Deep graph.cc hasreal DeviceGraph capture/launch implementation, currentSHA85fd37cfc14bc29fa82d4fc8b677bd4fa9a5bbb3fdff19f35e0b11a7eb6e7387.",
+    "recording_caches": "submit.hpp recording builds Operator::Make once, materializes persistent workspace, captures GraphTensor/runtime/allocation leases; can avoid normal Call cache lookup and repeated scratch storage.",
+    "capture_only_when_qualified": "submit marks instance->capture_safe; Graph groups safe/hostcalls, launches actualdevicegraphs only for safe segments. Hostsegments run each RecordedCall individually; prior devicegraph->hostsegment transition may synchronize. require_device_graph withzero safe segments fails.",
+    "no_false_speed_claim": "Caching operators/workspace is real but does not itself eliminate GPUkernel launches; hostreplay remains individual operator executions and descriptor/view/DeviceGuard work in closures."
+  },
+  "capture_blockers": [
+    {
+      "operator": "BF16->F32 Cast in HC line42",
+      "source": "Ops/Deep/InfiniOps/src/native/cuda/hygon/ops/cast/kernel.h",
+      "policy": "explicit capture_safe false",
+      "static_binary": "Operator<Cast,DeviceType7,0>::capture_safe at0x162b280: xor eax,eax;ret; boundSDK SHAverified, noCPUdlopen."
+    },
+    {
+      "operator": "M32 F32 GEMM normalized[32,16384] x fn.T[16384,24] ->mixes[32,24]",
+      "source": "Ops/Deep/InfiniOps/src/native/cuda/hygon/ops/gemm/cublas.h",
+      "source_SHA256": "8701eb47fb5b1e363ebe3d3b2b8e36fcd41a62a5a43461707624072df04393fa",
+      "inheritance": "HygonOperator<Gemm> ->genericBlasGemm<Blas<Hygon>> ->Gemm ->OperatorBase; nooverride in Hygon/genericBlasGemm; base capture_safe false at0xb25130 verifiedxor eax,eax;ret.",
+      "generic_blas_SHA256": "9d9e424fc6e890fe6dad857e44c44cc072b0e2f7bc9fa635023c1a5aa20012a4"
+    }
+  ],
+  "source_scope_limit": "Currentprovider source and actualinstalled publicheader hashes plusboundSDK staticmethods verified. HistoricalSDK compilationMD-to-each-provider mapping not re-established; explicitbound Cast/base false methods provide independent binary evidence. No broaddependency rebuild/audit added.",
+  "ordinary_HC_wall_budget": "UNKNOWN; no newGPU timing, no inferencefrom699taxedtrace/720prefillroute or695wholelayerdifference.",
+  "decision": "Root stopcriterion met: actualrequiredprefix provider notcapture-safe. Close existingGraph route now withoutprototype compile, CPUstep, GPU, Model load or SDK safe-policy edits. Do not forceoverride capture_safe true, hide hostfallback, remove lifecycle guards, change GEMM shape/math or claimGraphacceleration. Separatehostdescriptor-replay or futureprovider qualification would be a different rootselected optimization, not tested/adopted here.",
+  "evidence": [
+    {
+      "file": "r7364-Deep-HC-graph-actual.json",
+      "SHA256": "94f39bfebecabe48ee18abad0939ff08eb0b8041464bd303d000191c1a42b4dc"
+    },
+    {
+      "file": "r7365-Deep-HC-capture-policy.json",
+      "SHA256": "ce364d6cc20d3c4833b3282ea1022deb6dfb813ef4e4f1af807981a979a41b50"
+    },
+    {
+      "file": "r7366-Deep-HC-ops-impl.json",
+      "SHA256": "3045846671e619c2e3f1e597cbf7111aba3f4d02898ee3cb10f6c8daf73687c9"
+    },
+    {
+      "file": "r7368-Deep-HC-providers.json",
+      "SHA256": "b8fd6928297c507949788132180446016a6b55dee70a4bf703bafecf7fa9158a"
+    },
+    {
+      "file": "r7369-Deep-HC-capture-blocker.json",
+      "SHA256": "4afc1cd0c28f86ef0be731356a7f3b5afc416ea9e95e741712c7c206919d9a7e"
+    },
+    {
+      "file": "r7370-Deep-HC-capture-binary.json",
+      "SHA256": "2cafda67459efe40c8dc10437d97a928c61d43ce768925ca6d40afd7f5244500"
+    }
+  ],
+  "no_new_resources": true,
+  "no_clone_changes": true,
+  "performance_adopted": false
+}
