@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-10-24T09:09:21.540470+00:00",
+  "updated_at_utc": "2026-10-24T10:05:51.293005+00:00",
   "owner": "bw1000-agent",
   "hardware": "BW1000",
   "last_slurm_observation_utc": "2026-10-24T06:31:38+00:00",
@@ -251,37 +251,49 @@
     "local_poll_state": "gitignored local-only/; never committed"
   },
   "astra_review": {
-    "updated_at_utc": "2026-10-24T08:59:35.406679+00:00",
+    "updated_at_utc": "2026-10-24T10:05:51.293005+00:00",
     "policy": "coordination/ASTRA_REVIEW.zh-CN.md",
     "status": "COMPLETED_IMPLEMENTED_FOLLOWTHROUGH",
-    "review_id": "astra-review-45-current",
+    "review_id": "astra-review-46-current",
     "model": "gpt-6-astra",
-    "agent": "/root/astra_review_45",
-    "report": "analysis/bw1000/reviews/astra-review-45-current.json",
-    "ledger": "analysis/bw1000/reviews/optimization-review-ledger-after-45.json",
+    "agent": "/root/astra_review_46",
+    "report": "analysis/bw1000/reviews/astra-review-46-current.json",
+    "ledger": "analysis/bw1000/reviews/optimization-review-ledger-after-46.json",
     "completed_rounds_since_review": 0,
     "normal_trigger": 3,
     "independent_work_continues": true,
-    "trigger": "Three actually closed meaningful rounds after44:763/639/766",
+    "trigger": "Three closed meaningful rounds after45:769/510/772",
     "report_available": true,
-    "previous_completed_report": "analysis/bw1000/reviews/astra-review-44-current.json",
-    "implementation": "analysis/bw1000/reviews/astra-review-implementation-45-current.json",
+    "previous_completed_report": "analysis/bw1000/reviews/astra-review-45-current.json",
+    "implementation": "analysis/bw1000/reviews/astra-review-implementation-46-current.json",
     "unreviewed_completed_experiments": [],
     "current_followthrough": [
       {
-        "card": "KIMI45-W13-PARALLEL-ACTIVATION",
-        "decision": "ACCEPT_CPU_IMPLEMENTATION_DISPATCHED",
-        "owner": "/root/online_service_scheduler",
-        "next": "Single defaultOFF TU; fixed-index16 sums broadcast then8lane originalactivation. Preserve originaldot/reduction/route/W2. CPUbuild/codegen20min firstdecision; finitecomponentGPU package pending concrete source, proposed910374/n01/8DCU/10min. Stablefullprovider>3% precedes completeModel acceptance."
-      },
-      {
-        "card": "GLM45-EXPLICIT-BOUNDED-PREFILL-EVENTS",
+        "card": "GLM46-REMOVE-REPEATED-HOST-METADATA",
         "decision": "ACCEPT_CPU_IMPLEMENTATION_DISPATCHED",
         "owner": "/root/moe_decode_arithmetic_audit",
-        "next": "Original2TU explicitmode round0/past0/count512/8rows/4096tokens; stage0layer0cohort0+layer1cohort1. Existingowner/events/drain, no math/sync/stream changes. CPU20min firstdecision. Proposed910376/n14,n15/16DCU/60min one-load baseline+diagnostic, specificModelGPU package pending."
+        "next": "Prefer a narrow forward-local trusted complete-prefix path from the actual CPU producer, if producer can prove same complete logical positions/selection without D2H: carry that provenance and skip duplicate D2H/std::set/dense-discovery. Preserve generic mapped/partialprefix fallback and duplicate-as-set semantics. If provenance is unavailable, remove repeated tensor-view/shape/key metadata construction through a single forward-local plan with dynamic pointers using existing public Ops facilities; do not add a global operator cache. Choose one implementation, not both independent GPU variants.",
+        "resources": "CPU implementation first. Root finite one-node8owner actual attention component with512prefix O8-equivalent shape, existing bridge/native Runtime; target<=10min GPU. No wholeModel load for a merely cached-descriptor rewrite.",
+        "GPU_status": "Concrete new package pending; no new Model load granted"
+      },
+      {
+        "card": "KIMI46-FUSED-DEQUANT-BF16-W13",
+        "decision": "ACCEPT_CPU_IMPLEMENTATION_DISPATCHED",
+        "owner": "/root/online_service_scheduler",
+        "next": "One defaultOFF W13 candidate: original format/scales decoded by one fused GPU kernel into fixed32-expert scratch chunks, BF16 matrix multiply, exact Situ activation formula4*tanh(g/4)*sigmoid(g)*25*tanh(u/25), BF16 activation store, then ORIGINAL current W2 and provider path. Reuse current grouping/route metadata; include all routepack, chunking, decode and restore overhead. One fixed chunk choice, no tile/grid sweep. Do not allocate all896experts BF16 perlayer or build a modelwide cache before evidence.",
+        "resources": "Root one-node8DCU existing actual TP8 layer1 component; finite10min package after CPUbuild. Two fixtures only: retained captured8-tiled T16/21experts and current769 T16/229experts, labeled historical captured versus seeded. No12variant or92layer matrix.",
+        "GPU_status": "Concrete new package pending; no new Model load granted"
+      },
+      {
+        "card": "DEEP46-ONE-NATIVE-TIMING-RESOLUTION",
+        "decision": "ACCEPT_CPU_IMPLEMENTATION_DISPATCHED",
+        "owner": "Original Deep C128 component owner, root dispatch",
+        "next": "Only original component bridge: steady_clock starts after existing producer sync and ends after existing final Runtime drain; save elapsed in thread-local fixed storage, retrieve outside timed call. Keep outer Python duration too. Optional existing Runtime event support only if no new lifecycle/API work is needed; internal chrono alone suffices for first result. Do not claim it removes native OS scheduling or GPU contention.",
+        "resources": "CPUbridge-only build target<=10min, same original8owners one-node8DCU actualcheckpoint component target<=5min, one GPU repeat maximum. Reuse legal575..639 histories, warmups and reset/seed outside timing. No wholeModel load.",
+        "GPU_status": "Concrete new package pending; no new Model load granted"
       }
     ],
-    "latest_followthrough_result": "Current wholeModel baseline136.636655decode/32cards; actualtrace W13hotspot; denseLayer0adapter137.232→118.632ms. No new acceptedModelgain. TwoCPUimplementations dispatched before/at reviewclose."
+    "latest_followthrough_result": "769 exactbut1.8xW13slowerSTOP;510fullIDs/16normal/post/eventscopespassed;772validoutputs0error/perfUNRESOLVED. No acceptedModelgain."
   },
   "latest_results": [
     "results/bw1000/2026-10-24/glm-shared-validation-qualified.json",
@@ -1001,5 +1013,88 @@
       "verify-glm-spawn-profiler-visibility"
     ],
     "specific_interpretation": "Audit returns eachactualselectedlayer/cohort largestadjacentstream/host/ownerCPUinterval andconcretecallchaincandidate. Queue/dependency/enqueue timing, notGPUbusy."
-  }
+  },
+  "current_optimization_dispatch46": [
+    {
+      "card": "GLM46-REMOVE-REPEATED-HOST-METADATA",
+      "decision": "ACCEPT_CPU_IMPLEMENTATION_DISPATCHED",
+      "owner": "/root/moe_decode_arithmetic_audit",
+      "next": "Prefer a narrow forward-local trusted complete-prefix path from the actual CPU producer, if producer can prove same complete logical positions/selection without D2H: carry that provenance and skip duplicate D2H/std::set/dense-discovery. Preserve generic mapped/partialprefix fallback and duplicate-as-set semantics. If provenance is unavailable, remove repeated tensor-view/shape/key metadata construction through a single forward-local plan with dynamic pointers using existing public Ops facilities; do not add a global operator cache. Choose one implementation, not both independent GPU variants.",
+      "resources": "CPU implementation first. Root finite one-node8owner actual attention component with512prefix O8-equivalent shape, existing bridge/native Runtime; target<=10min GPU. No wholeModel load for a merely cached-descriptor rewrite.",
+      "GPU_status": "Concrete new package pending; no new Model load granted"
+    },
+    {
+      "card": "KIMI46-FUSED-DEQUANT-BF16-W13",
+      "decision": "ACCEPT_CPU_IMPLEMENTATION_DISPATCHED",
+      "owner": "/root/online_service_scheduler",
+      "next": "One defaultOFF W13 candidate: original format/scales decoded by one fused GPU kernel into fixed32-expert scratch chunks, BF16 matrix multiply, exact Situ activation formula4*tanh(g/4)*sigmoid(g)*25*tanh(u/25), BF16 activation store, then ORIGINAL current W2 and provider path. Reuse current grouping/route metadata; include all routepack, chunking, decode and restore overhead. One fixed chunk choice, no tile/grid sweep. Do not allocate all896experts BF16 perlayer or build a modelwide cache before evidence.",
+      "resources": "Root one-node8DCU existing actual TP8 layer1 component; finite10min package after CPUbuild. Two fixtures only: retained captured8-tiled T16/21experts and current769 T16/229experts, labeled historical captured versus seeded. No12variant or92layer matrix.",
+      "GPU_status": "Concrete new package pending; no new Model load granted"
+    },
+    {
+      "card": "DEEP46-ONE-NATIVE-TIMING-RESOLUTION",
+      "decision": "ACCEPT_CPU_IMPLEMENTATION_DISPATCHED",
+      "owner": "Original Deep C128 component owner, root dispatch",
+      "next": "Only original component bridge: steady_clock starts after existing producer sync and ends after existing final Runtime drain; save elapsed in thread-local fixed storage, retrieve outside timed call. Keep outer Python duration too. Optional existing Runtime event support only if no new lifecycle/API work is needed; internal chrono alone suffices for first result. Do not claim it removes native OS scheduling or GPU contention.",
+      "resources": "CPUbridge-only build target<=10min, same original8owners one-node8DCU actualcheckpoint component target<=5min, one GPU repeat maximum. Reuse legal575..639 histories, warmups and reset/seed outside timing. No wholeModel load.",
+      "GPU_status": "Concrete new package pending; no new Model load granted"
+    }
+  ],
+  "current_GLM510_baseline": {
+    "timing_observer": "tailrank0 local ready stamp after same argmax/raw observer, before feedback; no HTTP",
+    "useful_output_tokens": 2048,
+    "decode_interval_useful_tokens": 2032,
+    "all_prefill_complete_seconds": 113.89307334413752,
+    "last_completion_seconds": 165.93740890128538,
+    "aggregate_useful_decode_tokens_s": 39.04363420623825,
+    "decode_tokens_s_per_card": 2.4402271378898908,
+    "including_prefill_useful_tokens_s": 12.342003009208948,
+    "including_prefill_tokens_s_per_card": 0.7713751880755593,
+    "including_prefill_endpoint": "tailrank0 phase start to last decision ready, before feedback in both arms",
+    "secondary_phase_elapsed_seconds": 165.93860273389146,
+    "secondary_phase_E2E_tokens_s": 12.341914215610752,
+    "request_useful_decode_tokens_s": [
+      1.4022877567816543,
+      1.4022877567816543,
+      1.4022877567816543,
+      1.4022877567816543,
+      1.4022877567816543,
+      1.4022877567816543,
+      1.4022877567816543,
+      1.4022877567816543,
+      2.4402271378898908,
+      2.4402271378898908,
+      2.4402271378898908,
+      2.4402271378898908,
+      2.4402271378898908,
+      2.4402271378898908,
+      2.4402271378898908,
+      2.4402271378898908
+    ],
+    "mean_request_useful_decode_tokens_s": 1.9212574473357726,
+    "TTFT_seconds_per_request": [
+      75.15446401527151,
+      75.15446401527151,
+      75.15446401527151,
+      75.15446401527151,
+      75.15446401527151,
+      75.15446401527151,
+      75.15446401527151,
+      75.15446401527151,
+      113.89307334413752,
+      113.89307334413752,
+      113.89307334413752,
+      113.89307334413752,
+      113.89307334413752,
+      113.89307334413752,
+      113.89307334413752,
+      113.89307334413752
+    ],
+    "terminal_requests": 16,
+    "first_token_EOS_requests": 0,
+    "EOS_terminal_requests": 0,
+    "all_serving_cards": 16,
+    "no_forward_after_EOS": true
+  },
+  "current_Deep772": "Correctcomponent;timingUNRESOLVED/defaultOFF;one internalchrono clarification only"
 }

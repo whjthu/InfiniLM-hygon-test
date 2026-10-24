@@ -1,5 +1,14 @@
 # BW1000 当前性能与后续方向
 
+## 第46次审核已落实：2026-10-24 18:05 北京时间
+
+769、510、772三轮均实际结束并各消费一次。Kimi激活并行分配输出完全一致但64个配对全负，rank0完整provider3.375→5.182ms，STOP；无spill/动态索引waterfall证据，不能把原因猜成已证。Deep C128缓存720组有效值误差为零，但max-owner方向混合、端点漂移10.7–37.9%，收益UNRESOLVED，默认OFF，不因表面1.4倍开整模型。
+
+GLM510完成完整基线128+诊断128、QA、16normal、审计及511清理。16卡TP8PP2/B16M8/I512O128基线decode39.0436tok/s、prefill113.893秒、含prefill输出12.3420tok/s；emitter用户均1.9213tok/s。这是重复基线而非代码提升。已命中16个事件窗；两层都是dense层，不代表routedFFN。rank0层0/1同层8row attention stream累计416.025/412.872ms，ownerCPU410.753/407.339ms；FFN在TP前293.791/293.525ms。诊断prefill149.285秒明显受观察/控制扰动，不能视为纯算子占比。
+
+原owner已并行收到三张实现卡：GLM真实producer完整prefix provenance删除重复CPU元数据；Kimi单一融合反量化+有界BF16 W13 scratch，先核真实F32输出能力且含cold成本计时；Deep只一次原生chrono计时澄清。新GPU包仍需具体源/资源明确后执行，未把CPU准备当速度提升；最终token/EOS验收保持，目标仍未完成。以下为历史路径。
+
+
 ## 第45次 Astra 审核已落实：2026-10-24 17:00 北京时间
 
 本轮763/639/766各消费一次，下一周期计数归零。审核明确：新增整模型已验收优化收益仍为零，不能用编译、工具通过、局部逐位恢复或组件倍率代替。当前Kimi插桩基线decode136.6367 tok/s/32卡；真实emitter首末token用户均1.3816、最高约2.1361 tok/s，最大ITL约76.58秒，prefill期间的等待仍明显。完整profile见 `../../evidence/bw1000/Kimi639-profile-compact-r8677.json`。

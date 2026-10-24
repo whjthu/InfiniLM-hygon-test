@@ -1,0 +1,109 @@
+{
+  "review": 46,
+  "status": "COMPLETE",
+  "date": "2026-10-24",
+  "reviewer": "/root/astra_review_46",
+  "scope": "Local CPU evidence/source review; no SSH, Git, GPU, new agents or submissions.",
+  "goal_complete": false,
+  "new_accepted_wholeModel_gain": 0,
+  "consumes_once": ["910374.769", "910376.510", "910374.772"],
+  "excluded": ["CPU builds 192/193/194/163/164", "polls", "reports", "post-idle checks"],
+  "decision": "Stop Kimi W13 activation redistribution. Prioritize GLM repeated host metadata removal while preserving mode2 per-query arithmetic. Start one different Kimi fused-dequant/BF16 component implementation, with current grouped baseline and cold cost included. Permit exactly one bounded Deep native-timing resolution test; no immediate wholeModel load. Original owners act on first decisions already sent; this report adds no approval chain.",
+  "review45_followthrough": {
+    "Kimi": "Actually implemented and tested769, not parked at assembly review. OFF faithful and ON all8 outputs exact; all64 paired full-provider tests slower. Rank0 full3.37456->5.18168ms, W132.22608->4.03520ms; median OFF/ON acrossowners0.6495..0.6550. STOP, no grid or Model promotion.",
+    "GLM": "Actually implemented bounded hook and closed510: baseline128+diagnostic128, fullgold/EOS/before-afterQA,16normal,audit0,post511 bothnodesempty. It now gives an actionable host-side target. However choosing layer0/1 sampled two full-attention DENSE FFNs, not routed layers; review45 under-specified representativeness. Do not extrapolate their FFN share to the model.",
+    "Deep": "New immutable C128 weight-cache hypothesis legitimately superseded previous no-new-source park; actual772 qualified its numerical/component behavior but not performance. No accepted Model gain."
+  },
+  "why_static_assembly_was_not_gain": {
+    "finding": "24->3 static exp instructions and private_segment/scratch0 are codegen facts, not executed latency or throughput. A common activation across8 lanes adds broadcasts/selection and changes execution dependencies/scheduling. Their actual cost is not identified by retained assembly counts.",
+    "cause": "UNKNOWN. Existing asm shows no spills, v_movrel or waterfall evidence; do not invent that explanation. The paired runtime regression overrides the source-level hypothesis.",
+    "avoidable_preparation": "192 rebuilt old buildJobs and hit v_writelane compiler failure;193 linked actualkernel.o and left unresolved symbols;194 linked actualpacked.o successfully in1s. Preserve failures, but next implementation reuses actual successful provider objects and changes only the necessary TU. Compile success did not establish symbol closure. No broad freshness or recompilation gate is needed."
+  },
+  "current_bottleneck_evidence": {
+    "Kimi": "Current639 trace W13 tail249.56ms/window remains a high-coverage target; activation fraction is UNKNOWN. New769 uses seedT16 with229 unique experts, unlike old captured8-tiled21-expert BF16 fixture. Do not compare their timings as matched measurements.",
+    "GLM": "All16 actual selected scopes have36markers,row8,past0,count512,matched255. Rank0 whole layer763.676/756.427ms. FFN.begin->shared.end_TP.begin293.791/293.525ms is before TP.begin and cannot be called CCL. Eight nonoverlapping row.compute spans around51.5ms each sum to roughly410ms in the same owner/layer, exceeding the largest single FFN interval. OwnerCPU near row wall supports CPU submission/metadata work, but does not identify descriptor misses specifically. Do not sum ranks/layers or overlapping parent spans.",
+    "GLM_observer": "Ordinary prefill113.8931s versus diagnostic149.285s demonstrates substantial observer/control disturbance. Ordinary decode total39.0436s on16cards is baseline evidence, not optimization. Optimization must be judged using matched ordinary arms, not diagnostic wall.",
+    "GLM_source": "r48 sparse_impl reads indices and optional mapped positions D2H, builds std::set selections for every token, detects dense prefix, then mode2 keeps perqueryQK/PV. submit constructs tensor views and Ops::Call. Local reference operator.h has thread_local operator cache, Make only onmiss, but constructs/hash-lookups key eachcall. Actual submitted header itself says Ops owns instance caching. Rebuilding an equivalent descriptor cache is not justified without checking actual bound implementation.",
+    "Deep": "772 complete57s; actual C128 checkpoint with synthetic hidden/B32/legal575..639 state.720 groups NRMSE0/maxabs0,160finite,8owners and Runtime closes,audit0,post773empty. Raw invalid cache slots retained after reset are not valid-state numerical failure. Worst-owner ABBA ratios575:1.396/1.141 and639:1.104/1.079 overlap O endpoint drift25..38% and11..18%; owner direction mixed4/8 and6/8. Gain UNRESOLVED."
+  },
+  "cost_review": {
+    "Kimi_actual_GPU_round_s": 81,
+    "Kimi_checkpoint_load_perowner_s": [22.78,25.09],
+    "Kimi_failed_CPU_steps_s": [11,10],
+    "Kimi_relink_s": 1,
+    "GLM_actual_round_s": 1646,
+    "Deep_actual_GPU_round_s": 57,
+    "Deep_CPU_TU_and_bridge_s": [12,7],
+    "Deep_complete_warmup_trial_s": [8.94,9.38],
+    "unmeasured": "Queue, review waiting, upload and total preparation cost are not reconstructed from residual wall time. Phase timings should be recorded in existing receipts, not a new reporting framework.",
+    "process": "Recent real tests produced useful negative/causal evidence but zero Model adoption. CPU reports and repeated loader/object corrections can dominate a subminute component test. Start narrowly scoped implementations while review runs; use existing interfaces, manifests and normal cleanup. GPU allocation ownership is not GPU utilization."
+  },
+  "cards": [
+    {
+      "id": "GLM46-REMOVE-REPEATED-HOST-METADATA",
+      "priority": 1,
+      "owner": "/root/moe_decode_arithmetic_audit",
+      "hypothesis": "Repeated selection/provenance, views and cache-key construction across8 same-shape512 requests consume a material part of ~410ms measured row CPU work; removing redundant host work preserves the accepted arithmetic.",
+      "first_CPU_decision": "Within10min inspect only actual bound Ops::Call cache and current mappedmode2 producer provenance. If equivalent descriptors already cached, STOP proposed512QK+512PV operator-cache duplication immediately. No remote freshness matrix. Existing local reference already strongly suggests this stop.",
+      "minimal_change": "Prefer a narrow forward-local trusted complete-prefix path from the actual CPU producer, if producer can prove same complete logical positions/selection without D2H: carry that provenance and skip duplicate D2H/std::set/dense-discovery. Preserve generic mapped/partialprefix fallback and duplicate-as-set semantics. If provenance is unavailable, remove repeated tensor-view/shape/key metadata construction through a single forward-local plan with dynamic pointers using existing public Ops facilities; do not add a global operator cache. Choose one implementation, not both independent GPU variants.",
+      "constraints": "Keep original mode2 queryM1/N=past+t+1/K256, original request/token order, F32scale->BF16 and causal counts. Do not change to crossrequest batched GEMM (479 failed), graph replay, M4, new stream or omitted ownership/workspace/drain checks. No inferred prefix from past0/count512 alone. No crossforward stale pointers. DenseFFN native-FP8 assumption is false: current source uses Fp8BlockQuant plus BF16 block128/F32dot/scalecombine; do not remove atomicsOFF guard or repeat existing3124/3147 component routes.",
+      "resources": "CPU implementation first. Root finite one-node8owner actual attention component with512prefix O8-equivalent shape, existing bridge/native Runtime; target<=10min GPU. No wholeModel load for a merely cached-descriptor rewrite.",
+      "samples": "Existing actual input/positions if available; otherwise explicitly synthetic. Two warmups then2ABBA cycles, owner CPU and drained host wall for full8request scope; exact operations retained but no new fullnetwork bit gate. Include one fullprefix and one existing partial/mapped fallback correctness case in same load, no shape grid.",
+      "wall_budget": "~410ms rowCPU across8rows within each observed layer; reclaimable fraction UNKNOWN and no multiplication across78layers. Events are observer-disturbed. First component target>=5% host reduction exceeding O endpoint drift; a smaller stable effect may be retained only for piggyback Model load.",
+      "upgrade": "Stable meaningful whole-attention host reduction with unchanged fallback permits one same-load fullModel baseline/candidate ordinary128 pair using existing fulltoken/EOS/QA/cleanup. First token failure stops. No new observation-only Model run.",
+      "stop": "Cached work already eliminated, no actual source-bound path, or variance >= gain =>STOP this version. Do not repeat profile-only rounds. First CPU implementation target20min, then bounded component; Model cost remains existing load scale, UNKNOWN exact.",
+      "fallback": "Use current O8. If provenance path is impossible, choose forward-local view/key construction reduction only; do not broaden to whole-model descriptor infrastructure."
+    },
+    {
+      "id": "KIMI46-FUSED-DEQUANT-BF16-W13",
+      "priority": 2,
+      "owner": "/root/online_service_scheduler",
+      "hypothesis": "Fusing native MXFP4 decode into a bounded BF16 expert bank and using matrix hardware for W13 can beat the current grouped scalar W13 including conversion/packing cost; previous torch decode chain hid this opportunity but cached-only speedup is insufficient.",
+      "minimal_change": "One defaultOFF W13 candidate: original format/scales decoded by one fused GPU kernel into fixed32-expert scratch chunks, BF16 matrix multiply, exact Situ activation formula4*tanh(g/4)*sigmoid(g)*25*tanh(u/25), BF16 activation store, then ORIGINAL current W2 and provider path. Reuse current grouping/route metadata; include all routepack, chunking, decode and restore overhead. One fixed chunk choice, no tile/grid sweep. Do not allocate all896experts BF16 perlayer or build a modelwide cache before evidence.",
+      "reuse": "Kimi_BF16_MFMA_r4916.py/prepare_fixed_MFMA_r4916.py correct formula and decode; actual current769 grouped OFF provider/actualpacked.o and existing component loader. Old21expert T16 cached0.451ms versus serial3.591ms and decode+BF165.968ms are only historical component signals, not current baseline or8xModel.",
+      "CPU_first": "Within20min verify minimal actual DTK/vendor BF16 GEMM entry and whether BF16A/B->F32C is supported, then produce one implementation/compile decision. Old torch.bmm returnsBF16 before.float, introducing an extra W13 rounding BEFORE activation; original grouped keeps F32dot until nonlinear activation. Prefer verified BF16A/B->F32C to remove that extra rounding, without claiming its availability or exacttokens. If unsupported, label oldBF16C additionalrounding explicitly and use finaltoken gate later. NoGPUF64. If integration requires redesigning Runtime/provider, stop at30min and report concrete blocker rather than assembling a full cache system.",
+      "resources": "Root one-node8DCU existing actual TP8 layer1 component; finite10min package after CPUbuild. Two fixtures only: retained captured8-tiled T16/21experts and current769 T16/229experts, labeled historical captured versus seeded. No12variant or92layer matrix.",
+      "samples": "3warmups then8balanced paired provider samples per fixture. Main ON includes cold scratch decode every invocation; separately report matrix-only diagnostic, never rank cached-only result as win. Check finite and activation/output error diagnostics; changed intermediate bits do not automatically reject. GPU BF16/F32 only.",
+      "memory": "W13 BF16 perexpert=768*3584*2=5505024bytes,32expert scratch=176160768bytes excluding operands/workspace. Scratch is forward-local/reused chunks; before Model binding use one perRuntime/stage global budget, e.g.256MiB including bank/operands/workspace, not32experts multiplied by91layers. If actual temporary requirements exceed budget or current serviceheadroom, use original provider fallback; no unsupported memoryfit claim. Old fullW13+W2 bank perexpert8257536bytes,229experts~1.89GB, illustrating why naive perlayer persistent caching is not yet justified.",
+      "wall_budget": "Current seeded W13~2.226ms/provider3.375ms and trace W13~249.56ms tailwindow are context, not a forecast. Full current traffic reuse distribution UNKNOWN. No native INT4/INT8/TOPS claim from BF16 execution or register-only1440TOPS.",
+      "upgrade": "If fullprovider cold-inclusive gain>3% and exceeds pair drift, bind this same minimal candidate into existing model path and perform one baseline/candidate finaltokens/EOS check with first failure stop. Prioritize currentroute evidence when already available; do not demand a new traffic profile load. Model gain requires ordinary end-to-end measurement.",
+      "stop": "No cold-inclusive benefit on representative current case, integration overhead dominates, or numerical anomaly =>STOP/no cache grid. Positive only21expert fixture may remain a bounded reuse hypothesis, not grounds for a new Model load.",
+      "fallback": "Retain grouped original. Existing packedBoth adapter signal remains parked for an independently necessary load until a direct Model binding exists; no new layerwise bitproof."
+    },
+    {
+      "id": "DEEP46-ONE-NATIVE-TIMING-RESOLUTION",
+      "priority": 3,
+      "owner": "Original Deep C128 component owner, root dispatch",
+      "hypothesis": "A meaningful part of772 worst-owner variation is Python8thread entry/return/GIL timing rather than native compressor work; internal timing will resolve whether immutable F32 caching saves measurable work.",
+      "minimal_change": "Only original component bridge: steady_clock starts after existing producer sync and ends after existing final Runtime drain; save elapsed in thread-local fixed storage, retrieve outside timed call. Keep outer Python duration too. Optional existing Runtime event support only if no new lifecycle/API work is needed; internal chrono alone suffices for first result. Do not claim it removes native OS scheduling or GPU contention.",
+      "resources": "CPUbridge-only build target<=10min, same original8owners one-node8DCU actualcheckpoint component target<=5min, one GPU repeat maximum. Reuse legal575..639 histories, warmups and reset/seed outside timing. No wholeModel load.",
+      "samples": "3ABBA cycles for both575nonboundary/639boundary in one load;8owners concurrent as before. Compute each temporal trial's slowest-owner native duration, then paired cycle differences; owners are not independent repeats. Timing fields and existing finite/valid-state checks, no duplicate720-group report requirement.",
+      "wall_budget": "Only measured C128 native prepare/commit/CAPI work; model fraction UNKNOWN.20mainC128 layers require extra320MiB perGPU before indexer extras, and fullModel fit unqualified. Never extrapolate1.4x to model.",
+      "decision": "If native reduction repeats in all3cycles and exceeds residual endpoint drift with same-direction GPU event evidence when cheaply available, retain candidate for next independently necessary Model load with memory fit and finaltokens/EOS. If effect remains mixed/within noise, PARK cache and stop timing repeats. A stable small component gain alone does not buy another fullModel load.",
+      "fallback": "Keep source defaultOFF and functional evidence; piggyback only. Raw invalid-slot byte differences need no repair."
+    }
+  ],
+  "root_required_actions": [
+    "Consume769/510/772 once; keep goal active and accepted Modelgain0.",
+    "Dispatch original owners immediately using first decisions; do not wait for another reviewer acknowledgement.",
+    "Record adopted/rejected/deferred with concrete reason in existing implementation record; do not silently substitute more source reports for actual candidate.",
+    "Stop W13 activation and equivalent GLM descriptor cache if actual cache already covers it; preserve negative evidence.",
+    "Next review consumes meaningful actual paired/causal rounds, not builds, polls or repeated report generation."
+  ],
+  "evidence": [
+    "astra-review-45-current.json",
+    "astra-review-implementation-45-current.json",
+    "Kimi769-compact-W13-negative-r8665.json",
+    "GLM510-root-terminal-r8701-a.json",
+    "GLM510-prefill-window-qualified-r8701.json",
+    "GLM510-live-window-CPU-r8701-a.json",
+    "GLM510-submit-source-CPU-r8701.json",
+    "glm_moe_dsa_dense_modes_r48.cpp",
+    "upstream-ops-945184c0-r2550/src/operator.h (reference only, not exact current binding)",
+    "Deep-C128-component-qualified-r8693.json",
+    "deep_C128_component_bridge_r8686.cpp",
+    "r4919-corrected-BF16-progress.json",
+    "Kimi_BF16_MFMA_r4916.py",
+    "InfiniLM-hygon-test/coordination/ASTRA_REVIEW.zh-CN.md"
+  ]
+}
