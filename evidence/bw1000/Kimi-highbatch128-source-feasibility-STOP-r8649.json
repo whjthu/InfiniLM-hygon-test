@@ -1,0 +1,59 @@
+{
+  "status": "STOP_NOT_GPU_QUALIFIED",
+  "CPU_only": true,
+  "requested_config": "Kimi B128/decodeM32, I512/O128",
+  "actual_source_evidence": {
+    "inspect-kimi_engine_probe_r2475.cpp": {
+      "SHA256": "6ce88e53ed926de0bdca4b387b7eb00e09098fd023ccad4e93934af06e220e89",
+      "lines": [
+        22,
+        27,
+        37,
+        41,
+        57,
+        59,
+        64
+      ],
+      "facts": [
+        "CAPI accepts max_rows1..128 and count<=max_rows, total<=1024.",
+        "Perforwardtokens<=8192, so uniformprefillM32xI512=16384 is invalid.",
+        "Cache uses4*rows+4pages, KDApool rows=pages/4. capacity128 implies516pages/pool129, notoldcapacity64/pool65."
+      ]
+    },
+    "modern_kimi_combined_r4935.py": {
+      "SHA256": "ee0c13aa1e116ea9659181818a5c40c87e7738ed456962bd3de4bf6aad3bd8fd",
+      "lines": [
+        57,
+        91,
+        94
+      ],
+      "facts": [
+        "Historical540 uses originalcreate(max_rows64), pages260/pool65.",
+        "MoE workspace cap64 concerns currentmicrobatchtokenrows, decodeM32 does not byitself exceed64.",
+        "Historical540 ModelSHA5d95be4cba2b170894e4d2554dee0f46adf05dde4e5459edbac23bae684e4ad2; notautomaticallynewf6f providerqualification."
+      ]
+    },
+    "kimi_combined_protocol_r4935.py": {
+      "SHA256": "27016ab80e372744a6bfe416fb123997f5dc8b6603170114125476038b5fde5f",
+      "lines": [
+        10,
+        13,
+        49
+      ],
+      "facts": [
+        "capacity64 unchanged. Originalprotocol records4.64GiB<5GiB reserve rejection then4GiB reserve, noresize128 planned.",
+        "Only540 qualified B64/M16 and B16/M4 records are known here; noactualB128/M32 sameprovidermeasurement found."
+      ]
+    }
+  },
+  "historical_actual_audit": {
+    "file": "r4971-Kimi-combined-terminal-audit.json",
+    "SHA256": "01c3ddd8a85483679584a030ea4f5703848c62223c1c55d1337c0d65367e5c13",
+    "handle": "910375.540",
+    "quality": "wholewavequalitypassed32normal",
+    "baseline_pure_continuous_metadata_OFF_decode_tok_s": 133.815,
+    "combined_metadata_ON_decode_tok_s": 133.59,
+    "do_not_merge_arms": true
+  },
+  "conclusion": "DirectB128/M32 STOP: prefill exceedsrealCAPI bound andcapacity128 GPUmemory reserve/actualprovider support notqualified. A differentconfiguration splittingprefillM<=16/decodeM32 withcapacity128 wouldrequireindependentcachebyte/headroom proof andnewmatchedsamegeometryIDs; notauthorized/preparedhere. No grid/native changes/GPU dispatch."
+}

@@ -1,0 +1,2 @@
+import json,pathlib
+q=json.loads(pathlib.Path('Kimi-MLP-layer0-observed-r8648-b.json').read_text(encoding='utf8'));w=q.get('watch',{});r=w.get('result',{});print(json.dumps({'utc':q['utc'],'steps':q['actual_steps'],'terminal':w.get('terminal'),'watch_errors':w.get('errors'),'audit':w.get('audit'),'post':w.get('post_KFD'),'resultSHA':w.get('result_SHA256'),'snapshot_bytes':r.get('snapshot_bytes'),'candidate_executed':r.get('candidate_executed'),'all8normal':r.get('all8normal'),'O_faithful':r.get('O_faithful'),'observer_stable751':r.get('observer_stable751')},indent=2))
