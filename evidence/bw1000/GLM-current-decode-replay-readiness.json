@@ -1,0 +1,73 @@
+{
+  "utc": "2026-10-24T03:29:33.890521+00:00",
+  "decision": "PARK",
+  "card": "GLM39-DECODE-ONE-LAYER-ATTRIBUTION",
+  "scope": "CPU-only bounded existing source/evidence review. No remote scan, compile, GPU, Model load or Git modification.",
+  "current_target": {
+    "Model_producer": "910376.489",
+    "Model_DSO_SHA256": "fb059e2a772afa32fa9617b252fa4d67ee749404a6dd80e3e1ddc03ccf919cf5",
+    "native_SHA256": "f35956f532833ce964bf766c8a61b44b56fe79042921d86710ccd075101705d2",
+    "geometry": "TP8PP2, ROWS16, B16/M8, I512/maxO128, cap640, VON/TOFF, resident[38,40]; stage1 representative global38 full-indexer/sparse-FFN",
+    "crossrequest_default": "OFF; fixed77 accepted tokens but not useful performance gain"
+  },
+  "material_checks": {
+    "real_N8_layer_input_hidden": {
+      "available": false,
+      "evidence": "489 raw_checkpoints are tail logits [N,vocab], not [8,6144] layer input. 5176 hidden_BF16 capture is FFN input of first eligible PREFILL, last two rows only."
+    },
+    "valid_same_history_KV_and_indexer_state": {
+      "available": false,
+      "evidence": "489 journal records layer/rows/past/count/eligibility, not latent/rotary/projected K/V or learned indexer cache. Actual shadow D2H buffers are ephemeral and only metrics are retained. Prefix lengths/positions cannot recreate cache values."
+    },
+    "real_N8_router_expert_inputs": {
+      "available": false,
+      "evidence": "actual_capture_begin5164 explicitly returns empty when tokens<512; N8 decode cannot be captured by that hook. 489 enables it only diagnostic K1 PREFILL. Captured route IDs/packed operands therefore cannot be labeled current decode."
+    },
+    "weights": {
+      "available": true,
+      "scope": "Existing checkpoint/normal native loader; layer38 keys can be loaded by5674. This alone does not recreate the actual activation or KV history."
+    },
+    "current_provider_match": {
+      "available": false,
+      "evidence": "5674 layer bridge shares historical f359/SDK, but was built before current vector8542 dispatch and rows16 resident configuration; it constructs DecoderProjectedR22 layer38 with rows64 and uses default host bank. Its driver never enables vector/resident policies. No claim of current VON/resident replay equivalence."
+    },
+    "complete_layer_replay_entry": {
+      "available": false,
+      "existing_nearby_entry": "glm_layer_forward_r5670 can run complete real-weight layer38 including TP8 and route histogram, but only the synthetic-history5673 usage is qualified; it has no existing external authoritative KV/indexer state import or current configuration setup.",
+      "driver_evidence": "hidden(seed,N) uses CPU torch.randn; restore() builds caches by synthetic prefill and synthetic previous decode inputs. Logical460/454 short lengths are metadata only, not real hidden or current I512 history."
+    },
+    "stored_same_state_reference_output_all8TP": {
+      "available": false,
+      "evidence": "Existing5673 fullhidden reference is synthetic repeated history, not current489/472 state. 489 stores final logits/tokens, not complete layer38 hidden output."
+    }
+  },
+  "excluded_evidence": {
+    "483": "Actual-checkpoint constructed layer0 I512 prefill attention/prepare fixture, TP8rank0local, no decoder FFN/TP execution/history. Cannot serve as N8 decode or stage1 replay.",
+    "454": "Earlier short-input geometry/profile cannot prove current VON/ROWS16/resident source match; overlapping six TLS fields do not supply operands.",
+    "489_ordinary_CAPI": "~204..218ms stage1 enclosing CAPI wall is not GPUbusy or exclusive recoverable budget; does not supply a replay fixture."
+  },
+  "immediate_blocker": "No source-linked real stage1 N8 hidden + full valid KV/indexer history + all8TP layer output reference, and no already-qualified complete-layer entry matching current VON/resident policy. Each independently prevents the requested faithful replay.",
+  "GPU_card": null,
+  "maximum_reclaimable_ms": "UNKNOWN; no exclusive current-layer attribution",
+  "next_condition": "Only during the next independently necessary candidate Model qualification may a bounded same-state stage1 decode window be retained across all8TP, with provider/policy/weights/row/past/positions/KV+indexer ownership and reference output. Do not initiate a profile-only fullModel load, build a new replay framework, or substitute zeros/random inputs now. Any capture/replay implementation remains a future separately reviewed task.",
+  "evidence_SHA256": {
+    "GLM489-qualified-scope-r5793.json": "758c89f34f5520e887a39e9da4c0f04356f56088f246756c2e4c3d3817bf437f",
+    "r5792-GLM489-final-audit-and-ordinary.json": "ee0a10a3dd3e50d4de7610c55f5d3935847f3c576cc66a802b66692ba6a76179",
+    "glm_actual_capture_r5176.inc": "fc50eeb8c38948d705c288eef2088c96986bf076caa6af2ed760044c2d28205b",
+    "glm_layer77_probe_r5783.py": "461da16f0b96975b7c19e115dae3d5d2817e7f058f826e9c71b7a06b82a7e7c8",
+    "glm_layer77_Model_cache_r5775.cpp": "55ae5c87cc5be3e432774ae5230b190b116c50bcf4022f9d9512c9e6bb4e7614",
+    "glm_stage1_layer_profile_r5673.py": "7eaea9445ec822ad92087b38b0e5876d884ec90d8bc449ce35a30387c6c34002",
+    "glm-stage1-ledger-r5674-src/glm_layer_bridge_r5670.cpp": "3359ea02e106be3593c741ee05fb44787c9556f7a7cb615a334dbccb29e3c448",
+    "GLM-stage1-ledger-CPU-manifest-r5674.json": "9f07bb5c609c90582599e1002d598c91176791248473873fe3d9907b1ddd4052",
+    "GLM-layer0-qualified-r5763.json": "58e1fd9328366815ba632928db4e3e5a14c511cb473ed990f6e094c6894e8bfc",
+    "GLM-layer0-Model-pack-boundary-r5764.json": "d261ced466f9975516b262731d7ed9ba69281bea4cda067236646de1d17eaf99"
+  },
+  "actions_taken": {
+    "CPU_source_read": true,
+    "new_GPU_or_Slurm": false,
+    "native_compile": false,
+    "weight_load": false,
+    "raw_download": false,
+    "clone_write": false
+  }
+}
