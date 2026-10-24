@@ -1,0 +1,163 @@
+{
+  "review": 49,
+  "date": "2026-10-24",
+  "reviewer": "/root/astra_review_49",
+  "status": "COMPLETE_EXECUTE_MINIMAL_CHANGES",
+  "scope": "本地CPU只读证据审核；唯一写入本文件；未SSH、未GPU、未Git写。",
+  "consumes_once": [
+    "910374.790",
+    "910374.793",
+    "910376.522"
+  ],
+  "excluded_performance_rounds": [
+    "787计数工具资格",
+    "r8738/r8739实际对象离线ISA",
+    "CPU构建、轮询、发布和旧519组件"
+  ],
+  "goal_complete": false,
+  "new_accepted_wholeModel_gain_count": 1,
+  "decision": "采纳522在已测配置上的整Model prefill/E2E收益，decode收益仍为零。三个原owner直接并行最小实现，审核不阻塞CPU工作。Deep指令可行性最多再用5分钟，失败立即切换已有源码中的批量上传候选；停止positions独立微计时。",
+  "review48_followthrough": {
+    "GLM": "CONTINUE8708已完成同加载ONNO四臂，16normal、每臂128 gold/EOS/QA通过，audit0，523两节点KFD空；不是仅派单。",
+    "Deep": "8732桥接完成并真实执行layer3 C128/TP8/B32；2720输出数值检查通过，8normal、audit0、791 post空。复用功能落实，稳定性能收益未证明，不Model采纳。",
+    "Kimi": "原packed.o、真实权重和781的21/229 fixture哈希绑定落实；W13/W2两个精确过滤进程各6条记录，793完成、审计和794 post空。诊断落实，不计性能收益。"
+  },
+  "accepted_evidence": {
+    "GLM522": {
+      "source": "GLM522-root-paired-summary-r8709.json",
+      "qualified_source_SHA256": "5a39c412a314d1779e5b772825ef1dde808617835e6574dc3de861ca3da1ea5e",
+      "configuration": "TP8 PP2 / 16卡 / B16 M8 / I512 O128 / profileOFF / 同加载ONNO",
+      "prefill_seconds_OFF_ON": [
+        114.42116861534305,
+        92.47537335800007
+      ],
+      "prefill_wall_change_percent": -19.179838418815276,
+      "E2E_seconds_OFF_ON": [
+        166.8789011144545,
+        144.95088740997016
+      ],
+      "E2E_tokens_s_OFF_ON": [
+        12.272477217193881,
+        14.128945057450604
+      ],
+      "E2E_rate_change_percent": 15.127083207421155,
+      "decode_tokens_s_OFF_ON": [
+        38.7374479336481,
+        38.722960400390406
+      ],
+      "decode_rate_change_percent": -0.03739929714138279,
+      "mean_user_first_last_tokens_s_OFF_ON": [
+        1.904143880979078,
+        1.965300858995382
+      ],
+      "TTFT_two_cohorts_OFF_ON_seconds": [
+        [
+          75.10754690458998,
+          60.64994330354966
+        ],
+        [
+          114.42116861534305,
+          92.47537335800007
+        ]
+      ],
+      "qualification": "四臂全部128 IDs/EOS/QA、56 raw CPUargmax检查通过；真实NET/IBext_v8，无Socket数据回退。",
+      "limits": "时钟为tail实际chunk返回，非HTTP。两次时间配对只覆盖本配置；不能外推在线prompt泛化。用户均值不足2，离每用户15仍约7.63倍；早cohort改善含prefill阻塞缩短，不能叫decode核提速。"
+    },
+    "Deep790": {
+      "source": "Deep790-position-reuse-component-r8737.json",
+      "scope": "实际layer3 C128 TP8 B32，合成hidden，不是整Model流量。",
+      "P639_layer_ms_OFF_ON": [
+        13.200850691646338,
+        12.747277971357107
+      ],
+      "P639_two_cycle_rate_gain_percent": [
+        3.709185718972252,
+        3.4081863877173824
+      ],
+      "decision": "功能成立；首cycle OFF漂移4.78%大于效应，P575漂移更大。保持defaultOFF，停止独立计时；2720 byteexact仅诊断，不构造晋级bit门槛。"
+    },
+    "Kimi793": {
+      "source": "Kimi793-provider-PMC-compact-r8669g.json",
+      "W13_seed229_over_captured21_VALU_read_TCCmiss": [
+        1.6836174518084277,
+        1.744461991548935,
+        2.9515278062812205
+      ],
+      "W2_active_cycles_ratio": 1.0340683823658403,
+      "decision": "两个fixture路由形状不同，比例只是诊断。229的TT2 routefill为0.55652，21是8row tile2 fullfill；源码对无效第二行仍乘加，支持唯一guard候选。",
+      "limits": "实际32个TCC，不能用16实例公式；无带宽饱和、occupancy、INT/FP占比结论。639真实route prevalence未知，不能外推Model。",
+      "CPU198_followup": "CPU198 COMPLETED0/11s，无GPU。r8669h inner-if被if-convert，原乘加仍执行且多8 cndmask；本实现STOP，不上GPU。这是CPU代码生成诊断，不计新性能轮次。"
+    },
+    "Deep_actual_integer_ISA": {
+      "sources": [
+        "r8738-Deep-routed-actual-ISA.json",
+        "r8739-Deep-dp4a-lowering.json"
+      ],
+      "source_SHA256": "a675db956e91e28ece725fab54fee844cc0622a2e632b4b32976137a77a9eb41",
+      "finding": "actual routed.o的W2<32>循环以4条BYTE选择v_mul_i32_i24_sdwa及整数加法展开dp4a；W13同样有整数乘加。说明现路径没有native dot4，不说明目标硬件必定不支持它。",
+      "hardware_limit": "736 TOPS来自已达到的寄存器矩阵du_mma_sync参考，不是dot4证据，不预测整Model极限；复用r8403/r8405，不重新硬件probe。"
+    }
+  },
+  "cost_ledger": {
+    "GLM522_actual_elapsed_seconds": 1735,
+    "Deep790_actual_elapsed_seconds": 191,
+    "Deep_production_two_TU_compile_link_seconds": 17.412855044938624,
+    "Deep_bridge_compile_link_seconds": 9.229202612768859,
+    "Deep_checkpoint_load_hash_seconds": 25.388766400981694,
+    "Deep_max_owner_seed_wall_seconds": 101.543725929223,
+    "Kimi793_actual_elapsed_seconds": 78,
+    "accounting_rule": "实际步耗时不称纯计算；不累加并行rank的wall。首次比较绝对时间未记录则保持UNKNOWN。以下ETA为从owner开始工作的估计，排队和新Model加载另计，下一回执用实际耗时更新。",
+    "Kimi_CPU198_actual_elapsed_seconds": 11
+  },
+  "cards": [
+    {
+      "id": "GLM49-PV-ROW-VIEW",
+      "owner": "/root/moe_decode_arithmetic_audit",
+      "priority": "单一GLM卡；有限prefill续进，不占用decode候选资源",
+      "minimal_source_change": "先核实际GEMM adapter/backend是否接受pb narrow的heads,1,count和strides(tokens*keys,keys,1)，支持才替换r8703 L74..77 PV bbuf prefix copy。保留每query M1/count、scale、Vprefix、dtype和顺序；QK输出copy不混改。",
+      "ROI": "已定位重复PV复制；收益占比UNKNOWN，低改动成本。先用现有provider源码排除不支持，避免另一轮29分钟Model白跑。",
+      "ETA_first_result": "CPU接受/拒绝结论10-15分钟；支持后最小TU和原组件首对预计再10-20分钟，非承诺。",
+      "resources": "CPU-only n19/910406或n20/910407，4CPU/4GB/5min一次有限构建；组件复用n14/910376单节点8DCU，沿用原短组件边界。",
+      "progression": "组件同加载OFF/ON配对及既有数值检查，确认普通wall改善后再用原Model同加载128 gold/EOS/QA确认；任何首token错误停止。中间bit差仅诊断，不替代最终token/EOS。",
+      "exit_and_replacement": "provider不接受stride或实际出现隐式同量copy即停止本候选，不修改provider大框架；组件无收益亦停止，不复跑501 M4、不重造TLS operatorcache。GLM下一decode改动需owner从现有实际源码指出单一热点，未指定前不制造新profile卡。"
+    },
+    {
+      "id": "DEEP49-NATIVE-DOT4-BOUNDED",
+      "owner": "/root/glm_critical_path_profile",
+      "priority": "Deep首卡，直接decode路径，但CPU核查限时5分钟",
+      "minimal_source_change": "核目标编译器native signed-dot4 emission可行性；存在才只替换现dp4a展开，保持W32、INT32累加语义、tree和scales；不同时做W16。",
+      "ROI": "若目标支持，可删除已证实的逐字节指令；支持性UNKNOWN，继续泛查ISA收益低。",
+      "ETA_first_result": "最多5分钟给支持/不支持/证据不足结论；支持则最小TU+原actual component预计10-20分钟首对。",
+      "resources": "原CPU-only 4CPU/4GB/5min；支持后复用n05/910374的原短组件8DCU，不重新Model profile。",
+      "progression": "明确native emission且整数语义匹配后测原实际MoEFFN普通wall和数值；正收益才用原Model128 tokens/EOS/QA。中间bit不设新门槛。",
+      "exit_and_replacement": "无目标支持或5分钟仍不能证明即STOP；不强上asm、不GPU探指令，立即转DEEP49-PACK-UPLOAD。positions保持defaultOFF，W16 PARK。"
+    },
+    {
+      "id": "DEEP49-PACK-UPLOAD",
+      "owner": "/root/glm_critical_path_profile",
+      "priority": "仅作Deep首卡失败后的替补，最多两卡，不同时混改",
+      "minimal_source_change": "owner核当前prefill>64路径每expert两次H2D+sync后，按原排序一次pack并上传完整row/route数组，各expert narrow同一device数组。保留原逐expert GEMM、scatter、依赖与最终drain，确保缓冲区寿命覆盖异步使用。",
+      "ROI": "U256源码可达每层512次H2D+sync，覆盖明确且无需新profile；实际可省wall未知。较native支持性探索更可能快速得到可执行候选，但仅改善prefill。",
+      "ETA_first_result": "切换后CPU源码确认和最小TU约10-20分钟，现有短组件首对再10-15分钟；比不设时限搜native有更确定的交付。",
+      "resources": "沿用CPU-only和n05短组件；一次加载包含OFF/ON及既有代表性route规模，至少包含实际>64分支。",
+      "progression": "既有数值检查和普通wholelayer/FFN wall通过且改善后再做最终Model128 tokens/EOS/QA。不得用<=64 decode组件证明此分支收益。",
+      "exit_and_replacement": "源码若已合批、生命周期不能局部保持或普通wall无收益则STOP。不是重试旧GroupedGEMM/finisher；不扩成新路由布局工程。"
+    },
+    {
+      "id": "KIMI49-W13-INVALID-ROW-GUARD",
+      "owner": "/root/online_service_scheduler",
+      "priority": "单一Kimi卡，已在实施，最短反馈优先",
+      "minimal_source_change": "r8669h inner-if已STOP。仅再试同一假设：将uniform rows[1]valid分支移到整个p-loop外，full/partial两条原顺序loop，仅partial省第二行算术。mode0原provider默认OFF，mode1同源无guard控制，mode2guard；原load/dequant/lane/reduce、activation、layout、W2保持。",
+      "ROI": "229的未填满第二行给直接可删算术证据，21 fullfill提供无收益/回归对照；当前Model覆盖率未知，不保证Model提升。",
+      "ETA_first_result": "CPU单TU/actualpacked.o控制流结论5-15分钟；确认消除无效算术后单卡21/229普通配对预计10-15分钟。",
+      "resources": "CPU-only 4CPU/4GB/5min；GPU只n01/910374单卡，复用既有fixture/权重/runner，一次load多arm。",
+      "progression": "再做一次CPU单TU及actualpacked.o检查，必须确认invalid路径真正绕过第二行乘加；源码有if不算通过。通过才执行21/229普通mode1/2配对并以mode0锚定，检查原数值和全provider wall。稳定收益且21无实质回归后才晋级原Model128 tokens/EOS/QA，既有route信息可随必要Model运行读取，不另建采样系统。",
+      "exit_and_replacement": "loop外guard仍被if-convert、重复代码导致实质回归或普通wall无收益即STOP本假设，不继续控制流变体穷举；不重试769 activation、781 coldBF16、W2 tilegrid或重造639 scheduler。"
+    }
+  ],
+  "shared_execution": {
+    "admission": "每次实际GPU启动必须fresh KFD+Slurm；已有空闲回执不是永久占用许可。沿用唯一watch至terminal/audit/post。910384 n17/n18保护；n19/n20坏GPU只CPU且noGPUinit。",
+    "avoid_process_overhead": "不用新报告/审计/SDK框架，不重复build gate；原owner的CPU实现不等新评审，root以现有回执推进已授权的有限执行。",
+    "goal_priority": "三模型每用户>15tok/s未达成。Kimi用户均值约1.38、max2.14仍远；136.63665 instrumented decode不能和旧133.59/133.815 unwrapped宣称增益。Deep699 57.85..58.18聚合decode仅历史基线，profile6.49x扰动不当普通占比。后续资源优先能影响decode的Deep/Kimi候选，GLM续进prefill不得包装成decode突破。"
+  }
+}
