@@ -1,0 +1,234 @@
+{
+  "utc": "2026-10-24T13:48:06.936995+00:00",
+  "scope": "Root CPU-only<=20min PP3 feasibility card. No GPU/build/profile/Model load/Git.",
+  "decision": "PP3 is an existing tested topology, not a new communication framework. Current provider requires coordinated private PP/row-capacity adaptation, not launcher-only changes. No ready Model launch; no repeated old flag/grid.",
+  "old_actual_PP3": {
+    "audit": "results/glm-PP3-r4037-audit.json",
+    "audit_SHA256": "860f1482cc98962459a943a6649f088279a176a4354f8f4d45c4e47638d2c630",
+    "actual_handle": [
+      "910376.310",
+      "glm-PP3-serving-r4036",
+      "COMPLETED",
+      "0:0",
+      "a02r4n[12-14]"
+    ],
+    "normal_workers": 24,
+    "IDs_EOS_QA_CPUargmax": true,
+    "bounds": [
+      0,
+      26,
+      54,
+      78
+    ],
+    "qualified_configuration_summary": [
+      {
+        "batch": 32,
+        "micro": 8,
+        "decode_median": 37.23317561389422,
+        "including_prefill_median": 12.435077656900084,
+        "decode_per_all24_cards": 1.5513823172455925,
+        "including_prefill_per_all24_cards": 0.5181282357041702,
+        "prefill_input_tok_s_median": 74.39141038984255,
+        "repetitions": 2,
+        "scope": "512input/max128 realEOS, repeated2promptfamilies; forward/reverse config ordering; no sameprocessOFFcontrol, HTTP or hardwaremaximum.",
+        "complete_frozen_ID_profile_qualified": true
+      },
+      {
+        "batch": 64,
+        "micro": 8,
+        "decode_median": 44.03243174182303,
+        "including_prefill_median": 14.667176200217181,
+        "decode_per_all24_cards": 1.834684655909293,
+        "including_prefill_per_all24_cards": 0.6111323416757158,
+        "prefill_input_tok_s_median": 87.6303090106239,
+        "repetitions": 2,
+        "scope": "512input/max128 realEOS, repeated2promptfamilies; forward/reverse config ordering; no sameprocessOFFcontrol, HTTP or hardwaremaximum.",
+        "complete_frozen_ID_profile_qualified": true
+      },
+      {
+        "batch": 32,
+        "micro": 16,
+        "decode_median": 36.95266404831069,
+        "including_prefill_median": 12.397411325651905,
+        "decode_per_all24_cards": 1.5396943353462786,
+        "including_prefill_per_all24_cards": 0.516558805235496,
+        "prefill_input_tok_s_median": 74.33323529554988,
+        "repetitions": 2,
+        "scope": "512input/max128 realEOS, repeated2promptfamilies; forward/reverse config ordering; no sameprocessOFFcontrol, HTTP or hardwaremaximum.",
+        "complete_frozen_ID_profile_qualified": true
+      },
+      {
+        "batch": 64,
+        "micro": 16,
+        "decode_median": 48.3959332717526,
+        "including_prefill_median": 15.115643706984338,
+        "decode_per_all24_cards": 2.016497219656358,
+        "including_prefill_per_all24_cards": 0.6298184877910141,
+        "prefill_input_tok_s_median": 87.6133301010078,
+        "repetitions": 2,
+        "scope": "512input/max128 realEOS, repeated2promptfamilies; forward/reverse config ordering; no sameprocessOFFcontrol, HTTP or hardwaremaximum.",
+        "complete_frozen_ID_profile_qualified": true
+      }
+    ],
+    "limits": "Old5f91-derived provider predates current vector/resident/proof optimizations. Positive topology/capacity proof, not sameprovider negative or current speed prediction. 24card oldB64M8 percard1.83468 andM16 2.01650 versus current522 16card~2.42 are not controlled provider comparisons.",
+    "observed_B64_rank0_memory": [
+      {
+        "stage": 0,
+        "rows": 64,
+        "capacity": 640,
+        "source_parameter_bytes_global_checkpoint_not_percard": 230211339136,
+        "free_after_create_bytes": 19648217088,
+        "free_after_load_bytes": 19566428160
+      },
+      {
+        "stage": 1,
+        "rows": 64,
+        "capacity": 640,
+        "source_parameter_bytes_global_checkpoint_not_percard": 276483841088,
+        "free_after_create_bytes": 14212399104,
+        "free_after_load_bytes": 14130610176
+      },
+      {
+        "stage": 2,
+        "rows": 64,
+        "capacity": 640,
+        "source_parameter_bytes_global_checkpoint_not_percard": 238889327232,
+        "free_after_create_bytes": 21512585216,
+        "free_after_load_bytes": 21430796288
+      }
+    ]
+  },
+  "partition_contract": {
+    "actual_indexer_types_at_starts": {
+      "0": "full",
+      "26": "full",
+      "52": "shared",
+      "54": "full"
+    },
+    "26_equal_layers_rejected_reason": "Layer52 is shared and cannot begin an independent stage; current TextModel constructor requires full indexer atbegin. Existing26/28/24 keeps starts0/26/54 full.",
+    "TextModel_source": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/glm-window-model-r5797/src/glm_moe_dsa_balanced_text_model_r126.cpp",
+    "TextModel_SHA256": "d94016e3adc4ffccac58adc24aef415c7069ad2503cb21e230f12753c0b2ad98",
+    "TextModel_lines": [
+      36,
+      37,
+      39,
+      40,
+      63,
+      66,
+      67,
+      76,
+      77,
+      87
+    ],
+    "PP_layout_source": "glm_PP_layout_r3854.hpp",
+    "PP_layout_SHA256": "5d460f9c5e6116b64d4b15247e6e4d1db06afca2c6d085db6242dc8703f8d903"
+  },
+  "native_capability": {
+    "CAPI_source": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/glm-window-model-r5797/src/modern_glm_cached_model_bridge_r809.cpp",
+    "CAPI_SHA256": "08d0a7b69b5e89e87141c34a1fd5396b91068f334a9ed7bbd5d3a5306a87fc3a",
+    "CAPI_lines": [
+      30,
+      32,
+      33,
+      34,
+      35,
+      53,
+      55,
+      163,
+      165,
+      179
+    ],
+    "RankInfo": "Existing TP8/world8*PP/pp_stage/world_rank stage*8+rank and separate TP/world comms supportPP3.",
+    "communication": "Model recv fromprevious stage then TPallgather; afterlocal layers TPshard send to next stage; tail doesnorm/head/gather. Existing model-owned stream/drain synchronous perowner; separate stageprocesses can overlap cohorts. No new A2A or PP primitive needed."
+  },
+  "current_blockers": [
+    {
+      "source": "glm_prefill_prefix_cache_r8703.cpp",
+      "line": 75,
+      "reason": "5775 attention identity hardcodes PP2/stage0[0,38),stage1[38,78); modeOFF still constructor rejects PP3. Must use actualexisting PPbounds, retain ownership/lifetime checks."
+    },
+    {
+      "source": "glm_model_resident_policy_r5640.hpp actual MD-selected r5681/src",
+      "SHA256": "6c18dd329bec34aef9e22af32d212f416f1e137da3871fb5e38788cb9beaae1d",
+      "reason": "logical_rows64 but active_rows16; no eviction, finished slots retained until reset; >16 unique sequences rejected. Existing mask PP2 bounds. B128 also exceedslogical64."
+    },
+    {
+      "source": "current model resident prepare/mask +glm_rows16_policy_r5702.hpp +CAPI transientpolicy",
+      "reason": "Current resident methods/guards requirePP2/rows16; CAPI transientsetter rejectsPP3 even requestedOFF. Need scoped genericPPbounds andcapacity bank allocation/admission, not removeguards or fakeidentity."
+    },
+    {
+      "source": "modern_glm_prefill_micro_r8708.py /glm_prefill_micro_probe_r8708.py /glm_crossrequest_resident_base_r5742.py /glm_crossrequest_control_r5742.py",
+      "reason": "PP==2/ROWS16/bounds38-40; participants16/emitter8; 16xmetadata collection; masks/chosen38-40; fixed bank128MiB and transient rows16 assertions. Auditor/launch/preengine bindings also need PP3/24owner updates."
+    }
+  ],
+  "pipeline": {
+    "actual_GLM_call_chain": [
+      "glm_prefill_micro_probe_r8708.py generate continuouspolicy1 local_forward->safe_decode",
+      "glm_continuous_feedback_r5466.py CheckedFeedback/safe_decode",
+      "actual imported decode_cohorts helper, eachcohort previous packet only; no worldcontrol in decoderound"
+    ],
+    "participant_capability": "Actual imported FeedbackHub validates1<participants<=128 and queues <=2*cohorts; 24participants and B64M8 eightcohorts expressible. This is actualGLM callchain evidence, not extrapolation from Kimi inference.",
+    "limitation": "CurrentGLM wrapper hardcodesparticipants16/tail emitter8; change to24/emitter16. Localforward synchronous, not asyncGEMM; crossstage overlap possible from separateprocesses, PP3 utilization not measured oncurrentprovider."
+  },
+  "memory": {
+    "actual_PP2_percard_parameter_unique_start_bytes": [
+      45968349376,
+      50376679808
+    ],
+    "parameter_evidence": "Existing r4159 constructorcensus data starts deduplicated, sameTP8 shapes andstagebounds38/40. Raw source_parameter_bytes in current/oldloader are GLOBAL checkpoint bytes and must NOT be treated aspercardweights.",
+    "actual_PP3_percard_weight_bytes_current_provider": "UNKNOWN; old PP3 report onlyglobal sourcebytes+actualfree. Do not divide globalbytes by8 blindly (replicatedembedding/router/scales). Need metadata/census redistribution closure before declaring exactfit.",
+    "current_PP3_scratch_allocator_peak": "UNKNOWN; oldPP3 all24 actual B64 phase success is usable scopedcapacity evidence, currentresident/proof/vector peak differs.",
+    "hypothetical_resident_capacity_budgets": [
+      {
+        "rows": 32,
+        "projected_KV_per_layer_logical_bytes": 167772160,
+        "projected_KV_per_layer_power2_estimate_bytes": 268435456,
+        "max_stage_28layers_projected_physical_estimate_bytes": 7516192768,
+        "max_stage_28layers_latent_rotary_logical_bytes": 660602880,
+        "max_stage_host_projected_KV_logical_bytes": 4697620480,
+        "host_projected_KV_8owners_logical_bytes": 37580963840,
+        "physical_estimate_not_measured_peak": true
+      },
+      {
+        "rows": 64,
+        "projected_KV_per_layer_logical_bytes": 335544320,
+        "projected_KV_per_layer_power2_estimate_bytes": 536870912,
+        "max_stage_28layers_projected_physical_estimate_bytes": 15032385536,
+        "max_stage_28layers_latent_rotary_logical_bytes": 1321205760,
+        "max_stage_host_projected_KV_logical_bytes": 9395240960,
+        "host_projected_KV_8owners_logical_bytes": 75161927680,
+        "physical_estimate_not_measured_peak": true
+      },
+      {
+        "rows": 128,
+        "projected_KV_per_layer_logical_bytes": 671088640,
+        "projected_KV_per_layer_power2_estimate_bytes": 1073741824,
+        "max_stage_28layers_projected_physical_estimate_bytes": 30064771072,
+        "max_stage_28layers_latent_rotary_logical_bytes": 2642411520,
+        "max_stage_host_projected_KV_logical_bytes": 18790481920,
+        "host_projected_KV_8owners_logical_bytes": 150323855360,
+        "physical_estimate_not_measured_peak": true
+      }
+    ],
+    "current_slots": "128MiB physical bank/layer atrows16 relates fixed16-active slots, not proof thatB64 can reuse it; noeviction prevents17thsequence. Raisingactive64 needslarger bank andconsistentvalidation.",
+    "required_reserve_bytes": 6442450944,
+    "new_allowance_bytes": 67108864,
+    "ordinary_peak": "ObservedcudaMemGetInfo is not allocator/phasepeak. NoOOM-autoretry; current522 stage1postphase~4GiB headroom not a PP3fit proof."
+  },
+  "one_future_candidate_if_cpu_adaptation_approved": {
+    "topology": "TP8PP3/24cards, bounds0/26/54/78, B64 M8, I512/O128, capacity640, prefillchunk8(max4096tokens)",
+    "why_unique": "Eight fixed M8 cohorts fill beyond3stages; keeps qualified T8 vector kernels. M16 changesdecoderoute and residentcohortcontract, excluded. B128 requireslogicalrows expansion too and doubles KV, excluded.",
+    "status": "CPU_FEASIBILITY_ONLY_NOT_READY_OR_AUTHORIZED_MODEL",
+    "minimum_source_work": "Scoped produceridentity; consistentresident64 slots/bank/mask/PP3 OFFtransientguard across existingprivateModel TUs+requiredheaders; Pythoncontrol/loader/audit24participant/bounds. Existingtextmodel/RankInfo/sendrecv/SDK need no newframework orSDK build. ExactdependentTU closure still pending.",
+    "memory_boundary": "B64 oldprovider actuallyqualified; currentprovider B64 maxstage projected physicalestimate14GiB plus~1.23GiB latent/rotary, weights/RoPE/indexer/CCL/scratch/reserve must be closed. B128 physical28GiB beforeweights => notselected.",
+    "gold": "Same M8 exact I512promptcohort composition from original historicalg32m8/522 qualified sequence may be repeatedto64rows explicitly asrepeatedprompts. Requireall64 full128IDs/EOS+originalQA across24owners; never rebaselineafterfailure. Preserve source/goldSHA andmatchglobalrows.",
+    "performance_threshold": "To exceed current522 ~2.4202 decode/card on24cards needs >58.0844 aggregate decode; total-only >38.723 isweaker. No expectedgain forecast; prefill/E2E/userTTFT/ITL remain separate.",
+    "budget": "No runtime package here. HistoricalPP3load~498/667/577s; currentloader/sourcebanks differ, 60minclass envelope only provisional, not promised. Nextstep is finiteCPU adapter+memorymetadata review; notblindModel load."
+  },
+  "evidence_SHA256": {
+    "GLM-PP3-source-memory-r8757.json": "91bc6695de301b3675ebd7cd43fad3a339b7d18f6cbc6fb55695ddb452416ea2",
+    "GLM-PP3-current-guards-census-r8757.json": "6ec6cc39754dae6a0aa6b82ab0376efed01e406a75b767480dd54944112991f0",
+    "r3919-GLM-PP3-audit.json": "3aca1dd3fb150693faca640998d4d8c00182915ccf87f92773e2fefc2fad84d0",
+    "GLM522-prefill-prefix-compact-r8708.json": "28ac5a1d912adc1f4121985c1a58b381d598e6e3929fc067ebc2d4a1c177fb86"
+  }
+}
