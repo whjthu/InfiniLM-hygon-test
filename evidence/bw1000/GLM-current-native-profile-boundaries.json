@@ -1,0 +1,41 @@
+{
+  "utc": "2026-10-24T03:40:22.752288+00:00",
+  "decision": "Existing callsite boundaries reusable; Model selected-layer/window enable and deferred getter are missing. A thin private hook is feasible, no offline-KV replay required.",
+  "scope": "CPU source read only. No source patch/compile/GPU/remote scan/Git performed. Prior PARK applies offline faithful replay, not in-situ attribution.",
+  "actual_model": "qualified5775 fb059e2a772afa32fa9617b252fa4d67ee749404a6dd80e3e1ddc03ccf919cf5; vector8540 FFN, transientOFF,resident38/40, ROWS16/B16M8/TP8PP2",
+  "existing_hooks": {
+    "decoder": "decoder.RMS_attention.begin -> decoder.attention.begin/end -> decoder.RMS_ffn.begin -> decoder.FFN.begin/end. Whole layer return currently occurs after original final residual and syncStream.",
+    "attention": "Actual5775 cache marks prepare/indexer/projectedKV/cache/output begin/end. AttentionOutput marks quant/projection/TP begin/end. Current resident exactM8 shared path bypasses per-row compute marks; do NOT use old row-marker intervals as a resident decode decomposition.",
+    "MoE": "Actual vector8540 source retains router.end,gateup.begin/end,downquant.begin,down.begin/end,shared.begin,shared.end_TP.begin,TP.end_cast.begin; measured gate/down interval includes vector dispatch/launch path, not a pure single kernel.",
+    "marker_provider": "5674/5681 component bridge glm_layer_mark_r5670 records cudaEvent on the SAME r.stream, steady-clock wall and CLOCK_THREAD_CPUTIME_ID. Thread-local tracing=false by default. Only standalone glm_layer_forward_r5670(...profile) sets it; no existing current Model API arms selectedlayer/window. Component bridge also contains unrelated Context, which must not be used to load another Model.",
+    "stage_TLS": "modern_glm_pipeline_last_profile supplies only six stage incoming/layers/outgoing host+stream fields. OwnerProfile8219 reads same owner afterforward, captures selected rounds but cannot select a layer."
+  },
+  "measurement_contract": {
+    "wall": "CPU steady-clock interval includes enqueue, host blocking and existing drains; threadCPU measures CPU running time.",
+    "events": "Stream elapsed spans include host enqueue idle, queued dependency/CCL waits; not GPUbusy or exclusive kernel compute.",
+    "nonoverlap": "Use only adjacent marker intervals for one layer; wholelayer attention+MoE need explicit residual/RMS/other buckets. Never add nested attention/projection/TP intervals to enclosing attention or add host/threadCPU/event timelines together.",
+    "drains": "Retain original Decoder/Runtime drains; no new per-interval or per-layer synchronization. Read elapsed events only after the original enclosing CAPI return has drained the stream."
+  },
+  "minimum_private_hook_proposal": {
+    "scope_entry": "In the actual TextModel stage-local loop immediately around layers_[i]->forward(r,hidden,positions,requests,...), pass Runtime identity and global begin_+i to a TLS scoped marker sink; existing arithmetic/selection/residual/collective order unchanged.",
+    "selection": "Explicit owner-dispatched profile phase arm; selected global layer38 (stage1 first full-indexer + sparse MoE, representative of full-indexer layers only), cohort rows0..7 or8..15, N8, all tokens1. Stable harness rounds63..65 map to actual past/position574..576 for I512 because p=512+round-1; not575..577.",
+    "bounded_storage": "Preallocate bounded event/CPU-mark storage at an EMPTY/drained phase boundary; use existing marker names, add wholelayer begin/end scope only. Scope end disables sink but does not synchronize/query/free events. Owner getter after original CAPI drain serializes bounded samples then retires records; reset/exception path clears state after existing failstop drain.",
+    "TU_changes": "Actual TextModel TU for enter/leave plus isolated provider/sink TU replacing or extending the existing private marker definition exactly once. No Context/class layout change. Existing decoder/cache/vectorFFN/output marker TUs remain unchanged if declarations remain outside shared layout headers; verify actual -M/MD and sole symbol provider before compilation.",
+    "not_existing_API": "There is currently no Model-layer/window arm/getter; this paragraph is a concrete minimal integration proposal, not a claim of ready executable source.",
+    "allowed_first_attribution": "Wholelayer, attention, MoE and residual/RMS/other nonoverlapping wall/event spans; bounded FFN projection and CCL spans only where current markers actually bracket them. Hostdispatch threadCPU reported separately. No new local-GEMM kernel-level or exclusive CCL busy claim.",
+    "no_KV_import": "Observe actual live Model hidden/cache naturally on original path; do not export/import full KV or create a replay Context."
+  },
+  "remaining_before_one_load": "Implement/review the thin owner-lifetime scope/arm/getter and actual text object binding; current unmodified Model only has coarse TLS, so no blind GPU load now. Root may authorize necessary in-situ profile load after this small runnable closure.",
+  "maximum_reclaimable_ms": "UNKNOWN until selected-layer data; 489 ordinary enclosing CAPI is context only.",
+  "evidence_SHA256": {
+    "glm_layer77_Model_cache_r5775.cpp": "55ae5c87cc5be3e432774ae5230b190b116c50bcf4022f9d9512c9e6bb4e7614",
+    "glm_moe_dsa_routed_ffn_vector_r8540.cpp": "c716b37fd3fe786cece00a5b4a309d9eb13b76e4bbdb8cc8843be936c708e64b",
+    "glm-transient-layer-r5680-src/glm_moe_dsa_projected_decoder_r22.cpp": "ceb601d453dacb53f3cdb6813141d909b6a82a376d2cd6399d26b35616e9525b",
+    "glm-transient-layer-r5680-src/glm_moe_dsa_attention_output_r809.cpp": "af5c1e899eaa4236fa79e1f54e61663a5baf26b6f60b4b1cf2229f8de6c4d9e4",
+    "glm-transient-layer-r5680-src/glm_moe_dsa_balanced_text_model_r126.cpp": "4bc1a1ccc550a53cbb17baa502f9bbc5670ab634e49b05049235e522cbc11d8c",
+    "glm-stage1-ledger-r5674-src/glm_layer_bridge_r5670.cpp": "3359ea02e106be3593c741ee05fb44787c9556f7a7cb615a334dbccb29e3c448",
+    "glm_lowbatch_profile_r8219.py": "71cc0505fc3270d3a0f0aa910abfe85f5bdf9f7e52b406c1f7b0e2d5348b75c6",
+    "glm_layer77_probe_r5783.py": "461da16f0b96975b7c19e115dae3d5d2817e7f058f826e9c71b7a06b82a7e7c8",
+    "r5777-GLM-layer77-CPU-a.json": "53fcc6822c82a29e3b061b349f1e109f84e16a8ebf106ff5d04986f60e5995d2"
+  }
+}
