@@ -26,6 +26,7 @@ for p in old.iterdir():
 (d/'GLM477-frozen-gold-r8844.json').write_bytes((old/'GLM477-frozen-gold-r8844.json').read_bytes())
 (d/'glm_model_library_metadata_r8845.py').write_bytes((r/'glm_model_library_metadata_r8845.py').read_bytes())
 for p in d.glob('*.py'):
+ if 'r8845'not in p.name:continue
  s=p.read_text().replace('GLM477-frozen-gold-r8845.json','GLM477-frozen-gold-r8844.json');p.write_bytes(s.encode());ast.parse(s)
 m=json.loads((old/'GLM-CROSSREQUEST-Model-source-manifest-r8844.json').read_text());m['observer_manifest_SHA256']=''
 m['cpu_receipt_path']='/refactor/candidates/glm-PP2-B32-r8843/CPU-build.json'
