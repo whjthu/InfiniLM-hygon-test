@@ -1,0 +1,133 @@
+{
+  "review": 43,
+  "status": "COMPLETE",
+  "date": "2026-10-24",
+  "reviewer": "/root/astra_review_43",
+  "model": "gpt-6-astra",
+  "scope": "CPU local evidence and existing-owner consultation only; own report written. No GPU/Git/remote submission.",
+  "decision": "Kimi8648四control与条件GateUp候选继续。GLM498已验收；GLM仅prefill4/decode8现API可行，准备CPU单因素包。Deep仅停止M64重载，不否定B64M32；root可开展一次独立B64M32纯配置实验。Kimi必要高batch加载搭载profile/AUX。",
+  "consumes_once": [
+    "910374.751 offline recovered causal boundary; FAILED1 preserved",
+    "910374.754 finite token-negative; no TPS",
+    "910376.498 qualified dual16 service"
+  ],
+  "review42_followthrough": {
+    "GLM": "完成原498，无额外加载，双实例98.6648%参考复制效率。",
+    "Deep": "完成754，token31失败；原stop-on-first-negative跳过M32，不能归因M64。",
+    "Kimi": "751离线恢复有效，8643报告race CPU239frames通过；8646唯一MLP TU构建通过，8647组件已由root有限GO。",
+    "AUX": "条件暂缓正确，未为组件倍率另开Model加载。"
+  },
+  "metrics": {
+    "GLM498": {
+      "decode_tok_s": 76.53036371222407,
+      "repeat": [
+        76.72122762889632,
+        76.33949979555182
+      ],
+      "all32card_tok_s": 2.3915738660070023,
+      "E2E_tok_s": 24.459615355134126,
+      "collector_user_mean": 1.9061394631309405,
+      "collector_user_max": 2.433601042877948,
+      "TTFT_mean_s": 94.6372629320831,
+      "capacity_efficiency": 0.9866480552968141,
+      "quality": "完整IDs/EOS/独立QA/32normal/audit0/post499四节点空；IBext_v8无Socket。",
+      "limits": "collector共同窗口为实际并发；孤立TPS和仅容量参考。不同旧镜像/负载PP4 B128 70.15不可作因果提速；不是HTTP到达负载，无15/user。"
+    },
+    "Kimi": "本轮仅恢复dense MLP边界，无新增Model TPS。133.58988/32卡B64M16旧best保留；636 fixed512 prefill72.75→203.58是前轮不同负载结果，decode无收益。",
+    "Deep": "754 B64M64第31token odd32rows 8842 vs7831；finite/CPUargmax健康，8normal/audit0/post755空；无M32同B对照/失败logitmargin，不给性能排名。699 B32M32约58.18/8卡基线保留。",
+    "hardware": "BF16 333.75TF、带宽1.237TB/s及固定寄存器INT8 736/INT4 1440TOPS均为已测能力下界；不是Model roofline或可实现峰值。"
+  },
+  "time_to_evidence": {
+    "GLM498": "2203s总作业，最大owner加载911.511s，占41.38%；首次timed forward1119.787s，首timed phase末CAPI1284.748s，完整资格判断晚于此。准备/排队/QA独占耗时UNKNOWN。禁止再次加载只复验双实例或微小flag。",
+    "Deep754": "总845s；load361.666s，26token门轨迹359.443s；在token31才否定，重复该加载不补因果。未来更短负例门至少覆盖已知31，但不能替代128token资格。",
+    "Kimi": "75190s失败仍离线得到因果证据；8646 CPU35s完成。新8647只4controls+条件1candidate，不再Na/Nb重捕；每一首判即时输出，raw完整汇总不阻挡因果结论。"
+  },
+  "cards": [
+    {
+      "id": "KIMI43-GATEUP-ONE-FACTOR",
+      "priority": 1,
+      "owner": "/root/online_service_scheduler",
+      "resources": "root最新已有限GO的8648，e1f619b公开，fresh n01/8DCU/15min；四control+条件factor，stage在途，不等审核。",
+      "hypothesis": "correctedNc残差始于GateUp的M2048几何；拆4个M512可能恢复目标路径，SituAndMul及Down/TP SUM不变。",
+      "minimal_change": "复用8646 private Model e8273a82/原187 unchanged-source wrapper7ed1f56；soleMoE source21cafeea。GateUp仅单因素，combined{1,2048,8448}/narrow stride8448不变。",
+      "reuse_and_samples": "root冻结Oa,Nca,Ncb,Ob四control，一次24真权重加载；traceON/GateUpOFF须复现751 Nc旧ffn_norm/output/exit；O匹配621/751。Gate/up确有相关变化时才Ncg。已有751 Na/Nb不重捕。",
+      "checks": "full-real companions/all8rank有限性与旧边界faithfulness；report8643修复复用。中间bit仅定位，非Model晋级要求。",
+      "reclaimable_ms": "UNKNOWN。诊断观测D2H/IO及candidate drain不能作性能证据。",
+      "first_decision": "开始组件forward后首O/Nc对即发布首差异；总15min硬限，加载及rawIO实际耗时记录。",
+      "success": "确认或排除GateUp形状因果。若层输出恢复，可准备完整Model finaltoken验证；仍须先评估拆分/拷贝额外成本，不能自动宣称更快。",
+      "stop": "observer改变旧baseline则停止因果归因；GateUp不相关不执行候选。恢复gate/up但row仍差则CPU定位Down/TP边界，不立即扩大所有算子拆分或全模型逐位追赶。",
+      "fallback": "636固定512调度及旧B64M16。"
+    },
+    {
+      "id": "GLM43-PREFILL-SCHEDULE",
+      "priority": 2,
+      "owner": "/root/glm_critical_path_profile",
+      "resources": "现在CPU准备source/contract，无新GPU。具备后root决定有限16卡TP8PP2单load配对。",
+      "hypothesis": "既有prefill组宽/流水调度能缩短实际113s prefill critical path，减少早组first-to-next约39s阻塞，无新框架。",
+      "source": "glm_large_schedule_r3627.py groups:prefill width≤8且≤4096/inputlength；glm_layer77_probe_r5819.py step1明确所有rows首token完成后才continuous decode；modern_glm_model_forward现有row,past,length desc接口。",
+      "minimal_change": "owner确认现5817/16rows/cap640支持仅round0 groups传prefill_micro4，decode micro8/feedback cohorts8不变；无native改，未找到当前组合否证。真prefill16×512被native4096上限拒绝。",
+      "reuse_and_samples": "沿用498单副本原16prompt完整参考、原provider/QA。候选具备后同一次加载O/N首对，正向才N/O复核；分别测native末prefill、实际first/last/ITL、全E2E。",
+      "checks": "全128IDs/EOS与原M8对应逻辑row一致；改变prefill M可能改变算术，因此新reference不可替换旧gold。不能延迟首token发布美化decode。",
+      "reclaimable_ms": "UNKNOWN。113s整个prefill非可回收预算。线性stage示意36/38→18/19可能使总prefill114→94s，但非测量/预测；首TTFT75→37同时最早用户初始gap39→57s可能更差。必须如实报告真实first-last/ITL，不能称一定单用户优化，也不能叫interleave。",
+      "first_decision": "CPU5min内给可执行或PARK；未来必要加载后首pair预计约6min测量，加载另计约15min历史参考而非承诺。",
+      "success": "实际prefill/E2E超波动改善且fullIDs通过才复核；允许TTFT/E2E与用户ITL存在取舍，必须明确；不得延迟首token发布。",
+      "stop": "既有否证/接口不适配/无实际critical-path收益则PARK。492 positions D2H185ms是依赖等待，不直接删；495小flag不再磨。",
+      "fallback": "已验收498双实例容量配置。"
+    },
+    {
+      "id": "KIMI43-HIGHBATCH-ACTUAL-PROFILE",
+      "priority": 3,
+      "owner": "/root/online_service_scheduler",
+      "resources": "下一次独立必要的32卡TP8PP4/M8或M16加载搭载；当前不另开GPU。",
+      "hypothesis": "当前有效高batch wall中存在足够大的MoE或PP/通信临界路径，AUX仅当作用于实际主耗时才有Model收益。",
+      "minimal_change": "复用existing profile/provider counters，对一个actual eligible M采短诊断窗口；同load做AUX OFF/ON首对，正向再反序。禁止B128、EP新框架、spec/hotcache盲扫。",
+      "reuse_and_samples": "B64M16当前provider/全token基线；748组件1.246x仅候选提示。16连续route steps+各stage临界path、算子shape/provider、memory headroom；ordinary计时profileOFF。",
+      "reclaimable_ms": "UNKNOWN直到实际profile。以观测MoE critical-path占比f估计候选敏感度，不能用各rank重叠时间相加或硬件大GEMM峰值估上限。",
+      "first_decision": "下一次必要加载后附加≤10min；无必要加载则PARK，不以空闲卡为实验理由。",
+      "checks": "完整IDs/EOS/QA及原真实每请求timestamps，distinct prefill/decode/E2E/per-all32cards。",
+      "success": "实际Model收益超波动才接受；profile证明别处主导则停止AUX扩展。",
+      "stop": "AUX不兼容或首对无Model信号不追加矩阵。B128实际4935 maxrows64/pool65、2475 tokens≤8192、4.64GiB reserve历史拒绝，不能仅改B/M。EP须新API/kernel/loader继续STOP。",
+      "fallback": "保留原AR B64M16及profile证据，CPU定一个覆盖主要wall的改动。"
+    },
+    {
+      "id": "DEEP43-B64M32-ONE-FINITE",
+      "priority": 4,
+      "owner": "/root/moe_decode_arithmetic_audit",
+      "resources": "root已接受方向：新独立8卡TP8PP1有限35min，一次load；不是754/M64重播。",
+      "hypothesis": "B64M32沿用699已验M32/provider，测试驻留并发配置能否改善宿主调度摊销，并隔离B64 geometry。754无同B M32对照，不能禁止全部B64。",
+      "minimal_change": "冻结0e051 precision5/proj16/C416/layout0HC0tail0/constructor128/cache1024/prefillchunk4；只B64M32与B32M32，无native编译。",
+      "reuse_and_samples": "先B64M32完整128IDs/EOS判；通过后同load安全reset做B32M32匹配原gold控制。首pair容量/全cost收益>3%才在剩余预算反序；不扫M64/M128。重复两prompt不称独立64prompt。",
+      "reclaimable_ms": "UNKNOWN且潜力有限：PP1同M32，B64每步两次调用/B32一次，不产生更大GEMM利用率。可能仅宿主摊销，不从驻留翻倍推吞吐翻倍。当前没有source负证据要求禁止一次新纯配置试验。",
+      "first_decision": "历史361.7s加载+359.4s到26token约12min；首因果判13-15min、完整128和B32性能20-30min是规划。root硬35min包括QA/退出，不为反序扩时。",
+      "checks": "full128IDs/EOS/QA，finite/CPUargmax、8normal/audit/post；profileOFF。有效总TPS/8卡、prefill/E2E及真实每用户first-last分别报告。B64与B32不同负载是容量取舍，不能冒充同负载因果或公平用户延迟。",
+      "success": "首pair>3%且重复支持才推荐配置收益；否则关闭路线。独立B64数值结论即使无性能收益仍可保留。",
+      "stop": "首pair≤3%不重复；CUDA/CCL/OOM或其他Runtime健康异常不继续control。无新候选不再次加载。",
+      "negative_control": "事先定义有限token-negative且所有owner健康、可安全drain/reset时，使用fresh cache/原gold执行一次B32M32 baseline，至少覆盖32token；若只是短控制，不作128token性能资格。candidate仍被拒绝，不重baseline；不沿分叉cache继续。754本身已经终结，不追溯补跑。",
+      "fallback": "保留699 B32M32~58.18/8卡。"
+    }
+  ],
+  "root_required_decisions": [
+    "记录43三轮consumed并更新计数；CPU构建不计性能轮次。",
+    "8647按已下发有限GO推进，不等本审核；不重复provider/source freshness闭环。",
+    "GLM owner已证prefill4/decode8 API可行，CPU准备；真实用户初始gap可能更长，不能以TTFT/E2E改进冒充单用户decode改善。",
+    "下一必要Kimi高batch包预含实际profile与AUX兼容判定；无必要load就暂缓。",
+    "采纳一次新Deep B64M32有限35min及预定义healthy-negative同驻留baseline控制；无>3%首pair收益不扩展，不重播754/M64。"
+  ],
+  "evidence": [
+    "analysis/bw1000/reviews/astra-review-42-current.json",
+    "analysis/bw1000/reviews/astra-review-implementation-42-current.json",
+    "analysis/bw1000/reviews/optimization-review-ledger-after-42.json",
+    "evidence/bw1000/Kimi751-offline-r8641.json",
+    "evidence/bw1000/Deep754-negative-cohort-r8644d.json",
+    "evidence/bw1000/Deep754-shape-dispatch-CPU-r8644d.json",
+    "workspace:GLM498-qualified-dual16-r5841.json SHA256 e19ecd9e54644c9813bc81a9491d935d2cd5cf3585dc561791edb7817aaca7bd",
+    "workspace:r5840-GLM498-terminal-metadata.json",
+    "workspace:Kimi-MLP-boundary-CPU-root-GO-r8645.json",
+    "workspace:Kimi-MLP-boundary-plan-r8645.json",
+    "workspace:Kimi-MLP-Common-provider-source-r8645.json",
+    "workspace:Kimi-MLP-boundary-diff-r8646.patch",
+    "workspace:Kimi-MLP-CPU-observed-r8646-a.json"
+  ],
+  "goal_complete": false,
+  "owner_addendum": "root已接受四方向；GLM CPU准备，Kimi8648已stage。Deep由root明确35min上限，避免20min不足完成128+control+QA。"
+}

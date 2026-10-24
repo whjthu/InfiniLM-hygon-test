@@ -1,5 +1,14 @@
 # BW1000 当前性能与后续方向
 
+## 第43次审核与执行：2026-10-24 15:17 北京时间
+
+Astra43已完成，三轮新结论只计一次，计数归零；逐卡落实见 `reviews/astra-review-implementation-43-current.json`。Kimi8648四组真实单层对照与条件GateUp候选继续；GLM仅prefill4/decode8、Deep新B64M32/B32M32两条独立配置路线并行准备具体源码，尚未启动它们的新GPU作业。Kimi高batch实际profile/AUX只搭载下一次必要加载；B128、EP新框架及重跑DeepM64继续停止。
+
+GLM498已完整验收：两个16卡TP8PP2实例，合计32卡，真实共同collector窗口decode **76.53036 tok/s**、每卡 **2.391574**，E2E **24.45962 tok/s**。32个独特I512/maxO128请求，完整IDs/EOS/QA、32owner正常退出、原audit0、499四节点清理全空；IBext_v8无Socket数据回退。逐用户decode平均1.90614、最高2.43360tok/s，TTFT均值94.6373秒，未达到15/user。与旧PP4 B128的70.15负载/镜像不同，不称纯并行策略因果提速。约39秒初始ITL停顿和慢prefill仍待解决；prefill4可能缩短TTFT/全prefill而加长早用户初始gap，必须测真实时间线。
+
+Deep754 B64M64第31个token失败，无性能晋级；B64M32未执行，原因仍不能隔离到M64或B64几何。新B64M32是独立有限35分钟配置试验方向，不重播754；首配对收益≤3%停止。Kimi751离线有效定位仍为denseMLP输出，8646CPU35秒构建不是TPS收益；旧Kimi133.59和Deep约58.18纪录保持原范围。以下内容为带日期历史路径，旧RUNNING状态不代表当前仍在运行。
+
+
 ## 第42次审核落实：2026-10-24 14:34 北京时间
 
 Astra42已完成并逐条落实，报告与执行见`reviews/astra-review-42-current.json`及`reviews/astra-review-implementation-42-current.json`。本次提前审核消费495/636两轮；随后751离线恢复形成新的有区分力定位，计为下轮第1轮。498/754原作业继续，不加新的审批或无关门禁。报告修复仅CPU，不为补JSON重载模型。下一次必要且兼容的Kimi高batch加载才合并AUX/actualprofile验证；EP不是当前实现的配置开关，源码可行性已明确STOP新native/GPU。
