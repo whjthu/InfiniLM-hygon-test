@@ -1,0 +1,151 @@
+{
+  "id": "DEEP56-BANK-LEASE-CPU-FEASIBILITY",
+  "status": "CONDITIONAL_COMPONENT_FEASIBLE_SOURCE_ONLY_NO_IMPLEMENTATION_OR_GPU_GO",
+  "completed_utc": "2026-10-24T17:36:30.501717+00:00",
+  "scope": "Bounded CPU source feasibility under Astra56. No GPU, SDK rebuild, compile, dlopen, weights/raw activation reads, Git, live-package edits, provider/ISA search, or decode fixture capture. Not a valid experimental round or performance gain.",
+  "decision": {
+    "ownership_and_scratch_contract": "CLOSED for original eager same-owner/same-stream TP8 bank path, with explicit full outer retention proposed below. Simply deleting syncStream is unsafe under current caller ownership.",
+    "future_candidate": "At most two private host TUs plus their declarations; root must separately admit implementation and existing real prefill component.",
+    "remaining_uncertainty": "Actual RT pool bucket/padding/fragmentation and runtime peak are not established. This is a memory-measurement limitation, not an unclosed scratch owner. Allocation failure remains safe only with original catch drain/fail-stop and outer lease alive.",
+    "performance": "UNKNOWN. 251 fences is only a source count; no removable milliseconds or Model/decode TPS inferred."
+  },
+  "identity": {
+    "bank_source_SHA256": "2f9f4ab4140f2522069374cd731a7e6e99cd2a368edeadd7791d9fafb114dc9b",
+    "bank_object_SHA256": "4d428a9abc6dd9e9c30af5a5422266c8ebcde1bca8ed1678f3b8578193ba2302",
+    "prepared_Model_DSO_SHA256": "13e9577fa4eabd9205a6c7e520a9123dd65450543340392180135df27a3f172f",
+    "SDK_DSO_SHA256": "e1d9432e6de79cf09782fc3b3b332fb969d1a948dbac513b3da677d78f7f1f09",
+    "current_submit_SHA256": "8c0bd70a372b0017bca78e54f037493fe79918f97b5fed6d885f5b5d8eb0c20d",
+    "current_runtime_cc_SHA256": "a4742905290618c740bc81f4e0316b289de86819ece50d7a95da62652bb0a4e9",
+    "current_operator_h_SHA256": "db33b09670ee6e4c5d503a1d117ea6920e8020fa7bf0800c6b811c10a429a637",
+    "current_handle_owner_SHA256": "d26a4820a7d0c40b67501404ef6b504653f5dc2fe1188be745590b41aff8528f"
+  },
+  "current_behavior": {
+    "bank": "forward_local stack owners starts input,w13,s13,w2,s2; adds packed,xs,out for both linear calls plus clamped,activated. Original success syncStream before owners destruction; catch syncStream then terminate if drain fails.",
+    "prefill": "Lease currently retains contributions,rows/routes,sum_target,current_gathered,tail_local. Replacement tail_local relies on next bank success fence having completed prior scatter. Current single-slot overwrite cannot survive removal of all bank fences.",
+    "order": "Original metadata producer drain, packed upload drain, ascending expert order, each gather/quant1/I8Gemm1/clamps/SiluAndMul/quant2/I8Gemm2/scatter, final Sum and final stream drain must remain."
+  },
+  "ownership_timeline": [
+    {
+      "resource": "x,indices,route_weights,packed rows/routes plus host metadata vectors",
+      "owner": "Existing prefill caller and outer Lease; keep explicit handles in proposed lease where needed",
+      "last_consumer": "x by last gather; rows by last gather; route positions and route_weights by last scatter; metadata host arrays by packed H2D (existing upload drain).",
+      "retirement": "Conservative all through original final Sum drain."
+    },
+    {
+      "resource": "gathered [M,4096] BF16",
+      "owner": "Per-expert allocation then outer lease before gather enqueue",
+      "last_consumer": "linear1 PerChannelQuantI8",
+      "retirement": "Original final Sum drain, not next bank entry."
+    },
+    {
+      "resource": "linear1 packed and xs, w13/s13 views",
+      "owner": "Bank owners moved/appended to outer lease on successful asynchronous return; module retains weight bank backing",
+      "last_consumer": "linear1 GEMM reads packed/w13, its epilogue reads xs/s13",
+      "retirement": "Original final Sum drain; weights retain original module lifetime."
+    },
+    {
+      "resource": "gate_up,clamped,activated",
+      "owner": "Same bank owners transferred into outer lease",
+      "last_consumer": "gate_up by clamps; clamped by SiluAndMul; activated by linear2 quant",
+      "retirement": "Original final Sum drain; narrow/permute views share their retained backing allocation."
+    },
+    {
+      "resource": "linear2 packed/xs,w2/s2,local output",
+      "owner": "Bank owners transferred; output also retained by outer lease before scatter",
+      "last_consumer": "packed/w2 by GEMM2; xs/s2 by GEMM2 epilogue; local output by scatter",
+      "retirement": "Original final Sum drain."
+    },
+    {
+      "resource": "contributions [12288,4096] F32 and routed [2048,4096] F32",
+      "owner": "Original outer Lease",
+      "last_consumer": "contributions by Sum, routed by subsequent caller copy/use",
+      "retirement": "Keep final Sum drain unchanged; routed returned as original."
+    }
+  ],
+  "workspace_proof": {
+    "submit": "Exact execution/submit.hpp eager path builds RuntimeWorkspaceHandle, sets original Runtime stream and calls OpsKey::Call. acquire_workspace allocates Runtime Memory and returns aliasing shared_ptr<void>. It is not a stack raw buffer.",
+    "call": "Exact Ops operator.h Call obtains cached op, queries required bytes, acquires local WorkspaceLease, clones invocation handle, binds lease pointer/size, invokes op and holds lease through submission. Cached clone retains fields, not Runtime callback.",
+    "runtime": "Exact Runtime::allocateMemory Memory deleter captures shared Runtime. Owner-thread release returns allocation to ReusableMemoryPool without synchronizing. Public pool contract explicitly requires ordered reuse/deallocation on its owned ordinary stream; Runtime stream is borrowed from that pool. Foreign-thread release synchronizes first. No new stream/join introduced.",
+    "gemm": "I8Gemm0 caller workspace = align256(M*Nout*4)+4MiB. INT32 accumulator offset0 is written by vendor GEMM and last read by same-stream Epilogue. Trailing4MiB is BLAS workspace used by that GEMM. Same stream serializes subsequent reuse after both submissions. No requirement to retain 502 independent workspaces to final drain.",
+    "handle": "Cached I8Gemm operator strongly owns HygonGemmHandle. Acquire uses thread-local weak registry keyed device/context; get checks worker thread and context. Every invocation resets stream, workspace, pointer/math modes. Host-only original bank graph guard retained. No concurrent submission on shared handle is added.",
+    "failure": "If GEMM or epilogue submit throws, local workspace lease returns to same stream pool, then original bank catch drains before its owners are destroyed. Outer prefill lease continues retaining earlier banks. No further allocation/reuse before that catch drain is required. Drain failure terminates as original.",
+    "physical_allocator_limit": "Exact pool implementation/bucket policy not located in direct current dependency source tree within bounded task; no wider archaeology. Public same-stream safety contract is available. Physical padding and cached allocator occupancy are unknown."
+  },
+  "memory": {
+    "fixture": {
+      "tokens": 2048,
+      "topk": 6,
+      "routes": 12288,
+      "unique_experts": 251,
+      "expert_shapes": "H4096, TP8 local I256; gateup [M_e,512], down [M_e,4096]. M_e>0 for251 experts; sum M_e=12288. Full per-expert histogram not needed for linear requested-byte total; not newly read from raw route files."
+    },
+    "new_retained_bytes_per_route": {
+      "gathered_BF16_H4096": 8192,
+      "linear1_packed_I8_H4096": 4096,
+      "linear1_xs_F32": 4,
+      "gate_up_BF16_512": 1024,
+      "clamped_BF16_512": 1024,
+      "activated_BF16_256": 512,
+      "linear2_packed_I8_256": 256,
+      "linear2_xs_F32": 4,
+      "local_output_BF16_H4096": 8192
+    },
+    "sum_bytes_per_route": 23304,
+    "all_concurrent_banks_requested_tensor_bytes": 286359552,
+    "all_concurrent_banks_requested_tensor_MiB": 273.09375,
+    "interpretation": "Conservative extra logical residency <=273.09375MiB/owner by charging every held tensor, including bank currently already live in baseline. Weights/views are references to existing storage, not copied. U*9=2259 retained temporary storage objects; bank ownership vectors may also hold5*U borrowed weight/input references.",
+    "already_existing_not_extra": {
+      "packed_metadata": 196608,
+      "contributions": 201326592,
+      "routed_sum_target": 33554432
+    },
+    "workspace_requested_bytes_per_call": {
+      "gateup": "2048*M_e +4194304 (alignment exact for integral M_e)",
+      "down": "16384*M_e +4194304 (alignment exact for integral M_e)"
+    },
+    "workspace_total_if_unnecessarily_pinned_all_calls_bytes": 2332033024,
+    "workspace_pinning_note": "This 2,332,033,024B is a counterfactual requested-byte sum, not proposed simultaneous scratch residency. Existing stream-ordered transient workspace reuse remains unchanged.",
+    "workspace_conservative_max_one_request_bytes": 205520896,
+    "workspace_max_note": "Uses M_e<=R without assuming distinct route experts/token; one request maximum, not an allocator physical/cached-memory bound.",
+    "physical_peak_extra_bytes": null,
+    "physical_peak_reason": "Allocator bucket rounding, cached blocks, fragmentation and runtime high-water unknown. Logical requested bytes must not be labeled a physical upper bound.",
+    "component_free_after_load_each_bytes": [
+      67333259264,
+      67333259264,
+      67333259264,
+      67333259264,
+      67333259264,
+      67333259264,
+      67333259264,
+      67333259264
+    ],
+    "component_free_after_load_min_GiB": 62.708984375,
+    "original_component_admission_bytes": 6442450944,
+    "original_runtime_reserve_bytes": 536870912,
+    "component_after_subtract_logical_and_reserve_bytes": 66510028800,
+    "Model814_min_afterphase_free_bytes": 24010293248,
+    "Model814_scope": "Afterphase snapshots only, not duringphase peak and not Model admission proof. No new Model load proposed."
+  },
+  "minimal_future_candidate": [
+    {
+      "host_TU": "private copy of current bank .cpp, with .hpp declaration only",
+      "proposal": "Factor existing implementation into unchanged synchronous default and eager prefill-only retained entry. Keep every tensor in original owners vector until success; append/move all owners to pre-reserved caller lease before returning asynchronously. Retain original bank catch sync/terminate unchanged, including failures during owner transfer. Shared/default/unsupported paths continue original sync. Same ops/config/index0/math/stream."
+    },
+    {
+      "host_TU": "private copy of deep_prefill_scatter_retire_r8785.cpp",
+      "proposal": "Add defaultOFF bank-retire policy gated to exact PACKON+scatter-retire eager fixture path. Extend outer Lease from one-slot gathered/local to bounded vectors for all U experts; reserve host ownership capacity before enqueue; retain each gathered before gather and all bank owners/output before scatter. Keep original final Sum sync and lease destructor sync/terminate. Keep original scatter-retire control separable for attribution. No global runtime/SDK changes."
+    }
+  ],
+  "future_component_conditions": "Separate root implementation admission required. Reuse existing591 T2048/R12288/U251 current-bank fixture, original8owner component, original stream/math/order and >=6GiB after-load admission plus512MiB runtime reserve, before/after memory checks; allocation/submit failures use unchanged catch drain and normal owner cleanup, no relaxed guard. Actual physical high-water remains to measure; before/after alone cannot prove peak. No new Model/decode load. No implementation/build/GPU done by this report.",
+  "evidence_files": {
+    "astra-review-56-current.json": "cc80409fd276aa1ac1a0b7268345d02e830f7700041c0ae43553daca29b9b43a",
+    "Deep826-scatter-retire-component-r8790.json": "625d8c1086ae3ebafd58ba038113e3b9ddae90afa4c0b7c459d955d1747b444a",
+    "Deep-retire-Model-ready-r8794.json": "8a8b1181b795f1b53175284efc7a6a06b2285de6682c50da084b8a44ec94afba",
+    "r8809-Deep-I8Gemm-callee.json": "3a56c2530f5e0b745384f6ae43d88f2062d1b21a5133a597d1d4db2223414ed3",
+    "r8819-Deep-bank-lease-headers.json": "ead416b9ea05a35950c45e48d205d3eb8723b733c511c794001aba7858248d12",
+    "r8819-Deep-bank-lease-owner.json": "9a47cab0a0ee0ac9a2f5b64cbce00c0ab626f86cae7984a7fae0d8a6f7ad6829",
+    "r8819-Deep-bank-lease-call.json": "d110a2e132d7d9515683ac096f7f7a87226c328bcf2566e7ad36e50924f0b7e8",
+    "r8789-Deep-scatter-retire-progress-b.json": "c0344c2e95e1e94554d851a55c0f4bd1ed9a326af1004be134b8e686a14f2b5a",
+    "Deep814-current-Model-pack-r8778.json": "6fba5841f124db4527e4d8e53ae344c931e93a724aa93c3c0d200ae91f80405e"
+  }
+}

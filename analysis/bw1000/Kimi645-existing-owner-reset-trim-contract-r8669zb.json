@@ -1,0 +1,107 @@
+{
+  "scope": "CPU read-only existing645/CPU210 owner-reset/trim feasibility. No source change/build/upload/GPU.",
+  "status": "EXISTING_RESET_TRIM_ENTRY_AVAILABLE_WITH_UNKNOWN_RECLAIM",
+  "actual_bound_objects": {
+    "rank_worker": {
+      "object_SHA256": "e4ab7dd442d755a93747744e5ae3513e86d020d707c02af2befc9b26ee3243c9",
+      "MD_SHA256": "95e19bde1ea1c893c2bb1c794ed59e61ab1701625a9668e686e23b0fb6b0227d",
+      "selected_dependencies": [
+        "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/engine/rank_worker.cpp",
+        "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/runtime/runtime.hpp",
+        "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/engine/rank_worker.hpp"
+      ]
+    },
+    "infer_engine": {
+      "object_SHA256": "12d29534d9f682342c68bd88af103a6a39fa876c1e4a45aed4a3d91aa4827e39",
+      "MD_SHA256": "c244ddaa431ff8761599ddeb533a4fd2dc9c752d5cb15e8edc803ece15bd4340",
+      "selected_dependencies": [
+        "/refactor/candidates/kimi-compact-cache-r4974/kimi_compact_engine_r4974.cpp",
+        "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/engine/infer_engine.hpp",
+        "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/runtime/runtime.hpp",
+        "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/engine/rank_worker.hpp"
+      ]
+    },
+    "kimi_engine_probe_r2475": {
+      "object_SHA256": "a28276be85b5e41abe1d42b02f93dfaab7696767f1973713736cee177d4ab4e7",
+      "MD_SHA256": "afd20ff05555d3648579666201735043b05abd7772a6d4d3771b95b7a7ca135a",
+      "selected_dependencies": [
+        "/refactor/candidates/kimi-compact-cache-r4974/kimi_compact_probe_r4974.cpp",
+        "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/engine/infer_engine.hpp",
+        "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/runtime/runtime.hpp",
+        "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/engine/rank_worker.hpp"
+      ]
+    }
+  },
+  "source_SHA256": {
+    "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/engine/rank_worker.cpp": "2503f72854e871f1f79d9ffa66bbe9119ff9db0213797876b0b022dd19b670ce",
+    "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/runtime/runtime.hpp": "c127b4cf91ab3b64721efe7c9a3e90a84cca9e35dc004ddb6abd9c5e067896d4",
+    "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/engine/rank_worker.hpp": "cc366867e69dc74db254ac0fbe634e70d0e3196e859bd6156f1bed62dc017c02",
+    "/refactor/candidates/kimi-compact-cache-r4974/kimi_compact_engine_r4974.cpp": "26800f2ff89467d9b6be016efbdd03eb082601593c2c9b6c9f2943bd7651ee14",
+    "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/engine/infer_engine.hpp": "5ede891e984641fbec04f909730fc89e02102022ef357175f275f41ca51f494e",
+    "/refactor/candidates/kimi-compact-cache-r4974/kimi_compact_probe_r4974.cpp": "0371f6e9bfbeddb4fabe8322b7dc904a9830129021d8a74c0d0ac13b5624eb21",
+    "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/csrc/runtime/runtime.cc": "a4742905290618c740bc81f4e0316b289de86819ece50d7a95da62652bb0a4e9"
+  },
+  "entry_chain": [
+    {
+      "file": "kimi_compact_probe_r4974.cpp",
+      "line": 52,
+      "contract": "Existing modern_kimi_engine_reset_r2475 locks Context mutex, invokes engine reset with same owned cache config."
+    },
+    {
+      "file": "kimi_compact_engine_r4974.cpp",
+      "line": 603,
+      "contract": "submission_mutex; submits RESET to all8 workers then waits each; cache geometry copied only after all succeeded; errors propagate."
+    },
+    {
+      "file": "rank_worker.cpp",
+      "line": 1099,
+      "contract": "Owner sync, clears graph/static profiles and attention/mamba/cache-vector refs, trimMemory before same-config model cache reconstruction, final sync/job_done."
+    },
+    {
+      "file": "runtime.cc",
+      "line": 168,
+      "contract": "Retained current Common source trimMemory delegates allocator trim; not a force-release of active Tensor owners. Runtime source historical compile mapping not re-proven in this short audit."
+    }
+  ],
+  "existing_frontend_helper": {
+    "file": "kimi_TP16PP2_I192_protocol_r8669za.py",
+    "line": 55,
+    "SHA256": "df83dea7a526e0ef95050715233f0e6b64e2523b8f8d647c3c447b43e80ac773",
+    "contract": "reset(label) calls existing CAPI then StageControl all4 host collect; generate already uses this before every QA/reference/ordinary case. Last QA ends before geometry-memory collect without reset."
+  },
+  "proposed_minimum_order": [
+    "Complete original QA and all4 controller completion",
+    "Record original memory snapshot from existing function",
+    "Call existing reset(label) exactly once, allowners drain/clear refs/trim/same-cache reconstruction",
+    "Existing all4 StageControl collect then record postreset memory",
+    "Apply unchanged4GiB gate; no claim reset succeeded implies capacity passes"
+  ],
+  "capacity_GiB": {
+    "actual_after_finish_min": [
+      6.189453125,
+      6.189453125,
+      3.740234375,
+      3.740234375
+    ],
+    "actual_last_QA_min": [
+      5.05859375,
+      5.05859375,
+      2.484375,
+      2.484375
+    ],
+    "workspace_payload_savings_stage0": 0.615234375,
+    "workspace_payload_savings_stage1": 0.642578125,
+    "compact_only_postQA_prediction_stage0": 5.673828125,
+    "compact_only_postQA_prediction_stage1": 3.126953125,
+    "if_reset_restores_all_QA_drop_and_compact_payload_only_stage1": 4.3828125,
+    "required": 4,
+    "prediction_is_not_allocator_or_runtimefit_proof": true
+  },
+  "limits": [
+    "QA drop1.130859375GiB stage0/1.255859375GiB stage1 cannot currently be split into active/cached/allocator bins.",
+    "RankWorker output_ remains active after reset; do not free it by cast or force allocator release.",
+    "No trim-only public owner API; existing reset is safer than adding a foreign-thread CAPI.",
+    "Actual freed bytes UNKNOWN until one necessary load; compact-only Model retry currently STOP."
+  ],
+  "next": "Root decides combined compact+existing-reset one-load plan; no isolated capacity probe, no threshold lowering."
+}
