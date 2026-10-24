@@ -1,0 +1,282 @@
+{
+  "revision": "r8473",
+  "work_item": "Kimi single-user speculative decode current feasibility",
+  "author": "kimi_speculative_decode_review",
+  "date_local": "2026-10-24",
+  "state": "CPU_CONTROLLER_WATCH_PACKAGE_READY_FINAL_SOURCE_REVIEW_NO_GPU_GO",
+  "boundaries": {
+    "CPU_only": true,
+    "download_compile_GPU_git": false,
+    "other_owners_modified": false,
+    "GPU_F64": "FORBIDDEN",
+    "GPU_resources": "No resource requested or used; n08..11 current owner and protected jobs untouched",
+    "metric": "B1 useful committed decode tokens per second after prefill/anchor; include draft wait, target verification, replay/commit and EOS decision; not prefill or aggregate large-batch throughput",
+    "quality": "Complete final generated token sequence including first EOS must match same-prompt ordinary AR; intermediate BF16 tensor bit identity is diagnostic, not the user's acceptance criterion"
+  },
+  "verdict": "Actual Modal trained-draft B1 W8/W16 ran on GPU and was slower than paired AR. Whole 16-case wave FAILED; eight complete ID/EOS-matching cases are partial negative evidence only. No qualified trained online speculative speedup exists in reviewed evidence. Do not rerun fixed4 or a longer draft as a new optimization.",
+  "measured_online": {
+    "source": "single-request-spec-evidence-inventory-r8052.json; single-request-spec-cost-r8051.json; r4881-trained-partial-negative.json",
+    "target_job": "910375.518 FAILED 1:0 00:41:50",
+    "worker_job": "910379.357 FAILED 1:0 00:43:10",
+    "library_SHA256": "99c39d29fd24a41a9f9f84025c3f20a1eddec11761476384c3d6531909155062",
+    "cards": {
+      "target": 32,
+      "draft": 1,
+      "TP": 8,
+      "PP": 4,
+      "B": 1
+    },
+    "cases_complete": 8,
+    "cases_planned": 16,
+    "QA_before_per_rank": 8,
+    "QA_after_per_rank": 0,
+    "independent_audit": "r4881 crosschecked all four node generated full IDs/EOS and 514 request/reply token lists, cached prefixes and feature-body SHAs. Target owners closed normally; this does not repair failed whole-wave qualification.",
+    "failure": "Third prompt has 515 actual tokens; worker r4859 asserts count<=512 and exits, target EOF/ConnectionReset. Boundary repair was already separately tested r4896; repeating it is not new progress.",
+    "width_semantics": "Historical W8 means anchor+7 draft proposals, W16 means anchor+15. User's literal draft length 8/16 would require W9/W17. Do not label existing K7/K15 data as measured 8/16 additional draft tokens.",
+    "rows": [
+      {
+        "prompt": "natural0",
+        "K": 7,
+        "W": 8,
+        "mean_decode_tok_s": 1.1745559005246808,
+        "paired_AR_tok_s": 4.2348809542119366,
+        "ratio_to_AR": 0.27735275518346947,
+        "accepted": 54,
+        "drafted": 499,
+        "rounds": 73,
+        "mean_accepted_prefix": 0.7397260273972602,
+        "verify_seconds": 77.25944290682673,
+        "replay_commit_seconds": 22.528154455125332,
+        "draft_wait_broadcast_seconds": 1.3377651465125382,
+        "whole_decode_seconds": 107.07831335486844
+      },
+      {
+        "prompt": "natural0",
+        "K": 15,
+        "W": 16,
+        "mean_decode_tok_s": 0.7281993519772156,
+        "paired_AR_tok_s": 4.2348809542119366,
+        "ratio_to_AR": 0.17195273252084256,
+        "accepted": 54,
+        "drafted": 1016,
+        "rounds": 73,
+        "mean_accepted_prefix": 0.7397260273972602,
+        "verify_seconds": 139.23200505273417,
+        "replay_commit_seconds": 22.656631245743483,
+        "draft_wait_broadcast_seconds": 1.320271071512252,
+        "whole_decode_seconds": 172.94452871195972
+      },
+      {
+        "prompt": "natural1",
+        "K": 7,
+        "W": 8,
+        "mean_decode_tok_s": 1.3734490317477572,
+        "paired_AR_tok_s": 2.4616618765948863,
+        "ratio_to_AR": 0.5579356957209703,
+        "accepted": 74,
+        "drafted": 364,
+        "rounds": 53,
+        "mean_accepted_prefix": 1.3962264150943395,
+        "verify_seconds": 56.45842100074515,
+        "replay_commit_seconds": 21.194894783664495,
+        "draft_wait_broadcast_seconds": 1.3686148445121944,
+        "whole_decode_seconds": 91.90353538561612
+      },
+      {
+        "prompt": "natural1",
+        "K": 15,
+        "W": 16,
+        "mean_decode_tok_s": 0.8749575333786099,
+        "paired_AR_tok_s": 2.4616618765948863,
+        "ratio_to_AR": 0.3554336774264474,
+        "accepted": 73,
+        "drafted": 766,
+        "rounds": 54,
+        "mean_accepted_prefix": 1.3518518518518519,
+        "verify_seconds": 105.18302019033581,
+        "replay_commit_seconds": 21.531639146152884,
+        "draft_wait_broadcast_seconds": 0.9744071615859866,
+        "whole_decode_seconds": 144.8077057208866
+      }
+    ],
+    "timing_limits": "Mean rates are repeat means; component seconds are r0 examples. CAPI wall includes native compute/comm/sync, not pure GPU kernel time. Draft worker compute overlaps caller wait; do not add twice. CPU full-vocabulary validation/D2H/barriers were included. Best ordinary rate from another source/run is not a causal paired comparison."
+  },
+  "implementation": {
+    "source": "kimi_trained_protocol_r4860.py:166-270; modern_kimi_trained_r4860.py:40-55; stage_kimi_spec_r3632.py; kimi_spec_proof_r3632.hpp",
+    "binding": "r4860 ctypes binds modern_kimi_engine_spec_r3632 from SHA-pinned r4830 libmodern_kimi_fast_tap_r4830.so; create_spec requires TP8PP4. Original staged shim sets sample_all_positions=true and supplies nonalias active/shadow SSM read/write indices.",
+    "all_final_tokens_verified": "Yes, each proposal accepted only while D[m]==target_output[m]; emit that accepted prefix plus target correction out[m], truncate at first EOS. All target logits sampled per position from the initial one-block call, not K+1 complete Engine.forward calls.",
+    "actual_CAPI_counts": "natural0 K7 has 73 verification calls (69 width8 plus short tails), and 72 additional replay calls. K15 has 73 verification calls (62 width16 plus tails), and 72 replay calls.",
+    "recovery": "Target verify writes shadow recurrent state. On rejection, rerun anchor+accepted proposal prefix of length m+1 from untouched active state into shadow, overwriting speculative KV suffix as needed, then swap active/shadow and increment past by m+1. The emitted correction is the next round's unconsumed anchor. Draft worker DynamicCache crops to accepted feature prefix before next call. Terminal EOS/limit may skip replay because there is no continuation.",
+    "limitation": "No ready replay-free per-prefix recurrent snapshots or alternative topology spec create binding established; cannot merely set a flag to remove replay."
+  },
+  "required_vs_optional_serialization": [
+    {
+      "part": "KDA recurrent state and causal convolution",
+      "necessary": "Same-user state S_t depends on earlier accepted sequence positions; causal convolution consumes history and must commit only the retained prefix.",
+      "optional": "Dense qkv/gate/beta projections before recurrence are independent across positions. Recurrence can be implemented by a causal scan mathematically, but changing BF16 per-step rounding or state commit needs final-token/continuation proof.",
+      "evidence": "native r8504 delta_attention lines331-355 projection row loop, 365 indexed convolution, 432-435 roundstep; original kimi_spec_math_r3683.cpp snapshot+D2H offsets+sync. Historical source excerpts have narrower width checks and are not proof of current mode11 full closure."
+    },
+    {
+      "part": "MLA attention",
+      "necessary": "Each query must see causal past+earlier proposal KV only; preserve KV suffix overwrite and TP collective order.",
+      "optional": "All W query projections/attention can use causal block operations. math11 serial_mla and M1 input/output projections are numerical compatibility choices, not an inherent AR dependence between query GEMMs.",
+      "evidence": "r8504 mla_attention lines290-293 chooses serial_mla for mode>=7; lines322-341 output per-row loop."
+    },
+    {
+      "part": "MoE/router/dense/shared FFN",
+      "necessary": "For each row preserve routing semantics/expert weights and TP result ordering/collectives; keep layer-to-layer dependency.",
+      "optional": "Rows' projections/router/expert/shared FFN are mathematically independent; math11 rowserial routed-down, routed-up, shared expert and per-row CCL are compatibility controls. Existing fixed4 accelerates expert part only and leaves shared branch rowserial.",
+      "evidence": "Kimi_K7_MoE_actual_r8104.cpp:362-373; shared_experts_->forward per row when AUX_M1=1. Source exposes AUX_M1=0 branch without new native compilation."
+    }
+  ],
+  "newer_component_evidence": {
+    "fixed4": {
+      "source": "Kimi-K7-MoE-terminal-audit-r8126.json; Kimi-K7-MoE-binding-audit-r8130.json",
+      "job": "910375.563 COMPLETED 0:0 00:01:44",
+      "input": "Actual checkpoint L20, original MXFP4, captured r4809 C396 N8, all8 TP owners, group0/4/4/0",
+      "whole_MoE_maxowner_ms": {
+        "baseline": 5.2547496,
+        "fixed4": 5.169582999999999,
+        "ratio": 1.016474558973132
+      },
+      "bindings_verified": true,
+      "all8_closed": true,
+      "raw_files_verified": 1440,
+      "qualified_scope": "Component only; no final Model IDs/EOS or user TPS. Synchronized phase segments are perturbed host/drain diagnostics, not a clean percentage breakdown. Do not schedule another full Model load solely for this 1.6% component gain."
+    },
+    "projections": {
+      "source": "Kimi-K7-projection-audit-r8098.json; Kimi-K7-projection-manifest-r8081.json",
+      "job": "910375.559 COMPLETED 0:0",
+      "input": "Actual L20 attention-normalized N8 C396 input; all8 TP checkpoint shards",
+      "chain_example_owner0_us": {
+        "serial_M1": 1265.044091269374,
+        "native_N8": 326.3195976614952,
+        "padded16": 434.8240327090025
+      },
+      "N8_native_diff_total": {
+        "qkv_packed": 46,
+        "f_a": 8,
+        "beta": 0,
+        "output_gate": 35,
+        "f_b_serial_fa": 0
+      },
+      "interpretation": "Position-independent projections can be much faster in this component. Beta and f_b happened to match all tested outputs; qkv/f_a/output_gate differed in intermediate bits. Neither intermediate differences nor matches prove complete final-token/EOS behavior. Existing r4301 entry supports M1/2/4/8, NOT N16. This experiment is already done; do not repeat as a new card."
+    }
+  },
+  "draft_availability": {
+    "evidence_date": "r8050/r8052 read-only remote stat/config/header inventory from 2026-10-23; no fresh remote stat in this CPU review",
+    "same_tokenizer": "Actual Modal pipeline transports existing target integer token IDs directly, with target-owned embedding and LM head of shape[163840,7168]; no text retokenization. This establishes shared token ID namespace for actual run; independent tokenizer.json byte-hash equality was NOT established here.",
+    "Modal": {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/models/Kimi-K3-Modal-DFlash-c192d15a-r4255",
+      "bytes": 5196953912,
+      "tensors": 69,
+      "previous_full_weight_SHA256": "0f0bd39d19c2dd0249de4f8216180f9729963402f902d50f19a156a8d358b733",
+      "native_window": "W16/K15; W8/K7 actually tested",
+      "source": "modal_rpc_worker_r4859.py uses pinned modal_reference_r4258.py, six captured target taps, BF16 backbone/F32 rotary, target embedding/head",
+      "status": "REAL_GPU_COMPONENT_AND_PARTIAL_NEGATIVE_ONLINE"
+    },
+    "Radix": {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/models/Kimi-K3-DSpark-3c5bac30-r2699",
+      "bytes": 4498585858,
+      "tensors": 62,
+      "status": "REAL_WEIGHT_GPU_COMPONENT_ONLY_NO_QUALIFIED_ONLINE_GAIN"
+    },
+    "RedHat": {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/models/Kimi-K3-RedHat-DSpark-38a88101-r4201",
+      "bytes": 9489807826,
+      "tensors": 64,
+      "trained_proposals": 8,
+      "status": "CPU_DATA_INTEGRITY_ONLY; full-weight GPU forward/current target taps+state binding UNKNOWN; not a ready fallback"
+    }
+  },
+  "primary_card": {
+    "name": "Single-layer math11 MoE AUX_M1 OFF/ON ablation on captured real N8 verification input",
+    "state": "CPU_SOURCE_PREPARED_ROOT_REVIEW_REQUIRED_NO_GPU_GO",
+    "why": "Targets independent routed-up/shared-FFN row loops and repeated CCL left intact by already-measured fixed4; needs only one layer, not target+draft full load. No speedup forecast.",
+    "native_entry": "modern_kimi_moe_replay_r8082 / modern_kimi_moe_replay_result_r8082",
+    "DSO": "/refactor/candidates/kimi-K7-MoE-CPU-r8104/libmodern_Kimi_K7_MoE_r8104.so",
+    "DSO_SHA256": "282b1d028c07a373b52176f36e99da75ba663d8aa236e98459a282b65d335f29",
+    "binding_proof": "Kimi-K7-MoE-binding-audit-r8130.json: six dladdr symbols own DSO; SDK/runtime/helper/CCL maps hashed; mode11/router1/aux1 actual counters",
+    "reusable_wrapper": "probe_Kimi_K7_MoE_profile_r8116.py and r8104 single-layer driver",
+    "missing": "Root final sourceSHA review then explicitGO; no upload/submit yet.",
+    "minimal_preparation": "Prepare a fresh bounded copy of r8116 using same native DSO and L20/C396 weight/fixture loading, group0 fixed. Run AUX1 then AUX0 then AUX0 then AUX1 in separate replay invocations within one process/CPU-held layer weights; adapt counters to actual branch and cumulative deltas, audit final FFN repeat/finite/routes as diagnostics. No native compile. Start N8 only; N16 held until N8 gives material whole-MoE benefit.",
+    "required_inputs": "/shared/Kimi-K3 checkpoint mapping/config + all L20 block_sparse_moe keys; r4809 C396 stage0 rank0/rank6 layer20 ffn_norm capture. Prior source proved both captured inputs equal; other six owner inputs were replicated, not independently captured.",
+    "resources": {
+      "parent": "910374",
+      "node": "a02r4n04",
+      "nodes": 1,
+      "DCUs": 8,
+      "cpus": 64,
+      "memory_MB": 128000,
+      "hard_lease_seconds": 600,
+      "inner_timeout_seconds": 540,
+      "kill_after_seconds": 10,
+      "GPU_final_GO": false
+    },
+    "first_result_estimate": {
+      "prior_job": "910375.563",
+      "prior_total_seconds": 104,
+      "prior_CPU_weight_read_seconds": 33.7725783130154,
+      "prior_layer_loads": 1,
+      "prior_arms": 8,
+      "estimate_seconds": 315,
+      "formula": "33.77+4*(104-33.77)=314.68. Replicates all prior non-CPU-read cost4times despite prior8arms/current4arms. Inference only, not empirical bound; fresh node/data locality unknown. Cannot promise5min; hard10min lease/540s timeout mandatory."
+    },
+    "success": "Material trace-free whole-MoE speedup beyond ABBA noise; no nonfinite/router mismatch. Intermediate FFN differences retained for downstream finaltoken gate rather than auto-rejected solely by bits.",
+    "stop": "Any DSO/dependency/fixture SHA change or ownership conflict => NOT_RUN. No measurable component benefit => STOP with no full-model load. Any later complete generated IDs/EOS or continuation mismatch => reject. Full Model W8/W16 user decode benefit remains UNKNOWN until an independently reviewed finaltoken test; do not infer it from this component.",
+    "package": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\濞村嘲鍘滈梿鍡欏參\\Kimi-speculative-AUX0-package-r8473",
+    "manifest_SHA256": "3470ef0c943389b936df1cec056a88904caea86706e78f2087cff71cc6995f19",
+    "native_single_layer_loads": 4,
+    "runtime_manifest": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\娴峰厜闆嗙兢\\Kimi-speculative-AUX0-package-r8473\\Kimi-AUX0-runtime-manifest-r8473.json",
+    "runtime_manifest_SHA256": "ad1385111d070e62279eb05db2370f13b6c262cdec51b98a8a73213c24f7b415",
+    "controller_SHA256": "c7b3b3399c7453c87bef56f4e536bd6063d2966c79376e85540c7f6183f7d840",
+    "memory_guard": "Actual task/container before checkpoint tensor allocation: /proc/self/cgroup resolved v2 plus allancestors memory.current/max and/proc/meminfo MemAvailable, headroom min >=16102205952+8589934592bytes. Missing/insufficient metadata saves normal NOT_RUN/no_retry exit0, no dropcache."
+  },
+  "backup_card": {
+    "name": "Selective beta/f_b projection batching only after CPU source closure",
+    "state": "NOT_READY_NO_SELECTIVE_MODEL_SWITCH; GPU_STOP",
+    "rationale": "r8098 real N8 beta and f_b matched serial bits and reduced their individual component cost; mathematically row-independent. Keep actual KDA recurrence/state commit unchanged.",
+    "reusable": "r4301 projection DSO /refactor/candidates/kimi-KDA-input-component-r4301/probe.so SHA11c59475ee0e2a77627490ed7b4ed432b70851f794812f97a58546c333f1632a; existing measured checkpoint/capture. Do not repeat identical r8081 component sweep.",
+    "blocker": "Native r8504 KDA input flag controls multiple projections together, while gate policy includes other branches. No inspected ready per-beta/f_b-only candidate Model source/DSO/manifest establishes a safe selective switch. N16 component API unsupported. CPU change/review needed before any GPU.",
+    "first_result_estimate": "CPU closure review <=20 minutes; GPU ETA UNKNOWN until selective source exists. Current source does not permit an honest ready launch.",
+    "stop": "If enabling requires unrelated qkv/output-gate changes or no distinct unmeasured hypothesis => STOP. Even exact beta/f_b fixture outputs are not Model finaltoken or speedup qualification.",
+    "resources": "None authorized; no new download or full load proposed."
+  },
+  "dispatch_answer": {
+    "ready_new_GPU_experiment": "CPU_SOURCE_PREPARED_ONLY_NO_FINAL_GO",
+    "unexecuted_ready_manifest": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\娴峰厜闆嗙兢\\Kimi-speculative-AUX0-package-r8473\\Kimi-AUX0-runtime-manifest-r8473.json",
+    "already_executed_do_not_repeat": [
+      "r4888/r4896 boundary+expert tests",
+      "r8081/r8098 N8 projection sweep",
+      "r8116/r8126 fixed4 TP8 whole-MoE ABBA"
+    ],
+    "next_action": "Rootreview package thenownerupload/freshreadywatch beforefinalGO910374/n04only;4singlelayerloads,no fullModel.",
+    "claims_excluded": [
+      "No 5-10x gain claim",
+      "No current trained 16-additional-token checkpoint claim",
+      "No faster draft implied necessary: draft wait is minor in the measured cycle",
+      "No current online geometry or latest ordinary qualification inherited"
+    ]
+  },
+  "evidence_files": [
+    "single-request-spec-evidence-inventory-r8052.json",
+    "single-request-spec-cost-r8051.json",
+    "r4881-trained-partial-negative.json",
+    "r4896-boundary-audit.json",
+    "kimi_trained_protocol_r4860.py",
+    "modern_kimi_trained_r4860.py",
+    "modal_rpc_worker_r4859.py",
+    "stage_kimi_spec_r3632.py",
+    "kimi_spec_proof_r3632.hpp",
+    "Kimi-K7-MoE-terminal-audit-r8126.json",
+    "Kimi-K7-MoE-binding-audit-r8130.json",
+    "Kimi-K7-projection-audit-r8098.json",
+    "Kimi-K7-projection-manifest-r8081.json",
+    "probe_Kimi_K7_MoE_profile_r8116.py",
+    "Kimi_K7_MoE_actual_r8104.cpp",
+    "Kimi_K7_MoE_driver_r8104.cpp",
+    "Kimi594-actual-tracer-sources-r8504.json",
+    "Kimi-native-tracer-source-r8504/kimi_k3_delta_attention.cpp",
+    "Kimi-native-tracer-source-r8504/kimi_k3_mla_attention.cpp"
+  ]
+}
