@@ -1,0 +1,64 @@
+--- /refactor/candidates/deep-combined-r7169/incoming/deepseek_v4_hyper_connection_r177.cpp
++++ private/deep_hc_rms_model_r7382.cpp
+@@ -1,6 +1,10 @@
+ #include <atomic>
+ #include <array>
+ #include "deepseek_v4_hyper_connection.hpp"
++#include "deep_collective_layout_r7040.hpp"
++#include <cstdlib>
++#include <cstring>
++#include <algorithm>
+ #include "execution/submit.hpp"
+ #include <cmath>
+ #include <cuda_runtime_api.h>
+@@ -12,6 +16,19 @@
+ #include <stdexcept>
+ namespace infinilm::models::deepseek_v4 {
+ namespace rt=infinilm::runtime;namespace ex=infinilm::execution;
++
++namespace rms_r7382 {
++std::array<std::array<std::atomic<uint64_t>,3>,8> calls{};
++bool enabled(){const char*p=std::getenv("INFINILM_DEEP_HC_RMS_R7382");if(!p||std::strcmp(p,"0")==0)return false;if(std::strcmp(p,"1")==0)return true;throw std::invalid_argument("7382 flag must exactly0or1");}
++bool eligible(rt::Runtime&r,const rt::Tensor&x,const rt::Tensor&constants){
++ auto&c=calls.at(r.device().index());if(!enabled()){++c[0];return false;}
++ auto*f=deep_layout_core_r7032::current();
++ if(!f||f->policy!=0||f->requests!=32||f->layout.total!=32||f->layout.lengths.size()!=32||!std::all_of(f->layout.lengths.begin(),f->layout.lengths.end(),[](size_t n){return n==1;})||x->dtype()!=rt::DataType::kBFloat16||x->shape()!=rt::Shape{32,4,4096}||wide_r3443::selected(r)!=5||constants->shape()!=rt::Shape{16387}){++c[2];return false;}
++ deep_layout_core_r7032::verify(f->context,layout_r7040::snapshot(r));++c[1];return true;
++}
++}
++extern "C" uint64_t deep_hc_rms_calls_r7382(int d,int k){if(d<0||d>=8||k<0||k>=3)return UINT64_MAX;return rms_r7382::calls[d][k].load();}
++
+ namespace canonical_r7130 { std::atomic<int> policy{0};std::array<std::array<std::atomic<uint64_t>,3>,8> calls{}; }
+ extern "C" int deep_hc_canonical_policy_r7130(int flag){if(flag!=0&&flag!=1)return 1;canonical_r7130::policy.store(flag);return 0;}
+ extern "C" int deep_hc_canonical_get_r7130(){return canonical_r7130::policy.load();}
+@@ -34,15 +51,27 @@
+ HyperConnection::HyperConnection(rt::Runtime&r,double rms_eps,double hc_eps,int iterations):device_(r.device()),rms_eps_(rms_eps),hc_eps_(hc_eps),iterations_(iterations){
+  r.assertOwnerThread();if(r.isGraphRecording()||device_.type()!=rt::Device::Type::kHygon||!std::isfinite(rms_eps)||rms_eps<=0||!std::isfinite(hc_eps)||hc_eps<=0||iterations<1||iterations>128)throw std::invalid_argument("DeepSeek mHC construction contract differs");
+  fn_=rt::Tensor::empty_parameter(r,{24,16384},rt::DataType::kFloat32);base_=rt::Tensor::empty_parameter(r,{24},rt::DataType::kFloat32);scale_=rt::Tensor::empty_parameter(r,{3},rt::DataType::kFloat32);
+- bind_weight("fn",weights::Weight(fn_));bind_weight("base",weights::Weight(base_));bind_weight("scale",weights::Weight(scale_));constants_=rt::Tensor::empty(r,{3},rt::DataType::kFloat32);
+- float values[]={float(rms_eps),float(hc_eps),2.f};constants_->copy_from(r,rt::Tensor::from_blob(values,{3},rt::DataType::kFloat32,{rt::Device::Type::kCpu,0}));r.syncStream();
++ bind_weight("fn",weights::Weight(fn_));bind_weight("base",weights::Weight(base_));bind_weight("scale",weights::Weight(scale_));if(rms_r7382::enabled()){
++  // Immutable internal bank: original first3 values plus16384 ones. No publicheader/ABI change.
++  constants_=rt::Tensor::empty(r,{16387},rt::DataType::kFloat32);std::vector<float>values(16387,1.f);values[0]=float(rms_eps);values[1]=float(hc_eps);values[2]=2.f;
++  r.memcpyH2D(constants_->data(),values.data(),values.size()*sizeof(float),false);
++ }else{
++  constants_=rt::Tensor::empty(r,{3},rt::DataType::kFloat32);
++  float values[]={float(rms_eps),float(hc_eps),2.f};constants_->copy_from(r,rt::Tensor::from_blob(values,{3},rt::DataType::kFloat32,{rt::Device::Type::kCpu,0}));r.syncStream();
++ }
+ }
+ void HyperConnection::process_weights_after_loading(rt::Runtime&r,bool){r.assertOwnerThread();if(ready_||r.device()!=device_||r.isGraphRecording())throw std::logic_error("DeepSeek mHC postload state differs");r.syncStream();ready_=true;}
+ HyperConnection::PreResult HyperConnection::pre(rt::Runtime&r,const rt::Tensor&residual)const{
+  check(r,device_,residual,ready_);Work work(r);size_t t=residual->size(0);auto xf=work.fp32(residual),flat=xf->view({t,16384});
++ rt::Tensor normalized;
++ if(rms_r7382::eligible(r,residual,constants_)){
++  normalized=work.alloc({t,16384});ex::submit<infini::ops::RmsNorm>(r,infini::ops::RmsNorm::DefaultConfig(device_.type()),flat,constants_->narrow({{0,3,16384}}),float(rms_eps_),normalized);
++ }else{
+  auto square=work.binary<infini::ops::Mul>(flat,flat,{t,16384}),mean=work.alloc({t,1});
+  ex::submit<infini::ops::Mean>(r,infini::ops::Mean::DefaultConfig(device_.type()),square,std::optional<std::vector<int64_t>>{{1}},true,std::optional<infini::ops::DataType>{},mean);
+- auto plus_eps=work.binary<infini::ops::Add>(mean,constants_->narrow({{0,0,1}}),{t,1});auto inv=work.unary<infini::ops::Rsqrt>(plus_eps);auto normalized=work.binary<infini::ops::Mul>(flat,inv,{t,16384});auto mixes=work.alloc({t,24});
++ auto plus_eps=work.binary<infini::ops::Add>(mean,constants_->narrow({{0,0,1}}),{t,1});auto inv=work.unary<infini::ops::Rsqrt>(plus_eps);normalized=work.binary<infini::ops::Mul>(flat,inv,{t,16384});
++ }
++ auto mixes=work.alloc({t,24});
+ 
+  if(device_.index()<0||device_.index()>=8)throw std::invalid_argument("HC canonical owner device outside TP8 lease");
+  if(t==512 && canonical_r7130::policy.load()==1){
