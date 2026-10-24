@@ -1,0 +1,199 @@
+{
+  "actual_handle": "910375.639",
+  "run": "currentprofile8670-2780c25f37791711",
+  "terminal": {
+    "JobID": "910375.639",
+    "JobName": "Kimi-current-profile-currentprofile8670-2780c25f37791711",
+    "State": "COMPLETED",
+    "ExitCode": "0:0",
+    "NodeList": "a02r4n[08-11]"
+  },
+  "all32normal": true,
+  "original_audit0": true,
+  "post_KFD_passed": true,
+  "qualified_scope": "Historical540 B64M16 full128IDs/EOS+CPUargmax, two ordinary128 matches, trace36 match, QA0 before/after, all32 normal. Instrumented baseline only; no new unwrapped throughput/gain adoption.",
+  "ordinary": {
+    "decode_mean": 136.63665498437416,
+    "decode_per_card_mean": 4.2698954682616925,
+    "prefill_seconds_mean": 85.68265864462592,
+    "input_tok_s_mean": 382.4344449457491,
+    "E2E_mean": 56.43044470234656,
+    "cases": [
+      {
+        "label": "B64-M16-ordinary0",
+        "decode": 136.7207177514035,
+        "decode_percard": 4.272522429731359,
+        "prefill": 85.68242987105623,
+        "input_rate": 382.43546604960517,
+        "E2E": 56.444763589342664,
+        "user_mean": 1.3821424739629153,
+        "user_min": 0.9391580243025679,
+        "user_max": 2.136137018960103,
+        "TTFT_mean": 47.595989848836325,
+        "TTFT_min": 9.541858609765768,
+        "TTFT_max": 85.67992259189487,
+        "max_ITL": 76.58300920715556,
+        "IDs": true
+      },
+      {
+        "label": "B64-M16-ordinary1",
+        "decode": 136.55259221734485,
+        "decode_percard": 4.267268506792027,
+        "prefill": 85.6828874181956,
+        "input_rate": 382.433423841893,
+        "E2E": 56.41612581535047,
+        "user_mean": 1.3810876391548577,
+        "user_min": 0.9387515040799206,
+        "user_max": 2.1334241174296382,
+        "TTFT_mean": 47.603815537600894,
+        "TTFT_min": 9.556319802999496,
+        "TTFT_max": 85.67799288220704,
+        "max_ITL": 76.5685743400827,
+        "IDs": true
+      }
+    ],
+    "traffic": "64 rows, only2 natural unique512 prompts repeated, max128output; TP8PP4/nativef6f/servingpolicy1 variant4, not tokenTile4; SpecMath0 distinct."
+  },
+  "trace": {
+    "window": "decode0based32..33,4cohorts/step,8localCAPI calls/node, past544..545; no added sync/barrier",
+    "per_node_device0": [
+      {
+        "node": 0,
+        "device": 0,
+        "trace_span_ms": 1362.710203,
+        "enclosing_CAPI_sum_ms": 1356.9622738286853,
+        "exclusive_activity_ms": {
+          "no_recorded_activity": 350.84951199999995,
+          "copy": 17.397946,
+          "nonCCL_kernel": 753.52352,
+          "CCL_name_hint": 240.938975,
+          "copy+nonCCL_kernel": 0.00025
+        },
+        "W13_kernel_sum_ms": 269.07847499999997,
+        "Down_kernel_sum_ms": 204.24013499999998,
+        "W13_calls": 183,
+        "Down_calls": 183,
+        "kernel_names": [
+          "void infini::ops::mxfp4_detail::groupedW134531<2, 4>(__nv_bfloat16*, __nv_bfloat16 const*, int const*, int const*, int const*, int const*, int const*, unsigned char const*, unsigned char const*, unsigned long)",
+          "ncclDevKernel_AllReduce_Ring_LL_Sum_b16(ncclDevKernelArgsStorage<1024ul>)",
+          "void infini::ops::mxfp4_detail::staticW2R326U<__nv_bfloat16>(__nv_bfloat16*, __nv_bfloat16 const*, int const*, float const*, unsigned char const*, unsigned char const*, unsigned long, unsigned long, unsigned long, unsigned long, unsigned long, unsigned long)",
+          "void kimiDeltaAttentionRecurrentCudaKernel<__nv_bfloat16, __nv_bfloat16>(__nv_bfloat16*, __nv_bfloat16*, __nv_bfloat16*, __nv_bfloat16*, __nv_bfloat16 const*, __nv_bfloat16 const*, __nv_bfloat16 const*, __nv_bfloat16 const*, __nv_bfloat16 const*, float const*, float const*, void const*, void const*, void const*, bool, bool, bool, bool, bool, bool, unsigned long, unsigned long, unsigned long, float, float, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long)",
+          "Cijk_Ailk_Bljk_BBH_MT256x256x16_SE_AMAS3_BW_DTL0_BL1_DRB16_ALT_KME0_ETSP_EPS1_FL0_GRVW8_GSU1_ISA936_IU1_KME_GRCMn1_K1_KLA_LDL1_LRVW8_MAC_MMAC_BW1_MMAC_KM0_MMAC_KME1_NLCA1_NLCB1_OLDSR0_PGR1_PLR1_RK1_SU2_SUM0_SUS256_SVW4_TT16_8_TLM0_ULDSWM0_USFGRO0_USSB0_VAW2_VSn1_VW8_WG16_32_1_WGM4",
+          "void infini::ops::topk_sigmoid_detail::TopkSigmoidKernel<256u, (infini::rt::Device::Type)7, __nv_bfloat16, int>(__nv_bfloat16 const*, float const*, unsigned char const*, float*, int*, int*, int, int, int, bool, float)",
+          "Cijk_Alik_Bljk_BBH_MT64x16x128_SE_AMAS3_BW_DTL0_BL1_DRB16_ALT_KME0_ETSP_EPS1_FL0_GRVW2_GSU1_ISA936_IU1_KME_GRCMn1_K1_KLA_LDL1_LRVW2_MAC_MMAC_BW1_MMAC_KM0_MMAC_KME1_NLCA1_NLCB1_OLDSR0_PGR1_PLR1_RK1_SU0_SUM0_SUS256_SVW4_TT8_2_TLM0_ULDSWM0_USFGRO0_USSB0_VAW2_VSn1_VW2_WG8_8_1_WGM1"
+        ],
+        "trace_data": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Kimi-current-profile-r8673-currentprofile8670-2780c25f37791711-node0-CPUtrace-r8675.json",
+        "trace_data_SHA256": "b930f8e4a95bb6911f515a62ef6a42fc34b66f338a91b6202ed5dff43436f60a"
+      },
+      {
+        "node": 1,
+        "device": 0,
+        "trace_span_ms": 1403.834174,
+        "enclosing_CAPI_sum_ms": 1408.5382539778948,
+        "exclusive_activity_ms": {
+          "no_recorded_activity": 338.907061,
+          "copy": 17.6304,
+          "CCL_name_hint": 305.281945,
+          "nonCCL_kernel": 742.01239,
+          "CCL_name_hint+nonCCL_kernel": 0.002378
+        },
+        "W13_kernel_sum_ms": 267.532334,
+        "Down_kernel_sum_ms": 204.12959999999998,
+        "W13_calls": 183,
+        "Down_calls": 183,
+        "kernel_names": [
+          "void infini::ops::mxfp4_detail::groupedW134531<2, 4>(__nv_bfloat16*, __nv_bfloat16 const*, int const*, int const*, int const*, int const*, int const*, unsigned char const*, unsigned char const*, unsigned long)",
+          "ncclDevKernel_AllReduce_Ring_LL_Sum_b16(ncclDevKernelArgsStorage<1024ul>)",
+          "void infini::ops::mxfp4_detail::staticW2R326U<__nv_bfloat16>(__nv_bfloat16*, __nv_bfloat16 const*, int const*, float const*, unsigned char const*, unsigned char const*, unsigned long, unsigned long, unsigned long, unsigned long, unsigned long, unsigned long)",
+          "void kimiDeltaAttentionRecurrentCudaKernel<__nv_bfloat16, __nv_bfloat16>(__nv_bfloat16*, __nv_bfloat16*, __nv_bfloat16*, __nv_bfloat16*, __nv_bfloat16 const*, __nv_bfloat16 const*, __nv_bfloat16 const*, __nv_bfloat16 const*, __nv_bfloat16 const*, float const*, float const*, void const*, void const*, void const*, bool, bool, bool, bool, bool, bool, unsigned long, unsigned long, unsigned long, float, float, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long)",
+          "ncclDevKernel_SendRecv_ring_simple_sum_int8_t(ncclDevKernelArgsStorage<1024ul>)",
+          "Cijk_Ailk_Bljk_BBH_MT256x256x16_SE_AMAS3_BW_DTL0_BL1_DRB16_ALT_KME0_ETSP_EPS1_FL0_GRVW8_GSU1_ISA936_IU1_KME_GRCMn1_K1_KLA_LDL1_LRVW8_MAC_MMAC_BW1_MMAC_KM0_MMAC_KME1_NLCA1_NLCB1_OLDSR0_PGR1_PLR1_RK1_SU2_SUM0_SUS256_SVW4_TT16_8_TLM0_ULDSWM0_USFGRO0_USSB0_VAW2_VSn1_VW8_WG16_32_1_WGM4",
+          "void infini::ops::topk_sigmoid_detail::TopkSigmoidKernel<256u, (infini::rt::Device::Type)7, __nv_bfloat16, int>(__nv_bfloat16 const*, float const*, unsigned char const*, float*, int*, int*, int, int, int, bool, float)"
+        ],
+        "trace_data": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Kimi-current-profile-r8673-currentprofile8670-2780c25f37791711-node1-CPUtrace-r8675.json",
+        "trace_data_SHA256": "99234b4691a4e3c75337a3cd6ff48f2f85eada523aa9314869835e15c230a180"
+      },
+      {
+        "node": 2,
+        "device": 0,
+        "trace_span_ms": 1424.7411969999998,
+        "enclosing_CAPI_sum_ms": 1426.8394182436168,
+        "exclusive_activity_ms": {
+          "no_recorded_activity": 316.696452,
+          "copy": 17.570204,
+          "CCL_name_hint": 322.79280500000004,
+          "nonCCL_kernel": 767.6813599999999,
+          "CCL_name_hint+nonCCL_kernel": 0.000376
+        },
+        "W13_kernel_sum_ms": 274.071616,
+        "Down_kernel_sum_ms": 213.38974299999998,
+        "W13_calls": 191,
+        "Down_calls": 191,
+        "kernel_names": [
+          "void infini::ops::mxfp4_detail::groupedW134531<2, 4>(__nv_bfloat16*, __nv_bfloat16 const*, int const*, int const*, int const*, int const*, int const*, unsigned char const*, unsigned char const*, unsigned long)",
+          "ncclDevKernel_AllReduce_Ring_LL_Sum_b16(ncclDevKernelArgsStorage<1024ul>)",
+          "void infini::ops::mxfp4_detail::staticW2R326U<__nv_bfloat16>(__nv_bfloat16*, __nv_bfloat16 const*, int const*, float const*, unsigned char const*, unsigned char const*, unsigned long, unsigned long, unsigned long, unsigned long, unsigned long, unsigned long)",
+          "ncclDevKernel_SendRecv_ring_simple_sum_int8_t(ncclDevKernelArgsStorage<1024ul>)",
+          "void kimiDeltaAttentionRecurrentCudaKernel<__nv_bfloat16, __nv_bfloat16>(__nv_bfloat16*, __nv_bfloat16*, __nv_bfloat16*, __nv_bfloat16*, __nv_bfloat16 const*, __nv_bfloat16 const*, __nv_bfloat16 const*, __nv_bfloat16 const*, __nv_bfloat16 const*, float const*, float const*, void const*, void const*, void const*, bool, bool, bool, bool, bool, bool, unsigned long, unsigned long, unsigned long, float, float, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long)",
+          "Cijk_Ailk_Bljk_BBH_MT256x256x16_SE_AMAS3_BW_DTL0_BL1_DRB16_ALT_KME0_ETSP_EPS1_FL0_GRVW8_GSU1_ISA936_IU1_KME_GRCMn1_K1_KLA_LDL1_LRVW8_MAC_MMAC_BW1_MMAC_KM0_MMAC_KME1_NLCA1_NLCB1_OLDSR0_PGR1_PLR1_RK1_SU2_SUM0_SUS256_SVW4_TT16_8_TLM0_ULDSWM0_USFGRO0_USSB0_VAW2_VSn1_VW8_WG16_32_1_WGM4",
+          "void infini::ops::topk_sigmoid_detail::TopkSigmoidKernel<256u, (infini::rt::Device::Type)7, __nv_bfloat16, int>(__nv_bfloat16 const*, float const*, unsigned char const*, float*, int*, int*, int, int, int, bool, float)"
+        ],
+        "trace_data": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Kimi-current-profile-r8673-currentprofile8670-2780c25f37791711-node2-CPUtrace-r8675.json",
+        "trace_data_SHA256": "c7f0acda65b0e4083008c439cc694ca1bc7c383ea22578e56f78c6405fede8a1"
+      },
+      {
+        "node": 3,
+        "device": 0,
+        "trace_span_ms": 1494.299553,
+        "enclosing_CAPI_sum_ms": 1487.6387505792081,
+        "exclusive_activity_ms": {
+          "no_recorded_activity": 322.40647700000005,
+          "copy": 15.153087000000001,
+          "CCL_name_hint": 438.535137,
+          "nonCCL_kernel": 718.204852
+        },
+        "W13_kernel_sum_ms": 249.56036,
+        "Down_kernel_sum_ms": 196.511578,
+        "W13_calls": 176,
+        "Down_calls": 176,
+        "kernel_names": [
+          "ncclDevKernel_SendRecv_ring_simple_sum_int8_t(ncclDevKernelArgsStorage<1024ul>)",
+          "void infini::ops::mxfp4_detail::groupedW134531<2, 4>(__nv_bfloat16*, __nv_bfloat16 const*, int const*, int const*, int const*, int const*, int const*, unsigned char const*, unsigned char const*, unsigned long)",
+          "void infini::ops::mxfp4_detail::staticW2R326U<__nv_bfloat16>(__nv_bfloat16*, __nv_bfloat16 const*, int const*, float const*, unsigned char const*, unsigned char const*, unsigned long, unsigned long, unsigned long, unsigned long, unsigned long, unsigned long)",
+          "ncclDevKernel_AllReduce_Ring_LL_Sum_b16(ncclDevKernelArgsStorage<1024ul>)",
+          "void kimiDeltaAttentionRecurrentCudaKernel<__nv_bfloat16, __nv_bfloat16>(__nv_bfloat16*, __nv_bfloat16*, __nv_bfloat16*, __nv_bfloat16*, __nv_bfloat16 const*, __nv_bfloat16 const*, __nv_bfloat16 const*, __nv_bfloat16 const*, __nv_bfloat16 const*, float const*, float const*, void const*, void const*, void const*, bool, bool, bool, bool, bool, bool, unsigned long, unsigned long, unsigned long, float, float, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long, long)",
+          "Cijk_Ailk_Bljk_BBH_MT256x256x16_SE_AMAS3_BW_DTL0_BL1_DRB16_ALT_KME0_ETSP_EPS1_FL0_GRVW8_GSU1_ISA936_IU1_KME_GRCMn1_K1_KLA_LDL1_LRVW8_MAC_MMAC_BW1_MMAC_KM0_MMAC_KME1_NLCA1_NLCB1_OLDSR0_PGR1_PLR1_RK1_SU2_SUM0_SUS256_SVW4_TT16_8_TLM0_ULDSWM0_USFGRO0_USSB0_VAW2_VSn1_VW8_WG16_32_1_WGM4",
+          "void infini::ops::topk_sigmoid_detail::TopkSigmoidKernel<256u, (infini::rt::Device::Type)7, __nv_bfloat16, int>(__nv_bfloat16 const*, float const*, unsigned char const*, float*, int*, int*, int, int, int, bool, float)"
+        ],
+        "trace_data": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Kimi-current-profile-r8673-currentprofile8670-2780c25f37791711-node3-CPUtrace-r8675.json",
+        "trace_data_SHA256": "2b637f2f74b70d9b36c610af52738f57665adaa4a3ae2c37abb14396c12023c5"
+      }
+    ],
+    "all32_device_data": "r8675-Kimi-current-profile-CPUtrace-a.json",
+    "boundaries": "Local enclosing CAPI includes GPU/TP/PP dependency; notGPUbusy. Crosshost/rank intervals never summed. CCL classified by symbol hint; TP-vs-PP actualsource roles must be confirmed. NonCCL not synonymous with MFMA. Blank is no recorded activity, not removable idle. Kernel duration sums are not exclusive per-name wall.",
+    "overlap": "Disjoint category masks show essentially zero CCL/nonCCL overlap in this instrumented window; microsecond-level exceptions. This does not prove all pipeline overlap absent.",
+    "critical": "Emitterstage3 observed local8callspan1.4943s is longeststage. Device0 exhibits718.205ms nonCCL/438.535ms CCL/15.153ms copy/322.406ms blank; not proof globally causal criticaldevice or that CCL/blank is removable."
+  },
+  "next_candidate": {
+    "primary": "W13 wave64 activation parallelization, per Astra45 actualsource: preserve TT2/Tile4/640CTA and reduction; replace thread0 eight serial activation calls by wave0 lanes0..7 one pair per lane at one shared callsite.",
+    "correctness": "Broadcast all16 fixed-index thread0 gate/up values from lane0 before lane-local pair selection. Selecting dynamic sums[2*lane] before lane0 shuffle is WRONG. Wave0 remains active through broadcasts; retain rowinvalid write guard and finalCTA barrier. Same activation function/parameters, no SiLU substitution; no W2/mathprovider change.",
+    "budget": "W13 duration sum249.56..274.07ms/localtwo-roundwindow (~17..20%). Recoverable portion0..thisgrossbudget, no guaranteedwholeModelgain; activation fraction UNKNOWN. No multiplying93layers or ranks.",
+    "fallback": "Input BF16pair uint32 load only if actualISA differs frombaseline; same codegen=>STOP beforeGPU.",
+    "negative_scope": "766 is dense layer0 BF16 SituAndMul(beta4,linear_beta25)+DownRowParallel, NOT routedMXFP4 staticW2R326U. Do not transfer its gain toMoE. reduceWave consumesall256 laneinputs despiteonly64lanes doinglater work, cannot simplyomit192stores.",
+    "gate": "One existingT16 finite sameprovider component with fulloutputs/activation+W2, then samegeometry fullModeltoken/EOS only if material beyonddrift. No blindtilegrid/profile-onlyreload."
+  },
+  "source_evidence": {
+    "manifest_SHA256": "bd464730c97c9a4373f889a3c143edd305e2ff88157b479814545d3bd1008f1d",
+    "W13_source_SHA256": "a07344dae460db43a56aaf442202a7499faa17b99542ff31f6cd92ecc8c562b3",
+    "reduce_source_SHA256": "afc628538ffae22a298dea9dca615c0f6f0f57329affd0d09d71e2390ec8da21",
+    "linked_kernel_object_SHA256": "8602e0af61e3db4891459339021f4edc332de1474f04597255d4526f84a4d923",
+    "native_SHA256": "f6f10c2b243e0336074b872859e6ca6acb08effdcd56d86b9ac4df1bf2ddb5e9"
+  },
+  "evidence": {
+    "r8675-Kimi-current-profile-CPUtrace-a.json": "0c8d3d96fa53eb13bed12fbd67da488c9f4368c8f1b58aa20568660618671265",
+    "r8676-Kimi-current-profile-top-b.json": "ac67c4906fd61b8e2bc66b4bbc9b67a6e093a8fb4055975d11f9cb79f1f5033b",
+    "analyze_Kimi_current_profile_r8675.py": "ed03a52d18d2f810724fd16968bfff8a550fbf1ada6d1f4eb30c74baf9d49db1"
+  },
+  "no_new_GPU": true,
+  "analysis_failure_preserved": "r8674 pureCPU Path variable shadowing failed before writing results; fixed8675, noGPUreplay"
+}

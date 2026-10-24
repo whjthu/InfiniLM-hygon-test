@@ -1,5 +1,14 @@
 # BW1000 当前性能与后续方向
 
+## 第45次 Astra 审核已落实：2026-10-24 17:00 北京时间
+
+本轮763/639/766各消费一次，下一周期计数归零。审核明确：新增整模型已验收优化收益仍为零，不能用编译、工具通过、局部逐位恢复或组件倍率代替。当前Kimi插桩基线decode136.6367 tok/s/32卡；真实emitter首末token用户均1.3816、最高约2.1361 tok/s，最大ITL约76.58秒，prefill期间的等待仍明显。完整profile见 `../../evidence/bw1000/Kimi639-profile-compact-r8677.json`。
+
+两项已经交原owner并行实施：Kimi实际W13 <2,4>归约后八次串行activation改为wave0八lane并行，保留原累加树/route/W2，先单TU CPU构建与有限provider配对；GLM原两TU补显式prefill事件窗，cohort0/1分别选stage0层0/1，保留原stream/drain/所有数学。各自20分钟CPU首判目标，具体GPU包尚待准备，不把held320DCU当利用率。审核不再阻挡这些实现，不增加SDK/freshness或全网络中间bit门；整模型晋级仍检查完整最终token/EOS与实际计时。
+
+766真实整层0组合已正常闭合、8rank目标输出与重复稳定；串行4次512行到合批2048行的完整适配调用137.232→118.632ms，成本下降13.55%，含reset/传输/调用摊薄，仅为组件信号。当前绑定仍component-only，且不同于91层MoE MXFP4 Down，暂缓独立整模型加载。Deep760负路线及GLM盲M4扩展继续停止。以下为带时间的历史记录。
+
+
 ## 当前插桩基线已闭合：2026-10-24 16:40 北京时间
 
 Kimi639 已 COMPLETED0/27:23；32卡正常退出，所有完整输出IDs与前后QA通过，原post清理通过。TP8×PP4、B64/M16、每请求输入512/输出128：两次普通decode总吞吐136.7207/136.5526，均值136.6367 tok/s（4.2699 tok/s/卡）；prefill均85.6827秒；含prefill的输出吞吐均56.4304 tok/s。普通阶段仍加载hipprof interposer，因此这是当前插桩基线，不能据此宣称相对历史版本优化提速。四节点日志IBext_v8=true、Socket_fallback=false。已取得闭合trace，原owner正在CPU分解实际关键路径。
