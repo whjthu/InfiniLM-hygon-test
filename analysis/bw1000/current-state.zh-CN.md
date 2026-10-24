@@ -1,5 +1,12 @@
 # BW1000 当前性能与后续方向
 
+## 当前插桩基线已闭合：2026-10-24 16:40 北京时间
+
+Kimi639 已 COMPLETED0/27:23；32卡正常退出，所有完整输出IDs与前后QA通过，原post清理通过。TP8×PP4、B64/M16、每请求输入512/输出128：两次普通decode总吞吐136.7207/136.5526，均值136.6367 tok/s（4.2699 tok/s/卡）；prefill均85.6827秒；含prefill的输出吞吐均56.4304 tok/s。普通阶段仍加载hipprof interposer，因此这是当前插桩基线，不能据此宣称相对历史版本优化提速。四节点日志IBext_v8=true、Socket_fallback=false。已取得闭合trace，原owner正在CPU分解实际关键路径。
+
+Astra44后763与639共2轮；8658真实整层组合及有限无capture成本测试已获执行授权，源认领73f10b2，不把准备当完成。GLM8692工具已实际8子进程trace可见、507正常结束/508清理通过，仅工程进展；当前B16/M8 prefill profile包CPU准备中，尚无新Model性能。以下段落保留时间标记，作为历史状态。
+
+
 ## 第44次审核落实：2026-10-24 16:25 北京时间
 
 Astra44已完成，757/760/501各计一次并消费，四项决策见 `reviews/astra-review-implementation-44-current.json`。后续763是下一周期第1轮：8卡61秒、8normal/原audit/764节点清理为空；原Row与合法拆分路径均复现完整O/N，preTP目标全部相同，仅按512行分段TP归约即恢复8rank目标。这与757 GateUp512因果点分别成立；整层组合/最终token/EOS/吞吐尚未验证。最小8657组合CPU准备在进行，保留原classlayout/Common/SDK。
