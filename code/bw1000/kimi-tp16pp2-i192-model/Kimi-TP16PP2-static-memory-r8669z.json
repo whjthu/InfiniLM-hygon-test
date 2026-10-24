@@ -1,0 +1,59 @@
+{
+  "raw_SHA256": "d70d62d09ca3525a98e8a9a3eb1c9d051d77d2b73c9449e549b636dc3c199cc2",
+  "topology": {
+    "TP": 16,
+    "PP": 2,
+    "nodes": 4,
+    "cards": 32,
+    "stages": [
+      {
+        "PP_stage": 0,
+        "layers": [
+          0,
+          46
+        ],
+        "parameter_bytes_conservative": 55242456904,
+        "parameter_GiB_conservative": 51.448547191917896,
+        "category_bytes": {
+          "sharded_attention": 2236499784,
+          "replicated_or_conservative": 7952840704,
+          "shared_or_dense_MLP": 834011136,
+          "MXFP4_experts": 44219105280
+        },
+        "category_keys": {
+          "sharded_attention": 464,
+          "replicated_or_conservative": 616,
+          "shared_or_dense_MLP": 138,
+          "MXFP4_experts": 241920
+        },
+        "unclassified_attention_replicated": {},
+        "remaining_of_64GiB_before_cache_workspace_allocator": 12.551452808082104
+      },
+      {
+        "PP_stage": 1,
+        "layers": [
+          46,
+          93
+        ],
+        "parameter_bytes_conservative": 57438928176,
+        "parameter_GiB_conservative": 53.49417047202587,
+        "category_bytes": {
+          "replicated_or_conservative": 8242930176,
+          "sharded_attention": 2235390768,
+          "shared_or_dense_MLP": 776208384,
+          "MXFP4_experts": 46184398848
+        },
+        "category_keys": {
+          "replicated_or_conservative": 641,
+          "sharded_attention": 460,
+          "shared_or_dense_MLP": 141,
+          "MXFP4_experts": 252672
+        },
+        "unclassified_attention_replicated": {},
+        "remaining_of_64GiB_before_cache_workspace_allocator": 10.505829527974129
+      }
+    ],
+    "all_stages_parameter_plus_6GiB_reserve_fits_64GiB": true
+  },
+  "method": "Read checkpoint headers only; actual source Kimi Experts /TP, shared/denseMLP /TP, explicit attention columns/rows /TP; replicated router/down/up/norm/f_a/q_a/kv_a and full embedding. Conservatively full LMhead tail, unclassified attention replicated. Conv/o_norm F32, A_log trimmed actual heads. Not exact allocator peak/cache/workspace/posttranspose memory; sixGiB only planning reserve, actual all32 GPU mem_get_info/load/finish/pre-fill still required."
+}
