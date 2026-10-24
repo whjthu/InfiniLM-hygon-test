@@ -1,0 +1,80 @@
+{
+  "accounting": [
+    "910407.175|Deep-sdot4-CPU-r8740|COMPLETED|0:0|00:00:08|a14r2n20"
+  ],
+  "receipt_exists": true,
+  "receipt": {
+    "completed": true,
+    "CPU_only": true,
+    "GPU_initialized": false,
+    "producer": "910407.175",
+    "source_SHA256": "cd14eff130a02bb5b73572bc2cdfcf5a55df85d9a1068004e3e0878906ef3965",
+    "parent_actual_object_SHA256": "08ed7c8bfb7fe56cee66a6d6bdc5a5d569b05574ae68b2e7741d755a563ea756",
+    "compiler_returncode": 0,
+    "compile_argv": [
+      "/opt/dtk/cuda/cuda/bin/nvcc",
+      "-std=c++17",
+      "-O3",
+      "-arch=gfx936",
+      "-Xcompiler=-fPIC",
+      "-D_GLIBCXX_USE_CXX11_ABI=1",
+      "-c",
+      "/refactor/incoming/deep_routed_sdot4_r8740.cu",
+      "-o",
+      "/refactor/candidates/deep-sdot4-r8740/routed-sdot4.o"
+    ],
+    "compiler_diagnostics": "/refactor/incoming/deep_routed_sdot4_r8740.cu:10:1: warning: void function is missing a return statement [-Wreturn-type]\n}\n^\n1 warning generated when compiling for gfx936.\n",
+    "CPU_seconds": 7.14051261683926,
+    "DTK_dp4a_header_SHA256": "04b9f47a4cbe6f446d6de688596af9c75802093f7e84d157a806da119701628e",
+    "DTK_dp4a_definition": [
+      "",
+      "",
+      "",
+      "",
+      "__SM_61_INTRINSICS_DECL__ int __dp4a(int srcA, int srcB, int c) {",
+      "    char srcA_1 = (srcA >> 0) & 0xFF;",
+      "    char srcA_2 = (srcA >> 8) & 0xFF;",
+      "    char srcA_3 = (srcA >> 16) & 0xFF;",
+      "    char srcA_4 = (srcA >> 24) & 0xFF;",
+      "",
+      "    char srcB_1 = (srcB >> 0) & 0xFF;",
+      "    char srcB_2 = (srcB >> 8) & 0xFF;",
+      "    char srcB_3 = (srcB >> 16) & 0xFF;",
+      "    char srcB_4 = (srcB >> 24) & 0xFF;",
+      "",
+      "    int product1 = srcA_1 * srcB_1;",
+      "    int product2 = srcA_2 * srcB_2;",
+      "    int product3 = srcA_3 * srcB_3;",
+      "    int product4 = srcA_4 * srcB_4;",
+      "",
+      "    int ret = product1 + product2 + product3 + product4 + c;",
+      "",
+      "    return ret;",
+      "}",
+      "",
+      "__SM_61_INTRINSICS_DECL__ unsigned int __dp4a(unsigned int srcA, unsigned int srcB, unsigned int c) {"
+    ],
+    "math": "Same signed integer dot, W/launch/tree/scales/BF16 unchanged. K4096 maxabsintegerproductsum67108864<int32max; K2564194304. No saturation needed.",
+    "GPU_NOT_RUN": true,
+    "ISA": [
+      {
+        "path": "/refactor/candidates/deep-sdot4-r8740/gpu-8192.isa.txt",
+        "SHA256": "1eb8607420f5f96107e22b4b45b966dc9dce7233e3740f409a3e58ae7e5dbc56",
+        "exit": 0,
+        "native_dot_lines": [
+          "v_dot4_i32_i8 v0, v12, v13, v0                             // 000000002B28: D3A84000 1C021B0C",
+          "v_dot4_i32_i8 v0, v12, v13, v0                             // 000000002F28: D3A84000 1C021B0C",
+          "v_dot4_i32_i8 v0, v14, v15, v0                             // 00000000321C: D3A84000 1C021F0E"
+        ],
+        "MMAC_lines": [],
+        "software_byte_multiply_lines": 0
+      }
+    ],
+    "object_SHA256": "64a7e2e248ea8beb229d19bc9d8ff1ada38b7952fef463e19ebf8b87bee56f40",
+    "native_scalar_dot4_confirmed": true,
+    "eligible_for_GPU": true
+  },
+  "receipt_SHA256": "b0d8dbf9bf11d0ce4666994396bbc209342183421f22a763c01991830e6a55d9",
+  "Deep-sdot4-CPU-r8740-910407.175.log": "LOCAL_PYCACHE_R3097 node=a14r2n20 filesystem=tmpfs root=/dev/shm/infini-pyc-910407.175-0\nSHARED_CACHED_R1780_START node=a14r2n20 step=910407.175 scratch=runtime-raw-sdk-graph-r2323-910407.175-rank0\nWARNING: Could not find any rocm files on this host!\nWARNING: Environment variable TMPDIR already has value [/tmp], will not forward new value [/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/runtime-raw-sdk-graph-r2323-910407.175-rank0] from parent process environment\nWARNING: /opt/hyhal/lib/cmake/rocm_smi doesn't exist, please install the latest driver(version >= 6.3.15)\nThe rocm_smi_lib will be used in default\n{\"completed\": true, \"compiler_returncode\": 0, \"CPU_seconds\": 7.14051261683926, \"native_scalar_dot4_confirmed\": true, \"eligible_for_GPU\": true, \"receipt_SHA256\": \"b0d8dbf9bf11d0ce4666994396bbc209342183421f22a763c01991830e6a55d9\", \"diagnostics\": \"/refactor/incoming/deep_routed_sdot4_r8740.cu:10:1: warning: void function is missing a return statement [-Wreturn-type]\\n}\\n^\\n1 warning generated when compiling for gfx936.\\n\"}\nSHARED_CACHED_R1780_COMPLETE node=a14r2n20 scratch=runtime-raw-sdk-graph-r2323-910407.175-rank0\n",
+  "Deep-sdot4-CPU-r8740-controller.log": ""
+}
