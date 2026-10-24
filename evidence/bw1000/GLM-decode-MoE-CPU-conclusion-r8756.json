@@ -1,0 +1,257 @@
+{
+  "utc": "2026-10-24T13:05:28.062788+00:00",
+  "scope": "Astra50 CPU source/counter dedup only. No GPU/profile/compile/dlopen/weights/Git. Does not count performance round.",
+  "decision": "STOP: current T8 decode routed gate/up and down already use linked custom native vector kernels; zero r5386 counters expected. No untried high-coverage minimal source correction established.",
+  "actual_Model": {
+    "handle": "910376.522",
+    "DSO": "5f3dd3d9c2a6715992be48f5de514a145c11d971cb7e07a4ec1bc10fb6a7ad52",
+    "actual_DSO_SHA256": "5f3dd3d9c2a6715992be48f5de514a145c11d971cb7e07a4ec1bc10fb6a7ad52",
+    "native_provider_DSO": "f35956f532833ce964bf766c8a61b44b56fe79042921d86710ccd075101705d2",
+    "provider_evidence": "522 frozen runtime manifest/CPU169 link includes native and vector.o; source/object chain below. No name-only ISA claim."
+  },
+  "source_object_bindings": [
+    {
+      "source": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/glm-vector-model-r8542/src/glm_moe_dsa_routed_ffn_r19.cpp",
+      "receipt_source_SHA256": "c716b37fd3fe786cece00a5b4a309d9eb13b76e4bbdb8cc8843be936c708e64b",
+      "actual_source_SHA256": "c716b37fd3fe786cece00a5b4a309d9eb13b76e4bbdb8cc8843be936c708e64b",
+      "object": "/refactor/candidates/glm-vector-model-r8542/vector-0.o",
+      "actual_object_SHA256": "4b36b711d264f8e7f28ea048d3f6176ffeec9291618ea106ba4a6ba8f3941c41",
+      "linked_SHA256": "4b36b711d264f8e7f28ea048d3f6176ffeec9291618ea106ba4a6ba8f3941c41"
+    },
+    {
+      "source": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/glm-vector-model-r8542/src/glm_vector_dispatch_r8540.cpp",
+      "receipt_source_SHA256": "3a39b4916568d577e8fe7ee994fc1db18754fce90ea8a63d5b1b9079c047140e",
+      "actual_source_SHA256": "3a39b4916568d577e8fe7ee994fc1db18754fce90ea8a63d5b1b9079c047140e",
+      "object": "/refactor/candidates/glm-vector-model-r8542/vector-1.o",
+      "actual_object_SHA256": "9425a3eed7a40641c954f7cbbb97c50555089f8060c43ef380bb69300c102355",
+      "linked_SHA256": "9425a3eed7a40641c954f7cbbb97c50555089f8060c43ef380bb69300c102355"
+    }
+  ],
+  "vector_kernel": {
+    "source": "/refactor/incoming/glm_scalar_vectorload_r8528.cu",
+    "source_SHA256": "b257ff25f042d86a166bf7873c1b1a781b106a870dd7b62fae297f1de90b5eb0",
+    "object": "/refactor/candidates/glm-vector-r8529/vector.o",
+    "object_SHA256": "75f6ecd450268db5b0f062c2859e1a9f8f8bd2814730afccbc17f9486bd4fd80",
+    "CPU169_linked_object_SHA256": "75f6ecd450268db5b0f062c2859e1a9f8f8bd2814730afccbc17f9486bd4fd80",
+    "receipt": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/glm-vector-r8529/CPU-result.json",
+    "receipt_SHA256": "040be844dd06cbe8c651634dc1a8779a8772b6a2a4a14a4cb03db622a1828a3f",
+    "receipt_compile_step": "910379.454",
+    "ISA_scope": "Existing captured gfx936 assembly receipt only; no new compile or GPU. No integerTOPS inference."
+  },
+  "actual_call_chain": [
+    {
+      "source": "glm-vector-model-r8542/src/glm_moe_dsa_routed_ffn_r19.cpp",
+      "lines": [
+        100,
+        109,
+        111,
+        114,
+        117,
+        118,
+        120,
+        122,
+        125,
+        126,
+        128,
+        131
+      ],
+      "meaning": "Frame snapshots vector policy; routes=tokens*8; SDK router/quant/Silu/Mul; direct native dispatch gate/up and down; original F32 weight/reduce/shared+TP then BF16 finish."
+    },
+    {
+      "source": "glm_vector_dispatch_r8540.cpp",
+      "lines": [
+        13,
+        30,
+        31,
+        33,
+        34
+      ],
+      "meaning": "selected=enabled && routes in{32,64}; routes64 for actualdecodeT8 -> glm_vec_gate/down_r8528; no perexpert Torch loop in selectedpath. Other shapes call same immutable grouped wrapper."
+    },
+    {
+      "source": "glm_scalar_vectorload_r8528.cu",
+      "meaning": "Custom FP8 decode/multiply/reduction-tree kernels, cooperative widefetch+lane redistribution; W64 gate and W32 down. Current provider is not matrix-tile or integer-MMAC path."
+    }
+  ],
+  "counter_semantics": {
+    "r5123_5": [
+      "wrapper_calls",
+      "grouped_gate_hits",
+      "grouped_down_hits",
+      "original_scalar_fallback",
+      "errors"
+    ],
+    "r5386_4": [
+      "strict_T16_decode_gate",
+      "strict_T16_decode_down",
+      "decode_errors",
+      "diagnostic_calls"
+    ],
+    "r8540_8": [
+      "gate_vector_hit",
+      "gate_fallback",
+      "down_vector_hit",
+      "down_fallback",
+      "errors",
+      "gate_hit_token_rows",
+      "down_hit_token_rows",
+      "policy_switches"
+    ],
+    "why_zero": "decode_native_count_* uses glm_dedup_counts_r5386, not a generic native-use counter. Scope in probe requires step>0,actualflatT16,explicitdedupenv1. Current T8/flags0 alwaysscope0; vector hit bypasses grouped wrapper entirely. Enabling only oldflag cannot make routes64 satisfy its routes128 guard.",
+    "native_current_wrapper_source": "glm_hybrid_decode_native_r5386.cpp",
+    "source_SHA256": "d1b7b39996e11675fb998f555fce63329cf76f0fb1efc66eaa02f3b439210100",
+    "wrapper_behavior": "Current f359 wrapper exports r5123 names but differs from obsolete naïve r5123 implementation. Dedup requires modeON/routes128/explicitTLSscopeON/policyON. Other routes<4096 call original custom glm_routed_*_r19, not Torch perexpert bmm. Eligible largeprefill uses existing exactR8 gate/certifiedDown ATen-based path.",
+    "probe_lines": [
+      65,
+      67,
+      155,
+      224
+    ],
+    "hybrid_lines": [
+      69,
+      70,
+      71,
+      72,
+      82
+    ]
+  },
+  "522_actual_counters": [
+    {
+      "stage": 0,
+      "owner_report_SHA256": "4ea322ddff33c8122e9536c104d4668d5b0def0a2138cd087dbe150f9dbb3625",
+      "phases": [
+        "perf-I512-proof-O-r0",
+        "perf-I512-proof-N-r0",
+        "perf-I512-proof-N-r1",
+        "perf-I512-proof-O-r1"
+      ],
+      "per_phase_common": {
+        "decode_T": [
+          8
+        ],
+        "events": 256,
+        "grouped_delta": [
+          140,
+          70,
+          70,
+          0,
+          0
+        ],
+        "dedup_delta": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "vector_delta": [
+          8890,
+          70,
+          8890,
+          70,
+          0,
+          71120,
+          71120,
+          0
+        ]
+      }
+    },
+    {
+      "stage": 1,
+      "owner_report_SHA256": "4164587bac23fb96479c6f15d95b49b98184e9531a1d7f51ea3ebd52ad4037df",
+      "phases": [
+        "perf-I512-proof-O-r0",
+        "perf-I512-proof-N-r0",
+        "perf-I512-proof-N-r1",
+        "perf-I512-proof-O-r1"
+      ],
+      "per_phase_common": {
+        "decode_T": [
+          8
+        ],
+        "events": 256,
+        "grouped_delta": [
+          160,
+          80,
+          80,
+          0,
+          0
+        ],
+        "dedup_delta": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "vector_delta": [
+          10160,
+          80,
+          10160,
+          80,
+          0,
+          81280,
+          81280,
+          0
+        ]
+      }
+    }
+  ],
+  "prior_wholeModel_boundaries": {
+    "dedup440": {
+      "artifact": "GLM-qualified-ABBA-evidence-r5455.json",
+      "SHA256": "7aa57fff7b8899be9f0cf4ed54251729644701a34050d4bf9042104abae645d7",
+      "terminal": "COMPLETED0 01:58:28, all16 owners normal, all32 phases, finalQA/cache/hostbank closure",
+      "Model_SHA": "007791c658d0526022c5e0bc999c0902c28696585167674aa2bc8366c85bf0c6",
+      "native_SHA": "f35956f532833ce964bf766c8a61b44b56fe79042921d86710ccd075101705d2",
+      "families": [
+        {
+          "family": "g16m16",
+          "B": 16,
+          "M": 16,
+          "decode_gain_percent": 28.12617896988312,
+          "E2E_gain_percent": 11.12822325540208
+        },
+        {
+          "family": "u16m16",
+          "B": 16,
+          "M": 16,
+          "decode_gain_percent": -1.4411009504902483,
+          "E2E_gain_percent": -1.1873715150139574
+        },
+        {
+          "family": "g32m16",
+          "B": 32,
+          "M": 16,
+          "decode_gain_percent": 28.6668907490194,
+          "E2E_gain_percent": 11.020054101580111
+        },
+        {
+          "family": "g64m16",
+          "B": 64,
+          "M": 16,
+          "decode_gain_percent": 28.88200053329173,
+          "E2E_gain_percent": 10.106117129652326
+        }
+      ],
+      "qualification": "Complete finalIDs/EOS/QA, all16normal and savedlogit finite/SHA/CPUargmax passed. Repeated-two-family gain is real in oldT16 geometry; unique16 regresses. Not currentT8 vector comparison."
+    },
+    "naive_native401": {
+      "artifact": "experiment-round-receipts-r4714/glm-native-Model-r5118-negative.json",
+      "SHA256": "93de7ef2dad261678717d74cb592ab344f7d87db3ebb9906c2c57df4f3a7cd90",
+      "terminal": "910376.401 COMPLETED0 but natural fullIDs rejected",
+      "boundary": "All firsttokens equal; first differences8..26 at B16/M16 I512/O128; prefill samehistory logits already drift. This obsolete naïve grouped-prefill failure is not a currentT8 vector-decode failure; corrected f359 path later qualified."
+    }
+  },
+  "cost_evidence_limits": {
+    "510": "Existing window covers prefill stage0 layers0/1 only, cannot attribute currentdecode MoE fraction.",
+    "522": "ordinaryprofileOFF. Whole-forward CPU/emitter timing includes attention/FFN/CCL/feedback; native/vector counters establish coverage, not duration.",
+    "old5443": "Synthetic independentT16 oldprovider FFN gate/up~2.072ms +down~1.336ms vswhole~4.334ms; not currentT8 vector share.",
+    "remaining_current_T8_decode_fraction": "UNKNOWN",
+    "new_candidate": null,
+    "followup": "No blinddedup flag, cache, second method or newGPU. PV stays defaultOFF pending next necessary Model load perAstra50."
+  },
+  "evidence": {
+    "GLM-decode-MoE-source-r8756-b.json": "1add0603960489f180d24530905f95072a8c4dc37083b05f6b5fdc4bd1710a04",
+    "GLM522-prefill-prefix-compact-r8708.json": "28ac5a1d912adc1f4121985c1a58b381d598e6e3929fc067ebc2d4a1c177fb86",
+    "GLM-vector-Model-handoff-r8544.json": "b4537ead8baa750023af11a676bca059faced0fb74fb69227c1102fad7b477ba"
+  }
+}
