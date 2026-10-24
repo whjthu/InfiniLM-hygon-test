@@ -1,0 +1,223 @@
+{
+  "id": "DEEP-NEXT-CPU-BATCHED-API-AND-FOUR-EXPERT-PROFILE",
+  "status": "CPU_COMPLETE_API_PRESENT_RUNTIME_INT8_BATCH_SUPPORT_UNVERIFIED_PROFILE_PLAN_READY_NO_GPU_GO",
+  "completed_utc": "2026-10-24T18:02:46.889765+00:00",
+  "scope": "At most10min CPU directcurrentheader/symbol/route-count analysis after844. No SDK/ISA/provider broadsearch, compile, dlopen, GPU, newModel/fixtureload. Only original591 routeindices were read for counts; no hiddenactivations/weights read.",
+  "published_parent": {
+    "branch": "bw1000-experiments",
+    "commit": "7c4f1671b071680dc129624ceffbc254494347f5",
+    "offlineverify": "PASS1545source/56results",
+    "worktree_clean": true
+  },
+  "API": {
+    "headers": {
+      "cublas_v2.h": {
+        "resolved": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/containers/dtk26-sandbox-r1/opt/dtk/cuda/cuda-12/targets/x86_64-linux/include/cublas_v2.h",
+        "SHA256": "bd5fd2dcc25e0692914924a9eecb13a0997cb3ebf788e43011d0161a332d6d31"
+      },
+      "cublas_api.h": {
+        "resolved": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/containers/dtk26-sandbox-r1/opt/dtk/cuda/cuda-12/targets/x86_64-linux/include/cublas_api.h",
+        "SHA256": "639540f36d29a824d9a9cb74dbf2f29fbfb6fea93848b7310f86509e3f37014a"
+      }
+    },
+    "cublas_api_header_lines": {
+      "GemmBatchedEx": 4780,
+      "GemmStridedBatchedEx": 4822,
+      "CUBLAS_COMPUTE_32I": 151
+    },
+    "library": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/containers/dtk26-sandbox-r1/opt/dtk/cuda/cuda-12/targets/x86_64-linux/lib/libcublas.so.12.6.3.3",
+    "library_SHA256": "c06fcaa76e04342e10034e149fc14a3cef79938b6a5867c38aced26a40108c2a",
+    "defined_symbols": [
+      "000000000003b0e0 T cublasGemmBatchedEx",
+      "00000000000470b0 T cublasGemmBatchedEx_64",
+      "000000000003b2a0 T cublasGemmEx",
+      "00000000000449a0 T cublasGemmEx_64",
+      "000000000003b440 T cublasGemmStridedBatchedEx",
+      "0000000000047240 T cublasGemmStridedBatchedEx_64"
+    ],
+    "confirmed": "Both API declarations take cudaDataType for A/B/C and cublasComputeType_t; CUBLAS_COMPUTE_32I enum exists; both exactsymbols defined T in currentDTKlibcublas. Actual844 BLASresolver reported same /opt/dtk/cuda/cuda/lib64/libcublas.so.12 path.",
+    "not_confirmed": "Hygon runtime acceptance/performance for A/B CUDA_R_8I, C CUDA_R_32I, CUBLAS_COMPUTE_32I, OP_T/OP_N, these thinM and chosen batchcount/alignment is UNVERIFIED. Generic API/type enums and symbols cannot establish supported datatype/shape combinations. No GPUcall done.",
+    "existing_I8Gemm0": "Alreadyproven ordinaryGemmEx INT8→INT32 then originalFP32scale/BF16epilogue, two perexpert. ExistingSDKI8Gemm0 remains untouched; no existingbatchedI8Gemm operator asserted."
+  },
+  "actual_routes": {
+    "fixture": "retained591T2048layer0prefillrouteindices",
+    "routes": 12288,
+    "U": 251,
+    "M_min": 4,
+    "M_p50": 40,
+    "M_p90": 92,
+    "M_max": 154,
+    "M_distinct": 57,
+    "M_histogram": {
+      "4": 2,
+      "8": 3,
+      "10": 2,
+      "12": 8,
+      "14": 4,
+      "16": 7,
+      "18": 6,
+      "20": 5,
+      "22": 6,
+      "24": 6,
+      "26": 6,
+      "28": 8,
+      "30": 6,
+      "32": 10,
+      "34": 13,
+      "36": 11,
+      "38": 14,
+      "40": 10,
+      "42": 11,
+      "44": 5,
+      "46": 4,
+      "48": 8,
+      "50": 6,
+      "52": 6,
+      "54": 8,
+      "56": 4,
+      "58": 3,
+      "60": 6,
+      "62": 6,
+      "64": 4,
+      "66": 3,
+      "68": 1,
+      "70": 2,
+      "72": 2,
+      "74": 3,
+      "76": 3,
+      "78": 5,
+      "80": 2,
+      "82": 2,
+      "84": 1,
+      "86": 1,
+      "88": 1,
+      "92": 2,
+      "94": 3,
+      "96": 1,
+      "100": 1,
+      "104": 2,
+      "106": 2,
+      "110": 1,
+      "122": 3,
+      "124": 2,
+      "130": 3,
+      "132": 1,
+      "136": 2,
+      "140": 1,
+      "146": 2,
+      "154": 1
+    },
+    "metadata_SHA256": "977be1e7bdaef015744cc6d3921a73d5408d059ec99b16ebd0f7f2f64e42b37e",
+    "indices_SHA256": "4217cd123f46a7d44de04824156a8911d3f1d11195b7ebe300125cfcb9c1410a"
+  },
+  "batching_source_feasibility": {
+    "original_vendor_calls": 502,
+    "bucket_options": [
+      {
+        "M_roundup_multiple": 1,
+        "groups": 57,
+        "hypothetical_vendor_GEMM_calls_both_stages": 114,
+        "padded_total_rows": 12288,
+        "extra_rows": 0,
+        "useful_intops_multiplier": 1.0,
+        "arithmetic_overhead_percent": 0.0
+      },
+      {
+        "M_roundup_multiple": 4,
+        "groups": 34,
+        "hypothetical_vendor_GEMM_calls_both_stages": 68,
+        "padded_total_rows": 12540,
+        "extra_rows": 252,
+        "useful_intops_multiplier": 1.0205078125,
+        "arithmetic_overhead_percent": 2.05078125
+      },
+      {
+        "M_roundup_multiple": 8,
+        "groups": 19,
+        "hypothetical_vendor_GEMM_calls_both_stages": 38,
+        "padded_total_rows": 13056,
+        "extra_rows": 768,
+        "useful_intops_multiplier": 1.0625,
+        "arithmetic_overhead_percent": 6.25
+      },
+      {
+        "M_roundup_multiple": 16,
+        "groups": 10,
+        "hypothetical_vendor_GEMM_calls_both_stages": 20,
+        "padded_total_rows": 14048,
+        "extra_rows": 1760,
+        "useful_intops_multiplier": 1.1432291666666667,
+        "arithmetic_overhead_percent": 14.322916666666675
+      },
+      {
+        "M_roundup_multiple": 32,
+        "groups": 5,
+        "hypothetical_vendor_GEMM_calls_both_stages": 10,
+        "padded_total_rows": 16224,
+        "extra_rows": 3936,
+        "useful_intops_multiplier": 1.3203125,
+        "arithmetic_overhead_percent": 32.03125
+      }
+    ],
+    "preferred_initial_if_later_admitted": "Pointer-array GemmBatchedEx, exactM bins first:57bins/114calls/zero padding. This is conditional call-count reduction, not performance estimate. ExactM avoids padding/masking implementation and maintains every validrow quant/math.",
+    "parameters": "For each bin eachstage uses original columnmajor C^T=W^T*X^T: transa=T,transb=N,vendor m=Nout,n=Mbin,k=K; Aarray=each original INT8 weight[Nout,K] ptr, lda=K; Barray=each packedI8[Mbin,K] ptr,ldb=K; Carray=distinctI32[Mbin,Nout] ptr,ldc=Nout; alphaI32=1,betaI32=0,compute32I,defaultalgo. Pointerarray placement and runtimealignment constraints must be checked against currentcompatimplementation when actually tested.",
+    "two_stage_dependency": "Within each bin: quant1 each validexpert→onebatchGEMM1→originalepilogue each expert→originalClamp/SiluAndMul each expert→quant2 each expert→onebatchGEMM2→originalepilogue each expert→originalroute-position scatter. Same stream and finalSum routeorder unchanged; no expert may enter stage2 before its stage1epilogue/activation. Cross-expert submission order necessarily changes with grouping; arithmetic independence must be qualified, not called unchanged launchorder.",
+    "INT32_and_rounding": "Do not use BF16GEMM/FP32accum substitute. Keep original INT32 dot accumulation and exact FP32 expression (xs[row]*weightscale[col])*float(accum), optionalbias unchanged, one BF16 outputround; Clamp/Silu originalBF16 order.",
+    "strided_limitation": "M bins contain arbitrary noncontiguous expertIDs, so originalweightbank ptrs do not generally have one fixedstride; separatelyallocatedpacked/outputptrs also lack uniformstride. StridedBatchedEx is not a drop-in. It would require regular subgroups or extra packing/reorderedweights, adding scope/memory. Preferpointerarray conditionalcandidate.",
+    "padding_if_later_needed": "RoundM padding cost measured above. Preserve quant1/quant2 on original validM only, set paddedpackedI8 rows=0 and safe xs, ignore paddedrows in originalepilogue/scatter. PaddedBF16 rows must not perturb validrow quant scales. No padding implementation currently authorized or built.",
+    "ownership": "Pointer tables, packed inputs, I32 accumulators, scales and outputs must remain owned until actualconsumerscomplete using r8820 same-owner/same-stream rules and originalfailuredrain. Existing4MiB BLASworkspace may be reusable but batchedworkspace adequacy is unverified.",
+    "performance_scope": "57bins/114calls andpadding ratios are CPU arithmetic only. Pointertables/H2D,extraallocations/grouping,quant/epilogue/scatter remain; not502/114 speedup. Any newbatchedcall could dispatch loops internally or unsupportedpath."
+  },
+  "minimal_profile_card": {
+    "hypothesis": "Determine whether thinexpert twoI8Gemm intervals/host submission materiallydominate remaining~81ms routedcomponent before investing in batchedimplementation.",
+    "baseline": "Exactr8820DSO math, mode1 BANKOFF withPACKON+scatterON; original perbank successdrain intact. Reuse591T2048/R12288/U251, noModelload.",
+    "four_representatives": [
+      {
+        "M_e": 4,
+        "expert": 25,
+        "reason": "minimum",
+        "experts_with_same_M": 2
+      },
+      {
+        "M_e": 40,
+        "expert": 7,
+        "reason": "expert-count median",
+        "experts_with_same_M": 10
+      },
+      {
+        "M_e": 92,
+        "expert": 45,
+        "reason": "expert-count p90",
+        "experts_with_same_M": 2
+      },
+      {
+        "M_e": 154,
+        "expert": 134,
+        "reason": "maximum",
+        "experts_with_same_M": 1
+      }
+    ],
+    "host_TUs": "AtmostbankhostTU instrumentation plus prefillhostTU selection/reporting only; noSDK/kernel/rebuild, no classdatamembers change. Proposal only; notimplemented orGPUadmitted here.",
+    "selection": "Outerprefill chooses these4expertIDs from alreadygrouped routes, arms a bounded owner-thread privateobserver before their originalforward_local and reads diagnostics after it returns. No rawactivations copied.",
+    "event_cap_per_owner": 40,
+    "event_cap_all_eight_owners": 320,
+    "event_records_per_selected_expert": 10,
+    "event_policy": "Precreate exactly40 timing-enabledcudaEvents perowner beforemeasurement, no newstream. For eachselectedexpert use start/end pair around each of5groups: quant1,I8Gemm1,Clamp+SiluAndMul,quant2,I8Gemm2. EachI8Gemm includes originalvendorINT32GEMM+FP32epilogue, not separable withoutSDKchange. Other247experts untouched. Noevent insideprovider.",
+    "hostwall_policy": "Recordsteadyclock aroundeachactualex::submit group (hostsubmissionwall), wholebank entry/return and originalsync entry/return. Allocate/preparetensor hostwall separately if needed; no synthetic hostreplay. Eventrecordoverhead separate fromsubmitclock. Clamp/Silu streaminterval mayincludeoriginalactivationallocation hostgap; do not callitkernelbusy.",
+    "completion": "After originalforward_local successsync returns, cudaEventQuery allselectedendpoints must reportSUCCESS, then EventElapsedTime; no EventSynchronize, newRuntime sync or newstream. Record/query failure invalidatesdiagnostic; keep originalcatchsync/terminate and normalownercleanup. Reuseevents only afterqueryandoriginalbankdrain. Destroy afteroriginalcontextdrain.",
+    "ledger": "Perexpert report M,5same-stream intervalms, enclosingfirst-start→last-endms, disjoint phaseunion and residualgapms,5hostsubmitwallms,wholebankwallms,originaldrainwallms. Same-stream phasepairs are nonoverlapping; union/gaps computedwithsameownerGPUclock. Do not addhostwall toGPUintervals, addnestedI8Gemm intoenclosingbank twice, subtractCPU fromwall, or sumacrosseightowners.",
+    "sampling_scope": "Oneboundeddiagnostic invocation afteroriginalwarmup, all8ownercoverage. FourMexpert samples are descriptive, not an estimatorofwhole251experts unless separatelyweighted/validated. Instrumentedwall is not an ordinaryperformancegain.",
+    "runtime_gates": "Original6GiBafterload/512MiBreserve andbefore/afterobservedfloor,finite/allcloseall8,normal8/audit/post. Timingeventoverflow/notready invalidatesdiagnostic; no automaticretry.",
+    "future_cost": "If root separately admits: about20minCPU2hostTUs then one existingfixture8card finite component<=10minhard540inner; no blindModel load. Not authorization."
+  },
+  "arithmetic_context": {
+    "useful_integer_ops": 77309411328,
+    "Gintops": 77.309411328,
+    "formula": "2*R*(4096*512+256*4096)",
+    "component_native_ON_seconds": 0.08136101875,
+    "whole_component_useful_TOPS": 0.950202105575282,
+    "meaning": "Whole routedcomponent normalizedusefularithmeticrate, includesquant/gather/scatter/host/epilogue/drains. Not measured GEMM-only utilization, deviceopcode/physicalpeak attainment, or dense736TOPS-to-ModelTPS projection."
+  },
+  "next": "Prioritize bounded4expertprofile to select a measuredcause. BatchedAPI is a conditional implementationroute only afterruntimeI8/I32 supportandprofile justification. One exact unverifiedpoint is batchedruntimeINT8/INT32 shapeacceptance; stopCPUlookup here. No additionalGPU/Model submitted.",
+  "source_evidence_SHA256": "bc616a3f2b645d26cd71c2ff74d0e1ba4d14000e38d9397445ed3e97a53e0ef5"
+}
