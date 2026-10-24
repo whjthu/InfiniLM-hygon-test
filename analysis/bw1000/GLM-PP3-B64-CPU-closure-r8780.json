@@ -1,0 +1,115 @@
+{
+  "card": "GLM52-BOUNDED-PRIVATE-PP3-B64M8",
+  "status": "STOP_CURRENT_CARD_NO_GPU_MEMORY_AND_CONTROL_CLOSURE_INCOMPLETE",
+  "CPU_only": true,
+  "performance_round": false,
+  "GPU_entry_invoked": false,
+  "weights_loaded": false,
+  "dlopen": false,
+  "decision": "Retain successful bounded private native adaptation. Do not dispatch the conditional Model entry: current fit is not bounded and the existing fixed16 Python controls are not yet adapted/frozen for24owners and64rows. This is a preparation stop, not a PP3 numerical, OOM, throughput or topology-negative result.",
+  "CPU_actual": {
+    "step": "910407.182",
+    "node": "a14r2n20",
+    "state": "COMPLETED",
+    "exit": "0:0",
+    "Slurm_elapsed": "00:00:48",
+    "build_seconds": 46.54587852302939,
+    "resources": "c4/4096M/5min/gresnone",
+    "compiled_private_host_TUs": 6,
+    "reused_objects": 22,
+    "SDK_or_GPU_kernel_compile": false,
+    "library": "/refactor/candidates/glm-PP3-B64-r8780/libglm_PP3_B64_r8780.so",
+    "library_SHA256": "99b99b3ab56de735cbff177df532af0a7ce4836d6af25ce5109dfc5c997d4862",
+    "actual_build_receipt": "/refactor/candidates/glm-PP3-B64-r8780/CPU-build.json",
+    "local_observed": "GLM-PP3-CPU-observed-r8780-a.json",
+    "local_entry": "GLM-PP3-CPU-entry-r8780.json",
+    "frozen_CPU_manifest": "GLM-PP3-B64-CPU-manifest-r8780.json",
+    "CPU_manifest_SHA256": "133c62a9dd6051b60c3bea4c1b935959fe77a9387964b62feeab1d429b7f6fdd"
+  },
+  "adapted_native_scope": {
+    "sources": "GLM-PP3-B64-private-r8780-src",
+    "bounds": [
+      0,
+      26,
+      54,
+      78
+    ],
+    "private_changes": [
+      "Producer identity and stage mask use exactPP3 bounds; stage counts26/28/24.",
+      "Resident allocation shape64x640x8x256, active64 slots, unchanged64-logical-row fixed-slot mapping and noeviction semantics.",
+      "PP3-compatible transient policy permits OFF only; original transient staging is not enabled.",
+      "Recompile all6 actualMD-dependent private hostTUs with the2 patched policyheaders in a mirrored private source tree; verify MD policy dependencies select private headers.",
+      "Preserve T8 routedvector objects, prefill prefix proof, original M1 query math/order and originalPV-copy object. PV rowview remainsOFF."
+    ],
+    "component_bridge_not_Model_route": "The existing isolated layer bridge is dependency-recompiled unchanged. Its PP2/stage1 component identity is not adapted or used for the proposed fullModelPP3; no component invocation is authorized here.",
+    "GPU_scope_hit_or_correctness": "UNKNOWN; not executed",
+    "historical_source_manifest": "The initial private source-manifest.json saysUNCOMPILED. It remains frozen preparation history; this actualCPUreceipt supersedes that compile-status statement only."
+  },
+  "memory_accounting": {
+    "units": "bytes; logical census is not allocator highwater",
+    "weight_evidence": "SameTP8 constructorcensus r4159 includes replicated tensors and deduplicates tensor data starts. PP2stage1 consists of40 homogeneous routed layers/10full-attention positions plus head+norm; moving12or16 routed layers preserves the4-layer period. Current source shapes and global rawcheckpoint byte redistribution independently agree. This redistribution does not divide global sourcebytes by8.",
+    "PP2_census_weights": [
+      45968349376,
+      50376679808
+    ],
+    "last_stage_head_and_norm": 237907968,
+    "PP3_percard_logical_weights": [
+      30926717824,
+      35097140288,
+      30321171072
+    ],
+    "weight_formulas": [
+      "W0 -0.3*(W1-H)",
+      "0.7*(W1-H)",
+      "0.6*(W1-H)+H"
+    ],
+    "raw_checkpoint_source_crosscheck": {
+      "stage0": 230211339136,
+      "stage1": 276483841088,
+      "stage2": 238889327232,
+      "note": "Global checkpoint source bytes; corroborates layer redistribution only. These are not percard allocations."
+    },
+    "maxstage_resident_KV_logical": 9395240960,
+    "maxstage_resident_KV_power2_admission_estimate": 15032385536,
+    "maxstage_latent_rotary_logical": 1321205760,
+    "middle_stage_indexer_logical_estimate_from_same_census": 73400320,
+    "host_projected_KV_maxstage_per_rank": 9395240960,
+    "host_projected_KV_maxstage_eight_ranks": 75161927680,
+    "required_reserve": 6442450944,
+    "new_allowance": 67108864,
+    "retained_total_HBM_example_not_current_measurement": 68702699520,
+    "middle_stage_remainder_after_listed_terms_and_reserve": 10669007808,
+    "remainder_is_not_available_scratch_proof": true,
+    "unclosed_terms": [
+      "Physical allocator rounding/cached allocations for the redistributed weight tensor population; logical tensor census omits it.",
+      "Actual PP3 world/control CCL allocations and RoPE table physical allocation.",
+      "Current vector/ATen GEMM temporary workspaces, allocator retention across4096-token prefill and64-row decode cohorts, and simultaneous transient scratch highwater."
+    ],
+    "peak": "UNKNOWN. OldPP3B64 success and afterload free values belong to an older provider. CurrentPP2 afterphase free is not a bound for the candidate; neither is used as currentfit.",
+    "no_OOM_trial_or_auto_retry": true
+  },
+  "uncompleted_control_delta": {
+    "modern_glm_prefill_micro_r8708.py": "Single full128 B64M8 PP3 arm; single DSO path fromCPUreceipt; constructorrows64, CARDS24,bounds0/26/54/78. NoO/Nbaseline reload, no8701observer.",
+    "glm_prefill_micro_probe_r8708.py": "24participant FeedbackHub, tail emitter16, one prefixproofON ordinary arm. Expand original16prompt fixture/gold to64 by explicit4x composition before validation. Freeze originalgoldSHA; no rebaseline.",
+    "glm_crossrequest_resident_base_r5742.py_and_control": "Exact3stage masks,64row bank shape,512MiB/layer admission,24owner voting and perstage selectedcounts26/28/24. Preserve6GiB+64MiB reserve and failclosed behavior.",
+    "QA_fixture_contract_and_auditor": "Keep original fixtureSHA check16first; then validate expanded64 actualIDs/EOS. Three-node preengine,24normal reports, allstage QA, peruser tail timestamps/ITL, finallyunique3nodeKFDpost. Existing16owner fixed assumptions are not ready to execute unchanged.",
+    "status": "Not frozen or invoked; these names locate bounded remaining edits, not a readyModelmanifest."
+  },
+  "retained_results": {
+    "old_PP3": "910376.310 B64M8 andM16 qualified with old provider; not a current-provider fit or performance result.",
+    "current_baseline": "522 TP8PP2 B16M8 remains qualified. Operational24card efficiency screen is aggregate decode>58.0844tok/s; it is not a same-load causal comparison.",
+    "PV": "525 smallpositive component retained/defaultOFF; no standaloneModel load.",
+    "new_Model_gain": "UNKNOWN"
+  },
+  "next_action_under_this_card": "NONE: noGPU/sourceclaim/uniqueModelentry. Preserve immutable source+CPUreceipt for a later explicit bounded continuation; no additional architecture investigation, CPUbuild, baseline load or configurationgrid.",
+  "unclosed_native_guard": {
+    "source": "GLM-PP3-B64-private-r8780-src/modern_glm_cached_model_bridge_r809.cpp:159",
+    "guard": "modern_glm_model_resident_mask_r5640 still c->pp!=2",
+    "impact": "PP3 resident enable would reject even after legitimate weights finish; CPUcompile alone did not close all runtimeguards. NoModelinvoked."
+  },
+  "new_scope_source_boundary": {
+    "create": "Allocates actual parameter/basiccache tensors and initializes TP/world/control CCL without loading checkpoint weights.",
+    "resident": "Unavailable before weights: CAPI c->ready and TextModel/attention ready_ gates. finish checks all checkpoint keys. Never fake readiness.",
+    "subsequent_card": "r8781 constructor-only may measure actual covered allocations only; no resident or uninitialized forward."
+  }
+}
