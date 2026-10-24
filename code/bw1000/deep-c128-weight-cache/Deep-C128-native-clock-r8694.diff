@@ -1,0 +1,42 @@
+--- original8686
++++ nativeclock8694
+@@ -3,9 +3,15 @@
+ #include <infini/rt/device_guard.h>
+ #include <map>
+ #include <set>
++#include <chrono>
++#include <cstdint>
+ namespace rt=infinilm::runtime;namespace model=infinilm::models::deepseek_v4;
+ namespace {
+ thread_local std::string error,serialized;
++thread_local double timing_seconds_r8694=0;
++thread_local uint64_t timing_sequence_r8694=0;
++thread_local size_t timing_tokens_r8694=0;
++thread_local bool timing_valid_r8694=false;
+ struct Context { std::shared_ptr<rt::Runtime>owner;std::unique_ptr<model::TemporalCompressor>module;std::set<std::string>loaded; };
+ std::map<int,std::shared_ptr<rt::Runtime>>&owners(){static thread_local std::map<int,std::shared_ptr<rt::Runtime>>pool;return pool;}
+ void drain(Context*c){if(c&&c->owner)try{c->owner->syncStream();}catch(...){std::terminate();}}
+@@ -25,7 +31,7 @@
+  c->module->process_weights_after_loading(*c->owner,false);return 0;
+ }catch(const std::exception&e){error=e.what();drain(c);return 1;}}
+ extern "C" int modern_real_compress_forward(void*raw,size_t tokens,size_t count,const size_t*requests,const void*x,const void*positions,void*score,void*pooled,void*rotated,int abort,void*stream){auto*c=static_cast<Context*>(raw);try{
+- if(!count||count>128||!requests)throw std::invalid_argument("Invalid compressor request count");producer(stream);auto&r=*c->owner;size_t dim=c->module->dim(),channels=c->module->ratio()==4?4:2;
++ if(!count||count>128||!requests)throw std::invalid_argument("Invalid compressor request count");producer(stream);timing_valid_r8694=false;const auto timing_begin_r8694=std::chrono::steady_clock::now();auto&r=*c->owner;size_t dim=c->module->dim(),channels=c->module->ratio()==4?4:2;
+  std::vector<model::TemporalCompressor::Request>metadata;for(size_t i=0;i<count;++i)metadata.push_back({requests[3*i],requests[3*i+1],requests[3*i+2]});
+  auto input=rt::Tensor::from_blob(const_cast<void*>(x),{tokens,4096},rt::DataType::kBFloat16,r.device()),pos=rt::Tensor::from_blob(const_cast<void*>(positions),{tokens},rt::DataType::kInt64,r.device());auto batch=c->module->prepare(r,input,pos,metadata);
+  auto scattered=rt::Tensor::empty(r,{tokens,dim},rt::DataType::kBFloat16);r.setDeviceMemory(scattered->data(),0,scattered->nbytes());
+@@ -33,7 +39,7 @@
+  if(!abort)c->module->commit(r,batch);
+  rt::Tensor::from_blob(score,{tokens,size_t(channels)*dim},rt::DataType::kBFloat16,r.device())->copy_from(r,batch.score);
+  rt::Tensor::from_blob(pooled,{tokens,dim},rt::DataType::kBFloat16,r.device())->copy_from(r,batch.pooled);
+- rt::Tensor::from_blob(rotated,{tokens,dim},rt::DataType::kBFloat16,r.device())->copy_from(r,scattered);r.syncStream();return 0;
++ rt::Tensor::from_blob(rotated,{tokens,dim},rt::DataType::kBFloat16,r.device())->copy_from(r,scattered);r.syncStream();const auto timing_end_r8694=std::chrono::steady_clock::now();timing_seconds_r8694=std::chrono::duration<double>(timing_end_r8694-timing_begin_r8694).count();timing_tokens_r8694=tokens;++timing_sequence_r8694;timing_valid_r8694=true;return 0;
+ }catch(const std::exception&e){error=e.what();drain(c);return 1;}}
+ extern "C" size_t modern_real_compress_bytes(void*raw,int cache){auto*c=static_cast<Context*>(raw);auto source=cache?c->module->raw_cache():c->module->state();return source?source->nbytes():0;}
+ extern "C" int modern_real_compress_snapshot(void*raw,int cache,void*out,void*stream){auto*c=static_cast<Context*>(raw);try{producer(stream);auto&r=*c->owner;auto source=cache?c->module->raw_cache():c->module->state();if(!source)throw std::invalid_argument("No indexer cache in this module");rt::Tensor::from_blob(out,source->shape(),source->dtype(),r.device())->copy_from(r,source);r.syncStream();return 0;}catch(const std::exception&e){error=e.what();drain(c);return 1;}}
+@@ -41,3 +47,5 @@
+ extern "C" int modern_real_compress_reset(void*raw){auto*c=static_cast<Context*>(raw);try{c->module->reset(*c->owner);return 0;}catch(const std::exception&e){error=e.what();drain(c);return 1;}}
+ extern "C" int modern_real_compress_destroy(void*raw){auto*c=static_cast<Context*>(raw);drain(c);c->module.reset();drain(c);delete c;return 0;}
+ extern "C" int modern_real_compress_release_workers(){try{for(auto&item:owners()){infini::rt::DeviceGuard guard{rt::Device::Type::kHygon,item.first,true};item.second->syncStream();item.second.reset();}owners().clear();return 0;}catch(const std::exception&e){error=e.what();return 1;}}
++
++extern "C" int modern_real_compress_timing_r8694(double*out,size_t n){if(!out||n!=3||!timing_valid_r8694)return 1;out[0]=timing_seconds_r8694;out[1]=double(timing_sequence_r8694);out[2]=double(timing_tokens_r8694);return 0;}
