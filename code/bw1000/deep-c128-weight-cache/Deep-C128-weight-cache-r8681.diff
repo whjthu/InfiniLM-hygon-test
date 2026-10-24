@@ -1,0 +1,57 @@
+--- deep_c4_projection_model_r5920.cpp
++++ deep_C128_weight_cache_r8681.cpp
+@@ -8,6 +8,8 @@
+ #include <numeric>
+ #include <set>
+ #include <stdexcept>
++#include <cstdlib>
++#include <cstring>
+ 
+ namespace infinilm::models::deepseek_v4 {
+ namespace c4_tile_r5920 {
+@@ -82,6 +84,22 @@
+         auto layout=ape_->view({4,2,dim_})->permute({1,0,2});
+         packed_ape_->view({2,4,dim_})->copy_from(r,layout);
+     } else packed_ape_->copy_from(r,ape_);
++    // Load-time-only opt-in; never read a mutable flag in prepare/forward.
++    const char *cache_flag=std::getenv("INFINILM_DEEP_C128_F32_WEIGHT_CACHE_R8681");
++    if(cache_flag&&std::strcmp(cache_flag,"0")&&std::strcmp(cache_flag,"1"))
++        throw std::invalid_argument("DeepSeek C128 weight cache flag must be0/1");
++    if(ratio_==128&&cache_flag&&std::strcmp(cache_flag,"1")==0) {
++        // bind_weight owns the original BF16 Tensor by value; checkpoint keys,
++        // dtype, loading and serialization continue to reference those buffers.
++        // Do not rebind either member until both exact casts have completed.
++        Work cache_work{r};
++        auto kv32=cache_work.alloc(wkv_->shape(),rt::DataType::kFloat32);
++        auto gate32=cache_work.alloc(wgate_->shape(),rt::DataType::kFloat32);
++        ex::submit<infini::ops::Cast>(r,infini::ops::Cast::DefaultConfig(r.device().type()),wkv_,kv32);
++        ex::submit<infini::ops::Cast>(r,infini::ops::Cast::DefaultConfig(r.device().type()),wgate_,gate32);
++        r.syncStream();
++        wkv_=std::move(kv32);wgate_=std::move(gate32);
++    }
+     r.syncStream(); ready_=true;
+ }
+ void TemporalCompressor::rotate(rt::Runtime&r,rt::Tensor x,const std::vector<int64_t>&positions) const {
+@@ -164,10 +182,20 @@
+         // This changes accumulation/backend selection; it is not a bit-equivalent
+         // replacement until independently qualified at operator and model scope.
+         auto hidden32=work.alloc(hidden->shape(),rt::DataType::kFloat32);
+-        auto weight32=work.alloc(weight->shape(),rt::DataType::kFloat32);
++        rt::Tensor weight32;
++        if(weight->dtype()==rt::DataType::kFloat32) {
++            // Owner-bound immutable post-load cache: same shape/stride/value
++            // as the old Cast output. Member remains alive through the drain.
++            weight32=weight;work.held.push_back(weight32);
++        } else {
++            if(weight->dtype()!=rt::DataType::kBFloat16)
++                throw std::logic_error("DeepSeek C128 projection weight dtype differs");
++            weight32=work.alloc(weight->shape(),rt::DataType::kFloat32);
++        }
+         auto out32=work.alloc(out->shape(),rt::DataType::kFloat32);
+         ex::submit<infini::ops::Cast>(r,infini::ops::Cast::DefaultConfig(r.device().type()),hidden,hidden32);
+-        ex::submit<infini::ops::Cast>(r,infini::ops::Cast::DefaultConfig(r.device().type()),weight,weight32);
++        if(weight->dtype()!=rt::DataType::kFloat32)
++            ex::submit<infini::ops::Cast>(r,infini::ops::Cast::DefaultConfig(r.device().type()),weight,weight32);
+         ex::submit<infini::ops::Gemm>(r,infini::ops::Gemm::DefaultConfig(r.device().type()),
+             hidden32,weight32->permute({1,0}),std::optional<rt::Tensor>{},std::optional<float>{1},
+             std::optional<float>{0},std::optional<int>{},std::optional<int>{},out32);

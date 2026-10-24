@@ -1,0 +1,60 @@
+{
+  "updated_at_utc": "2026-10-24T09:44:18.972045+00:00",
+  "work_item": "optimize-deep-c128-immutable-weight-cache",
+  "owner": "bw1000-agent",
+  "execution_owner": "/root/glm_critical_path_profile",
+  "state": "SOURCE_CPU_READY_FINITE_GPU_GO_BEFORE_UNIQUE_ENTRY",
+  "model": "DeepSeek-V4-Flash",
+  "hardware": "BW1000",
+  "method": "C128 only immutable BF16\u2192F32 projection-weight cast once afterload; existing members rebound, original F32 GEMM/hidden and output casts unchanged; defaultOFF",
+  "source": "code/bw1000/deep-c128-weight-cache/source-package-r8689.json",
+  "source_manifest_SHA256": "1d8b3f9242579c0d6fd6687ac2195550879c88d847f866c89387a3a6456c2236",
+  "GO": "analysis/bw1000/reviews/Deep-C128-component-root-GO-r8689.json",
+  "resource": {
+    "parent": "910374",
+    "node": "a02r4n05",
+    "DCU": 8,
+    "CPU": 32,
+    "memory_MiB": 64000,
+    "hard_minutes": 10,
+    "inner_timeout_seconds": 480
+  },
+  "CPU_actual_handles": [
+    "910407.163",
+    "910407.164"
+  ],
+  "CPU_terminal": "Both COMPLETED0; 12s/7s; no GPU/dlopen/weights",
+  "geometry": {
+    "rows": 32,
+    "dim": 512,
+    "ratio": 128,
+    "compressed_capacity_per_row": 8,
+    "seed_prefix": 575,
+    "legal_append_range_inclusive": [
+      575,
+      639
+    ],
+    "selected_past": [
+      575,
+      639
+    ],
+    "warmup_arms": [
+      "O",
+      "N"
+    ],
+    "formal_arms": [
+      "O",
+      "N",
+      "N",
+      "O",
+      "O",
+      "N",
+      "N",
+      "O"
+    ]
+  },
+  "quality": "Matched actual checkpoint weights + synthetic hidden; score/pooled/rotary/state/gather finite and NRMSE checks; raw bytes diagnostic; full Model final tokens NOT_MEASURED",
+  "timing": "Native enclosing CAPI wall incl original output copies/producer sync/drain; Torch preproducer sync outside timer, reset/seed/readback outside. Slowest of8owners per trial, 2paired ABBA cycles; initialization extra sync reported separately. No extrapolation from bytes/trace to Model gain.",
+  "current_actual_handle": null,
+  "next_action": "Sole 8688 entry after ordinary temporary-branch publication, bulk SHA/fresh Slurm/KFD/readywatch; follow original handle through 8normal/audit/post; no Model extrapolation"
+}
