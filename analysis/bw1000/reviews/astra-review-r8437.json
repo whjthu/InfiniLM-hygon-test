@@ -1,0 +1,261 @@
+{
+  "revision": "r8437",
+  "review": 34,
+  "reviewer": "/root/astra_review_34",
+  "trigger": "USER_REQUEST_EFFICIENCY_REVIEW; only 715 is newly completed since review33; 477 first pair and 602 loading are not completed rounds",
+  "scope": "CPU-only bounded evidence review. Sole write this report; no GPU, Model, network, compilation or shared policy changes. Existing execution must not wait for review.",
+  "decision": "FINISH_477; EXECUTE_ALREADY_GO_5742_WITH_717; FINISH_602_THEN_ACTUAL_OPERAND_REPLAY; DEFER_DEEP_TIMER_ONLY_LOAD; STOP_DUPLICATED_GATES",
+  "previous_review_accountability": [
+    {
+      "card": "GLM477-CONTINUE-EXISTING-PAIRS",
+      "implementation": "Accepted r8433; root now reports first O/R pair, remaining reverse/QA/terminal pending. Continue same handle."
+    },
+    {
+      "card": "GLM-PREFILL-CROSSREQUEST-FULL-COST",
+      "implementation": "Completed as715, clear complete-CAPI benefit; next integration717 compiled only2TU/reused25 and5742 source-ready/rootGO. Previous component card is fulfilled, do not repeat it."
+    },
+    {
+      "card": "KIMI-599-SALVAGE-AND-TWO-DETAIL-CUTS",
+      "implementation": "Salvage/real mixed-schema CPU fix reused;602 running capture-only Oconfirm/Wmissing with9jobs/2resets and offline analysis after destroy. This materially implements prior efficiency recommendation."
+    },
+    {
+      "card": "KIMI-LOCAL-OPERAND-REPLAY-CONDITIONAL",
+      "implementation": "Still conditional on missingW.8540 supplied useful actual-callee/read/reset evidence; no need to keep all state semantics generically UNKNOWN."
+    },
+    {
+      "card": "DEEP-REUSE-7288-NO-DEDICATED-LOAD",
+      "implementation": "Correctly deferred. No new accepted Deep gain or reason for dedicated timer load."
+    }
+  ],
+  "evidence_levels": {
+    "GLM472_accepted_Model": {
+      "geometry": "16cards TP8PP2 B16M8 realI512/maxO128; fixed resident[38,40], VON/TOFF; same-session O/R/R/O",
+      "decode_tok_s": [
+        31.635460896971587,
+        37.99026356797155
+      ],
+      "decode_gain_percent": 20.087593133843985,
+      "decode_per_card": [
+        1.9772163060607242,
+        2.374391472998222
+      ],
+      "prefill_input_tok_s": [
+        72.74718249632791,
+        72.82131887880543
+      ],
+      "prefill_gain_percent": 0.10190962719589525,
+      "prefill_verdict": "No material gain",
+      "E2E_output_tok_s": [
+        11.579756196108926,
+        12.337280052923969
+      ],
+      "E2E_gain_percent": 6.541794524737821,
+      "mean_request_tok_s": [
+        1.6092013468172761,
+        1.8801481449211406
+      ],
+      "validation": "Full finalIDs/EOS and requiredQA passed;16normal, terminal0, uniqueaudit0/postempty. All timing trajectories capped at128 withoutEOS; no independent original-math or naturalcompletion claim.",
+      "time": "49:28 total; missing phase splits remain UNKNOWN",
+      "ITL_TTFT": "Per-request event distributions not supplied in compact qualification. mean_request throughput is not measured ITL; cohort first-ready prefill endpoint is not a user TTFT distribution. Reuse retained timestamps if available, no metrics-only load."
+    },
+    "GLM715_component_only": {
+      "geometry": "8 independent owner components, each synthetic BF16[8,512,8,256]; no weights/collective/Model",
+      "complete_CAPI_speedup": [
+        3.2145323426948726,
+        3.17267248742615
+      ],
+      "OFF_ON_spread_percent": [
+        2.1001,
+        2.0195
+      ],
+      "max_NRMSE": 7.971753254302073E-06,
+      "max_abs_error": 0.00048828125,
+      "component_argmax_differences": 0,
+      "time": "51s terminal0,8normal,uniqueaudit0/postempty; warm7.03s excluded",
+      "interpretation": "Complete wall includes metadata/validation/packing/QK/softmax/PV/scatter/drain. Strong component result warrants existing Model trial, but attention argmax is not finaltoken and 3.2x is not Model/prefill throughput gain."
+    },
+    "GLM477_provisional_root_increment": {
+      "source": "root message citing r5740-GLM-ROWS32-progress-f.json at2026-10-23 23:57:20UTC; not independently reread",
+      "geometry": "910376.477 n12/n13 16cards B32M8 realI512/O128 actual resident[38,27]",
+      "decode_tok_s": [
+        32.25513,
+        36.07117
+      ],
+      "decode_gain_percent_approx": 11.83,
+      "E2E_output_tok_s": [
+        12.97677,
+        13.54643
+      ],
+      "prefill_input_tok_s": [
+        86.40136,
+        86.37609
+      ],
+      "mean_request_tok_s": [
+        0.73441,
+        0.79956
+      ],
+      "status": "First forward pair only, RUNNING34:07; reverse/QA/normal/terminal pending. Not qualified, not counted completed.",
+      "implication": "LargerB gives lower observed residentdecode and mean-request throughput than qualified B16 while E2E is provisionally higher. Different batch/mask means this is a workload tradeoff, not regression proof or a new best-arm composite. Memory floor restricts stage1 to27; stop assuming B increases throughput monotonically."
+    },
+    "Kimi": "599 failed because mixed-journal CPUconsumer consumed raw KDA files; new stage0/layer0 causal evidence survives, but no optimized Model or repaired finaltoken contract.602 supplies missingdetail only. No performance promotion.",
+    "Deep": "Retain prior qualified699 only (review33: decode57.85349/58.18164 on8cards, prefill108.5963/108.0601); no new result reviewed here."
+  },
+  "iteration_bottlenecks_and_stop_decisions": [
+    {
+      "evidence": "599 took24:25; historical slowest load748.64s,51.1% total. Coarse evidence began~19:34 after8QA+128tokenanchor; first stage/layer fact around22min (priorreview).",
+      "decision": "Continue602 capture-only design. Stop unchanged diagnostic preengine/8QA/anchor/coarsequartets and extra full-checkpoint copies/loader A/B loads. Reuse verified diskcache during necessary loads. Exact queue/QA split and loader improvement remain unknown."
+    },
+    {
+      "evidence": "599 producer/consumer mismatch escaped54job/12reset injected fixture; actual mixed journals reproduced KeyError.8531 repair and8532 salvage already passed.",
+      "decision": "Stop expanding fake matrices or recertifying unchanged schemas. Test changed parser against retained real mixed output once; persist both finitecaptures before offline parse so CPUfailure cannot consume a new Model load."
+    },
+    {
+      "evidence": "717 built2TU/reused25 in18s;713 was10s.5741 literal/path defect fixed in5742 with13CPUchecks, native unchanged.",
+      "decision": "Do not recompile717, rerun715, or reopen completed native evidence. For future launch edits, one compact end-to-end CPU check of resolved DSO/path/counter/export/argv is preferable to successive launcher-only patch/review cycles. Existing5742 GO stands; no added gate."
+    },
+    {
+      "evidence": "472 host/stream fields overlap and include upstream waits; exclusive attention/H2D/communication shares unavailable. No per-layer saving ranking.477 stage1 actualmask27.",
+      "decision": "Stop summing overlapping timings, selecting layers by invented savings, scanning largerB without budget, or treating devicepeak/submission count as Model gain. Use existing ready crossprefill A/B to measure removable wall directly."
+    },
+    {
+      "evidence": "602 occupiesn08..11;477 occupiesn12/n13;5742 plansn14/n15. This is bounded root-reported occupancy, not cluster availability.",
+      "decision": "No duplicate loads, broad idle surveys, or 320card assumption. Root must use a fresh lease and actual Slurm/KFD idle evidence before any new assignment; reserve no resources merely for this review. Existing livehandles continue without newleases."
+    },
+    {
+      "evidence": "Review33 closed unchanged H2D flag, naiveINT8/INT4 full-cost and registerpeak routes; no new evidence reopens them.",
+      "decision": "Keep closed. Do not convert available cards into low-information repeats, timer-only Deep loads, or reports counted as experiments."
+    }
+  ],
+  "Kimi_state_update": {
+    "reuse": "Kimi-actual-state-ABI-r8534.json and Kimi-current-callee-read-reset-r8540.json",
+    "supported": "SDK6d5a6204 matches602 dependency/buildreceipt; retained MD/link bind Conv dispatch/instantiations and IndexedKDA object. Current ordinary Hygon Conv reads positive initialindex history, including first3prefilloutputs; KDA snapshots pool and loads actualreads[] fullSSMrow beforetokenloop. Lastbool=norm, no past0/initflag bypass. Reset source drains/clears/reallocates/zero-fills/synchronizes.599Oa all8ranks recorded before-row zero hashes.",
+    "limits": "Historical per-object sourcehash manifest and unchanged Model cachedobject MD absent; no new runtimevtable/read trace. This is bounded callee applicability evidence, not full O/W prestate equality or every-provider proof.",
+    "decision": "Compare actual logical operands and actually read rows at602 earliest differing point. Never blame unobserved/unread pool bytes, assume GEMM, or infer equal state from equal incoming hidden. If inputs/state already differ, follow earliest producer instead of claiming arithmetic cause."
+  },
+  "cards": [
+    {
+      "id": "GLM34-PREFILL-MODEL5742",
+      "priority": 1,
+      "owner": "glm_critical_path_profile; root lease/publication coordination",
+      "files": [
+        "GLM715-crossrequest-component-qualified-r7327.json",
+        "GLM-crossrequest-Model-CPU-closed-r7331.json",
+        "GLM-CROSSREQUEST-source-ready-r5742.json",
+        "launch_GLM_crossrequest_Model_r5742.py"
+      ],
+      "resource": "Existing910376.479 n14/n15 16cards ACTUAL RUNNING00:26 at2026-10-23 23:59:19UTC, root read r5744-GLM-crossrequest-progress-a.json; run crossrequest-5742-c427d9eb344b46fca5af. Follow thishandle only, no secondlaunch/newlease/reviewgate.",
+      "hypothesis": "Qualified grouped attention reduces actual realI512 prefill/TTFT enough to improve E2E while retaining complete finaltokens.",
+      "minimum": "Reuse717 DSO3c780802,2TU+25objects. One load B16M8/ROWS16/CAP640 VON/TOFF fixedresident[38,40]; crossprefillOFF/ON/ON/OFF only. Keep existing planned finalIDs/EOS/QA and branchcounter checks; no additional broadvalidation or component trial.",
+      "samples": "Existing matched O/N/N/O is sufficient; exclude warmup by declared protocol, retain both directions and drift. Counter expected stage0/1=76/80 for ON; OFF/decode/unsupportedgeometry zero. Compare whole pairedarms, no best-arm assembly.",
+      "metrics": "PrefillinputTPS,decodeoutputTPS,E2EoutputTPS,total/percard,requestthroughput; userTTFT/ITL from existing actualevents whereavailable. Branch hitcount and real CAPIwall establish use. Missing userlatency is UNKNOWN without rerun.",
+      "gain_budget": "Modelgain UNKNOWN. Componentratio~3.17 implies at most~68.5% reduction of the affected attention wall if transferable; if actual prefillfraction f is affected, idealized prefillfactor=1/(1-0.685f), not a forecast. Actualfraction and Modelvalidation/D2H overhead unknown. Decode should remain within pairednoise becausebranch isprefill-only.",
+      "first_result_time": "Historical load~13min plus~6min O/N afterweightsready; uncertain I/O/queue. Record actual firstpairtime rather than promising deadline.",
+      "stop_upgrade": "Any required finalID/EOS/QA failure blocks promotion; preserve artifacts and keepOFF. If no paired prefill/E2E benefit beyond drift, close this candidate without broader batchsweep. If benefit robust and checks/normal/terminal pass, qualify exactscope; followup only from measured remainingwall.",
+      "one_load_many_tests": "Existing counter/fallback checks, pairedtiming and requiredQA all within this one session; avoid independent validationloads."
+    },
+    {
+      "id": "GLM34-FINISH477",
+      "priority": 2,
+      "owner": "glm_critical_path_profile/root",
+      "files": [
+        "GLM472-qualified-scope-r5737.json",
+        "astra-review-implementation-r8433.json",
+        "r5740-GLM-ROWS32-progress-f.json"
+      ],
+      "resource": "Existing910376.477 n12/n13 16cards; no newlaunch/lease/load",
+      "hypothesis": "B32 resident[38,27] yields reproducible throughput tradeoff after reversepairs despite lower per-user throughput.",
+      "minimum": "Finish existing reversepair and planned finalIDs/EOS/QA/restore/normal/terminal. No newnative or masktuning whileloaded.",
+      "metrics": "Report firstpair as provisional then fullpaired prefill/decode/E2E,total/percard,userthroughput and availableTTFT/ITL. Compare to472 as separateB workloadscope, not combinedoptimization arms.",
+      "gain_budget": "Observed firstpair decode+11.83%,E2E~4.39%,prefill~0%; uncertainty includes reverse-order drift and finalchecks. Current36.071decode below47237.990 atdifferentB/mask; no monotonic scalingpromise.",
+      "first_result_time": "Firstpair alreadyavailable. Remainingtime UNKNOWN; use existingwatch only.",
+      "stop_upgrade": "Complete current discrimination, then stop largerB expansion unless completed evidence demonstrates an explicit throughput/latency objective. Preserve472 as qualified reference; no newload solely to fill missinglatency columns.",
+      "one_load_many_tests": "Finish alreadyplanned arms/checks in currenthandle, do not append unrelated profiles."
+    },
+    {
+      "id": "KIMI34-FINISH602",
+      "priority": 1,
+      "owner": "online_service_scheduler",
+      "files": [
+        "Kimi-missing-detail-source-package-r8535/Kimi-missing-detail-manifest-r8533.json",
+        "Kimi599-failure-compact-r8531.json",
+        "Kimi-current-callee-read-reset-r8540.json"
+      ],
+      "resource": "Existing910375.602 n08..11 32cards; root actual23:58:59UTC RUNNING10:57,4stage loading,noerror. Follow thishandle, no secondsubmission.",
+      "hypothesis": "One Oconfirmation and missingW isolate earliest changed operator with actualreadstate, retaining established coarse/decoder repeatstability.",
+      "minimum": "Complete9prefixjobs/2resets, persistIDs and raw beforeofflineanalysis; normaldestroy then existingunique terminal/audit/post check. CompareoldOa/newO/actualW onlyonlogicalvalid operands and callee-supported readrows.",
+      "metrics": "Earliest firstdifference,input/readstate applicability,errornorms,finite/fullCPUargmax/frozenprefixIDs,actualcapturebytes andphasewall; performance/TTFT/ITL N/A for this diagnostic, no servicegainclaimed.",
+      "gain_budget": "Zero acceptedperformancegain; payoff is one discriminating causal boundary. Historicalload12.48min dominates;4.525GB raw+metadata budget,6.627GB D2H upperbound addsuncertainty.",
+      "first_result_time": "Manifestestimate14-17min fromlaunch, hardlimit35min; no freshETA from reviewer. Actualloading caninvalidateestimate without authorizingretry.",
+      "stop_upgrade": "One discriminating boundary ends captureexpansion. If Oconfirmation differs, inspect actualinput/readstate/provenance first. Wrepeat onlyif observedinstability warrants it, notpreallocated. Unknownexecution neverautoretry; W remainsdisabled.",
+      "one_load_many_tests": "Bothfinitecuts within602; no preengine/QA/anchor/coarse/decoderrepeats."
+    },
+    {
+      "id": "KIMI34-ACTUAL-FIRST-OP-REPLAY",
+      "priority": 2,
+      "owner": "online_service_scheduler with native componentowner",
+      "files": [
+        "Kimi-current-callee-read-reset-r8540.json",
+        "Kimi-actual-state-ABI-r8534.json",
+        "Kimi-missing-detail-source-package-r8535/kimi_missing_detail_offline_r8533.py"
+      ],
+      "resource": "CPU reconstruction after602; then minimumisolatedGPU only underroot freshlease/actualidle. No node guessedavailable, no Modelweightsload.",
+      "hypothesis": "Earliestactualoperator differs because of logicalinput/readstate, layout/addressing, or batch-dependent arithmetic; faithful replay can distinguish the supported alternatives.",
+      "minimum": "Selectoperator fromactualfirstchangedpoint. Reconstruct originaldtype/shape/strides/offsets/actualreadwriteindices and allrequired companions/weights/state usingretained provider. First reproduceoriginal O/W outputs; onlythen varyone factor suchas logical-equivalentcontiguouslayout. Ifbeforestate differs, inspectpriorproducer instead. Do not substitute fakezeros or syntheticcompanions.",
+      "samples": "Warmup and2repeats eachmatchedO/W; onefactor contrast onlyif reproduction isfaithful. Numericalerror/finite/determinism plus completeoperatorwall, noGPUF64 or bitwiseallactivationsgate.",
+      "metrics": "Causal exclusion, fidelity,operatorcompletewall,original/candidateerror and actualstatecoverage; ModelTPS/TTFT/ITL N/A until later genuineModelqualification.",
+      "gain_budget": "Modelgain UNKNOWN; no optimizationclaim fromdiagnosis. Budget30-60min fromcompleteoperandavailability torunnablelocalreplay, explicitmissingoperand ifnotfeasible; do not convert budgetmiss into anotherblindModelcapture.",
+      "first_result_time": "Conditional30-60min preparation target; GPUqueue/runtimeUNKNOWN",
+      "stop_upgrade": "Stop onceonecause excluded or minimalrepair identified. Ifrequiredoperands unavailable, nameexactgap andreusetheexistingcapture; no broadhistorymatrix. A supportedrepair mayjustify later one-loadModelfinalID/EOS/QA plusperformance, notautomatically.",
+      "one_load_many_tests": "NoModelload; originalreproduction andsinglefactorcontrast shareonecomponent session."
+    },
+    {
+      "id": "DEEP34-DEFER-REUSE7288",
+      "priority": 1,
+      "owner": "deep_remaining_cause",
+      "files": [
+        "astra-review-r8430.json",
+        "astra-review-implementation-r8433.json",
+        "deep_compressor_light_timer_r7288.cpp"
+      ],
+      "resource": "Noallocationnow. OnlynextindependentlynecessaryDeep session underrootfreshlease/actualidle; nofixednodeavailabilityclaim.",
+      "hypothesis": "Inclusive ordinarypreparewall islargeenough tojustifyone localoptimization.",
+      "minimum": "Reuse7288 inotherwise necessarysession, originaldrain-inclusivetimer/noextraHIPsync; existing matchedmod4 windows and finalIDs/EOS/QA.",
+      "metrics": "Critical-owner ordinarywall andprofilingoverhead plusexistingModelprefill/decode/E2E,total/percard,userlatencywhereeventsavailable; never sum8ownerwalls.",
+      "gain_budget": "Ordinaryprepare fractionUNKNOWN. Prior47msperiodicexcess every4steps alone suggests only~2%wallceiling; insufficient reason fordedicatedload.",
+      "first_result_time": "No necessarysessioncurrentlyidentified; UNKNOWN anddeferred",
+      "stop_upgrade": "Remain deferred withoutindependentcandidate. Smallordinaryshare or timer-overhead-comparable effect closesroute. No broadprofile/peakbench/repeatedcopyreplay.",
+      "one_load_many_tests": "Attach onlytoexistingnecessarypairedModel; no timer-onlyload."
+    }
+  ],
+  "cycle_policy": {
+    "normal": "Review after3completed discriminating global experiments acrossmodels. Onehypothesis/one-loadmultiplearms counts once; negativecompleted discrimination counts.",
+    "early": "Two consecutive same-route no-material-gain experiments; seriousnumerical/performance regression or conflictingkeyevidence; repeatedavoidableharnessfailure;90minwithoutnewmeasurablecandidate ornewcausalfact; or explicituserrequest.",
+    "non_rounds": "Polling,preparation,CPUcompile,sourcechecks,manifestwriting,salvageofsameevidence and incompletefirstpairs countzero.715 countsonecomponent experiment butneverModelgain.602 counts onlywhennewcausalevidence actuallycompletes.",
+    "execution": "One activeperiodicreview; independentreadyworkcontinues.90min isreviewtrigger, notkill/autoretryauthorization.",
+    "root_required_action": "Record accept/reject/defer andreason for eachcard inexistingimplementationledger, dispatchconcretefiles/config/stopconditions toexistingowners, and ordinarypublishperexistingworkflow. No newparallelreportframework. Nextreview must reconcileeachcard toactualhandle/result orspecificnonexecutionreason.",
+    "metrics_each_completed_experiment": "RecordprefillinputTPS,decodeoutputTPS,E2EoutputTPS,cardcount/percard,requestthroughput,actualuserTTFT/ITL whereavailable; exact workload/cap/EOS/scope/source. Componentsanddiagnostics markModel/userfieldsN/A. Missinghistoricalevents markUNKNOWN; do not demandallmetricreruns.",
+    "time_each_completed_experiment": "Preparation/CPUcompile,queue,load,measurement/capture,QA,offlineanalysis/cleanup andtotalwall fromexistingtimestamps. UnknownsplitsremainUNKNOWN; tracklaunch-to-first-discriminating-result alongsidefullqualificationtime. Metric extraction mustnot holdloadedowners."
+  },
+  "highest_priority_decisions": [
+    "Follow alreadyRUNNING479 on n14/n15 with5742/717; stop repeated715/nativecompile/pathreview loops and never secondlaunch.",
+    "Finish477 samehandle; B32 isaprovisional throughput/latencytradeoff, not automaticallybetterthan472.",
+    "Finish602capture-only; then faithfulfirstoperator replay, using8540actualreadsemantics andactualW ratherthanguessedGEMM/state.",
+    "RemoveunchangeddiagnosticQA/anchor/coarsereruns; amortizenecessaryloads, keepDeep timer-only/H2D/naiveinteger routesclosed.",
+    "Rootimplementscards anddeduplicated3-round/early-reviewpolicy; nextreview auditsoutcomes andtime-to-firstresult, notreportcount."
+  ],
+  "evidence_read": [
+    "astra-review-r8430.json",
+    "astra-review-implementation-r8433.json",
+    "optimization-review-ledger-r8436.json",
+    "GLM472-qualified-scope-r5737.json",
+    "GLM715-crossrequest-component-qualified-r7327.json",
+    "GLM-crossrequest-Model-CPU-closed-r7331.json",
+    "GLM-CROSSREQUEST-source-ready-r5742.json",
+    "Kimi-missing-detail-source-package-r8535/Kimi-missing-detail-manifest-r8533.json",
+    "Kimi599-failure-compact-r8531.json",
+    "Kimi-actual-state-ABI-r8534.json",
+    "Kimi-current-callee-read-reset-r8540.json",
+    "InfiniLM-hygon-test/coordination/ASTRA_REVIEW.zh-CN.md"
+  ],
+  "incremental_evidence": "Root reports477firstpair as above; latest479 actualRUNNING00:26 at23:59:19UTC fromr5744-GLM-crossrequest-progress-a.json and602 actualRUNNING10:57/loading/noerror at23:58:59UTC. These are attributedroot observations, no newliveclusterobservations byreviewer."
+}

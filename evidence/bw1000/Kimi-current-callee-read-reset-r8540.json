@@ -1,0 +1,270 @@
+{
+  "revision": 8540,
+  "scope": "<=10min CPU-only currentcallee research; no Model/GPU/dlopen/compile/rawdump",
+  "actual_follow_handle": "910375.602",
+  "SDK_provider": {
+    "library": "/refactor/install/hygon-kimi-5f91ad7-r3672/lib/libinfiniops.so",
+    "SHA256": "6d5a6204f7eef70e84deb9cc737a36c6ae2c1fbc75a0f70645557c8441ed85ca",
+    "existing_build_receipt_SHA256": "4ff09088a653ec288a405a699b02c029c7bd9bfbc6ac22454a06da0b50c186e3",
+    "same_as_current_native_dependency": true
+  },
+  "retained_build_evidence": {
+    "CausalConv_MD": [
+      "/public/home/aclsylqidf/hygon-inference-refactor-20261014/build/ops-kimi-5f91ad7-r3672/src/CMakeFiles/infiniops.dir/__/generated/src/operator_call_instantiations_51.cc.o.d",
+      "/public/home/aclsylqidf/hygon-inference-refactor-20261014/build/ops-kimi-5f91ad7-r3672/src/CMakeFiles/infiniops.dir/__/generated/bindings/generated_dispatch_51.cc.o.d"
+    ],
+    "IndexedKDA_MD": [
+      "src/CMakeFiles/infiniops.dir/native/cuda/hygon/ops/indexed_kimi_delta_attention/kernel.cu.o.d"
+    ],
+    "actual_SDK_link": [
+      "/public/home/aclsylqidf/hygon-inference-refactor-20261014/build/ops-kimi-5f91ad7-r3672/src/CMakeFiles/infiniops.dir/link.txt"
+    ],
+    "three_relevant_objects_in_link": true,
+    "source_mtime_before_object_before_library": true,
+    "source_SHA256": {
+      "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Kimi/InfiniOps/src/native/cuda/hygon/ops/causal_conv1d/kernel.h": {
+        "SHA256": "a24ea8deec74fe49bad8850d20b36ddd0c3ae8c225828c891696cd4976631820"
+      },
+      "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Kimi/InfiniOps/src/native/cuda/hygon/ops/indexed_kimi_delta_attention/kernel.h": {
+        "SHA256": "18be2e2898534ddcb9858a0251a501b51bcb4f90a904354aeab7133005ad3628"
+      },
+      "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Kimi/InfiniOps/src/native/cuda/hygon/ops/indexed_kimi_delta_attention/math.cuh": {
+        "SHA256": "c34c0800d0989f9246ac430fcfe7dccf8241f89160185324688c5b25c962da48"
+      },
+      "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Kimi/InfiniOps/src/native/cuda/hygon/ops/indexed_kimi_delta_attention/kernel.cu": {
+        "SHA256": "ab5015e90b41034bcc4f273a8d81f8819cfb8274aacb5d49d0aa8d249a9b4bee"
+      }
+    }
+  },
+  "CausalConv": {
+    "source": ".../src/native/cuda/hygon/ops/causal_conv1d/kernel.h",
+    "evidence_lines": [
+      25,
+      27,
+      52,
+      56,
+      59,
+      60,
+      61,
+      62,
+      63,
+      76,
+      77,
+      78
+    ],
+    "semantics": "Positive actualinitial index always selects snapshot row; history(pos<3) reads that state. No past or initflag argument/branch. For a512token prefill, first3 outputs use priorhistory; final3 historyslots come from current qkv. DecodeT1 reads all3 previoushistory slots.",
+    "provenance": "Registered Hygon source retained by two exactactualSDK MD files plus actualSDK link and unchanged pinned DSO SHA; no recompilation"
+  },
+  "IndexedKDA": {
+    "source": ".../indexed_kimi_delta_attention/kernel.cu +math.cuh",
+    "evidence_lines": {
+      "kernel_cu": [
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "math_cuh": [
+        135,
+        136,
+        145,
+        146,
+        147,
+        159,
+        160,
+        226,
+        227
+      ]
+    },
+    "semantics": "Run copies fullstate pool to caller workspace then passes it asinitial_state. Kernel loads actual reads[] row all[head,value,key] entries unconditionally beforetoken loop, then writes actualwrites[] row. Last ABIbool is norm, notinitflag; no past0 branch.",
+    "provenance": "Exact retainedkernel.cu.o.d includes kernel.h/math.cuh, object present in actualSDK link; library SHA matches currentModel dependency"
+  },
+  "reset_path": {
+    "CAPI": "modern_kimi_engine_reset_r2475 -> InferEngine.reset_cache",
+    "Engine": "source lines619-625 submitsreset to all workers thenwaits",
+    "Worker": "source1098-1138 syncs oldK3 stream, clearsmetadata/cachevectors, model.reset_cache allocatesreplacement, syncs beforejob_done",
+    "Model": "source124-132 allocate_cache_tensors then replacesKV/conv/SSM vectors",
+    "Mamba": "create_layer_conv_state37 andcreate_layer_ssm_state79 enqueue zero-fill (Fill fallback) onowner stream"
+  },
+  "existing_actual_599_Oa_before_zero_observations": [
+    {
+      "rank": 0,
+      "state": "conv_before",
+      "actual_row": 1,
+      "bytes": 27648,
+      "observed_zero_SHA": true
+    },
+    {
+      "rank": 0,
+      "state": "ssm_before",
+      "actual_row": 1,
+      "bytes": 393216,
+      "observed_zero_SHA": true
+    },
+    {
+      "rank": 1,
+      "state": "conv_before",
+      "actual_row": 1,
+      "bytes": 27648,
+      "observed_zero_SHA": true
+    },
+    {
+      "rank": 1,
+      "state": "ssm_before",
+      "actual_row": 1,
+      "bytes": 393216,
+      "observed_zero_SHA": true
+    },
+    {
+      "rank": 2,
+      "state": "conv_before",
+      "actual_row": 1,
+      "bytes": 27648,
+      "observed_zero_SHA": true
+    },
+    {
+      "rank": 2,
+      "state": "ssm_before",
+      "actual_row": 1,
+      "bytes": 393216,
+      "observed_zero_SHA": true
+    },
+    {
+      "rank": 3,
+      "state": "conv_before",
+      "actual_row": 1,
+      "bytes": 27648,
+      "observed_zero_SHA": true
+    },
+    {
+      "rank": 3,
+      "state": "ssm_before",
+      "actual_row": 1,
+      "bytes": 393216,
+      "observed_zero_SHA": true
+    },
+    {
+      "rank": 4,
+      "state": "conv_before",
+      "actual_row": 1,
+      "bytes": 27648,
+      "observed_zero_SHA": true
+    },
+    {
+      "rank": 4,
+      "state": "ssm_before",
+      "actual_row": 1,
+      "bytes": 393216,
+      "observed_zero_SHA": true
+    },
+    {
+      "rank": 5,
+      "state": "conv_before",
+      "actual_row": 1,
+      "bytes": 27648,
+      "observed_zero_SHA": true
+    },
+    {
+      "rank": 5,
+      "state": "ssm_before",
+      "actual_row": 1,
+      "bytes": 393216,
+      "observed_zero_SHA": true
+    },
+    {
+      "rank": 6,
+      "state": "conv_before",
+      "actual_row": 1,
+      "bytes": 27648,
+      "observed_zero_SHA": true
+    },
+    {
+      "rank": 6,
+      "state": "ssm_before",
+      "actual_row": 1,
+      "bytes": 393216,
+      "observed_zero_SHA": true
+    },
+    {
+      "rank": 7,
+      "state": "conv_before",
+      "actual_row": 1,
+      "bytes": 27648,
+      "observed_zero_SHA": true
+    },
+    {
+      "rank": 7,
+      "state": "ssm_before",
+      "actual_row": 1,
+      "bytes": 393216,
+      "observed_zero_SHA": true
+    }
+  ],
+  "interpretation": {
+    "no_generic_initflag_assumption": "Do not infer past0 ignoredstate. Current ordinarySDK source readsactualpositive rows; observed599 before pools allzero.",
+    "before_state_applicability": "SUPPORTED_BY_CURRENT_SDK_SOURCE_AND_RETAINED_MD for ordinary Hygonindex0; not a new runtime memory-read trace. Keep UNKNOWN if alternatecallee/dispatch or historicalModel source binding cannotbe established.",
+    "no_state_equality_inference": "This research does not prove entire pre-callstate equality or W output correctness."
+  },
+  "remaining_provenance_gaps": [
+    "Original SDK receipt pins finalDSO but nothistoricalper-objectsource SHA manifest. RetainedMD/link/currentobjectSHA+oldermtime are provenance evidence, not a fresh rebuild.",
+    "Unchanged Model/RankWorker/head/cache helper cachedobjects have no originalMD source mapping (already disclosedr7290). Currentreset source+definedELF symbols+actualzeroobservations support mechanism, not complete historicalsource closure.",
+    "No actual percall operatorprovider/vtable trace wasadded; actualSDK mapping applies to existing ordinaryHygon path confirmed byflags67/SpecOFF sourcecontract, notarbitrary alternative implementations."
+  ],
+  "next_component_entry_map": {
+    "qkv_projected": {
+      "file": "actualDeltaAttention sourcea808191a2edc73d37ab3c8bb6531e5b057362b59fd5456f262bc2e8c231488da",
+      "line": 351
+    },
+    "conv_output": {
+      "file": "actualDeltaAttention sourcea808191a2edc73d37ab3c8bb6531e5b057362b59fd5456f262bc2e8c231488da",
+      "line": 376
+    },
+    "silu_qkv": {
+      "file": "actualDeltaAttention sourcea808191a2edc73d37ab3c8bb6531e5b057362b59fd5456f262bc2e8c231488da",
+      "line": 382
+    },
+    "f_a": {
+      "file": "actualDeltaAttention sourcea808191a2edc73d37ab3c8bb6531e5b057362b59fd5456f262bc2e8c231488da",
+      "line": 412
+    },
+    "gate_projected": {
+      "file": "actualDeltaAttention sourcea808191a2edc73d37ab3c8bb6531e5b057362b59fd5456f262bc2e8c231488da",
+      "line": 414
+    },
+    "beta_projected": {
+      "file": "actualDeltaAttention sourcea808191a2edc73d37ab3c8bb6531e5b057362b59fd5456f262bc2e8c231488da",
+      "line": 418
+    },
+    "kda_output": {
+      "file": "actualDeltaAttention sourcea808191a2edc73d37ab3c8bb6531e5b057362b59fd5456f262bc2e8c231488da",
+      "line": 446
+    },
+    "normalized_f32": {
+      "file": "actualDeltaAttention sourcea808191a2edc73d37ab3c8bb6531e5b057362b59fd5456f262bc2e8c231488da",
+      "line": 452
+    },
+    "output_gate_input": {
+      "file": "actualDeltaAttention sourcea808191a2edc73d37ab3c8bb6531e5b057362b59fd5456f262bc2e8c231488da",
+      "line": 455
+    },
+    "gate_sigmoid": {
+      "file": "actualDeltaAttention sourcea808191a2edc73d37ab3c8bb6531e5b057362b59fd5456f262bc2e8c231488da",
+      "line": 462
+    },
+    "gated": {
+      "file": "actualDeltaAttention sourcea808191a2edc73d37ab3c8bb6531e5b057362b59fd5456f262bc2e8c231488da",
+      "line": 468
+    },
+    "output": {
+      "file": "actualDeltaAttention sourcea808191a2edc73d37ab3c8bb6531e5b057362b59fd5456f262bc2e8c231488da",
+      "line": 499
+    }
+  },
+  "next_selection": "Wait actual602 Oconfirm/W nativepoint outputs; do not assume GEMM first. Use firstchanged point withits completeinput/state applicability, preserve sameactualcompanion operands.",
+  "evidence_SHA256": {
+    "Kimi-actual-callee-source-r8537.json": "634e30b7c0a559dbb894f5db35203b0e9def6c7179ebdb7c9e16a6c4f7fa2c62",
+    "Kimi-actual-callee-MD-r8538.json": "a367aba372bb849eb2c94a387c0750a536da1d36db79c20b5398886fec4d388a",
+    "Kimi-actual-callee-link-r8539.json": "0e9f8385957114e4537d5a380a6cf03fb652dd013d2dc1af9ef23e5a44721ded"
+  }
+}
