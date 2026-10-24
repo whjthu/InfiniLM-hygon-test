@@ -1,0 +1,23 @@
+{
+  "CPU_only": true,
+  "GPU": false,
+  "tile": 2,
+  "gate_W": 64,
+  "gate_V": 2,
+  "old_grid": [
+    64,
+    64
+  ],
+  "new_grid": [
+    32,
+    64
+  ],
+  "threads": 256,
+  "index_checks": 32768,
+  "down_source_identical": true,
+  "contract": "Each output keeps b0..47/K lane+j64, reduce<W64>, xscale then weightscale and sequential block sum, BF16 output. New av[2]/xscale shared across 2 outputs only. Register pressure and half CTAs can regress; no GPU evidence.",
+  "sources_SHA256": {
+    "glm_output_tile2_r8830.cu": "194b9206724ede3630d36d0926fd4bc167b49fd3771be47439a80587dbb3b557",
+    "glm_tile2_dispatch_r8830.cpp": "f85c83419edfc8ced75a1ac9fe0c863f223eaf8b25d791a7085ead0959e2af3f"
+  }
+}

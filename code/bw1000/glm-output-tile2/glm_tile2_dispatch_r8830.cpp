@@ -1,0 +1,48 @@
+#include "glm_vector_dispatch_r8540.hpp"
+#include <array>
+#include <atomic>
+#include <stdexcept>
+extern "C" int glm_vec_gate_r8528(void*,void*,const void*,const void*,const void*,const void*,const void*,const void*,const void*,std::size_t,std::size_t,void*);
+extern "C" int glm_vec_down_r8528(void*,const void*,const void*,const void*,const void*,const void*,std::size_t,std::size_t,void*);
+extern "C" int glm_grouped_gate_r5123(void*,void*,const void*,const void*,const void*,const void*,const void*,const void*,const void*,std::size_t,std::size_t,void*);
+extern "C" int glm_grouped_down_r5123(void*,const void*,const void*,const void*,const void*,const void*,std::size_t,std::size_t,void*);
+extern "C" int glm_tile2_gate_r8830(void*,void*,const void*,const void*,const void*,const void*,const void*,const void*,const void*,std::size_t,std::size_t,void*);
+namespace {
+struct State {std::atomic<unsigned>word{0};std::array<std::atomic<std::uint64_t>,8>counts{};};
+std::array<State,8>states;
+std::array<std::atomic<int>,8>tile2_policy{};
+std::array<std::atomic<std::uint64_t>,8>tile2_hits{};
+bool valid(int d){return d>=0&&d<8;}
+bool selected(const glm_vector_r8540::Frame&f,std::size_t routes){return f.enabled&&(routes==32||routes==64);}
+void record(const glm_vector_r8540::Frame&f,bool gate,bool hit,std::size_t routes,int ret){
+ auto&s=states[f.device];s.counts[(gate?0:2)+(hit?0:1)].fetch_add(1,std::memory_order_relaxed);
+ if(hit)s.counts[gate?5:6].fetch_add(routes/8,std::memory_order_relaxed);
+ if(ret)s.counts[4].fetch_add(1,std::memory_order_relaxed);
+}
+}
+extern "C" int modern_glm_vector_policy_r8540(int d,int mode){
+ if(!valid(d)||(mode!=0&&mode!=1))return -1;
+ auto&s=states[d];unsigned expected=s.word.load(std::memory_order_acquire);
+ for(;;){if(expected>=2)return -2;if(s.word.compare_exchange_weak(expected,unsigned(mode),std::memory_order_acq_rel)){if(expected!=unsigned(mode))s.counts[7].fetch_add(1,std::memory_order_relaxed);return 0;}}
+}
+extern "C" int modern_glm_vector_get_r8540(int d){if(!valid(d))return -1;return int(states[d].word.load(std::memory_order_acquire)&1);}
+extern "C" int modern_glm_vector_counts_r8540(int d,std::uint64_t*out,std::size_t n){if(!valid(d)||!out||n!=8)return -1;for(std::size_t j=0;j<8;++j)out[j]=states[d].counts[j].load(std::memory_order_relaxed);return 0;}
+namespace glm_vector_r8540 {
+Frame::Frame(int d):device(d),enabled(false){if(!valid(d))throw std::invalid_argument("vector8540 device");enabled=states[d].word.fetch_add(2,std::memory_order_acq_rel)&1;}
+Frame::~Frame(){states[device].word.fetch_sub(2,std::memory_order_release);}
+int gate(const Frame&f,void*g,void*u,const void*x,const void*xs,const void*ids,const void*w,const void*ws,const void*up,const void*us,std::size_t routes,std::size_t offset,void*stream){
+ bool hit=selected(f,routes);bool tile=hit&&routes==64&&tile2_policy[f.device].load(std::memory_order_acquire);if(tile)tile2_hits[f.device].fetch_add(1,std::memory_order_relaxed);int rc=hit?(tile?glm_tile2_gate_r8830:glm_vec_gate_r8528)(g,u,x,xs,ids,w,ws,up,us,routes,offset,stream):glm_grouped_gate_r5123(g,u,x,xs,ids,w,ws,up,us,routes,offset,stream);record(f,true,hit,routes,rc);return rc;
+}
+int down(const Frame&f,void*out,const void*x,const void*xs,const void*ids,const void*w,const void*ws,std::size_t routes,std::size_t offset,void*stream){
+ bool hit=selected(f,routes);int rc=hit?glm_vec_down_r8528(out,x,xs,ids,w,ws,routes,offset,stream):glm_grouped_down_r5123(out,x,xs,ids,w,ws,routes,offset,stream);record(f,false,hit,routes,rc);return rc;
+}
+}
+
+// Same owner/idle policy contract as existing vector policy. Default OFF.
+extern "C" int modern_glm_tile2_policy_r8830(int device,int mode){
+ if(!valid(device)||(mode!=0&&mode!=1))return -1;
+ if(states[device].word.load(std::memory_order_acquire)>=2)return -2;
+ tile2_policy[device].store(mode,std::memory_order_release);return 0;
+}
+extern "C" int modern_glm_tile2_get_r8830(int device){return valid(device)?tile2_policy[device].load(std::memory_order_acquire):-1;}
+extern "C" std::uint64_t modern_glm_tile2_hits_r8830(int device){return valid(device)?tile2_hits[device].load(std::memory_order_relaxed):0;}
