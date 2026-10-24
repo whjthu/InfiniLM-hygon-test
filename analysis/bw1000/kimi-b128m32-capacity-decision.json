@@ -1,0 +1,96 @@
+{
+  "utc": "2026-10-24T22:21:40.853094+00:00",
+  "hardware": "BW1000",
+  "level": "CPU_CAPACITY_ANALYSIS_ONLY",
+  "status": "B128_SUPPORTED_BY_CAPI_PHYSICAL_PEAK_UNPROVEN_GPU_PARKED",
+  "review_card": "KIMI63-B128M32-CAPACITY-CPU",
+  "owner": "/root",
+  "GPU_executed": false,
+  "new_performance_rounds": 0,
+  "retained_geometry": {
+    "TP": 8,
+    "PP": 4,
+    "cards": 32,
+    "B": 64,
+    "M": 16,
+    "capacity_rows": 64,
+    "pages": 260,
+    "KDA_rows": 65
+  },
+  "proposed_geometry": {
+    "TP": 8,
+    "PP": 4,
+    "cards": 32,
+    "B": 128,
+    "M": 32,
+    "capacity_rows": 128,
+    "pages": 516,
+    "KDA_rows": 129
+  },
+  "workload_invariants": "Both4cohorts. Keep512input/128output;prefillM2 unchanged soCAPIflat input1024<=8192;decode micro32<=CAPI maxrows128. Samefrozenrows repeated is not128unique traffic.",
+  "verified_source": "Actual f6f10 linkedprobe accepts1..128, allocates4*rows+4 pages, allrequest/state/table validators supportcapacity128. This is source support, not physicalfit or generatedtokens.",
+  "measured_B64_memory_by_stage": [
+    {
+      "PP_stage": 0,
+      "constructor_min_free_GiB": 5.96875,
+      "after_finish_min_free_GiB": 5.962890625,
+      "last_observed_forward_min_free_GiB": 4.638671875,
+      "constructor_to_finish_free_drop_MiB": 6.0,
+      "source_report_SHA256": "c637dfb7d5da982bc7c7576fdf5330726d493ce10a05284211adf7adb50813e1"
+    },
+    {
+      "PP_stage": 1,
+      "constructor_min_free_GiB": 8.982421875,
+      "after_finish_min_free_GiB": 8.9765625,
+      "last_observed_forward_min_free_GiB": 7.63671875,
+      "constructor_to_finish_free_drop_MiB": 6.0,
+      "source_report_SHA256": "963c03bfdf2332a0510bcc6848ace9f25cbcbccd07f22e1d54cee1763abea910"
+    },
+    {
+      "PP_stage": 2,
+      "constructor_min_free_GiB": 6.240234375,
+      "after_finish_min_free_GiB": 6.234375,
+      "last_observed_forward_min_free_GiB": 4.86328125,
+      "constructor_to_finish_free_drop_MiB": 6.0,
+      "source_report_SHA256": "3e65be3a74577923c3ac44f2e513a7331341f83667be1fefb3363b1f32fa4e37"
+    },
+    {
+      "PP_stage": 3,
+      "constructor_min_free_GiB": 7.71875,
+      "after_finish_min_free_GiB": 7.712890625,
+      "last_observed_forward_min_free_GiB": 6.279296875,
+      "constructor_to_finish_free_drop_MiB": 6.0,
+      "source_report_SHA256": "a0f1a014ca13ac2bfa007d1a7e66b74ee3e7e54148f1511cf56165ea54937fa0"
+    }
+  ],
+  "exact_KDA_logical_bytes": {
+    "formula": "poolrows*(3*(96/8)*128*(4-1) + (96/8)*128*128)*BF16_2bytes",
+    "rows65_per_KDA_layer": 27356160,
+    "rows129_per_KDA_layer": 54291456,
+    "increase_per_KDA_layer": 26935296,
+    "scope": "Logicalconv+recurrent only;not physicalpool charge or allstage cache. Layercount/layout and allocation lifetime must remain explicit."
+  },
+  "missing_for_physical_peak": [
+    "Actual normalized full-attention cache head_dim/headcount/dtype bound at real create; external config has no literalhead_dim and generic getter is insufficient. Do not substitute guessed192/512/74.",
+    "Per-size physical ReusableMemoryPool charging and retained cached/transient backing for MLA/KDA/workspace; logicalbyte delta is not physicalpeak delta.",
+    "Current directconstructor128 perstage create+post-load+prefill scratch peak under originalreserves; oldcapacity64 free snapshots are not measured128 admission.",
+    "Historical resize rejection4.64GiBvs5GiB belongs tothattrajectory; exactrun/source/phase notclosed bysimilarly named revision4890 source. Do notlabel itdirectconstructor128 failure or lowercurrentguard."
+  ],
+  "existing_compact_path_lead": "Current linkedprobe exposes ordinaryTP8PP4 cache pages selector:reset_cache(next) changespages*(maxrows+1). Source allows3page/768tokens andKDA poolrows=maxrows+1;metadata contract alone doesnotprove fullModelEOS/performance or safe128peak. It is a possible future boundedmemory change, not adopted.",
+  "decision": "Do notspend13minweightload orrunblindresize128. KeepB64M16 baseline. Ifa laterotherwise-needed nativecaller change addsphysicalcache census or same-scopeexactKV allocation, useit toclose missingterms andthen proposeonefullModelB64/B128pair; no additionalproof-onlyframework ornewmath.",
+  "effect_on_goal": "LargerB remains an optimization hypothesis, not abandoned as scope; currentevidence cannot justifymemoryfit orbenefit. CPU investigation capped; othermodel/provideroptimization continues.",
+  "evidence": [
+    {
+      "file": "Kimi-larger-batch-source-r8897.json",
+      "SHA256": "cdeb78df0f2d792df2c09c8b5650b78250dc08cab4b8f8d1686bbf14ebfeb4b7"
+    },
+    {
+      "file": "Kimi639-memory-budget-r8899.json",
+      "SHA256": "f1714b69b1588768c03869693db183b318e529c6f666d260be49a5077621a212"
+    },
+    {
+      "file": "Kimi-capacity-terms-r8900.json",
+      "SHA256": "8035a4d7f96d9174e7a08c4df6e3ef0502ae56d3c589657efde25c2f94716148"
+    }
+  ]
+}

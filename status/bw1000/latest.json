@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-10-24T22:00:26.591903+00:00",
+  "updated_at_utc": "2026-10-24T22:28:27.540389+00:00",
   "owner": "bw1000-agent",
   "hardware": "BW1000",
   "goal_complete": false,
@@ -19,13 +19,13 @@
     "InfiniCCL": "51cc9db31d58aac21643d72f0f77cf5c9ecfaee5"
   },
   "current_cycle_checkpoint": {
-    "utc": "2026-10-24T22:00:26.591903+00:00",
-    "review": "62_COMPLETED_IMPLEMENTED",
-    "ledger": "optimization-review-ledger-after-62-round2.json",
+    "utc": "2026-10-24T22:28:27.540389+00:00",
+    "review": "63_COMPLETED_IMPLEMENTED",
+    "ledger": "optimization-review-ledger-after-63-round2.json",
     "new_valid_rounds": 2,
-    "Kimi": "879terminal qualifieddiagnostic;provider-subphase/routingCPUprep;EP2notadopted",
-    "Deep": "877terminalPASS/notadopted/actualModelprofileCPUonly",
-    "GLM": "561RUNNING",
+    "Kimi": "886qualified provider imbalance diagnostic;cyclicCPU221ready/noGPU",
+    "Deep": "CPU208/209ready actualModelowner-events/noGPU",
+    "GLM": "561qualified B16/B32;nextCPUbottleneck investigation",
     "goal_complete": false
   },
   "last_observed_Model_steps": [
@@ -41,7 +41,7 @@
       "cards": 8,
       "source_commit": "cae7895",
       "watch": "deep-quant1-model-r8888-watch.json",
-      "scope": "One load A/Q/Q/A full128,B32I512 TP8PP1;firstA/Q exact butwholepacket unfinished",
+      "scope": "Completed fullA/Q/Q/A128;qualityPASS but smallgain within endpoint drift;notadopted",
       "hard_minutes": 30,
       "inner_seconds": 1740,
       "result": "results/bw1000/2026-10-25/deep877-quant1-only-model.json",
@@ -52,8 +52,8 @@
     {
       "model": "GLM-5.3",
       "handle": "910376.561",
-      "state": "RUNNING",
-      "observed_utc": "2026-10-24T21:46:23+00:00",
+      "state": "COMPLETED",
+      "observed_utc": "2026-10-24T22:28:27.540389+00:00",
       "owner": "/root/moe_decode_arithmetic_audit",
       "nodes": [
         "a02r4n12",
@@ -63,31 +63,15 @@
       "source_commit": "5c7011b",
       "controller_pid": 643576,
       "watcher_pid": 643388,
-      "scope": "Actual160MiB exactbank +correctednativeadmission;one-load B16M8 thenB32M8 full128/477gold/QA;fit/performance unknown",
+      "scope": "FullB16M8/B32M8/full128 finalIDs/EOS/QA complete;actual160MiB banks qualified",
       "hard_minutes": 45,
-      "inner_seconds": 2600
+      "inner_seconds": 2600,
+      "result": "results/bw1000/2026-10-25/glm561-exactbank-b16-b32.json",
+      "audit": "PASS",
+      "post": "910376.562 KFDempty"
     }
   ],
-  "current_actual_GPU_jobs": [
-    {
-      "model": "GLM-5.3",
-      "handle": "910376.561",
-      "state": "RUNNING",
-      "observed_utc": "2026-10-24T21:46:23+00:00",
-      "owner": "/root/moe_decode_arithmetic_audit",
-      "nodes": [
-        "a02r4n12",
-        "a02r4n13"
-      ],
-      "cards": 16,
-      "source_commit": "5c7011b",
-      "controller_pid": 643576,
-      "watcher_pid": 643388,
-      "scope": "Actual160MiB exactbank +correctednativeadmission;one-load B16M8 thenB32M8 full128/477gold/QA;fit/performance unknown",
-      "hard_minutes": 45,
-      "inner_seconds": 2600
-    }
-  ],
+  "current_actual_GPU_jobs": [],
   "last_slurm_observation_utc": "2026-10-24T21:41:37.886004+00:00",
   "resource_observation": {
     "evidence": "analysis/bw1000/owned-allocations-during877-r8891.json",
@@ -95,11 +79,15 @@
     "actual_active_steps_at_census": [
       "910374.877"
     ],
-    "later_known_Model_steps": [
+    "later_known_Model_steps": [],
+    "actual_compute_utilization": "UNKNOWN;active allocations/reservations are not GPU utilization. Most nodes idle during CPU preparation;do not claimfulluse.",
+    "protected": "910384/a14r2n17+n18;910406/407CPUonly;otherbadnodes retainexisting exclusions",
+    "later_terminal_steps": [
+      "910374.877",
+      "910374.886",
       "910376.561"
     ],
-    "actual_compute_utilization": "UNKNOWN;active allocations/reservations are not GPU utilization. Most nodes idle during CPU preparation;do not claimfulluse.",
-    "protected": "910384/a14r2n17+n18;910406/407CPUonly;otherbadnodes retainexisting exclusions"
+    "current_owner_report": "No model GPU packet currently running in the three assigned lanes at this checkpoint; candidates CPU ready. Not a fresh full-cluster utilization census."
   },
   "qualified_performance": {
     "Kimi_highest_retained_aggregate": {
@@ -139,75 +127,75 @@
     }
   },
   "latest_review": {
-    "updated_at_utc": "2026-10-24T22:00:26.591903+00:00",
+    "updated_at_utc": "2026-10-24T22:28:27.540389+00:00",
     "policy": "coordination/ASTRA_REVIEW.zh-CN.md",
     "status": "COMPLETED_IMPLEMENTED_FOLLOWTHROUGH",
-    "review_id": "astra-review-62-current",
+    "review_id": "astra-review-63-current",
     "model": "gpt-6-astra",
-    "agent": "/root/astra_review_62",
-    "report": "analysis/bw1000/reviews/astra-review-62-current.json",
-    "implementation": "analysis/bw1000/reviews/astra-review-implementation-62-current.json",
-    "ledger": "analysis/bw1000/reviews/optimization-review-ledger-after-62-round2.json",
+    "agent": "/root/astra_review_63",
+    "report": "analysis/bw1000/reviews/astra-review-63-current.json",
+    "implementation": "analysis/bw1000/reviews/astra-review-implementation-63-current.json",
+    "ledger": "analysis/bw1000/reviews/optimization-review-ledger-after-63-round2.json",
     "completed_rounds_since_review": 2,
     "normal_trigger": 3,
     "independent_work_continues": true,
     "report_available": true,
     "unreviewed_completed_experiments": [
       {
-        "handle": "910374.879",
-        "evidence": "results/bw1000/2026-10-25/kimi879-owner-stream-diagnostic.json",
-        "SHA256": "cb8ca4789f163bf3a2085622689c3aae4675606b9c6f28bde2be9729b40af2ab",
-        "scope": "Qualified causal owner-stream diagnostic,16schema/numeric0/summary0/16normal/post880. Provider interval dominates and EP2 spreads, but W13/W2/route-load cause unknown. No Modelgain or activekernel utilization."
+        "handle": "910374.886",
+        "evidence": "results/bw1000/2026-10-25/kimi886-provider-load-diagnostic.json",
+        "scope": "Qualified16owner causal provider/route diagnostic;contiguousEP2 routes94/162 supports work imbalance. Not Model gain.",
+        "SHA256": "3952fbeac8a04a02366203a71205fa4fbfbbd4cfb7dc93e915341b21b3261d10"
       },
       {
-        "handle": "910374.877",
-        "evidence": "results/bw1000/2026-10-25/deep877-quant1-only-model.json",
-        "SHA256": "e117a7b9fa602db4b09277cf62dce1c126c9e83b72dccf6b4bfb5cf216570212",
-        "scope": "QualifiedactualModel A/Q/Q/A full128/allIDsEOS/18QA/8normal/audit0/post881. Smallprefill+1.647%/E2E+1.421%withAendpointdrift+1.730/+1.520%;no materialgain established,notadopted. Decodeunchanged source,observeddifference notcausal quant1decodegain."
+        "handle": "910376.561",
+        "evidence": "results/bw1000/2026-10-25/glm561-exactbank-b16-b32.json",
+        "scope": "Qualified wholeModel B16/B32 capacity/latency matrix;decode39.245/39.515 singlepair,no stable decode gain. Prefill/E2E tradeoff,16normal/audit0/post562.",
+        "SHA256": "93a9d6c7d50b5540568d46aaa68ceee56b2e81e75256f02124741e94b8738ff7"
       }
     ],
     "inflight_review": null,
     "wholeModel_gain_count_this_review": 0,
     "current_followthrough_summary": {
-      "Kimi": "879qualified;provider-subphase/historyCPU220ready",
-      "Deep": "877qualityPASS/no materialgain/notadopted;actualModelprofile CPUsource-only investigation",
-      "GLM": "561RUNNINGoriginal45min2600;fit/performanceunknown"
+      "Kimi": "Fixed cyclic even/odd EP2 CPU221 complete43s, no math change;final entry/manifest ready. One bounded10-call component protocol proposed, not Model adoption. Await source publication and original lane check.",
+      "Deep": "Actual Model event packet CPU ready; use only original n05/8DCU,acceptedA/full128/two windows, no extra load/arm.",
+      "GLM": "Owner assigned <=30min CPU bottleneck/candidate analysis from540+561; compare bounded compute/launch candidate and twoTP8PP2 replica experiment; linear DP sum not a measurement."
     }
   },
   "astra_review": {
-    "updated_at_utc": "2026-10-24T22:00:26.591903+00:00",
+    "updated_at_utc": "2026-10-24T22:28:27.540389+00:00",
     "policy": "coordination/ASTRA_REVIEW.zh-CN.md",
     "status": "COMPLETED_IMPLEMENTED_FOLLOWTHROUGH",
-    "review_id": "astra-review-62-current",
+    "review_id": "astra-review-63-current",
     "model": "gpt-6-astra",
-    "agent": "/root/astra_review_62",
-    "report": "analysis/bw1000/reviews/astra-review-62-current.json",
-    "implementation": "analysis/bw1000/reviews/astra-review-implementation-62-current.json",
-    "ledger": "analysis/bw1000/reviews/optimization-review-ledger-after-62-round2.json",
+    "agent": "/root/astra_review_63",
+    "report": "analysis/bw1000/reviews/astra-review-63-current.json",
+    "implementation": "analysis/bw1000/reviews/astra-review-implementation-63-current.json",
+    "ledger": "analysis/bw1000/reviews/optimization-review-ledger-after-63-round2.json",
     "completed_rounds_since_review": 2,
     "normal_trigger": 3,
     "independent_work_continues": true,
     "report_available": true,
     "unreviewed_completed_experiments": [
       {
-        "handle": "910374.879",
-        "evidence": "results/bw1000/2026-10-25/kimi879-owner-stream-diagnostic.json",
-        "SHA256": "cb8ca4789f163bf3a2085622689c3aae4675606b9c6f28bde2be9729b40af2ab",
-        "scope": "Qualified causal owner-stream diagnostic,16schema/numeric0/summary0/16normal/post880. Provider interval dominates and EP2 spreads, but W13/W2/route-load cause unknown. No Modelgain or activekernel utilization."
+        "handle": "910374.886",
+        "evidence": "results/bw1000/2026-10-25/kimi886-provider-load-diagnostic.json",
+        "scope": "Qualified16owner causal provider/route diagnostic;contiguousEP2 routes94/162 supports work imbalance. Not Model gain.",
+        "SHA256": "3952fbeac8a04a02366203a71205fa4fbfbbd4cfb7dc93e915341b21b3261d10"
       },
       {
-        "handle": "910374.877",
-        "evidence": "results/bw1000/2026-10-25/deep877-quant1-only-model.json",
-        "SHA256": "e117a7b9fa602db4b09277cf62dce1c126c9e83b72dccf6b4bfb5cf216570212",
-        "scope": "QualifiedactualModel A/Q/Q/A full128/allIDsEOS/18QA/8normal/audit0/post881. Smallprefill+1.647%/E2E+1.421%withAendpointdrift+1.730/+1.520%;no materialgain established,notadopted. Decodeunchanged source,observeddifference notcausal quant1decodegain."
+        "handle": "910376.561",
+        "evidence": "results/bw1000/2026-10-25/glm561-exactbank-b16-b32.json",
+        "scope": "Qualified wholeModel B16/B32 capacity/latency matrix;decode39.245/39.515 singlepair,no stable decode gain. Prefill/E2E tradeoff,16normal/audit0/post562.",
+        "SHA256": "93a9d6c7d50b5540568d46aaa68ceee56b2e81e75256f02124741e94b8738ff7"
       }
     ],
     "inflight_review": null,
     "wholeModel_gain_count_this_review": 0,
     "current_followthrough_summary": {
-      "Kimi": "879qualified;provider-subphase/historyCPU220ready",
-      "Deep": "877qualityPASS/no materialgain/notadopted;actualModelprofile CPUsource-only investigation",
-      "GLM": "561RUNNINGoriginal45min2600;fit/performanceunknown"
+      "Kimi": "Fixed cyclic even/odd EP2 CPU221 complete43s, no math change;final entry/manifest ready. One bounded10-call component protocol proposed, not Model adoption. Await source publication and original lane check.",
+      "Deep": "Actual Model event packet CPU ready; use only original n05/8DCU,acceptedA/full128/two windows, no extra load/arm.",
+      "GLM": "Owner assigned <=30min CPU bottleneck/candidate analysis from540+561; compare bounded compute/launch candidate and twoTP8PP2 replica experiment; linear DP sum not a measurement."
     }
   },
   "current_speculative_evidence": "analysis/bw1000/Kimi-speculative-latest-r8892.json",
@@ -248,5 +236,8 @@
     "last_peer_check_utc": "2026-10-24T21:41:55.118540+00:00",
     "peer_branch_present": false
   },
-  "current_Deep877": "results/bw1000/2026-10-25/deep877-quant1-only-model.json"
+  "current_Deep877": "results/bw1000/2026-10-25/deep877-quant1-only-model.json",
+  "current_Kimi886": "results/bw1000/2026-10-25/kimi886-provider-load-diagnostic.json",
+  "current_GLM561": "results/bw1000/2026-10-25/glm561-exactbank-b16-b32.json",
+  "current_Kimi_B128_capacity": "analysis/bw1000/kimi-b128m32-capacity-decision.json"
 }

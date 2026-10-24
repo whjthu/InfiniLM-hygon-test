@@ -1,0 +1,131 @@
+{
+  "hardware": "BW1000",
+  "level": "actualModel-source-plan",
+  "status": "CPU_READ_ONLY_COMPLETE_NO_LAUNCH",
+  "scope": "Bounded <=15min actual TP8/43layer caller/link inspection after877; no compile, GPU, source modification, or Git index.",
+  "current_actual_DSO": {
+    "path": "/refactor/candidates/deep-quant1-model-r8887/libdeep_quant1_model_r8887.so",
+    "SHA256": "d0cfd805d79b96ad203e49b99751ca4cec719de74a3532a8134c3bdb2c5c3ced",
+    "mode_for_next_diagnostic": "accepted A: quant1 OFF; scatter/banklease/activation OFF; PACKON"
+  },
+  "finding": "No currently linked Deep stage-duration/event-readout CAPI found in inspected exports and actual caller/decoder. Existing current DSO can be used unchanged for external HIP API/kernel/stack tracing. Exact layer/category attribution is conditional, not yet established.",
+  "existing_hooks": [
+    {
+      "name": "trace_r4026::save / INFINILM_DEEP_LAYER_TRACE_R4026",
+      "kind": "rank0/6 first2rows raw tensor observer with sync+D2H+file writes",
+      "usable_for_duration": false,
+      "reason": "No event timing, intrusive; keep disabled."
+    },
+    {
+      "name": "DEEPSEEK_MOE_TRACE",
+      "kind": "fprintf+fflush stage names in actual current MoE caller line40",
+      "usable_for_duration": false,
+      "reason": "No timestamps/duration; perexpert output perturbs host gaps."
+    },
+    {
+      "name": "modern_glm_pipeline_last_profile / RankWorker::refresh_finite_paged_decode_profile",
+      "kind": "present in nm",
+      "usable_for_Deep43layer": false,
+      "reason": "No verified binding to requested current Deep categories."
+    },
+    {
+      "name": "hipProfilerStart/Stop + existing Deep_B32_profile_matrix_r7274.py / inside.sh",
+      "kind": "existing project harness; external hipprof --hip-trace --kernel-stack --trace-args --trace-off",
+      "usable_for_current_DSO": "zero TU, adapt only frozen consumer entry and bounded windows; old consumer hardcodes old0e051 DSO so cannot run unchanged",
+      "warning": "Existing script3000s timeout and C4 policy are historical, not next authorization/budget."
+    }
+  ],
+  "verified_actual_callsites": {
+    "decoder": {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/deep-tailSUM-r7212/incoming/deepseek_v4_native_routed_decoder_r20.cpp",
+      "SHA256": "a78a758feced64d83879a6e4ad7271bc0be832a41c1f161b13b440a5becb68ce",
+      "object": "/refactor/candidates/deep-tailSUM-r7212/deepseek_v4_native_routed_decoder_r20.cpp.o",
+      "calls": [
+        {
+          "line": 54,
+          "text": "Output out;out.attention_prepared=hc_->pre(r,residual);out.normalized_attention=norm_->forward(r,out.attention_prepared.collapsed);"
+        },
+        {
+          "line": 55,
+          "text": "if(swa_)out.attention_value=swa_->forward(r,out.normalized_attention,positions,metadata<SwaAttention>(requests));"
+        },
+        {
+          "line": 56,
+          "text": "else if(csa_)out.attention_value=csa_->forward(r,out.normalized_attention,positions,metadata<CsaAttention>(requests));"
+        },
+        {
+          "line": 57,
+          "text": "else out.attention_value=hca_->forward(r,out.normalized_attention,positions,metadata<HcaAttention>(requests));"
+        },
+        {
+          "line": 58,
+          "text": "out.attention_residual=hc_->post(r,out.attention_value,residual,out.attention_prepared);"
+        },
+        {
+          "line": 59,
+          "text": "out.ffn=ffn_->forward_detailed(r,out.attention_residual,ids);out.hidden=out.ffn.value;"
+        },
+        {
+          "line": 60,
+          "text": "for(auto q:requests)lengths_[q.row]=q.past+q.tokens;r.syncStream();return out;"
+        }
+      ]
+    },
+    "FFNBlock": {
+      "path": "/refactor/candidates/deep-c4-projection-model-r5920/incoming/deepseek_v4_ffn_routed_block_r20.cpp",
+      "SHA256": "a238f0646791c94ddf5ab5ab7fa3cb77ddd97c36b840f086257e478061aed529",
+      "object": "/refactor/candidates/deep-c4-projection-model-r5920/objects/unit-12.o",
+      "forward_detailed_line17": "prepare -> moe_->forward -> hc_->post",
+      "prepare_line20": "hc_->pre -> RMSNorm -> original sync"
+    },
+    "current_MoE": {
+      "path": "/refactor/candidates/deep-quant1-model-r8887/src/deep_model_quant1_r8886.cpp",
+      "SHA256": "96e690a2652d53d514b27019b9f789b69840a40d2c605d64de9aae79e4d39f10",
+      "calls": [
+        {
+          "line": 167,
+          "text": "trace(\"gate_projection\");ex::submit<infini::ops::Gemm>(r,infini::ops::Gemm::DefaultConfig(device_.type()),x,gate_->permute({1,0}),std::optional<rt::Tensor>{},std::optional<float>{1},std::optional<float>{0},std::optional<int>{},std::optional<int>{},logits);"
+        },
+        {
+          "line": 212,
+          "text": "trace(\"shared_int8_mlp\");auto shared=shared_->forward_local(r,x),shared_float=alloc({tokens,hidden_},rt::DataType::kFloat32),combined=alloc({tokens,hidden_},rt::DataType::kFloat32);"
+        },
+        {
+          "line": 214,
+          "text": "trace(\"tp_reduction\");if(tp_size_>1){"
+        },
+        {
+          "line": 216,
+          "text": "if(selected){auto before=layout_r7040::counts.at(r.device().index()).pad_bytes.load();layout_r7040::reduce_moe_tail_r7211(r,combined,comm_,true);auto bytes=layout_r7040::counts.at(r.device().index()).pad_bytes.load()-before;if(bytes!=2048*4096*4)throw std::logic_error(\"7211 actual canonical payload differs\");++counter.selected;counter.bytes.fetch_add(bytes);counter.elements.fetch_add(bytes/4);}"
+        },
+        {
+          "line": 217,
+          "text": "else{layout_r7040::reduce_moe(r,combined,comm_);if(target)++counter.native_target;else ++counter.bypass;}"
+        }
+      ]
+    }
+  },
+  "least_change_options": {
+    "preferred_next": "0 host TU: reuse existing HIP profiling start/stop pattern around actual current Model CAPI windows; preserve current DSO/default A. Only classify layer/component where stack+operator shape+sequence establish all43anchors; otherwise report UNASSIGNED. Kernel/API trace still diagnoses host gaps, sync density, copy/collective time.",
+    "exact_category_fallback": "At least3 small host TUs under inspected current call boundaries: actual decoder for attention mHC/norm/wholeattention/wholeFFN; FFNBlock for FFN mHC/norm/MoE; current MoE caller for router/routed/shared/TP reduce. Shared header collector plus one bounded readout CAPI can live in one of these TUs; no SDK/kernel rebuild. If limited to1-2TU, park full split or report explicit inclusive/unknown categories.",
+    "projection_detail": "Current attentionOutput is replaced by deep-combined-r7169/unit-2.o, mHC byunit-3.o. The historicalr5920 output/mHC source was not treated as current. Split attention projection exactly needs current replacement-source verification and another TU unless stack/shape classification suffices; not authorized/implemented here."
+  },
+  "single_load_plan_NOT_authorization": [
+    "One accepted A weightload, original32row/I512/full128/gold and QA interfaces; no TP0 component sweep, no policy candidate arm.",
+    "Trace OFF through weightload/QA. Trace only first actual T2048 prefill CAPI and fixed representative decode CAPI at step64 in one full128 diagnostic pass; immediately stop after each. All other frames traceOFF. No repeats/reload or performance-gain claim from traced timing.",
+    "Preserve native_decode vs driver_decode and actual-request firstlast/ITL; raw trace remains remote, return finite aggregates+SHA. Reuse original cleanup/audit/post discipline and root-approved hard budget without extension.",
+    "If sourceevent fallback later authorized: record events on actual owner stream without adding perstage sync; query only after existing drain; retain existing synchronization. Report GPU stream spans and host wall/threadCPU separately."
+  ],
+  "semantics": [
+    "Owner-stream event span includes dependency waits and host enqueue gaps; it is not kernel-active time.",
+    "Compute kernel-active and copy/collective interval unions perstream/device and overlap explicitly; do not sum overlapping streams.",
+    "TP collective elapsed span is not pure network time or proof of TP waiting; require trace dependency and crossrank correlation; unresolved idle remains UNKNOWN."
+  ],
+  "evidence_files": {
+    "Deep-Model-profile-hooks-static-r8889.json": "1e34d0d5afe0494b6cd46f31fe8e55b9caf665fbff35018baf4e834793cc2104",
+    "Deep-profile-actual-objects-r8890.json": "125fdce6b49a02307cb54cd85ddc59ef86de1b251d5125d2189d939bc9fd9db9",
+    "Deep-profile-decoder-r8891.json": "dd3484d80235f99c8a9fdcd3cf81b7e9f3cef3b07c4e34e5fc74f31281abdec8",
+    "Deep-profile-stage-sources-r8893.json": "8566b197c3cc8f3d5b9685e4308eee264462c26df4bebdab46ede16f5479adb6",
+    "Deep-profile-FFN-static-r8894.json": "12d071b601f3a91b422fce761673a327bacd21a150922d268bb968866fd1cfd5"
+  }
+}

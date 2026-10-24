@@ -1,0 +1,148 @@
+{
+  "utc": "2026-10-24T22:18:17.118347+00:00",
+  "CPU_only": true,
+  "GPU": false,
+  "sources": [
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/config/config_factory.cpp",
+      "SHA256": "ec854caf234c8f99db3db401568df8e3ffd2fdd576872590d0dede572bc909cf",
+      "selected_lines": []
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/config/model_config.hpp",
+      "SHA256": "c852a8f32e775c89a9e9087cf33489c4b145041658a0f075a1653f92d5c9d8bd",
+      "selected_lines": [
+        [
+          74,
+          "    }"
+        ],
+        [
+          75,
+          ""
+        ],
+        [
+          76,
+          "    size_t get_kv_dim() const {"
+        ],
+        [
+          77,
+          "        return get<size_t>(\"hidden_size\") * get<size_t>(\"num_key_value_heads\") / get<size_t>(\"num_attention_heads\");"
+        ],
+        [
+          78,
+          "    }"
+        ],
+        [
+          79,
+          "    size_t get_head_dim() const {"
+        ],
+        [
+          80,
+          "        if (config_json.contains(\"head_dim\")) {"
+        ],
+        [
+          81,
+          "            return get<size_t>(\"head_dim\");"
+        ],
+        [
+          82,
+          "        }"
+        ],
+        [
+          83,
+          "        return get<size_t>(\"hidden_size\") / get<size_t>(\"num_attention_heads\");"
+        ],
+        [
+          84,
+          "    }"
+        ],
+        [
+          85,
+          ""
+        ],
+        [
+          86,
+          "    // Compute the actual rotary dimension based on partial rotation factor"
+        ],
+        [
+          87,
+          "    size_t get_rotary_dim() const;"
+        ]
+      ]
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/config/model_config.cpp",
+      "SHA256": "d4e480f5033c28ad15b3fe48dad30c29cb55d3257adf9cf0465845ba62ba0c0a",
+      "selected_lines": [
+        [
+          46,
+          "}"
+        ],
+        [
+          47,
+          ""
+        ],
+        [
+          48,
+          "size_t ModelConfig::get_rotary_dim() const {"
+        ],
+        [
+          49,
+          "    size_t head_dim = get_head_dim();"
+        ],
+        [
+          50,
+          "    double partial_rotary_factor = get_or<double>(\"partial_rotary_factor\", 1.0);"
+        ],
+        [
+          51,
+          ""
+        ],
+        [
+          52,
+          "    if (partial_rotary_factor <= 0.0 || partial_rotary_factor >= 1.0) {"
+        ],
+        [
+          53,
+          "        return head_dim;"
+        ],
+        [
+          54,
+          "    }"
+        ],
+        [
+          55,
+          ""
+        ],
+        [
+          56,
+          "    size_t rotary_dim = static_cast<size_t>(std::llround("
+        ],
+        [
+          57,
+          "        static_cast<double>(head_dim) * partial_rotary_factor));"
+        ],
+        [
+          58,
+          "    rotary_dim = std::clamp(rotary_dim, static_cast<size_t>(2), head_dim);"
+        ],
+        [
+          59,
+          ""
+        ],
+        [
+          60,
+          "    if (rotary_dim % 2 != 0) {"
+        ],
+        [
+          61,
+          "        rotary_dim -= 1;"
+        ],
+        [
+          62,
+          "    }"
+        ]
+      ]
+    }
+  ]
+}
