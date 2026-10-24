@@ -1,0 +1,49 @@
+{
+  "status": "CPU_SOURCE_DISPATCH_BOUNDARIES_ONLY_CAUSE_UNKNOWN",
+  "actual_step": "910374.754",
+  "native_DSO_SHA256": "0e0512551483457af01944e9c9298442f499d959836a1c5b66dfa438a3c6c4ea",
+  "SDK_SHA256": "e1d9432e6de79cf09782fc3b3b332fb969d1a948dbac513b3da677d78f7f1f09",
+  "explicit_configuration_unchanged": "precision5/projection16/C4=16/layout0HC0tail0/cache128rows1024/TP8PP1/prefillchunk4; no native binary/math edit",
+  "source_evidence": [
+    {
+      "source": "/refactor/candidates/deep-combined-r7169/incoming/deepseek_v4_attention_output.cpp",
+      "SHA256": "31e80fb1109308809a030896681ceacc17fbe5b76f1a61b528389456f683f960",
+      "capture": "r7242-Deep-projection-actual.json",
+      "capture_SHA256": "883c9c56be4ff25f4cac7ee1ee62edbc5931647186d0b0d30e7262b4744eb16a",
+      "lines": "34-39,43-49",
+      "finding": "BothM32andM64 take tokens>16&&tokens<=64 outputprojectionM16 loop. Tilecount2vs4; downstream quant/I8Gemm tensors have M32vsM64 rows; quant andI8Gemm explicitimplementation0 in both. This does not prove identical internalSDKkernel/reduction geometry."
+    },
+    {
+      "source": "deep_c4_projection_model_r5920.cpp",
+      "SHA256": "8e3160a8d3defff085c888dea3d78bf1d09f0b8d3c4d6cbf2d8f85735041feee",
+      "linked_dtype_proof": "Deep-precision5-dtype-confirmation-r7272.json",
+      "linked_dtype_proof_SHA256": "8f9fb29abf8602f14718a5e3b09e31c7ec3613991873c70ee497eba908c84cdb",
+      "lines": "177-185",
+      "finding": "BothM32andM64 remain ratio4/tokens>16&&<=64/policy16/mode5/requesttokens1 boundedtiling branch; M16 GEMMs2vs4. M64doesnot cross64guard. C128 projection keeps explicitF32cast/GEMM/cast source; activationT changes."
+    },
+    {
+      "source": "Deep_B64_M64_matrix_r8644.py",
+      "SHA256": "2bfdc9ff5e4b0c22c2ee19c4289aa82714021b3c82d1abb9c764454d61fd5a6c",
+      "finding": "M32calls2chunks perdecode step, M64calls1. Failure recordsfinite/CPUargmax/actualIDs/referenceIDs and allactualprefixes only; no fullM64logitframe/top2/argmaxmargin or perlayer tensors saved."
+    }
+  ],
+  "metadata_available": {
+    "failure_step_zero_based": 30,
+    "input_position": 541,
+    "total_tokens_after_input": 542,
+    "full_vocab_finite": true,
+    "CPUargmax_equal": true,
+    "actual_ID": 8842,
+    "reference_ID": 7831,
+    "mismatched_rows": "odd rows1,3,...63",
+    "exact_earlier_output_prefix": 30
+  },
+  "metadata_missing": [
+    "M64 failedstep fullvocablogits or top2/margin",
+    "Exactfirstdiffering layer/operator/tensor",
+    "Per-kernel ISA/provider trace at failedstep",
+    "FreshsameB64/M32control: skippedbysealedstop-on-firstqualityfailure"
+  ],
+  "causal_limits": "Sameexplicitdtype/implementationindex does not prove same SDKkernel or same floatingpoint grouping. Current754 didnotexecuteB64M32control, so no isolatedattribution toM64vsB64rowcount/cacheindexing. NoOOM/errorobserved; normalclose andfree-memorysnapshots do not make a peakmemoryproof. Failure providesno M64performance ranking. Frozen699B32M32~58qualifiedbaseline unchanged.",
+  "decision": "NoGPUretry orblindfullModelrepair. Preserveactuals andUNKNOWNcause; original754/audit/755post remain sole numerical lifecycle."
+}
