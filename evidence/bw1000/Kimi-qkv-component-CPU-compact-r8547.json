@@ -1,0 +1,89 @@
+{
+  "scope": "CPU_NATIVE_COMPONENT_READY; GPU_NOT_RUN",
+  "build_failure_preserved": {
+    "handle": "910406.169",
+    "state": "FAILED1",
+    "elapsed_s": 5,
+    "reason": "Missing existing DTK cuda_runtime include in command; no DSO/dlopen/GPU"
+  },
+  "actual_CPU_build": {
+    "handle": "910406.170",
+    "state": "COMPLETED0",
+    "elapsed_s": 9,
+    "only_one_TU": true,
+    "CPU_dlopen": false,
+    "source_SHA256": "941d1c9ab45aaa1cbdf571bf97b99766caeec4455b52f9a49fd4e7c991766e65",
+    "actual_header_count": 582,
+    "MD_SHA_scope": "actual selected refactor headers per build receipt; no incoming headers",
+    "native_path": "/refactor/candidates/Kimi-qkv-component-r8546/libKimi_qkv_component_r8545.so",
+    "native_SHA256": "5117786f63d6a8ac0a46ad31637ca923458a225d6461d3507f791d4b91c2dea2"
+  },
+  "unchanged_provider": {
+    "path": "/refactor/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/python/infinilm/_lib/libinfinilm_runtime.so",
+    "SHA256": "04a6a1a86c97d176e4304b9bb4c1d6fcb8550784beaa47e0f5841fb7603ffabf",
+    "function": "dense_prefill_f32_r2475",
+    "actual_source_SHA256": "7ceedfb6c98c2f66600c51ee9fa2ddb8e21780d4863e06cc829c97fc53becad3",
+    "operation": "BF16 input/weight Cast F32 -> ordinary SDK Gemm -> Cast BF16; actual provider reused, not reimplemented"
+  },
+  "real_operands": {
+    "source_handle": "910375.602",
+    "rank": 0,
+    "O_input": [
+      1,
+      512,
+      7168
+    ],
+    "W_input": [
+      1,
+      2048,
+      7168
+    ],
+    "O_output": [
+      1,
+      512,
+      4608
+    ],
+    "W_output": [
+      1,
+      2048,
+      4608
+    ],
+    "target": [
+      0,
+      512
+    ],
+    "all_companions_preserved": true,
+    "weight": {
+      "shape": [
+        4608,
+        7168
+      ],
+      "dtype": "BF16",
+      "bytes": 66060288,
+      "SHA256": "83a380fdcdb0aeec37f52063da686d92e9e74e881ee606692eb2dcb4a4d02c06",
+      "scale": null,
+      "bias": null,
+      "transform": "Each checkpoint BF16 q/k/v output dimension rank0 slice[0:1536], concatenate q,k,v; no quant scale, conversion, transpose or padding. This mirrors current source load mapping; validate against captured full output before adoption."
+    },
+    "manifest_SHA256": "26af700781641399c643050a44d4d66ac212a1c5390cd042100c38bb0a215b86",
+    "raw_storage": "REMOTE_ONLY",
+    "actual_native_weight_readback": "NOT_CAPTURED; full original O/W exactoutput replay mandatory"
+  },
+  "planned_single_factor": "Only after original full output replay qualifies: same actual W2048 rows four512-segment calls via unchanged helper. Not a model/service performance claim.",
+  "output_metrics": [
+    "full CAPI wall",
+    "native compute span",
+    "maxabs",
+    "nrmse",
+    "changed BF16 elements",
+    "actual target/full row ranges",
+    "normalclose",
+    "firstdiff"
+  ],
+  "evidence_SHA256": {
+    "Kimi-qkv-component-CPU-observed-r8546-a.json": "203ea96fc6ec62753ac6b58eb2bfe51a5972b115dde15e7e680039b025ca8dc3",
+    "Kimi-projection-provider-r8543.json": "afeb0e9b0431936f31f9974dc6eed257c9a893c0128b501347650f52f4c7dfb9",
+    "Kimi-qkv-operands-r8544.json": "5f27aae987ba591677e439873f6e128e5835aa3600fc0ed368aa453d93e16748",
+    "Kimi-qkv-path-CPU-r8547.json": "ac17570feee348d17b3ed895856eb84a93ef08f1c6edf29aad40db3b5977c60f"
+  }
+}
