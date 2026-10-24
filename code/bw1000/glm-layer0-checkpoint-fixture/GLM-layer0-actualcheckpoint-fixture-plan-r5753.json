@@ -1,0 +1,216 @@
+{
+  "utc": "2026-10-24T00:59:53.458065+00:00",
+  "scope": "CPU source feasibility and concrete next fixture only; no GPU, compile, weight tensor I/O, or new Model run.",
+  "decision": "FEASIBLE: one GPU holding TP8 rank0-local layer0 prepare plus actual old/new attention; not unchanged whole NativeAttention forward.",
+  "identity": "Actual-checkpoint-constructed layer0 fixture, NOT a capture/replay of historical479 QKV. No Model final-token or throughput claim.",
+  "evidence": {
+    "r5750-GLM-layer0-fixture-source.json": "46d13b664ca93f2b45439c69824168fc5487cdbf26c4f53f7c83338a845f4463",
+    "r5751-GLM-layer0-indexer-source.json": "a23803185f99c29cb39085385e171e378a96349a6b544cacea9a2f0d7b46362f",
+    "r5746-GLM479-logits-source.json": "01f562569d6830ce1ce125a6e8dc2ed712dc752a46807f5818c348f6d265025d",
+    "r5747-GLM479-prepare-source.json": "c9f2901ad670663eddcb7c4765bddac6b1f69f005eb000307913c7fefb0e87e7"
+  },
+  "actual717_source_SHA256": {
+    "/refactor/candidates/glm-transient-layer-r5681/src/glm_moe_dsa_balanced_text_model_r126.cpp": "4bc1a1ccc550a53cbb17baa502f9bbc5670ab634e49b05049235e522cbc11d8c",
+    "/refactor/candidates/glm-transient-layer-r5681/src/glm_moe_dsa_projected_decoder_r22.hpp": "6868fddec9fca2a2f6e195667ef572c560b4b23ed16dbb1d5ad0ecf6e87b66b9",
+    "/refactor/candidates/glm-deferred-attention-model-5f91ad7-r5096/src/glm_moe_dsa_attention_prepare.hpp": "79b5d89e96cc8b2d236bc21bbecd307c03f9ab14ce22d85cbb8c16e223fa32dc",
+    "/refactor/candidates/glm-transient-layer-r5681/src/glm_moe_dsa_projected_decoder_r22.cpp": "ceb601d453dacb53f3cdb6813141d909b6a82a376d2cd6399d26b35616e9525b",
+    "/refactor/candidates/glm-transient-layer-r5681/src/glm_moe_dsa_attention_prepare_r809.cpp": "80ac6223f8fb61a9408f39172ebba773218bf936a93507b385140df96ac8d64e",
+    "/refactor/candidates/glm-transient-layer-r5681/src/glm_moe_dsa_indexer_rotary.cpp": "9e08792cec0fdb224201823450b9398e1eb6a474b3b90a49f386d09e2d0d594a",
+    "/refactor/candidates/glm-transient-layer-r5681/src/glm_moe_dsa_indexer_selection.cpp": "e9f2fdd7daad7b56ea51039514129a2b2661b6648667957aebf7de1cfc13951b",
+    "/refactor/candidates/glm-deferred-attention-model-5f91ad7-r5096/src/glm_moe_dsa_indexer_selection.hpp": "dc55e5b38e697aba3cb31b39ea93836f668e1281edbc2064619bcb75faf5c22d"
+  },
+  "input": {
+    "fixture_SHA256": "2f1076c4933394579097fc58fb399b53667f11cbce81a06d263aa5b4e2d83bbc",
+    "requests": 16,
+    "tokens_per_request": 512,
+    "two_sequential_cohorts": 8,
+    "past": 0,
+    "positions": "0..511 repeated per request",
+    "unique_embedding_rows": 341,
+    "embedding_row_bytes": 12288,
+    "embedding_bytes_read": 4190208,
+    "full_embedding_bytes_NOT_read": 1903165440
+  },
+  "locality": {
+    "embedding": "Actual TextModel L41/L64: replicated BF16 table, IndexSelect dim0; no TP collective. Gather 341 rows by file offsets/get_slice and remap IDs to compact table, then same IndexSelect. This is a proposed fixture extraction, not already implemented.",
+    "input_norm": "Actual Decoder L17/18: RmsNorm BF16 output with ones and cfg eps=1e-5, then BF16 Mul input_layernorm.weight. No fused replacement.",
+    "prepare": "Actual AttentionPrepare(tp_size=8,tp_rank=0) with same Runtime and original FP8 provider; replicated qA/kvA, rank0-row-sharded qB/kvB plus whole original scales. No TP collective in prepare. TP1 invalid for comparison because it produces64 heads rather than8.",
+    "hidden_state": "Layer0 is first layer on first PP stage; no prior decoder/PP input. RoPE table owner and FP8 caches initialized exactly by same constructors/policies; reset before cohort cases.",
+    "full_indexer_boundary": "Actual selector forward L44 DOES TP allreduce scores; unchanged NativeAttentionProjectedR22 cannot run TP8 on one GPU. No learned selection replay claimed. At 512 keys, selected=min(2048,512)=512, so Topk returns all key IDs including masked futures; actual old selection_map+sparse_impl drops future/dedups/sorts. Canonical full key set therefore gives same causal membership for this bounded attention-only fixture, not historical raw selection order."
+  },
+  "weights": {
+    "model.layers.0.self_attn.kv_a_layernorm.weight": {
+      "file": "model-00001-of-00141.safetensors",
+      "dtype": "BF16",
+      "shape": [
+        512
+      ],
+      "data_offsets": [
+        3807129344,
+        3807130368
+      ],
+      "bytes": 1024
+    },
+    "model.layers.0.self_attn.kv_a_proj_with_mqa.weight": {
+      "file": "model-00001-of-00141.safetensors",
+      "dtype": "F8_E4M3",
+      "shape": [
+        576,
+        6144
+      ],
+      "data_offsets": [
+        4043237632,
+        4046776576
+      ],
+      "bytes": 3538944
+    },
+    "model.layers.0.self_attn.kv_a_proj_with_mqa.weight_scale_inv": {
+      "file": "model-00001-of-00141.safetensors",
+      "dtype": "F32",
+      "shape": [
+        5,
+        48
+      ],
+      "data_offsets": [
+        57536,
+        58496
+      ],
+      "bytes": 960
+    },
+    "model.layers.0.self_attn.kv_b_proj.weight": {
+      "file": "model-00001-of-00141.safetensors",
+      "dtype": "F8_E4M3",
+      "shape": [
+        28672,
+        512
+      ],
+      "data_offsets": [
+        4046776576,
+        4061456640
+      ],
+      "bytes": 14680064
+    },
+    "model.layers.0.self_attn.kv_b_proj.weight_scale_inv": {
+      "file": "model-00001-of-00141.safetensors",
+      "dtype": "F32",
+      "shape": [
+        224,
+        4
+      ],
+      "data_offsets": [
+        58496,
+        62080
+      ],
+      "bytes": 3584
+    },
+    "model.layers.0.self_attn.q_a_layernorm.weight": {
+      "file": "model-00001-of-00141.safetensors",
+      "dtype": "BF16",
+      "shape": [
+        2048
+      ],
+      "data_offsets": [
+        3807130368,
+        3807134464
+      ],
+      "bytes": 4096
+    },
+    "model.layers.0.self_attn.q_a_proj.weight": {
+      "file": "model-00001-of-00141.safetensors",
+      "dtype": "F8_E4M3",
+      "shape": [
+        2048,
+        6144
+      ],
+      "data_offsets": [
+        4162119936,
+        4174702848
+      ],
+      "bytes": 12582912
+    },
+    "model.layers.0.self_attn.q_a_proj.weight_scale_inv": {
+      "file": "model-00001-of-00141.safetensors",
+      "dtype": "F32",
+      "shape": [
+        16,
+        48
+      ],
+      "data_offsets": [
+        86656,
+        89728
+      ],
+      "bytes": 3072
+    },
+    "model.layers.0.self_attn.q_b_proj.weight": {
+      "file": "model-00001-of-00141.safetensors",
+      "dtype": "F8_E4M3",
+      "shape": [
+        16384,
+        2048
+      ],
+      "data_offsets": [
+        4174702848,
+        4208257280
+      ],
+      "bytes": 33554432
+    },
+    "model.layers.0.self_attn.q_b_proj.weight_scale_inv": {
+      "file": "model-00001-of-00141.safetensors",
+      "dtype": "F32",
+      "shape": [
+        128,
+        16
+      ],
+      "data_offsets": [
+        89728,
+        97920
+      ],
+      "bytes": 8192
+    },
+    "model.layers.0.input_layernorm.weight": {
+      "file": "model-00001-of-00141.safetensors",
+      "dtype": "BF16",
+      "shape": [
+        6144
+      ],
+      "data_offsets": [
+        3806711040,
+        3806723328
+      ],
+      "bytes": 12288
+    }
+  },
+  "weight_budget": {
+    "standard_actual_loader_CPU_source_bytes": 64389568,
+    "rank0_GPU_parameter_logical_bytes_including_norm": 22184384,
+    "CPU_source_plus_embedding_rows_bytes": 68579776,
+    "GPU_weight_plus_embedding_rows_bytes": 26374592,
+    "full_qB_kvB_source_used": "Prefer existing full-source ModelWeights::load_parameters_no_sync then native rank slicing; source64.4MB is small. Avoid inventing new presliced weight-loading API to save42MB."
+  },
+  "minimal_bridge": {
+    "reuse": "7003-style owned Runtime/partial ModelWeights lifecycle is reusable pattern only; Deep7003 exports are model-specific, GLM5670 hardcodes layer38/TP8 and FFN so no existing export directly provides this fixture. New small GLM partial bridge is necessary, not built.",
+    "state": "AttentionPrepare only + input_norm/ones; rank.device matches Runtime,tp_size8,tp_rank0, no comm needed by this partial. No Decoder/FFN/Oproj/selector constructor.",
+    "generate": "CPU compact embedding rows -> same native IndexSelect -> exact input norm -> prepare.forward_latent -> prepare.expand_cached once per4096-token cohort; hold normalized input, prepared query/latent/rotary and fresh K/V until all cases drained.",
+    "baseline": "Actual717 sparse_attention_mapped_bounded with mode2, original selection_map_r302 full512 membership, positions, past0 and scale1/16. Per request headbatch8, QK/PV M1 causal prefix. Run one arm reading fresh K/V views and one reading resident-style bank slot after real D2D append; byte-readback equality before timed replay isolates append/alias. This reuses actual old attention callee, not a hand-written near-reference.",
+    "candidate": "Actual7328 glm_crossrequest_prefill_r7328, 8requests x512 x8heads x256, held same prepared.query and freshAllK/V. No weight/QKV regeneration between old/new arms. Keep full BF16 outputs remote and compare per request/head/token; first failing stage among prepare, append bytecheck, QK dot/scale/Softmax/PV if existing capture API suffices.",
+    "physical_layout": "Old K [512,8,256] permutation strides[256,1,2048], V[256,2048,1], Q batchstride256. New packed[64,512,256], K[131072,1,256], V[131072,256,1], Q batchstride131072. Exact pack/unpack formula recorded5748; no padding.",
+    "cache": "One fixed640-capacity resident pair with16slots, per-slot contiguous[640,8,256] and512-prefix; hold banks plus views to shared completion. Test two cohorts sequentially, do not clear another cohort. No hostbank substitute labeled actual479;479 had resident[38,40].",
+    "cleanup": "Same owner/device/eager/capture/pointer validation before enqueue; poison/drain after mutating enqueue failure; completed stream before releasing borrowed parents; clear actual FP8 Runtime caches and shared RoPE according to existing close provider; normal close/post-KFD via reviewed controller. No illegal GPUfault cases."
+  },
+  "capacity": {
+    "QKV_each_cohort_bytes": 50331648,
+    "resident16_KV_logical_bytes": 83886080,
+    "resident16_KV_prior_observed_physical_bytes": 134217728,
+    "new_attention_dense_intermediate_logical_bytes": 369098752,
+    "interpretation": "352MiB is only dots/df/scaled/rounded/logits/prob/pb sum; prepared tensors, packed copies, output, RoPE and allocator/provider workspace additional. Not a peak proof. Retain original6GiB free admission/512MiB floor; bounded single layer far below full78layer image."
+  },
+  "expected_cost": "One shard file, ~68.58MB CPU source+embedding row bytes versus fullModelhundredsGB and~14–16min loading. One GPU, two actual-input cohorts, one weightsload, paired old/new on same QKV. Exact elapsed UNKNOWN until executed; no fullModel reload required.",
+  "unresolved": "No historical479 layerQKV. Single-rank fixture can prove/reject actual-checkpoint layer0 attention equivalence for rank0, cannot explain later layers/ranks or qualify finalModeltokens. Full indexer scores would require real TP8 collective; unnecessary for all512 membership comparison, and explicitly excluded.",
+  "NOT_RUN": [
+    "fixture weight extraction",
+    "native bridge implementation/compile",
+    "GPU/attention/byte readback",
+    "historical479 replay",
+    "Model finaltokens/performance"
+  ]
+}
