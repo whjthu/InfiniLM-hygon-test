@@ -1,0 +1,146 @@
+{
+  "review": 44,
+  "status": "COMPLETE",
+  "date": "2026-10-24",
+  "reviewer": "/root/astra_review_44",
+  "model": "gpt-6-astra high",
+  "scope": "CPU local evidence/source review only; no GPU, Git, remote submission or subagents. Existing in-flight work continues independently.",
+  "goal_complete": false,
+  "decision": "本轮新增整模型已验收收益为零；三项是有效因果/负实验，不是空转。沿在途 Kimi Down 和当前高batch profile 取得下一个可行动结果；GLM 先复用501原logits作CPU数值/行契约诊断，同时让已发出的轻量工具探针收敛。停止 Deep B64M32 配置扩展，不重跑负矩阵。",
+  "consumes_once": [
+    "910374.757 REAL_LAYER0_CAUSAL_COMPONENT_NOT_MODEL_GAIN",
+    "910374.760 qualified B64M32/B32M32 first-pair negative",
+    "910376.501 prefill4 full-token rejection"
+  ],
+  "excluded_from_consumption": "8655 Down、8670 current profile 完成后进入 after44 队列；8690 tiny tool probe、CPU构建、报告和轮询均不算性能轮次。本审核不改变其原句柄或重提任务。",
+  "review43_followthrough": {
+    "KIMI43_GATEUP": "已落实。757 80秒完成原O/旧Nc观察扰动控制以及单GateUp512因果factor，全部8rank恢复gate/up/activated目标而row_reduced未恢复，剩余区间收窄为Down local GEMM或TP CCL。沿用真实companions和权重，未重捕Na/Nb，改进有效。",
+    "DEEP43_B64M32": "已落实。760 同load两臂全128IDs/EOS/QA通过，首pair未超过3%而停止；实际反序预算仍足够，不能解释为预算迫停。B64M32数值可行与754 M64失败分别保留，M64具体算子仍未知。",
+    "GLM43_PREFILL": "已落实。501 同load O8合格，N4全16行最终输出不一致并拒绝，无候选TPS。原生镜像/解码/feedback固定的单因素设计有价值，不能把API可调用误当数学等价。",
+    "KIMI43_PROFILE_CORRECTION": "43的等待另一必要加载条件形成循环等待，应修正。用户要求的当前高batch关键路径诊断本身就是必要实验；root已经启动8670，支持继续原entry，不追加source freshness或新编译门。AUX普通scope0没有可执行候选，取消无效OFF/ON配对正确。"
+  },
+  "results": {
+    "Kimi757": {
+      "terminal": "COMPLETED0 / 80s; 8normal, audit0, post758empty",
+      "causal_gain": "GateUp形状因果成立；未区分Down local与TP；未涉及MoE",
+      "Model_gain": "NOT_MEASURED",
+      "old_failures_preserved": "751 FAILED1及618/630 FAILED保留。239frame报告race修复仅工程进展。"
+    },
+    "Deep760": {
+      "terminal": "COMPLETED0 / 1265s; both full128 original gold + EOS/QA; 8normal/audit0/post761empty",
+      "CAPI_tok_s_B64_B32": [52.43513,54.16655],
+      "CAPI_ratio": 0.968035323028277,
+      "driver_E2E_ratio": 0.9906099063960386,
+      "user_first_last_median_tok_s_B64_B32": [0.4049,0.8549],
+      "interpretation": "本次首pair无推荐收益，B64用户first-last还明显较慢。单pair不足证明所有工作负载普遍无益；旧699约58.18不是本pair控制，不覆盖为54.17。不得用总吞吐/B替代用户指标。"
+    },
+    "GLM501": {
+      "terminal": "COMPLETED0 / 1645s; original audit0, 16normal, before/after QA, flagsOFF, IBext_v8 noSocket/709, post502empty",
+      "O8_decode_tok_s": 39.18942846051581,
+      "O8_prefill_seconds": 112.68915885780007,
+      "O8_E2E_tok_s": 12.44683076395563,
+      "O8_true_user_mean_tok_s": 1.930715739489795,
+      "N4": "16/16 rows final mismatch; first_bad0=0 only rows0,1,2,7,12,15, other rows first divergence11..48; no qualified N4 performance",
+      "cause": "UNKNOWN。token编号7984与154842的数值差没有logit距离含义；不能直接称小数值扰动，也不能据此证明巨大数值损坏。原始首token logits/row映射/实际dispatch应先定位。"
+    },
+    "unchanged_goal_gap": "Kimi旧best约133.59/32卡；GLM498双实例76.53/32卡=2.3916每卡，用户mean1.906/max2.434；Deep699约58.18/8卡。没有15tok/s每用户验收，也没有物理峰值或模型硬上界证明。BF16 333.752TF、F32 54.51TF、带宽1.23711TB/s只是achieved参考下界，寄存器INT4 1440TOPS不是MXFP4。"
+  },
+  "iteration_cost": {
+    "Kimi": "757仅80s取得新因果边界；capture CAPI含D2H/raw IO不能比较性能。weight load独立耗时未测，不从Slurm残差杜撰。",
+    "Deep": "760总1265s，weight load370.863s约29.3%；一次load提供两个完整有区分力arm。无收益时提前停止反序是正确节省。",
+    "GLM": "501总1645s，tail owner weight load957.723s约58.2%；O8 prefill112.689s占该arm总164.54s约68.5%。加载成本是下一步不盲重载的主要理由；剩余作业时间不能一概标测量，准备/排队/QA分项未知。",
+    "change": "复用原logits和真实activation，在必要profile中支付一次load；CPU审核不再成为GPU任务队列上的前置串行等待。"
+  },
+  "cards": [
+    {
+      "id": "KIMI44-DOWN-EXISTING-CAUSAL-CUT",
+      "priority": 1,
+      "owner": "/root/online_service_scheduler",
+      "resources": "已获root有限GO的8655原entry；910374/n01/8DCU/c64/128000M/10min。跟踪原句柄，不补新提交。",
+      "hypothesis": "757 GateUp已恢复后残余由Down local M几何或TP collective几何之一引起。",
+      "minimal_change": "原Row O/N复现、合法BaseLinear local+原fullCCL复现后，仅按preTP目标差选择mode2 local512+fullCCL或mode3 fullLocal+CCL512中的一个factor。",
+      "reuse": "757 Oa/Ncg全部真实companions、Down[7168,33792]权重/参考共951058432bytes；8653 CAPI7d29f19f、Common2e1458/Modelconfigf6f；CPU910406.189已通过，不复建。",
+      "samples_and_checks": "既定O/N全8rankfaithfulness controls和一个候选；中间bit对照仅因果定位，不扩成全模型所有算子bit验收。真实模型晋级只认最终完整token/EOS。",
+      "reclaimable_ms": "UNKNOWN；该实验是因果组件且有D2H/drain，不能给Model TPS。",
+      "first_decision": "首O/N original/manual控制完成即发布preTP首差；总10min硬限，继续原watch。",
+      "success": "分清local/CCL且一个factor恢复row，则CPU把已证GateUp+Down最小改动连成可计时候选；同已有真实操作数补无capture预热后短计时估额外launch/通信成本，只有存在明确prefill收益假设才准备一次全模型final-token验收。",
+      "stop": "原Row或manual不faithful则停止本归因；只记录首边界，不展开全网络逐位追赶。已定位但修正代价明显吞掉预期收益时不自动加载Model。",
+      "fallback": "636 fixed512正确性路径、旧B64M16；把主要资源交给8670实际critical path。"
+    },
+    {
+      "id": "KIMI44-ACTUAL-HIGHBATCH-PROFILE",
+      "priority": 2,
+      "owner": "/root/glm_critical_path_profile",
+      "resources": "已发8670 unique currentprofile8670-2780c25f37791711/controller798861；910375/n08..11/32卡/60min，跟原watch。",
+      "hypothesis": "当前B64M16的主要可回收wall来自少数实际kernel/CCL/PP依赖或hostgap，可据实选择一个高覆盖改动。",
+      "minimal_change": "完成现有QA0→full540gold128→ordinary2 traceOFF→独立trace36 decode32..33→QA0/restore，current183f6f/SpecMath0/servingpolicy1保持。",
+      "reuse": "8670 manifest bd464730c97c9a4373f889a3c143edd305e2ff88157b479814545d3bd1008f1d；已完成24 CPU实际callback checks；已有hipprof Start/Stop，窗内不加barrier。",
+      "samples_and_checks": "普通两次有效计时和4cohort短诊断，完整IDs/EOS/QA。按device区间union及依赖边界计算critical path；rank重叠时间不相加。interposer仍存在，普通arm是instrumented baseline，不与历史unwrapped值声称提速。routing histogram无TU支持即NOT_MEASURED。",
+      "reclaimable_ms": "UNKNOWN直到trace；拿到后列wall、可作用不重叠区间、单改动可回收ms及理想上限。",
+      "first_decision": "原ordinary首完整128结果即时给基线；trace完成后CPU分析≤10min选一个覆盖最大实际wall的源码候选，不追加GPU网格。",
+      "success": "得到当前实际shape/provider的可执行热点改动并估测critical-path ms；后续同负载最终token和普通计时证明收益。",
+      "stop": "AUX实际scope0回退，停止无效OFF/ON；trace未捕到目标不称性能结论，不盲重载B32/B128/EP。",
+      "fallback": "用现有native事件和普通时间线定位stage/host边界；只修最小观测缺口，避免再绕回等待另一必要load。"
+    },
+    {
+      "id": "GLM44-501-CPU-FIRST-DIVERGENCE",
+      "priority": 3,
+      "owner": "/root/moe_decode_arithmetic_audit（CPU分支，在8690原watch之外）",
+      "resources": "CPU only，原501报告/raw logits，零新GPU/全模型加载。",
+      "hypothesis": "prefill4改变实际dispatch或native行/缓存契约；也可能是近边界数值翻转。当前证据不能择一。",
+      "source_findings": "已读glm_prefill_micro_probe_r5848.py：line200按step0的prefill_micro分组；line206起desc使用全局row/past/length；step1回到原micro8 feedback。未发现明显host行重编号错误。line249保存tail rank0 step0 BF16 raw_checkpoints含rows/shape/SHA，能够复用，不要求新activation。",
+      "minimal_change": "原owner按phase+globalrow读O8/N4首token logits：CPU重算argmax、参考与候选top1/top2 margin、同一行差异；同时检查跨行对应和prompt哈希。继而只追实际1af0镜像内M4096→2048的row gather、last-token索引、batch cache/reset、PP传输长度及shape-dependent provider/共享prefix分支。",
+      "reuse": "501原ownerreport/raw_checkpoints、e659f4e源、native1af0和原gold；首token前两臂prompt相同可比较；后续不同history的logits不能直接作因果对照。",
+      "samples_and_checks": "现存16行step0全词表logits即可；重复prompt用完整prompt hash识别，跨行相似性只是线索，不能自动宣布permute bug。先CPU确认各臂逐行argmax与存档token一致。",
+      "reclaimable_ms": "UNKNOWN；本卡为解除prefill候选阻塞，112689ms是整段prefill而不是可回收预算。",
+      "first_decision": "原raw可读后≤10min给margin/行对应判断，≤20min给一个具体source分支或明确UNKNOWN；只缺远端原raw时让原ownerCPU读取，无GPU补捕。",
+      "success": "发现具体可修契约时做最小CPU重现/修补；发现小margin翻转只描述证据，另找保留算术路径的调度改动。只有修补有可证伪收益假设才准备全128验收。",
+      "stop": "没有具体源码原因或现有raw不足，不重复prefill4全Model或扩展M1/M2网格；不重新定义gold，不逐算子追全模型bitexact。",
+      "fallback": "保持合格M8/GLM498双实例，走下一卡原M8 prefill关键路径诊断。"
+    },
+    {
+      "id": "GLM44-CURRENT-PREFILL-CRITICAL-PATH",
+      "priority": 4,
+      "owner": "/root/moe_decode_arithmetic_audit，Kimi8670完成后与原GLM owner交接",
+      "resources": "先收已发8690工具探针的唯一结果：910376/n14/8卡/c16/32GiB/3min，不计性能轮。只有8spawn HIPOPS可见通过，才准备未来n14/n15独立16卡/45min单load包，仍需root具体GO。",
+      "hypothesis": "已验M8的112.7s prefill有可定位的kernel/通信/流水等待热点；旧492 decode/layer38不能说明prefill热点。",
+      "minimal_change": "工具通过后沿current1af0/B16M8现正确配置，一次load含无活动trace完整基线及独立prefill诊断窗口。不改prefill大小，不加入未经验证候选flag。",
+      "reuse": "8690 installed CLI/ELF SHA5fe2db93及exact flags；501合格M8、现有native owner timestamps、原QA/gold。",
+      "samples_and_checks": "工具8child sum120+StartStop/HIPOPS足够判可见性，工具只工程。模型普通完整128及独立prefill窗口，各stage device union/hostwait/CCL/PP依赖分离；保持实际first/last/TTFT。",
+      "reclaimable_ms": "UNKNOWN。positions D2H约185ms是依赖兑现，不能直接算删除收益；先把112689ms critical path分解。",
+      "first_decision": "8690原3min内tool pass/PARK；模型包准备≤15min；未来单load加载历史约16min，首prefill诊断约2min，45min有限闭环，不为trace另补第二load。",
+      "success": "工具可见且模型trace得到实际prefill热点后选一个覆盖主wall的实现改动；性能收益留待同口径完整验收。",
+      "stop": "CPU -h超时/flags不支持即PARK该工具路线，不猜参数或反复探针。模型trace缺失不再次盲reload。",
+      "fallback": "复用501 native事件按stage分解，并CPU定位最慢区间调用链；只在具体待测改动已有收益假设时再做Model。"
+    }
+  ],
+  "stopped_routes": [
+    "Deep B64M32首pair<=3%停止，不反序、不M64/M128/B配置网格；无新kernel/critical-path候选不再加载。",
+    "Kimi ordinary AUX scope0无效，继续STOP；小route MMAC/bitdecode既有负线不重跑，EP缺loader/IDremap/kernels不是现有开关。",
+    "不重做泛web403厂商峰值查询，不用寄存器integer峰值改写模型目标。"
+  ],
+  "root_required_actions": [
+    "757/760/501各consume一次、清除本批due；8655/8670结果进入下一队列，不抢先算完成。",
+    "记录43 profile条件修正已采纳；现有原entry/watch继续，报告不阻挡。",
+    "把GLM501首token诊断交原Deep owner作CPU副任务，先利用已有tail logits，不增加捕获或重载。",
+    "四卡逐条登记采纳/暂缓及真实资源；无收益的负路线关闭，工程探针不充作性能进度。"
+  ],
+  "evidence": [
+    "InfiniLM-hygon-test/AGENTS.md",
+    "InfiniLM-hygon-test/coordination/ASTRA_REVIEW.zh-CN.md",
+    "astra-review-43-current.json",
+    "astra-review-implementation-43-current.json",
+    "optimization-review-ledger-after-43.json",
+    "Kimi757-compact-MLP-causal-r8651.json SHA256 68f442330a6c6e116f1bedf51a5ac5a1db72ba82a3e78f355e1761ad78449b4b",
+    "Deep760-resident-batch-closed-r8650.json SHA256 045bb970df3f0b7114a105889a27f363ddcf130b1ac7e277faaec8c75bd9f2ef",
+    "GLM501-closed-prefill4-rejection-r5851.json",
+    "r5850-GLM501-root-progress-c.json",
+    "Kimi-Down-component-manifest-r8655.json",
+    "Kimi-current-profile-manifest-r8670.json",
+    "GLM-spawn-trace-help-failure-r8690.json",
+    "GLM-spawn-trace-tool-source-r8690.json",
+    "GLM-spawn-trace-root-observed-r8690-a.json",
+    "glm_prefill_micro_probe_r5848.py",
+    "glm_large_schedule_r3627.py"
+  ]
+}

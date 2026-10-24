@@ -1,5 +1,23 @@
 # BW1000 当前性能与后续方向
 
+## 第44次审核落实：2026-10-24 16:25 北京时间
+
+Astra44已完成，757/760/501各计一次并消费，四项决策见 `reviews/astra-review-implementation-44-current.json`。后续763是下一周期第1轮：8卡61秒、8normal/原audit/764节点清理为空；原Row与合法拆分路径均复现完整O/N，preTP目标全部相同，仅按512行分段TP归约即恢复8rank目标。这与757 GateUp512因果点分别成立；整层组合/最终token/EOS/吞吐尚未验证。最小8657组合CPU准备在进行，保留原classlayout/Common/SDK。
+
+Deep760同load B64M32/B32M32都完整128IDs/EOS/QA通过，CAPI52.4351/54.1665tok/s，B64容量比低3.20%，driver E2E低0.94%，按无收益规则结束，不反序/不采纳。单首pair不证明所有负载普遍无益，旧699约58.18纪录不覆盖为54.17。GLM501 O8合格39.1894tok/s；N4全16行最终分歧，仅6行首token即分歧，其余11–48，拒绝N4性能。16normal/原audit0/502清理通过；CPU复用原首token logits定位，token编号差距不能代表数值误差大小。
+
+Kimi639当前183/servingpolicy1 B64M16实际RUNNING（08:19:42UTC加载11:26），独立短hiptrace将分析实际kernel/CCL/PP/host区间。普通测量仍有hipprof interposer，属于instrumented baseline，不能冒称历史unwrapped提速。GLM8690工具探针504已终态但child FileTooLarge导致无有效trace，root505补清理为空；先CPU修工具限制，未授权GLM新整模型profile加载。本周期没有新增整模型提速或15tok/s用户验收。以下为历史路径。
+
+
+## 第44次审核落实：2026-10-24 16:25 北京时间
+
+Astra44已完成，757/760/501各计一次并消费，四项决策见 `reviews/astra-review-implementation-44-current.json`。后续763是下一周期第1轮：8卡61秒、8normal/原audit/764节点清理为空；原Row与合法拆分路径均复现完整O/N，preTP目标全部相同，仅按512行分段TP归约即恢复8rank目标。这与757 GateUp512因果点分别成立；整层组合/最终token/EOS/吞吐尚未验证。最小8657组合CPU准备在进行，保留原classlayout/Common/SDK。
+
+Deep760同load B64M32/B32M32都完整128IDs/EOS/QA通过，CAPI52.4351/54.1665tok/s，B64容量比低3.20%，driver E2E低0.94%，按无收益规则结束，不反序/不采纳。单首pair不证明所有负载普遍无益，旧699约58.18纪录不覆盖为54.17。GLM501 O8合格39.1894tok/s；N4全16行最终分歧，仅6行首token即分歧，其余11–48，拒绝N4性能。16normal/原audit0/502清理通过；CPU复用原首token logits定位，token编号差距不能代表数值误差大小。
+
+Kimi639当前183/servingpolicy1 B64M16实际RUNNING（08:19:42UTC加载11:26），独立短hiptrace将分析实际kernel/CCL/PP/host区间。普通测量仍有hipprof interposer，属于instrumented baseline，不能冒称历史unwrapped提速。GLM8690工具探针504已终态但child FileTooLarge导致无有效trace，root505补清理为空；先CPU修工具限制，未授权GLM新整模型profile加载。本周期没有新增整模型提速或15tok/s用户验收。以下为历史路径。
+
+
 ## 第43次审核与执行：2026-10-24 15:17 北京时间
 
 Astra43已完成，三轮新结论只计一次，计数归零；逐卡落实见 `reviews/astra-review-implementation-43-current.json`。Kimi8648四组真实单层对照与条件GateUp候选继续；GLM仅prefill4/decode8、Deep新B64M32/B32M32两条独立配置路线并行准备具体源码，尚未启动它们的新GPU作业。Kimi高batch实际profile/AUX只搭载下一次必要加载；B128、EP新框架及重跑DeepM64继续停止。
