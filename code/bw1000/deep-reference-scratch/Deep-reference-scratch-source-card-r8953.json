@@ -1,0 +1,81 @@
+{
+  "hardware": "BW1000",
+  "level": "CPU_SOURCE_PROPOSAL",
+  "status": "SOURCE_READY_NOT_COMPILED_NOT_GPU_AUTHORIZED",
+  "scope": "OnehostTU defaultOFF call-local FP32reference scratch reuse. OriginalGemm/Softmax/Gemm/Cast operators,argumentvalues,shapes,strides,precision,ordering,sink andselection unchanged. No917fusedkernel.",
+  "actual899": {
+    "DSO_SHA256": "c2e43d2d901c59317c2f8bb4008349d77346781e1ca353024bbe456cb241e2ad",
+    "source_commit": "10f6020dc633001cd1bf9edc0773c9177a82f3f8",
+    "reference_source": "/refactor/candidates/deep-c4-projection-model-r5920/incoming/deep_latent_reference_r681.cpp",
+    "reference_source_SHA256": "267ca5e38fef4310e9d1000fa4f786ab2fca2947cc5376a1e2c80899a887db72",
+    "reference_object": "/refactor/candidates/deep-c4-projection-model-r5920/objects/unit-25.o",
+    "object_SHA256": "6c263ca7959aa69caf89dd7bf9e0bc213929248c6b5e99e4db2fab8623e57b4d",
+    "current_attention_output_SHA256": "31e80fb1109308809a030896681ceacc17fbe5b76f1a61b528389456f683f960",
+    "actual_attention_prepare_SHA256": "3f388df12b9f8884d72cbe6d4a29f2b273934a3dd0cc49c81c93b66fe67ba56b"
+  },
+  "profile_binding": "Actual899 decoder span4 includesAttentionPrepare/selection/cache/latentreference/inverseRoPE/outputprojection. 16.552119s/20.640098s firstprefill and442.137ms/665.659ms decode areinclusiveparent spans,sameowner,notlatentkernelmeasurement. FFNspansnotadded.",
+  "intervention": {
+    "source_lines_original": [
+      33,
+      38,
+      39
+    ],
+    "change": "Replaceonly3perquery backingallocations (logits,probabilities,result) with3call-local scratch stores;prefixreshape keepscontiguous [heads,n+1] strides exactly. PreserveallGemm/Softmax/Cast invocations andtheir perquerysizes. NoD2H/cache/streamdrain removed.",
+    "default_OFF": true,
+    "active": "tokens>64 only;acceptedT32decodekeepsoriginaldispatch",
+    "removed": "6141backingallocationsandretainedscratchbanks perT2048call,notoperatorcountorGemmreduction",
+    "remaining": "2048perquerydescriptor/view/op submissions andpackedKVmaterialization unchanged; noCPUhostgap/kernelgainclaims"
+  },
+  "memory_by_source_map": [
+    {
+      "kind": "swa",
+      "T": 2048,
+      "H": 8,
+      "original_three_scratch_backing_bytes": 48381952,
+      "candidate_three_scratch_backing_bytes": 24640,
+      "saved_bytes": 48357312,
+      "original_backing_allocation_calls": 6144,
+      "candidate_backing_allocation_calls": 3
+    },
+    {
+      "kind": "hca128",
+      "T": 2048,
+      "H": 8,
+      "original_three_scratch_backing_bytes": 48579584,
+      "candidate_three_scratch_backing_bytes": 24896,
+      "saved_bytes": 48554688,
+      "original_backing_allocation_calls": 6144,
+      "candidate_backing_allocation_calls": 3
+    },
+    {
+      "kind": "csa4",
+      "T": 2048,
+      "H": 8,
+      "original_three_scratch_backing_bytes": 56737792,
+      "candidate_three_scratch_backing_bytes": 32832,
+      "saved_bytes": 56704960,
+      "original_backing_allocation_calls": 6144,
+      "candidate_backing_allocation_calls": 3
+    }
+  ],
+  "lifetime_stream": {
+    "proof_source_SHA256": {
+      "/refactor/candidates/rebased-5f91ad7-r3668/Model/Deep/InfiniLM/csrc/runtime/tensor.hpp": "dfc787f233bef2fb5888d0954440746334386023bad3f6207164024b377eb658",
+      "/refactor/candidates/rebased-5f91ad7-r3668/Model/Deep/InfiniLM/csrc/runtime/runtime.hpp": "c127b4cf91ab3b64721efe7c9a3e90a84cca9e35dc004ddb6abd9c5e067896d4",
+      "/refactor/candidates/rebased-5f91ad7-r3668/Model/Deep/InfiniLM/csrc/execution/submit.hpp": "8c0bd70a372b0017bca78e54f037493fe79918f97b5fed6d885f5b5d8eb0c20d"
+    },
+    "proof": "Actualexecution::submit createsRuntimeWorkspaceHandle andset_stream(runtime.stream());immediateOpsCallwhen!GraphRecording. Eachqueryoperationsandnextqueryscratchreuse use sameowner stream; Cast consumesresultbeforefollowingGemm overwritesit. Allthreebackingshelduntiloriginalr.syncStream; catchdrainbeforeunwindunchanged. Graphrecordingoriginallyrejected. No new sync removed or added.",
+    "metadata": "Prefixflatstorage narrowed toheads*(n+1),view→[heads,n+1] givesoriginalcontiguousstrides;no maxwidth pitch senttoOps. Outputqueryoffsets andselections untouched.",
+    "risk": "Backendmusthonorpublicstreamordering andoperatorCallargumentmetadata; GPU pairedcomponentnotyetrun. Aliasdifferentoperands within sameGemm isnotintroduced."
+  },
+  "possible_time_effect": {
+    "measured": "UNKNOWN",
+    "upper_bound": "Strictlywithinwholeattention16.552119sprefill, itselfnotexactlatentreferencecost; cannotassignall80percenttothischange. T32decodeactivepathunchanged, expecteddirectscope0.",
+    "why_material_source": "~46-54MiB retainedscratch and6144allocations perT2048localattentioncall,notfewKB;FP32packedKVlargeallocation remains unchanged. Allocation/CPUcostfractionnotmeasured;benefitcouldbezero."
+  },
+  "single_component_plan": "OneexistingRuntime syntheticB4I512/H8/D512 actualSWA/HCA128/CSA4 canonicalglobalmaps+independentRMS/RoPEowneroperands. Onefuturebuildonlyunit25, reusecurrentguard/prepare/output/allSDKobjects. SameDSO defaultOFF vsON pairedABBA, fulloriginalreferenceoperators botharms; finite/error/ownrepeat andmetadata sizes/strides plusallocationcounts/peakretainedbytes. KeepModeltokenruleunchanged;noautomaticModelload. Componentflagseparatefrom8933andlatentfusedOFF. NoGPUorbuildauthorizednow.",
+  "proposal_cpp": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\Deep-reference-scratch-proposal-r8953\\deep_latent_reference_scratch_r8953.cpp",
+  "proposal_CPP_SHA256": "50d65242f2f0b7a3491c3ac01911bd22e1a1f64ec0deefa9272db28705f2a1e0",
+  "patch_SHA256": "e1d7237a20f9fb0f6d04c11f3087a7e108a2b076e3d6fab358dd0e7602314ffc",
+  "validation": "Source-only patch generated fromactualpinnedreference; no nativebuild/GPU/dlopen/model/weights. TiminggainUNKNOWN;sourceboundproposalreadyforrootjudgment."
+}
