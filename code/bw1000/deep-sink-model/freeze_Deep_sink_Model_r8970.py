@@ -1,0 +1,9 @@
+import pathlib,json,hashlib,ast
+r=pathlib.Path(__file__).resolve().parent;sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest();p=r/'Deep-sink-Model-manifest-r8970.json';m=json.loads(p.read_bytes())
+for n in m['incoming_source_SHA256']:m['incoming_source_SHA256'][n]=sha(r/n)
+for k in ['CPU_consumer_contract','CPU_exception_contract']:m[k]['SHA256']=sha(r/m[k]['path'])
+m['source_manifest_note']='Reuses CPU220 receipt04776dc3/native1afea9b4 already exercised by component926. New independent Model entry/protocol changes only sinkcopy flag OFF/ON with scratchON both arms;zero native/SDK/kernel compilation. Actual923 frozen gold/QA protocol retained.'
+m['component_evidence']={'handle':'910374.926','source_commit':'b69441653279735ce68b62ef6281475bace37a41','compact':'results/bw1000/2026-10-25/deep926-reference-attention-sink-reuse.json','compact_SHA256':'ba56266c9153d5ef51faf75d717804608e763477f4050834c076145a629a3597','scope':'Synthetic faithful3fixture/8independentseed ABBA;closingA3/B2 latency19.36/18.08/13.40percent only. SWAfirstcold/CSAendpointdrift retained;noModelgainprediction.'}
+m['status']='CPU_READY_PENDING_ACTUALREAD_SOURCECLAIM_ROOT_GO';p.write_bytes((json.dumps(m,ensure_ascii=False,indent=2)+'\n').encode())
+rp=r/'read_Deep_sink_Model_watch_r8970.py';s=rp.read_text().replace('69af10b6adfa84a22892b1336da0f0a9ed2d3fdaf50913b3ff7dc36cde982680',sha(p));s=s.replace("t['scratch_prefill_chunks_checked']=", "t['sink_counts_per_column_ranges']=[[min(x),max(x)]for x in zip(*c.get('sink_counter_delta',[]))];t['scratch_prefill_chunks_checked']=");rp.write_bytes(s.encode());ast.parse(s)
+print(json.dumps({'manifest':sha(p),'entry':m['incoming_source_SHA256']['modern_Deep_sink_Model_r8970.py'],'protocol':m['incoming_source_SHA256']['Deep_sink_Model_protocol_r8970.py'],'pending_fields':False}))
