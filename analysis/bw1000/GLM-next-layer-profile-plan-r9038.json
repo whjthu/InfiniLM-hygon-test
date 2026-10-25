@@ -1,0 +1,42 @@
+{
+  "status": "SOURCE_QUALIFIED_PLAN_ONLY_NO_GPU_NO_BUILD",
+  "current_DSO": "/refactor/candidates/glm-reduced-output-r9034/libglm_reduced_output_r9034.so",
+  "DSO_SHA256": "94f08f7083f6fc6f57d17db3ccf2407ee8cce066a3411c100f62515cafde959f",
+  "binding_evidence": "GLM-profile-entry-source-r9038-b.json: actual ELF exports and current linked8843/vector8542/private9 marker sources; superseded5681 unlinked sources explicitly distinguished",
+  "entry": "Existing glm_layer_forward_r5670(ctx,N,B,desc,x,pos,out,int profile), final argument0/1. glm_layer_report_r5670() returns JSON profile/wall_ms/threadCPU_ms/stages. No profile environment variable or new C++ timer needed.",
+  "existing_fixture": "GLM_reduced_layer_r9034b.py, layer38/B8/past512/seed8703/TP8, originalSDK/cache/weights/env; 624 destroyed context, so future run requires ONE small-layer weight load, not a Model checkpoint load. No GPU GO issued here.",
+  "minimum_python_changes": [
+    "Force glm_reduced_output_policy_r9032(rank,0) for all calls:624 remainsPARK; profiling flag is separate from candidate selector.",
+    "Keep fresh prefill and warm calls profile0. Only final integer of decode forward becomes profile_flag. Preserve final drains and collect original report immediately.",
+    "Update existing report.profile==0 and empty-stages assertion to profile_flag with nonempty stages for1. Existing actual5096 counters must remain ordinary1/fused0 for BOTH profile modes.",
+    "No global pipeline_last_profile getter: it measures Model pipeline state, not this standalone layer context. Do not arm glm_window_r5795: its mark hook precedes the local tracing hook."
+  ],
+  "bounded_samples": {
+    "calls": 11,
+    "owners": 8,
+    "cases": 88,
+    "profile_flags": [0,0,0,1,1,0,1,0,0,1,0],
+    "meaning": "2warm + existing4 paired OFF/ON observer comparisons + restore; original per-call reset/freshprefill remains profile0; all candidate selectorsOFF",
+    "alternative_minimum": "2warm + one OFF/ON/ON/OFF + restore=7calls/56cases if root prefers fewer samples; do not add another parameter grid",
+    "qualification": "finite/readonly/canary/ownrepeat/originaldrains/actual5096/8normal/audit/post as624; intermediate crossarm bits diagnostic, finaltokens remain separate Model gate"
+  },
+  "spans_already_available": {
+    "Attention": "decoder.attention.begin -> decoder.attention.end; nested prepare/indexer/projectedKV/cache-to-output/output marks",
+    "RoutedMoE": "decoder.FFN.begin -> FFN.router.end; router.end->gateup.begin includes inputquant; gateup.begin/end; downquant.begin->down.begin; down.begin/end; down.end->shared.begin includes cast/weighting",
+    "sharedMLP": "FFN.shared.begin -> FFN.shared.end_TP.begin includes shared_MLP PLUS routed Sum/Cast/Add; pure shared-only clock MISSING",
+    "denseProjection": "attnout.quant.begin -> attnout.projection.begin; attnout.projection.begin -> attnout.TP.begin = actual attention Oprojection envelope. Prepare's Q/KV projections not separately marked; shared gate/up/down projections not individually marked.",
+    "TPcollective": "attnout.TP.begin/end and FFN.shared.end_TP.begin -> FFN.TP.end_cast.begin; includes outputbuffer copy+CCL allreduce, NOT pure collective kernel busy",
+    "hostlaunch": "Every adjacent marker has host_wall_ms and threadCPU_ms plus stream_timeline_ms_includes_host_enqueue_idle. Pure launch overhead/GPU idle attribution MISSING: no existing CUPTI/roctracer activity timestamps in this CAPI. Host-minus-stream is not a valid pure launch-cost estimator."
+  },
+  "synchronization_and_interpretation": [
+    "Current mark implementation creates CUDA events in each active marker then records them on owner stream and captures host/threadCPU. Original final stream drain completes events before elapsed reads; no inserted per-stage drain.",
+    "Event create/record can perturb host enqueue and stage attribution. Report paired wholelayer profileOFF/ON overhead; active samples are diagnostic, never a performance gain.",
+    "Current bridge native wall begins AFTER existing positions64B D2H validation/sync, and excludes route histogram D2H/JSON postprocessing; Python CAPI wall includes them. Report both separately.",
+    "Use same-owner adjacent marker spans; derive nested envelopes from those spans once. Do not sum nested spans or independent per-stage TPmax across different critical ranks.",
+    "Stream event spans include queued dependency waits/host enqueue idle. They are not GPU busy, compute utilization, or independently reclaimable CPU overhead.",
+    "540 stage1 resident5555 historical timing is context only. Current standalone624 uses5096 and needs its own source-qualified measurement before identifying the current5.94ms dominant component."
+  ],
+  "expected_outcome": "Rank current layer wall by attention vs routed gate/down vs shared+merge vs Oprojection/TP envelopes, quantify observer overhead. Subkernel GEMM/Softmax/math attribution and exact shared-only/hostlaunch cost remain unsupported without a separately justified narrower trace.",
+  "GPU_GO": false,
+  "new_performance_rounds": 0
+}
