@@ -1,0 +1,70 @@
+--- CPU282group_delta.cpp
++++ independent_rowAR_delta.cpp
+@@ -2,7 +2,7 @@
+ #include <array>
+ #include <atomic>
+ #include "kimi_spec_math_r3676.hpp"
+-#include <nccl.h>
++
+ #include "/refactor/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/csrc/engine/distributed/kimi_reduce_precision_r3226.hpp"
+ #include "kimi_owned_indices_r1213.hpp"
+ #include "kimi_k3_kda_trace.hpp"
+@@ -33,6 +33,9 @@
+ #include <string>
+ #include <utility>
+ 
++#include <cstdint>
++namespace {thread_local std::array<std::uint64_t,3>kimi_rowar_counts_r9043{};}
++extern "C" int modern_kimi_rowar_stats_r9043(std::uint64_t*out,std::size_t count){if(!out||count!=3)return 1;for(std::size_t j=0;j<3;++j)out[j]=kimi_rowar_counts_r9043[j];return 0;}
+ namespace infinilm::models::kimi_k3 {
+ inline std::array<std::array<std::atomic<uint64_t>,3>,8> ccl512_counts_r8603{};
+ extern "C" int modern_kimi_CCL512_counts_r8603(int device,uint64_t*out,size_t n){
+@@ -66,22 +69,22 @@
+ class Prefill512RowR8603 final : public infinilm::layers::linear::RowParallelLinear {
+ public:
+     using infinilm::layers::linear::RowParallelLinear::RowParallelLinear;
+-    infinilm::runtime::Tensor forward_group_r9042(infinilm::runtime::Runtime &runtime,infinilm::runtime::Tensor &input,bool grouped)const{
+-      runtime.assertOwnerThread();if(runtime.isGraphRecording()||tp_size_!=16||!communicator_||input->dtype()!=infinilm::runtime::DataType::kBFloat16||input->ndim()!=3||input->size(0)!=1||input->size(2)!=768||(input->size(1)!=1&&input->size(1)!=8)||has_bias()||alpha()!=1.f||output_dtype()!=input->dtype()||infinilm::engine::distributed::reduce_precision_r3226::selected(runtime)!=0)throw std::invalid_argument("9042 bounded original BF16 TP16 o_proj");
+-      std::vector<infinilm::runtime::Tensor>held;auto output=compute_linear(runtime,input);
++    infinilm::runtime::Tensor forward_rowar_r9043(infinilm::runtime::Runtime &runtime,infinilm::runtime::Tensor &input,int mode)const{
++      runtime.assertOwnerThread();if(runtime.isGraphRecording()||tp_size_!=16||!communicator_||input->dtype()!=infinilm::runtime::DataType::kBFloat16||input->ndim()!=3||input->size(0)!=1||input->size(2)!=768||(input->size(1)!=1&&input->size(1)!=8)||has_bias()||alpha()!=1.f||output_dtype()!=input->dtype()||mode<0||mode>2||infinilm::engine::distributed::reduce_precision_r3226::selected(runtime)!=0)throw std::invalid_argument("9043 bounded original BF16 TP16 o_proj");
++      std::vector<infinilm::runtime::Tensor>held,parts;infinilm::runtime::Tensor output;
+       struct Drain{infinilm::runtime::Runtime&r;~Drain(){try{r.syncStream();}catch(...){std::terminate();}}}drain{runtime};
++      if(mode==2&&input->size(1)==8){output=infinilm::runtime::Tensor::empty(runtime,{1,8,7168},input->dtype());for(size_t j=0;j<8;++j){auto row=input->narrow({{1,j,1}});held.push_back(row);auto part=compute_linear(runtime,row);held.push_back(part);if(part->shape()!=infinilm::runtime::Shape{1,1,7168})throw std::logic_error("9043 canonical W1 shape");output->narrow({{1,j,1}})->copy_from(runtime,part);}}
++      else output=compute_linear(runtime,input);
+       infinilm::models::kimi_k3::trace_kda_projection(runtime,output,"r9042_o_proj_local");
+-      if(grouped&&input->size(1)==8){
+-        // Materialize all arguments/copies before opening RCCL group; no sync/ops inside group.
+-        for(size_t j=0;j<8;++j){auto part=infinilm::runtime::Tensor::empty(runtime,{1,1,7168},output->dtype());part->copy_from(runtime,output->narrow({{1,j,1}}));if(!part->is_contiguous()||part->numel()!=7168)throw std::logic_error("9042 packed row");held.push_back(part);}
+-        if(ncclGroupStart()!=ncclSuccess)std::_Exit(86);
+-        for(auto &part:held)infinilm::engine::distributed::allreduce_(runtime,part,part,infinicclSum,communicator_);
+-        if(ncclGroupEnd()!=ncclSuccess)std::_Exit(86);
+-        for(size_t j=0;j<8;++j)output->narrow({{1,j,1}})->copy_from(runtime,held[j]);
++      if(mode&&input->size(1)==8){
++        for(size_t j=0;j<8;++j){auto part=infinilm::runtime::Tensor::empty(runtime,{1,1,7168},output->dtype());part->copy_from(runtime,output->narrow({{1,j,1}}));if(!part->is_contiguous()||part->numel()!=7168)throw std::logic_error("9043 packed row");parts.push_back(part);}
++        // Eight independent original messages. No external group, no per-row stream wait.
++        for(auto &part:parts){infinilm::engine::distributed::allreduce_(runtime,part,part,infinicclSum,communicator_);++kimi_rowar_counts_r9043[2];}
++        ++kimi_rowar_counts_r9043[mode-1];
++        for(size_t j=0;j<8;++j)output->narrow({{1,j,1}})->copy_from(runtime,parts[j]);
+       }else infinilm::engine::distributed::allreduce_(runtime,output,output,infinicclSum,communicator_);
+       infinilm::models::kimi_k3::trace_kda_projection(runtime,output,"r9042_o_proj_reduced");return output;
+     }
+-
+     infinilm::runtime::Tensor forward_prefill512(
+         infinilm::runtime::Runtime &runtime, infinilm::runtime::Tensor &input) const {
+         // Unsupported scopes use the original actual provider unchanged.
+@@ -568,10 +571,10 @@
+     // KDA layers. This includes the existing same-owner collective per row;
+     // it deliberately avoids new broadcast-batched GEMM or unproven reduction.
+     auto result = [&]() {
+-        auto flag9042=[](const char*n){const char*p=std::getenv(n);if(!p||std::string(p)=="0")return false;if(std::string(p)=="1")return true;throw std::invalid_argument("9042 flag0or1");};
+-        bool selected9042=flag9042("INFINILM_KIMI_ROWGROUP_R9042"),trace9042=flag9042("INFINILM_KIMI_ROWGROUP_TRACE_R9042");
+-        if(((selected9042&&seq_len==8)||trace9042)&&batch_size==1&&(seq_len==1||seq_len==8)){
+-          auto p=std::dynamic_pointer_cast<Prefill512RowR8603>(o_proj_);if(!p)throw std::logic_error("9042 original class");return p->forward_group_r9042(runtime,gated,selected9042);
++        const char *p9043=std::getenv("INFINILM_KIMI_ROWAR_R9043");int mode9043=0;if(p9043){if(std::string(p9043)=="1")mode9043=1;else if(std::string(p9043)=="2")mode9043=2;else if(std::string(p9043)!="0")throw std::invalid_argument("9043 mode0/1/2");}
++        const char *t9043=std::getenv("INFINILM_KIMI_ROWAR_TRACE_R9043");bool trace9043=t9043&&std::string(t9043)=="1";if(t9043&&std::string(t9043)!="0"&&std::string(t9043)!="1")throw std::invalid_argument("9043 trace0/1");
++        if(((mode9043&&seq_len==8)||trace9043)&&batch_size==1&&(seq_len==1||seq_len==8)){
++          auto p=std::dynamic_pointer_cast<Prefill512RowR8603>(o_proj_);if(!p)throw std::logic_error("9043 original class");return p->forward_rowar_r9043(runtime,gated,mode9043);
+         }
+         const char *cc=std::getenv("INFINILM_KIMI_CCL512_R8603");
+         if(cc && std::string(cc)!="0" && std::string(cc)!="1")

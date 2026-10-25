@@ -1,0 +1,71 @@
+--- 701-original-driver.py
++++ worker-owned-report-driver.py
+@@ -1,5 +1,5 @@
+ """Bounded original layer0 A/C replay; raw activations remain remote."""
+-import pathlib,json,hashlib,sys,os,time,ctypes,threading,concurrent.futures,traceback
++import pathlib,json,hashlib,sys,os,time,ctypes,threading,concurrent.futures,traceback,copy
+ sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+ GROUP_ENV='INFINILM_KIMI_ROWAR_R9043'
+ TRACE_ENV='INFINILM_KIMI_ROWAR_TRACE_R9043'
+@@ -28,8 +28,19 @@
+  import numpy as np,torch,infinilm
+  from stage_control_r2386 import StageControl
+  m,contract=frontend(manifest);r=pathlib.Path('/refactor');node=int(os.environ['SLURM_PROCID']);assert node in [0,1];torch.set_num_threads(1);assert torch.cuda.device_count()==8;job=os.environ['SLURM_JOB_ID']+'.'+os.environ['SLURM_STEP_ID'];path=r/'results'/('Kimi-layer0-real-r9043-'+job+'-node'+str(node)+'.json');assert not path.exists();report={'node':node,'job':job,'status':'RUNNING','scope':'OriginalTP16layer0only A/C actualnorm, nootherlayer/fullModel/finalIDs/servingspeed','CPU_frontend':contract,'workers':[{'rank':node*8+i,'normal_close':False}for i in range(8)],'raw_storage':'REMOTE_ONLY','timing_contract':'untraced finalW8 run CAPI includes native sync and host copy; one warmup pair then four alternating measured pairs','GPU_F64':False};lock=threading.Lock()
++ worker_local=threading.local()
++ def update_report(**fields):
++  with lock:report.update(fields)
++ def publish_activation(arm,proof):
++  # The source proof belongs to this writer; published values are never mutated.
++  snapshot=copy.deepcopy(proof)
++  with lock:report['activation_witness']={**report.get('activation_witness',{}),arm:snapshot}
+  def save():
+-  with lock:p=path.with_suffix('.tmp');p.write_text(json.dumps(report,indent=2));p.replace(path)
++  # Only this thread can mutate its own record. Never copy a shared mutable worker.
++  owned=getattr(worker_local,'own',None);snapshot=copy.deepcopy(owned)if owned is not None else None
++  with lock:
++   if snapshot is not None:report['workers'][worker_local.device]=snapshot
++   p=path.with_suffix('.tmp');p.write_text(json.dumps(report,indent=2));p.replace(path)
+  save();control=StageControl(node,os.environ['KIMI_ENGINE_HEAD'],int(os.environ['GLOBAL_PORT_R2354'])+7000,os.environ['KIMI_ENGINE_NONCE'],2,500);control.collect('frontend_ready',{'node':node,'contract':contract});norm=np.fromfile(m['norm']['path'],dtype='<u2').reshape(544,7168);config=pathlib.Path(m['config']).read_text();lib=ctypes.CDLL(m['native']);lib.layer0_error_r9038.restype=ctypes.c_char_p;lib.layer0_id_size_r9038.restype=ctypes.c_size_t;lib.layer0_id_r9038.argtypes=[ctypes.c_void_p];lib.layer0_create_r9038.argtypes=[ctypes.c_char_p,ctypes.c_int,ctypes.c_int,ctypes.c_void_p];lib.layer0_create_r9038.restype=ctypes.c_void_p;lib.layer0_load_local_r9038.argtypes=[ctypes.c_void_p,ctypes.c_char_p,ctypes.c_void_p,ctypes.c_size_t,ctypes.c_void_p,ctypes.c_int]
+  for n in ['finish','reset','close']:getattr(lib,'layer0_'+n+'_r9038').argtypes=[ctypes.c_void_p]
+  lib.layer0_run_r9038.argtypes=[ctypes.c_void_p,ctypes.c_size_t,ctypes.c_int,ctypes.c_int,ctypes.c_void_p,ctypes.c_void_p];lib.modern_kimi_reduce_policy_r3226.argtypes=[ctypes.c_int];assert lib.modern_kimi_reduce_policy_r3226(0)==0
+@@ -55,7 +66,7 @@
+   for arm in ['W_C','W_D',*m['arms']]:(root/arm).mkdir()
+  control.collect('rawdirs_ready',{'node':node});apply_flags(False,1,True);os.environ['INFINILM_KIMI_KDA_TRACE_LAYER']='0';os.environ['INFINILM_KIMI_TRACE_STATE_ROWS_MODE_R8516']='all';os.environ['INFINILM_KIMI_TRACE_DIR']=str(root/'A');report['raw_root']=str(root);save();shared_outputs={}
+  def worker(device):
+-  rank=node*8+device;own=report['workers'][device];ctx=None
++  rank=node*8+device;own={'rank':rank,'normal_close':False};worker_local.device=device;worker_local.own=own;ctx=None
+   try:
+    own['worker_frontend']=worker_frontend(device);torch.cuda.set_device(device);ctx=lib.layer0_create_r9038(config.encode(),rank,device,uid);assert ctx,lib.layer0_error_r9038().decode();specs=m['weights'][str(rank)]
+    for key,meta in sorted(specs.items()):
+@@ -64,26 +75,26 @@
+    if device==0:control.collect('all16_weights_ready',{'node':node,'loaded':8})
+    barrier.wait()
+    own['activation_warm_calls']={};own['activation_counter_deltas']={}
+-   if device==0:report['activation_witness']={}
++   if device==0:update_report(activation_witness={})
+    barrier.wait()
+    for warmarm in ['C','D']:
+-    if device==0:os.environ['INFINILM_KIMI_TRACE_DIR']=str(root/('W_'+warmarm));control.collect('activation_warm_begin:'+warmarm,{'node':node});report['phase']='activation_warm_'+warmarm;save()
++    if device==0:os.environ['INFINILM_KIMI_TRACE_DIR']=str(root/('W_'+warmarm));control.collect('activation_warm_begin:'+warmarm,{'node':node});update_report(phase='activation_warm_'+warmarm);save()
+     barrier.wait();check(lib.layer0_reset_r9038(ctx));active,shadow=1,9;past=0;own['activation_warm_calls'][warmarm]=[];stats_before=read_stats()
+     for width in [512,*([1]*24),8]:
+      if device==0:apply_flags(arm_mode(warmarm),width,False)
+      barrier.wait();read=1 if past==0 else active;write=1 if past==0 else shadow;x=np.ascontiguousarray(norm[past:past+width]);guard=np.full(width*7168+64,0x7fc1,np.uint16);out=guard[32:-32].reshape(width,7168);before=hashlib.sha256(x.tobytes()).hexdigest();check(lib.layer0_run_r9038(ctx,width,read,write,x.ctypes.data,out.ctypes.data));barrier.wait();assert np.all(guard[:32]==0x7fc1)and np.all(guard[-32:]==0x7fc1);assert not np.any((out&0x7f80)==0x7f80);assert hashlib.sha256(x.tobytes()).hexdigest()==before;own['activation_warm_calls'][warmarm].append({'past':past,'width':width,'read':read,'write':write,'output_SHA256':hashlib.sha256(out.tobytes()).hexdigest()})
+      if past>0:active,shadow=shadow,active
+      past+=width
+-    assert past==544;stats_after=read_stats();delta=[a-b for a,b in zip(stats_after,stats_before)];expected=[1,0,8]if warmarm=='C'else[0,1,8];assert delta==expected,(rank,warmarm,delta);own['activation_counter_deltas'][warmarm]=delta;barrier.wait()
++    assert past==544;stats_after=read_stats();delta=[a-b for a,b in zip(stats_after,stats_before)];expected=[1,0,8]if warmarm=='C'else[0,1,8];assert delta==expected,(rank,warmarm,delta);own['activation_counter_deltas'][warmarm]=delta;save();barrier.wait()
+     if device==0:
+      witness=[]
+      for localdev in range(8):
+       p=root/('W_'+warmarm)/f'stage{node}-rank{localdev}-layer0-kda-call25.jsonl';rows=[json.loads(z)for z in p.read_text().splitlines()];found=[z for z in rows if z['point']in m['required_points']];assert len(found)==2 and{z['point']for z in found}==set(m['required_points']);assert all(z['shape']==[1,8,7168]and z['nonfinite']==0 for z in found);witness.append({'rank':node*8+localdev,'journal':str(p),'journal_SHA256':sha(p),'points':[z['point']for z in found]})
+-     proof={'node':node,'passed':True,'candidate_mode_ENV':os.environ[GROUP_ENV],'trace_control_ENV':os.environ[TRACE_ENV],'witness':witness,'completed_sections':8,'physical_collectives_per_section_from_pinned_branch':8,'independent_native_counter':True,'actual_counter_deltas':[report['workers'][k]['activation_counter_deltas'][warmarm]for k in range(8)]};assert proof['candidate_mode_ENV']==str(arm_mode(warmarm))and proof['trace_control_ENV']=='0';report['activation_witness'][warmarm]=proof;save();allproof=control.collect('all16_activation_witness:'+warmarm,proof);assert len(allproof)==2 and all(z['passed']for z in allproof)
++     proof={'node':node,'passed':True,'candidate_mode_ENV':os.environ[GROUP_ENV],'trace_control_ENV':os.environ[TRACE_ENV],'witness':witness,'completed_sections':8,'physical_collectives_per_section_from_pinned_branch':8,'independent_native_counter':True,'actual_counter_deltas':[report['workers'][k]['activation_counter_deltas'][warmarm]for k in range(8)]};assert proof['candidate_mode_ENV']==str(arm_mode(warmarm))and proof['trace_control_ENV']=='0';publish_activation(warmarm,proof);save();allproof=control.collect('all16_activation_witness:'+warmarm,proof);assert len(allproof)==2 and all(z['passed']for z in allproof)
+     barrier.wait()
+    for arm,widths in m['arms'].items():
+     if device==0:
+-     os.environ['INFINILM_KIMI_TRACE_DIR']=str(root/arm);control.collect('arm:'+arm,{'node':node});report['phase']=arm;save()
++     os.environ['INFINILM_KIMI_TRACE_DIR']=str(root/arm);control.collect('arm:'+arm,{'node':node});update_report(phase=arm);save()
+     barrier.wait();check(lib.layer0_reset_r9038(ctx));barrier.wait();calls=[];outs={};active,shadow=1,9;past=0
+     for width in [512,*widths]:
+      if device==0:apply_flags(arm_mode(arm),width,True);control.collect('select:'+arm+':'+str(past),{'node':node,'selector':os.environ['INFINILM_KIMI_ROWAR_R9043']})

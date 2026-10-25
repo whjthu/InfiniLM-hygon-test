@@ -1,0 +1,43 @@
+{
+  "hardware": "BW1000",
+  "level": "CURRENT_DSO_M16_SOURCE_CAPABILITY_CHECK",
+  "status": "STOP_CURRENT_COMPONENT_CAPI_EXPLICITLY_REJECTS_B16_NO_GPU_OR_BUILD",
+  "UTC": "2026-10-25T15:13:49.862764+00:00",
+  "GPU": false,
+  "build": false,
+  "performance_round": false,
+  "new_numeric_attempts": 0,
+  "parent639_immutable": {
+    "compact": "GLM-gate-attention_cohort-component-compact-r9054.json",
+    "SHA256": "48b4920454ee54b1976b8105fa97bc871e183f71d0a4b9f4fef2936552faad85",
+    "DSO_SHA256": "45a3ad06b789152c532abcaa27a45db582bf55669ec4f7a56e6ba08b9de3003a",
+    "CPU_receipt": "910407.284"
+  },
+  "actual_linked_CAPI": {
+    "object": "/refactor/candidates/glm-PP2-B32-r8843/private-0.o",
+    "object_SHA256": "22fe1940f181a7c27cd204ad38980c3017d159366cb5fd40aa11368b4dc2bb4f",
+    "reused_unchanged_by_CPU284": true,
+    "actual_source": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/glm-PP2-B32-r8843/tree/candidates/glm-prefix-bridge-r8705/src/glm_prefix_layer_bridge_r8705.cpp",
+    "source_SHA256": "a89fc588f590b75968edd488c5bfeb8a7e243f38112c97a50a4d0f5fcf9b8024",
+    "matching_local_source": "glm_prefix_layer_bridge_r8705.cpp",
+    "guard_line": 51,
+    "guard_text": " owner(c);own=true;if(!c->ready||c->poison||!desc||!N||N>4096||!B||B>8||(profile!=0&&profile!=1))throw std::invalid_argument(\"forward state/count\");input(c,x);input(c,positions);input(c,out);",
+    "earlier_actual_source_object_mapping": "GLM-profile-entry-source-r9038-b.json",
+    "earlier_mapping_SHA256": "e5c8de45746cc8c8663ccb5f288156af86a263ed76e4194eed5cfd9fb5c83278"
+  },
+  "blocking_limits": {
+    "B_max": 8,
+    "N_max": 4096,
+    "B16_decode": "glm_layer_forward_r5670 rejects B16 before pointer validation/forward/Runtime mutation. Driver-only change cannot run.",
+    "single_prefill_16x512": "8192>N4096 also rejects. Splitting prefill into two B8 cohorts avoids only N limit, not decodeB16 limit.",
+    "current_Model567_M16": "Modeldriver calls another production engine path, so qualified567B32M16 does not establish this standaloneCAPI capacity."
+  },
+  "not_a_blocker_by_itself": {
+    "new_attention_callers": "5096 accepts8..128 andnewcohort8/16,5555accepts8/16; these are downstream and cannot overrideCAPIguard.",
+    "row_capacity": 64,
+    "context_capacity": 640,
+    "vector_dispatch": "CurrentvectorR64selection bypasses to fallback atR128; no claim thatR128 has same native provider asR64. No need to probe GPU after deterministicCAPI rejection."
+  },
+  "decision": "Stop within five-minute source gate; no newruntime/driver-only hardcode/compile/GPU launch. M16 requires at least one explicit CAPI bridge HOSTTU change and requalification of forwarded geometry, outside this no-compile GO. Original639PARK preserved.",
+  "smallest_next_scope_if_root_explicitly_authorizes": "OneexistingCAPIHOSTTU allowB16, preserveN<=4096 andprefill16rows in2originalB8/4096calls; then exactT16FFN/cache/lease sourcevalidation andsamefixture176checks. Notexecuted/notimplicitlyauthorized."
+}
