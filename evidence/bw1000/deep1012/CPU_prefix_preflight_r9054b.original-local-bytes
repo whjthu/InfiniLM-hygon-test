@@ -1,0 +1,3 @@
+import pathlib,os,json,ast
+p=pathlib.Path('/refactor/incoming/Deep_scalar_Cast_component_r9054b.py');text=p.read_text();prefix=text.split('import torch
+',1)[0];assert len(prefix)<len(text);ast.parse(prefix);scope={'__name__':'__cpu_prefix_preflight__'};exec(compile(prefix,str(p)+':prefix','exec'),scope);assert 'lib'not in scope and 'torch'not in scope and callable(scope['sha']);print(json.dumps(dict(passed=True,CPU_only=True,actual_DSO_sha_checked=scope['m']['DSO_SHA256'],linked_objects=len(scope['cpu']['link']['full']['objects']),no_torch_import=True,no_dlopen=True,no_GPU=True)))

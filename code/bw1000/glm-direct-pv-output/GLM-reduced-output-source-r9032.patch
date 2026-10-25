@@ -1,0 +1,71 @@
+--- glm_exact_rows_attention_r5555.cpp
++++ glm_reduced_output_5555_r9032.cpp
+@@ -7,6 +7,13 @@
+ #include <optional>
+ #include <vector>
+ extern "C" int glm_scale_round_r392(const void*,void*,void*,size_t,float,void*);
++#include <array>
++#include <cstdint>
++namespace {struct ReducedOutput9032{int enabled=0;uint64_t count[4]{};};thread_local std::array<ReducedOutput9032,8> reduced_output9032;}
++extern "C" int glm_reduced_output_policy_r9032(int d,int enabled){if(d<0||d>=8||enabled<0||enabled>1)return-1;reduced_output9032[d].enabled=enabled;return 0;}
++extern "C" int glm_reduced_output_counts_r9032(int d,uint64_t*out,size_t n){if(d<0||d>=8||!out||n!=4)return-1;for(size_t i=0;i<4;++i)out[i]=reduced_output9032[d].count[i];return 0;}
++extern "C" int glm_reduced_output_choose_r9032(int d,int entry){auto&s=reduced_output9032.at(d);++s.count[2*entry+s.enabled];return s.enabled;}
++
+ namespace infinilm::models::glm_moe_dsa {
+ namespace rt=infinilm::runtime;namespace ex=infinilm::execution;
+ rt::Tensor sparse_attention_all_selected_decode_r601(rt::Runtime&,const rt::Tensor&,const rt::Tensor&,const rt::Tensor&,float);
+@@ -40,6 +47,7 @@
+  work.held.insert(work.held.end(),values.begin(),values.end());
+  auto alloc=[&](rt::Shape s,rt::DataType dtype){auto t=rt::Tensor::empty(r,s,dtype);work.held.push_back(t);return t;};
+  const size_t B=q->size(0);auto out=alloc({B,8,256},rt::DataType::kBFloat16);
++ const bool direct_output9032=backend==1&&B==8&&glm_reduced_output_choose_r9032(r.device().index(),0);
+  for(size_t i=0;i<B;++i){
+   const size_t P=keys[i]->size(0);auto qr=q->narrow({{0,i,1}});work.held.push_back(qr);
+   const auto&kr=keys[i];const auto&vr=values[i];
+@@ -49,7 +57,8 @@
+   }
+   auto dots=alloc({8,1,P},rt::DataType::kBFloat16),logits=alloc({8,1,P},rt::DataType::kFloat32),
+        prob=alloc({8,1,P},rt::DataType::kFloat32),pb=alloc({8,1,P},rt::DataType::kBFloat16),
+-       result=alloc({1,8,256},rt::DataType::kBFloat16);
++       result=direct_output9032?out->narrow({{0,i,1}}):alloc({1,8,256},rt::DataType::kBFloat16);
++  if(direct_output9032)work.held.push_back(result);
+   ex::submit<infini::ops::Gemm>(r,infini::ops::Gemm::DefaultConfig(r.device().type()),
+    qr->view({8,1,256}),kr->permute({1,2,0}),std::optional<rt::Tensor>{},std::optional<float>{1},
+    std::optional<float>{0},std::optional<int>{},std::optional<int>{},dots);
+@@ -61,7 +70,7 @@
+   ex::submit<infini::ops::Gemm>(r,infini::ops::Gemm::DefaultConfig(r.device().type()),
+    pb,vr->permute({1,0,2}),std::optional<rt::Tensor>{},std::optional<float>{1},
+    std::optional<float>{0},std::optional<int>{},std::optional<int>{},result->view({8,1,256}));
+-  out->narrow({{0,i,1}})->copy_from(r,result);
++  if(!direct_output9032)out->narrow({{0,i,1}})->copy_from(r,result);
+   // backend0 calls the pinned actual5390 r601 symbol. backend2 is a
+   // separate row-sync-factor diagnostic; backend1 shares only the end drain.
+   if(backend==2)r.syncStream();
+--- glm_all_selected_decode_deferred_r5096.cpp
++++ glm_reduced_output_5096_r9032.cpp
+@@ -6,20 +6,23 @@
+ #include <atomic>
+ #include <string>
+ extern "C" int glm_scale_round_r392(const void*,void*,void*,size_t,float,void*);
++extern "C" int glm_reduced_output_choose_r9032(int,int);
+ namespace infinilm::models::glm_moe_dsa {
+ namespace rt=infinilm::runtime;namespace ex=infinilm::execution;
+ namespace{std::array<std::array<std::atomic<uint64_t>,2>,8>batch_stats5096{};struct Work5096{rt::Runtime&r;std::vector<rt::Tensor>held;~Work5096(){try{r.syncStream();}catch(...){std::terminate();}}};}
+ rt::Tensor sparse_attention_all_selected_decode_batch_r5096(rt::Runtime&r,const rt::Tensor&q,const rt::Tensor&k,const rt::Tensor&v){
+  r.assertOwnerThread();if(r.isGraphRecording()||r.device().type()!=rt::Device::Type::kHygon||!q||!k||!v||q->ndim()!=3||k->ndim()!=4||v->shape()!=k->shape()||q->size(0)<8||q->size(0)>128||q->size(1)!=8||q->size(2)!=256||k->size(0)!=q->size(0)||!k->size(1)||k->size(1)>640||k->size(2)!=8||k->size(3)!=256||q->dtype()!=rt::DataType::kBFloat16||k->dtype()!=q->dtype()||v->dtype()!=q->dtype()||q->device()!=r.device()||k->device()!=r.device()||v->device()!=r.device()||!q->is_contiguous()||!k->is_contiguous()||!v->is_contiguous())throw std::invalid_argument("5055 bounded batched allselected decode");
+  const size_t B=q->size(0),P=k->size(1);Work5096 work{r};auto alloc=[&](rt::Shape s,rt::DataType dtype){auto x=rt::Tensor::empty(r,s,dtype);work.held.push_back(x);return x;};auto out=alloc({B,8,256},rt::DataType::kBFloat16);
++const bool direct_output9032=B==8&&glm_reduced_output_choose_r9032(r.device().index(),1);
+ for(size_t i=0;i<B;++i){
+    auto qr=q->narrow({{0,i,1}}),kr=k->narrow({{0,i,1}})->view({P,8,256}),vr=v->narrow({{0,i,1}})->view({P,8,256});
+-   auto dots=alloc({8,1,P},rt::DataType::kBFloat16),logits=alloc({8,1,P},rt::DataType::kFloat32),prob=alloc({8,1,P},rt::DataType::kFloat32),pb=alloc({8,1,P},rt::DataType::kBFloat16),result=alloc({1,8,256},rt::DataType::kBFloat16);
++   auto dots=alloc({8,1,P},rt::DataType::kBFloat16),logits=alloc({8,1,P},rt::DataType::kFloat32),prob=alloc({8,1,P},rt::DataType::kFloat32),pb=alloc({8,1,P},rt::DataType::kBFloat16),result=direct_output9032?out->narrow({{0,i,1}}):alloc({1,8,256},rt::DataType::kBFloat16);
++   if(direct_output9032)work.held.push_back(result);
+    ex::submit<infini::ops::Gemm>(r,infini::ops::Gemm::DefaultConfig(r.device().type()),qr->view({8,1,256}),kr->permute({1,2,0}),std::optional<rt::Tensor>{},std::optional<float>{1},std::optional<float>{0},std::optional<int>{},std::optional<int>{},dots);
+    if(glm_scale_round_r392(dots->data(),logits->data(),nullptr,8*P,1.f/16,r.stream()))throw std::runtime_error("5092 scale round");
+    ex::submit<infini::ops::Softmax>(r,infini::ops::Softmax::DefaultConfig(r.device().type()),logits,int64_t{2},std::optional<infini::ops::DataType>{},prob);ex::submit<infini::ops::Cast>(r,infini::ops::Cast::DefaultConfig(r.device().type()),prob,pb);
+    ex::submit<infini::ops::Gemm>(r,infini::ops::Gemm::DefaultConfig(r.device().type()),pb,vr->permute({1,0,2}),std::optional<rt::Tensor>{},std::optional<float>{1},std::optional<float>{0},std::optional<int>{},std::optional<int>{},result->view({8,1,256}));
+-   out->narrow({{0,i,1}})->copy_from(r,result);
++   if(!direct_output9032)out->narrow({{0,i,1}})->copy_from(r,result);
+   }
+  r.syncStream();++batch_stats5096.at(r.device().index())[0];batch_stats5096.at(r.device().index())[1].fetch_add(B);return out;
+ }

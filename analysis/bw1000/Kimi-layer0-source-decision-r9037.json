@@ -1,0 +1,315 @@
+{
+  "hardware": "BW1000",
+  "level": "SOURCE_FEASIBILITY_ONLY",
+  "status": "FEASIBLE_LAYER0_ONLY_WITH_REAL_TP16_COMM_NOT_IMPLEMENTED_OR_EXECUTED",
+  "GPU": false,
+  "Model_load": false,
+  "CPU_compile": false,
+  "new_math": false,
+  "scope": "Finite rank0 geometry-zero projection hypothesis parked after1003/1009; this is only source feasibility for genuine full companion layer0 recurrent/pre-o operands.",
+  "inputs": {
+    "prompt_SHA256": "ab686988a0952fe094d76773902e784e5d4be577c44c57c23493d702cc1d5625",
+    "report_SHA256": "9c0b2fd68291c69379449617f07390b3edd7d4ce651c3df9a0b83f219d0dc83d",
+    "full_input_count": 544,
+    "unique_embeddings": 213,
+    "embedding_selected_bytes": 3053568,
+    "positions536_543_ids": [
+      134937,
+      8047,
+      8094,
+      2262,
+      37374,
+      5366,
+      292,
+      5978
+    ],
+    "A_anchor": [
+      41677
+    ],
+    "A_actual_ids": [
+      1938,
+      13118,
+      2590,
+      5787,
+      382,
+      331,
+      343,
+      13336,
+      3934,
+      5366,
+      12478,
+      382,
+      41677,
+      1938,
+      69222,
+      330,
+      47013,
+      1068,
+      3934,
+      11023,
+      10734,
+      3961,
+      378,
+      134937,
+      8047,
+      8094,
+      2262,
+      37374,
+      5366,
+      292,
+      5978,
+      6675
+    ]
+  },
+  "prompt_file": "/refactor/incoming/r4917-Kimi-two-geometry-frozen-gold.json",
+  "report_file": "/refactor/results/kimi-crossover-r9026-TP16PP2-I1928669zh-8e319d252bb323d5-node2.json",
+  "dependency_result": {
+    "layer0_attention_input": "original Embedding.forward -> scratch copy -> RMSNorm.forward; block_residual_count=0 skips self_attention AttnRes. reset_prefix increments count without modifying current before norm. No other-layer/MLP/AttnRes projection/norm dependency for this boundary.",
+    "embedding": "original Embedding.forward invokes original Ops Embedding with direct weight rows; no multiplier/positional/normalization step.213 checkpoint BF16 rows suffice. A compact213-row Embedding plus exact local-ID remap preserves row bytes but changes table geometry and must validate GPU actual536/537 first. Alternative directH2D checkpoint rows bypasses only literal table gather and is labeled explicitly.",
+    "positions": "Delta forward does not use position IDs/RoPE; Conv/KDA use offset and init/final rowmetadata. Absolute position remains controller metadata, not fabricated phase input.",
+    "norm_geometry": "Original RMSNorm.forward same DefaultConfig/provider forM512/M1/M8. Original input is scratch narrow from residual storage, NOT automatically contiguous. Preserve actual initial_state residual capacity/strides from TP16PP2 stage0 and M-shaped view. Do not infer M512 vsM1 numerical equality from source; validate frozen536/537 actual GPU BF16 first.",
+    "teacherforcing": "inputs0:512 frozen prompt;512=anchor41677;513:544=A actual_ids[:31].All six538:543 real companion rows derive checkpoint embeddings. Not C outputs after its mismatch."
+  },
+  "weights_rank0": [
+    {
+      "key": "language_model.model.layers.0.input_layernorm.weight",
+      "local_shape": [
+        7168
+      ],
+      "dtype": "BF16",
+      "bytes": 14336,
+      "rank0_slice": "replicated"
+    },
+    {
+      "key": "language_model.model.layers.0.self_attn.q_proj.weight",
+      "local_shape": [
+        768,
+        7168
+      ],
+      "dtype": "BF16",
+      "bytes": 11010048,
+      "rank0_slice": "axis0 rows0:768"
+    },
+    {
+      "key": "language_model.model.layers.0.self_attn.k_proj.weight",
+      "local_shape": [
+        768,
+        7168
+      ],
+      "dtype": "BF16",
+      "bytes": 11010048,
+      "rank0_slice": "axis0 rows0:768"
+    },
+    {
+      "key": "language_model.model.layers.0.self_attn.v_proj.weight",
+      "local_shape": [
+        768,
+        7168
+      ],
+      "dtype": "BF16",
+      "bytes": 11010048,
+      "rank0_slice": "axis0 rows0:768"
+    },
+    {
+      "key": "language_model.model.layers.0.self_attn.f_a_proj.weight",
+      "local_shape": [
+        128,
+        7168
+      ],
+      "dtype": "BF16",
+      "bytes": 1835008,
+      "rank0_slice": "replicated"
+    },
+    {
+      "key": "language_model.model.layers.0.self_attn.f_b_proj.weight",
+      "local_shape": [
+        768,
+        128
+      ],
+      "dtype": "BF16",
+      "bytes": 196608,
+      "rank0_slice": "axis0 rows0:768"
+    },
+    {
+      "key": "language_model.model.layers.0.self_attn.b_proj.weight",
+      "local_shape": [
+        6,
+        7168
+      ],
+      "dtype": "BF16",
+      "bytes": 86016,
+      "rank0_slice": "axis0 rows0:6"
+    },
+    {
+      "key": "language_model.model.layers.0.self_attn.g_proj.weight",
+      "local_shape": [
+        768,
+        7168
+      ],
+      "dtype": "BF16",
+      "bytes": 11010048,
+      "rank0_slice": "axis0 rows0:768"
+    },
+    {
+      "key": "language_model.model.layers.0.self_attn.q_conv1d.weight",
+      "local_shape": [
+        768,
+        1,
+        4
+      ],
+      "dtype": "F32",
+      "bytes": 12288,
+      "rank0_slice": "axis0 rows0:768"
+    },
+    {
+      "key": "language_model.model.layers.0.self_attn.k_conv1d.weight",
+      "local_shape": [
+        768,
+        1,
+        4
+      ],
+      "dtype": "F32",
+      "bytes": 12288,
+      "rank0_slice": "axis0 rows0:768"
+    },
+    {
+      "key": "language_model.model.layers.0.self_attn.v_conv1d.weight",
+      "local_shape": [
+        768,
+        1,
+        4
+      ],
+      "dtype": "F32",
+      "bytes": 12288,
+      "rank0_slice": "axis0 rows0:768"
+    },
+    {
+      "key": "language_model.model.layers.0.self_attn.A_log",
+      "local_shape": [
+        6
+      ],
+      "dtype": "F32",
+      "bytes": 24,
+      "rank0_slice": "first truncate checkpoint128 to actual96 exactly as678 loader, then rows0:6"
+    },
+    {
+      "key": "language_model.model.layers.0.self_attn.dt_bias",
+      "local_shape": [
+        768
+      ],
+      "dtype": "F32",
+      "bytes": 3072,
+      "rank0_slice": "axis0 rows0:768"
+    },
+    {
+      "key": "language_model.model.layers.0.self_attn.o_norm.weight",
+      "local_shape": [
+        128
+      ],
+      "dtype": "F32",
+      "bytes": 512,
+      "rank0_slice": "replicated"
+    },
+    {
+      "key": "language_model.model.layers.0.self_attn.o_proj.weight",
+      "local_shape": [
+        7168,
+        768
+      ],
+      "dtype": "BF16",
+      "bytes": 11010048,
+      "rank0_slice": "axis1 cols0:768"
+    }
+  ],
+  "weights_rank0_total_bytes": 57222680,
+  "selected_embedding_bytes": 3053568,
+  "all_required_data_already_available_remote": true,
+  "existing_primitive_inputs": {
+    "536_reference": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e1-n0-50.bf16",
+    "537_reference": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e1-n0-190.bf16",
+    "existing_qkv_rank0": "/refactor/candidates/Kimi-projection-real-input-r9030/qkv-TP16-rank0.bf16",
+    "existing_gate_slices": "/refactor/candidates/Kimi-gate-real-input-r9032",
+    "missing_materialized": "embedding213 rows, norm weight, actual small conv/A_log/dt/o_norm/o_proj slices not newly extracted in this source-only task; all in checkpoint00001/00094. TrueConv/KDA/pre-o not previously captured."
+  },
+  "entry": {
+    "class": "infinilm::models::kimi_k3::KimiK3DeltaAttention(runtime,cfg,0,RankInfo{tp_size16,tp_rank,real_comm})::forward(norm,ForwardContext)",
+    "delta_source": "/refactor/candidates/Kimi-CCL512-r8606/src/kimi_k3_delta_attention_CCL512_r8603.cpp",
+    "delta_source_SHA256": "787af2aac64ae58dedfa2654f8efd94cc449c1aab7de03549b16789fed3898cd",
+    "delta_object_SHA256": "76442dcf5f434b83ebfe187d1b3d88bdc367d48f3bf549c4251f3b3de4811718",
+    "forward_line": [
+      343
+    ],
+    "constructor_comm_guard_line": [
+      188
+    ],
+    "pre_o_capture_line": [
+      547
+    ],
+    "runtime": "original675/678 Common+SDK owner Runtime; actual constructor/forward symbols from same inheritedDSO. No classlayout spoof/fake communicator.",
+    "minimal_wrapper": "OneHOSTTU adaptation of kimi_embedding_layer0_r8634.cpp owner/load/drain/ForwardContext/comm skeleton: instantiate only RMSNorm+Delta, not Decoder/MLP/TextModel. Existing wrapper TP8/cap33/count1or4 fixedM512 is NOT executable TP16W1W8 and cannot merely assert-change.",
+    "cards": 16,
+    "nodes": 2,
+    "PP": "none; only first-stage TP16 group; no other93layer or32owner Model create",
+    "single_DCU_limit": "Can reconstruct norm on1DCU; unmodified actual Delta ctor and RowParallelLinear require realTP16 comm, output forward allreduces.1DCU pre-o-only would need a new precise localprefix入口/constructor shortcircuit patch, not ready and not claimed under this source task."
+  },
+  "existing_capture": {
+    "source": "/refactor/candidates/Kimi-native-trace-CPU-r7296/src/r7296_kimi_k3_kda_trace.cpp",
+    "source_SHA256": "d9af7fa0078b908573b199918c4aea5a5b761501ca724d4817fb8fcfb48973c5",
+    "object_SHA256": "217a5131f6f49dfe5afca29cd8c3c54d9f8ba7af47fe0e7fe518626696c633d1",
+    "env": [
+      "INFINILM_KIMI_TRACE_DIR=<unique remote dir>",
+      "INFINILM_KIMI_KDA_TRACE_LAYER=0"
+    ],
+    "bounds": "<=4requests,<=8active read/write union rows,64snapshots; noH12guard orTP8guard; copies own GPU buffers until original finish sync/D2H",
+    "points": [
+      "input",
+      "qkv_projected",
+      "conv_output",
+      "silu_qkv",
+      "f_a",
+      "gate_projected",
+      "beta_projected",
+      "kda_output",
+      "conv_before/after actual row union",
+      "ssm_before/after actual row union",
+      "normalized_f32",
+      "output_gate_input",
+      "gate_sigmoid",
+      "gated",
+      "output"
+    ],
+    "raw_local_download": false
+  },
+  "replay_source_control": {
+    "pool_shapes": {
+      "conv": [
+        17,
+        2304,
+        3
+      ],
+      "ssm": [
+        17,
+        6,
+        128,
+        128
+      ]
+    },
+    "pool_bytes": 3577344,
+    "sequence": "reset->prefill512 once using originalM512 provider flags->24 actualW1 steps->W8 with real536:544 inputs. Compare separate reset ordinary32W1 reference.OriginalMath0 unchanged;253selector remainsOFF.",
+    "state_rows": "ordinary read=write1; paired prefill1 then exact frozen678 read/write1/9 swaps every successful fullaccept. Preserve Conv andKDA both; freezeGPUoffset[0,N]/rows and allinputs until runtime drain; do not reconstructstate byCPUapprox.",
+    "prefill": "Original INFINILM_DENSE_PREFILL_F32_R2475=1 may selectF32 helper forM512;M1/M8 originalBF16Gemm. Keep actualMath0/env/SDK precision path, noforcing unifiedprovider across widths.",
+    "validation": "First compare reconstructed536/537 norm vs recordedactualBF16 only as fixture-binding check. Subsequent intermediate errors locate earliest difference, not finalModelID gate or proof of675/678 cause."
+  },
+  "blocked_execution_fields": [
+    "No TP16 thin wrapper/compiler closure has been produced by this source-only task.",
+    "Residual scratch capacity/strides and model eps must be copied from actual678 config+partition at implementation, not oldTP8wrapper hardcoded3slot.",
+    "Original unmodifiedDelta needs real16rank communicator; oneDCU-only budget insufficient without separately authorized precise localprefix sourcechange."
+  ],
+  "source_evidence_files": {
+    "Kimi-layer0-feasibility-source-r9037.json": "f161f820cbc2f0295e8b59c7534a9158dc582df552eaac45917a827aa8ba8e97",
+    "Kimi-layer0-feasibility-entry-r9037.json": "76e6d40b7e63612134400812a066a25cec2fe3798700f4afe9cd2d4b1df4d704",
+    "Kimi-target-taps-private-r9022\\kimi_decoder_model_events_r8669zq.cpp": "536ac538b4747bb3c3a16ad1f368380ef8f5007efe5848a635286e370c9a0688",
+    "Kimi-target-taps-private-r9022\\kimi_k3_text_model.cpp": "3126880a15f6dde0c354d4f5a7ec2bde1f5b87c951f416dd84a2ba546d8c6f93",
+    "kimi_embedding_layer0_r8634.cpp": "d1417c44d96b0be273da23e8c911036400cf4079a17e52d8276e05b23a440c13"
+  }
+}

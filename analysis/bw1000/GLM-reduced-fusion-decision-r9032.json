@@ -1,0 +1,92 @@
+{
+  "status": "SOURCE_ONLY_ONE_REDUCED_CANDIDATE_NOT_BUILT_OR_GPU_QUALIFIED",
+  "CPU_only": true,
+  "GPU": false,
+  "build": false,
+  "weight_load": false,
+  "full_fusion615_618": "PARK:618 final tokens differ15/16;no causal attribution to an individual operator",
+  "changed_numeric_boundaries": [
+    {
+      "boundary": "QK contraction",
+      "original": "pinned original BF16 Gemm [8,1,256]x[8,256,Pi] -> BF16; internal reduction tree UNKNOWN",
+      "fused": "four strided F32 FMA per W64 lane then shfl_down 32..1; final BF16 cast",
+      "actual_token_failure_cause": "UNKNOWN"
+    },
+    {
+      "boundary": "scale",
+      "original": "BF16dot -> F32 multiply2^-4 -> BF16 RN -> F32 in glm_scale_round_r392",
+      "fused": "BF16dot -> F32 multiply2^-4, no second BF16 round",
+      "difference_limit": "normal representable BF16 values scaled by exact2^-4 are already BF16; underflow/exception boundaries differ; not a demonstrated cause"
+    },
+    {
+      "boundary": "softmax",
+      "original": "pinned actual infiniops Softmax [8,1,Pi] then Cast F32->BF16; internal exp/reduction UNKNOWN",
+      "fused": "expf, 256thread partials+binary sum tree, F32 division then static BF16 cast",
+      "actual_token_failure_cause": "UNKNOWN"
+    },
+    {
+      "boundary": "PV contraction",
+      "original": "pinned BF16 Gemm [8,1,Pi]x[8,Pi,256] -> BF16; internal contraction UNKNOWN",
+      "fused": "per-output-dimension serial Pi F32 FMA then BF16 cast",
+      "actual_token_failure_cause": "UNKNOWN"
+    }
+  ],
+  "selected_candidate": "Keep ALL original arithmetic submissions and original per-row Pi/layout/scale/casts/config; only PV Gemm writes final output row view, removing temporary result/copy",
+  "sources": {
+    "glm_reduced_output_5555_r9032.cpp": {
+      "SHA256": "807520cdb4af01ef640c7e026e22a1b7b5c55e10fa3246293e93595c276c1222",
+      "parent": "glm_exact_rows_attention_r5555.cpp",
+      "parent_SHA256": "2390bf53024ea92e119aa8fdebcdeb2731d12d3f3050368aa5576c0f7c5b2a79"
+    },
+    "glm_reduced_output_5096_r9032.cpp": {
+      "SHA256": "449a5f17090fe4e100c3b6a08747152f057b8fe7ad3de726066f26d7f8da3d01",
+      "parent": "glm_all_selected_decode_deferred_r5096.cpp",
+      "parent_SHA256": "2a404992e766f0e1ea8e4f327354cdc30a466bb9f34e1bc7569098a72ae48d74"
+    }
+  },
+  "diff": {
+    "path": "GLM-reduced-output-source-r9032.patch",
+    "SHA256": "21b58c7ca86b0d0d5855b1fb6e5547dba8cfb6a9de9f7b36233f6dfef742864d"
+  },
+  "default": "OFF;threadlocal selector; eligibility 5555backend1/B8 and5096B8; all existing validation and finaldrains retained",
+  "shape": {
+    "B": 8,
+    "H": 8,
+    "D": 256,
+    "Pi": "1..640, separate perrow shape unchanged",
+    "PV_destination_view_shape": [
+      8,
+      1,
+      256
+    ],
+    "PV_destination_strides_elements": [
+      256,
+      256,
+      1
+    ],
+    "row_offset_bytes": "i*4096; query/K/V not aliased; held output ancestor + rowview lifetime"
+  },
+  "independent_saved_work_per_attention_call": {
+    "temporary_result_allocations": 8,
+    "D2D_copy_calls": 8,
+    "D2D_payload_bytes": 32768,
+    "saved_math_kernels": 0,
+    "saved_tensor_view_objects": "UNKNOWN: output narrow view still required"
+  },
+  "wall_effect": "UNKNOWN;540 cache/resident_until_output1.050574ms is enclosing budget only and not reclaimable copy time; no source evidence this narrow change reaches material wholelayer gain;615 0.37994ms cannot be assigned to copies",
+  "proposed_if_root_selects_future_test": {
+    "CPU": "2HOST TUs+link originalcurrent8854 objects;0GPU TU; no SDK change",
+    "GPU": "NO GO; if subsequently authorized reuse615 layer38 M8/past512 pairedwholelayer and counters; require finaltoken Model gate before adoption",
+    "standalone_entry": "5096; actualModel entry5555; separate counts, never substitute"
+  },
+  "decision": "Full arithmetic fusion PARK. One direct-output reduced candidate available for root decision; insufficient evidence to request Model reload or claim performance. No parameter scan, no automatic run.",
+  "actual_output_view_support": {
+    "receipt": "GLM-reduced-view-source-r9032-c.json",
+    "SHA256": "5be1d5cdd545b0cbe141f50791c6a127b321cf34ed2c9d5400c656c70cdbdabd",
+    "generic_ops_submission": "actual execution/submit.hpp80-83 constructs infini::ops::Tensor from data(),shape(),dtype(),device(),strides() for every operand including output; no base-allocation restriction",
+    "pointer_offset": "actual runtime/tensor/tensor.cc185-190 data()=memory->data()+data_.offset",
+    "same_executed_geometry": "Original5555 QK already uses q[B,8,256]->narrow(0,i,1)->view([8,1,256]); new PV output applies identical transformation to out[B,8,256], same BF16 datatype and contiguous row layout. Original temporary result[1,8,256]->view has identical logical [8,1,256] stride[256,256,1].",
+    "different_layout_required": false,
+    "native_compiled_or_GPU_tested": false
+  }
+}
