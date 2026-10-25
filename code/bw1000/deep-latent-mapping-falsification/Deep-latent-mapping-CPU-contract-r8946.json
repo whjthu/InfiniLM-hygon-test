@@ -1,0 +1,61 @@
+{
+  "hardware": "BW1000",
+  "level": "CPU_CONSUMER_CONTRACT",
+  "status": "PASSED",
+  "CPU_only": true,
+  "no_GPU_dlopen": true,
+  "fixtures": [
+    {
+      "kind": "swa",
+      "T": 2048,
+      "sw": 128,
+      "cw": 1,
+      "compressed_rows": 1,
+      "ratio": 0
+    },
+    {
+      "kind": "hca128",
+      "T": 2048,
+      "sw": 128,
+      "cw": 4,
+      "compressed_rows": 16,
+      "ratio": 128
+    },
+    {
+      "kind": "csa4",
+      "T": 2048,
+      "sw": 128,
+      "cw": 512,
+      "compressed_rows": 512,
+      "ratio": 4
+    }
+  ],
+  "ABI": {
+    "symbol": "modern_deep_latent_strided_r681",
+    "args": "int+6size_t+8int64+9voidptr",
+    "total": 24,
+    "mode0_T2048_T512": "currentFP32reference",
+    "mode1_T2048": "query32candidate",
+    "mode0_T64": "existingfused64 noaddedinterface"
+  },
+  "fixed_CAPI_per_owner": 114,
+  "new_native_build": false,
+  "query_pointer_offset_contract": "narrow query andselectionrows; originalglobalbanksleftwhole,outputsliceoffset only",
+  "checks": [
+    "All2048row ns/nc/causal/globalrequestIDranges/duplicate/padding checked CPU",
+    "Rejoining32/64/512queryslices reproducesmetadatabytes",
+    "Explicit perdevice torch.Generator seed894600+100*d+fixtureid, sampleSHA uniqueness required beforecompute",
+    "CPU metadata checks beforeCUDA/dlopen;actualsame DSO5a044/receipt218/objecthash"
+  ],
+  "stop": "Any nativeerror/nonfinite/invalidmap/counter mismatch/RNG sample collision stops fixedpacket andcleanup; numericaldifferencesreportedwithoutbitexactgate, noautomaticModelreload.",
+  "boundary_metrics": [
+    "maxabs",
+    "relativeRMS",
+    "BF16ULPmax/mean",
+    "tilefirstrowvsothersmaxabs",
+    "requestfirstrowmaxabs",
+    "perrequestmaxabs",
+    "tileedgechangedrowcounts"
+  ],
+  "Rope_scope": "Standardtheta10000onlast64dims,positions0..511;syntheticRMSnormalizedq/KV,notactualYarnlearnedcompressoractivation."
+}

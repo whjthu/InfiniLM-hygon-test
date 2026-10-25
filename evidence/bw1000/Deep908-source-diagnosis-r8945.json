@@ -1,0 +1,66 @@
+{
+  "hardware": "BW1000",
+  "level": "CPU_SOURCE_DIAGNOSIS",
+  "status": "NEGATIVE_CAUSE_UNRESOLVED",
+  "source_mapping": [
+    {
+      "source": "/refactor/candidates/deep-c4-projection-model-r5920/incoming/deepseek_v4_swa_attention.cpp",
+      "SHA256": "4e98d36d30ac23548015f5792d7355eac090a0545b68302439ec7ee7510c0042",
+      "relevant_lines": [
+        " auto bank=work.alloc({old_total+tokens,512},rt::DataType::kBFloat16);std::vector<int64_t>selected(tokens*window_,-1),ci(tokens,-1),commit_rows,commit_slots;std::vector<int32_t>lengths(tokens*2,0);size_t query_begin=0,bank_begin=0,old_begin=0;",
+        " for(auto request:requests){size_t old_count=std::min(request.past,window_-1);if(old_count)bank->narrow({{0,bank_begin,old_count}})->copy_from(r,old->narrow({{0,old_begin,old_count}}));bank->narrow({{0,bank_begin+old_count,request.tokens}})->copy_from(r,decoded->narrow({{0,query_begin,request.tokens}}));",
+        "  for(size_t t=0;t<request.tokens;++t){size_t end=old_count+t+1,begin=end>window_?end-window_:0;lengths[(query_begin+t)*2]=int32_t(end-begin);for(size_t j=begin;j<end;++j)selected[(query_begin+t)*window_+j-begin]=int64_t(bank_begin+j);}",
+        "  size_t first=request.tokens>window_?request.tokens-window_:0;for(size_t t=first;t<request.tokens;++t){commit_rows.push_back(int64_t(query_begin+t));commit_slots.push_back(int64_t(request.row*window_+(request.past+t)%window_));}",
+        "  query_begin+=request.tokens;bank_begin+=old_count+request.tokens;old_begin+=old_count;",
+        " auto attention=latent_attention(r,prep.query,bank,unused,sink_,si,compressed_indices,lens);work.held.push_back(attention);auto inverse=prepare_->inverse_output_rope(r,attention,positions);work.held.push_back(inverse);auto projected=output_->forward(r,inverse);work.held.insert(work.held.end(),{projected.grouped,projected.local,projected.hidden});"
+      ]
+    },
+    {
+      "source": "/refactor/candidates/deep-c4-projection-model-r5920/incoming/deepseek_v4_hca_attention_batch_r784.cpp",
+      "SHA256": "fbbec7325398ab332b5edf16fafe074e20ecae69aae607ba025d5f8eb75b976e",
+      "relevant_lines": [
+        " std::vector<TemporalCompressor::Request>compress_requests;size_t compressed_total=0,compressed_width=1;",
+        " for(auto request:requests){compress_requests.push_back({request.row,request.past,request.tokens});size_t count=(request.past+request.tokens)/128;compressed_total+=count;compressed_width=std::max(compressed_width,count);}",
+        "auto bank=work.alloc({old_total+tokens,512},rt::DataType::kBFloat16);std::vector<int64_t>selected(tokens*window_,-1),ci(tokens*compressed_width,-1),commit_rows,commit_slots;std::vector<int32_t>lengths(tokens*2,0);size_t query_begin=0,bank_begin=0,old_begin=0;",
+        " for(auto request:requests){size_t old_count=std::min(request.past,window_-1);if(old_count)bank->narrow({{0,bank_begin,old_count}})->copy_from(r,old->narrow({{0,old_begin,old_count}}));bank->narrow({{0,bank_begin+old_count,request.tokens}})->copy_from(r,decoded->narrow({{0,query_begin,request.tokens}}));",
+        "  for(size_t t=0;t<request.tokens;++t){size_t end=old_count+t+1,begin=end>window_?end-window_:0;lengths[(query_begin+t)*2]=int32_t(end-begin);for(size_t j=begin;j<end;++j)selected[(query_begin+t)*window_+j-begin]=int64_t(bank_begin+j);}",
+        "  size_t first=request.tokens>window_?request.tokens-window_:0;for(size_t t=first;t<request.tokens;++t){commit_rows.push_back(int64_t(query_begin+t));commit_slots.push_back(int64_t(request.row*window_+(request.past+t)%window_));}",
+        "  query_begin+=request.tokens;bank_begin+=old_count+request.tokens;old_begin+=old_count;",
+        " query_begin=0;compressed_begin=0;",
+        " for(auto request:requests){for(size_t t=0;t<request.tokens;++t){size_t visible=(request.past+t+1)/128;lengths[(query_begin+t)*2+1]=int32_t(visible);for(size_t j=0;j<visible;++j)ci[(query_begin+t)*compressed_width+j]=int64_t(compressed_begin+j);}query_begin+=request.tokens;compressed_begin+=(request.past+request.tokens)/128;}",
+        " auto si=device_ids(selected)->view({tokens,window_}),compressed_indices=device_ids(ci)->view({tokens,compressed_width}),lens=work.alloc({tokens,2},rt::DataType::kInt32),unused=work.alloc({1,512},rt::DataType::kBFloat16);r.memcpyH2D(lens->data(),lengths.data(),lengths.size()*4,false);r.setDeviceMemory(unused->data(),0xff,unused->nbytes());",
+        " auto attention=latent_attention(r,prep.query,bank,compressed_bank,sink_,si,compressed_indices,lens);work.held.push_back(attention);auto inverse=prepare_->inverse_output_rope(r,attention,positions);work.held.push_back(inverse);auto projected=output_->forward(r,inverse);work.held.insert(work.held.end(),{projected.grouped,projected.local,projected.hidden});"
+      ]
+    },
+    {
+      "source": "/refactor/candidates/deep-c4-projection-model-r5920/incoming/deepseek_v4_csa_attention_batch_r784.cpp",
+      "SHA256": "850014056d80bd912d544f561ec267e50add92c101bdacb98fc5a59ed7a568cf",
+      "relevant_lines": [
+        " std::vector<TemporalCompressor::Request>compress_requests;size_t compressed_total=0,compressed_width=1;",
+        " for(auto request:requests){compress_requests.push_back({request.row,request.past,request.tokens});size_t count=(request.past+request.tokens)/4;compressed_total+=count;compressed_width=std::max(compressed_width,count);}",
+        " compressed_width=topk_;",
+        "auto bank=work.alloc({old_total+tokens,512},rt::DataType::kBFloat16);std::vector<int64_t>selected(tokens*window_,-1),ci(tokens*compressed_width,-1),commit_rows,commit_slots;std::vector<int32_t>lengths(tokens*2,0);size_t query_begin=0,bank_begin=0,old_begin=0;",
+        " for(auto request:requests){size_t old_count=std::min(request.past,window_-1);if(old_count)bank->narrow({{0,bank_begin,old_count}})->copy_from(r,old->narrow({{0,old_begin,old_count}}));bank->narrow({{0,bank_begin+old_count,request.tokens}})->copy_from(r,decoded->narrow({{0,query_begin,request.tokens}}));",
+        "  for(size_t t=0;t<request.tokens;++t){size_t end=old_count+t+1,begin=end>window_?end-window_:0;lengths[(query_begin+t)*2]=int32_t(end-begin);for(size_t j=begin;j<end;++j)selected[(query_begin+t)*window_+j-begin]=int64_t(bank_begin+j);}",
+        "  size_t first=request.tokens>window_?request.tokens-window_:0;for(size_t t=first;t<request.tokens;++t){commit_rows.push_back(int64_t(query_begin+t));commit_slots.push_back(int64_t(request.row*window_+(request.past+t)%window_));}",
+        "  query_begin+=request.tokens;bank_begin+=old_count+request.tokens;old_begin+=old_count;",
+        " query_begin=0;compressed_begin=0;",
+        "   for(size_t j=0;j<width;++j){auto id=host[t*width+j];if(id<0||size_t(id)>=visible)continue;if(!seen.insert(id).second)throw std::invalid_argument(\"DeepSeek CSA duplicate C4 selection\");ci[(query_begin+t)*compressed_width+count++]=int64_t(compressed_begin)+id;}",
+        "   if(count!=std::min(topk_,visible))throw std::invalid_argument(\"DeepSeek CSA incomplete causal C4 selection\");lengths[(query_begin+t)*2+1]=int32_t(count);",
+        "  }query_begin+=request.tokens;compressed_begin+=(request.past+request.tokens)/4;",
+        " auto si=device_ids(selected)->view({tokens,window_}),compressed_indices=device_ids(ci)->view({tokens,compressed_width}),lens=work.alloc({tokens,2},rt::DataType::kInt32),unused=work.alloc({1,512},rt::DataType::kBFloat16);r.memcpyH2D(lens->data(),lengths.data(),lengths.size()*4,false);r.setDeviceMemory(unused->data(),0xff,unused->nbytes());",
+        " auto attention=latent_attention(r,prep.query,bank,compressed_bank,sink_,si,compressed_indices,lens);work.held.push_back(attention);auto inverse=prepare_->inverse_output_rope(r,attention,positions);work.held.push_back(inverse);auto projected=output_->forward(r,inverse);work.held.insert(work.held.end(),{projected.grouped,projected.local,projected.hidden});"
+      ]
+    }
+  ],
+  "diagnosis": {
+    "proven": "Candidate changesprefilloperator FP32Gemm/SDKSoftmax/FP32Gemm reference into r681 splitdot/reduction/expf/merge thenBF16. Same shape/scale/sinkcontract doesnotimplysamefloatingpointresults;905alreadyshowednonzeroerrors. Finaltokenqualityfailsdespitefinitefirst10tokens.",
+    "exact_cause": "UNRESOLVED: noactualactivation/selection/logitdumpforlayerwisecausalcomparison, cannotprovearithmeticdrift vsmappingimplementationdefect.",
+    "query_mapping": "ActualAttentionPrepare allocates contiguous[T,8,512] query thenRMSNorm+RoPE; candidate narrowsquery/si/ci/lengths bysameglobalqueryoffset and writeswholeoutputatbegin*heads*512*2. GlobalKVbanksnever narrowed;noCPUsourceevidenceofrequest-localKVindexrebasing. This issourcecheck,notruntimecapturedtensorproof.",
+    "selection_mapping": "Actual SWAusesrequestquery_begin/bank_begin, causalend andwindow. HCA visible=(past+t+1)/128, CSA usesallselectedindexer/perrequestcompressed offsets; -1padding onlybeyondexplicitlengths. Candidate usesunchangedindices/lengths includingglobalIDs/sink;validateacceptedall43*8prefillcalls.",
+    "fixture_gap": "905 q/KV randomstd0.3; actualquery/key RMSNorm+RoPE. ActualHCAcompression128/CSA4 andactualmetadatawidths differ fromsingle905CSA512capacity fixture;9058ownersarenot8independentoperanddistributions. SmallcomponentNRMSEisnotModeltokenproof.",
+    "next_minimal_falsification_only_not_launched": "Onebounded existingRuntime component, noModel/weights: useactualsourceCPU-built B4/I512 SWA/HCA128/CSA4 globalindexmaps (varyrequestoffsets), query/KV RMS-normalized+RoPE synthetic operands andfiniteexplicit sink range. Same exactoperands compare fullreference vsqueryT32 candidate; comparebatch output againstconcatenatedperrequest reference andtilewidth32/64equivalence to exposemapping defects; reportBF16ULP/error/maxrelativevsinputnorm. No broadgrid. Ifmappingequalbutnumericaldrift persists, retainreference/stopthiskernelpath; noautomaticModelreload.",
+    "new_GPU_or_build": false
+  },
+  "compact_SHA256": "d6d970a2eba78910ca7bc9e6e7aac3d25c2b9510273fc635de57eeae4cc7261e"
+}
