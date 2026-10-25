@@ -1,0 +1,37 @@
+{
+  "hardware": "BW1000",
+  "level": "CPU_SOURCE_AND_EXISTING_STATIC_BINARY_ONLY",
+  "status": "STOP_EXISTING_GRAPH_CANNOT_CAPTURE_REQUIRED_GEMMS",
+  "utc": "2026-10-25T09:33:55.455895+00:00",
+  "hypothesis": "Capture and replay only mode2 softmax_cast_run, preserving all original 2D perquery QK/PV shapes/operands/order.",
+  "current_confirmation": {
+    "file": "Deep-graph-current-source-r9010.json",
+    "SHA256": "240c2ffa44312a4fdc832d42969c2f61a445893cad68e7aee81de38ebee45e0a",
+    "SDK_SHA256": "e1d9432e6de79cf09782fc3b3b332fb969d1a948dbac513b3da677d78f7f1f09",
+    "Graph_cc_SHA256": "85fd37cfc14bc29fa82d4fc8b677bd4fa9a5bbb3fdff19f35e0b11a7eb6e7387",
+    "matches_prior_static_binary_and_graph_evidence": true
+  },
+  "source": {
+    "file": "InfiniLM-hygon-test\\code\\bw1000\\deep-softmax-cast\\deep_latent_packed_batch_r8996b.cpp",
+    "SHA256": "f0560103e836264e81ebb2595cbea62d18dd2cb3d7b1781d4ad906ef1d32bef3",
+    "pure_GPU_region": "softmax_cast_run_r8996b lines61-84",
+    "entry_guard": "latent_attention_reference_r681 line90 rejects enclosing recording; leave guard intact. A hypothetical inner region recording would begin only after CPU selection and alloc/gather.",
+    "outside_region": "Selection D2H line97, CPU selection/packing, packed IDs H2D/gather lines106-109; original final sync and exception drain after loop remain outside.",
+    "lifetime": "qf, packed_values, sink, output and batch scratch tensors are held until final sync. Runtime stopGraphRecording commits allocator PinLease; recorded closures retain GraphTensor/operator/workspace/Runtime. No raw CUDA capture or stale pointer reuse is proposed.",
+    "address_shape_binding": "Existing GraphTensor snapshots and captured closure arguments bind fixed addresses/strides/shapes; Graph run exposes no dynamic operand/address-update API. Current per-forward tensors and run N/R/offsets differ, so persistent cross-forward replay is not available by simply storing this graph.",
+    "single_invocation_amortization": "Per-run capture+instantiate then one execution has no established benefit. Repeated fixed-buffer component replay can be a diagnostic only, and cannot by itself establish Model speedup."
+  },
+  "hard_blocker": {
+    "binary_evidence": "r7370-Deep-HC-capture-binary.json",
+    "binary_evidence_SHA256": "2cafda67459efe40c8dc10437d97a928c61d43ce768925ca6d40afd7f5244500",
+    "prior_card": "InfiniLM-hygon-test/evidence/bw1000/Deep-HC-prefix-graph-CLOSED-r7371.json",
+    "same_current_SDK": "Current installed SDK SHA equals previously disassembled SDK. Hygon Cast capture_safe at 0x162b280 returns false. Gemm uses genericBlasGemm with no override, inherited OperatorBase at 0xb25130 returns false.",
+    "graph_behavior": "Current Graph::instantiate partitions capture-safe versus explicit host replay. Required QK/PV stay individually invoked host RecordedCalls; any capture-safe softmax segment cannot capture the surrounding small Gemms. Transitions from device segment to host segment may additionally synchronize. require_device_graph means some safe segment, not that every Gemm is captured. Softmax capture policy need not be researched further to establish this blocker."
+  },
+  "decision": "STOP; no patch/build/GPU/SDK changes. Enabling graph provider qualification or introducing persistent fixed-buffer scheduling and binding would be a separate authorized engineering task, not the requested existing-interface minimal A/C. Do not force capture_safe=true, change Gemm shape, use raw stream capture bypassing Runtime lifetime, or describe host replay as GPU launch elimination.",
+  "performance_gain": "UNKNOWN",
+  "new_optimization_rounds": 0,
+  "GPU_allocations": 0,
+  "builds": 0,
+  "git_mutations": 0
+}
