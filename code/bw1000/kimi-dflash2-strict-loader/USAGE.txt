@@ -1,0 +1,48 @@
+Default OFF. Production checkpoint and head values remain unavailable/unqualified.
+
+Actual CPU command already executed in step 910406.243:
+CUDA_VISIBLE_DEVICES='' ROCR_VISIBLE_DEVICES='' HIP_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 python -B /refactor/incoming/check_DFlash2_loader_r9007.py
+
+The final source directory is Kimi-DFlash2-loader-private-r9008 (filenames retain
+r9007 to preserve the strict loader module ABI; use its actual source hashes).
+
+Production Python call, only after obtaining a complete checkpoint and explicit
+caller-owned target BF16 head on the destination device:
+
+from dflash2_strict_loader_r9007 import ExternalTargetHead, load_pinned_worker
+head = ExternalTargetHead(target_lm_head_weight, values_compatibility=None)
+loaded = load_pinned_worker(checkpoint_path, head, enabled=True,
+                            device='cpu', source_dir=source_directory)
+try:
+    loaded.worker.append_context(five_true_target_taps, absolute_positions)
+    proposals = loaded.worker.speculate(committed_anchor)
+    loaded.worker.crop_context(absolute_retained_target_tokens)
+finally:
+    loaded.close()
+# loaded.close releases its model/cache/storage references, not caller-owned head.
+# Caller later calls head.close() after its final use. Matching dimensions do not
+# establish head/embedding value compatibility; None remains None in receipt.
+
+Public load_pinned_worker always enforces revision e77935fb..., exact7385765464
+bytes, original header SHA d250fe19..., full LFS SHA 1f2a5376...,87BF16tensors,
+actual key/shape/offsets and immutable config/source pins. Fixture specifications
+exist only in underscored internal test entry; public pins are not configurable.
+Partial paths are rejected even when their length happens to be complete.
+
+Model parameters are constructed on meta, then bound directly to one private
+file-mapped byte storage (CPU) or transferred one tensor at a time (GPU branch
+not tested). There is no allocated full state_dict copy. Nonpersistent RoPE
+buffers are recreated through the unchanged canonical _init_rope builder.
+
+Target feature contract: taps [19,37,66,78,90] in order, five[1,T,7168] tensors
+or concat[1,T,35840], BF16 for trained path; contiguous absolute int64[1,T]
+positions. No additional target RMSNorm/LN: draft fc+hidden_norm owns projection
+and normalization. Only true target feature rows are appended, never draft KV.
+Current KDA owner explicitly confirmed no tap capture exists in its CPU238
+paired/ordinary library. Independent true layer-exit defaultOFF capture is still
+needed; this loader does not modify or qualify the target library.
+
+Remaining: complete checkpoint (current158446986-byte remote partial refused),
+external target head/embedding value compatibility, true five-tap producer,
+trained BF16 GPU forward/stream/memory/latency and online target acceptance.
+No GPU, trained model load, weight retry, native build or Git mutation here.
