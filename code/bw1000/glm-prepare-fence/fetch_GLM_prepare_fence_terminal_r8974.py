@@ -1,0 +1,3 @@
+import pathlib,json,hashlib,subprocess
+r=pathlib.Path.home()/'hygon-inference-refactor-20261014';p=r/'results/GLM-prepare-fence-component-r8974-terminal.json';q=json.loads(p.read_text());assert q['completed']and q['bound_handle']=='910376.573'and q['numeric_attempts']==1 and q['post_attempts']==1
+print(json.dumps({'terminal':q,'terminal_SHA256':hashlib.sha256(p.read_bytes()).hexdigest(),'terminal_path':str(p),'Slurm_rows':[x for x in subprocess.check_output(['sacct','-S','2026-10-25','-j','910376','-n','-P','-o','JobIDRaw,JobName%70,State,ExitCode,Elapsed,NodeList%50'],text=True).splitlines()if 'prepare-fence'in x]}))
