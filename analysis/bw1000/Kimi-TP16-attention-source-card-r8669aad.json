@@ -1,0 +1,58 @@
+{
+  "scope": "KIMI68 source-only10min, noGPU/nativebuild/SDK/upload/Git; sealed657 untouched",
+  "state": "CONCRETE_SMALL_ALLOCATION_INTERVENTION_READY_BUT_GAIN_UNKNOWN_RECOMMEND_PARK_IF_HIGH_COVERAGE_REQUIRED",
+  "native_SHA256": "2c2961d29d56788c4e59061b241dc108bc0e9bff3153ed8d7aa6f3f575b83444",
+  "CPU223_raw_SHA256": "3a53c36515afed3a30906690f68f8b50e416384bdcea9869497fb42a1e5f5b25",
+  "source_binding": {
+    "Delta": {
+      "source": "/refactor/candidates/Kimi-CCL512-r8606/src/kimi_k3_delta_attention_CCL512_r8603.cpp",
+      "source_SHA256": "787af2aac64ae58dedfa2654f8efd94cc449c1aab7de03549b16789fed3898cd",
+      "object": "/refactor/candidates/Kimi-CCL512-r8606/delta.o",
+      "object_SHA256": "76442dcf5f434b83ebfe187d1b3d88bdc367d48f3bf549c4251f3b3de4811718"
+    },
+    "MLA_inplace_alias_precedent": {
+      "source": "/refactor/candidates/Kimi-native-trace-CPU-r7296/src/r7291_kimi_k3_mla_attention.cpp",
+      "source_SHA256": "788c905159b7cba1f5db194e4f6817e452ce5fc8887f8e0516827de7bf2f4b80",
+      "object": "/refactor/candidates/Kimi-native-trace-CPU-r7296/r7291_kimi_k3_mla_attention.o",
+      "object_SHA256": "fd4cf47eb203be45141cfd3cee36c9b374fde8a8c47cf0a2ea1c3af711a527cf"
+    },
+    "decoder_source_SHA256": "26119225b7efb6128eaa31b17afe96cc4081f8aa86bf50465341b6fecfabd640",
+    "Delta_fresh_MD": {
+      "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/execution/submit.hpp": "8c0bd70a372b0017bca78e54f037493fe79918f97b5fed6d885f5b5d8eb0c20d",
+      "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/global_state/forward_context.hpp": "93269dcc5cad15e3f503863668172ec42151fbca1e1aa070983165f93cca3963",
+      "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/models/kimi_k3/../../layers/normalization/rmsnorm.hpp": "fc703ae05c2f6c00eacf86d4ff10e11ae36e2c188aa36d8a4fdb0885be6feb7c",
+      "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/models/kimi_k3/kimi_k3_delta_attention.hpp": "c4f11dc9af11c7f695758a75557cda06462218599a2108e274608e808edfb1d0",
+      "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/runtime/runtime.hpp": "c127b4cf91ab3b64721efe7c9a3e90a84cca9e35dc004ddb6abd9c5e067896d4",
+      "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/runtime/tensor.hpp": "dfc787f233bef2fb5888d0954440746334386023bad3f6207164024b377eb658"
+    }
+  },
+  "current_call_chain": [
+    "CPU223 decoder actual newobject input_layernorm_->forward -> is_kda ? Delta.forward : MLA.forward",
+    "Delta g_proj ColumnParallel [1,T,7168]->BF16[1,T,768] onTP16 localheads6*128",
+    "L536 output_gate=empty(sameshape/dtype); L538Sigmoid(output_gate_input,output_gate); L544Mul(normalized,output_gate,gated); originalRowParallel o_proj+allreduce",
+    "MLA source L343\u2013344 already sameSDK Sigmoid(gate,gate); CPU223 retained MLA object exactly matches actual7296 compiledsource/freshMD"
+  ],
+  "one_change": {
+    "location": "kimi_k3_delta_attention_CCL512_r8603.cpp L536 only",
+    "proposal": "DefaultOFF private opt-in for eagerHygon TP16-shaped localheads6/head128/BF16[1,16,768], ordinary tracesOFF: output_gate aliases fresh output_gate_input instead of Tensor::empty; unchangedfallback for allothercases. No classlayout fields/newkernel/globalguard.",
+    "exact_core_diff": "- auto output_gate = Tensor::empty(runtime, output_gate_input->shape(), output_gate_input->dtype());\n+ auto output_gate = eligible_defaultOFF ? output_gate_input : Tensor::empty(runtime, output_gate_input->shape(), output_gate_input->dtype());",
+    "ordering_lifetime": "Same Runtime stream, same Sigmoid(input,output) SDKcall and Mul order. g_proj fresh result has no later mathematical consumer exceptSigmoid, no weight/cache/residual/input aliases intentionally introduced; keep gateinput reference untilforwardreturn and original Tensor queued-use lease. Trace-enabled path fallsback to preserve preSigmoid observability. No sync removed/added, no allocator pooling/TLS change.",
+    "removed": "One temporaryTensor allocation/release/hostmetadata and overlapping24576B output storage perKDAcall. 69KDA*24576=1695744B allocationrequestvolume/device/decode; notpeakmemory or traffic saved. No Sigmoidlaunch/dequant/matmul/CCL removed.",
+    "not_claimed": "No proven bandwidthwrite/copy reduction or computearithmetic decrease, no Model wall gain, no APIcount-to-wall inference."
+  },
+  "excluded_false_opportunities": [
+    "Delta perrowProjection Drain selected only Mode11 or flags notset in654/657; currentMode0 no suchsuccessdrain",
+    "MLA perrowkvb/oProjection/serialattention Drain requires nonzeroSpecMath; ordinary0 usesoriginalprovider",
+    "MLA trace contiguous behind traceenv/detail selector; ordinaryTRACE unset, notcurrentredundantcopy",
+    "Inputnorm and attentionresidual norms/softmax/matmul have semantic dependencies; no source proof they can be removed"
+  ],
+  "paired_test_if_root_chooses": {
+    "implementation": "OneprivateDelta hostTU into223objects, defaultOFFflag; minimalKDA publicclass thinCABI usingactualRuntime/globalTP16/comm andsame existing layerweight loader, noSDK/kernelbuild. Existinglayer0thinadapter isTP8, cannotclaim alreadyTP16ready. Need smallhostwrapper foractualTP16/KDA plusstatefixturebinding beforeGO.",
+    "fixture_limit": "Existingteacher0 retainednorm isL1 FFNinput, NOT KDAhidden/state. Existing621/757 KDAraw areTP8/prefill; cannotrelabelliteralTP16decode or reconstructmissingstate fromnormalizedoutputs. A bounded originalprefill->one decode fromfrozenembedding mayprovideactualnative-producedstate, but would requireexacthostwrapper closure; do not assumecheap currentfixture exists.",
+    "measurement": "One load actualKDA originalconstructor/context, OFF/ON sameinput/cache-readstate withreset/restoration outside timing;2warm+8ABBA ordinary ownercompletewall, actualhitcounter, finite/outputerror/ownrepeat, nointermediatebitwiseModelgate; anyrealModeladoption laterfull128IDs/EOS+QA.",
+    "resources_provisional": "16DCU twoTPnodes forfaithfuloriginalcollective; noModelweightsload;memorydependsKDAweight+SSMstate exactloader, notestimatedhere",
+    "first_result_time": "UNKNOWN untilTP16KDA wrapper/statebinding ready; no new build authorized",
+    "stop": "No stablecompleteattentiongain beyondnoise -> STOP. Because source removesallocationonly and no actualallocationwallcost, recommend PARK ratherthan payingnewTP16component solely for speculative smallgain."
+  },
+  "conclusion": "Actual math0 hotpath does not expose removableglobalfence. Onlysource-proven small allocation isidentified; materialperformancebenefit and faithfulexistingTP16decodefixture areUNKNOWN. NoGPU/build automatically authorized."
+}

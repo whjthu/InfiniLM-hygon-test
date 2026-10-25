@@ -1,0 +1,6 @@
+import pathlib
+r=pathlib.Path(__file__).resolve().parent
+s=(r/'compact_GLM_DP504_r8864.py').read_text().replace('r8864','r8868').replace('DP504','DP507').replace('9567b01de2e21cab9a61d31d5b7e8c3f4455d92b','797da108ffd04c50423b4813e990d68f93a90142')
+s=s.replace('Two independent TP8PP2/world16 B16M8 replicas, common32distinct477 split16+16,I512O128;isoA,isoB,joint with2arms/oneweightloadperreplica;total32cards;n03/n07/n15/n16;60min3500;original561M8/native68acfe,notM16/PV/tile2/quantreuse','Two independent TP8PP2/world16 B16replicas, fixedsame32distinct477 split16+16,I512O128;jointM8 thenjointM16 with2arms/oneweightloadperreplica;total32cards;n03/n07/n15/n16;60min3500;qualified567native68bdbd/PVtile2quantreuseOFF')
+s=s.replace('Joint actualoverlap and commonarrival clock; two sequential isolatedrates arecontentioncontrols.','BothjointM8/M16 actualoverlap and commonarrivalclock;fixedtotal32distinct,noisolatedarms.').replace('Localemitter clock perworld16; never sum sequential isolatedrates asjointmeasurement','Localemitter clock perworld16; formaljointperformance comesfrom commonCPUcollector')
+(r/'compact_GLM_DP507_r8868.py').write_bytes(s.encode());print('Original507 CPU terminalreader prepared,notrunbeforeterminal')
