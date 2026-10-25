@@ -1,0 +1,11 @@
+--- approved/GLM_helper_stage_trace_r8982.py
++++ mechanical/GLM_helper_stage_trace_r8982b.py
+@@ -2,7 +2,7 @@
+ import pathlib,ctypes,json,os,time,hashlib,statistics,contextlib,traceback
+ import torch,torch.multiprocessing as mp
+ from safetensors import safe_open
+-r=pathlib.Path('/refactor');model=pathlib.Path('/old/models/ZhipuAI-GLM-5.3');H=r/'candidates/glm-grouped-native-model-r5117/helpers/libglm_fp8_batched_r776.so';HS='e32b4dc2749b4012efbf4322d334b6460dd091190bca78bb8f41e4384f09a7e8';W=r/'candidates/glm-helper-stage-trace-r8982/libglm_helper_stage_trace_r8982.so';V=ctypes.c_void_p;Z=ctypes.c_size_t;I=ctypes.c_int
++r=pathlib.Path('/refactor');model=pathlib.Path('/old/models/ZhipuAI-GLM-5.3');H=r/'candidates/glm-grouped-native-model-r5117/helpers/libglm_fp8_batched_r776.so';HS='e32b4dc2749b4012efbf4322d334b6460dd091190bca78bb8f41e4384f09a7e8';W=r/'candidates/glm-helper-stage-trace-r8982b/libglm_helper_stage_trace_r8982b.so';V=ctypes.c_void_p;Z=ctypes.c_size_t;I=ctypes.c_int
+ sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+ def worker(rank):
+  torch.set_num_threads(1);torch.set_float32_matmul_precision('highest');torch.backends.cuda.matmul.allow_tf32=False;torch.backends.cuda.matmul.allow_fp16_reduced_precision_reduction=False;torch.backends.cuda.matmul.allow_bf16_reduced_precision_reduction=False;torch.backends.cuda.matmul.allow_fp16_accumulation=False;torch.cuda.set_device(rank);cpus=sorted(os.sched_getaffinity(0));assert len(cpus)>=64;os.sched_setaffinity(0,cpus[rank*8:rank*8+8]);stream=torch.cuda.current_stream();lib=ctypes.CDLL(str(H));wrap=ctypes.CDLL(str(W));lib.glm_fp8_create_r776.argtypes=[I,I]+[Z]*7+[V];lib.glm_fp8_create_r776.restype=V;lib.glm_fp8_run_r776.argtypes=[V,I]+[V]*5;lib.glm_fp8_destroy_r776.argtypes=[V];lib.glm_fp8_error_r776.restype=ctypes.c_char_p;wrap.glm_helper_trace_init_r8982.argtypes=[V,V];wrap.glm_helper_trace_begin_r8982.argtypes=[I]+[Z]*5;wrap.glm_helper_trace_end_r8982.argtypes=[V,V]

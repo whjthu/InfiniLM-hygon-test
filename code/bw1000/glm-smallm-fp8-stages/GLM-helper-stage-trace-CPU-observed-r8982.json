@@ -1,0 +1,37 @@
+{
+  "exists": true,
+  "GPU": false,
+  "CPU_only": true,
+  "receipt": {
+    "completed": false,
+    "GPU": false,
+    "dlopen": false,
+    "compiled_TUs": 1,
+    "producer": "910407.222",
+    "args": [
+      "g++",
+      "-std=c++17",
+      "-O2",
+      "-shared",
+      "-fPIC",
+      "-I/opt/dtk/cuda/cuda/include",
+      "/refactor/incoming/glm_helper_stage_trace_r8982.cpp",
+      "-L/opt/dtk/cuda/cuda/lib64",
+      "-lcudart",
+      "-lcublas",
+      "-ldl",
+      "-Wl,--no-undefined",
+      "-o",
+      "/refactor/candidates/glm-helper-stage-trace-r8982/libglm_helper_stage_trace_r8982.so"
+    ],
+    "source_SHA256": "f076a267a142cef7f061a681f5c40ec5a11d8473fcc88b2a452c070ac0b0e7d2",
+    "elapsed_seconds": 0.5246214182116091,
+    "library": "/refactor/candidates/glm-helper-stage-trace-r8982/libglm_helper_stage_trace_r8982.so",
+    "failure": "/refactor/incoming/glm_helper_stage_trace_r8982.cpp:11:48: error: ‘decltype’ cannot resolve address of overloaded function\n   11 | using Gemm=decltype(&cublasGemmStridedBatchedEx);\n      |                                                ^\n/refactor/incoming/glm_helper_stage_trace_r8982.cpp: In function ‘cublasStatus_t cublasGemmStridedBatchedEx(cublasHandle_t, cublasOperation_t, cublasOperation_t, int, int, int, const void*, const void*, cudaDataType_t, int, long long int, const void*, cudaDataType_t, int, long long int, const void*, void*, cudaDataType_t, int, long long int, int, cublasComputeType_t, cublasGemmAlgo_t)’:\n/refactor/incoming/glm_helper_stage_trace_r8982.cpp:54:9: error: ‘Gemm’ does not name a type\n   54 |  static Gemm real=resolve<Gemm>(\"cublasGemmStridedBatchedEx\");if(!real)return CUBLAS_STATUS_NOT_INITIALIZED;\n      |         ^~~~\n/refactor/incoming/glm_helper_stage_trace_r8982.cpp:54:67: error: ‘real’ was not declared in this scope\n   54 |  static Gemm real=resolve<Gemm>(\"cublasGemmStridedBatchedEx\");if(!real)return CUBLAS_STATUS_NOT_INITIALIZED;\n      |                                                                   ^~~~\n/refactor/incoming/glm_helper_stage_trace_r8982.cpp:57:10: error: ‘real’ was not declared in this scope\n   57 |  auto rc=real(h,ta,tb,m,n,k,alpha,a,at,lda,sa,b,bt,ldb,sb,beta,c,ct,ldc,cs,batches,compute,algo);\n      |          ^~~~\n"
+  },
+  "receipt_SHA256": "2d2159c11d6892a6fd619771697a13762a10bf3b3bbd77c4e77269149b073c87",
+  "build_log": "/refactor/incoming/glm_helper_stage_trace_r8982.cpp:11:48: error: ‘decltype’ cannot resolve address of overloaded function\n   11 | using Gemm=decltype(&cublasGemmStridedBatchedEx);\n      |                                                ^\n/refactor/incoming/glm_helper_stage_trace_r8982.cpp: In function ‘cublasStatus_t cublasGemmStridedBatchedEx(cublasHandle_t, cublasOperation_t, cublasOperation_t, int, int, int, const void*, const void*, cudaDataType_t, int, long long int, const void*, cudaDataType_t, int, long long int, const void*, void*, cudaDataType_t, int, long long int, int, cublasComputeType_t, cublasGemmAlgo_t)’:\n/refactor/incoming/glm_helper_stage_trace_r8982.cpp:54:9: error: ‘Gemm’ does not name a type\n   54 |  static Gemm real=resolve<Gemm>(\"cublasGemmStridedBatchedEx\");if(!real)return CUBLAS_STATUS_NOT_INITIALIZED;\n      |         ^~~~\n/refactor/incoming/glm_helper_stage_trace_r8982.cpp:54:67: error: ‘real’ was not declared in this scope\n   54 |  static Gemm real=resolve<Gemm>(\"cublasGemmStridedBatchedEx\");if(!real)return CUBLAS_STATUS_NOT_INITIALIZED;\n      |                                                                   ^~~~\n/refactor/incoming/glm_helper_stage_trace_r8982.cpp:57:10: error: ‘real’ was not declared in this scope\n   57 |  auto rc=real(h,ta,tb,m,n,k,alpha,a,at,lda,sa,b,bt,ldb,sb,beta,c,ct,ldc,cs,batches,compute,algo);\n      |          ^~~~\n",
+  "Slurm": [
+    "910407.222|GLM-helper-stage-trace-CPU-r8982|FAILED|1:0|00:00:02|a14r2n20"
+  ]
+}
