@@ -1,0 +1,253 @@
+{
+  "hardware": "BW1000",
+  "level": "BOUNDED_CPU_SOURCE_DECISION",
+  "status": "NO_NEW_PRODUCTION_MOE_CANDIDATE_WITH_MINIMUM_FEASIBILITY_ESTABLISHED",
+  "UTC": "2026-10-25T14:28:36.853088+00:00",
+  "GPU": false,
+  "build": false,
+  "performance_round": false,
+  "scope": "Existing source/results only; no generic STOP and no reloading unchanged negative routes. Current633 fixture confirms1.575464ms/26.1166percent removable routed region but does not establish achievable production implementation.",
+  "duplicate_routes": [
+    {
+      "route": "On-demand active expert BF16 unpack + original W64 FP32 tree",
+      "receipt": "experiment-round-receipts-r4714/glm-T16-BF16-chunk-r5344.json",
+      "actual_handle": "910407.150",
+      "result": "All8 math/fullstage/repeat passed; independentT16 U71..84 fullcore baseline4.043665ms versus chunks8/16/32 7.425901/7.211896/6.964845ms (72..84% slower). Repeated2/1prefill families U14/U8 improve conditionally, not currentdecode U54/R64.",
+      "numerical_failure": false,
+      "memory": "Peak Torch allocated rises1.26958GB to1.313/1.363/1.463GB; bounded percall gate scratch max201326592B plusinput196608B. Actual current8different geometry not directly tested; oldresult strong lowreuse warning, not a formal currentM8 rejection."
+    },
+    {
+      "route": "Persistent bounded BF16 expert cache",
+      "receipt": "experiment-round-receipts-r4714/glm-bounded-global-cache-r5360-5368.json",
+      "actual_handles": [
+        "910381.459 COMPLETED0 1:18",
+        "910381.460 COMPLETED0 0:50"
+      ],
+      "result": "96/128/256MiB cache all8 fullstage/release pass; warm rebatchedT16 U12..14 improves to3.09..3.24ms from~4.03ms scalar; 35layer-key alias thrash490miss/490evict/0hit. Actual independentT16 U80 executes originalfallback. Not a finaltoken rejection and not an actual35layerdecode trace.",
+      "current_mismatch": "CurrentU54 does not fit oldcapacity/lowreuse admission. Raisingbudget alone not new mechanism; actual decode all-layer temporal reuse unknown."
+    },
+    {
+      "route": "Pre-scaled BF16 operands + one GEMMEx",
+      "receipt": "glm-scaled-sgemm-r3251-audit-local.json",
+      "result": {
+        "qualified": 299,
+        "negative": 21,
+        "M8_summary": [
+          {
+            "label": "qa",
+            "M": 8,
+            "qualified_devices": 8,
+            "GPU_speedup_min_median_max": [
+              0.6085043257579998,
+              0.6146777452529623,
+              0.6163414933866574
+            ],
+            "old_new_GPU_median_ms": [
+              0.2988799959421158,
+              0.48819950222969055
+            ]
+          },
+          {
+            "label": "qb_tp7",
+            "M": 8,
+            "qualified_devices": 8,
+            "GPU_speedup_min_median_max": [
+              0.6581986975641405,
+              0.6636299865900391,
+              0.6668145392591507
+            ],
+            "old_new_GPU_median_ms": [
+              0.11947999894618988,
+              0.1799600012600422
+            ]
+          },
+          {
+            "label": "kvA_real",
+            "M": 8,
+            "qualified_devices": 6,
+            "GPU_speedup_min_median_max": [
+              0.11463477144218256,
+              0.11629800266086388,
+              0.12002239164882834
+            ],
+            "old_new_GPU_median_ms": [
+              0.08299949951469898,
+              0.7137995064258575
+            ]
+          },
+          {
+            "label": "kvB_tp7",
+            "M": 8,
+            "qualified_devices": 7,
+            "GPU_speedup_min_median_max": [
+              1.0427672698103,
+              1.0565110892607519,
+              1.108343664286865
+            ],
+            "old_new_GPU_median_ms": [
+              0.06879999861121178,
+              0.064240001142025
+            ]
+          },
+          {
+            "label": "output_tp7",
+            "M": 8,
+            "qualified_devices": 8,
+            "GPU_speedup_min_median_max": [
+              0.9357719759263956,
+              0.9411147076434118,
+              0.9488620210026707
+            ],
+            "old_new_GPU_median_ms": [
+              0.2943597510457039,
+              0.311599999666214
+            ]
+          }
+        ]
+      },
+      "boundary": "Dense projection cells, not routed M1-perexpert. 21/320 fail originalNRMSE/repeat/duplicate gates; qaM32 identicalrows sampleNRMSE .0059687 >.005. No finalModelIDs tested. Cannot label all GEMM approaches numerically impossible."
+    },
+    {
+      "route": "Residual compensated three BF16 GEMMEx",
+      "receipt": "glm-scaled-sgemm-r3276-audit-local.json",
+      "result": {
+        "qualified": 319,
+        "negative": 1,
+        "M8_summary": [
+          {
+            "label": "qa",
+            "M": 8,
+            "qualified_devices": 8,
+            "GPU_speedup_min_median_max": [
+              0.26509459061030594,
+              0.26786071074931017,
+              0.26888976548082594
+            ],
+            "old_new_GPU_median_ms": [
+              0.3012000024318695,
+              1.1263994872570038
+            ]
+          },
+          {
+            "label": "qb_tp7",
+            "M": 8,
+            "qualified_devices": 8,
+            "GPU_speedup_min_median_max": [
+              0.29081852459340657,
+              0.2943563806438356,
+              0.29646140035137075
+            ],
+            "old_new_GPU_median_ms": [
+              0.12132000178098679,
+              0.41255974769592285
+            ]
+          },
+          {
+            "label": "kvA_real",
+            "M": 8,
+            "qualified_devices": 8,
+            "GPU_speedup_min_median_max": [
+              0.041062256453246994,
+              0.0417863737004658,
+              0.04382220147671498
+            ],
+            "old_new_GPU_median_ms": [
+              0.0843999981880188,
+              2.0198789834976196
+            ]
+          },
+          {
+            "label": "kvB_tp7",
+            "M": 8,
+            "qualified_devices": 8,
+            "GPU_speedup_min_median_max": [
+              0.6527976990319523,
+              0.6720337656299004,
+              0.6861660092437263
+            ],
+            "old_new_GPU_median_ms": [
+              0.06931999884545803,
+              0.1021599993109703
+            ]
+          },
+          {
+            "label": "output_tp7",
+            "M": 8,
+            "qualified_devices": 8,
+            "GPU_speedup_min_median_max": [
+              0.49461327445087827,
+              0.49959645118028856,
+              0.5040646333362274
+            ],
+            "old_new_GPU_median_ms": [
+              0.29603999853134155,
+              0.5942400097846985
+            ]
+          }
+        ]
+      },
+      "boundary": "319/320 old component gates pass but M8 qA .3012\u21921.1264ms,KV_A .0844\u21922.01988ms; additional arithmetic/provider cost severe. Dense shapes only, not currentrouteddirectproof."
+    },
+    {
+      "route": "Unscaled prepared BF16 weight BMM",
+      "receipt": "GLM582-prepared-weight-reuse-compact-r8985.json",
+      "result": {
+        "0": 0.37349830381572247,
+        "1": 0.18205656670033932
+      },
+      "boundary": "582 is POSITIVE isolated real o_proj M8, not routedweightcache failure;585 wholelayer application parked. Do not conflate attentionprepared with MoE. Full512/2048K matrix provider is not drop-in to originalK128scaled routed vector math."
+    },
+    {
+      "route": "Old bitdecoder",
+      "receipt": "r1458-glm-bitdecode-audit.json",
+      "result": "All256 E4M3 bits checked on8owners;192 cases, median pairedgate speedup.95350/down1.01203 versus oldscalar. Not current8528widefetch/Model comparison. RemainsPARK, no reopen underdifferentname."
+    },
+    {
+      "route": "Currentvector microchanges",
+      "receipt": "GLM-gate-lookahead-component-compact-r9044.json",
+      "result": "630 oneblocklookahead +.05258percent wholelayer, mixedpairs; CTA600/W32 equally previouslyPARK. Do not repeat."
+    }
+  ],
+  "memory_accounting": {
+    "FP8_per_expert_all3_bytes": 4718592,
+    "BF16_per_expert_all3_bytes": 9437184,
+    "current_U54_BF16_bytes": 509607936,
+    "full256experts_BF16_GiB_per_layer": 2.25,
+    "full39layers_BF16_additional_GiB_per_card": 87.75,
+    "full39layers_F32_additional_GiB_per_card": 175.5,
+    "633_free_before_create_GiB": 63.67,
+    "fit": "All-expert persistentBF16 alone87.75GiB exceeds63.67GiB actuallyfree on empty card before originalweights/KV/provider. Boundedcache could fit partially; no currentroute-reuse proof.",
+    "on_demand_unique_min_payload": {
+      "FP8_read_MiB": 243,
+      "BF16_write_MiB": 486,
+      "BF16_provider_read_MiB": 486,
+      "total_MiB": 1215,
+      "FP32_total_MiB": 2187
+    },
+    "limits": "Logical sequentialpayload only, not HBM measurement; intercache reuse/transactions unknown. Current64routes54experts has only10duplicate slots, maxrows3; little matrixM reuse. All dequant/write/read must remain within productioncall timing."
+  },
+  "uncovered_but_not_yet_feasible": {
+    "route": "Native BF16 pair-dot/packed decoder lowering or expert-grouped batched matrix provider",
+    "why_no_GO_request": "No existing gfx936 pair-dot ISA/provider binding verified in inspected artifacts. CurrentFP32packed ISA reference proves v_pk_fma_f32, not BF16dot instruction. Building speculative instruction kernel/provider would require feasibility work beyond boundedscope. On-demandM1..3 provider needs newgroup/scratch/scaleblock handling, not a minimal known drop-in; no current8wholelayer data to justify."
+  },
+  "decision": "Stop newMoE gate/decoder/cache tests now; preserve material26.1percent budget as futuretarget without claiming exhaustedhardwarepossibilities. Turn next implementation selection to actualattention/TPcriticalpath using existing627profile, not another pureprofile or repeatedoldmicrotweak.",
+  "next_path_source_budget": {
+    "attention_host_wall_ms": {
+      "host_wall_ms": 3.5819305000000004,
+      "threadCPU_ms": 2.882786499998957,
+      "stream_timeline_ms_includes_host_enqueue_idle": 3.580475951777771
+    },
+    "evidence": "627profiled Attention host3.58193ms /CPU2.88279ms, originalO_TP enclosingstream.58824ms; FFN_TP.26448ms. These are overlapping/nested observedspans, not independentlyreclaimableGPUbusy. Standalone5096 differs fromModel5555 resident path, so do not propose standalonecache gain asModelgain. Need exact Modelactualcaller source to choose arithmetic-preserving attention or communication change; noGPUauthorized in thisdecision."
+  },
+  "evidence_SHA256": {
+    "experiment-round-receipts-r4714/glm-T16-BF16-chunk-r5344.json": "9efd7512dd99a7f8ffdba24843d7785d0bd546388407cc126c95751d7f77138b",
+    "experiment-round-receipts-r4714/glm-bounded-global-cache-r5360-5368.json": "dc95ab6bdbc04d292d93755459999f3f6a118f356d45294f3ad31bcdf9156777",
+    "glm-scaled-sgemm-r3251-audit-local.json": "c5ae9ce2a044e661d2c6246998d2ff3243e4385e533e1945a9c4808b366cfdea",
+    "glm-scaled-sgemm-r3276-audit-local.json": "84e38dd7abcc2268cbcbec6ddbfbc5894ab01fec6990b67b57c5096b85a41979",
+    "r1458-glm-bitdecode-audit.json": "0611a75a44a99b9630cfa3854b9a5294d113d441e8ac9c6ccf44e23054da87ed",
+    "GLM582-prepared-weight-reuse-compact-r8985.json": "9473c912a263a2b8ef8bdcc3e8a331f46dcccbcda4f8ef52be913a7fd02d3012",
+    "GLM-routed-ceiling-component-compact-r9046.json": "a70bff749b9ab016fbf929dbf761c98b642a993e8c47391487500e1fb9711a8d",
+    "GLM627-current-layer-attribution-compact-r9040.json": "5da07f5b4f0aa25a895c0180b4e2183345f59a8893cda8862a727f2256dac82c",
+    "GLM-gate-lookahead-component-compact-r9044.json": "9a6ab30aecf66deebf003857fffbb47ec6506942959a8550f2e709362d5b6c5f"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "hardware": "BW1000",
+  "level": "SOURCE_ONLY_NOVEL_MECHANISM",
+  "status": "CANDIDATE_REQUIRES_ROOT_CPU_AND_GPU_GO",
+  "UTC": "2026-10-25T14:32:25.007512+00:00",
+  "source": "glm_gate_register_mmac_candidate_r9048.inc",
+  "source_SHA256": "d12da58cbfabd37598239b6397639429d3003fe4480ec75e6ddf71976e6bbd65",
+  "GPU": false,
+  "build": false,
+  "prior_dedup": "GLM-production-MoE-dedup-decision-r9047.json",
+  "prior_SHA256": "b12bf54ac866b1d76a494a125aec061e2f493d484c1c4e8144739b34435fef31",
+  "mechanism": "CurrentE4M3decode toBF16 registerfragment only + gfx936BF16MMAC; nofullweightwrite/read, nohostgrouping, noexpertcache, noINT8requant, originaldown unchanged. Distinctfrom5344BF16HBMscratch+sameSIMTtree, oldbitdecode andCTA/W32/lookahead.",
+  "primary_reference": "https://github.com/sinpeyw/qwen3.5-vllm-dcu-optimization/blob/main/csrc/rocm/attention.cu",
+  "primary_lines": [
+    135,
+    153,
+    5082,
+    5107
+  ],
+  "reference_limit": "Authorprimarysource proves candidateinstruction/mappingprinciple; ourcompiler/actualISA/Modelqualification UNKNOWN. No borrowedperformance/roof claim.",
+  "shape": {
+    "actual_M_per_expert_tile": 1,
+    "physical_mmac_M": 16,
+    "N_tile": 16,
+    "K_mmac": 16,
+    "K_scale_block": 128,
+    "K_total": 6144,
+    "output_N": 256,
+    "R": 64,
+    "grid": [
+      4,
+      64
+    ],
+    "block": 256,
+    "MMAC_steps_per_K128": 8,
+    "gate_up_MMAs_per_wave": 768,
+    "global_BF16_scratch_bytes": 0,
+    "HBM_dequant_write_bytes": 0
+  },
+  "CPU_index_checks": 384,
+  "numerics": "Exact representability of finiteE4M3 inBF16; originaldecode retained. MMACaccumulation replacesoriginalK128W64tree, originalblockscales/order/outputBF16 unchanged; nointermediatebitexact orModelIDs claim.",
+  "target_wall": "Originalgateup .992ms profiledstreamspan within633 measured1.575ms removablewholelayer routedbudget. No predicted gain; low M1/16 utilization, decode cost, VGPR and sparse stridedloads are risks.",
+  "minimum_execution_if_root_GO": "ONEGPU TU compile/-S thenreusecurrent62427objects, defaultOFF+CAPIactualcounts. ActualISA must containBF16MMAC andreportregs/spill; CPUmapping proof notGPUlayoutproof. ONEexistingcurrentlayerfixture11calls88cases pairedwholelayer; finite/canary/readonly/ownrepeat originaldrains/8normal/audit/post. Stopunknownnumeric/provider/lifecycle; finalModelIDs/EOS onlylater ifmaterialcomponentgain.",
+  "estimated_first_component_result_after_GO_minutes": 15
+}

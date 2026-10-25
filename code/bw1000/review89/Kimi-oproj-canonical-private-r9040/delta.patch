@@ -1,0 +1,32 @@
+--- actual787af_delta.cpp
++++ delta.cpp
+@@ -64,6 +64,17 @@
+ class Prefill512RowR8603 final : public infinilm::layers::linear::RowParallelLinear {
+ public:
+     using infinilm::layers::linear::RowParallelLinear::RowParallelLinear;
++    infinilm::runtime::Tensor forward_canonical_r9040(infinilm::runtime::Runtime &runtime,infinilm::runtime::Tensor &input,bool serial)const{
++      runtime.assertOwnerThread();if(runtime.isGraphRecording()||tp_size_!=16||!communicator_||input->dtype()!=infinilm::runtime::DataType::kBFloat16||input->ndim()!=3||input->size(0)!=1||input->size(2)!=768||(input->size(1)!=1&&input->size(1)!=8)||has_bias()||alpha()!=1.f||output_dtype()!=input->dtype())throw std::invalid_argument("9040 bounded originalNone TP16 o_proj");
++      std::vector<infinilm::runtime::Tensor>held;infinilm::runtime::Tensor output;
++      struct Drain{infinilm::runtime::Runtime&r;~Drain(){try{r.syncStream();}catch(...){std::terminate();}}}drain{runtime};
++      if(serial&&input->size(1)==8){output=infinilm::runtime::Tensor::empty(runtime,{1,8,7168},input->dtype());for(size_t j=0;j<8;++j){auto row=input->narrow({{1,j,1}});held.push_back(row);auto part=compute_linear(runtime,row);held.push_back(part);if(part->shape()!=infinilm::runtime::Shape{1,1,7168})throw std::logic_error("9040 W1 shape");output->narrow({{1,j,1}})->copy_from(runtime,part);}}
++      else output=compute_linear(runtime,input);
++      infinilm::models::kimi_k3::trace_kda_projection(runtime,output,"r9040_o_proj_local");
++      infinilm::engine::distributed::allreduce_(runtime,output,output,infinicclSum,communicator_);
++      infinilm::models::kimi_k3::trace_kda_projection(runtime,output,"r9040_o_proj_reduced");
++      return output;
++    }
+     infinilm::runtime::Tensor forward_prefill512(
+         infinilm::runtime::Runtime &runtime, infinilm::runtime::Tensor &input) const {
+         // Unsupported scopes use the original actual provider unchanged.
+@@ -550,6 +561,11 @@
+     // KDA layers. This includes the existing same-owner collective per row;
+     // it deliberately avoids new broadcast-batched GEMM or unproven reduction.
+     auto result = [&]() {
++        auto flag9040=[](const char*n){const char*p=std::getenv(n);if(!p||std::string(p)=="0")return false;if(std::string(p)=="1")return true;throw std::invalid_argument("9040 flag0or1");};
++        bool selected9040=flag9040("INFINILM_KIMI_OPROJ_W1_R9040"),trace9040=flag9040("INFINILM_KIMI_OPROJ_TRACE_R9040");
++        if((selected9040||trace9040)&&batch_size==1&&(seq_len==1||seq_len==8)){
++          auto p=std::dynamic_pointer_cast<Prefill512RowR8603>(o_proj_);if(!p)throw std::logic_error("9040 original constructed class");return p->forward_canonical_r9040(runtime,gated,selected9040);
++        }
+         const char *cc=std::getenv("INFINILM_KIMI_CCL512_R8603");
+         if(cc && std::string(cc)!="0" && std::string(cc)!="1")
+             throw std::invalid_argument("8603 flag must be0or1");

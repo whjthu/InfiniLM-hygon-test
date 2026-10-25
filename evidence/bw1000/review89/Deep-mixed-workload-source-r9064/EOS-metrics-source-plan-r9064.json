@@ -1,0 +1,51 @@
+{
+  "hardware": "BW1000",
+  "level": "SOURCE_ONLY_WORKLOAD_PLAN",
+  "status": "READY_FOR_REVIEW_NOT_RUNTIME_QUALIFIED",
+  "task_list": {
+    "path": "distinct32-tasks-r9064.json",
+    "SHA256": "288030bef24b3b14e2ceb673a3a1cc62e86c77fe9759b459c1e04eb68927083b",
+    "unique_tasks": 32,
+    "token_ids_materialized": false
+  },
+  "actual_EOS_support": {
+    "proven": [
+      "CurrentnativeCAPI returnsonegreedyIDperexplicitrow/forward; hostdriver controlsrequest rows,past,total,offsets andtokeninputs.",
+      "1018 run_chat hostloop stopsimmediately when generated[-1]==cfg[eos_token_id], and12scalarQA endedatfirstEOS withfrozenIDs.",
+      "1018fixedB32gold explicitly hasnoEOS in128outputs; itdoesNOTqualify earlyEOS orlivebatchshrink."
+    ],
+    "automatic_engine_EOS_termination": "NOT_ESTABLISHED; noautonomousscheduler/stop contract exposed bycurrentdriver. Do notassume nativeengine dropsEOSrows.",
+    "dynamic_sparse_row_compaction": "UNVERIFIED inactualcurrentDSO. ActualCAPI/cache source provenance stillneeded; all32active/noEOS andscalarQA areinsufficientproof.",
+    "minimum_next_load_qualification": "Beforeperformance, useexistingknownEOS QA onselectedsparsecache rows mixedwithlong-livedcontrol. Hostremovesfinishedrow afterfirstEOS, keepsoriginalrowID/past ofsurvivors; comparecontinuation tosamecontextreset reference. Include B32->sparseB31/B16/B1 progression andnoemptyCAPIcall; finalIDs/EOS/cacheisolation mustpass.",
+    "if_compaction_fails": "STOP dynamicservicequalification; do NOTreportfixed32x128 tokens asusefulthroughput orcountEOSfollowuppad tokens. SerialB1firstEOS QA maycollectfunctionalreferencesonly, labelledserialnot32userbatchservice."
+  },
+  "minimal_source_changes": [
+    "LoadtaskJSON beforeEnginecreate alongsideexistingtokenizer; materialize32canonicallyvaliddistinctI512 inputs,freezeIDs/template/modelSHA, serializeonce and reusebotharms. Do notlocallydownloadweights/tokenizerpayload.",
+    "Replace repeated i%2 prompts with32uniqueIDs; originalcap128 remainsperrequest, notglobalminimumrequired128. Beforeeacharm resetcache andallhostrequeststate.",
+    "Keeporiginalcache rowIDsstable evenaftercompactinghostactive list; assemble rows/past/total/offsets/inputIDs/positions foreachsurvivor. Neverremap row31 data tocache row0. Nevercallnativeforward withzero rows.",
+    "For eachCAPIreturn validatefinite+firstargmax, recordrequestID/cacheRow/outputindex/APIready/emittertimestamps. OnfirstEOS markdone immediately; do notfeeditsEOS nextstep. Stopalsoafter128actualgeneratedIDs includingEOS. Nofinishedrowrefill/newrequestadmission inthisfirstqualification.",
+    "FreezeA0fullvariablelengthgeneratedIDs/firstEOS for32uniqueinputs; requireC1/C2/A3 perrequestexactIDs/firstEOS andsameactive-row schedule. Existing12QA remains independent qualitygate.",
+    "FixedI512prefill chunks4 preserveT2048actualCast eligibility andnewcounters; decode countersmust reflectactualactivebatchgeometry instead ofhardcoding5461ifrequestsearlyfinish. NewCastneverdecode; recomputecallcountsfromrecordedCAPIwindows.",
+    "Naturalshort/long panels canonicaltokenizeactualtext, keepinput+128<=1024; botharmsCastOFF outsidecurrentscopedadoption. MixedlengthtotalT accidentally2048 mustnotbeclassifiedasqualifiedI512matrix; selectorssetfromexplicitgeometry, notjusttotalT.",
+    "Usecurrentfrontend/controller/resultJSON, no schedulerframework/server/API implementation. AttachprimaryA/C/C/Aandoptionalshort/longpairs onlytonextotherwise-neededload afterrootbudgetapproval;1018alreadydestroyed andcannotbereused."
+  ],
+  "measurement_contract": {
+    "effective_output_tokens": "Countonlyvisible nonEOS/nonstop tokens beforefirstEOS or128cap. Keepseparate physicalgeneratedtokens includingterminalEOS forcomputeaccounting; noEOSaftertokens orpad workinnumerator.",
+    "effective_decode_tokens": "CountnonEOS outputsfromactualdecodeforwards(past>0), excludesfirstoutputreturnedbyprefill. Forinitialphase-separatedcohort thisequals sum(max(visible_output_len-1,0)).",
+    "decode_denominator": "Wallfromafterlastprefillreturn/emission tolastdecodedrequesttermination; reportengineAPI phase andemitterphase separately. No(prefill+decode)denominator fordecodeTPS.",
+    "E2E_denominator": "Actualarrivalepoch beforefirstprefill tolastrequesttermination; all32arriveatonce inprimarycohort. Numeratorallvisibleoutputtokens. ThisisnotsimulatedPoisson/HTTPonline latency.",
+    "TTFT": "Perrequest firstvisibleemission minusarrival. IfrequestoutputsEOSwithoutvisibletext, TTFT_visible=null; reportterminationlatency separately.",
+    "ITL": "Gapsbetweenactualvisibleemissions perrequest; p50/p95/p99 withsamplecount. Fewerthan2visibleoutputs=>ITL/userdecodeTPSnull, notzero.",
+    "user_decode_tok_s": "(visible_outputs-1)/(lastvisible_timestamp-firstvisible_timestamp) whenatleast2outputs; reportperrequestdistribution, nottotalTPS/microbatch heuristic.",
+    "clocks": "RecordactualCAPIreturn andpostvalidation/applicationemittertime; do notlabelCAPIreadyclockasHTTPclientobserved.",
+    "caps_and_censoring": "Recordstop_reason=EOS ormax_new_tokens128; cappedrequestsarerightcensoredcontinuations, notEOS-completed. Reportcompletedcount andcappedcount separately.",
+    "pairing": "BaselineCast0/newCast1 sameload/equalfrozeninputs/equalstoprules. IDs/EOS mismatch=>qualitynegative, notspeedrecord. No tokenratecomparison withdifferentvalid-outputnumerators withoutdisclosingit."
+  },
+  "limits": [
+    "32diversetasks improvecoverage butarenotproductiontraffic sample or32independenthuman traces.",
+    "Currentrawtasklist isuntokenized. ExactI512 andnaturalinputlengths mustbeverifiedwithpinnedtokenizer beforeclaimingtheirlength.",
+    "EarlyEOS isdesiredtaskstyle, neverguaranteedfrominstruction; actualstop distribution isexperimentoutput.",
+    "DynamicEOScompaction isqualificationextension beyondcurrentfixedB32/M32 adoptedperformance scope.",
+    "NoGPU/nativecompile/Modelrun performed; no newperformance numbers orclaimedweightreuse."
+  ]
+}

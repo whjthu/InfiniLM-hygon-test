@@ -1,0 +1,12 @@
+import pathlib,json,hashlib,subprocess,time,os
+r=pathlib.Path('/refactor');i=r/'incoming';b=r/'candidates/glm-routed-ceiling-r9046';b.mkdir();sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest();q={'completed':False,'CPU_only':True,'GPU':False,'dlopen':False,'GPU_TUs_compiled_on_CPU':0,'HOST_TUs_compiled':0,'producer':os.environ['SLURM_JOB_ID']+'.'+os.environ['SLURM_STEP_ID'],'commands':[]};start=time.perf_counter()
+def run(a):
+ q['commands'].append(a);p=subprocess.run(a,text=True,capture_output=True,timeout=110);(b/f'command-{len(q["commands"])}.log').write_text(p.stdout+p.stderr);assert p.returncode==0,p.stderr[:18000];return p.stdout
+try:
+ parent=json.loads((r/'candidates/glm-gate-lookahead-r9044/CPU-build.json').read_bytes());assert parent['completed'];link=next(list(a)for a in parent['commands']if'-shared'in a);objects={x:sha(x)for x in link if x.endswith('.o')};assert len(objects)==28
+ old='/refactor/candidates/glm-vector-model-r8542/vector-0.o';original=json.loads((r/'candidates/glm-vector-model-r8542/CPU-build.json').read_bytes());rec=next(x for x in original['compiled']if x['object']==old);assert sha(rec['source'])==rec['source_SHA256']=='c716b37fd3fe786cece00a5b4a309d9eb13b76e4bbdb8cc8843be936c708e64b';assert sha(old)==objects[old]==rec['object_SHA256']
+ cmd=next(list(a)for a in original['commands']if'-c'in a and rec['source']in a);src=i/'glm_routed_ceiling_r9046.cpp';obj=b/'routed.o';cmd[cmd.index('-c')+1]=str(src);cmd[cmd.index('-o')+1]=str(obj);cmd[cmd.index('-MF')+1]=str(b/'routed.d');run(cmd);q['HOST_TUs_compiled']=1
+ lib=b/'libglm_routed_ceiling_r9046.so';link=[str(obj)if x==old else x for x in link];link[link.index('-o')+1]=str(lib);run(link);nm=run(['nm','-D','--defined-only',str(lib)]);assert all(n in nm for n in ['glm_routed_ceiling_policy_r9046','glm_routed_ceiling_counts_r9046','glm_routed_ceiling_validate_r9046','glm_layer_forward_r5670','glm_gate_lookahead_policy_r9042']);run(['readelf','-d',str(lib)]);assert all(sha(p)==h for p,h in objects.items())
+ q.update(completed=True,library=str(lib),library_SHA256=sha(lib),source_SHA256=sha(src),object_SHA256=sha(obj),reused_objects_SHA256={p:h for p,h in objects.items()if p!=old},elapsed_seconds=time.perf_counter()-start,scope='ONEHOST TU diagnostic only;27objects/GPU/SDK unchanged;defaultOFF;zero-copy fixedfixture alias;posttimer input+perrowroute validation')
+except BaseException as e:q['failure']=repr(e)
+(b/'CPU-build.json').write_text(json.dumps(q,indent=2));print(json.dumps(q));assert q['completed']
