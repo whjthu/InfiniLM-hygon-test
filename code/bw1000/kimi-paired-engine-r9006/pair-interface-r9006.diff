@@ -1,0 +1,102 @@
+--- current/kimi_compact_probe_r4974.cpp
++++ private/kimi_pair_probe_r9006.cpp
+@@ -1,3 +1,4 @@
++#include "kimi_pair_state_r9006.hpp"
+ #include <cstdlib>
+ #include <array>
+ #include "kimi_engine_input_r145.hpp"
+@@ -16,7 +17,11 @@
+ thread_local std::string error,serialized;
+ struct ProbeEngine:en::InferEngine{using en::InferEngine::InferEngine;std::vector<en::RankWorker::Output>rank_outputs(){std::vector<en::RankWorker::Output>v;for(auto&w:workers_)v.push_back(w->get_output());return v;}};
+ struct OutputMetricsR963{uint64_t engine_calls=0,full_logits_calls=0,token_only_calls=0,forward_logits_bytes=0,forward_id_bytes=0;double engine_wall_seconds=0,logits_copy_seconds=0,id_copy_seconds=0;};
+-struct Context{bool speculation_r3632=false;bool ordinary_epoch_r4242=false;std::array<uint64_t,4>ordinary_stats_r4242{};std::unique_ptr<ProbeEngine>engine;std::unique_ptr<infinilm::cache::PagedKVCacheConfig>cache;std::mutex mutex;OutputMetricsR963 metrics;size_t vocab=0,max_rows=0,pages_per_row_r4974=4;int stage=0,pp_size=4,tp_nodes=1,tp_node_rank=0,node=0;};
++struct Context{std::unique_ptr<kimi_pair_r9006::State>pair_r9006;std::mutex pair_mutex_r9006;bool speculation_r3632=false;bool ordinary_epoch_r4242=false;std::array<uint64_t,4>ordinary_stats_r4242{};std::unique_ptr<ProbeEngine>engine;std::unique_ptr<infinilm::cache::PagedKVCacheConfig>cache;std::mutex mutex;OutputMetricsR963 metrics;size_t vocab=0,max_rows=0,pages_per_row_r4974=4;int stage=0,pp_size=4,tp_nodes=1,tp_node_rank=0,node=0;};
++thread_local const Context*pair_dispatch_r9006=nullptr;
++struct PairDispatchR9006{const Context*c;PairDispatchR9006(const Context*p):c(p){if(pair_dispatch_r9006)throw std::invalid_argument("9006 nested call");pair_dispatch_r9006=p;}~PairDispatchR9006(){pair_dispatch_r9006=nullptr;}};
++void require_pair_r9006(Context*c){if(c&&c->pair_r9006&&pair_dispatch_r9006!=c)throw std::invalid_argument("9006 paired context requires lifecycle API");}
++void pair_math0_r9006(){auto*p=std::getenv("INFINILM_KIMI_SPEC_MATH_R3676");if(p&&std::string(p)!="0")throw std::invalid_argument("9006 current Math0 required");}
+ rt::Tensor cpu(void*p,rt::Shape shape,rt::DataType dtype){return rt::Tensor::from_blob(p,shape,dtype,{rt::Device::Type::kCpu,0});}
+ void copy_cpu(void*out,const rt::Tensor&x){if(!out||!x)throw std::invalid_argument("Kimi Engine output missing");if(x->device().type()==rt::Device::Type::kCpu){std::memcpy(out,x->data(),x->nbytes());return;}int old=0;auto code=cudaGetDevice(&old);if(code!=cudaSuccess)throw std::runtime_error("Get current device");code=cudaSetDevice(x->device().index());if(code!=cudaSuccess)throw std::runtime_error("Select completed output device");code=cudaMemcpy(out,x->data(),x->nbytes(),cudaMemcpyDeviceToHost);auto restored=cudaSetDevice(old);if(code!=cudaSuccess||restored!=cudaSuccess)throw std::runtime_error("Kimi Engine completed output copy failed");}
+ }
+@@ -37,7 +42,7 @@
+  c->engine->load_params(sources,true);return 0;}catch(const std::exception&e){error=e.what();return 1;}}
+ extern "C" int modern_kimi_engine_finish_r2475(void*raw){try{auto*c=static_cast<Context*>(raw);std::lock_guard<std::mutex>lock(c->mutex);c->engine->process_weights_after_loading();return 0;}catch(const std::exception&e){error=e.what();return 1;}}
+ extern "C" int modern_kimi_engine_forward_r2475(void*raw,size_t tokens,size_t count,int flags,const int32_t*rows,const int32_t*past,const int32_t*total,const int32_t*offsets,const int64_t*ids,const int64_t*positions,void*out_logits,void*out_ids,int*out_flags){try{
+- auto*c=static_cast<Context*>(raw);std::lock_guard<std::mutex>lock(c->mutex);if(c->speculation_r3632&&!c->ordinary_epoch_r4242){if(!rows||!count||count>c->max_rows/2)throw std::invalid_argument("3632 normal prefill count");for(size_t i=0;i<count;++i)if(rows[i]<1||size_t(rows[i])>c->max_rows/2||past[i]!=0)throw std::invalid_argument("3632 normal API is initial prefill only; subsequent decode uses paired-state API");}if(!tokens||tokens>8192||!count||count>c->max_rows||flags<0||(flags&~119)||((flags&32)&&!(flags&16))||!rows||!past||!total||!offsets||!ids||!positions||!out_flags||(c->stage+1==c->pp_size&&((!(flags&4)&&!out_logits)||!out_ids)))throw std::invalid_argument("Kimi Engine CAPI input");
++ auto*c=static_cast<Context*>(raw);require_pair_r9006(c);std::lock_guard<std::mutex>lock(c->mutex);if(c->speculation_r3632&&!c->ordinary_epoch_r4242){if(!rows||!count||count>c->max_rows/2)throw std::invalid_argument("3632 normal prefill count");for(size_t i=0;i<count;++i)if(rows[i]<1||size_t(rows[i])>c->max_rows/2||past[i]!=0)throw std::invalid_argument("3632 normal API is initial prefill only; subsequent decode uses paired-state API");}if(!tokens||tokens>8192||!count||count>c->max_rows||flags<0||(flags&~119)||((flags&32)&&!(flags&16))||!rows||!past||!total||!offsets||!ids||!positions||!out_flags||(c->stage+1==c->pp_size&&((!(flags&4)&&!out_logits)||!out_ids)))throw std::invalid_argument("Kimi Engine CAPI input");
+  if((flags&64)&&c->tp_nodes!=1)throw std::invalid_argument("2347 TP8-specific tile is forbidden on wider TP");
+  std::vector<int32_t>cu(count+1,0),table(count*c->pages_per_row_r4974);std::vector<int64_t>slots(tokens);
+  if(offsets[0]!=0||offsets[count]<0||size_t(offsets[count])!=tokens)throw std::invalid_argument("Kimi offsets");
+@@ -49,7 +54,7 @@
+  if(c->stage+1==c->pp_size&&published!=((flags&4?0:1)+(c->tp_node_rank==0?2:0)))throw std::runtime_error("Kimi tail did not publish greedy tokens");if(c->ordinary_epoch_r4242){++c->ordinary_stats_r4242[1];bool decode=false;for(size_t i=0;i<count;++i)decode|=past[i]>0;if(decode)++c->ordinary_stats_r4242[2];}*out_flags=published;return 0;
+  }catch(const std::exception&e){error=e.what();return 1;}}
+ extern "C" int modern_kimi_engine_rank_logits_r2475(void*raw){try{auto*c=static_cast<Context*>(raw);std::lock_guard<std::mutex>lock(c->mutex);if(c->stage+1!=c->pp_size)throw std::invalid_argument("Tail logits only");auto outputs=c->engine->rank_outputs();if(outputs.size()!=8||!outputs[0].logits)throw std::runtime_error("Kimi all8 tail logits missing");std::vector<std::byte>base(outputs[0].logits->nbytes()),actual(base.size());copy_cpu(base.data(),outputs[0].logits);for(size_t k=1;k<8;++k){if(!outputs[k].logits||outputs[k].logits->shape()!=outputs[0].logits->shape())throw std::runtime_error("Kimi all8 tail logits shape differs");copy_cpu(actual.data(),outputs[k].logits);if(actual!=base)throw std::runtime_error("Kimi all8 tail logits differ");}return 0;}catch(const std::exception&e){error=e.what();return 1;}}
+-extern "C" int modern_kimi_engine_reset_r2475(void*raw){try{auto*c=static_cast<Context*>(raw);std::lock_guard<std::mutex>lock(c->mutex);c->engine->reset_cache(c->cache.get());c->ordinary_epoch_r4242=false;return 0;}catch(const std::exception&e){error=e.what();return 1;}}
++extern "C" int modern_kimi_engine_reset_r2475(void*raw){try{auto*c=static_cast<Context*>(raw);require_pair_r9006(c);std::lock_guard<std::mutex>lock(c->mutex);c->engine->reset_cache(c->cache.get());c->ordinary_epoch_r4242=false;return 0;}catch(const std::exception&e){error=e.what();return 1;}}
+ extern "C" int modern_kimi_engine_destroy_r2475(void*raw){try{delete static_cast<Context*>(raw);return 0;}catch(const std::exception&e){error=e.what();return 1;}}
+ 
+ extern "C" int modern_kimi_engine_partition_r2475(int stage,int pp_size,size_t*out){try{if(!out||pp_size<1||pp_size>4||stage<0||stage>=pp_size)throw std::invalid_argument("876 stage");auto range=infinilm::models::kimi_k3::kimi_k3_pipeline_layer_range(93,size_t(pp_size),size_t(stage));out[0]=range.first;out[1]=range.second;return 0;}catch(const std::exception&e){error=e.what();return 1;}}
+@@ -58,7 +63,7 @@
+ 
+ extern "C" int modern_kimi_engine_resize_cache_r2475(void*raw,size_t rows){try{
+  if(!raw||(rows<1||rows>128))throw std::invalid_argument("1098 cache capacity must be within 1..128");
+- auto*c=static_cast<Context*>(raw);std::lock_guard<std::mutex>lock(c->mutex);if(c->speculation_r3632)throw std::invalid_argument("3632 fixed capacity paired state context");
++ auto*c=static_cast<Context*>(raw);require_pair_r9006(c);std::lock_guard<std::mutex>lock(c->mutex);if(c->speculation_r3632)throw std::invalid_argument("3632 fixed capacity paired state context");
+  auto next=std::make_unique<infinilm::cache::PagedKVCacheConfig>(c->pages_per_row_r4974*(rows+1),256,rows);
+  c->engine->reset_cache(next.get());c->cache=std::move(next);c->max_rows=rows;return 0;
+  }catch(const std::exception&e){error=e.what();return 1;}}
+@@ -70,7 +75,7 @@
+ extern "C" const char*modern_kimi_engine_layout_r2475(void*raw){try{auto*c=static_cast<Context*>(raw);std::lock_guard<std::mutex>lock(c->mutex);serialized=nlohmann::json{{"node",c->node},{"local_workers",8},{"TP",8*c->tp_nodes},{"TP_node_rank",c->tp_node_rank},{"PP",c->pp_size},{"PP_stage",c->stage},{"sampling_node",(c->pp_size-1)*c->tp_nodes},{"public_graph_enabled",false},{"owned_metadata_enabled",false}}.dump();return serialized.c_str();}catch(const std::exception&e){error=e.what();return nullptr;}}
+ 
+ extern "C" int modern_kimi_engine_spec_r3632(void*raw,size_t tokens,size_t count,int flags,const int32_t*read_state,const int32_t*write_state,const int32_t*rows,const int32_t*past,const int32_t*total,const int32_t*offsets,const int64_t*ids,const int64_t*positions,void*out_logits,void*out_ids,int*out_flags){try{
+- auto*c=static_cast<Context*>(raw);std::lock_guard<std::mutex>lock(c->mutex);if(c->pages_per_row_r4974!=4)throw std::invalid_argument("4974 compact cache excludes paired speculation");if(c->ordinary_epoch_r4242){++c->ordinary_stats_r4242[3];throw std::invalid_argument("4242 ordinary epoch forbids paired-state calls");}if(!c->speculation_r3632||count>c->max_rows/2||!rows||!read_state||!write_state||!(flags&2))throw std::invalid_argument("3632 dedicated shadow context and deferred feedback required");if(!tokens||tokens>8192||!count||count>c->max_rows||flags<0||(flags&~7)||((flags&32)&&!(flags&16))||!rows||!past||!total||!offsets||!ids||!positions||!out_flags||(c->stage+1==c->pp_size&&((!(flags&4)&&!out_logits)||!out_ids)))throw std::invalid_argument("Kimi Engine CAPI input");
++ auto*c=static_cast<Context*>(raw);require_pair_r9006(c);std::lock_guard<std::mutex>lock(c->mutex);if(c->pages_per_row_r4974!=4)throw std::invalid_argument("4974 compact cache excludes paired speculation");if(c->ordinary_epoch_r4242){++c->ordinary_stats_r4242[3];throw std::invalid_argument("4242 ordinary epoch forbids paired-state calls");}if(!c->speculation_r3632||count>c->max_rows/2||!rows||!read_state||!write_state||!(flags&2))throw std::invalid_argument("3632 dedicated shadow context and deferred feedback required");if(!tokens||tokens>8192||!count||count>c->max_rows||flags<0||(flags&~7)||((flags&32)&&!(flags&16))||!rows||!past||!total||!offsets||!ids||!positions||!out_flags||(c->stage+1==c->pp_size&&((!(flags&4)&&!out_logits)||!out_ids)))throw std::invalid_argument("Kimi Engine CAPI input");
+  if((flags&64)&&c->tp_nodes!=1)throw std::invalid_argument("2347 TP8-specific tile is forbidden on wider TP");
+  std::vector<int32_t>cu(count+1,0),table(count*4);std::vector<int64_t>slots(tokens);
+  if(offsets[0]!=0||offsets[count]<0||size_t(offsets[count])!=tokens)throw std::invalid_argument("Kimi offsets");
+@@ -119,7 +124,7 @@
+ // InferEngine::Input/forward stays unchanged and does not enter SpecScopeR3632.
+ extern "C" int modern_kimi_engine_ordinary_epoch_r4242(void*raw,int enabled){try{
+  if(!raw||(enabled!=0&&enabled!=1))throw std::invalid_argument("4242 ordinary epoch context/flag");
+- auto*c=static_cast<Context*>(raw);std::lock_guard<std::mutex>lock(c->mutex);
++ auto*c=static_cast<Context*>(raw);require_pair_r9006(c);std::lock_guard<std::mutex>lock(c->mutex);
+  if(!c->speculation_r3632)throw std::invalid_argument("4242 explicit paired-capable context required");
+  c->engine->reset_cache(c->cache.get());c->ordinary_epoch_r4242=bool(enabled);if(enabled)++c->ordinary_stats_r4242[0];return 0;
+  }catch(const std::exception&e){error=e.what();return 1;}}
+@@ -163,7 +168,7 @@
+  const char*enabled=std::getenv("INFINILM_KIMI_COMPACT_CACHE_R4974");
+  if(!enabled||std::strcmp(enabled,"1"))throw std::invalid_argument("4974 compact cache defaultOFF");
+  if(!raw||(pages!=3&&pages!=4))throw std::invalid_argument("4974 context/pages");
+- auto*c=static_cast<Context*>(raw);std::lock_guard<std::mutex>lock(c->mutex);
++ auto*c=static_cast<Context*>(raw);require_pair_r9006(c);std::lock_guard<std::mutex>lock(c->mutex);
+  if(c->speculation_r3632||c->tp_nodes!=1||c->pp_size!=4)throw std::invalid_argument("4974 ordinary TP8PP4 only");
+  auto next=std::make_unique<infinilm::cache::PagedKVCacheConfig>(pages*(c->max_rows+1),256,c->max_rows);
+  c->engine->reset_cache(next.get());c->cache=std::move(next);c->pages_per_row_r4974=pages;c->ordinary_epoch_r4242=false;return 0;
+@@ -209,3 +214,27 @@
+  serialized=nlohmann::json{{"completed",true},{"valid_metadata_cases",positive},{"invalid_metadata_cases",negative},{"GPU_math_tested",false},{"max_compact_tokens",768},{"KDA_pool_contract","request_capacity+1, never num_blocks/4"}}.dump();return 0;
+  }catch(const std::exception&e){error=e.what();return 1;}}
+ extern "C" const char*modern_kimi_compact_contract_report_r4974(){return serialized.c_str();}
++
++// Dedicated current-topology entry: does not modify the legacy create_spec ABI.
++extern "C" void*modern_kimi_engine_create_pair_r9006(const char*raw,int node,int tp_nodes,int pp_size,const char*address,int port,size_t logical){try{
++ const char*opt=std::getenv("INFINILM_KIMI_PAIR_TP16_R9006");
++ if(!opt||std::string(opt)!="1"||!infinilm::models::kimi_native::spec_enabled_r3632()||tp_nodes!=2||pp_size!=2)throw std::invalid_argument("9006 defaultOFF current TP16PP2 only");pair_math0_r9006();
++ kimi_pair_r9006::Geometry g(logical);auto cfg=nlohmann::json::parse(raw);const auto&t=cfg.at("text_config");
++ if(t.at("linear_attn_config").at("num_heads")!=96||t.at("linear_attn_config").at("head_dim")!=128||t.at("kv_lora_rank")!=512||t.at("qk_rope_head_dim")!=64)throw std::invalid_argument("9006 H6/D128/MLA geometry");
++ auto*p=modern_kimi_engine_create_r2475(raw,node,tp_nodes,pp_size,address,port,g.physical);if(!p)return nullptr;auto*c=static_cast<Context*>(p);
++ try{c->pair_r9006=std::make_unique<kimi_pair_r9006::State>(c,logical);c->speculation_r3632=true;}catch(...){modern_kimi_engine_destroy_r2475(c);throw;}return c;
++ }catch(const std::exception&e){error=e.what();return nullptr;}}
++extern "C" const char*modern_kimi_pair_geometry_r9006(size_t logical){try{kimi_pair_r9006::Geometry g(logical);serialized=nlohmann::json{{"logical_requests",logical},{"physical_rows",g.physical},{"state_pool_rows",g.state_rows()},{"pages",g.pages()},{"logical_KV_pages_used",4*logical},{"unused_shadow_KV_pages",4*(g.physical-logical)},{"recurrent_BF16_bytes_per_local_KDA_layer",g.recurrent_bytes_per_layer()},{"extra_vs_ordinary16_per_local_KDA_layer",g.extra_vs_ordinary16_per_layer()},{"MLA_KV_BF16_bytes_per_local_MLA_layer",g.kv_bytes_per_MLA_layer()},{"max_total_tokens",1024},{"one_request_per_forward",true}}.dump();return serialized.c_str();}catch(const std::exception&e){error=e.what();return nullptr;}}
++extern "C" int modern_kimi_pair_rows_r9006(void*raw,int logical,int32_t*out){try{auto*c=static_cast<Context*>(raw);if(!c||!c->pair_r9006||!out)throw std::invalid_argument("9006 context/output");std::lock_guard<std::mutex>lock(c->pair_mutex_r9006);auto&r=c->pair_r9006->row(c,logical);out[0]=r.active;out[1]=r.shadow;out[2]=r.past;out[3]=r.phase;return 0;}catch(const std::exception&e){error=e.what();return 1;}}
++extern "C" int modern_kimi_pair_prefill_r9006(void*raw,size_t tokens,const int32_t*row,const int64_t*ids,const int64_t*pos,void*logits,void*output,int*flags){try{
++ auto*c=static_cast<Context*>(raw);if(!c||!c->pair_r9006||!row)throw std::invalid_argument("9006 prefill context");std::lock_guard<std::mutex>lock(c->pair_mutex_r9006);pair_math0_r9006();c->pair_r9006->preflight_prefill(c,*row,tokens);int32_t past=0,total=int32_t(tokens),off[2]={0,total};PairDispatchR9006 dispatch(c);
++ int code=modern_kimi_engine_forward_r2475(c,tokens,1,3,row,&past,&total,off,ids,pos,logits,output,flags);if(code){c->pair_r9006->poison();return code;}c->pair_r9006->prefilled(c,*row,tokens);return 0;
++ }catch(const std::exception&e){error=e.what();return 1;}}
++extern "C" int modern_kimi_pair_forward_r9006(void*raw,size_t tokens,size_t count,int flags,const int32_t*read,const int32_t*write,const int32_t*rows,const int32_t*past,const int32_t*total,const int32_t*offset,const int64_t*ids,const int64_t*pos,void*logits,void*output,int*outflags){try{
++ auto*c=static_cast<Context*>(raw);if(!c||!c->pair_r9006||count!=1||flags!=3||!tokens||tokens>8||!read||!write||!rows||!past||!total||!offset||!ids||!pos||offset[0]!=0||offset[1]!=int32_t(tokens)||total[0]!=past[0]+int32_t(tokens))throw std::invalid_argument("9006 typed single-request width1..8/full-logits ABI");
++ std::lock_guard<std::mutex>lock(c->pair_mutex_r9006);pair_math0_r9006();std::vector<int64_t>copy(ids,ids+tokens);c->pair_r9006->check(c,*rows,*past,*read,*write,copy);for(size_t j=0;j<tokens;++j)if(pos[j]!=int64_t(*past)+int64_t(j))throw std::invalid_argument("9006 logical position");
++ PairDispatchR9006 dispatch(c);int code=modern_kimi_engine_spec_r3632(c,tokens,count,flags,read,write,rows,past,total,offset,ids,pos,logits,output,outflags);if(code){c->pair_r9006->poison();return code;}c->pair_r9006->completed(c,*rows,copy);return 0;
++ }catch(const std::exception&e){error=e.what();return 1;}}
++extern "C" int modern_kimi_pair_commit_r9006(void*raw,int logical,size_t accepted,int continuation){try{auto*c=static_cast<Context*>(raw);if(!c||!c->pair_r9006||(continuation!=0&&continuation!=1))throw std::invalid_argument("9006 commit context");std::lock_guard<std::mutex>lock(c->pair_mutex_r9006);c->pair_r9006->commit(c,logical,accepted,continuation!=0);return 0;}catch(const std::exception&e){error=e.what();return 1;}}
++
++extern "C" int modern_kimi_pair_reset_r9006(void*raw){try{auto*c=static_cast<Context*>(raw);if(!c||!c->pair_r9006)throw std::invalid_argument("9006 reset context");std::lock_guard<std::mutex>lock(c->pair_mutex_r9006);c->pair_r9006->owner(c);size_t logical=c->pair_r9006->geometry.logical;auto next=std::make_unique<kimi_pair_r9006::State>(c,logical);PairDispatchR9006 dispatch(c);int code=modern_kimi_engine_reset_r2475(c);if(code){c->pair_r9006->poison();return code;}c->pair_r9006=std::move(next);return 0;}catch(const std::exception&e){error=e.what();return 1;}}
