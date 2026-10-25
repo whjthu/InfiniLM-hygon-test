@@ -1,0 +1,20 @@
+#include "helper_r9150.hpp"
+#include "raw_r9150.hpp"
+#include <infini/ops.h>
+#include <infini/rt/device_guard.h>
+#include <cuda_runtime_api.h>
+#include <unordered_map>
+#include <nlohmann/json.hpp>
+namespace kda_threads_r9150 {
+struct Saved{kda_dispatch_r9150::Input geometry;std::array<const void*,3>bindings{};std::array<uint64_t,4>dispatch{};int threads=0;std::shared_ptr<rt::Memory>workspace;cudaEvent_t a=nullptr,b=nullptr;bool pending=false;uint64_t serial=0;std::string json="{}";};static thread_local std::unordered_map<rt::Runtime*,Saved>saved;
+void record_input(rt::Runtime&r,size_t T,size_t C,size_t pool,const int32_t*off,const int32_t*reads,const int32_t*writes,const std::array<rt::Tensor,3>&meta){r.assertOwnerThread();auto&s=saved[&r];s.geometry={};s.geometry.T=T;s.geometry.C=C;s.geometry.pool=pool;if(C&&C<=32&&off&&reads&&writes){s.geometry.offsets.assign(off,off+C+1);s.geometry.reads.assign(reads,reads+C);s.geometry.writes.assign(writes,writes+C);}for(size_t j=0;j<3;++j)s.bindings[j]=meta[j]?meta[j]->data():nullptr;}
+bool eligible(rt::Runtime&r,size_t T,size_t H,size_t D,size_t pool,bool bf16,const std::array<rt::Tensor,3>&meta){r.assertOwnerThread();auto it=saved.find(&r);if(it==saved.end())return false;auto&s=it->second;auto g=s.geometry;g.H=H;g.D=D;g.eager=!r.isGraphRecording();g.bf16=bf16;g.same_device=g.T==T&&g.pool==pool;g.metadata_typed=g.metadata_contiguous=true;for(size_t j=0;j<3;++j){auto&t=meta[j];if(!t||t->data()!=s.bindings[j]||t->device()!=r.device()){g.same_device=false;continue;}g.metadata_typed&=t->dtype()==rt::DataType::kInt32||t->dtype()==rt::DataType::kInt64;g.metadata_contiguous&=t->is_contiguous()&&t->ndim()==1&&t->numel()==g.C+(j==0?1:0);}bool yes=kda_dispatch_r9150::eligible(g);++s.dispatch[0];++s.dispatch[yes?1:2];if(!yes&&T>64)++s.dispatch[3];return yes;}
+void dispatch_counts(rt::Runtime&r,uint64_t*out){r.assertOwnerThread();auto it=saved.find(&r);for(size_t j=0;j<4;++j)out[j]=it==saved.end()?0:it->second.dispatch[j];}
+void ck(cudaError_t e){if(e!=cudaSuccess)throw std::runtime_error(cudaGetErrorString(e));}
+void mode(rt::Runtime&r,int threads,size_t bytes){r.assertOwnerThread();if(threads!=0&&threads!=128&&threads!=256)throw std::invalid_argument("9150 mode");auto&s=saved[&r];if(s.pending)throw std::invalid_argument("9150 pending event");s.threads=threads;if(threads){if(!s.workspace||s.workspace->size()<bytes)s.workspace=r.allocateMemory(bytes);if(!s.a){ck(cudaEventCreate(&s.a));ck(cudaEventCreate(&s.b));}}}
+int selected(rt::Runtime&r){auto it=saved.find(&r);return it==saved.end()?0:it->second.threads;}
+void run(rt::Runtime&r,const std::array<rt::Tensor,12>&x,float scale,float lower,bool norm){r.assertOwnerThread();auto&s=saved.at(&r);if(!s.threads||r.isGraphRecording()||!s.workspace)throw std::invalid_argument("9150 eager mode/workspace/pending");std::vector<infini::ops::Tensor>v;for(auto&t:x){if(!t||t->device()!=r.device())throw std::invalid_argument("9150 wrong tensor device");v.emplace_back(const_cast<std::byte*>(t->data()),t->shape(),t->dtype(),t->device(),t->strides());}if(modern_kimi_kda_threads_raw_r9150(r.device().index(),r.stream(),s.workspace->data(),s.workspace->size(),v.data(),scale,lower,norm,s.threads,s.a,s.b))throw std::runtime_error(modern_kimi_kda_threads_error_r9150());s.pending=true;++s.serial;}
+void collect(rt::Runtime&r){r.assertOwnerThread();auto it=saved.find(&r);if(it==saved.end()||!it->second.pending)return;auto&s=it->second;float ms=0;ck(cudaEventElapsedTime(&ms,s.a,s.b));s.json=nlohmann::json{{"threads",s.threads},{"serial",s.serial},{"KDA_snapshot_and_kernel_stream_ms",ms},{"original_metadata_DtoH_syncs",3},{"full_pool_snapshot",true},{"lease",false},{"event_extra_syncs",0}}.dump();s.pending=false;}
+const char*last(rt::Runtime&r){r.assertOwnerThread();auto it=saved.find(&r);return it==saved.end()?"{}":it->second.json.c_str();}
+void clear(rt::Runtime&r){r.assertOwnerThread();auto it=saved.find(&r);if(it==saved.end())return;r.syncStream();if(it->second.a)ck(cudaEventDestroy(it->second.a));if(it->second.b)ck(cudaEventDestroy(it->second.b));saved.erase(it);}
+}
