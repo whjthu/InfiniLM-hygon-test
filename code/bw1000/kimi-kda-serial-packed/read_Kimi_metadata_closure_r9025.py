@@ -1,0 +1,2 @@
+import pathlib,json,subprocess
+r=pathlib.Path('/public/home/aclsylqidf/hygon-inference-refactor-20261014');q={'sacct':subprocess.check_output(['sacct','-j','910407','-n','-P','-o','JobIDRaw,JobName%90,State,ExitCode,Elapsed'],text=True),'receipts':{str(p):json.loads(p.read_text())for p in(r/'results').glob('Kimi-KDA-packed-CPU-r9025-*.json')},'logs':{str(p):p.read_text()[-10000:]for p in(r/'logs').glob('Kimi-KDA-closure-CPU-r9025-*')if p.is_file()}};print(json.dumps(q))

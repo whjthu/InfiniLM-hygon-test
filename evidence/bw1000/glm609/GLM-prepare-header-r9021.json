@@ -1,0 +1,60 @@
+{
+  "candidates/glm-transient-layer-r5681/CPU-build.json": {
+    "command": [
+      "/usr/bin/g++",
+      "-I/refactor/candidates/glm-transient-layer-r5681/src",
+      "-std=c++17",
+      "-O2",
+      "-fPIC",
+      "-D_GLIBCXX_USE_CXX11_ABI=1",
+      "-I/refactor/candidates/glm-deferred-attention-model-5f91ad7-r5096/src",
+      "-I/refactor/incoming",
+      "-I/refactor/candidates/rebased-5f91ad7-r3668/Model/GLM/InfiniLM/csrc",
+      "-I/refactor/install/hygon-glm-5f91ad7-r3672/include",
+      "-I/refactor/install/hygon-glm-5f91ad7-r3672/include/infiniccl",
+      "-I/refactor/candidates/rebased-5f91ad7-r3668/Model/GLM/InfiniLM/third_party/json/include",
+      "-I/refactor/candidates/rebased-5f91ad7-r3668/Model/GLM/InfiniLM/third_party/spdlog/include",
+      "-I/opt/dtk/cuda/cuda/include",
+      "-pthread",
+      "-MD",
+      "-MF",
+      "/refactor/candidates/glm-transient-layer-r5681/private-8.d",
+      "-c",
+      "/refactor/candidates/glm-transient-layer-r5681/src/glm_moe_dsa_attention_prepare_r809.cpp",
+      "-o",
+      "/refactor/candidates/glm-transient-layer-r5681/private-8.o"
+    ],
+    "header_path": "/refactor/candidates/glm-deferred-attention-model-5f91ad7-r5096/src/glm_moe_dsa_attention_prepare.hpp",
+    "header_SHA256": "79b5d89e96cc8b2d236bc21bbecd307c03f9ab14ce22d85cbb8c16e223fa32dc",
+    "header": "#pragma once\n#include \"weights/weights.hpp\"\n#include \"runtime/runtime.hpp\"\n#include \"layers/normalization/rmsnorm.hpp\"\n#include \"layers/rotary_embedding/rope.hpp\"\n#include \"engine/distributed/communication_group.hpp\"\n#include <nlohmann/json.hpp>\nnamespace infinilm::models::glm_moe_dsa {\nclass Fp8Projection final:public weights::ModelWeights{\npublic:\n Fp8Projection(runtime::Runtime&,size_t,size_t,int,int);\n runtime::Tensor forward(runtime::Runtime&,const runtime::Tensor&)const;\nprivate:\n runtime::Device device_;size_t rows_,columns_,offset_;runtime::Tensor weight_,scale_;\n};\nclass AttentionPrepare final:public weights::ModelWeights{\npublic:\n struct Output{runtime::Tensor query,key,value,q_resid,kv_latent,k_rot;};\n AttentionPrepare(runtime::Runtime&,const nlohmann::json&,const engine::distributed::RankInfo&);\n void process_weights_after_loading(runtime::Runtime&,bool)override;\n Output forward(runtime::Runtime&,const runtime::Tensor&,const runtime::Tensor&)const;\n Output forward_latent(runtime::Runtime&,const runtime::Tensor&,const runtime::Tensor&)const;\n std::pair<runtime::Tensor,runtime::Tensor> expand_cached(runtime::Runtime&,const runtime::Tensor&latent,const runtime::Tensor&rotary_key)const;\n size_t local_heads()const{return heads_;}\nprivate:\n Output prepare_impl(runtime::Runtime&,const runtime::Tensor&,const runtime::Tensor&,bool expand)const;\n runtime::Device device_;size_t heads_,maximum_;bool ready_=false;\n std::shared_ptr<Fp8Projection>qa_,qb_,ka_,kb_;\n runtime::Tensor qn_,kn_,qones_,kones_;std::shared_ptr<layers::RoPE>rope_;\n};\n}\n"
+  },
+  "candidates/glm-prefill-prefix-r8703/CPU-build.json": {
+    "command": [
+      "/usr/bin/g++",
+      "-I/refactor/candidates/glm-transient-layer-r5681/src",
+      "-std=c++17",
+      "-O2",
+      "-fPIC",
+      "-D_GLIBCXX_USE_CXX11_ABI=1",
+      "-I/refactor/candidates/glm-deferred-attention-model-5f91ad7-r5096/src",
+      "-I/refactor/incoming",
+      "-I/refactor/candidates/rebased-5f91ad7-r3668/Model/GLM/InfiniLM/csrc",
+      "-I/refactor/install/hygon-glm-5f91ad7-r3672/include",
+      "-I/refactor/install/hygon-glm-5f91ad7-r3672/include/infiniccl",
+      "-I/refactor/candidates/rebased-5f91ad7-r3668/Model/GLM/InfiniLM/third_party/json/include",
+      "-I/refactor/candidates/rebased-5f91ad7-r3668/Model/GLM/InfiniLM/third_party/spdlog/include",
+      "-I/opt/dtk/cuda/cuda/include",
+      "-pthread",
+      "-MD",
+      "-MF",
+      "/refactor/candidates/glm-prefill-prefix-r8703/glm_prefill_prefix_cache_r8703.cpp.d",
+      "-c",
+      "/refactor/candidates/glm-prefill-prefix-r8703/src/glm_prefill_prefix_cache_r8703.cpp",
+      "-o",
+      "/refactor/candidates/glm-prefill-prefix-r8703/glm_prefill_prefix_cache_r8703.cpp.o"
+    ],
+    "header_path": "/refactor/candidates/glm-deferred-attention-model-5f91ad7-r5096/src/glm_moe_dsa_attention_prepare.hpp",
+    "header_SHA256": "79b5d89e96cc8b2d236bc21bbecd307c03f9ab14ce22d85cbb8c16e223fa32dc",
+    "header": "#pragma once\n#include \"weights/weights.hpp\"\n#include \"runtime/runtime.hpp\"\n#include \"layers/normalization/rmsnorm.hpp\"\n#include \"layers/rotary_embedding/rope.hpp\"\n#include \"engine/distributed/communication_group.hpp\"\n#include <nlohmann/json.hpp>\nnamespace infinilm::models::glm_moe_dsa {\nclass Fp8Projection final:public weights::ModelWeights{\npublic:\n Fp8Projection(runtime::Runtime&,size_t,size_t,int,int);\n runtime::Tensor forward(runtime::Runtime&,const runtime::Tensor&)const;\nprivate:\n runtime::Device device_;size_t rows_,columns_,offset_;runtime::Tensor weight_,scale_;\n};\nclass AttentionPrepare final:public weights::ModelWeights{\npublic:\n struct Output{runtime::Tensor query,key,value,q_resid,kv_latent,k_rot;};\n AttentionPrepare(runtime::Runtime&,const nlohmann::json&,const engine::distributed::RankInfo&);\n void process_weights_after_loading(runtime::Runtime&,bool)override;\n Output forward(runtime::Runtime&,const runtime::Tensor&,const runtime::Tensor&)const;\n Output forward_latent(runtime::Runtime&,const runtime::Tensor&,const runtime::Tensor&)const;\n std::pair<runtime::Tensor,runtime::Tensor> expand_cached(runtime::Runtime&,const runtime::Tensor&latent,const runtime::Tensor&rotary_key)const;\n size_t local_heads()const{return heads_;}\nprivate:\n Output prepare_impl(runtime::Runtime&,const runtime::Tensor&,const runtime::Tensor&,bool expand)const;\n runtime::Device device_;size_t heads_,maximum_;bool ready_=false;\n std::shared_ptr<Fp8Projection>qa_,qb_,ka_,kb_;\n runtime::Tensor qn_,kn_,qones_,kones_;std::shared_ptr<layers::RoPE>rope_;\n};\n}\n"
+  }
+}

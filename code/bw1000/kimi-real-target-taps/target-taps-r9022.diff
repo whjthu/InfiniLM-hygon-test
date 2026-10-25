@@ -1,0 +1,26 @@
+--- /public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/Kimi-native-trace-CPU-r7293/src/r7290_kimi_k3_trace.cpp
++++ kimi_k3_trace_target_taps_r9022.cpp
+@@ -8,6 +8,7 @@
+ #include <vector>
+ #include <stdexcept>
+ #include <string>
++#include "kimi_target_taps_r9022.hpp"
+ namespace infinilm::models::kimi_k3 {
+ namespace {
+ size_t option(const char*name,size_t value){auto s=std::getenv(name);return s?std::stoull(s):value;}
+@@ -23,6 +24,7 @@
+ 
+ }
+ bool trace_detail_layer(size_t layer){
++ if(kimi_target_taps_r9022::enabled())return true;
+  // Only the explicitly traced epoch changes detail selection. Preserve the
+  // parent's disabled-trace path and its existing range behavior otherwise.
+  const char*directory=std::getenv("INFINILM_KIMI_TRACE_DIR");
+@@ -36,6 +38,7 @@
+  return layer>=option("INFINILM_KIMI_TRACE_FIRST",45)&&layer<=option("INFINILM_KIMI_TRACE_LAST",52);
+ }
+ void trace_hidden(runtime::Runtime&r,const runtime::Tensor&x,const global_state::ForwardContext&fc,size_t layer,const char*point){
++ kimi_target_taps_r9022::collect(r,x,fc,layer,point);
+  const char*directory=std::getenv("INFINILM_KIMI_TRACE_DIR");if(!directory||!*directory)return;
+  if(!selected_boundary_r8506(layer,point))return; // Gate BEFORE GPU copy, no math or state mutation.
+  r.assertOwnerThread();if(r.isGraphRecording()||!x||x->dtype()!=runtime::DataType::kBFloat16||x->ndim()<2||!fc.attn_metadata.input_offsets)throw std::logic_error("Kimi trace requires eager BF16 hidden with request offsets");
