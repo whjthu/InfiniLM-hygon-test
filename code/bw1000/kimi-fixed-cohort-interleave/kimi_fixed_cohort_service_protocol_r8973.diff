@@ -1,0 +1,52 @@
+--- kimi_capacity96_service_r8669aaj_protocol.py
++++ kimi_fixed_cohort_service_protocol_r8973.py
+@@ -123,12 +123,43 @@
+  # it is never candidate-generated. Any mismatch is a quality failure.
+  assert all(fixed[i]==fixed[i%16] for i in range(64)), 'historicalcohortmapping_notuniform_STOP'
+  pipeline=True;prefill_pipeline=True;continuous=True;select(1,'current-serving-policy1')
+- for B in (64,96):
+-  inputs=[prompts[i%2]for i in range(B)];reference=[fixed[i%16] for i in range(B)]
+-  report.setdefault('frozen_reference_mapping',[]).append({'B':B,'historical_B':64,'historical_M':16,'map':'request_i -> historical_i_mod16; require historical4cohorts exactsameIDs first','expected_IDs_JSON_SHA256':hashlib.sha256(json.dumps(reference,separators=(',',':')).encode()).hexdigest()});save()
+-  generate(inputs,16,'B'+str(B)+'-M16-ordinary128',128,True,reference)
++ B=64;inputs=[prompts[i%2]for i in range(B)];reference=[fixed[i%16]for i in range(B)]
++ report['scope']='Samecurrent669 f6f/TP8PP4/cap96threepages291/KDA97, B64 fixedM16 cohorts; A allprefill thencontinuousdecode vs C completed16rowcohort admission/M2prefill interleave, no smallM decode or newprovider. Full128 independentgold/EOS/QA; two naturalprompts repeated.'
++ baseline=generate(inputs,16,'B64-M16-A-ordinary128',128,True,reference)
++ report['fixed_cohort_interleave']={'status':'PENDING_ROOT_RUN_BUDGET'};save()
++ def interleave():
++  from kimi_fixed_cohort_interleave_r8973 import run as run_fixed,jobs
++  label='B64-M16-C-fixed-cohort-interleave128';report['phase']=label;save();reset(label)
++  plan_sha=hashlib.sha256(json.dumps(jobs(),separators=(',',':')).encode()).hexdigest()
++  plans=control.collect('fixed-cohort-plan:'+label,{'SHA256':plan_sha})
++  assert all(x['SHA256']==plan_sha for x in plans)
++  if node==emitter:feedback.request('begin',label,cohorts=[list(range(a,a+16))for a in range(0,64,16)])
++  control.collect('fixed-cohort-begin:'+label,{})
++  def call(kind,rows,ins,pasts,index):
++   selected,seconds,_=forward(ins,pasts,[i+1 for i in rows],label+'-'+kind+str(index),kind=='decode',local_only=True)
++   return selected,seconds
++  actual=run_fixed(inputs=inputs,feedback=feedback,case=label,is_emitter=node==emitter,forward=call,eos=eos)
++  packets=control.collect('fixed-cohort-drained:'+label,actual)
++  if node==emitter:stats=feedback.request('end',label)
++  else:stats=None
++  result_packets=control.collect('fixed-cohort-end:'+label,stats)
++  canonical=packets[emitter];canonical['feedback']=result_packets[emitter]
++  assert all(x['generated_ids']==canonical['generated_ids']for x in packets)
++  actual_ids=canonical['generated_ids'];times=canonical['token_ready_times_from_local_emitter_start'];last=max(row[-1]for row in times)
++  canonical.update(service_wall_seconds=last,end_to_end_output_tok_s=8192/last,end_to_end_output_tok_s_per_card=8192/last/32,TTFT_seconds=[row[0]for row in times],per_request_first_last_tok_s=[127/(row[-1]-row[0])for row in times],per_request_max_ITL_seconds=[max(b-a for a,b in zip(row,row[1:]))for row in times],all_service_cards=32,scope='All input512/output128, actual emitter return clocks including interleaved prefill/decode. No HTTP arrival/client receipts; mixed service rate not puredecode. No EOS expected on this qualified frozenfixture; first unexpected EOS stops unsupported scope.')
++  first=[]
++  for i,(expected,got)in enumerate(zip(reference,actual_ids)):
++   pos=next((j for j,(x,y)in enumerate(zip(expected,got))if x!=y),None)
++   if pos is not None or len(expected)!=len(got):first.append({'request':i,'first_difference':None if pos is None else pos+1,'expected':None if pos is None else expected[pos],'actual':None if pos is None else got[pos]})
++  canonical.update(complete_frozen_IDs_EOS_match=not first,first_differences=first,status='PASS'if not first else'FAILED_OBSERVED')
++  report['fixed_cohort_interleave']=canonical;save() # Persist outputs BEFORE classify; restore original QA even if full128 differs.
++  return not first
++ deadline=float(os.environ['KIMI_EXPERIMENT_DEADLINE_EPOCH_R8973'])
++ if deadline-time.time()>=400:report['fixed_cohort_qualification_passed']=interleave()
++ else:report['fixed_cohort_interleave']={'status':'SKIPPED_ORIGINAL_DEADLINE_BUDGET'};report['fixed_cohort_qualification_passed']=False
++ save()
+  continuous=False;pipeline=False;prefill_pipeline=False
+  qa(0,'after');select(0,'done')
+- report['serving_protocol_complete']=True;report['performance_qualified_pending_independent_audit']=True
+- report['comparison_limit']='SingleB64/B96 order, noABBA/steadystatecausalclaim. Full128/frozenIDs/EOS+QA first; actualsame32cards/userclock; twopromptfamiliesrepeat unchanged. NoB128/M32/automaticnextbatch.'
++ report['serving_protocol_complete']=True;report['performance_qualified_pending_independent_audit']=report['fixed_cohort_qualification_passed']
++ report['comparison_limit']='One same-load A/C full128 pair, no ABBA/causal steadydecode gain. C changes only admission/jobordering, fixedM16 membership and all perrequest inputs/pasts preserved. FullModel finalIDs/EOS+before/restoreQA required. Interleaved service rate separate from puredecode; no15user claim.'
+  save()
