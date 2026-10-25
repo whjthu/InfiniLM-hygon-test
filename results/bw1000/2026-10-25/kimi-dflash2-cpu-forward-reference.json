@@ -1,0 +1,194 @@
+{
+  "hardware": "BW1000",
+  "level": "CPU_DRAFT_FORWARD_REFERENCE",
+  "status": "PASS_SYNTHETIC_TINY_FORWARD_GPU_NOT_QUALIFIED",
+  "CPU_step": "910406.238",
+  "CPU_elapsed_s": 0.3499540616758168,
+  "GPU_runs": 0,
+  "SDK_builds": 0,
+  "native_builds": 0,
+  "trained_weights_read": false,
+  "checkpoint": {
+    "repo": "lightseekorg/kimi-k3-dflash2",
+    "pin": "e77935fb4804e17eb55085bffd045eae1d779769",
+    "header_SHA256": "d250fe199d420a34c0bba811511d6e0ee79f11c95ad8f9482cd014ce9180fb24",
+    "HTTP_Range_bytes": 9816,
+    "tensor_payload_bytes": 0,
+    "tensor_count": 87,
+    "all_BF16": true,
+    "parameter_count": 3692877824,
+    "actual_embedding_shape": [
+      163840,
+      7168
+    ],
+    "lm_head_present": false,
+    "actual_all_keys_and_shapes_match_creator_schema": true
+  },
+  "executed": {
+    "source": "Creator TorchSpec AST-whitelisted RMSNorm/MLP/GroupedConv/Selector/DFlash2DecoderLayer/K3DSparkMLAAttention and canonical YaRN classes; full5-layer forward then7stepselector",
+    "tiny_geometry": {
+      "H": 32,
+      "I": 64,
+      "heads": 2,
+      "q_lora": 16,
+      "kv_lora": 12,
+      "nope": 8,
+      "rope": 8,
+      "v": 8,
+      "layers": 5,
+      "layer_types": [
+        "SWA4096",
+        "SWA4096",
+        "SWA4096",
+        "SWA4096",
+        "full"
+      ],
+      "context_tokens": 4097,
+      "draft_queries": 8,
+      "proposal_rows": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "selector_rank": 256,
+      "selector_top_k": 16,
+      "dtype": "F32 synthetic, not checkpoint BF16values"
+    },
+    "CPU_backend_difference": "ActualcreatorAST classes eagerCPU; torch.compile decorators removed; CPU SDPA with identicalboolmask replaces flex CUDAkernel; independentNumPy fullforward. Nottrainedweights/acceptance/performance.",
+    "torch_version": "2.10.0",
+    "source_copyright": "# Copyright (c) 2026 LightSeek Foundation",
+    "dtype_boundary": "Fullmodel checkpoint isBF16; this fixed synthetictiny executable usesF32, so no trainedBF16 numerical/acceptance claim"
+  },
+  "full_forward_validation": {
+    "stage_errors": [
+      {
+        "stage": "context",
+        "error": {
+          "finite": true,
+          "maxabs": 1.9073486328125e-06,
+          "relativeRMS": 2.1902245759112558e-07
+        }
+      },
+      {
+        "stage": "layer0",
+        "error": {
+          "finite": true,
+          "maxabs": 1.4901161193847656e-08,
+          "relativeRMS": 5.2689236316077874e-08
+        }
+      },
+      {
+        "stage": "layer1",
+        "error": {
+          "finite": true,
+          "maxabs": 1.4901161193847656e-08,
+          "relativeRMS": 8.128166137767403e-08
+        }
+      },
+      {
+        "stage": "layer2",
+        "error": {
+          "finite": true,
+          "maxabs": 1.4901161193847656e-08,
+          "relativeRMS": 8.908741727985197e-08
+        }
+      },
+      {
+        "stage": "layer3",
+        "error": {
+          "finite": true,
+          "maxabs": 1.4901161193847656e-08,
+          "relativeRMS": 9.796227744471714e-08
+        }
+      },
+      {
+        "stage": "layer4",
+        "error": {
+          "finite": true,
+          "maxabs": 1.4901161193847656e-08,
+          "relativeRMS": 1.1174136795262797e-07
+        }
+      },
+      {
+        "stage": "final",
+        "error": {
+          "finite": true,
+          "maxabs": 4.76837158203125e-07,
+          "relativeRMS": 1.3129895042468087e-07
+        }
+      }
+    ],
+    "YaRN_frequency_error": {
+      "finite": true,
+      "maxabs": 7.450580596923828e-09,
+      "relativeRMS": 7.433942286202496e-09
+    },
+    "YaRN_trig_error": {
+      "finite": true,
+      "maxabs": 2.7626752853393555e-05,
+      "relativeRMS": 1.4464870021781609e-05
+    },
+    "selector_paths": {
+      "actual_creator": [
+        31,
+        31,
+        31,
+        31,
+        31,
+        31,
+        31
+      ],
+      "independent_NumPy": [
+        31,
+        31,
+        31,
+        31,
+        31,
+        31,
+        31
+      ]
+    },
+    "mask_poison": {
+      "SWA_maxabs": 0.0,
+      "full_maxabs": 1.2150791008025408e-05
+    },
+    "input_canary": true,
+    "GPU_initialized": false
+  },
+  "remaining_GPU_interfaces": [
+    "Efficient incremental MLAcontextKV/cache+mixed4SWA/full attention backend onBW1000 notimplemented bythisCPUfixture",
+    "Fullcheckpoint load/embedded targetcompatibility andsharedLMhead values nottested",
+    "New5tap targetfeatures andtargetMath0 verifier handledseparately; noKDAchanges here"
+  ],
+  "exact_missing_draft_integration": {
+    "API": "TorchSpec trainingforward(draft_hidden/context_feature/draft_position_ids/context_position_ids/block_mask) hasno past_key_values/append_context/crop cache API. CPUcurrentfullcontext forwardworks; efficientBW1000 worker needs perlayer contextKV append/crop+8query transientKV onowner stream and4SWA/full mask dispatch. This isnotanabsent MLAformula.",
+    "loader": "Real87-key header supports strictstate mapping including checkpointembedding. Tensor values notread, embeddedtargetembedding/tokenizernamespace equivalence andsharedtargetLMhead values stillnotqualified. Do not silently substituteoldRadix/Modal/noembedding checkpoint.",
+    "GPU_qualification": "OnlyafterexplicitrootGO/weightauthorization: actualBF16 traineddraft finite/strictload/sourcebinding, current5tap targetfeaturepacket and7proposals/8verify contract. No targetload/capture wasperformedhere.",
+    "target_verifier": "CurrentKDA Math0 integration assignedelsewhere; oldr3761/r4860 verifier/replay facts retained, not repeatedbythispacket."
+  },
+  "adoption": "DefaultOFF. CPUforward closure removesarchitecture/source feasibility gap only; no trainedacceptance, performance orfinalModel token qualification.",
+  "artifacts": {
+    "CPU_receipt_path": "/refactor/results/DFlash2-tiny-CPU-r9000.json",
+    "CPU_receipt_SHA256": "fa6f63a6081c28c8e77eaf292e749e6facb8f542837a9c466d56324fb7cf9356",
+    "CPU_observation": "DFlash2-tiny-CPU-r9000-read-a.json",
+    "CPU_observation_SHA256": "fca05ad5955b1f6eee4a78d84ac619a67c9da78605cc216944b78f5e3953aca1",
+    "source_manifest": "DFlash2-CPU-source-r9000.json",
+    "source_manifest_SHA256": "92827dc7374f0d15ce6cf574e5c3d170ef0f6cb297d75b819f3d2a502fc3a4a3",
+    "header_range_proof_SHA256": "7a0740a11d9f3d50417cf342e55c6a622220c0ad88f882814893e9dfc9b4fab1",
+    "actual_consumed_source_SHA256": {
+      "r9000_torchspec_dflash.py": "81489dec80b0d4075ed59ac4e48bc12382f3d50e880d1ebdd2dfbfe702a831d7",
+      "r9000_torchspec_dflash2.py": "195dfadcab1c3c4fb2fdc76428dc5b19fa6af2e2358ba3b9b58c38d5d9f03fad",
+      "r9000_torchspec_dspark.py": "0794d502e5be22cacd7bdc27cdf128107a1d35b2303da8de204a1422b6eb6382",
+      "r9000_torchspec_deepseek_eagle.py": "56d8c18321bc270493d90efaa32f9aabfe00499c12ed96e7c12359200decb580",
+      "r9000_torchspec_llama3_eagle.py": "5c94ee86ab8f8b680b473696706a8bacbf1bfb398342f86193786844acf60f3e",
+      "actual-safetensors-header.json": "d250fe199d420a34c0bba811511d6e0ee79f11c95ad8f9482cd014ce9180fb24",
+      "tiny_dflash2_forward_r9000.py": "839e67bb78339e1cb6cca406b1729e42f5f95b674090fa99f5eb90ae9ec57986",
+      "Kimi_DFlash2_CPU_r9000_inside.sh": "5c9b7ef93332893098391ffaa60ec498476e0ec61a439bfea38f8b5449d7ac98",
+      "launch_Kimi_DFlash2_CPU_r9000.py": "ebb86e6fca585f3041e4183f450880a2dd1957ab228cc5be3f823e2224264b32"
+    }
+  }
+}

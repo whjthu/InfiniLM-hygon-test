@@ -1,0 +1,11 @@
+import pathlib,json,hashlib,shutil,subprocess,sys
+r=pathlib.Path.cwd();repo=r/'InfiniLM-hygon-test';g=['git','-c','safe.directory='+repo.as_posix(),'-C',str(repo)];sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest();plan=json.loads((r/'Kimi-DFlash2-publication-private-r9001/publication-plan.json').read_text());folder='code/bw1000/kimi-dflash2-cpu-reference';dst=repo/folder;assert not subprocess.check_output(g+['diff','--cached','--name-only'],text=True).strip()
+schema='coordination/tasks/qualify-kimi-current-math0-kda-lifecycle.json';before=json.loads(subprocess.check_output(g+['show','HEAD:'+schema],text=True));after=json.loads((repo/schema).read_text());assert 'work_item'not in before and after.pop('work_item')=='qualify-kimi-current-math0-kda-lifecycle'and before==after,'Onlyownerprovided mechanicalschemaaddition permitted'
+script=pathlib.Path(__file__).resolve();shutil.copyfile(script,dst/script.name)
+mf=repo/'manifests/bw1000/recent-source-files.json';d=json.loads(mf.read_bytes());n=folder+'/'+script.name;assert not any(x['path']==n for x in d['files']);d['files'].append({'path':n,'source_name':script.name,'SHA256':sha(dst/script.name),'bytes':(dst/script.name).stat().st_size});mf.write_bytes((json.dumps(d,ensure_ascii=False,indent=2)+'\n').encode())
+pf=repo/'manifests/bw1000/profile-evidence.json';d=json.loads(pf.read_bytes())
+for x in d['files']:
+ if x['path']=='manifests/bw1000/recent-source-files.json':x['SHA256']=sha(mf)
+pf.write_bytes((json.dumps(d,ensure_ascii=False,indent=2)+'\n').encode())
+paths=[x.relative_to(repo).as_posix()for x in dst.iterdir()if x.is_file()]+['results/bw1000/2026-10-25/kimi-dflash2-cpu-forward-reference.json','coordination/tasks/kimi-dflash2-cpu-reference.json',schema,'manifests/bw1000/recent-source-files.json','manifests/bw1000/profile-evidence.json']
+subprocess.run([sys.executable,str(repo/'tools/verify_repository.py')],check=True);subprocess.run(g+['add','--',*paths],check=True);assert sorted(subprocess.check_output(g+['diff','--cached','--name-only'],text=True).splitlines())==sorted(paths);subprocess.run(g+['-c','user.name=whjthu','-c','user.email=haojie0429@gmail.com','commit','-m','Validate the new DFlash2 CPU forward and checkpoint header'],check=True);print(subprocess.check_output(g+['log','-1','--format=%H%nAuthor:%an <%ae>%nCommitter:%cn <%ce>'],text=True))
