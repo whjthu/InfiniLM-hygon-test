@@ -1,0 +1,88 @@
+{
+  "status": "ONE_SOURCE_ONLY_LOOKAHEAD_HYPOTHESIS_NO_GPU_NO_COMPILE",
+  "source": "glm_gate_lookahead_r9042.cu",
+  "source_SHA256": "31e589c90a81e35f2eebe051151ae2afb03a6a07054d103f28cfba9b5c46d51f",
+  "diff": "GLM-gate-lookahead-source-r9042.patch",
+  "diff_SHA256": "069f6e38dbcb42c833deea358f943ed9cc2fcaa22f298a60436c249aadfd9c32",
+  "parent_source": "glm_scalar_vectorload_r8528.cu",
+  "parent_source_SHA256": "b257ff25f042d86a166bf7873c1b1a781b106a870dd7b62fae297f1de90b5eb0",
+  "current_object_SHA256": "75f6ecd450268db5b0f062c2859e1a9f8f8bd2814730afccbc17f9486bd4fd80",
+  "source_receipt": "GLM-MoE-current-bounds-r9042.json",
+  "geometry": {
+    "M": 8,
+    "topk": 8,
+    "routedslots": 64,
+    "local_intermediate_I": 256,
+    "K_hidden": 6144,
+    "global_experts": 256,
+    "quant_block": 128,
+    "gate": "W64 V2; grid[64,64],block256; twoFP8u8 E4M3 banks+F32blockscales -> BF16gate/up",
+    "down": "W32 V4;grid[768,64],block256;FP8u8activation/weight+F32scales -> BF16[64,6144]",
+    "actual_API": "glm_vec_gate_r8528 / glm_vec_down_r8528; template reduce<64> / reduce<32>"
+  },
+  "FLOPs_per_call": {
+    "gate_nominal_2_per_MAC": 402653184,
+    "down_nominal_2_per_MAC": 201326592,
+    "total_nominal": 603979776,
+    "gate_source_blockdot_plus_scale_accumulate_excluding_add0_guards": 405798912,
+    "down_source_blockdot_plus_scale_accumulate_excluding_add0_guards": 202899456,
+    "limits": "Decode/address/bit/exponent/shuffle instructions excluded from usefulFLOPs. Explicit __fadd_rn(product,0) guards add source-level201326592 gate/100663296down additions if retained by ISA. FMA contraction and inactive-lane work need ISA accounting, not denseFP32roof."
+  },
+  "minimum_unique_payload_bytes": {
+    "U": "actualuniqueexperts UNKNOWN;64routes do not imply64unique",
+    "gate_weight_u8": "2*U*256*6144=3145728*U",
+    "down_weight_u8": "U*6144*256=1572864*U",
+    "gate_unique_scaleF32": "768*U",
+    "down_unique_scaleF32": "384*U",
+    "gate_input_u8": 49152,
+    "gate_input_scales_F32": 1536,
+    "gate_outputs_BF16": 65536,
+    "down_input_u8": 16384,
+    "down_input_scales_F32": 512,
+    "down_output_BF16": 786432,
+    "route_ids_min_read_once": 512,
+    "limits": "Unique mathematical payload lower bound only. Not HBM transactions: routingduplicates, cachelines, broadcast redundancy and L2reuse UNKNOWN."
+  },
+  "source_semantic_read_payload_before_cache": {
+    "gate_weights_u8": 201326592,
+    "gate_duplicated_activation_u8": 100663296,
+    "down_weights_u8": 100663296,
+    "down_duplicated_activation_u8": 100663296,
+    "limits": "Routed-row/wave scalar source payload, not measured HBM bytes. Scale reads and address/IDS traffic additional."
+  },
+  "hardware_evidence": {
+    "existing_S_ISA": "gateVGPR39SGPR34;downVGPR32SGPR30;LDS0/private0; source-matched existing8529 -S, not newlydisassembledcodeobject",
+    "PMC603": "gateallocatedVGPR40SGPR48,lds0scratch0;sourceoldbody matches but differentCTAparent;VALU6653/VMEM_RD240/LDS864 per geometricwave;32TCC; downcounters absent",
+    "classification": "Instruction/latency latencyhiding candidate only. No calibrated bytes/cycles/occupancy or saturation evidence; cannot decide memory-vs-unpack-vs-FP compute conclusively. Native v_ldexp alreadyexisting, not transcendental-library magic.",
+    "empirical_references_only": {
+      "packedFP32_TF_s": 22.976,
+      "HBMread_TB_s": 1.23711
+    },
+    "not_roof": "Dense60TF irrelevant for softwareFP8 vector-dot. Useful0.604GFLOP /1.614ms ~0.374TF/s is accountingrate, not utilization."
+  },
+  "candidate": {
+    "change": "ONE-block lookahead of original3 packeduint16 x/wg/wu loads in gate only; oldgate remainsdefaultOFF, downunchanged; originaldecode/lane mapping/shuffle/F32reduce/scales/g+=order preserved",
+    "not_reopened": [
+      "CTAactivationreuse",
+      "W32/grid",
+      "bitdecode",
+      "prepared/persistentweightcache",
+      "INT4provider929",
+      "615attentionfusion"
+    ],
+    "possible_effect": "Hide nextblock VMEM latency under currentdecode/reduction. Compiler may alreadyschedule it; extra~3liveword registers and address state may reduceoccupancy/spill. UNKNOWN until privateCPUcompile+boundedwholelayer, neither authorized/executed.",
+    "budget": "Target0.992ms gate streamenvelope current627; hypothetical30% gate savings=.298ms (~4.85%baseline6.137ms) before overlap; not forecast.",
+    "future_reuse": "624/627 layer38 fixture; current28-object link: replace1 current8529GPUobject, reuse27others; defaultOFF setter+counts. Originaldrains/finite/readonly/canary/ownrepeat and finaltokens gate onlyifmaterial. No newframework."
+  },
+  "precise_missing_data": [
+    "actual route_histogram/route_U/route_maxrows returned by native glm_layer_report_r5670 but not retained by627 Python trials; cannot quantifycross-token expertweightreuse",
+    "exactcurrent downcounter/VMEMstall/occupancy/HBMbytes unavailable; existing603 gate rawinstruction counters cannot calibratevectorroof"
+  ],
+  "CPU_checks": {
+    "all48blocks_loaded_once_no_b48": true,
+    "lane_byte_mapping_cases": 6144,
+    "original_gate_function_preserved_verbatim": true,
+    "native_frontend_compile": "NOT_RUN"
+  },
+  "new_GPU_rounds": 0
+}

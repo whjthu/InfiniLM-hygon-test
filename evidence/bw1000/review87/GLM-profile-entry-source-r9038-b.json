@@ -1,0 +1,205 @@
+{
+  "CPU_readonly": true,
+  "GPU": false,
+  "DSO": "/refactor/candidates/glm-reduced-output-r9034/libglm_reduced_output_r9034.so",
+  "DSO_SHA256": "94f08f7083f6fc6f57d17db3ccf2407ee8cce066a3411c100f62515cafde959f",
+  "mapped_original_sources": [
+    {
+      "object": "/refactor/candidates/glm-transient-layer-r5681/private-2.o",
+      "actual_still_linked": false,
+      "source": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/glm-transient-layer-r5681/src/glm_moe_dsa_balanced_text_model_r126.cpp",
+      "SHA256": "4bc1a1ccc550a53cbb17baa502f9bbc5670ab634e49b05049235e522cbc11d8c",
+      "excerpts": [
+        "7: namespace {thread_local double glm_r16_profile[6]={};using GlmClock=std::chrono::steady_clock;}",
+        "8: extern \"C\" const double*modern_glm_pipeline_last_profile(){return glm_r16_profile;}",
+        "9: namespace {",
+        "10: struct GlmGpuWindows {"
+      ]
+    },
+    {
+      "object": "/refactor/candidates/glm-transient-layer-r5681/private-3.o",
+      "actual_still_linked": false,
+      "source": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/glm-transient-layer-r5681/src/glm_moe_dsa_projected_decoder_r22.cpp",
+      "SHA256": "ceb601d453dacb53f3cdb6813141d909b6a82a376d2cd6399d26b35616e9525b",
+      "excerpts": [
+        "17:  Work work{r};try{auto norm=[&](const rt::Tensor&x,const rt::Tensor&weight){auto normalized=work.alloc(x->shape()),weighted=work.alloc(x->shape());ex::submit<infini::ops::RmsNorm>(r,infini::ops::RmsNorm::DefaultConfig(r.device().type()),x,ones_,eps_,normalized);ex::submit<infini::ops::Mul>(r,infini::ops::Mul::DefaultConfig(r.device().type()),normalized,weight,weighted);return weighted;};",
+        "18:   glm_layer_mark_r5670(r,\"decoder.RMS_attention.begin\");auto normalized_attention=norm(hidden,input_norm_);glm_layer_mark_r5670(r,\"decoder.attention.begin\");auto attention=attention_->forward(r,normalized_attention,positions,requests,shared,shared_proofs);glm_layer_mark_r5670(r,\"decoder.attention.end\");work.held.push_back(attention.hidden);auto residual=work.alloc(hidden->shape());ex::submit<infini::ops::Add>(r,infini::ops::Add::DefaultConfig(r.device().type()),hidden,attention.hidden,residual);glm_layer_mark_r5670(r,\"decoder.RMS_ffn.begin\");auto normalized_ffn=norm(residual,post_norm_);glm_layer_mark_r5670(r,\"decoder.FFN.begin\");auto ffn=ffn_->forward(r,normalized_ffn);glm_layer_mark_r5670(r,\"decoder.FFN.end\");work.held.push_back(ffn.hidden);auto result=work.alloc(hidden->shape());ex::submit<infini::ops::Add>(r,infini::ops::Add::DefaultConfig(r.device().type()),residual,ffn.hidden,result);r.syncStream();return {result,normalized_attention,residual,normalized_ffn,attention,ffn};",
+        "19:  }catch(...){poisoned_=true;try{r.syncStream();}catch(...){std::terminate();}throw;}",
+        "20: }"
+      ]
+    },
+    {
+      "object": "/refactor/candidates/glm-transient-layer-r5681/private-4.o",
+      "actual_still_linked": false,
+      "source": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/glm-transient-layer-r5681/src/glm_moe_dsa_routed_ffn_r19.cpp",
+      "SHA256": "ab6669aaa5b46927cce734ad4a3ecd1e69780dc4b34dc728052b4d1f8d0d279d",
+      "excerpts": [
+        "107:   // All banks alias the original checkpoint names; no duplicate expert weights.",
+        "108:   glm_layer_mark_r5670(r,\"FFN.router.end\");const size_t routes=tokens*8;",
+        "109:   auto packed=work.alloc({tokens,6144},rt::DataType::kUInt8),input_scale=work.alloc({tokens,48},rt::DataType::kFloat32);",
+        "110:   ex::submit<infini::ops::BlockQuantF8E4m3>(r,ex::RecordingPolicy::HostOnly,infini::ops::BlockQuantF8E4m3::DefaultConfig(r.device().type()),x,packed,input_scale);",
+        "111:   actual_capture_field5164(r,capture.get(),\"hidden_BF16\",x,2);actual_capture_field5164(r,capture.get(),\"packed_FP8\",packed,2);actual_capture_field5164(r,capture.get(),\"input_scale_F32\",input_scale,2);actual_capture_field5164(r,capture.get(),\"route_ids_I64\",indices,tokens);actual_capture_field5164(r,capture.get(),\"route_weights_F32\",weights,2);",
+        "112:   glm_layer_mark_r5670(r,\"FFN.gateup.begin\");auto gates=work.alloc({routes,256},rt::DataType::kBFloat16),ups=work.alloc({routes,256},rt::DataType::kBFloat16);",
+        "113:   if(glm_grouped_gate_r5123(gates->data(),ups->data(),packed->data(),input_scale->data(),indices->data(),routed_gate_->data(),routed_gate_scale_->data(),routed_up_->data(),routed_up_scale_->data(),routes,routed_offset_,r.stream()))throw std::runtime_error(\"GLM routed gate/up launch failed\");",
+        "114:   actual_capture_field5164(r,capture.get(),\"gate_BF16\",gates,16);actual_capture_field5164(r,capture.get(),\"up_BF16\",ups,16);",
+        "115:   glm_layer_mark_r5670(r,\"FFN.gateup.end\");auto silu=work.alloc({routes,256},rt::DataType::kBFloat16),activated=work.alloc({routes,256},rt::DataType::kBFloat16);",
+        "116:   ex::submit<infini::ops::Silu>(r,infini::ops::Silu::DefaultConfig(r.device().type()),gates,silu);",
+        "117:   ex::submit<infini::ops::Mul>(r,infini::ops::Mul::DefaultConfig(r.device().type()),silu,ups,activated);",
+        "118:   glm_layer_mark_r5670(r,\"FFN.downquant.begin\");auto down_input=work.alloc({routes,256},rt::DataType::kUInt8),down_scale=work.alloc({routes,2},rt::DataType::kFloat32),local=work.alloc({routes,6144},rt::DataType::kBFloat16);",
+        "119:   ex::submit<infini::ops::BlockQuantF8E4m3>(r,ex::RecordingPolicy::HostOnly,infini::ops::BlockQuantF8E4m3::DefaultConfig(r.device().type()),activated,down_input,down_scale);",
+        "120:   actual_capture_field5164(r,capture.get(),\"activated_BF16\",activated,16);actual_capture_field5164(r,capture.get(),\"down_input_FP8\",down_input,16);actual_capture_field5164(r,capture.get(),\"down_scale_F32\",down_scale,16);",
+        "121:   glm_layer_mark_r5670(r,\"FFN.down.begin\");if(glm_grouped_down_r5123(local->data(),down_input->data(),down_scale->data(),indices->data(),routed_down_->data(),routed_down_scale_->data(),routes,routed_offset_,r.stream()))throw std::runtime_error(\"GLM routed down launch failed\");",
+        "122:   actual_capture_field5164(r,capture.get(),\"local_down_BF16\",local,16);",
+        "123:   glm_layer_mark_r5670(r,\"FFN.down.end\");auto local_float=work.alloc({routes,6144},rt::DataType::kFloat32),contributions=work.alloc({routes,6144},rt::DataType::kFloat32);",
+        "124:   ex::submit<infini::ops::Cast>(r,infini::ops::Cast::DefaultConfig(r.device().type()),local,local_float);",
+        "125:   ex::submit<infini::ops::Mul>(r,infini::ops::Mul::DefaultConfig(r.device().type()),local_float,weights->view({routes,1}),contributions);",
+        "126:   actual_capture_field5164(r,capture.get(),\"weighted_contributions_F32\",contributions,16);",
+        "127:   glm_layer_mark_r5670(r,\"FFN.shared.begin\");auto routed=work.alloc({tokens,6144},rt::DataType::kFloat32),shared=shared_->forward_local(r,x),shared_float=work.alloc({tokens,6144},rt::DataType::kFloat32);work.held.push_back(shared);ex::submit<infini::ops::Sum>(r,infini::ops::Sum::DefaultConfig(r.device().type()),contributions->view({tokens,8,6144}),std::optional<std::vector<int64_t>>{{1}},false,std::optional<infini::ops::DataType>{},routed);ex::submit<infini::ops::Cast>(r,infini::ops::Cast::DefaultConfig(r.device().type()),shared,shared_float);ex::submit<infini::ops::Add>(r,infini::ops::Add::DefaultConfig(r.device().type()),routed,shared_float,combined);",
+        "128:   actual_capture_field5164(r,capture.get(),\"routed_reduce_F32\",routed,2);actual_capture_field5164(r,capture.get(),\"shared_BF16\",shared,2);actual_capture_field5164(r,capture.get(),\"combined_preTP_F32\",combined,2);",
+        "129:  }",
+        "130:  glm_layer_mark_r5670(r,\"FFN.shared.end_TP.begin\");auto reduced=combined;if(tp_>1){reduced=work.alloc(combined->shape(),combined->dtype());reduced->copy_from(r,combined);engine::distributed::allreduce_(r,reduced,reduced,infinicclSum,comm_);}glm_layer_mark_r5670(r,\"FFN.TP.end_cast.begin\");auto out=work.alloc({tokens,6144},rt::DataType::kBFloat16);ex::submit<infini::ops::Cast>(r,infini::ops::Cast::DefaultConfig(r.device().type()),reduced,out);decode_leases_r1354::success_fence(r);actual_capture_field5164(r,capture.get(),\"combined_postTP_F32\",reduced,2);actual_capture_field5164(r,capture.get(),\"hidden_out_BF16\",out,2);return {out,combined,weights,indices};",
+        "131: }",
+        "132: }"
+      ]
+    },
+    {
+      "object": "/refactor/candidates/glm-transient-layer-r5681/private-6.o",
+      "actual_still_linked": false,
+      "source": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/glm-transient-layer-r5681/src/glm_moe_dsa_projected_cache_view_r927.cpp",
+      "SHA256": "4624f862c3b8aea556f19e155d15082fbeea5b7aaed7f45b423baa242f1d5828",
+      "excerpts": [
+        "59:  const bool request_batch5055=batch_flag5055&&std::string(batch_flag5055)==\"1\";",
+        "60:  Work work{r};try{glm_layer_mark_r5670(r,\"attn.prepare.begin\");auto prepared=prepare_->forward_latent(r,hidden,positions);work.held.insert(work.held.end(),{prepared.query,prepared.q_resid,prepared.kv_latent,prepared.k_rot});std::vector<rt::Tensor>selection;PrefixProofsR1645 selection_proofs;",
+        "61: glm_layer_mark_r5670(r,\"attn.indexer.begin\");  if(full_){bool all_visible=selection_policy998.count(&r)&&selection_policy998.at(&r);",
+        "62:    for(auto request:requests)all_visible=all_visible&&request.tokens==1&&request.past<topk_;",
+        "63:    bool metadata_only=capacity_<=topk_&&bounded_policy_r1406_&&*bounded_policy_r1406_;",
+        "75:   // sparse selection/order and length publication remain unchanged.",
+        "76: glm_layer_mark_r5670(r,\"attn.projectedKV.begin\");  auto fresh_all=prepare_->expand_cached(r,prepared.kv_latent,prepared.k_rot);",
+        "77:   work.held.insert(work.held.end(),{fresh_all.first,fresh_all.second});",
+        "78: glm_layer_mark_r5670(r,\"attn.cache.begin\");  const char*group_flag=std::getenv(\"GLM_GROUP_PROJECTED_HOST_R5030\");",
+        "79:   if(group_flag&&std::string(group_flag)!=\"0\"&&std::string(group_flag)!=\"1\")throw std::invalid_argument(\"5026 group flag 0/1\");",
+        "80:   const bool group5026=!resident5640&&host_bank_r4504_&&group_flag&&std::string(group_flag)==\"1\"&&requests.size()>=8;",
+        "142:    if(batch5055){begin+=count;continue;}",
+        "143: glm_layer_mark_r5670(r,\"attn.row.compute.begin\");   auto chosen=selection[i];rt::Tensor result;",
+        "144:    const bool certified=owned_prefix_policy_r1669_&&*owned_prefix_policy_r1669_&&bounded_policy_r1406_&&*bounded_policy_r1406_&&capacity_<=topk_&&!selection_proofs.empty();",
+        "145:    if(certified){",
+        "173:    if(resident5640&&count==1)++resident_row601_calls_r5640_;",
+        "174:    work.held.push_back(result);attention->narrow({{0,begin,count}})->copy_from(r,result);begin+=count;glm_layer_mark_r5670(r,\"attn.row.compute.end\");",
+        "175:   }",
+        "176:   if(staged5680){auto joined=sparse_attention_exact_rows_r5555(r,prepared.query,stageLease5680->keys,stageLease5680->values,1);work.held.push_back(joined);attention->copy_from(r,joined);}",
+        "178:   if(batch5055){auto joined=sparse_attention_all_selected_decode_batch_r5096(r,prepared.query,batch_key5055,batch_value5055);work.held.push_back(joined);attention->copy_from(r,joined);view_calls927.at(r.device().index()).fetch_add(requests.size(),std::memory_order_relaxed);trusted_decode_calls1669.at(r.device().index()).fetch_add(requests.size(),std::memory_order_relaxed);}",
+        "179:   glm_layer_mark_r5670(r,\"attn.output.begin\");auto projected=output_->forward(r,attention);glm_layer_mark_r5670(r,\"attn.output.end\");work.held.insert(work.held.end(),{projected.local,projected.hidden});if(stageLease5680)stageLease5680->finish();else r.syncStream();for(auto request:requests)lengths_[request.row]=request.past+request.tokens;if(resident5640)resident_slots_r5640_=std::move(resident_next5640);return {projected.hidden,selection,prepared,attention,selection_proofs};",
+        "180:  }catch(...){poisoned_=true;try{r.syncStream();}catch(...){std::terminate();}throw;}",
+        "181: }"
+      ]
+    },
+    {
+      "object": "/refactor/candidates/glm-transient-layer-r5681/private-9.o",
+      "actual_still_linked": true,
+      "source": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/glm-transient-layer-r5681/src/glm_moe_dsa_attention_output_r809.cpp",
+      "SHA256": "af5c1e899eaa4236fa79e1f54e61663a5baf26b6f60b4b1cf2229f8de6c4d9e4",
+      "excerpts": [
+        "21:  // scale indexing in the original global blocks used by the checkpoint.",
+        "22: glm_layer_mark_r5670(r,\"attnout.quant.begin\"); ex::submit<infini::ops::BlockQuantF8E4m3>(r,ex::RecordingPolicy::HostOnly,infini::ops::BlockQuantF8E4m3::DefaultConfig(r.device().type()),input,packed,local_scale);",
+        "23:  r.setDeviceMemory(global_scale->data(),0xff,global_scale->nbytes());global_scale->narrow({{1,offset_/128,columns_/128}})->copy_from(r,local_scale);",
+        "24: glm_layer_mark_r5670(r,\"attnout.projection.begin\"); if(!fp8_cached_r809(r,local,packed,global_scale,weight_,scale_,size_t{0},offset_))ex::submit<infini::ops::Fp8BlockLinear>(r,ex::RecordingPolicy::HostOnly,infini::ops::Fp8BlockLinear::DefaultConfig(r.device().type()),local,packed,global_scale,weight_,scale_,size_t{0},offset_);",
+        "25: glm_layer_mark_r5670(r,\"attnout.TP.begin\"); auto hidden=local;if(tp_>1){hidden=work.alloc(local->shape(),local->dtype());hidden->copy_from(r,local);engine::distributed::allreduce_(r,hidden,hidden,infinicclSum,comm_);}glm_layer_mark_r5670(r,\"attnout.TP.end\");decode_leases_r1354::success_fence(r);return {local,hidden};",
+        "26: }",
+        "27: }"
+      ]
+    },
+    {
+      "object": "/refactor/candidates/glm-transient-layer-r5681/private-19.o",
+      "actual_still_linked": false,
+      "source": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/glm-transient-layer-r5681/src/glm_layer_bridge_r5670.cpp",
+      "SHA256": "5588b3ba4d3dce08ea639aad9acd7882ac4c9f691e98e820ae17163e31851987",
+      "excerpts": [
+        "28: }",
+        "29: void glm_layer_mark_r5670(rt::Runtime&r,const char*name){if(!tracing)return;cudaEvent_t e{};ck(cudaEventCreate(&e));try{ck(cudaEventRecord(e,static_cast<cudaStream_t>(r.stream())));marks.push_back({name,e,Clock::now(),cpu()});}catch(...){cudaEventDestroy(e);throw;}}",
+        "30: extern \"C\" const char*glm_layer_error_r5670(){return error.c_str();}",
+        "31: extern \"C\" const char*glm_layer_report_r5670(){return serialized.c_str();}",
+        "32: extern \"C\" size_t glm_layer_id_size_r5670(){return sizeof(infinicclUniqueId);}",
+        "33: extern \"C\" int glm_layer_id_r5670(void*p){if(!p)return 1;infinicclUniqueId id{};if(infinicclGetUniqueId(&id)!=infinicclSuccess)return 1;std::memcpy(p,&id,sizeof(id));return 0;}",
+        "45: // extra stream is used; future Python harness synchronizes producer outsidewall.",
+        "46: extern \"C\" int glm_layer_forward_r5670(void*raw,size_t N,size_t B,const size_t*desc,const void*x,const void*positions,void*out,int profile){auto*c=static_cast<Context*>(raw);bool own=false,mutating=false;try{",
+        "47:  owner(c);own=true;if(!c->ready||c->poison||!desc||!N||N>4096||!B||B>8||(profile!=0&&profile!=1))throw std::invalid_argument(\"forward state/count\");input(c,x);input(c,positions);input(c,out);",
+        "48:  std::vector<model::NativeAttentionProjectedR22::Request>requests;std::set<size_t>seen;size_t total=0;for(size_t i=0;i<B;++i){size_t row=desc[i*3],past=desc[i*3+1],count=desc[i*3+2];if(row>=64||!seen.insert(row).second||!count||past!=c->lengths[row]||past>640||count>640-past||total>N||count>N-total)throw std::invalid_argument(\"wholelist row/past/count\");requests.push_back({row,past,count});total+=count;}if(total!=N)throw std::invalid_argument(\"packed N\");",
+        "49:  Work w{*c->r};w.held={rt::Tensor::from_blob(const_cast<void*>(x),{N,6144},rt::DataType::kBFloat16,c->r->device()),rt::Tensor::from_blob(const_cast<void*>(positions),{N},rt::DataType::kInt64,c->r->device()),rt::Tensor::from_blob(out,{N,6144},rt::DataType::kBFloat16,c->r->device())};std::vector<int64_t>pos(N);c->r->memcpyD2H(pos.data(),positions,N*8);c->r->syncStream();size_t off=0;for(auto q:requests)for(size_t j=0;j<q.tokens;++j)if(pos[off++]!=int64_t(q.past+j))throw std::invalid_argument(\"positions\");",
+        "50:  clear();tracing=profile!=0;auto begin=Clock::now();double cp=cpu();mutating=true;bool lease_decode=N==B;for(auto q:requests)lease_decode=lease_decode&&q.tokens==1&&q.past>0;model::decode_leases_r1354::Guard lease(*c->r,lease_decode);glm_layer_mark_r5670(*c->r,\"layer.begin\");std::vector<rt::Tensor>selection;model::PrefixProofsR1645 proofs;auto hidden=w.held[0];for(size_t i=0;i<c->layers.size();++i){auto value=c->layers[i]->forward(*c->r,hidden,w.held[1],requests,selection,proofs);if(i==0){selection=value.attention.selection;proofs=value.attention.selection_proofs;}hidden=value.hidden;w.cycleOutputs.push_back(std::move(value));}w.output=w.cycleOutputs.back();glm_layer_mark_r5670(*c->r,\"layer.return\");w.held[2]->copy_from(*c->r,w.output->hidden);auto ls=lease.finish();c->r->syncStream();auto wall=std::chrono::duration<double,std::milli>(Clock::now()-begin).count();double ct=(cpu()-cp)*1000;tracing=false;",
+        "51:  nlohmann::json report={{\"N\",N},{\"B\",B},{\"layers\",c->layerIDs},{\"profile\",profile},{\"wall_ms\",wall},{\"threadCPU_ms\",ct},{\"stages\",nlohmann::json::array()},{\"lease_peak_logical_bytes\",ls.peak_logical_bytes},{\"Runtime_identity\",reinterpret_cast<uintptr_t>(c->r.get())}};",
+        "52:  for(size_t i=1;i<marks.size();++i){float ms=0;ck(cudaEventElapsedTime(&ms,marks[i-1].event,marks[i].event));report[\"stages\"].push_back({{\"from\",marks[i-1].name},{\"to\",marks[i].name},{\"stream_timeline_ms_includes_host_enqueue_idle\",ms},{\"host_wall_ms\",std::chrono::duration<double,std::milli>(marks[i].wall-marks[i-1].wall).count()},{\"threadCPU_ms\",(marks[i].threadCPU-marks[i-1].threadCPU)*1000}});}"
+      ]
+    }
+  ],
+  "actual_profile_exports": [
+    "00000000000677a0 T glm_layer_forward_r5670",
+    "0000000000061f10 T glm_layer_report_r5670",
+    "0000000000099650 T modern_glm_pipeline_last_profile",
+    "0000000000061ab0 T _Z20glm_layer_mark_r5670RN8infinilm7runtime7RuntimeEPKc"
+  ],
+  "current_override_markers": [
+    {
+      "object": "/refactor/candidates/glm-PP2-B32-r8843/private-0.o",
+      "object_SHA256": "22fe1940f181a7c27cd204ad38980c3017d159366cb5fd40aa11368b4dc2bb4f",
+      "source": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/glm-PP2-B32-r8843/tree/candidates/glm-prefix-bridge-r8705/src/glm_prefix_layer_bridge_r8705.cpp",
+      "source_SHA256": "a89fc588f590b75968edd488c5bfeb8a7e243f38112c97a50a4d0f5fcf9b8024",
+      "lines": [
+        "30: void glm_layer_mark_r5670(rt::Runtime&r,const char*name){if(glm_window_r5795::mark(r,name))return;if(!tracing)return;cudaEvent_t e{};ck(cudaEventCreate(&e));try{ck(cudaEventRecord(e,static_cast<cudaStream_t>(r.stream())));marks.push_back({name,e,Clock::now(),cpu()});}catch(...){cudaEventDestroy(e);throw;}}",
+        "50: extern \"C\" int glm_layer_forward_r5670(void*raw,size_t N,size_t B,const size_t*desc,const void*x,const void*positions,void*out,int profile){auto*c=static_cast<Context*>(raw);bool own=false,mutating=false;try{",
+        "54:  clear();tracing=profile!=0;auto begin=Clock::now();double cp=cpu();mutating=true;bool lease_decode=N==B;for(auto q:requests)lease_decode=lease_decode&&q.tokens==1&&q.past>0;model::decode_leases_r1354::Guard lease(*c->r,lease_decode);glm_layer_mark_r5670(*c->r,\"layer.begin\");std::vector<rt::Tensor>selection;model::PrefixProofsR1645 proofs;auto hidden=w.held[0];for(size_t i=0;i<c->layers.size();++i){auto value=c->layers[i]->forward(*c->r,hidden,w.held[1],requests,selection,proofs);if(i==0){selection=value.attention.selection;proofs=value.attention.selection_proofs;}hidden=value.hidden;w.cycleOutputs.push_back(std::move(value));}w.output=w.cycleOutputs.back();glm_layer_mark_r5670(*c->r,\"layer.return\");w.held[2]->copy_from(*c->r,w.output->hidden);auto ls=lease.finish();c->r->syncStream();auto wall=std::chrono::duration<double,std::milli>(Clock::now()-begin).count();double ct=(cpu()-cp)*1000;tracing=false;"
+      ]
+    },
+    {
+      "object": "/refactor/candidates/glm-PP2-B32-r8843/private-3.o",
+      "object_SHA256": "936aa315ecd49d310dcd7239515c65119860702ee7fd8c852626a9f7afa347af",
+      "source": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/glm-PP2-B32-r8843/tree/candidates/glm-window-model-r5797/src/glm_moe_dsa_balanced_text_model_r126.cpp",
+      "source_SHA256": "d94016e3adc4ffccac58adc24aef415c7069ad2503cb21e230f12753c0b2ad98",
+      "lines": [
+        "9: extern \"C\" const double*modern_glm_pipeline_last_profile(){return glm_r16_profile;}",
+        "13:  explicit GlmGpuWindows(cudaStream_t s):stream(s){try{for(auto&e:event)if(cudaEventCreate(&e)!=cudaSuccess)throw std::runtime_error(\"GLM profile event creation failed\");}catch(...){for(auto e:event)if(e)cudaEventDestroy(e);throw;}}",
+        "15:  void record(int i){if(cudaEventRecord(event[i],stream)!=cudaSuccess)throw std::runtime_error(\"GLM profile event record failed\");}",
+        "16:  void finish(){for(int i=0;i<3;++i){float ms=0;if(cudaEventElapsedTime(&ms,event[i],event[i+1])!=cudaSuccess)throw std::runtime_error(\"GLM profile event elapsed failed\");glm_r16_profile[3+i]=double(ms)/1000.;}}"
+      ]
+    },
+    {
+      "object": "/refactor/candidates/glm-PP2-B32-r8843/private-4.o",
+      "object_SHA256": "79ef388cc46593d5f89032c572cfb15e4864ff2e94479d1f4c9bc8370051b018",
+      "source": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/glm-PP2-B32-r8843/tree/candidates/glm-transient-layer-r5681/src/glm_moe_dsa_projected_decoder_r22.cpp",
+      "source_SHA256": "ceb601d453dacb53f3cdb6813141d909b6a82a376d2cd6399d26b35616e9525b",
+      "lines": [
+        "18:   glm_layer_mark_r5670(r,\"decoder.RMS_attention.begin\");auto normalized_attention=norm(hidden,input_norm_);glm_layer_mark_r5670(r,\"decoder.attention.begin\");auto attention=attention_->forward(r,normalized_attention,positions,requests,shared,shared_proofs);glm_layer_mark_r5670(r,\"decoder.attention.end\");work.held.push_back(attention.hidden);auto residual=work.alloc(hidden->shape());ex::submit<infini::ops::Add>(r,infini::ops::Add::DefaultConfig(r.device().type()),hidden,attention.hidden,residual);glm_layer_mark_r5670(r,\"decoder.RMS_ffn.begin\");auto normalized_ffn=norm(residual,post_norm_);glm_layer_mark_r5670(r,\"decoder.FFN.begin\");auto ffn=ffn_->forward(r,normalized_ffn);glm_layer_mark_r5670(r,\"decoder.FFN.end\");work.held.push_back(ffn.hidden);auto result=work.alloc(hidden->shape());ex::submit<infini::ops::Add>(r,infini::ops::Add::DefaultConfig(r.device().type()),residual,ffn.hidden,result);r.syncStream();return {result,normalized_attention,residual,normalized_ffn,attention,ffn};"
+      ]
+    },
+    {
+      "object": "/refactor/candidates/glm-PP2-B32-r8843/private-5.o",
+      "object_SHA256": "290d8c38d7aa7afc50ccd1deab97bed2e56906aed0489a17273561bd72925dea",
+      "source": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/glm-PP2-B32-r8843/tree/candidates/glm-prefill-prefix-r8703/src/glm_prefill_prefix_cache_r8703.cpp",
+      "source_SHA256": "8dadcf96c82d7e7ac37c3bd66d721191feb21dc67d0f18cec1c54a3021ebb7ea",
+      "lines": [
+        "101:  Work work{r};try{glm_layer_mark_r5670(r,\"attn.prepare.begin\");auto prepared=prepare_->forward_latent(r,hidden,positions);work.held.insert(work.held.end(),{prepared.query,prepared.q_resid,prepared.kv_latent,prepared.k_rot});std::vector<rt::Tensor>selection;PrefixProofsR1645 selection_proofs;",
+        "102: glm_layer_mark_r5670(r,\"attn.indexer.begin\");  if(full_){bool all_visible=selection_policy998.count(&r)&&selection_policy998.at(&r);",
+        "117: glm_layer_mark_r5670(r,\"attn.projectedKV.begin\");  auto fresh_all=prepare_->expand_cached(r,prepared.kv_latent,prepared.k_rot);",
+        "131: glm_layer_mark_r5670(r,\"attn.cache.begin\");  const char*group_flag=std::getenv(\"GLM_GROUP_PROJECTED_HOST_R5030\");",
+        "197: glm_layer_mark_r5670(r,\"attn.row.compute.begin\");   auto chosen=selection[i];rt::Tensor result;",
+        "236:    work.held.push_back(result);attention->narrow({{0,begin,count}})->copy_from(r,result);begin+=count;glm_layer_mark_r5670(r,\"attn.row.compute.end\");",
+        "247:   glm_layer_mark_r5670(r,\"attn.output.begin\");auto projected=output_->forward(r,attention);glm_layer_mark_r5670(r,\"attn.output.end\");work.held.insert(work.held.end(),{projected.local,projected.hidden});if(stageLease5680)stageLease5680->finish();else r.syncStream();for(auto request:requests)lengths_[request.row]=request.past+request.tokens;if(resident5640)resident_slots_r5640_=std::move(resident_next5640);return {projected.hidden,selection,prepared,attention,selection_proofs};"
+      ]
+    },
+    {
+      "object": "/refactor/candidates/glm-vector-model-r8542/vector-0.o",
+      "object_SHA256": "4b36b711d264f8e7f28ea048d3f6176ffeec9291618ea106ba4a6ba8f3941c41",
+      "source": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/glm-vector-model-r8542/src/glm_moe_dsa_routed_ffn_r19.cpp",
+      "source_SHA256": "c716b37fd3fe786cece00a5b4a309d9eb13b76e4bbdb8cc8843be936c708e64b",
+      "lines": [
+        "109:   glm_layer_mark_r5670(r,\"FFN.router.end\");const size_t routes=tokens*8;",
+        "113:   glm_layer_mark_r5670(r,\"FFN.gateup.begin\");auto gates=work.alloc({routes,256},rt::DataType::kBFloat16),ups=work.alloc({routes,256},rt::DataType::kBFloat16);",
+        "116:   glm_layer_mark_r5670(r,\"FFN.gateup.end\");auto silu=work.alloc({routes,256},rt::DataType::kBFloat16),activated=work.alloc({routes,256},rt::DataType::kBFloat16);",
+        "119:   glm_layer_mark_r5670(r,\"FFN.downquant.begin\");auto down_input=work.alloc({routes,256},rt::DataType::kUInt8),down_scale=work.alloc({routes,2},rt::DataType::kFloat32),local=work.alloc({routes,6144},rt::DataType::kBFloat16);",
+        "122:   glm_layer_mark_r5670(r,\"FFN.down.begin\");if(glm_vector_r8540::down(vector_frame_r8540,local->data(),down_input->data(),down_scale->data(),indices->data(),routed_down_->data(),routed_down_scale_->data(),routes,routed_offset_,r.stream()))throw std::runtime_error(\"GLM routed down launch failed\");",
+        "124:   glm_layer_mark_r5670(r,\"FFN.down.end\");auto local_float=work.alloc({routes,6144},rt::DataType::kFloat32),contributions=work.alloc({routes,6144},rt::DataType::kFloat32);",
+        "128:   glm_layer_mark_r5670(r,\"FFN.shared.begin\");auto routed=work.alloc({tokens,6144},rt::DataType::kFloat32),shared=shared_->forward_local(r,x),shared_float=work.alloc({tokens,6144},rt::DataType::kFloat32);work.held.push_back(shared);ex::submit<infini::ops::Sum>(r,infini::ops::Sum::DefaultConfig(r.device().type()),contributions->view({tokens,8,6144}),std::optional<std::vector<int64_t>>{{1}},false,std::optional<infini::ops::DataType>{},routed);ex::submit<infini::ops::Cast>(r,infini::ops::Cast::DefaultConfig(r.device().type()),shared,shared_float);ex::submit<infini::ops::Add>(r,infini::ops::Add::DefaultConfig(r.device().type()),routed,shared_float,combined);",
+        "131:  glm_layer_mark_r5670(r,\"FFN.shared.end_TP.begin\");auto reduced=combined;if(tp_>1){reduced=work.alloc(combined->shape(),combined->dtype());reduced->copy_from(r,combined);engine::distributed::allreduce_(r,reduced,reduced,infinicclSum,comm_);}glm_layer_mark_r5670(r,\"FFN.TP.end_cast.begin\");auto out=work.alloc({tokens,6144},rt::DataType::kBFloat16);ex::submit<infini::ops::Cast>(r,infini::ops::Cast::DefaultConfig(r.device().type()),reduced,out);decode_leases_r1354::success_fence(r);actual_capture_field5164(r,capture.get(),\"combined_postTP_F32\",reduced,2);actual_capture_field5164(r,capture.get(),\"hidden_out_BF16\",out,2);return {out,combined,weights,indices};"
+      ]
+    }
+  ]
+}
