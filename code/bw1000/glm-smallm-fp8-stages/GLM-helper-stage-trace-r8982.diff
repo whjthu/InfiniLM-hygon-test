@@ -1,0 +1,145 @@
+--- /dev/null
++++ private/glm_helper_stage_trace_r8982.cpp
+@@ -0,0 +1,59 @@
++#include <cuda_runtime.h>
++#include <cublas_v2.h>
++#include <dlfcn.h>
++#include <array>
++#include <link.h>
++#include <cstdint>
++#include <cstring>
++#include <thread>
++namespace {
++using Launch=cudaError_t(*)(const void*,dim3,dim3,void**,size_t,cudaStream_t);
++using Gemm=decltype(&cublasGemmStridedBatchedEx);
++struct State {bool initialized=false,armed=false,in_blas=false;int next=0,error=0;size_t n=0,k=0,sc=0,ro=0,co=0;void*base=nullptr;std::array<std::array<uintptr_t,2>,8> text{};size_t ranges=0;cudaStream_t stream{};std::thread::id owner;std::array<cudaEvent_t,8> events{};std::array<uint64_t,4> hits{};};
++thread_local State s;
++template<class T>T resolve(const char*name){return reinterpret_cast<T>(dlsym(RTLD_NEXT,name));}
++void mark(int slot){if(cudaEventRecord(s.events[slot],s.stream)!=cudaSuccess)s.error=1;}
++bool ours(void*caller){auto a=reinterpret_cast<uintptr_t>(caller);for(size_t i=0;i<s.ranges;++i)if(a>=s.text[i][0]&&a<s.text[i][1])return true;return false;}
++int bind_text(dl_phdr_info*p,size_t,void*){if(reinterpret_cast<void*>(p->dlpi_addr)!=s.base)return 0;for(int i=0;i<p->dlpi_phnum;++i){auto&h=p->dlpi_phdr[i];if(h.p_type==PT_LOAD&&(h.p_flags&PF_X)&&s.ranges<s.text.size())s.text[s.ranges++]={p->dlpi_addr+h.p_vaddr,p->dlpi_addr+h.p_vaddr+h.p_memsz};}return 1;}
++size_t arg(void**a,int n){return *static_cast<const size_t*>(a[n]);}
++void bad(){s.error=1;}
++}
++extern "C" int glm_helper_trace_init_r8982(void*run,void*stream){
++ if(s.initialized||!run)return -1;Dl_info d{};if(!dladdr(run,&d)||!d.dli_fbase)return -2;
++ s.base=d.dli_fbase;s.ranges=0;dl_iterate_phdr(bind_text,nullptr);if(!s.ranges)return -4;s.stream=static_cast<cudaStream_t>(stream);s.owner=std::this_thread::get_id();
++ for(auto&e:s.events)if(cudaEventCreate(&e)!=cudaSuccess){for(auto&v:s.events)if(v){cudaEventDestroy(v);v=nullptr;}return -3;}
++ s.initialized=true;return 0;
++}
++extern "C" int glm_helper_trace_begin_r8982(int enabled,size_t n,size_t k,size_t sc,size_t ro,size_t co){
++ if(!s.initialized||s.owner!=std::this_thread::get_id()||s.armed||(enabled!=0&&enabled!=1)||!n||!k||k%128||co%128||ro%128||co/128+k/128>sc)return -1;
++ s.n=n;s.k=k;s.sc=sc;s.ro=ro;s.co=co;s.next=0;s.error=0;s.hits={};s.armed=bool(enabled);return 0;
++}
++// Caller has already drained the original ownerstream, for both arms.
++extern "C" int glm_helper_trace_end_r8982(double*out,uint64_t*hits){
++ if(!s.initialized||s.owner!=std::this_thread::get_id()||!out||!hits)return -1;bool was=s.armed;s.armed=false;
++ for(int j=0;j<4;++j){hits[j]=s.hits[j];out[j]=0;if(was){float ms=0;if(cudaEventElapsedTime(&ms,s.events[2*j],s.events[2*j+1])!=cudaSuccess)bad();out[j]=ms;}}
++ return s.error||(was&&(s.next!=4||s.hits!=std::array<uint64_t,4>{1,1,1,1}))?-2:0;
++}
++extern "C" int glm_helper_trace_close_r8982(){
++ if(!s.initialized||s.armed||s.owner!=std::this_thread::get_id())return -1;
++ // Original fixture has drained before this call; no new stream/lifetime policy.
++ int rc=0;for(auto&e:s.events){if(cudaEventDestroy(e)!=cudaSuccess)rc=-2;e=nullptr;}s.initialized=false;return rc;
++}
++extern "C" cudaError_t cudaLaunchKernel(const void*f,dim3 grid,dim3 block,void**args,size_t shared,cudaStream_t stream){
++ static Launch real=resolve<Launch>("cudaLaunchKernel");if(!real)return cudaErrorSharedObjectSymbolNotFound;
++ const bool observe=s.armed&&!s.in_blas&&ours(__builtin_return_address(0));int j=-1;
++ if(observe){j=s.next;if((j!=0&&j!=1&&j!=3)||stream!=s.stream||!args){bad();j=-1;}
++  else if(j<2){if(arg(args,2)!=(j==0?8:s.n)||arg(args,3)!=s.k||arg(args,4)!=s.co/128||arg(args,5)!=s.co)bad();}
++  else if(arg(args,4)!=8||arg(args,5)!=s.n||arg(args,6)!=s.sc||arg(args,7)!=s.ro||arg(args,8)!=s.co/128||arg(args,9)!=s.k/128||arg(args,10)!=0)bad();
++  if(j>=0)mark(2*j);
++ }
++ auto rc=real(f,grid,block,args,shared,stream);
++ if(observe&&j>=0){mark(2*j+1);++s.hits[j];++s.next;if(rc!=cudaSuccess)bad();}return rc;
++}
++extern "C" cublasStatus_t cublasGemmStridedBatchedEx(cublasHandle_t h,cublasOperation_t ta,cublasOperation_t tb,int m,int n,int k,const void*alpha,const void*a,cudaDataType_t at,int lda,long long sa,const void*b,cudaDataType_t bt,int ldb,long long sb,const void*beta,void*c,cudaDataType_t ct,int ldc,long long cs,int batches,cublasComputeType_t compute,cublasGemmAlgo_t algo){
++ static Gemm real=resolve<Gemm>("cublasGemmStridedBatchedEx");if(!real)return CUBLAS_STATUS_NOT_INITIALIZED;
++ const bool observe=s.armed&&ours(__builtin_return_address(0));
++ if(observe){if(s.next!=2||m!=int(s.n)||n!=8||k!=128||batches!=int(s.k/128)||at!=CUDA_R_16BF||bt!=CUDA_R_16BF||ct!=CUDA_R_32F||compute!=CUBLAS_COMPUTE_32F||ta!=CUBLAS_OP_T||tb!=CUBLAS_OP_N||lda!=128||ldb!=128||ldc!=int(s.n)||sa!=static_cast<long long>(s.n*128)||sb!=8*128||cs!=static_cast<long long>(8*s.n))bad();mark(4);s.in_blas=true;}
++ auto rc=real(h,ta,tb,m,n,k,alpha,a,at,lda,sa,b,bt,ldb,sb,beta,c,ct,ldc,cs,batches,compute,algo);
++ if(observe){s.in_blas=false;mark(5);++s.hits[2];++s.next;if(rc!=CUBLAS_STATUS_SUCCESS)bad();}return rc;
++}
+--- /dev/null
++++ private/GLM_helper_stage_trace_r8982.py
+@@ -0,0 +1,45 @@
++"""Finite real layer38 projection fixture; synthetic packed activations; no Model."""
++import pathlib,ctypes,json,os,time,hashlib,statistics,contextlib,traceback
++import torch,torch.multiprocessing as mp
++from safetensors import safe_open
++r=pathlib.Path('/refactor');model=pathlib.Path('/old/models/ZhipuAI-GLM-5.3');H=r/'candidates/glm-grouped-native-model-r5117/helpers/libglm_fp8_batched_r776.so';HS='e32b4dc2749b4012efbf4322d334b6460dd091190bca78bb8f41e4384f09a7e8';W=r/'candidates/glm-helper-stage-trace-r8982/libglm_helper_stage_trace_r8982.so';V=ctypes.c_void_p;Z=ctypes.c_size_t;I=ctypes.c_int
++sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
++def worker(rank):
++ torch.set_num_threads(1);torch.set_float32_matmul_precision('highest');torch.backends.cuda.matmul.allow_tf32=False;torch.backends.cuda.matmul.allow_fp16_reduced_precision_reduction=False;torch.backends.cuda.matmul.allow_bf16_reduced_precision_reduction=False;torch.backends.cuda.matmul.allow_fp16_accumulation=False;torch.cuda.set_device(rank);cpus=sorted(os.sched_getaffinity(0));assert len(cpus)>=64;os.sched_setaffinity(0,cpus[rank*8:rank*8+8]);stream=torch.cuda.current_stream();lib=ctypes.CDLL(str(H));wrap=ctypes.CDLL(str(W));lib.glm_fp8_create_r776.argtypes=[I,I]+[Z]*7+[V];lib.glm_fp8_create_r776.restype=V;lib.glm_fp8_run_r776.argtypes=[V,I]+[V]*5;lib.glm_fp8_destroy_r776.argtypes=[V];lib.glm_fp8_error_r776.restype=ctypes.c_char_p;wrap.glm_helper_trace_init_r8982.argtypes=[V,V];wrap.glm_helper_trace_begin_r8982.argtypes=[I]+[Z]*5;wrap.glm_helper_trace_end_r8982.argtypes=[V,V]
++ p=r/'results'/f'GLM-helper-stage-trace-r8982-{os.environ["SLURM_JOB_ID"]}.{os.environ["SLURM_STEP_ID"]}-rank{rank}.json';assert not p.exists();q={'completed':False,'rank':rank,'helper_SHA256':HS,'wrapper_SHA256':sha(W),'producer':os.environ['SLURM_JOB_ID']+'.'+os.environ['SLURM_STEP_ID'],'node':os.uname().nodename,'scope':'Layer38 real FP8 weights; synthetic replicated seed8703 BF16 hidden/packed activation, not current540 activation capture. Full helper wall includes ownerstream drain. Events observer only, all original math/guards unchanged.','kernel_name':'UNKNOWN_NO_EXISTING_SOLUTION_LOGGING','cases':[]};plan=None;initialized=False
++ def save():temp=p.with_suffix('.tmp');temp.write_text(json.dumps(q,indent=2));temp.replace(p)
++ def tck(x,phase):
++  if x:raise RuntimeError(('r8982 observer',phase,x))
++ def ck(x):
++  if x:raise RuntimeError((x,lib.glm_fp8_error_r776().decode()))
++ try:
++  assert sha(H)==HS;proof=json.loads((W.parent/'CPU-build.json').read_text());assert proof['completed']and proof['GPU']==False and proof['compiled_TUs']==1 and proof['library_SHA256']==sha(W)
++  tck(wrap.glm_helper_trace_init_r8982(ctypes.cast(lib.glm_fp8_run_r776,V),V(stream.cuda_stream)),'init');initialized=True
++  mapping=json.loads((model/'model.safetensors.index.json').read_text())['weight_map'];weights={};started=time.monotonic()
++  specs=[('o_proj',6144,2048,0,rank*2048)]
++  with contextlib.ExitStack()as stack:
++   handles={}
++   for name,n,k,ro,co in specs:
++    items=[]
++    for tail in ['weight','weight_scale_inv']:
++     key=f'model.layers.38.self_attn.{name}.{tail}';fn=mapping[key]
++     if fn not in handles:handles[fn]=stack.enter_context(safe_open(str(model/fn),framework='pt',device='cpu'))
++     t=handles[fn].get_tensor(key)
++     if tail=='weight':t=t.view(torch.uint8)[ro:ro+n,co:co+k].contiguous()
++     items.append(t.cuda())
++    weights[name]=items
++  stream.synchronize();q['single_checkpoint_attention_load_seconds']=time.monotonic()-started;q['checkpoint_read_passes']=1;save()
++  gen=torch.Generator(device='cpu').manual_seed(8703)
++  for name,n,k,ro,co in specs:
++   w,ws=weights[name];sr,sc=ws.shape;assert tuple(w.shape)==(n,k);hidden=(torch.randn(8,k,generator=gen)*.1).to(torch.bfloat16).cuda();blocks=hidden.float().view(8,k//128,128);local_scale=blocks.abs().amax(-1).clamp_min(1e-10)/448.;x=(blocks/local_scale[:,:,None]).clamp(-448,448).to(torch.float8_e4m3fn).view(torch.uint8).reshape(8,k).contiguous();xs=torch.full((8,sc),float('nan'),device='cuda');xs[:,co//128:co//128+k//128]=local_scale;guard=torch.full((8*n+128,),123,dtype=torch.bfloat16,device='cuda');out=guard[64:-64].view(8,n);stream.synchronize();plan=lib.glm_fp8_create_r776(rank,1,8,n,k,sr,sc,ro,co,V(stream.cuda_stream));assert plan;rows=[];references={};first=None
++   for index,mode in enumerate([0,1,0,1,1,0,1,0,0,1,0]):
++    tck(wrap.glm_helper_trace_begin_r8982(mode,n,k,sc,ro,co),'begin');stream.synchronize();tick=time.perf_counter();cpu=time.thread_time();ck(lib.glm_fp8_run_r776(plan,1,V(out.data_ptr()),V(x.data_ptr()),V(xs.data_ptr()),V(w.data_ptr()),V(ws.data_ptr())));stream.synchronize();host=(time.perf_counter()-tick)*1000;cpu=(time.thread_time()-cpu)*1000;events=(ctypes.c_double*4)();hits=(ctypes.c_uint64*4)();code=wrap.glm_helper_trace_end_r8982(events,hits);q['last_trace']={'mode':mode,'code':code,'hits':list(hits)};save();tck(code,'end');actual=out.cpu();references.setdefault(mode,actual.clone());first=actual.clone()if first is None else first;finite=bool(torch.isfinite(actual.float()).all());canary=bool((guard[:64]==123).all()and(guard[-64:]==123).all());assert finite and canary and list(hits)==([1]*4 if mode else[0]*4)
++    rows.append({'index':index,'mode':mode,'host_wall_including_streamdrain_ms':host,'threadCPU_ms':cpu,'stage_ms':dict(zip(['unpackX','unpackW','batchedGEMM','combine'],events))if mode else None,'stage_hits':list(hits),'finite':finite,'canary':canary,'crossarm_exact_diagnostic':bool(torch.equal(actual.view(torch.int16),first.view(torch.int16))),'ownrepeat_exact_diagnostic':bool(torch.equal(actual.view(torch.int16),references[mode].view(torch.int16))),'maxabs_vs_first':float((actual.float()-first.float()).abs().max())})
++   ck(lib.glm_fp8_destroy_r776(plan));plan=None;med={str(mode):statistics.median(t['host_wall_including_streamdrain_ms']for t in rows[2:10]if t['mode']==mode)for mode in [0,1]};q['cases'].append({'projection':name,'M':8,'N':n,'K':k,'row_offset':ro,'column_offset':co,'scale_shape':[sr,sc],'trials':rows,'wall_median_ms':med,'observer_wall_delta_percent':100*(med['1']/med['0']-1),'stage_median_ms':{s:statistics.median(t['stage_ms'][s]for t in rows[2:10]if t['mode'])for s in ['unpackX','unpackW','batchedGEMM','combine']}});save()
++  stream.synchronize();tck(wrap.glm_helper_trace_close_r8982(),'close');initialized=False;check=torch.ones(32,device='cuda');assert (check+1).sum().item()==64;stream.synchronize();q.update(completed=True,plans_destroyed=True,normal_stream_drain=True,Torch_postclose=True,Model_adoption=False);save()
++ except BaseException as exc:q.update(error=repr(exc),traceback=traceback.format_exc());save();raise
++ finally:
++  if plan:stream.synchronize();q['finally_destroy']=lib.glm_fp8_destroy_r776(plan)
++  if initialized:stream.synchronize();q['finally_close']=wrap.glm_helper_trace_close_r8982()
++  save()
++if __name__=='__main__':assert torch.cuda.device_count()==8;mp.spawn(worker,nprocs=8,join=True)
+--- /dev/null
++++ private/build_GLM_helper_stage_trace_CPU_r8982.py
+@@ -0,0 +1,5 @@
++import pathlib,json,hashlib,subprocess,os,time
++r=pathlib.Path('/refactor');i=r/'incoming';b=r/'candidates/glm-helper-stage-trace-r8982';b.mkdir();sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest();m=json.loads((i/'GLM-helper-stage-trace-plan-r8982.json').read_text());src=i/'glm_helper_stage_trace_r8982.cpp';assert sha(src)==m['source_SHA256'][src.name];h=r/'candidates/glm-grouped-native-model-r5117/helpers/libglm_fp8_batched_r776.so';assert sha(h)==m['helper_SHA256'];lib=b/'libglm_helper_stage_trace_r8982.so';start=time.monotonic();args=['g++','-std=c++17','-O2','-shared','-fPIC','-I/opt/dtk/cuda/cuda/include',str(src),'-L/opt/dtk/cuda/cuda/lib64','-lcudart','-lcublas','-ldl','-Wl,--no-undefined','-o',str(lib)];p=subprocess.run(args,capture_output=True,text=True,timeout=120);(b/'build.log').write_text(p.stdout+p.stderr);d={'completed':p.returncode==0,'GPU':False,'dlopen':False,'compiled_TUs':1,'producer':os.environ.get('SLURM_JOB_ID','NONE')+'.'+os.environ.get('SLURM_STEP_ID','NONE'),'args':args,'source_SHA256':sha(src),'elapsed_seconds':time.monotonic()-start,'library':str(lib),'failure':p.stderr[-4000:]if p.returncode else None}
++if p.returncode==0:
++ d['library_SHA256']=sha(lib);nm=subprocess.check_output(['nm','-D','--defined-only',str(lib)],text=True);assert all(s in nm for s in ['cudaLaunchKernel','cublasGemmStridedBatchedEx','glm_helper_trace_init_r8982','glm_helper_trace_begin_r8982','glm_helper_trace_end_r8982','glm_helper_trace_close_r8982']);d['exports_pass']=True
++(b/'CPU-build.json').write_text(json.dumps(d,indent=2));print(json.dumps(d));assert d['completed']
+--- /dev/null
++++ private/GLM_helper_stage_trace_r8982_inside.sh
+@@ -0,0 +1,24 @@
++#!/bin/bash
++set -euo pipefail
++ulimit -c 0
++source /opt/dtk/env.sh
++export PYTHONPYCACHEPREFIX="/local/infini-pycache-${SLURM_JOB_ID}-${SLURM_STEP_ID}-${SLURM_PROCID}"
++LM=/refactor/candidates/rebased-5f91ad7-r3668/Common/GLM/InfiniLM
++SDK=/refactor/install/hygon-glm-5f91ad7-r3672
++export PYTHONPATH="$LM/python:/old/offline-deps:${PYTHONPATH:-}"
++export TORCH_LIB_DIR="$(python -c 'import pathlib,torch;print(pathlib.Path(torch.__file__).parent / "lib")')"
++export LD_LIBRARY_PATH="/refactor/candidates/glm-hybrid-decode-r5386:$SDK/lib:$LM/python:$LM/python/infinilm/_lib:/refactor/candidates/glm-grouped-native-model-r5117/helpers:$TORCH_LIB_DIR:/opt/dtk/cuda/cuda/lib64:/opt/dtk/cuda/lib64:${LD_LIBRARY_PATH:-}"
++export LD_PRELOAD=/refactor/candidates/glm-helper-stage-trace-r8982/libglm_helper_stage_trace_r8982.so:/refactor/candidates/blas-policy-r271/libblas_policy_r271.so
++export ROCBLAS_TENSILE_LIBPATH=/opt/dtk/lib/rocblas/library_gpu5
++unset RDMAV_DRIVERS NCCL_ALGO NCCL_PROTO NCCL_MIN_NCHANNELS NCCL_MAX_NCHANNELS NCCL_BUFFSIZE
++export GLM_CROSSREQUEST_PREFILL_R7328=0 GLM_SHARED_PREFIX_VALIDATE_R5814=0 GLM_BOUNDED_ROPE_R4279=1 GLM_SHARED_CONTROL_R4279=1
++export GLM_EXACT_BANKS_R4188=1 GLM_PROJECTED_HOST_R4504=1 GLM_GROUPED_ROUTED_R5123=1 GLM_DECODE_ROW_DEDUP_R5386=0
++export GLM_BATCH_ALLSELECTED_R5096=1 GLM_ASYNC_PROJECTED_HOST_R5011=0 GLM_GROUP_PROJECTED_HOST_R5030=0 GLM_ACTUAL_CAPTURE_R5164=0
++export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 NCCL_DEBUG=INFO NCCL_DEBUG_SUBSYS=INIT,NET
++export NCCL_SOCKET_IFNAME=ib NCCL_IB_DISABLE=0
++PLUGIN=/refactor/candidates/public-shca-layers-r2228/layer3-selected/opt
++export LD_LIBRARY_PATH="$PLUGIN/rccl-shca-net/lib:$PLUGIN/ucx-shca/lib:/refactor/candidates/ccl-loader-r1248/rdma:/refactor/build-deps/rdma-host-stack:$LD_LIBRARY_PATH"
++export RDMAV_DRIVERS=/refactor/build-deps/rdma-host-stack/libshca NCCL_NET_PLUGIN=shca NCCL_NET=IBext_v8 UCX_MODULE_DIR="$PLUGIN/ucx-shca/lib/ucx"
++export UCX_NET_DEVICES=shca_0:1,shca_1:1,shca_2:1,shca_3:1 UCX_TLS=rc,sm,self
++timeout --kill-after=15s 300 python -u /refactor/incoming/GLM_helper_stage_trace_r8982.py
++
