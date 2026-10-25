@@ -1,0 +1,125 @@
+{
+  "schema": "Kimi-official-WFP4-source-boundary-card-r8669zr",
+  "utc": "2026-10-24T23:26:51.869082+00:00",
+  "state": "CPU_SOURCE_PREPARATION_ONLY_NO_COMPILE_OR_GPU",
+  "scope": "Only mode114 W13 BF16 input / raw FP32 gate-up -> original SITU/BF16 -> original I192 W2. T16 E896 H3584 I192 TP16; no BF16 resident expert bank and no new whole Model load.",
+  "source_commit": "46ae5dbf6486e5d16f2a71e5d45fc8d55d41bf09",
+  "source_hashes": {
+    "csrc_for_aiter/936_938/moe_wfp4a16_config.h": "34f89f2478b51887ded6ea92f613fba7a192c91fff73733ceed50c872edbadb1",
+    "csrc_for_aiter/936_938/moe_wfp4a16_utils.h": "1c026c134e1950bcd1be0f7f8c2bb942a4359eebab2362f83c94e703459184ac",
+    "csrc_for_aiter/936_938/moe_wfp4a16_opt.h": "06688c8b815967d4da142503d4ce8589bbe78f05fde341dd55988e2dfd8fa4f2",
+    "csrc_for_aiter/936_938/moe_wna16_utils.h": "c613f869d13626fc89559c4d34c1a75844a3129e450b448faf691c73fda01270",
+    "LICENSE": "6f5db8cccd7efc9d4f1d3cb018635ab103604f4d346e5f36540378f670b417ab"
+  },
+  "reuse_original_provider": {
+    "path": "kimi_I192_grouped_provider_r8669y.cu",
+    "SHA256": "1cf1389954e4ae4441ab5e9e23a9d9cb68deb84539bebe62565d3e0ee545c99c",
+    "entry": "modern_kimi_grouped_I192_r8669y",
+    "device_contract": "Local caller DeviceGuard as accepted853/651; passed Runtime.stream; no default Torch stream; stream0 is legal",
+    "retained": "Original currentI192 W2, router/shared/TP16 sum, flags and compact guard unchanged"
+  },
+  "actual_source_boundaries": {
+    "config": "moe_wfp4a16_config.h L97-99 mode114 <16,64,64,16,32,64,1,BF16,true>; WARP_NUM2=128threads",
+    "arch": "utils L537-547: gfx936 !=938 -> INTERLEAVEfalse/DEQUANT_16BITfalse; NORMAL BF16 F32 MMA L40-47",
+    "weight": "opt L364-383 expert_offset=N*K*expert, block64N rows, qweight /8, scale /32; utils L1017-1021 row*K/8+global_k/8, 16byte loads",
+    "scale": "utils L951-958 scale[row*(K/32)+it_out/32+i*2+col], two32value blocks/K64; currentscale matrix reusable",
+    "raw_F32": "opt L465-514 WARP_M16 path writes C_reg direct after Dtypefloat2num; private specialization must store same register directly to float* with same normal column mapping (r_o8+lane/16*2+r_i), no BF16 gate/up boundary",
+    "activation": "Separate bounded GPU SITU launch after FP32 route gate/up; original activation function/route order/BF16 output, original W2 same stream"
+  },
+  "CPU_full_coordinate_contract": {
+    "path": "Kimi-official-WFP4-layout-CPU-r8669zr.json",
+    "SHA256": "ccc8de952f6178608f917bd588cc0310324575d2036c9eb7ea5aaee1eef03e37",
+    "scope": "CPU full local-matrix coordinate/scale-index contract; no actual weights/repack GPU validation",
+    "utc": "2026-10-24T23:25:42.575157+00:00",
+    "passed": true,
+    "shape": [
+      896,
+      384,
+      3584
+    ],
+    "nibble_destination_order": [
+      0,
+      2,
+      4,
+      6,
+      1,
+      3,
+      5,
+      7
+    ],
+    "official_decode_order": [
+      0,
+      4,
+      1,
+      5,
+      2,
+      6,
+      3,
+      7
+    ],
+    "all_local_matrix_codes_checked": 1376256,
+    "all_local_matrix_scales_checked": 43008,
+    "expert_axis_disjoint_intervals": 896,
+    "global_codes_covered_by_product_proof": 1233125376,
+    "global_weight_bytes": 616562688,
+    "global_scale_bytes": 38535168,
+    "limits": [
+      "No original checkpoint bytes read; actual repack roundtrip still required at component qualification",
+      "No proof of official MMA lane/egress beyond source-derived qword and global coordinate mapping",
+      "Original kernel accumulates FP32 scalar products; MMA reduction association changes and final model IDs remain future acceptance"
+    ]
+  },
+  "current_DTK_MMA_evidence": {
+    "existing_receipt": "r8510-GLM-matrix-proof-observed.json",
+    "SHA256": "dc3f9ab15137615a314112304bb06e418620846ce6ca97847c55cd07afcdc429",
+    "producer": "910379.447 CPU compile+emittedISA, not new run",
+    "verified_route": "Existing gfx936 nvcuda::wmma BF16 inputs/F32 accum compiled with DTK nvcc; retained du_mma header maps to __builtin_hcu_mmac_f32_16x16x16_bf16_lit_lts(a,b,c,false,false)",
+    "official_unsuffixed_builtin": "NOT_COMPILED in current task; do not assume official HIP and current CUDA frontends interchangeable",
+    "implementation_option": "Minimal private type/intrinsic shim may call already proven same noninterleaved BF16-F32 macro, compile/ISA gate still required before any GPU."
+  },
+  "minimal_TUs": [
+    {
+      "type": "one private provider CUDA TU",
+      "contents": "Mode114-only selected helper/kernel, fixed gfx936 normal path, raw Runtime.stream CABI, lossless qword repack at CPU layer load, existing-routes to padded16 list, rawF32store+originalSITU kernel in same TU",
+      "limits": "No generic Torch config maps, no whole official CMake, no SDK changes/fastmath flag transplant"
+    },
+    {
+      "type": "one MoE host TU",
+      "contents": "DefaultOFF optin T16I192 W13 dispatch only; current math/provider fallback unchanged; original W2 and TP retained"
+    },
+    {
+      "type": "unchanged existing CPU202 thin wrapper rebind only if ABI unchanged",
+      "contents": "Use retained real teacher0 input/weights/currentI192 comparator and actual all16 owners/globalbarrier; no Model loading"
+    }
+  ],
+  "remaining_exact_obligations": [
+    "intrinsic.h/intrinsic_2.h absent from retained official subset; extract minimum used operations and pin samecommit dependencies OR substitute only alreadyproven samegfx936 MMA shim, no unsupported938 instructions",
+    "Actual checkpoint CPU repack roundtrip incl all896experts/scale bytes still needed; coordinate proof does not readweights",
+    "Official e8m0_to_float_fast is bitcast(scale<<23), scale0->0 and scale255->Inf. Preserve original decoded semantics for these endpoints or prove actualscale domain excludes them; no silent format change",
+    "MMA association changes intermediate values; finite/ownrepeat/shape/shard and predeclared diagnosticerror distribution, finalModelIDs/EOS future gate",
+    "All rawFP32 gate/up values must feed original SITU before BF16; no original official BF16 firstprojection rounding",
+    "Minimalroutepack padded16 sentinel correctness with same16unique topk and no duplicates; never fake zero companions"
+  ],
+  "memory": {
+    "persistent_original_W13_bytes": 616562688,
+    "persistent_repacked_W13_bytes": 616562688,
+    "layout_replaces_original_W13_not_dual_model_bank": true,
+    "scale_bytes_no_extra_copy": 38535168,
+    "temporary_CPU_one_row_bytes": 1792,
+    "raw_F32_gate_up_bytes": 393216,
+    "original_BF16_activation_bytes": 98304,
+    "max_padded_sorted_ids_bytes": 16384,
+    "max_expert_ids_bytes": 1024,
+    "LDS_mode114_bytes_per_CTA": 16448,
+    "no_full_BF16_cache": true,
+    "component_comparison_two_weight_layout_contexts": "About2x.915GiB/owner plus shared/router/temporaries; do not transfer this to wholeModel same-load fit claim"
+  },
+  "finite_future_test": {
+    "GPU": "Not authorized/submitted. Proposed original n01+n04/16DCU hard8min after source/CPU gate/rootGO",
+    "paired": "Matched currentI192 original fullMoE vs officialW13 candidate, cold repack/load separately; 2warm+8ABBA ordinary only, optional bounded owner events only samecalls if alreadyenabled",
+    "performance": "FullMoE maxowner criticalwall, endpointdrift and bothpairedblocks; componentnotModelTPS. Historical oldMMAC/seed fixtures not newperformance reference",
+    "numeric": "Finite, ownrepeat, all16 owner agreement, realweights/shards/FQN; report maxabs/RMS/relativeRMS and distributions, no new intermediatebyteexact gate; modelpromotion only independentfull128IDs/EOS/QA",
+    "stop": "Dependency >3TUs/newSDK/45minCPUbuild -> STOP. No stable >=5%wholeforward bothpairedblockgain or >3%regression -> STOP; no tilegrid."
+  },
+  "wall_prediction": "UNKNOWN until current Model654 all93layer phase result; cannot infer ModelTPS from L1 provider fraction or hardwarepeak"
+}
