@@ -1,0 +1,39 @@
+{
+  "work_item": "glm-selective-int8-feasibility",
+  "owner": "/root/deep_continue_92",
+  "state": "SOURCE_CPU_PREPARATION",
+  "updated_at_utc": "2026-10-25T20:06:53.887732+00:00",
+  "model": "GLM-5.3",
+  "method": "Private defaultOFF selective W8A8 using actual HCU I8Gemm+PerChannelQuantI8 with all activation quantization and epilogue costs",
+  "baseline_sources": [
+    "GLM-I8-actual-backend-r9102e.json",
+    "GLM-I8-actual-SDK-r9102d.json",
+    "GLM-I8-linked-and-Deep-r9102c.json",
+    "GLM-INT8-plan-private-r9102/fp8_to_i8_cpu_prototype_r9102.py"
+  ],
+  "resources": {
+    "parent": "910376",
+    "node": "a02r4n12",
+    "DCU": 1,
+    "CPU": 8,
+    "mem_MiB": 32768,
+    "max_time": "10min",
+    "inner_seconds": 540,
+    "GPU_launch_after": "CPUcompile and exactcontractcheck/freshKFD; nofullModelload"
+  },
+  "shapes": {
+    "projection_K6144N512": "M1/4/8/16/128",
+    "projection_K256N6144": "M1/4/8/16/128"
+  },
+  "measurement": "Quant+INT8MMAC+scale/outputwall, matrix-onlydiagnosticseparate; syntheticvscheckpoint explicit; qualitydifferenceallowedbutfinite/OOB/lifecyclepreserved",
+  "quality": "FP8block->INT8channelisadditionalquantization; numericerrornotwholeModeltaskquality; benchmarklater",
+  "protected": [
+    "910375.714",
+    "910374.1048",
+    "910380newbatch",
+    "910371newbatchdraft",
+    "910384"
+  ],
+  "no_existing_INT8_as_new_gain": true,
+  "no_Model_performance_claim": true
+}

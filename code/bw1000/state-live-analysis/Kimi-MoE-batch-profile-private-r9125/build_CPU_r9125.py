@@ -1,0 +1,17 @@
+import pathlib,json,hashlib,subprocess,shlex,shutil,os
+r=pathlib.Path('/refactor');incoming=pathlib.Path(__file__).parent;b=r/'candidates/Kimi-MoE-batch-profile-r9125';b.mkdir(exist_ok=False);src=b/'src';src.mkdir();sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest();receipt={'completed':False,'CPU_only':True,'dlopen':False,'commands':[],'producer':os.environ['SLURM_JOB_ID']+'.'+os.environ['SLURM_STEP_ID']}
+def run(cmd,label):
+ receipt['commands'].append(cmd);p=subprocess.run(cmd,capture_output=True,text=True,timeout=150);(b/(label+'.log')).write_text(p.stdout+p.stderr);assert p.returncode==0,p.stderr[-6000:]
+try:
+ old=json.loads((r/'results/Kimi-I192-smoke-CPU-r8669zf.json').read_text());prev=json.loads((r/'results/Kimi-I192-CPU-r8669y.json').read_text());oldnative=r/'candidates/Kimi-I192-smoke-r8669zf/libKimi_I192_caller_smoke_r8669zf.so';assert sha(oldnative)=='6125640af7f5878e08f00f92527b3c975738bf3fc3563cb2b6afabb5dbbf6fc8'
+ for p in list(incoming.glob('*.cpp'))+list(incoming.glob('*.cu')):shutil.copyfile(p,src/p.name)
+ for n in ['kimi_tiled_w13_r1858.cuh','kimi_reduce_wave_r1044.cuh']:shutil.copyfile(r/'candidates/Kimi-I192-r8669y/src'/n,src/n)
+ cmd=prev['commands'][0];provider=b/'provider.o';cmd=[str(src/'kimi_i192_batch_provider_r9125.cu')if x.endswith('/kimi_I192_grouped_provider_r8669y.cu')else str(provider)if x.endswith('/provider.o')else str(b/'provider.d')if x.endswith('/provider.d')else '-I'+str(src)if x=='-I/refactor/candidates/Kimi-I192-r8669y/src'else x for x in cmd];run(cmd,'provider')
+ cmd=old['commands'][0];flags=cmd[:cmd.index('-MD')];flags.insert(6,'-I'+str(src));obj=b/'moe.o';run([*flags,'-MD','-MF',str(b/'moe.d'),'-c',str(src/'kimi_moe_batch_r9125.cpp'),'-o',str(obj)],'moe')
+ link=list(old['commands'][-1]);original_objects={p:sha(p)for p in link if p.endswith('.o')};oldmoe='/refactor/candidates/Kimi-I192-smoke-r8669zf/moe.o';oldprovider='/refactor/candidates/Kimi-I192-r8669y/provider.o';assert link.count(oldmoe)==1 and link.count(oldprovider)==1;link[link.index(oldmoe)]=str(obj);link[link.index(oldprovider)]=str(provider);native=b/'libKimi_moe_batch_r9125.so';link[link.index('-o')+1]=str(native);run(link,'native')
+ adapter=list(prev['commands'][-1]);wrapper=b/'libKimi_TP16_batch_r9125.so';adapter=[str(src/'kimi_TP16_batch_runner_r9125.cpp')if x.endswith('/kimi_TP16_full_MoE_I192_r8669y.cpp')else str(native)if x==prev['native']else str(wrapper)if x==prev['library']else str(b/'adapter.d')if x.endswith('/adapter.d')else x for x in adapter];run(adapter,'adapter')
+ definitions=subprocess.check_output(['nm','-D','--defined-only',str(native)],text=True);assert 'modern_kimi_moe_profile_r9125'in definitions
+ deps={p.name:{n:sha(n)for n in shlex.split(p.read_text().replace(chr(92)+chr(10),' ').split(':',1)[1])if pathlib.Path(n).is_file()}for p in b.glob('*.d')}
+ receipt.update(completed=True,native=str(native),native_SHA256=sha(native),library=str(wrapper),library_SHA256=sha(wrapper),objects={str(p):sha(p)for p in [obj,provider]},unchanged_objects={p:h for p,h in original_objects.items()if p not in [oldmoe,oldprovider]},source_SHA256={p.name:sha(p)for p in src.iterdir()},parent_native_SHA256=sha(oldnative),dependencies=deps)
+except BaseException as e:receipt['error']=repr(e)
+(b/'CPU-build.json').write_text(json.dumps(receipt,indent=2));print(json.dumps({k:receipt.get(k)for k in ['completed','producer','error','native','native_SHA256','library','library_SHA256']}));assert receipt['completed']

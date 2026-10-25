@@ -1,0 +1,53 @@
+{
+  "current_provider": "651 native6125640af7f5878e08f00f92527b3c975738bf3fc3563cb2b6afabb5dbbf6fc8",
+  "current_fastpath_T": [
+    16
+  ],
+  "private_candidate_default": "OFF",
+  "private_T_bounds": [
+    8,
+    64
+  ],
+  "no_T512_claim": true,
+  "provider_math": "Unchanged original packedMXFP4 decode/FP32 product and reduction/Situ/BF16/staticW2; only CAPI token guard changed",
+  "kernel_dynamic_index_proof": [
+    "packRoutes reads T*16 and uses routes[e*T*16+slot]",
+    "buildJobs ceiling(count/2), totaljobs<=T*16<=1024",
+    "W13 activation index route*I192+channel, uses dynamicT in route stride",
+    "staticW2 grid3584*T and token>=tokens guard; fixed16 is topk, not batch"
+  ],
+  "workspace": {
+    "capacity_tokens": 64,
+    "routes": 1024,
+    "activation_used_max": 393216,
+    "activation_allocated_until_counts": 786432,
+    "counts_offset": 786432,
+    "routes_offset": 790016,
+    "routes_end_max": 4460032,
+    "job_expert_offset": 4460032,
+    "job_start_offset": 4464128,
+    "jobs_offset": 4468224,
+    "last_write_end": 4468228,
+    "compact_bytes": 4468480,
+    "old_full_bytes": 19148544
+  },
+  "profile_interpretation": {
+    "ordinary": "Fullmodule forward + outer drain only; row canary/numerical checks aftertimer; maxowner duration per synchronizedarm, no crosshost clock subtraction",
+    "drained_segments": "Separate singleprofilecall perT, syncafterroute/down/expert/routedcomm/norm/up/shared/add; perturbs overlap and excludes asyncpipelinebenefits",
+    "shared": "Shared segment includes its RowParallelLinear reduction, notpurecompute",
+    "bytes": "Uniqueweightonepass logical lowerbound, not actualHBM traffic; do not divideonly idealuniqueweightstream by bandwidth as fullModel ceiling",
+    "input": "Historicalteacher0 actual16rows; T8 first8, T32/T64 repeat2/4. Actual U/maxexpertrows captured; notdistinctrealusers"
+  },
+  "CPU": {
+    "handle": "910407.315",
+    "state": "COMPLETED",
+    "seconds": 44,
+    "native_SHA256": "4a923ec4200f56b911dbcc2d79213d602666a9f6cdaee6f650ae2e0040969003",
+    "wrapper_SHA256": "f05847458239ce83cb963d3370802d8592d739691b15f53f3de834f2263a3f5e"
+  },
+  "GPU_actual": "910376.654",
+  "source_SHA256": {
+    "kimi_moe_batch_r9125.cpp": "624292d4dddb356168bb011db5d04cf6a34866b29af2f91ae13eabc9cab7f85c",
+    "kimi_TP16_batch_runner_r9125.cpp": "5a074f3317c7ed982f4230f8b19619bba618ad8f3e1fb1d9fc01eba9e06106e6"
+  }
+}
