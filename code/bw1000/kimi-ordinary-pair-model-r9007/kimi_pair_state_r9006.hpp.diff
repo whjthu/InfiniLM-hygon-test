@@ -1,0 +1,26 @@
+--- CPU237/kimi_pair_state_r9006.hpp
++++ CPU238/kimi_pair_state_r9006.hpp
+@@ -19,11 +19,11 @@
+ struct Row {int active,shadow,past=0,phase=0;size_t width=0,retained=0;std::vector<int64_t> ids;};
+ // phase:0 unprefilled,1 ready,2 verified,3 replay required,4 terminal.
+ class State {
+- const void*owner_;bool poisoned_=false;std::vector<Row> rows_;
++ const void*owner_;bool poisoned_=false,ordinary_=false;uint64_t generation_=0;std::vector<Row> rows_;
+  public: Geometry geometry;
+  State(const void*owner,size_t b):owner_(owner),geometry(b){if(!owner)throw std::invalid_argument("9006 owner");rows_.reserve(b);for(size_t k=1;k<=b;++k){rows_.push_back({int(k),int(k+geometry.half)});rows_.back().ids.reserve(8);}}
+  void owner(const void*p)const{if(p!=owner_||poisoned_)throw std::invalid_argument("9006 wrong/poisoned owner");}
+- Row&row(const void*p,int k){owner(p);if(k<1||size_t(k)>rows_.size())throw std::invalid_argument("9006 logical row");return rows_[size_t(k-1)];}
++ Row&row(const void*p,int k){owner(p);if(ordinary_)throw std::invalid_argument("9007 ordinary mode excludes pair API");if(k<1||size_t(k)>rows_.size())throw std::invalid_argument("9006 logical row");return rows_[size_t(k-1)];}
+  void preflight_prefill(const void*p,int k,size_t n){auto&r=row(p,k);if(r.phase||!n||n>1024)throw std::invalid_argument("9006 prefill once, width1..1024");}
+  void prefilled(const void*p,int k,size_t n){preflight_prefill(p,k,n);auto&r=row(p,k);r.past=int(n);r.phase=1;}
+  void check(const void*p,int k,int past,int read,int write,const std::vector<int64_t>&ids) {
+@@ -34,6 +34,9 @@
+  void commit(const void*p,int k,size_t accepted,bool continuation){auto&r=row(p,k);if(r.phase!=2||accepted>=r.width)throw std::invalid_argument("9006 accepted must0..width-1");r.retained=accepted+1;
+   if(!continuation){r.phase=4;return;}if(r.retained<r.width){r.phase=3;return;}r.past+=int(r.retained);std::swap(r.active,r.shadow);r.phase=1;r.ids.clear();
+  }
++ uint64_t generation()const{return generation_;}
++ void ordinary(const void*p,uint64_t gen)const{owner(p);if(!ordinary_||gen!=generation_)throw std::invalid_argument("9007 ordinary mode/generation");}
++ void switch_mode(const void*p,bool ordinary){owner(p);for(size_t j=0;j<rows_.size();++j){auto&r=rows_[j];r.active=int(j+1);r.shadow=int(j+1+geometry.half);r.past=r.phase=0;r.width=r.retained=0;r.ids.clear();}ordinary_=ordinary;++generation_;}
+  void poison(){poisoned_=true;}
+ };
+ }
