@@ -1,0 +1,19 @@
+import pathlib,json,hashlib,ast
+r=pathlib.Path.cwd();p=r/'Kimi-W13-A8-ABI-private-r8993';sha=lambda x:hashlib.sha256(pathlib.Path(x).read_bytes()).hexdigest()
+read=r/'Kimi-A8-ABI-CPU-r8993-read-a.json';obs=json.loads(read.read_text());cpu=obs['receipt'];assert cpu['completed']and cpu['CPU_only']and not cpu['GPU']and not cpu['dlopen']
+old=json.loads((r/'Kimi-corrected-WFP4-real-manifest-r8970.json').read_text())
+runner=p/'Kimi_A8_ABI_real_r8993.py';ast.parse(runner.read_text())
+m={'scope':'CPU_READY_NOT_GPU_AUTHORIZED: one TP16 rank0/I192/T16 current routed component; actual r4674 M8 inputs duplicated2x,21 activeexperts; W13 A8 vs original I192 provider; no Model/CCL; defaultstream0 only',
+ 'native':cpu['native'],'native_SHA256':cpu['native_SHA256'],'cpu_receipt_path':'/refactor/results/Kimi-A8-ABI-CPU-r8993.json','cpu_receipt_SHA256':obs['receipt_SHA256'],
+ 'runner':'/refactor/incoming/'+runner.name,'runner_SHA256':sha(runner),'fixture_refs':old['fixture_refs'],
+ 'comparison':'baseline unchanged provider.o vs AquantK32+routepack+sortedM16+exactFP4integerdecode+K32int32/F32rescaleW13+originalSiTU/BF16+originalW2; 2 qualification calls,3 warm rounds both,8 balanced AB/BA pairs,2 ownrepeat; no extra variants',
+ 'resource_plan':{'parent':'910374','node':'a14r1n01','DCUs':1,'CPUs':8,'memory_MiB':64000,'hard_seconds':300,'inner_seconds':240,'status':'PROPOSED_ONLY_ROOT_REVIEW_REQUIRED'},
+ 'STOP':['nonzero provider return','A8_error_flag nonzero including nonfinite input/scale255','nonfinite full output/activation/raw','canary failure','ownrepeat mismatch','timeout/native error; no retry'],
+ 'unresolved_before_GPU':'Both libcudart.so.12 and libgalaxyhip.so.5 are NEEDED. Their shared-default-stream ordering is not proven by CPU link or nm. Both launchers reject nonzero stream and verify currentdevice. GPU qualification must complete full raw/output CPU diagnostics before timing. No nondefaultstream compatibility claim.',
+ 'previous_failures_preserved':['910406.234 CUDAfrontend mixedHIPheaders failure','910406.235 HIPfrontend mixedCUDAvectorheaders failure'],
+ 'default_enabled':False,'newSDK_build':False,'Model_authorized':False}
+mp=p/'manifest_r8993.json';mp.write_bytes((json.dumps(m,ensure_ascii=False,indent=2)+'\n').encode())
+files=[p/n for n in ['kimi_A8_matrix_r8993.hip','kimi_A8_adapter_r8993.cu','Kimi_A8_ABI_real_r8993.py','manifest_r8993.json']]+[r/n for n in ['build_Kimi_A8_ABI_CPU_r8993.py','prepare_Kimi_A8_ABI_split_r8993.py','prepare_Kimi_A8_ABI_build_r8993.py','Kimi_A8_ABI_CPU_r8993_inside.sh','launch_Kimi_A8_ABI_CPU_r8993.py','stage_Kimi_A8_ABI_CPU_r8993.py','Kimi-A8-ABI-source-r8993.json','read_Kimi_A8_ABI_CPU_r8993.py','Kimi-A8-ABI-CPU-r8993-read-a.json']]
+d={'status':'CPU_READY_GPU_NOT_LAUNCHED','hardware':'BW1000','level':'component_CPU_build','CPU_step':cpu['step'],'CPU_elapsed_s':cpu['elapsed_s'],'CPU_receipt_SHA256':obs['receipt_SHA256'],'native':cpu['native'],'native_SHA256':cpu['native_SHA256'],'manifest_SHA256':sha(mp),'source_SHA256':{str(x.relative_to(r)):sha(x)for x in files},'actual_dependencies':{k:{'files':len(v),'isolated_header_domains':True}for k,v in cpu['fresh_MD'].items()},'actual_symbols':['modern_kimi_A8_W13_r8993','kimi_A8_HIP_matrix_r8993','modern_kimi_grouped_I192_r8669y','packRoutesI192R8669y','staticW2I192R8669y'],'unchanged_provider_object':cpu['unchanged_provider_object'],'GPU_runs':0,'dlopen':False,'SDK_builds':0,'stream_ABI_limit':m['unresolved_before_GPU'],'sourceclaim':'NOT_PUBLISHED; coordinated Git window and root GPU GO required'}
+out=r/'Kimi-A8-ABI-ready-r8993.json';out.write_bytes((json.dumps(d,ensure_ascii=False,indent=2)+'\n').encode())
+print(json.dumps({'ready':out.name,'ready_SHA256':sha(out),'manifest':str(mp.relative_to(r)),'manifest_SHA256':sha(mp),'entry_SHA256':sha(runner),'native_SHA256':cpu['native_SHA256']},indent=2))
