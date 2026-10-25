@@ -1,0 +1,731 @@
+{
+  "status": "QUALIFIED_RUNTIME_TWO_MATH_SMOKE_13_904_BELOW15",
+  "UTC": "2026-10-25T18:33:37.743789+00:00",
+  "target_handle": "910375.708",
+  "draft_handle": "910374.1035",
+  "target_resources": {
+    "nodes": [
+      "a02r4n08",
+      "a02r4n09",
+      "a02r4n10",
+      "a02r4n11"
+    ],
+    "DCU": 32,
+    "TP": 16,
+    "PP": 2,
+    "batch": 1
+  },
+  "draft_resources": {
+    "node": "a02r4n01",
+    "DCU": 1
+  },
+  "native_DSO_SHA256": "14bc32c2bede5f70a245bb6c132d94fab49172a761b173978c158581e6c833cd",
+  "pinned_draft": {
+    "repo": "lightseekorg/kimi-k3-dflash2",
+    "revision": "e77935fb4804e17eb55085bffd045eae1d779769",
+    "block": 8,
+    "max_proposals": 7,
+    "official_moonshot_weights": false
+  },
+  "algorithm": "Greedy current-target proposal-prefix acceptance, original fastW8 Math0; fullModel partial-state replay; both full logits flags3; no historical AR token gate; not stochastic lossless sampling claim",
+  "user_decode_definition": {
+    "numerator": "useful emitted output tokens after first prefill-selected token; excludes EOS, rejected draft and replay inputs",
+    "denominator": "emitter perf_counter from first prefill-selected token ready until decode loop end; includes draft/capture/ib0 TCP/coordination/verify/commit/replay/emit/report overhead; prefill excluded",
+    "clock_scope": "native token-ready/emit, not HTTP client",
+    "best_formula": "104 / 7.479703578166664 = 13.904294323050065 tok/s",
+    "burst_semantics": "accepted outputs emit together; P50 ITL can be zero while P95 ~0.6 seconds"
+  },
+  "qualified_runtime": true,
+  "quality_no_regression_proven": false,
+  "production_adopted": false,
+  "above_15": false,
+  "quality": "Official GSM8K test indices0,1 only; AR and speculative all four final-number answers correct18/3, all EOS/nontruncated. This is tiny smoke, not full accuracy benchmark.",
+  "limitations": [
+    "Two natural512input/cap64 prompts all cap-limited; K7 slows down both; K2 improves natural1 by only0.8%, noise possible",
+    "No warmed repetitions/CI or broad task distribution yet",
+    "First natural0 AR prefill includes cold startup; do not use that prefill time for optimization comparison",
+    "No simultaneous HTTP users; native single-request greedy only",
+    "Target parameters/activation shapes differ AR/W8 and can yield different sequences; no exact sequence identity requirement"
+  ],
+  "cases": [
+    {
+      "label": "natural0-K0",
+      "K": 0,
+      "input_tokens": 512,
+      "generated_tokens": 64,
+      "EOS": false,
+      "truncated": true,
+      "prefill_local_wall_s": 32.88619602425024,
+      "decode_user_wall_s": 13.812658307608217,
+      "useful_decode_tokens": 63,
+      "decode_user_tok_s": 4.561033698002843,
+      "native_target_only_tok_s": 4.606461792539945,
+      "mean_useful_outputs_per_cycle": 1.0,
+      "proposal_acceptance": null,
+      "cycle_count": 63,
+      "partial_replays": 0,
+      "cost_s": {
+        "verify_s": 13.676440365146846,
+        "replay_s": 0,
+        "draft_RPC_s": 0,
+        "draft_query_s": 0,
+        "append_H2D_s": 0,
+        "commit_local_s": 0,
+        "cycle_user_wall_s": 13.719843884930015
+      },
+      "ITL_P50_s": 0.19433114305138588,
+      "ITL_P95_s": 0.21413067248649895,
+      "ITL_P99_s": 0.7499481736309862,
+      "ITL_max_s": 1.6173568917438388,
+      "generated_IDs_SHA256": "bad6f31e9172c8b688932f95e530f73769601a317d8843ddd3b82d34619a8a49",
+      "quality": null,
+      "same_prompt_AR_speedup": 1.0,
+      "replay_wall_fraction": 0.0,
+      "zero_replay_same_trajectory_counterfactual_tok_s": 4.561033698002843,
+      "counterfactual_is_measured": false
+    },
+    {
+      "label": "natural0-K2",
+      "K": 2,
+      "input_tokens": 512,
+      "generated_tokens": 64,
+      "EOS": false,
+      "truncated": true,
+      "prefill_local_wall_s": 4.67539689084515,
+      "decode_user_wall_s": 17.28665917692706,
+      "useful_decode_tokens": 63,
+      "decode_user_tok_s": 3.644428883290977,
+      "native_target_only_tok_s": 3.9202972198539783,
+      "mean_useful_outputs_per_cycle": 1.6153846153846154,
+      "proposal_acceptance": 0.32051282051282054,
+      "cycle_count": 39,
+      "partial_replays": 30,
+      "cost_s": {
+        "verify_s": 9.93717851722613,
+        "replay_s": 6.133031588513404,
+        "draft_RPC_s": 0.8922785096801817,
+        "draft_query_s": 0.8056541574187577,
+        "append_H2D_s": 0.021771801635622978,
+        "commit_local_s": 0.00020147021859884262,
+        "cycle_user_wall_s": 17.143635837826878
+      },
+      "ITL_P50_s": 0.2832568879239261,
+      "ITL_P95_s": 0.5077119639143348,
+      "ITL_P99_s": 0.553123761918396,
+      "ITL_max_s": 0.5911074909381568,
+      "generated_IDs_SHA256": "d5887141f0104f37184d80432a7176e0c106b64f442ab6f52d0e0ed3d6153840",
+      "quality": null,
+      "same_prompt_AR_speedup": 0.7990357284329594,
+      "replay_wall_fraction": 0.35478408671927286,
+      "zero_replay_same_trajectory_counterfactual_tok_s": 5.648386545149145,
+      "counterfactual_is_measured": false
+    },
+    {
+      "label": "natural0-K4",
+      "K": 4,
+      "input_tokens": 512,
+      "generated_tokens": 64,
+      "EOS": false,
+      "truncated": true,
+      "prefill_local_wall_s": 4.646544515155256,
+      "decode_user_wall_s": 17.07196141872555,
+      "useful_decode_tokens": 63,
+      "decode_user_tok_s": 3.690261385601412,
+      "native_target_only_tok_s": 3.9205968644217424,
+      "mean_useful_outputs_per_cycle": 1.9090909090909092,
+      "proposal_acceptance": 0.22727272727272727,
+      "cycle_count": 33,
+      "partial_replays": 31,
+      "cost_s": {
+        "verify_s": 9.211270515341312,
+        "replay_s": 6.857711371500045,
+        "draft_RPC_s": 0.7542939824052155,
+        "draft_query_s": 0.6800152333453298,
+        "append_H2D_s": 0.01922400388866663,
+        "commit_local_s": 0.00018070871010422707,
+        "cycle_user_wall_s": 16.939083255827427
+      },
+      "ITL_P50_s": 0.4520161049440503,
+      "ITL_P95_s": 0.5566825673449785,
+      "ITL_P99_s": 0.5678031781502068,
+      "ITL_max_s": 0.5680866832844913,
+      "generated_IDs_SHA256": "ee5ca299845c67c9a6f127e88441f606c2b858dfa12a9f94ee4eb0953fa916d4",
+      "quality": null,
+      "same_prompt_AR_speedup": 0.8090844378583041,
+      "replay_wall_fraction": 0.40169440425152886,
+      "zero_replay_same_trajectory_counterfactual_tok_s": 6.167853705237291,
+      "counterfactual_is_measured": false
+    },
+    {
+      "label": "natural0-K7",
+      "K": 7,
+      "input_tokens": 512,
+      "generated_tokens": 64,
+      "EOS": false,
+      "truncated": true,
+      "prefill_local_wall_s": 4.66230261977762,
+      "decode_user_wall_s": 18.10151401720941,
+      "useful_decode_tokens": 63,
+      "decode_user_tok_s": 3.480371859508815,
+      "native_target_only_tok_s": 3.694231073692862,
+      "mean_useful_outputs_per_cycle": 1.9090909090909092,
+      "proposal_acceptance": 0.12987012987012986,
+      "cycle_count": 33,
+      "partial_replays": 32,
+      "cost_s": {
+        "verify_s": 9.921201332472265,
+        "replay_s": 7.1324151693843305,
+        "draft_RPC_s": 0.7659423220902681,
+        "draft_query_s": 0.6811703420244157,
+        "append_H2D_s": 0.019075929187238216,
+        "commit_local_s": 0.00021599186584353447,
+        "cycle_user_wall_s": 17.952483896166086
+      },
+      "ITL_P50_s": 0.5205032820813358,
+      "ITL_P95_s": 0.5861573236063122,
+      "ITL_P99_s": 0.6054689241293818,
+      "ITL_max_s": 0.6244019088335335,
+      "generated_IDs_SHA256": "abc1e84fcc0ae7d51f2d64056336d448ed4590c890b404aa22fc137589534cec",
+      "quality": null,
+      "same_prompt_AR_speedup": 0.7630664647430205,
+      "replay_wall_fraction": 0.394023127712048,
+      "zero_replay_same_trajectory_counterfactual_tok_s": 5.743407081475198,
+      "counterfactual_is_measured": false
+    },
+    {
+      "label": "natural1-K0",
+      "K": 0,
+      "input_tokens": 512,
+      "generated_tokens": 64,
+      "EOS": false,
+      "truncated": true,
+      "prefill_local_wall_s": 4.657799025066197,
+      "decode_user_wall_s": 12.562601536046714,
+      "useful_decode_tokens": 63,
+      "decode_user_tok_s": 5.01488484047113,
+      "native_target_only_tok_s": 5.086294480895371,
+      "mean_useful_outputs_per_cycle": 1.0,
+      "proposal_acceptance": null,
+      "cycle_count": 63,
+      "partial_replays": 0,
+      "cost_s": {
+        "verify_s": 12.386227387469262,
+        "replay_s": 0,
+        "draft_RPC_s": 0,
+        "draft_query_s": 0,
+        "append_H2D_s": 0,
+        "commit_local_s": 0,
+        "cycle_user_wall_s": 12.415412000846118
+      },
+      "ITL_P50_s": 0.19652665173634887,
+      "ITL_P95_s": 0.22197652300819753,
+      "ITL_P99_s": 0.22263418621383607,
+      "ITL_max_s": 0.2229379527270794,
+      "generated_IDs_SHA256": "c01255f8b6ef42eb379d0705cea0f329e8a7b152ca42c6c4bda0756e80059078",
+      "quality": null,
+      "same_prompt_AR_speedup": 1.0,
+      "replay_wall_fraction": 0.0,
+      "zero_replay_same_trajectory_counterfactual_tok_s": 5.01488484047113,
+      "counterfactual_is_measured": false
+    },
+    {
+      "label": "natural1-K2",
+      "K": 2,
+      "input_tokens": 512,
+      "generated_tokens": 64,
+      "EOS": false,
+      "truncated": true,
+      "prefill_local_wall_s": 4.655824837740511,
+      "decode_user_wall_s": 12.460856463294476,
+      "useful_decode_tokens": 63,
+      "decode_user_tok_s": 5.055832252427991,
+      "native_target_only_tok_s": 5.459509578803709,
+      "mean_useful_outputs_per_cycle": 2.1,
+      "proposal_acceptance": 0.5666666666666667,
+      "cycle_count": 30,
+      "partial_replays": 18,
+      "cost_s": {
+        "verify_s": 7.649629615712911,
+        "replay_s": 3.889868408907205,
+        "draft_RPC_s": 0.6873873621225357,
+        "draft_query_s": 0.6185591034591198,
+        "append_H2D_s": 0.017967637162655592,
+        "commit_local_s": 0.00016782153397798538,
+        "cycle_user_wall_s": 12.329252992291003
+      },
+      "ITL_P50_s": 0.0,
+      "ITL_P95_s": 0.5079592220950871,
+      "ITL_P99_s": 0.5220571287535132,
+      "ITL_max_s": 0.5353211341425776,
+      "generated_IDs_SHA256": "c01255f8b6ef42eb379d0705cea0f329e8a7b152ca42c6c4bda0756e80059078",
+      "quality": null,
+      "same_prompt_AR_speedup": 1.0081651749261333,
+      "replay_wall_fraction": 0.31216701840402855,
+      "zero_replay_same_trajectory_counterfactual_tok_s": 7.350377762777525,
+      "counterfactual_is_measured": false
+    },
+    {
+      "label": "natural1-K4",
+      "K": 4,
+      "input_tokens": 512,
+      "generated_tokens": 64,
+      "EOS": false,
+      "truncated": true,
+      "prefill_local_wall_s": 4.6444677989929914,
+      "decode_user_wall_s": 14.920575929339975,
+      "useful_decode_tokens": 63,
+      "decode_user_tok_s": 4.222357119346589,
+      "native_target_only_tok_s": 4.495499142115116,
+      "mean_useful_outputs_per_cycle": 2.1724137931034484,
+      "proposal_acceptance": 0.3017241379310345,
+      "cycle_count": 29,
+      "partial_replays": 26,
+      "cost_s": {
+        "verify_s": 8.126368776895106,
+        "replay_s": 5.887647911440581,
+        "draft_RPC_s": 0.6660243389196694,
+        "draft_query_s": 0.5979482713155448,
+        "append_H2D_s": 0.01776848128065467,
+        "commit_local_s": 0.00015734927728772163,
+        "cycle_user_wall_s": 14.777870667167008
+      },
+      "ITL_P50_s": 0.0,
+      "ITL_P95_s": 0.5613710912875831,
+      "ITL_P99_s": 0.5724984226841481,
+      "ITL_max_s": 0.5897427299059927,
+      "generated_IDs_SHA256": "c01255f8b6ef42eb379d0705cea0f329e8a7b152ca42c6c4bda0756e80059078",
+      "quality": null,
+      "same_prompt_AR_speedup": 0.8419649211625593,
+      "replay_wall_fraction": 0.39459923928693996,
+      "zero_replay_same_trajectory_counterfactual_tok_s": 6.974482678834702,
+      "counterfactual_is_measured": false
+    },
+    {
+      "label": "natural1-K7",
+      "K": 7,
+      "input_tokens": 512,
+      "generated_tokens": 64,
+      "EOS": false,
+      "truncated": true,
+      "prefill_local_wall_s": 4.654539267998189,
+      "decode_user_wall_s": 16.055910111404955,
+      "useful_decode_tokens": 63,
+      "decode_user_tok_s": 3.9237887832499365,
+      "native_target_only_tok_s": 4.166322111039351,
+      "mean_useful_outputs_per_cycle": 2.1724137931034484,
+      "proposal_acceptance": 0.1724137931034483,
+      "cycle_count": 29,
+      "partial_replays": 28,
+      "cost_s": {
+        "verify_s": 8.689122492913157,
+        "replay_s": 6.432127933949232,
+        "draft_RPC_s": 0.6702213361859322,
+        "draft_query_s": 0.598093319684267,
+        "append_H2D_s": 0.017921312246471643,
+        "commit_local_s": 0.0001902710646390915,
+        "cycle_user_wall_s": 15.916725448332727
+      },
+      "ITL_P50_s": 0.0,
+      "ITL_P95_s": 0.5872458807658404,
+      "ITL_P99_s": 0.6072733586840332,
+      "ITL_max_s": 0.6104404288344085,
+      "generated_IDs_SHA256": "c01255f8b6ef42eb379d0705cea0f329e8a7b152ca42c6c4bda0756e80059078",
+      "quality": null,
+      "same_prompt_AR_speedup": 0.7824284919933098,
+      "replay_wall_fraction": 0.4006081180898188,
+      "zero_replay_same_trajectory_counterfactual_tok_s": 6.54628282709694,
+      "counterfactual_is_measured": false
+    },
+    {
+      "label": "gsm8k0-K0",
+      "K": 0,
+      "input_tokens": 164,
+      "generated_tokens": 158,
+      "EOS": true,
+      "truncated": false,
+      "prefill_local_wall_s": 2.4731466262601316,
+      "decode_user_wall_s": 31.78560534864664,
+      "useful_decode_tokens": 156,
+      "decode_user_tok_s": 4.907881988997328,
+      "native_target_only_tok_s": 5.012652455000948,
+      "mean_useful_outputs_per_cycle": 0.9936305732484076,
+      "proposal_acceptance": null,
+      "cycle_count": 157,
+      "partial_replays": 0,
+      "cost_s": {
+        "verify_s": 31.121247962117195,
+        "replay_s": 0,
+        "draft_RPC_s": 0,
+        "draft_query_s": 0,
+        "append_H2D_s": 0,
+        "commit_local_s": 0,
+        "cycle_user_wall_s": 31.189693715423346
+      },
+      "ITL_P50_s": 0.19782721204683185,
+      "ITL_P95_s": 0.23029889380559324,
+      "ITL_P99_s": 0.23315717943012715,
+      "ITL_max_s": 0.23701560078188777,
+      "generated_IDs_SHA256": "32632e98e81b905156871932a16615e19163dda0f112a8fa9b453dba54f73024",
+      "quality": {
+        "task": "GSM8K",
+        "sample_index": 0,
+        "expected_answer": "18",
+        "extracted_answer": "18",
+        "correct": true,
+        "response": "Janet's ducks lay 16 eggs per day.\nShe eats 3 for breakfast.\nShe uses 4 for muffins.\nRemainder: 16 - 3 - 4 = 9 eggs.\nShe sells them at $2 per egg: 9 × 2 = $18.<|close|>think<|sep|><|open|>response<|sep|>**Step 1:** Find how many eggs remain after breakfast and baking.\n- Total eggs: 16\n- Eaten for breakfast: 3\n- Used for muffins: 4\n- Remaining: 16 − 3 − 4 = 9 eggs\n\n**Step 2:** Calculate the earnings from selling the remaining eggs.\n- 9 eggs × $2 per egg = $18\n\n#### 18<|close|>response<|sep|><|close|>message<|sep|><|end_of_msg|>",
+        "truncated": false,
+        "scope": "tiny smoke; not a benchmark no-regression proof"
+      },
+      "same_prompt_AR_speedup": 1.0,
+      "replay_wall_fraction": 0.0,
+      "zero_replay_same_trajectory_counterfactual_tok_s": 4.907881988997328,
+      "counterfactual_is_measured": false
+    },
+    {
+      "label": "gsm8k0-K7",
+      "K": 7,
+      "input_tokens": 164,
+      "generated_tokens": 158,
+      "EOS": true,
+      "truncated": false,
+      "prefill_local_wall_s": 2.457532474771142,
+      "decode_user_wall_s": 14.228602867107838,
+      "useful_decode_tokens": 156,
+      "decode_user_tok_s": 10.963831196710403,
+      "native_target_only_tok_s": 11.704655447013723,
+      "mean_useful_outputs_per_cycle": 5.2,
+      "proposal_acceptance": 0.6047619047619047,
+      "cycle_count": 30,
+      "partial_replays": 17,
+      "cost_s": {
+        "verify_s": 8.992078564595431,
+        "replay_s": 4.335951526183635,
+        "draft_RPC_s": 0.6566761126741767,
+        "draft_query_s": 0.6074554012157023,
+        "append_H2D_s": 0.010904504917562008,
+        "commit_local_s": 0.000222871545702219,
+        "cycle_user_wall_s": 14.089946406893432
+      },
+      "ITL_P50_s": 0.0,
+      "ITL_P95_s": 0.580281488597393,
+      "ITL_P99_s": 0.6198265152424574,
+      "ITL_max_s": 0.6598371178843081,
+      "generated_IDs_SHA256": "32632e98e81b905156871932a16615e19163dda0f112a8fa9b453dba54f73024",
+      "quality": {
+        "task": "GSM8K",
+        "sample_index": 0,
+        "expected_answer": "18",
+        "extracted_answer": "18",
+        "correct": true,
+        "response": "Janet's ducks lay 16 eggs per day.\nShe eats 3 for breakfast.\nShe uses 4 for muffins.\nRemainder: 16 - 3 - 4 = 9 eggs.\nShe sells them at $2 per egg: 9 × 2 = $18.<|close|>think<|sep|><|open|>response<|sep|>**Step 1:** Find how many eggs remain after breakfast and baking.\n- Total eggs: 16\n- Eaten for breakfast: 3\n- Used for muffins: 4\n- Remaining: 16 − 3 − 4 = 9 eggs\n\n**Step 2:** Calculate the earnings from selling the remaining eggs.\n- 9 eggs × $2 per egg = $18\n\n#### 18<|close|>response<|sep|><|close|>message<|sep|><|end_of_msg|>",
+        "truncated": false,
+        "scope": "tiny smoke; not a benchmark no-regression proof"
+      },
+      "same_prompt_AR_speedup": 2.2339231508193405,
+      "replay_wall_fraction": 0.304734875706386,
+      "zero_replay_same_trajectory_counterfactual_tok_s": 15.769281118263486,
+      "counterfactual_is_measured": false
+    },
+    {
+      "label": "gsm8k1-K0",
+      "K": 0,
+      "input_tokens": 126,
+      "generated_tokens": 106,
+      "EOS": true,
+      "truncated": false,
+      "prefill_local_wall_s": 1.9427225426770747,
+      "decode_user_wall_s": 21.334866621065885,
+      "useful_decode_tokens": 104,
+      "decode_user_tok_s": 4.874649644976509,
+      "native_target_only_tok_s": 5.005827140547292,
+      "mean_useful_outputs_per_cycle": 0.9904761904761905,
+      "proposal_acceptance": null,
+      "cycle_count": 105,
+      "partial_replays": 0,
+      "cost_s": {
+        "verify_s": 20.775787313468754,
+        "replay_s": 0,
+        "draft_RPC_s": 0,
+        "draft_query_s": 0,
+        "append_H2D_s": 0,
+        "commit_local_s": 0,
+        "cycle_user_wall_s": 20.825961319729686
+      },
+      "ITL_P50_s": 0.19723366713151336,
+      "ITL_P95_s": 0.2405431091785431,
+      "ITL_P99_s": 0.24850290996953842,
+      "ITL_max_s": 0.2646463750861585,
+      "generated_IDs_SHA256": "4d98a951d083518c74f5b249ed15e1386a8cc65d744b0e0699ec5f33373f4cac",
+      "quality": {
+        "task": "GSM8K",
+        "sample_index": 1,
+        "expected_answer": "3",
+        "extracted_answer": "3",
+        "correct": true,
+        "response": "A robe takes 2 bolts of blue fiber and half that much white fiber.\n\nBlue fiber: 2 bolts\nWhite fiber: half of 2 = 1 bolt\n\nTotal: 2 + 1 = 3 bolts<|close|>think<|sep|><|open|>response<|sep|>**Solving step by step:**\n\n- Blue fiber needed: 2 bolts\n- White fiber needed: half of 2 bolts = 1 bolt\n- Total: 2 + 1 = 3 bolts\n\n#### 3<|close|>response<|sep|><|close|>message<|sep|><|end_of_msg|>",
+        "truncated": false,
+        "scope": "tiny smoke; not a benchmark no-regression proof"
+      },
+      "same_prompt_AR_speedup": 1.0,
+      "replay_wall_fraction": 0.0,
+      "zero_replay_same_trajectory_counterfactual_tok_s": 4.874649644976509,
+      "counterfactual_is_measured": false
+    },
+    {
+      "label": "gsm8k1-K7",
+      "K": 7,
+      "input_tokens": 126,
+      "generated_tokens": 106,
+      "EOS": true,
+      "truncated": false,
+      "prefill_local_wall_s": 1.940677063073963,
+      "decode_user_wall_s": 7.479703578166664,
+      "useful_decode_tokens": 104,
+      "decode_user_tok_s": 13.904294323050065,
+      "native_target_only_tok_s": 14.891888742790602,
+      "mean_useful_outputs_per_cycle": 6.5,
+      "proposal_acceptance": 0.7946428571428571,
+      "cycle_count": 16,
+      "partial_replays": 8,
+      "cost_s": {
+        "verify_s": 4.798641184344888,
+        "replay_s": 2.1850263541564345,
+        "draft_RPC_s": 0.3452571560628712,
+        "draft_query_s": 0.31698380317538977,
+        "append_H2D_s": 0.0062501016072928905,
+        "commit_local_s": 0.0001263120211660862,
+        "cycle_user_wall_s": 7.378672570455819
+      },
+      "ITL_P50_s": 0.0,
+      "ITL_P95_s": 0.5994622727856039,
+      "ITL_P99_s": 0.6202549787983298,
+      "ITL_max_s": 0.6445998148992658,
+      "generated_IDs_SHA256": "4d98a951d083518c74f5b249ed15e1386a8cc65d744b0e0699ec5f33373f4cac",
+      "quality": {
+        "task": "GSM8K",
+        "sample_index": 1,
+        "expected_answer": "3",
+        "extracted_answer": "3",
+        "correct": true,
+        "response": "A robe takes 2 bolts of blue fiber and half that much white fiber.\n\nBlue fiber: 2 bolts\nWhite fiber: half of 2 = 1 bolt\n\nTotal: 2 + 1 = 3 bolts<|close|>think<|sep|><|open|>response<|sep|>**Solving step by step:**\n\n- Blue fiber needed: 2 bolts\n- White fiber needed: half of 2 bolts = 1 bolt\n- Total: 2 + 1 = 3 bolts\n\n#### 3<|close|>response<|sep|><|close|>message<|sep|><|end_of_msg|>",
+        "truncated": false,
+        "scope": "tiny smoke; not a benchmark no-regression proof"
+      },
+      "same_prompt_AR_speedup": 2.8523679311761225,
+      "replay_wall_fraction": 0.29212739934434706,
+      "zero_replay_same_trajectory_counterfactual_tok_s": 19.642368287982173,
+      "counterfactual_is_measured": false
+    }
+  ],
+  "audit": {
+    "qualified_runtime": true,
+    "production_adopted": false,
+    "quality_no_regression_proven": false,
+    "run": "TP16PP2-I1928669zh-91a133cc6fb053fd",
+    "owners": [
+      {
+        "node": 0,
+        "normal8": true,
+        "error": null,
+        "shutdown_error": null,
+        "SHA256": "3b83b37304012506fafc820fcc29a7d0165447c06a2009c889069f56e59fb34d"
+      },
+      {
+        "node": 1,
+        "normal8": true,
+        "error": null,
+        "shutdown_error": null,
+        "SHA256": "7933557744f0f80b61180f32c561604b4baf62edc57d2f68ae9b1761d5d95133"
+      },
+      {
+        "node": 2,
+        "normal8": true,
+        "error": null,
+        "shutdown_error": null,
+        "SHA256": "78c4689f6954dcf56fda7b850c32e923ec1e02e4df0c59900b2bd4335c65f953"
+      },
+      {
+        "node": 3,
+        "normal8": true,
+        "error": null,
+        "shutdown_error": null,
+        "SHA256": "4fadbb1e268e81ab0264be8016370e77bd174043bb3fef43519579be844b0f37"
+      }
+    ],
+    "all32normal": true,
+    "draft_normal": true,
+    "draft_result_SHA256": "27df4c283419381cccc933a1ead08d4abb0cf202470754caa4c83af12c34aeb7",
+    "draft_handle": "910374.1035",
+    "logs": [
+      {
+        "node": 0,
+        "SHA256": "c653ddb60c50ca5903e92ed3fa929304525595c957955ed242c0d3d167733d92"
+      },
+      {
+        "node": 1,
+        "SHA256": "118a2e001385052c96720a42d01be880999720b4929534643733eee170495a3d"
+      },
+      {
+        "node": 2,
+        "SHA256": "6e8ee2e40f3974d6ba818161dfecf61af5a37b15d90a1a34f0c1463411ce6c44"
+      },
+      {
+        "node": 3,
+        "SHA256": "ba6353dd9adab8cb0e9bf976704d0c699911cec8fa5e98d4c972e260dcb961e7"
+      }
+    ],
+    "scope": "True nativeW8greedy onlinecycles with actual trainedDFlash2; native emitterclock notHTTP; GSM8K2 smoke notstandardbenchmark"
+  },
+  "target_terminal": {
+    "JobID": "910375.708",
+    "JobName": "Kimi-live-TP16PP2-TP16PP2-I1928669zh-91a133cc6fb053fd",
+    "State": "COMPLETED",
+    "ExitCode": "0:0",
+    "NodeList": "a02r4n[08-11]"
+  },
+  "target_post_KFD": [
+    {
+      "utc": "2026-10-25T18:25:19.697011+00:00",
+      "node": "a02r4n10",
+      "step": "910375.709",
+      "kfd_pids": [],
+      "ib0_ipv4": [
+        "12.1.2.70"
+      ],
+      "passed": true,
+      "CUDA_initialized": false,
+      "IPv4_source": "Linux SIOCGIFADDR ib0; no external binary"
+    },
+    {
+      "utc": "2026-10-25T18:25:19.704361+00:00",
+      "node": "a02r4n08",
+      "step": "910375.709",
+      "kfd_pids": [],
+      "ib0_ipv4": [
+        "12.1.2.68"
+      ],
+      "passed": true,
+      "CUDA_initialized": false,
+      "IPv4_source": "Linux SIOCGIFADDR ib0; no external binary"
+    },
+    {
+      "utc": "2026-10-25T18:25:19.707439+00:00",
+      "node": "a02r4n09",
+      "step": "910375.709",
+      "kfd_pids": [],
+      "ib0_ipv4": [
+        "12.1.2.69"
+      ],
+      "passed": true,
+      "CUDA_initialized": false,
+      "IPv4_source": "Linux SIOCGIFADDR ib0; no external binary"
+    },
+    {
+      "utc": "2026-10-25T18:25:19.757144+00:00",
+      "node": "a02r4n11",
+      "step": "910375.709",
+      "kfd_pids": [],
+      "ib0_ipv4": [
+        "12.1.2.71"
+      ],
+      "passed": true,
+      "CUDA_initialized": false,
+      "IPv4_source": "Linux SIOCGIFADDR ib0; no external binary"
+    }
+  ],
+  "draft_post_KFD": {
+    "utc": "2026-10-25T18:25:17.117450+00:00",
+    "node": "a02r4n01",
+    "step": "910374.1037",
+    "kfd_pids": [],
+    "ib0_ipv4": [
+      "12.1.2.61"
+    ],
+    "passed": true,
+    "CUDA_initialized": false,
+    "IPv4_source": "Linux SIOCGIFADDR ib0; no external binary"
+  },
+  "phase_costs_per_host_not_additive": {
+    "0": {
+      "ordinary": {
+        "calls": 392,
+        "local_harvest_s": 0.00015421072021126747,
+        "maxhost_CAPI_s": 119.91010899050161
+      },
+      "prefill": {
+        "calls": 8,
+        "local_harvest_s": 0.6345830331556499,
+        "maxhost_CAPI_s": 32.33010745048523
+      },
+      "verify": {
+        "calls": 239,
+        "local_harvest_s": 0.25691295647993684,
+        "maxhost_CAPI_s": 67.3254909995012
+      },
+      "replay": {
+        "calls": 190,
+        "local_harvest_s": 0.11694001546129584,
+        "maxhost_CAPI_s": 42.85378026403487
+      }
+    },
+    "2": {
+      "ordinary": {
+        "calls": 392,
+        "local_harvest_s": 7.486902177333832e-05,
+        "maxhost_CAPI_s": 119.91010899050161
+      },
+      "prefill": {
+        "calls": 8,
+        "local_harvest_s": 0.3959568929858506,
+        "maxhost_CAPI_s": 32.33010745048523
+      },
+      "verify": {
+        "calls": 239,
+        "local_harvest_s": 0.19230970181524754,
+        "maxhost_CAPI_s": 67.3254909995012
+      },
+      "replay": {
+        "calls": 190,
+        "local_harvest_s": 0.07756950194016099,
+        "maxhost_CAPI_s": 42.85378026403487
+      }
+    }
+  },
+  "originals": [
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/Kimi-live-TP16PP2-r9046-launch.json",
+      "bytes": 3456,
+      "SHA256": "31581cd8921c996e459ac5e98e51fb0435b59fb126a702c6daa9ff59fc8406a0"
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/Kimi-live-TP16PP2-r9046-watch.json",
+      "bytes": 5063,
+      "SHA256": "eb87d437afe99f8f89aea95ca799f074301846ec16f2f5a12d4a09e8acd68857"
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Kimi-live-TP16PP2-r9046-audit-TP16PP2-I1928669zh-91a133cc6fb053fd.json",
+      "bytes": 337006,
+      "SHA256": "ab7ae22133a7f12811097e5278db206f4124bdfbe185245c7776207f851e6f68"
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/kimi-live-r9046-TP16PP2-I1928669zh-91a133cc6fb053fd-node2.json",
+      "bytes": 596041,
+      "SHA256": "78c4689f6954dcf56fda7b850c32e923ec1e02e4df0c59900b2bd4335c65f953"
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Kimi-draft-live-r9046-910374.1035.json",
+      "bytes": 68368,
+      "SHA256": "27df4c283419381cccc933a1ead08d4abb0cf202470754caa4c83af12c34aeb7"
+    }
+  ],
+  "next": [
+    "State-only partial replay removing fullModel MoE/MLA/head re-execution; preserve Conv/KDA ownership and MLA prefix length",
+    "Adaptive stop after two low-benefit cycles, transactional switch without discarding committed state",
+    "Resident command loop with same frozen DSO/weights/flags supports AR/oldspec/state-only/adaptive and appended32+quality tasks without reload",
+    "Independent block16 draft acceptance/cost experiment; acceptance length8/16 not assumed"
+  ],
+  "hardware": "BW1000",
+  "level": "WHOLE_MODEL_SPECULATIVE",
+  "producer_evidence": "evidence/bw1000/review93/Kimi-speculative-quality-private-r9046/terminal-compact-r9046.json",
+  "producer_evidence_SHA256": "27af56a3ec9f7668fddd3a8d61d6bf3d1a4b0d5b239732722b123e8b751f2f1c"
+}

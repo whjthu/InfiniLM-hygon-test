@@ -1,0 +1,287 @@
+{
+  "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/csrc/engine/infer_engine.hpp": {
+    "SHA256": "041b64c7daf76a84d00540b06f7d8f43fc407a439b382221da142009dd017be0",
+    "text": "#pragma once\n#include \"../weights/weights.hpp\"\n\n#include \"../config/model_config.hpp\"\n#include \"../global_state/global_state.hpp\"\n#include \"../models/infinilm_model.hpp\"\n#include \"distributed/distributed.hpp\"\n#include \"rank_barrier.hpp\"\n#include \"rank_worker.hpp\"\n#include \"runtime/tensor.hpp\"\n\n#include <cstddef>\n#include <cstdint>\n#include <mutex>\n#include <optional>\n#include <string>\n#include <unordered_map>\n#include <unordered_set>\n#include <vector>\n\nnamespace infinilm::engine {\n\nclass InferEngine {\npublic:\n    using Input = RankWorker::Input;\n\n    using Output = RankWorker::Output;\n\n    // Updated constructor: accept CacheConfig instead of CacheType\n    InferEngine(\n        const std::string &config_str,\n        const distributed::DistConfig &distributed_config,\n        infinilm::runtime::Device::Type device_type,\n        const cache::CacheConfig *cache_config = nullptr,\n        bool enable_graph_compiling = false,\n        backends::AttentionBackend attention_backend = backends::AttentionBackend::Default,\n        std::optional<infinilm::runtime::DataType> kv_cache_dtype = std::nullopt,\n        bool use_mla = false,\n        const std::string &weight_load_mode = \"async\",\n        bool pre_transpose = false);\n\n    // Load a parameter to all workers (each can extract its shard inside RankWorker)\n    void load_param(const std::string &name, const infinilm::runtime::Tensor &param);\n\n    // Load a batch of parameters to all workers, syncing each worker once after the batch.\n    void load_params(const std::unordered_map<std::string, infinilm::runtime::Tensor> &params, bool strict = true);\n\n    // process the weights after loading on all workers (e.g., for quantization)\n    void process_weights_after_loading();\n\n    // return the parameters (i.e. weights and biases).\n    std::vector<std::unordered_map<std::string, infinilm::weights::Weight>> state_dict();\n\n    std::vector<std::string> state_dict_keys();\n\n    // Run a single forward pass on all workers and return sampled token IDs.\n    Output forward(const Input &input);\n\n    void compile();\n\n    void reset_cache(const cache::CacheConfig *new_config);\n\n    std::vector<std::vector<infinilm::runtime::Tensor>> get_kv_cache();\n    // Readonly real VideoNSA raw-pool lifetime; never a tensor pointer.\n    std::uint64_t get_nsa_pool_epoch();\n\n    ~InferEngine();\n\n    const distributed::DistConfig &get_dist_config() const;\n\n    // Get current KV configuration\n    std::unique_ptr<cache::CacheConfig> get_cache_config() const;\n\nprotected:\n    enum class WeightState { Loading,\n                             Finalizing,\n                             Ready,\n                             Failed };\n    void compile_workers();\n\n    std::vector<std::unique_ptr<RankWorker>> workers_;\n    std::unique_ptr<RankBarrier> barrier_;\n    distributed::CommunicationGroup communication_group_;\n    std::unique_ptr<cache::CacheConfig> cache_config_;\n    std::shared_ptr<infinilm::config::ModelConfig> model_config_;\n    backends::AttentionBackend attention_backend_ = backends::AttentionBackend::Default;\n    std::string weight_load_mode_ = \"async\";\n    WeightState weight_state_ = WeightState::Loading;\n    // An untouched engine is still used by the explicit skip_load test mode.\n    // Once loading starts, a partial model may not execute.\n    bool weight_load_started_ = false;\n    std::unordered_set<std::string> loaded_weight_keys_;\n    // A model instance submits one load, compile, cache reset or forward at a\n    // time. RankWorker queues are not reentrant for concurrent callers.\n    mutable std::mutex submission_mutex_;\n    bool use_mla_{false};\n    std::uint64_t nsa_pool_epoch_{0};\n};\n\n} // namespace infinilm::engine\n"
+  },
+  "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/csrc/engine/rank_worker.hpp": {
+    "SHA256": "4b19b773320d0a26ddb4071c8e78072646db7a44cbcc988f0efb417dbd661180",
+    "text": "#pragma once\n#include \"../weights/weights.hpp\"\n\n#include \"../backends/attention_backends.hpp\"\n#include \"../cache/cache.hpp\"\n#include \"../config/model_config.hpp\"\n#include \"../global_state/global_state.hpp\"\n#include \"../models/model_factory.hpp\"\n#include \"compiler/graph_compiler.hpp\"\n#include \"compiler/paged_decode_bucket.hpp\"\n#include \"distributed/distributed.hpp\"\n#include \"nsa_owner_input.hpp\"\n#include \"rank_barrier.hpp\"\n#include \"static_decode_metadata.hpp\"\n\n#include <any>\n#include <condition_variable>\n#include <cstdint>\n#include <exception>\n#include <mutex>\n#include <random>\n#include <string>\n#include <thread>\n#include <tuple>\n#include <unordered_map>\n#include <vector>\n\nnamespace infinilm::engine {\n\nusing ForwardContext = infinilm::global_state::ForwardContext;\n\nclass RankWorker {\n    enum class Command {\n        INIT,\n        LOAD,\n        LOAD_BATCH,\n        PREPROCESS,\n        VALIDATE_W4,\n        PREPARE_W4,\n        COMMIT_W4,\n        RUN,\n        RESET_CACHE,\n        COMPILE,\n        STOP\n    };\n\npublic:\n    struct Input {\n        /// Token IDs tensor of shape `[batch, seq_len]`.\n        std::optional<infinilm::runtime::Tensor> input_ids;\n        /// Position IDs tensor of shape `[batch, seq_len]` or `[seq_len]`.\n        std::optional<infinilm::runtime::Tensor> position_ids;\n        /// Past Lengths of cached sequence for each request, of shape `[num_requests]`.\n        std::optional<infinilm::runtime::Tensor> past_sequence_lengths;\n        /// ToTal Lengths for each request sequence, of shape `[num_requests]`.\n        std::optional<infinilm::runtime::Tensor> total_sequence_lengths;\n        /// Offsets of each request in a continous-batched sequence, of shape `[num_requests + 1]`.\n        std::optional<infinilm::runtime::Tensor> input_offsets;\n        /// Cumulative total sequence lengths for each request, of shape `[num_requests + 1]`.\n        std::optional<infinilm::runtime::Tensor> cu_seqlens;\n        /// Block ids for each request `[batch, max_block_table_length]`. Used for paged cache.\n        std::optional<infinilm::runtime::Tensor> block_tables;\n        /// Slot ids for each token `[seq]`. Used for paged cache.\n        std::optional<infinilm::runtime::Tensor> slot_mapping;\n        /// Mamba state cache indices read at the start of each request forward.\n        std::optional<infinilm::runtime::Tensor> mamba_init_state_indices;\n        /// Mamba state cache indices written with the final state of each request forward.\n        std::optional<infinilm::runtime::Tensor> mamba_final_state_indices;\n        /// Image pixel values for multi-modal models.\n        std::optional<std::vector<infinilm::runtime::Tensor>> pixel_values;\n        /// Image placeholder bounds for MiniCPM-V style replacement.\n        std::optional<std::vector<infinilm::runtime::Tensor>> image_bound;\n        /// Target patch sizes for each image (MiniCPM-V).\n        std::optional<std::vector<infinilm::runtime::Tensor>> tgt_sizes;\n        /// Qwen-style image grids. Vector of tensors shape: [3] with temporal, height, width.\n        std::optional<std::vector<infinilm::runtime::Tensor>> image_grid_thw;\n        /// req_id for each pixel_values among a batch\n        std::optional<std::vector<size_t>> image_req_ids;\n        /// Flattened [start, end) visual token ranges in the packed language sequence.\n        std::optional<std::vector<size_t>> visual_token_ranges;\n        /// Target model hidden states for draft/MTP models.\n        std::optional<infinilm::runtime::Tensor> target_hidden_states;\n        /// Sample logits at every packed input position instead of one token per request.\n        bool sample_all_positions{false};\n\n        float temperature{1};\n\n        int top_k{50};\n\n        float top_p{1};\n\n        // Optional request-owned draws, one per sampled request. Direct engine\n        // callers may omit this while the legacy API is being retired.\n        std::optional<std::vector<float>> random_values;\n\n        // Sampling parameters in request order. The scalar fields above remain\n        // the direct-engine default when this optional batch input is absent.\n        std::optional<std::vector<std::tuple<float, float, int>>> sampling_rows;\n\n        std::optional<nsa::Snapshot> nsa_owner_snapshot;\n\n        infinilm::InfinilmModel::Input to_model_input(\n            infinilm::runtime::Device device,\n            ForwardContext &forward_context,\n            bool snapshot_static_sequence_lengths = false,\n            bool preserve_target_hidden_device = false,\n            size_t logical_kv_upper_bound = 0,\n            std::shared_ptr<const nsa::Proof> nsa_owner = {}) const;\n    };\n\n    struct Output {\n        infinilm::runtime::Tensor output_ids;\n        infinilm::runtime::Tensor logits;\n        infinilm::runtime::Tensor hidden_states;\n        // Present only after this forward actually submitted the selected plan.\n        std::optional<infinilm::execution::graph::Graph::ExecutionReport> graph_execution;\n        const char *eager_reason = \"graphs_disabled\";\n    };\n\n    RankWorker(std::shared_ptr<infinilm::global_state::InfinilmConfig> infinilm_config,\n               const distributed::RankInfo &rank_info,\n               const cache::CacheConfig *cache_config,\n               RankBarrier *barrier,\n               bool enable_graph_compiling,\n               backends::AttentionBackend attention_backend,\n               std::uint64_t nsa_pool_epoch = 0);\n\n    void wait_for_init();\n\n    ~RankWorker();\n\n    // Submit a parameter load job and wait until the load completes on the worker thread.\n    void load_param(const std::string &name,\n                    const infinilm::runtime::Tensor &param);\n\n    void load_params(const std::unordered_map<std::string, infinilm::runtime::Tensor> &params, bool strict = true);\n\n    void process_weights_after_loading();\n    void validate_w4_weights();\n    void prepare_w4_weights();\n    void commit_w4_weights();\n\n    // return the parameters (i.e. weights and biases).\n    std::unordered_map<std::string, infinilm::weights::Weight> state_dict();\n\n    std::vector<std::string> state_dict_keys();\n    std::vector<std::string> state_required_keys();\n\n    // Submit a run (forward + sampling) job.\n    void run(const Input &args);\n\n    // Reset the internal cache with a new configuration\n    void reset_cache(const cache::CacheConfig *new_config, std::uint64_t nsa_pool_epoch = 0);\n    std::uint64_t get_nsa_pool_epoch();\n\n    std::vector<infinilm::runtime::Tensor> get_kv_cache();\n\n    // Compile the model graph if enabled.\n    void compile();\n\n    // Wait until run job completes. The result can be retrieved with get_output().\n    void wait();\n\n    // Request worker shutdown and join the thread.\n    void close();\n    void request_stop() noexcept;\n    void join() noexcept;\n\n    // Thread-safe accessor for last output produced by RUN.\n    Output get_output();\n\n    std::string info() const;\n\nprivate:\n    void thread_loop();\n    void submit_w4_phase(Command command);\n    void fail(const char *operation, std::exception_ptr error) noexcept;\n    void refresh_finite_paged_decode_profile();\n    bool drain_nsa_owner_noexcept() noexcept;\n\nprivate:\n    // Worker properties\n    std::shared_ptr<infinilm::global_state::InfinilmConfig> infinilm_config_;\n    std::shared_ptr<infinilm::config::ModelConfig> model_config_;\n    engine::distributed::RankInfo rank_info_;\n    // Created on the worker thread and retained until its model and plans die.\n    std::shared_ptr<infinilm::runtime::Runtime> runtime_;\n    ForwardContext forward_context_;\n    std::uint64_t nsa_run_serial_{0};\n    std::uint64_t nsa_pool_epoch_{0}, pending_nsa_pool_epoch_{0};\n    // CPU validity revocation never clears this backing retirement obligation.\n    bool nsa_drain_required_{false}, nsa_terminal_undrained_{false};\n    std::shared_ptr<InfinilmModel> model_;\n    // Declared after model/runtime; retained owners retire before those members.\n    std::unique_ptr<quantization::W4ModelPlan> w4_plan_;\n    std::shared_ptr<cache::Cache> cache_;\n\n    // Backends\n    backends::AttentionBackend attention_backend_;\n\n    // Graph Compiling\n    bool enable_graph_compiling_;\n    std::unique_ptr<GraphCompiler> compiler_;\n    StaticDecodeMetadata static_decode_metadata_;\n    // Worker-owned cache configuration; refreshed only after model/cache creation.\n    std::optional<FinitePagedDecodeProfile> finite_paged_decode_profile_;\n\n    // Command for the pending job (protected by mutex_)\n    Command job_cmd_;\n\n    // State flags (protected by mutex_)\n    bool has_job_ = false;       // a job is pending\n    bool job_done_ = false;      // last job completed\n    bool should_exit_ = false;   // request to stop\n    bool init_done_ = false;     // initialization finished\n    std::exception_ptr failure_; // first worker failure, protected by mutex_\n\n    // Task payloads (protected by mutex)\n    std::string pending_param_name_;\n    infinilm::runtime::Tensor pending_param_;\n    std::unordered_map<std::string, infinilm::runtime::Tensor> pending_params_;\n    bool pending_params_strict_ = true;\n    Input pending_args_;\n    std::unique_ptr<cache::CacheConfig> pending_cache_config_;\n\n    // Output (protected by mutex)\n    Output output_;\n\n    // Thread sync\n    std::thread thread_;\n    std::mutex mutex_;\n    std::condition_variable cv_;\n\n    // Random\n    std::mt19937 rng_;\n\n    RankBarrier *barrier_;\n};\n\n} // namespace infinilm::engine\n"
+  },
+  "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/csrc/engine/rank_worker.cpp": {
+    "SHA256": "fa2106347146311d8db5699f9ba80a3c12b9caabe987d8b2d133920cbe7de621",
+    "selected_lines": [
+      [
+        147,
+        "                            const infinilm::runtime::Tensor &param) {"
+      ],
+      [
+        148,
+        "    {"
+      ],
+      [
+        149,
+        "        std::lock_guard<std::mutex> lock(mutex_);"
+      ],
+      [
+        150,
+        "        // If the worker is stopping, don't submit new jobs."
+      ],
+      [
+        151,
+        "        if (should_exit_) {"
+      ],
+      [
+        152,
+        "            if (failure_) {"
+      ],
+      [
+        153,
+        "                std::rethrow_exception(failure_);"
+      ],
+      [
+        154,
+        "            }"
+      ],
+      [
+        155,
+        "            throw std::runtime_error(\"RankWorker is closing; cannot load_param\");"
+      ],
+      [
+        156,
+        "        }"
+      ],
+      [
+        157,
+        ""
+      ],
+      [
+        158,
+        "        pending_param_name_ = name;"
+      ],
+      [
+        159,
+        "        pending_param_ = param;"
+      ],
+      [
+        160,
+        ""
+      ],
+      [
+        161,
+        "        job_cmd_ = Command::LOAD;"
+      ],
+      [
+        218,
+        "void RankWorker::process_weights_after_loading() {"
+      ],
+      [
+        219,
+        "    {"
+      ],
+      [
+        220,
+        "        std::lock_guard<std::mutex> lock(mutex_);"
+      ],
+      [
+        221,
+        "        // If the worker is stopping, don't submit new jobs."
+      ],
+      [
+        222,
+        "        if (should_exit_) {"
+      ],
+      [
+        223,
+        "            if (failure_) {"
+      ],
+      [
+        224,
+        "                std::rethrow_exception(failure_);"
+      ],
+      [
+        225,
+        "            }"
+      ],
+      [
+        226,
+        "            throw std::runtime_error(\"RankWorker is closing; cannot process_weights_after_loading\");"
+      ],
+      [
+        227,
+        "        }"
+      ],
+      [
+        228,
+        ""
+      ],
+      [
+        229,
+        "        job_cmd_ = Command::PREPROCESS;"
+      ],
+      [
+        230,
+        "        has_job_ = true;"
+      ],
+      [
+        231,
+        "        job_done_ = false;"
+      ],
+      [
+        232,
+        "    }"
+      ],
+      [
+        246,
+        "    }"
+      ],
+      [
+        247,
+        "}"
+      ],
+      [
+        248,
+        ""
+      ],
+      [
+        249,
+        "void RankWorker::validate_w4_weights() { submit_w4_phase(Command::VALIDATE_W4); }"
+      ],
+      [
+        250,
+        "void RankWorker::prepare_w4_weights() { submit_w4_phase(Command::PREPARE_W4); }"
+      ],
+      [
+        251,
+        "void RankWorker::commit_w4_weights() { submit_w4_phase(Command::COMMIT_W4); }"
+      ],
+      [
+        252,
+        ""
+      ],
+      [
+        253,
+        "void RankWorker::submit_w4_phase(Command command) {"
+      ],
+      [
+        254,
+        "    {"
+      ],
+      [
+        255,
+        "        std::lock_guard<std::mutex> lock(mutex_);"
+      ],
+      [
+        256,
+        "        // If the worker is stopping, don't submit new jobs."
+      ],
+      [
+        257,
+        "        if (should_exit_) {"
+      ],
+      [
+        258,
+        "            if (failure_) {"
+      ],
+      [
+        259,
+        "                std::rethrow_exception(failure_);"
+      ],
+      [
+        260,
+        "            }"
+      ],
+      [
+        261,
+        "            throw std::runtime_error(\"RankWorker is closing; cannot process_weights_after_loading\");"
+      ],
+      [
+        262,
+        "        }"
+      ],
+      [
+        263,
+        ""
+      ],
+      [
+        264,
+        "        job_cmd_ = command;"
+      ],
+      [
+        265,
+        "        has_job_ = true;"
+      ],
+      [
+        266,
+        "        job_done_ = false;"
+      ],
+      [
+        267,
+        "    }"
+      ],
+      [
+        754,
+        "                                freeze_nsa_cpu(effective_args);"
+      ],
+      [
+        755,
+        "                                const auto original = nsa_upload(effective_args);"
+      ],
+      [
+        756,
+        "                                if (!(original == local_args.nsa_owner_snapshot->upload)) {"
+      ],
+      [
+        757,
+        "                                    throw std::invalid_argument(\"NSA submitted CPU metadata changed after producer freeze\");"
+      ],
+      [
+        758,
+        "                                }"
+      ],
+      [
+        759,
+        "                                nsa::validate(*local_args.nsa_owner_snapshot, original);"
+      ],
+      [
+        760,
+        "                                if (effective_args.input_ids.value()->size(0) != 1"
+      ],
+      [
+        761,
+        "                                    || effective_args.input_ids.value()->size(1) != original.slots.size()"
+      ],
+      [
+        762,
+        "                                    || effective_args.position_ids.value()->size(0) != 3"
+      ],
+      [
+        763,
+        "                                    || effective_args.position_ids.value()->size(1) != original.slots.size()) {"
+      ],
+      [
+        764,
+        "                                    throw std::invalid_argument(\"NSA packed input/position shape mismatch\");"
+      ],
+      [
+        765,
+        "                                }"
+      ],
+      [
+        766,
+        "                            }"
+      ],
+      [
+        767,
+        "                            size_t logical_kv_upper_bound = 0;"
+      ],
+      [
+        768,
+        "                            if (finite_paged_decode_profile_"
+      ]
+    ]
+  },
+  "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/csrc/engine/infer_engine.cpp": {
+    "SHA256": "56718f2640af1fc2d1da69804ead5734d92349760e0d98b613c3a9f923ffe84b",
+    "selected_lines": []
+  }
+}

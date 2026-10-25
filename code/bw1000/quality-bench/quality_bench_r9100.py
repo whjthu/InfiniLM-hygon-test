@@ -34,7 +34,7 @@ def describe(values):
 
 def serving_metrics(requests,window_start,window_end,cards,minimum_user_decode=15.,ttft_slo=None):
     assert window_end>window_start and cards>0
-    duration=window_end-window_start;finished=[];rates=[];ttfts=[];gaps=[];visible=good_tokens=0;good=0
+    duration=window_end-window_start;finished=[];rates=[];ttfts=[];gaps=[];visible=good_tokens=0;good=speed_good=0;speed_good_tokens=0
     for q in requests:
         assert window_start<=q['arrival']<=window_end
         stamps=[float(e['time']) for e in q.get('events',[]) if e.get('visible') is True and e.get('kind')=='committed' and not any(e.get(k,False) for k in ('EOS','pad','draft','replay'))]
@@ -47,9 +47,11 @@ def serving_metrics(requests,window_start,window_end,cards,minimum_user_decode=1
         else:ttft=rate=None
         success=q.get('status')=='completed'
         if success:finished.append(q)
-        meets=success and rate is not None and rate>minimum_user_decode and (ttft_slo is None or ttft<=ttft_slo)
-        if meets:good+=1;good_tokens+=len(stamps)
-    return {'clock_scope':'Caller must declare client/emitter; one common monotonic clock required','window_seconds':duration,'cards':cards,'arrivals':len(requests),'completed':len(finished),'failed':sum(q.get('status')=='failed' for q in requests),'rejected':sum(q.get('status')=='rejected' for q in requests),'unfinished':sum(q.get('status') not in ('completed','failed','rejected') for q in requests),'useful_visible_output_tokens':visible,'overall_output_tok_s':visible/duration,'overall_output_tok_s_per_card':visible/duration/cards,'user_decode_tok_s':describe(rates),'TTFT_seconds':describe(ttfts),'ITL_seconds':describe(gaps),'SLO':{'strict_user_decode_above_tok_s':minimum_user_decode,'TTFT_seconds':ttft_slo},'good_requests':good,'request_goodput_s':good/duration,'SLO_attainment_all_arrivals':good/len(requests) if requests else None,'good_output_tok_s_per_card':good_tokens/duration/cards,'output_cap_requests':sum(q.get('stop_reason') in ('max_new_tokens','length') for q in requests),'quality_of_capped_responses_not_established':True,'no_shifted_first_token_clock':True,'pad_EOS_rejected_unfinished_not_hidden':True}
+        meets_speed=success and rate is not None and rate>minimum_user_decode and (ttft_slo is None or ttft<=ttft_slo)
+        natural=q.get('stop_reason') in ('EOS','stop') or any(e.get('kind')=='EOS' for e in q.get('events',[]))
+        if meets_speed:speed_good+=1;speed_good_tokens+=len(stamps)
+        if meets_speed and natural:good+=1;good_tokens+=len(stamps)
+    return {'clock_scope':'Caller must declare client/emitter; one common monotonic clock required','window_seconds':duration,'cards':cards,'arrivals':len(requests),'completed':len(finished),'failed':sum(q.get('status')=='failed' for q in requests),'rejected':sum(q.get('status')=='rejected' for q in requests),'unfinished':sum(q.get('status') not in ('completed','failed','rejected') for q in requests),'useful_visible_output_tokens':visible,'overall_output_tok_s':visible/duration,'overall_output_tok_s_per_card':visible/duration/cards,'user_decode_tok_s':describe(rates),'TTFT_seconds':describe(ttfts),'ITL_seconds':describe(gaps),'SLO':{'strict_user_decode_above_tok_s':minimum_user_decode,'TTFT_seconds':ttft_slo},'good_requests':good,'goodput_requires_natural_EOS_or_stop':True,'speed_only_good_requests_including_caps':speed_good,'speed_only_output_tok_s_per_card':speed_good_tokens/duration/cards,'request_goodput_s':good/duration,'SLO_attainment_all_arrivals':good/len(requests) if requests else None,'good_output_tok_s_per_card':good_tokens/duration/cards,'output_cap_requests':sum(q.get('stop_reason') in ('max_new_tokens','length') for q in requests),'quality_of_capped_responses_not_established':True,'no_shifted_first_token_clock':True,'pad_EOS_rejected_unfinished_not_hidden':True}
 
 def selftest():
     assert extract_numeric('reason 4+3=7.\n#### 1,234.00')['strict']=='1234'
@@ -59,7 +61,7 @@ def selftest():
     assert score_case(c,'Different reasoning. #### 1234.0','EOS')['flexible_correct']
     a=[score_case(c,'#### 1234','EOS')];b=[score_case(c,'Other reasoning #### 1234','EOS')]
     assert paired_quality(a,b,repeats=50)['accuracy_difference']==0
-    q=[{'arrival':0.,'status':'completed','events':[{'time':1.,'visible':True,'kind':'committed'},{'time':1.05,'visible':True,'kind':'committed'},{'time':1.06,'visible':False}]},{'arrival':0.,'status':'rejected','events':[]},{'arrival':.5,'status':'queued','events':[]}]
+    q=[{'arrival':0.,'status':'completed','stop_reason':'EOS','events':[{'time':1.,'visible':True,'kind':'committed'},{'time':1.05,'visible':True,'kind':'committed'},{'time':1.06,'visible':False}]},{'arrival':0.,'status':'rejected','events':[]},{'arrival':.5,'status':'queued','events':[]}]
     m=serving_metrics(q,0.,2.,8);assert m['good_requests']==1 and m['rejected']==1 and m['unfinished']==1 and m['useful_visible_output_tokens']==2
     return {'passed':True,'CPU_only':True,'scope':'Answer scoring / paired data / EOS and rejected/unfinished accounting; no native model or online service qualification'}
 if __name__=='__main__':

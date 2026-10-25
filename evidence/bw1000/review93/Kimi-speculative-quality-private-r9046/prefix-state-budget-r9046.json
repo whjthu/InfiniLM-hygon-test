@@ -1,0 +1,43 @@
+{
+  "status": "CPU_SOURCE_BUDGET_ONLY_NO_NEW_KERNEL",
+  "current_scope": "TP16PP2 B1 only; existing17-state physicalpool",
+  "KDA_layers_per_stage": [
+    35,
+    34
+  ],
+  "ssm_BF16_bytes_per_layer": 196608,
+  "conv_BF16_bytes_per_layer": 13824,
+  "combined_bytes_per_layer": 210432,
+  "additional_prefix_states_K7": 7,
+  "SSM_plus_Conv_7snapshots_bytes_per_card": [
+    51555840,
+    50082816
+  ],
+  "existing_unused_rows_if_only_logical1_live": [
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16
+  ],
+  "potential_reuse": "Sevenprefixsnapshotscouldfitexistingunusedrows2..8 under explicitB1-onlyownership; not valid when logicalrequests2..8active. Memoryfit is notkernel capability.",
+  "source": "kimi_pair_state_r9006.hpp Geometry::state_rows and recurrent_bytes_per_layer; officialconfig69KDAlayers andactualpartition[0,46)/[46,93); dtypeBF16 H6D128 fromactualcomponent",
+  "MLA": "KV can retain/crop acceptedpositions; overwrittenunacceptedslots remain unreachable; must validateblocktable/pageownership/slotmapping andprefixlength.",
+  "AttnRes": "CurrentTextModel initial_state allocates depthbank perforward/token; not a recurrenttimecache. Preserveworkspace/lifetime,discard rejectedfeaturetaps; do not assumeextra93layerhistorysnapshotrequired.",
+  "missing": [
+    "OriginalIndexedKDAcurrentlyonlyfinalstatewriteperrequest; no verifiedperproposalprefixsnapshotexport",
+    "Convkernelperpositionprefixsnapshotsorboundedlast3inputreconstruction",
+    "PairedstateAPItransactionthatselectsacceptedprefixstateandadvancesMLAKVmetadata",
+    "ActualGPUqualityandwallbenefit"
+  ],
+  "do_not_delay_first_cycle": true
+}

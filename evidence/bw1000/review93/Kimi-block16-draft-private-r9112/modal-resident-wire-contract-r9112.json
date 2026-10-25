@@ -1,0 +1,66 @@
+{
+  "worker": "incoming/modal_resident_worker_r9112.py",
+  "worker_SHA256": "e258a7560f36c41d577c471ac7c2ae1ab71acff8b7e2d2dee09741a96d668d66",
+  "wire": "incoming/modal_wire_r9112.py",
+  "wire_SHA256": "379708adc9f83c51eebb7a3671621c76d2cff6251cd769bba1b49a4fe8a8477f",
+  "hello_request": {
+    "cmd": "hello",
+    "nonce": "KIMI_DRAFT_NONCE_R9046"
+  },
+  "hello_reply": {
+    "ready": true,
+    "greedy_only": true,
+    "revision": "c192d15a43407bf758b5ae0880d5c72052fef1de",
+    "block_size": 16,
+    "proposals": 15,
+    "feature_width": 43008,
+    "six_taps": [
+      19,
+      37,
+      54,
+      66,
+      78,
+      90
+    ]
+  },
+  "commands": [
+    "query",
+    "reset",
+    "close"
+  ],
+  "request_seq": "query/reset/close starts0, exactmonotonic",
+  "query_fields": {
+    "past": "already cached real target context tokens",
+    "rows": "0..512 new true target context rows",
+    "anchor": "pending target-approved token, not yet in context",
+    "K": "1..15; <=7 runsW8, >7 runsW16"
+  },
+  "binary_body": "row-major native little-endian BF16 [rows,43008] in [19,37,54,66,78,90] concat order; not activation file paths",
+  "bounds": {
+    "context_tokens_max": 1024,
+    "row_max": 512,
+    "max_body": 44040192
+  },
+  "cache": "project/append ONLY true target features at past..past+rows-1, predict anchor+masked W, then crop all noise KV to new real context size; reset to empty",
+  "field_TIMING": {
+    "append_H2D_s": "host decode+finite+H2D+sync",
+    "draft_query_s": "draft forward+head+finite+argmax+copy+sync",
+    "full_worker_query_s": "all query call excluding socket receive/send; RPC wall includes wire+worker"
+  },
+  "default_disabled_six_tap_CAPI": "modern_kimi_live_taps_begin_r9112; old begin_r9046 always restoresfive",
+  "chunked_W8_semantics": [
+    "draft gives15 proposals d1..d15",
+    "verify anchor+d1..d7, commit according to existingW8 decision",
+    "only if first accepted7, emittedbonus==d8, nonterminal and budget allows, verify second anchor=d8 plus d9..d15",
+    "first emitsd1..d8, second emitsfromd9 onward; never emitd8 twice or consume anchor twice",
+    "all16 verified input positions contiguous; next draft append=first8features plus second committed prefix features",
+    "two verifies and necessary replay/commit/capture/transport/emit all included in completecycle; not nativeW16singlepass"
+  ],
+  "qualification": "910374.1042 actual 4 old6tap prefixes x K7/K15, full-vs incremental hiddenRMS0, finite/crop/reset; actual currentnewtarget training-feature agreement remainsunknown",
+  "not_claimed": [
+    "onlineacceptance",
+    "end-to-end acceleration",
+    "currenttarget taskquality",
+    "5-10x"
+  ]
+}

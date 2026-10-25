@@ -1,0 +1,33 @@
+--- parent.cpp
++++ deep_packed_varlen_r9101.cpp
+@@ -27,10 +27,11 @@
+ struct PackedRunR8996b {size_t query_begin,count,n,packed_begin;};
+ bool packed_runs_r8996b(const std::vector<std::vector<int64_t>>&selected,
+  const std::vector<size_t>&offsets,size_t packed_rows,std::vector<PackedRunR8996b>&runs){
+- if(selected.size()!=2048||offsets.size()!=2049||offsets.front()!=0||offsets.back()!=packed_rows)return false;
+- for(size_t t=0;t<2048;++t)if(offsets[t+1]-offsets[t]!=selected[t].size())return false;
+- for(size_t t=0;t<2048;){
+-  const size_t n=selected[t].size(),limit=(t/512+1)*512;size_t end=t+1;
++ const size_t total=selected.size();
++ if(total<=32||total>2048||offsets.size()!=total+1||offsets.front()!=0||offsets.back()!=packed_rows)return false;
++ for(size_t t=0;t<total;++t)if(offsets[t+1]-offsets[t]!=selected[t].size())return false;
++ for(size_t t=0;t<total;){
++  const size_t n=selected[t].size(),limit=std::min(total,(t/512+1)*512);size_t end=t+1;
+   if(n>2048)return false;
+   while(end<limit&&selected[end].size()==n&&offsets[end]==offsets[t]+(end-t)*n)++end;
+   if(n&&end-t>=2)runs.push_back({t,end-t,n,offsets[t]});
+@@ -135,7 +136,7 @@
+   size_t largest_prefix_r9054=0;
+   if(scalar_cast_r9054){
+    std::vector<unsigned char>batched(tokens,0);for(const auto&run:runs_r8996b)for(size_t j=0;j<run.count;++j)batched[run.query_begin+j]=1;
+-   for(size_t t=0;t<tokens;){if(batched[t]){++t;continue;}size_t e=t+1,limit=(t/512+1)*512;while(e<limit&&!batched[e])++e;
++   for(size_t t=0;t<tokens;){if(batched[t]){++t;continue;}size_t e=t+1,limit=std::min(total,(t/512+1)*512);while(e<limit&&!batched[e])++e;
+     // Only the actual current short prefix; isolated tails and other shapes stay original.
+     if(e-t>1&&e-t<=127){prefix_end_r9054[t]=e;largest_prefix_r9054=std::max(largest_prefix_r9054,e-t);}t=e;}
+   }
+@@ -185,3 +186,5 @@
+ 
+ extern "C" int deep_values_reuse_mode_r9083(int v){if(v!=0&&v!=1)return 1;infinilm::models::deepseek_v4::values_reuse_mode_r9083.store(v);return 0;}
+ extern "C" int deep_values_reuse_counts_r9083(int d,uint64_t*out,size_t n){if(d<0||d>=8||!out||n!=2)return 1;for(size_t k=0;k<2;++k)out[k]=infinilm::models::deepseek_v4::values_reuse_counts_r9083[d][k].load();return 0;}
++
++extern "C" int deep_packed_varlen_capability_r9101(){return 1;}
