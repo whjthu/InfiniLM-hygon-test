@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-10-25T00:23:16.829624+00:00",
+  "updated_at_utc": "2026-10-25T00:42:16.333019+00:00",
   "owner": "bw1000-agent",
   "hardware": "BW1000",
   "goal_complete": false,
@@ -19,13 +19,13 @@
     "InfiniCCL": "51cc9db31d58aac21643d72f0f77cf5c9ecfaee5"
   },
   "current_cycle_checkpoint": {
-    "utc": "2026-10-25T00:23:16.829624+00:00",
-    "review": "66_COMPLETED_IMPLEMENTED",
-    "ledger": "optimization-review-ledger-after-66-round1.json",
-    "new_valid_rounds": 1,
-    "Kimi": "654qualifiedcurrentModelprofile decode48.15893/card1.50497,no newgain/interleaveSKIPPED.902portnumericallywrongSTOP/noModel. NexttinyrawW13diagnostic pendingreview.",
-    "Deep": "905COMPLETED0/audit0/8normal/post906;syntheticattention14.53x,notModelgain. NewprefillModelpairedpacketCPUprepare;noadditionalGPUyet.",
-    "GLM": "DP504RUNNING32DCU/all32load.return00:18:30;M16qualification567RUNNING16DCU original68bdbd/repairedPython.564recovered52.646vs39.578provisional/noadoption.",
+    "utc": "2026-10-25T00:41:22.783797+00:00",
+    "review": "67_RUNNING",
+    "ledger": "optimization-review-ledger-after-66-round3.json",
+    "new_valid_rounds": 3,
+    "Kimi": "910rawcolumnpermutation diagnosed;B32sourceNO-GO;cap16interleaveCPUpreparing;oneCUDAegressfix queued duringload",
+    "Deep": "908RUNNING n05/8DCU latentprefillModel A/C/C+optionalA,source12ed7e4",
+    "GLM": "504qualified77.463743TPS/32cards2.420742,usermean1.974225;567M16 stillrunning/provisional52.646 notadopted",
     "goal_complete": false,
     "quantization": "Officialgfx936FP4BF16provider candidate pinned46ae5db;packingCPU384pass;notcompiled/GPU/Modelgain"
   },
@@ -155,9 +155,12 @@
         "a02r3n16"
       ],
       "cards": 32,
-      "state": "RUNNING",
+      "state": "COMPLETED",
       "observed_utc": "2026-10-25T00:21:20.597044+00:00",
-      "scope": "Two independentTP8PP2 M8 replicas,common-clockisoA/isoB/joint;60min3500."
+      "scope": "Qualified32DCU actualjoint77.463743TPS;notpercardimprovement/PP4causalclaim",
+      "result": "results/bw1000/2026-10-25/glm504-actual-dual-replica-service.json",
+      "audit": "PASS32normal",
+      "post": "910371.505 fourKFDempty"
     },
     {
       "handle": "910376.567",
@@ -288,26 +291,40 @@
     }
   },
   "latest_review": {
-    "updated_at_utc": "2026-10-25T00:23:16.829624+00:00",
+    "updated_at_utc": "2026-10-25T00:42:16.333019+00:00",
     "policy": "coordination/ASTRA_REVIEW.zh-CN.md",
-    "status": "COMPLETED_IMPLEMENTED_FOLLOWTHROUGH",
-    "review_id": "astra-review-66-current",
+    "status": "RUNNING",
+    "review_id": "astra-review-67-current",
     "model": "gpt-6-astra",
-    "agent": "/root/astra_review_66",
-    "report": "analysis/bw1000/reviews/astra-review-66-current.json",
-    "implementation": "analysis/bw1000/reviews/astra-review-implementation-66-current.json",
-    "ledger": "analysis/bw1000/reviews/optimization-review-ledger-after-66-round1.json",
-    "completed_rounds_since_review": 1,
+    "agent": "/root/astra_review_67",
+    "report": "analysis/bw1000/reviews/astra-review-67-current.json",
+    "implementation": null,
+    "ledger": "analysis/bw1000/reviews/optimization-review-ledger-after-66-round3.json",
+    "completed_rounds_since_review": 3,
     "normal_trigger": 3,
     "independent_work_continues": true,
-    "report_available": true,
-    "inflight_review": null,
+    "report_available": false,
+    "inflight_review": "/root/astra_review_67",
     "unreviewed_completed_experiments": [
       {
         "handle": "910374.905",
         "evidence": "results/bw1000/2026-10-25/deep905-synthetic-attention-prefill-tiles.json",
         "SHA256": "4a4ba764b828c8a832adf0cb21c37bf1c72d7fc98233f73a313031cdaf5635f1",
         "scope": "Qualified syntheticattention causalpairedcomponent,14.53x smallerror,8normal/audit0/post906empty. Same-seed independence limited;notModelgain/quality.",
+        "performance_round": false
+      },
+      {
+        "handle": "910371.504",
+        "evidence": "results/bw1000/2026-10-25/glm504-actual-dual-replica-service.json",
+        "SHA256": "b6a26554f2cbb636d1f5800aada7644539d2fc51a494ebe1127668e6a5ece0a1",
+        "scope": "Qualified actual two-replica32DCU commonclock service,77.463743TPS/card2.420742,32normal/fullIDsEOS/QA/audit0/post505empty. Not matchedPP4 gain or percard improvement.",
+        "performance_round": true
+      },
+      {
+        "handle": "910374.910",
+        "evidence": "results/bw1000/2026-10-25/kimi910-raw-w13-column-diagnostic.json",
+        "SHA256": "50061693c84adc234cb24b7f3da47aead9bccbe5f691f65135f67b39b60cb09f",
+        "scope": "Completed actual1DCU synthetic rawCABI causal mapping diagnostic,6144signatures matched/25%identity/N1maps4;normal/audit/post911empty. Wrongport remains unqualified,noModelgain.",
         "performance_round": false
       }
     ],
@@ -318,29 +335,45 @@
       "GLM66-CLOSE-504-DUAL-REPLICA": "ACCEPT_CONTINUE_ORIGINAL504:32DCU,60min3500;isoA complete142.447s at00:22:14,collector32done,isoB begun;joint/audit/normal/post pending. Actual common-clock metrics only; no sequentialaddition.",
       "KIMI66-GEOMETRY-CACHE-OR-INTERLEAVE-DECISION": "ACCEPT_ROOT_CPU20MIN: bind actual654 cache/provider and physicalmemory evidence; threepage~3.95GiB is insufficient/edge, currentTP8-only selector no TP16claim. No GPU or guardlowering/TP32port. If no concrete positive headroom, stopB32 and prepare existingcap16interleave for next necessaryload with fewer answeredbaselinearms.",
       "KIMI66-ONE-RAW-W13-CAUSAL-DIAGNOSTIC": "ACCEPT_OWNER_CPU20MIN: online_service_scheduler resumed. Existing6b669 CABI,16activeexperts/onehot/independentCPUraworacle, no nativecompile/weights/CCL. Proposed910374n01/1DCU,c8,16000M/3min; root packet read/sourceclaim/freshownership before unique GPU. Wrong902 remainsSTOP, no realMoE rerun without newdecision."
-    }
+    },
+    "previous_completed_review_id": "astra-review-66-current",
+    "previous_report": "analysis/bw1000/reviews/astra-review-66-current.json"
   },
   "astra_review": {
-    "updated_at_utc": "2026-10-25T00:23:16.829624+00:00",
+    "updated_at_utc": "2026-10-25T00:42:16.333019+00:00",
     "policy": "coordination/ASTRA_REVIEW.zh-CN.md",
-    "status": "COMPLETED_IMPLEMENTED_FOLLOWTHROUGH",
-    "review_id": "astra-review-66-current",
+    "status": "RUNNING",
+    "review_id": "astra-review-67-current",
     "model": "gpt-6-astra",
-    "agent": "/root/astra_review_66",
-    "report": "analysis/bw1000/reviews/astra-review-66-current.json",
-    "implementation": "analysis/bw1000/reviews/astra-review-implementation-66-current.json",
-    "ledger": "analysis/bw1000/reviews/optimization-review-ledger-after-66-round1.json",
-    "completed_rounds_since_review": 1,
+    "agent": "/root/astra_review_67",
+    "report": "analysis/bw1000/reviews/astra-review-67-current.json",
+    "implementation": null,
+    "ledger": "analysis/bw1000/reviews/optimization-review-ledger-after-66-round3.json",
+    "completed_rounds_since_review": 3,
     "normal_trigger": 3,
     "independent_work_continues": true,
-    "report_available": true,
-    "inflight_review": null,
+    "report_available": false,
+    "inflight_review": "/root/astra_review_67",
     "unreviewed_completed_experiments": [
       {
         "handle": "910374.905",
         "evidence": "results/bw1000/2026-10-25/deep905-synthetic-attention-prefill-tiles.json",
         "SHA256": "4a4ba764b828c8a832adf0cb21c37bf1c72d7fc98233f73a313031cdaf5635f1",
         "scope": "Qualified syntheticattention causalpairedcomponent,14.53x smallerror,8normal/audit0/post906empty. Same-seed independence limited;notModelgain/quality.",
+        "performance_round": false
+      },
+      {
+        "handle": "910371.504",
+        "evidence": "results/bw1000/2026-10-25/glm504-actual-dual-replica-service.json",
+        "SHA256": "b6a26554f2cbb636d1f5800aada7644539d2fc51a494ebe1127668e6a5ece0a1",
+        "scope": "Qualified actual two-replica32DCU commonclock service,77.463743TPS/card2.420742,32normal/fullIDsEOS/QA/audit0/post505empty. Not matchedPP4 gain or percard improvement.",
+        "performance_round": true
+      },
+      {
+        "handle": "910374.910",
+        "evidence": "results/bw1000/2026-10-25/kimi910-raw-w13-column-diagnostic.json",
+        "SHA256": "50061693c84adc234cb24b7f3da47aead9bccbe5f691f65135f67b39b60cb09f",
+        "scope": "Completed actual1DCU synthetic rawCABI causal mapping diagnostic,6144signatures matched/25%identity/N1maps4;normal/audit/post911empty. Wrongport remains unqualified,noModelgain.",
         "performance_round": false
       }
     ],
@@ -351,7 +384,9 @@
       "GLM66-CLOSE-504-DUAL-REPLICA": "ACCEPT_CONTINUE_ORIGINAL504:32DCU,60min3500;isoA complete142.447s at00:22:14,collector32done,isoB begun;joint/audit/normal/post pending. Actual common-clock metrics only; no sequentialaddition.",
       "KIMI66-GEOMETRY-CACHE-OR-INTERLEAVE-DECISION": "ACCEPT_ROOT_CPU20MIN: bind actual654 cache/provider and physicalmemory evidence; threepage~3.95GiB is insufficient/edge, currentTP8-only selector no TP16claim. No GPU or guardlowering/TP32port. If no concrete positive headroom, stopB32 and prepare existingcap16interleave for next necessaryload with fewer answeredbaselinearms.",
       "KIMI66-ONE-RAW-W13-CAUSAL-DIAGNOSTIC": "ACCEPT_OWNER_CPU20MIN: online_service_scheduler resumed. Existing6b669 CABI,16activeexperts/onehot/independentCPUraworacle, no nativecompile/weights/CCL. Proposed910374n01/1DCU,c8,16000M/3min; root packet read/sourceclaim/freshownership before unique GPU. Wrong902 remainsSTOP, no realMoE rerun without newdecision."
-    }
+    },
+    "previous_completed_review_id": "astra-review-66-current",
+    "previous_report": "analysis/bw1000/reviews/astra-review-66-current.json"
   },
   "current_speculative_evidence": "analysis/bw1000/Kimi-speculative-latest-r8892.json",
   "current_Kimi879": "results/bw1000/2026-10-25/kimi879-owner-stream-diagnostic.json",
@@ -422,5 +457,8 @@
   "current_Kimi654": "results/bw1000/2026-10-25/kimi654-current-model-critical-path.json",
   "current_Kimi902": "results/bw1000/2026-10-25/kimi902-official-wfp4-numeric-negative.json",
   "current_GLM564_recovered": "results/bw1000/2026-10-25/glm564-failed-consumer-recovered-generation.json",
-  "current_Deep905": "results/bw1000/2026-10-25/deep905-synthetic-attention-prefill-tiles.json"
+  "current_Deep905": "results/bw1000/2026-10-25/deep905-synthetic-attention-prefill-tiles.json",
+  "current_GLM_DP504": "results/bw1000/2026-10-25/glm504-actual-dual-replica-service.json",
+  "current_Kimi910": "results/bw1000/2026-10-25/kimi910-raw-w13-column-diagnostic.json",
+  "current_Kimi_capacity_decision": "analysis/bw1000/kimi-cap32-source-decision-r8944.json"
 }

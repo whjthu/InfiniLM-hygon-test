@@ -1,0 +1,61 @@
+{
+  "utc": "2026-10-25T00:34:13.457950+00:00",
+  "hardware": "BW1000",
+  "level": "CPU_SOURCE_AND_EXISTING_MEMORY_DECISION",
+  "status": "NO_SAFE_CAP32_ADMISSION_EVIDENCE_SELECT_CAP16_INTERLEAVE",
+  "GPU": false,
+  "new_round_count": 0,
+  "current_actual_handle": "910375.654",
+  "current_actual_geometry": {
+    "KDA_pool_rows": 17,
+    "max_rows": 16,
+    "max_total_tokens": 1024,
+    "page_size": 256,
+    "pages": 68,
+    "pages_per_request": 4
+  },
+  "all_four_reports_postQA_gate_min_free_bytes": 4831838208,
+  "required_original_geometry_guard_bytes": 4294967296,
+  "bound_current_objects": [
+    {
+      "path": "/refactor/candidates/kimi-compact-cache-r4974/objects/kimi_engine_probe_r2475.o",
+      "SHA256": "a28276be85b5e41abe1d42b02f93dfaab7696767f1973713736cee177d4ab4e7"
+    },
+    {
+      "path": "/refactor/candidates/kimi-compact-cache-r4974/objects/infer_engine.o",
+      "SHA256": "12d29534d9f682342c68bd88af103a6a39fa876c1e4a45aed4a3d91aa4827e39"
+    },
+    {
+      "path": "/refactor/candidates/kimi-compact-cache-r4974/objects/kimi_k3_allocate_cache.o",
+      "SHA256": "125a5a57313ec9dcf0b700379518e6014fff619a9e1bdc7707f41250cb16949d"
+    }
+  ],
+  "conditional_logical_estimate": {
+    "cap16_to_cap32_four_page_extra_bytes": 1095942144,
+    "cap32_four_page_estimated_free_bytes": 3735896064,
+    "cap32_three_page_MLA_saving_bytes": 506068992,
+    "cap32_three_page_estimated_free_bytes": 4241965056,
+    "shortfall_vs_original_guard_bytes": 53002240
+  },
+  "source_constraints": "Current linked probe/engine/KDAallocator objects match retained r4974 sources. Three-page compact capability is TP8PP4-only. TP16 noncompact KDApool derives pages/4; changing to3pages alone would undersize state rows. Need joint consumer/allocator validation; no configuration-only change.",
+  "limits": "Logical deltas assume unchanged allocator/lifetimes; these are not actual cap32 peak/OOM proof. Current654 memory is actual and unchanged from648. No source-supported additional saving with verified positive margin was identified within this bounded source check. No new GPU admission, guard lowering, broad allocator rewrite or TP32 port.",
+  "decision": "Park cap32 and pureTP32. Prepare already CPU-tested cap16 B16M16 interleave for one necessary load, prioritizing candidate comparison over previously answered OFF/reference/profile arms. Two mandatory full128 baseline/candidate arms; finalIDs/EOS+QA and original guards unchanged. Compare first-to-last user throughput,TTFT,maxgap,aggregate/card; no15tok/s promise.",
+  "evidence": [
+    {
+      "path": "Kimi654-current-cache-memory-r8944.json",
+      "SHA256": "9fe8f05a0345ad601874bc0f108466c033318f8133603351b7295a56223a0534"
+    },
+    {
+      "path": "Kimi642-capacity-analysis-r8669z.json",
+      "SHA256": "72b0815cf29be525acb06af11c30f08ec4dc76fed96eb1f714e000ed44f9a33c"
+    },
+    {
+      "path": "Kimi-larger-batch-source-r8897.json",
+      "SHA256": "cdeb78df0f2d792df2c09c8b5650b78250dc08cab4b8f8d1686bbf14ebfeb4b7"
+    },
+    {
+      "path": "Kimi-Model-events-CPU-observed-r8669zq1-a.json",
+      "SHA256": "313c303d24816023bcc002277dbf7848246c2fdd74727191cb7407eecc50a351"
+    }
+  ]
+}
