@@ -1,0 +1,10 @@
+import pathlib,json,hashlib,subprocess,os,time
+r=pathlib.Path('/refactor');i=r/'incoming';b=r/'candidates/glm-prefill-profile-r8995';b.mkdir();sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest();m=json.loads((i/'GLM-prefill-profile-CPU-manifest-r8995.json').read_text());q={'completed':False,'GPU':False,'dlopen':False,'compiled_TUs':1,'producer':os.environ['SLURM_JOB_ID']+'.'+os.environ['SLURM_STEP_ID']};started=time.perf_counter();commands=[]
+try:
+ for n,h in m['sources_SHA256'].items():assert sha(i/n)==h,n
+ parent=r/'candidates/glm-hybrid-decode-r5386';proof=json.loads((parent/'build.json').read_text());assert proof['completed']and sha(parent/'libnative.so')==proof['library_sha256']=='f35956f532833ce964bf766c8a61b44b56fe79042921d86710ccd075101705d2'
+ before={str(parent/n):sha(parent/n)for n in proof['linked_objects_sha256']};assert all(before[str(parent/n)]==h for n,h in proof['linked_objects_sha256'].items())
+ args=[str(i/'glm_prefill_profile_r8995.cpp')if a=='/refactor/incoming/glm_hybrid_decode_native_r5386.cpp'else a for a in proof['args']];args[args.index('-o')+1]=str(b/'libnative.so');commands.append(args);p=subprocess.run(args,capture_output=True,text=True,timeout=160);(b/'build.log').write_text(p.stdout+p.stderr);assert p.returncode==0,p.stderr[-7000:]
+ nm=subprocess.check_output(['nm','-D','--defined-only',str(b/'libnative.so')],text=True,timeout=10);assert all(n in nm for n in ['glm_prefill_trace_init_r8995','glm_prefill_trace_begin_r8995','glm_prefill_trace_end_r8995','glm_prefill_trace_close_r8995','glm_certified_stats_r5248','glm_grouped_down_r5123']);assert all(sha(n)==h for n,h in before.items());q.update(completed=True,elapsed_seconds=time.perf_counter()-started,library=str(b/'libnative.so'),library_SHA256=sha(b/'libnative.so'),source_SHA256=sha(i/'glm_prefill_profile_r8995.cpp'),reused_objects_SHA256=before)
+except BaseException as exc:q['failure']=repr(exc)
+q['commands']=commands;(b/'CPU-build.json').write_text(json.dumps(q,indent=2));print(json.dumps({k:v for k,v in q.items()if k not in ['commands','reused_objects_SHA256']}));assert q['completed']
