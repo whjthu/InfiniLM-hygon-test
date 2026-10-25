@@ -1,0 +1,2 @@
+import pathlib,json,sys
+d=json.loads(pathlib.Path(sys.argv[1]).read_text());assert d['status']=='TRAINED_DRAFT_MECHANICS_COMPLETED_NOT_TARGET_QUALIFIED'and d['shutdown_returncode']==0;assert len(d['phases'])==4 and all(x['whole_logits_error']['finite']and x['hidden_error']['finite']for x in d['phases']);assert all(d['ownrepeat'].values())and d['EOS_no_query'];print(json.dumps({'passed':True,'scope':'traineddraft syntheticfeatures not targetacceptance'}))
