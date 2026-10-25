@@ -1,0 +1,59 @@
+--- actual80ac/glm_moe_dsa_attention_prepare_r809.cpp
++++ private/glm_attention_prepare_fence_r8974.cpp
+@@ -5,9 +5,34 @@
+ #include "glm_moe_dsa_indexer_rotary.hpp"
+ #include "execution/submit.hpp"
+ #include <stdexcept>
++#include <array>
++#include <atomic>
+ namespace infinilm::models::glm_moe_dsa{
+ namespace rt=infinilm::runtime;namespace ex=infinilm::execution;
+ namespace {struct Work{rt::Runtime&r;std::vector<rt::Tensor>held;int entered_exceptions=std::uncaught_exceptions();~Work(){decode_leases_r1354::retire(r,held,entered_exceptions);}rt::Tensor alloc(rt::Shape s,rt::DataType d){auto x=rt::Tensor::empty(r,s,d);held.push_back(x);return x;}};}
++namespace {
++std::array<std::atomic<int>,8> prepare_fence_policy_r8974{};
++std::array<std::atomic<unsigned>,8> prepare_fence_active_r8974{};
++std::array<std::atomic<unsigned long long>,8> prepare_fence_hits_r8974{};
++struct PrepareFenceScope8974 {
++ rt::Runtime&r;int device;bool eligible=false;
++ PrepareFenceScope8974(rt::Runtime&owner,size_t tokens):r(owner),device(r.device().index()){
++  if(device>=0&&device<8){
++   prepare_fence_active_r8974[device].fetch_add(1,std::memory_order_acq_rel);
++   try{eligible=tokens==8&&prepare_fence_policy_r8974[device].load(std::memory_order_acquire)&&decode_leases_r1354::active(r);}catch(...){prepare_fence_active_r8974[device].fetch_sub(1,std::memory_order_release);throw;}
++  }
++ }
++ ~PrepareFenceScope8974(){if(device>=0&&device<8)prepare_fence_active_r8974[device].fetch_sub(1,std::memory_order_release);}
++ void finish(){if(eligible){decode_leases_r1354::success_fence(r);prepare_fence_hits_r8974[device].fetch_add(1,std::memory_order_relaxed);}else r.syncStream();}
++};
++}
++extern "C" int modern_glm_prepare_fence_policy_r8974(int device,int enabled){
++ if(device<0||device>=8||(enabled!=0&&enabled!=1))return -1;
++ if(prepare_fence_active_r8974[device].load(std::memory_order_acquire))return -2;
++ prepare_fence_policy_r8974[device].store(enabled,std::memory_order_release);return 0;
++}
++extern "C" unsigned long long modern_glm_prepare_fence_hits_r8974(int device){return device>=0&&device<8?prepare_fence_hits_r8974[device].load(std::memory_order_relaxed):0;}
++
+ Fp8Projection::Fp8Projection(rt::Runtime&r,size_t rows,size_t columns,int tp,int rank):device_(r.device()),rows_(0),columns_(columns),offset_(0){
+  r.assertOwnerThread();if(!rows||!columns||tp<1||rank<0||rank>=tp||rows%size_t(tp)||r.isGraphRecording())throw std::invalid_argument("GLM FP8 projection partition differs");
+  rows_=rows/size_t(tp);offset_=size_t(rank)*rows_;
+@@ -43,6 +68,7 @@
+ AttentionPrepare::Output AttentionPrepare::prepare_impl(rt::Runtime&r,const rt::Tensor&x,const rt::Tensor&positions,bool expand)const{
+  r.assertOwnerThread();if(!ready_||r.device()!=device_||r.isGraphRecording()||!x||x->device()!=device_||x->dtype()!=rt::DataType::kBFloat16||x->ndim()!=2||!x->size(0)||x->size(1)!=6144||!positions||positions->device()!=device_||positions->dtype()!=rt::DataType::kInt64||positions->shape()!=rt::Shape{x->size(0)}||!positions->is_contiguous())throw std::invalid_argument("GLM attention prepare input/position contract differs");
+  size_t tokens=x->size(0);std::vector<int64_t>host_positions(tokens);r.memcpyD2H(host_positions.data(),positions->data(),tokens*8);for(auto p:host_positions)if(p<0||size_t(p)>=maximum_)throw std::invalid_argument("GLM attention position out of bounds");
++ PrepareFenceScope8974 prepare_fence{r,tokens};
+  Work work{r};
+  // The checkpoint reference uses the attention RMSNorm default epsilon and
+  // rounds the normalized activation to BF16 before multiplying its weight.
+@@ -50,11 +76,11 @@
+  auto qa=qa_->forward(r,x);work.held.push_back(qa);auto resid=norm(qa,qn_,qones_);work.held.push_back(resid);auto query=qb_->forward(r,resid)->view({tokens,heads_,256});work.held.push_back(query);
+  auto ka=ka_->forward(r,x);work.held.push_back(ka);auto latent=norm(ka->narrow({{1,0,512}}),kn_,kones_);work.held.push_back(latent);auto key_rot=ka->narrow({{1,512,64}})->contiguous(r)->view({tokens,1,64});work.held.push_back(key_rot);
+  auto query_rot=query->narrow({{2,192,64}})->contiguous(r);work.held.push_back(query_rot);auto rotated=indexer_rotary(r,*rope_,query_rot,key_rot,positions,64);work.held.push_back(rotated.first);work.held.push_back(rotated.second);query->narrow({{2,192,64}})->copy_from(r,rotated.first);
+- if(!expand){r.syncStream();return {query,{},{},resid,latent,rotated.second};}
++ if(!expand){prepare_fence.finish();return {query,{},{},resid,latent,rotated.second};}
+  auto expanded=kb_->forward(r,latent)->view({tokens,heads_,448});work.held.push_back(expanded);auto key=work.alloc({tokens,heads_,256},rt::DataType::kBFloat16);key->narrow({{2,0,192}})->copy_from(r,expanded->narrow({{2,0,192}}));
+  // Broadcast the single rotary key explicitly, preserving Runtime tensor ownership.
+  for(size_t head=0;head<heads_;++head)key->narrow({{1,head,1},{2,192,64}})->copy_from(r,rotated.second);
+- auto value=expanded->narrow({{2,192,256}})->contiguous(r);work.held.push_back(value);r.syncStream();return {query,key,value,resid,latent,rotated.second};
++ auto value=expanded->narrow({{2,192,256}})->contiguous(r);work.held.push_back(value);prepare_fence.finish();return {query,key,value,resid,latent,rotated.second};
+ }
+ std::pair<rt::Tensor,rt::Tensor> AttentionPrepare::expand_cached(rt::Runtime&r,const rt::Tensor&latent,const rt::Tensor&rotary)const{
+  r.assertOwnerThread();if(!ready_||r.device()!=device_||r.isGraphRecording()||!latent||latent->device()!=device_||latent->dtype()!=rt::DataType::kBFloat16||latent->ndim()!=2||!latent->size(0)||latent->size(1)!=512||!latent->is_contiguous()||!rotary||rotary->device()!=device_||rotary->dtype()!=latent->dtype()||rotary->shape()!=rt::Shape{latent->size(0),1,64})throw std::invalid_argument("GLM selected latent/rotary cache geometry differs");
