@@ -1,0 +1,2 @@
+import hashlib,os,pathlib
+r=pathlib.Path('/refactor');tag=os.environ['GLM_RUN_R5040'];source=r/'results/glm-serving-cases-r1186-910374.91.json';raw=source.read_bytes();assert hashlib.sha256(raw).hexdigest()=='5d7945b715a9aaa4fa47e54514fb268a7226cbb6222f71698a6c2a1447d7168a';target=r/'results'/f'glm-serving-cases-r2130-{tag}.json';assert not target.exists();target.write_bytes(raw);print('GLM1671_EXACT_FROZEN1194_INPUTS_READY',flush=True)
