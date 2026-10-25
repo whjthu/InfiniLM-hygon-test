@@ -1,0 +1,67 @@
+{
+  "native_candidate": "r9122c",
+  "status": "CPU build in progress; no Model GPU qualification",
+  "new_create_CAPI": {
+    "name": "modern_kimi_engine_create_batch_r9122c",
+    "args": [
+      "config_UTF8",
+      "node:int",
+      "tp_nodes:int=2",
+      "pp_size:int=2 or4",
+      "address_UTF8",
+      "port:int",
+      "logical_capacity:size_t=8 or16 or32"
+    ],
+    "returns": "void* Context or null/error CAPI",
+    "legacy_create_pair_r9006": "unchanged TP16PP2 guard"
+  },
+  "batch_CAPI": "all modern_kimi_batch_*_r9122 signatures unchanged; private candidate permits C<=logical_capacity, flattenedT<=64, W<=8, full-logits flags3",
+  "state_pool": "2*logical_capacity+1; active logical1..capacity; shadow+capacity; per-request swap, past, EOS, accepted-prefix preserved",
+  "typed_control": {
+    "header_words": 8,
+    "words_per_request": 7,
+    "max_words": 232,
+    "header": [
+      "magic91220001",
+      "version1",
+      "op1..4",
+      "epoch",
+      "C",
+      "flattenT",
+      "pool_rows",
+      "reserved0"
+    ],
+    "pure_helper": "batch_payload_r9122c.hpp validates actual owner cache pool and exact tuple pairs, independent past/retained/bounds; used by Probe and worker"
+  },
+  "trace": {
+    "capabilities_hex": "0x01200500",
+    "count_max": 32,
+    "info_i64_words": "5+3*C, same field layout",
+    "representative": "device0/node%TPnodes==0; gather feature layer IDs across PP2 or PP4"
+  },
+  "provider": {
+    "MoE_object": "/refactor/candidates/Kimi-I192-batch-Model-r9129/moe.o",
+    "MoE_SHA256": "55fb31b5f4fa1510f06e8b62894d64d52926862371f43e1e2d8c5aaeb2624800",
+    "provider_object": "/refactor/candidates/Kimi-MoE-batch-profile-r9125/provider.o",
+    "provider_SHA256": "f6ae35e870a8730c7f8e564d566503c6c31c1d253ea10758b5a2d3959b2f0c9d",
+    "T_histogram_CAPI": "modern_kimi_I192_T_counts_r9129(device0..7,uint64[65],n65)",
+    "enable": "BATCH_I192_R9125=1 AND I192_GROUPED_R8669Y=1 AND MOE_EXECUTION_R4665=1/workspace1/Math0/profile0; default OFF",
+    "T_range": "8..64 only; C16W8 T128 and C32W8 T256 unsupported fast provider"
+  },
+  "capacity_plan": {
+    "C16_W4": "T64 pool33 pages132, TP16PP2 possible by estimate only; actual4GiB startup gate mandatory",
+    "C32_W2": "T64 pool65 pages260, prefer64cards TP16PP4, no lowered4GiBfloor",
+    "concurrency_matrix": [
+      1,
+      2,
+      4,
+      8,
+      16,
+      32
+    ],
+    "startup_logical_capacity": "may set32 once on64card instance and use all smaller cohorts; report pool overhead/cardcost",
+    "future_frontend": "current r9128 is C<=8/T<=16 only; new independent frontend/schema/mock needed; no live hotpatch"
+  },
+  "actual_component": "910376.667 actual C16W4/C32W2 Delta metadata/state pool qualified only, teacher trajectories; negative net Delta-only latency, not full Model performance",
+  "quality": "differing token outputs allowed; task benchmark/no obvious drop; no F64"
+}

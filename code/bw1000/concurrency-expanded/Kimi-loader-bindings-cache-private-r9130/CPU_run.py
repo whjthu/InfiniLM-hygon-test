@@ -1,0 +1,6 @@
+import pathlib,json,subprocess,hashlib,os,time
+r=pathlib.Path('/refactor');inc=pathlib.Path(__file__).parent;b=r/'candidates/Kimi-loader-bindings-cache-r9130';b.mkdir(exist_ok=False);sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest();q={'completed':False,'CPU_only':True,'GPU':False,'MockTensor':True,'producer':os.environ['SLURM_JOB_ID']+'.'+os.environ['SLURM_STEP_ID']}
+try:
+ c=['g++','-std=c++17','-O2','-pthread','-I'+str(inc),'-I/refactor/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/third_party/json/include',str(inc/'CPU_fixture.cpp'),'-o',str(b/'fixture')];q['command']=c;z=subprocess.run(c,capture_output=True,text=True,timeout=90);q['compile_output']=z.stdout+z.stderr;assert z.returncode==0,q['compile_output'];q['ldd']=subprocess.check_output(['ldd',str(b/'fixture')],text=True);assert not any(s in q['ldd']for s in ['infini','cuda','torch','not found']);z=subprocess.run([str(b/'fixture'),str(inc/'actual-one-layer-key-metadata.json')],capture_output=True,text=True,timeout=60);q['stderr']=z.stderr;assert z.returncode==0,(z.stdout,z.stderr);q['result']=json.loads(z.stdout);q['completed']=q['result']['passed'];q['source_SHA256']={p.name:sha(p)for p in inc.iterdir()if p.is_file()}
+except BaseException as e:q['error']=repr(e)
+(b/'CPU-result.json').write_text(json.dumps(q,indent=2));print(json.dumps(q));assert q['completed']

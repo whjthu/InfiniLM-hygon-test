@@ -1,0 +1,22 @@
+{
+  "next_single_change": "trusted varlen OwnedIndices lease for T16/C2W8,C4W4; keep256thread original math, fullpool snapshot, mode1",
+  "rationale": "IndexedKDA interval .448-.481ms, host submission .167-.184ms; Conv interval .148-.166ms. Existing W1 lease rejects varlen twice and is never activated by current target T16 worker. Remove per-layer metadataDtoH sync through immutable owner/request/epoch validated CPU metadata, with one upload per owner/forward. Original o_proj segment includes arrival waiting; isolated comm .137ms is not subtractable decomposition.",
+  "hardware": {
+    "CUs": 80,
+    "warp": 64,
+    "KDAgrid": "[requests,6,128] blocks; C2=1536,C4=3072",
+    "threads_per_block": 256,
+    "useful_dk_threads": 128,
+    "barriers_per_token_per_CTA": 52,
+    "barriers_include": "5 reductions \u00d7(initial+8tree+final)=50, plus q/k scale and state-update barriers; not measured GPU occupancy"
+  },
+  "implementation_minimum": [
+    "private renamed HOST adapter and raw providerTU, source modes0/1 only; no shared SDK change",
+    "replace W1 offsets_i==i guards by bounded uniform/raggedW<=8, endpointT<=16; requests independenttokens",
+    "keep frozenCPU offsets/read/write plus callerowner/runtime/device/stream/epoch, rejects crossread/write aliases/stale/duplicate/endpoints",
+    "raw Frame validation and original KDA/Conv arithmetic unchanged; mode1 snapshot retained",
+    "wrapper normal paired ABBA fullwall include leasecreate/upload/finish+capture+commit/replay, independent profile record afterward",
+    "allaccepted/partial/differentacceptance/EOS/nextforward/finite/readonly/stateowner/negativewrongcontext mandatory"
+  ],
+  "no_speed_claim_yet": true
+}

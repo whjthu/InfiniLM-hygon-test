@@ -1,0 +1,6 @@
+#include "batch_transaction_r9122.hpp"
+#include <iostream>
+#include <cassert>
+int main(){int owner=1,wrong=2;size_t tests=0;using namespace kimi_batch_logic_r9122;
+ for(size_t C:{16ul,32ul}){size_t W=64/C;for(int scenario=0;scenario<3;++scenario){Transaction tx(&owner,C,512);std::vector<Request>req;for(size_t i=0;i<C;++i)req.push_back({int(i+1),int(i+1),int(i+C+1),512,i*W,W});tx.preflight(&owner,1,req);tx.verified(&owner,1,req);std::vector<size_t>a(C);std::vector<int>cont(C,1);for(size_t i=0;i<C;++i)a[i]=(scenario==1?W-1:(i%2?W-1:0));if(scenario==2)cont[0]=0;tx.commit(&owner,1,a,cont);auto kept=tx.retained(&owner,1);tx.completed_replay(&owner,1);std::vector<Request>next;size_t offset=0;for(size_t i=0;i<C;++i){auto r=tx.row(&owner,int(i+1));assert(r[3]==(cont[i]?1:4));if(cont[i]){assert(r[0]==int(i+C+1)&&r[1]==int(i+1)&&r[2]==512+int(a[i]+1));next.push_back({int(i+1),r[0],r[1],r[2],offset++,1});}++tests;}tx.preflight(&owner,2,next);tx.verified(&owner,2,next);++tests;bool rejected=false;try{tx.preflight(&wrong,3,next);}catch(...){rejected=true;}assert(rejected);++tests;rejected=false;try{tx.preflight(&owner,2,next);}catch(...){rejected=true;}assert(rejected);++tests;}}
+ std::cout<<"{\"passed\":true,\"pure_CPU\":true,\"checks\":"<<tests<<",\"C\":[16,32],\"mixed_retention_EOS_next_forward\":true}"<<std::endl;}
