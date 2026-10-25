@@ -1,0 +1,111 @@
+{
+  "hardware": "BW1000",
+  "level": "component_diagnostic_attempt",
+  "status": "FAILED_HARNESS_BEFORE_FIRST_BASELINE_GEMM_NO_STAGE_TIMINGS",
+  "source_commits": [
+    "2f1b281df1be767873fa6af19add569ef1742ab3",
+    "316bf3891a94ade8ca7ad37d7e07f739339e8742"
+  ],
+  "binding": {
+    "helper_SHA256": "e32b4dc2749b4012efbf4322d334b6460dd091190bca78bb8f41e4384f09a7e8",
+    "wrapper_SHA256": "9f509377bee68429fc379bd95b4ebf1d1bce710db56068d2c4c45cdbcb065f69",
+    "source_SHA256": "2e020721a909cc786a2b94e8efb08be76013dcbd32697047c91e326db6457bb6",
+    "runner_SHA256": "14e77a0ead1ab2d9726fef11432f899edb64b3d2494e090bb2c77377037e55ad",
+    "manifest_SHA256": "a75bebf414e798bc6b2ea1a57e458c25bac046d585e121cf8af23a4f4890e19e",
+    "launcher_SHA256": "062832439e7b8283b7708e966a316776ff14e176924d032aaffe535952fed6c8",
+    "launcher_dirty_patch_SHA256": "fcbcebbd386be900698bc1a93ab82f18b894c7dfb4770e5a39a2c23a7e639cdd"
+  },
+  "attempts": [
+    {
+      "handle": "910407.222",
+      "state": "FAILED1:0",
+      "Slurm_seconds": 2,
+      "compile_seconds": 0.5246214182116091,
+      "cause_confirmed": "decltype(&cublasGemmStridedBatchedEx) overload ambiguity line11; originalreceipt/log retained",
+      "GPU_attempts": 0
+    },
+    {
+      "handle": "910407.223",
+      "state": "COMPLETED0:0",
+      "Slurm_seconds": 2,
+      "compile_seconds": 0.6800979017280042,
+      "change": "One explicitC functionpointer typedef only; original source/math otherwise unchanged; exportsPASS"
+    },
+    {
+      "phase": "login_preflight",
+      "state": "FAILED_BEFORE_INTENT",
+      "cause_confirmed": "/refactor insidecontainer library path notmapped tologin remote root forSHA; corrected onlyreadonlypath+bindingmetadata; noKFD/numeric attempt"
+    },
+    {
+      "phase": "local_upload",
+      "state": "FAILED_BEFORE_REMOTE_NUMERIC",
+      "cause_confirmed": "One SCP diffbasename typo (extra trace); corrected uploadfilename; not a CPU/GPU attempt"
+    },
+    {
+      "handle": "910376.575",
+      "state": "COMPLETED0:0",
+      "Slurm_seconds": 1,
+      "kind": "freshn13CPUonlyKFDprecheck empty"
+    },
+    {
+      "handle": "910376.576",
+      "state": "FAILED1:0",
+      "Slurm_seconds": 54,
+      "kind": "UniqueGPU attempt; all8rank firstOFFbaseline glm_fp8_run returns1/cublas1 before trace_end oroutputcheck; no validbaseline/stagetime"
+    },
+    {
+      "handle": "910376.577",
+      "state": "COMPLETED0:0",
+      "Slurm_seconds": 0,
+      "kind": "UniqueCPUonlyKFDpost empty"
+    }
+  ],
+  "cleanup": {
+    "all8_normal_completion": false,
+    "all8_exception_cleanup_destroy_rc0": true,
+    "all8_exception_cleanup_eventclose_rc0": true,
+    "KFD_post_empty": true,
+    "numeric_attempts": 1,
+    "post_attempts": 1,
+    "automatic_GPU_retry": false
+  },
+  "available_measurements": {
+    "stage_timings": null,
+    "unprofiled_baseline_wall": null,
+    "observer_perturbation": null,
+    "kernel_name_or_ISA": "UNKNOWN",
+    "finite_canary_output_checks": "NOT_REACHED",
+    "single_attention_projection_weight_load_seconds_range": [
+      0.04199346574023366,
+      0.06292402325198054
+    ],
+    "scope": "Onlyo_proj layer38 realweights/syntheticM8; no fullModel"
+  },
+  "confirmed_root_cause_evidence": [
+    "Actualwrapper ELF DT_NEEDED contains libcudart/libstdc++/libc/ld-linux, but NOlibcublas despite buildargs -lcublas. Actualhelper ELF DOES need libcublas.so.12. Exactreadelf captured once, no dlopen/GPU inaudit.",
+    "Wrapper resolve uses dlsym(RTLD_NEXT,name) only; onnull Gemm pointer it returns CUBLAS_STATUS_NOT_INITIALIZED(1). No local-provider RTLD_NOLOAD fallback present; existingr271 uses thatfallback.",
+    "Runner uses ctypes.CDLL(str(H)) without mode override; no runtime loader-scope/providerresolution diagnostics were recorded. All8 plancreate succeeded and failed at run(mode1), firstmode0 observerOFFbaseline.",
+    "Because resolver-null andrealBLASstatus1 share the same returnedcode, currentreceipts do not directlyprove whichbranch executed."
+  ],
+  "inferred_cause": "Highly likely linker --as-needed dropped unused libcublas dependency fromwrapper; helper/defaultLOCAL scope then invisible to RTLD_NEXT resolver. This is consistent withELF/source/error, not directlyobserved live dlsym result. No claim originalFP8math/device inherentlyfailed.",
+  "timing": {
+    "first_CPU_launch_utc": "2026-10-25T04:36:45.825076+00:00",
+    "GPU_intent_utc": "2026-10-25T04:46:24.408776+00:00",
+    "terminal_post_utc": "2026-10-25T04:47:21.661864+00:00",
+    "observable_pipeline_wall_seconds": 635.836788,
+    "interpretation": "Includes sourcefix/publication/upload/SSH/preflight/wait overhead; notcompute latency orModelperformance."
+  },
+  "decision": "STOP. No new compile/GPU/load/Git. Root will mergeoriginalfailedreceipts+smallcard andreview avoidableharness errors inAstra74.",
+  "performance_round": false,
+  "Model_adoption": false,
+  "new_kernel_performance_conclusion": null,
+  "evidence_SHA256": {
+    "GLM-helper-stage-trace-CPU-observed-r8982.json": "8ef9bb8c36189e97e7ae3ca2413b329b0d5f45e5bd93594af8af76d871bc98a0",
+    "GLM-helper-stage-trace-CPU-observed-r8982b.json": "eb1757cca56eb50a7ccd0613caa06b6891fa7d4285f74b9abc44350da15537c0",
+    "GLM-helper-stage-preflight-path-error-r8982b.json": "2772beacfa7f70384b0b6e5c5967c56dc83fe9ebb2dbe67f44b0023d458a8dd8",
+    "GLM-helper-stage-trace-GPU-observed-r8982b-b.json": "24a356514269d3ad207923723e982a2c54dbf6c1acbab9ac1cc1a0fcf4f8a134",
+    "GLM-helper-stage-trace-GPU-failure-evidence-r8982b.json": "d1ad6fb6faef0ab8b701256ccd06e3af11a13bc6dc3420b65c0d81e25de18729",
+    "GLM-helper-stage-trace-GPU-manifest-r8982b.json": "a75bebf414e798bc6b2ea1a57e458c25bac046d585e121cf8af23a4f4890e19e",
+    "GLM-helper-stage-launcher-path-r8982b.diff": "fcbcebbd386be900698bc1a93ab82f18b894c7dfb4770e5a39a2c23a7e639cdd"
+  }
+}
