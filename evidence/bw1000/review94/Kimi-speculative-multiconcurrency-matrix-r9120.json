@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "updated_at_utc": "2026-10-25T19:06:05.160377+00:00",
+  "source": "Directuserrequestsinclude16and32concurrency",
+  "goal": "Jointfrontier highaggregateTPS/cardandhighper-userdecode;specnotB1only",
+  "concurrency": [
+    1,
+    2,
+    4,
+    8,
+    16,
+    32
+  ],
+  "strategies": [
+    "ordinary_AR",
+    "old_speculative",
+    "state_only_speculative",
+    "adaptive_speculative"
+  ],
+  "execution_modes": [
+    "native_multi_request_batch",
+    "pipeline_interleave",
+    "independent_replicas_DP",
+    "serial_multiplex_baseline"
+  ],
+  "current_native_capability": "r9114a/r9116singlepairB1;serialgatewaydoesnotprovebatching. statepool17not32requests. Multi-requestnativebranchmustproveper-requestConv/KDA/KV/commitownership.",
+  "speculation_lengths": [
+    2,
+    4,
+    7
+  ],
+  "optional_modal": "15proposalsviachunkedtwoW8,notonepassT16",
+  "workloads": [
+    {
+      "kind": "closed_loop",
+      "requests_per_client": 2,
+      "scope": "Fixednumberclients;newrequestafterpreviouscomplete;EOSorreportedcap"
+    },
+    {
+      "kind": "open_loop",
+      "arrival": "Poissonormeaningfulfixedtrace",
+      "scope": "Queue/admission/rejection/unfinishedcounted;notclosedloopcapacityclaim"
+    }
+  ],
+  "metrics": [
+    "aggregate_useful_decode_tok_s",
+    "overall_useful_output_tok_s",
+    "all_target_plus_draft_cards",
+    "output_tok_s_per_all_cards",
+    "per_user_nminus1_over_lastminusfirst_distribution",
+    "client_TTFT_p50_p95_p99",
+    "client_ITL_p50_p95_p99",
+    "native_timing_separately",
+    "natural_completion_goodput_user_decode_strictly_above15",
+    "speed_only_capped_goodput_separately",
+    "quality_accuracy_parsefail_truncation_coverage",
+    "queue_wait_rejected_failed_unfinished"
+  ],
+  "timing_rule": "OnlyactualcommonclientmonotoniccanclaimclientSLO;native-onlymustmarkclientmetricsUNKNOWN. NeverdivideaggregatebyMtosubstituteperuser.",
+  "tasks": {
+    "native_batch_owner": "kimi_state_only_replay_93",
+    "resident_operator": "kimi_continue_92",
+    "HTTPclient_and_streaming": "deep_continue_92"
+  },
+  "status": "MATRIX_FROZEN_EXECUTION_PENDING_PER_CELL",
+  "first_state_only_cycle_not_delayed": true,
+  "no_performance_claim": true
+}

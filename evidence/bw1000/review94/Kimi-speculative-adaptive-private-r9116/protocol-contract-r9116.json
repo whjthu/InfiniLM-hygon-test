@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "directory": "Kimi-speculative-adaptive-private-r9116",
+  "native_contract": {
+    "state_mode": "int modern_kimi_state_mode_r9114(void*ctx,int enabled); owner CLEAR, keep pair/past/mapping",
+    "state_replay": "int modern_kimi_state_replay_r9114(void*ctx,int logical=1); phase3 => owner Conv/KDA prefix update then State.completed, swap/advance; no logits/taps",
+    "state_stats": "int modern_kimi_state_stats_r9114(void*ctx,uint64_t*out,size_t n=56); 8 owners x7",
+    "original_pair_abi": "unchanged full-logits flags3, tokens<=8, Math0",
+    "features": "partial state-only reuses verification feature rowprefix, 35840BF16 orModal43008BF16; no newtapread"
+  },
+  "fallback": "After completed commit/state/full replay phase1, state_mode0 then pair_forward width1/captureOFF + commit accepted0. No pair_mode reset. Permanent until requestend. After>=2 spec cycles compare actual cumulative emitted useful/(emitter elapsed since first token ready), including control/save/first-feature tail, against sameprompt AR*1.05; baseline calibration separate if absent.",
+  "queue": {
+    "env": "KIMI_CASE_QUEUE_R9116",
+    "location": "/refactor/results/<safe-basename>/q*.json",
+    "schema": {
+      "schema": 1,
+      "action": "case",
+      "id": "unique-safe-id",
+      "mode": "ar|oldspec|state|adaptive",
+      "draft": "dflash2|modal",
+      "K": "2|4|7; ar forces0",
+      "cap": "2..512, fullprompt_tokens+cap<=1024",
+      "input_ids": "list int, actual 1..512 tokens; OR quality below",
+      "quality": {
+        "task": "GSM8K",
+        "sample_index": "official test index",
+        "question": "full string <=8192 chars",
+        "answer": "expected numeric string"
+      }
+    },
+    "stop": {
+      "schema": 1,
+      "id": "operator-stop",
+      "action": "stop"
+    },
+    "data_only": "No imports, eval, shell execution or hot DSO/SDK replacement; root writes immutable atomic qfiles",
+    "poll_s": 0.5,
+    "deadline_env": "KIMI_PROTOCOL_BUDGET_R9116 default5000 from experiment_started_r9046 beforeload",
+    "overcapacity": "record skipped coverage, never truncate question",
+    "last_cycle_width": "effectiveK=min(configK,remainingoutput-1,1023-past); last1output uses pairAR width1 without draftK0; cannot verify beyond native1024"
+  },
+  "initial_order": "2 originalGSM8K each AR/oldspec/state/adaptive then 2 natural each same4strategies;16total",
+  "modal_env": [
+    "KIMI_MODAL_HOST_R9116",
+    "KIMI_MODAL_PORT_R9116",
+    "KIMI_MODAL_NONCE_R9116(optional defaults DFlashnonce)"
+  ],
+  "modal_current_limit": "K<=7 actualW8. No false nativeW16/chunkedK15 claim; optional six-tap explicitbegin_r9112.",
+  "metrics": "Native emit decode includes fullcycle RPC/capture/transport/verify/commit/replay/emit overhead, prefill separate; excludes prefill first token/EOS/rejected/replay inputs; bursts ITL reported; not HTTP."
+}

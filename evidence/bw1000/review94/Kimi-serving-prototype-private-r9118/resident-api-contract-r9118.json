@@ -1,0 +1,111 @@
+{
+  "status": "OPTIONAL_LOCALHOST_ADAPTER; frozenr9116 has no externalstreamsink yet",
+  "native_hook_required": {
+    "point": "emitter2 on_selected -> existingcontrol.collect -> leadernode0 API.emit_tokens; beforefeaturetransport/commit/replay",
+    "fields": [
+      "request_id",
+      "token_ids:actualacceptedlist",
+      "source:prefill|AR|verified",
+      "terminal/eos",
+      "token_ready_clock_s:source-node diagnostic only"
+    ],
+    "same_clock_metrics": "client TTFT/ITL measured actualreceive with client clock; server-ready uses leaderlocal clock. Do notsubtract emitterclock from leader/client clocks withoutclockqualification",
+    "NFS": "no per-token NFS writes; existingpersistent socket/collect only",
+    "thread": "HTTPthreads enqueue validated data; allnext_request/emit_tokens/finish_request called on mainnative owner thread",
+    "transaction": "afterfullnativecase/commit/cleanup boundary finish_request, then nextrequest; disconnect can onlystopnativeat valid boundary"
+  },
+  "integration_call_sequence": [
+    "api=ResidentAPI(actual_tokenizer, encode_messages=pure_CPU_template_encoder, eos_ids=actual_eos, pad_ids=actual_pad)",
+    "atcompletecaseboundary: request=api.next_request(timeout=.1)",
+    "case=api.to_case(request,mode=adaptive,draft=dflash2,K=7); existingcontrollercollects case tofourranks",
+    "on leader verified output: api.emit_tokens(case.id, actualacceptedIDs); never pass draft/replay/pad as committed",
+    "after native transaction complete: api.finish_request(case.id, stop|length|error|cancelled)",
+    "api.close onlywithnoactive native transaction"
+  ],
+  "HTTP_subset": {
+    "endpoint": "127.0.0.1 ephemeralport /v1/chat/completions",
+    "methods": [
+      "POST"
+    ],
+    "messages": "one nonempty plain user message",
+    "sampling": "temperature0,top_p1,n1; reject others400",
+    "stream": true,
+    "max_prompt_tokens": 512,
+    "default_max_tokens": 256,
+    "min_tokens": 2,
+    "max_capacity": "input+output<=1024",
+    "queue_capacity": 8,
+    "queue_full": 503,
+    "unknown_fields": 400,
+    "prompt_overflow": "400 without truncation",
+    "disconnect": "cancel flag; doesnotinterruptnativein middletransaction",
+    "tokens": "onlycommittednonEOSnonpad counted; EOStexttail separate text_only event; finalcapflush no extratoken"
+  },
+  "decoder": {
+    "cleanup": false,
+    "monotonic_boundary": "max(printed,computed); assertfulltext.startswithemittedprefix",
+    "Unicode": "pendingU+FFFD buffered; CJK/kana/hangul newline andwordboundary flush; EOS/capfinalflush",
+    "events_not_counted": [
+      "EOS",
+      "pad",
+      "draft",
+      "replay",
+      "text_only_flush"
+    ]
+  },
+  "qualification": {
+    "replay": "CPU910407.305 COMPLETED0/7s, actualprior1033IDs8/8 HTTPtext+IDs complete,14UnicodeEOSchecksPASS",
+    "replay_original_SHA256": "3b4fcd9e3000358c31da3538dade36d250ab6c037a4f05b5c04d23bf42c77754",
+    "no_Model_or_GPU": true,
+    "production_qualification": false,
+    "actual_Kimi_streaming_test_required": [
+      "realclientTTFT/ITL anduserdecode",
+      "queue/failure/rejected/unfinished counts",
+      "naturalEOS/quality",
+      "completeclienttextvsnativefulltext"
+    ],
+    "API_CPU": "910407.307 COMPLETED0/7s, greedy400/overflow400/unknown400/queue503/threadowner/EOS/cap/disconnect/boundary allPASS",
+    "matrix_CPU": "910407.308 COMPLETED0/11s, requestedC1/2/4/8/16/32, actualpeak1/2/4/8/14/20 due fastCPUreplay; no failed/reject/unfinished; notGPUperformance"
+  },
+  "source_SHA256": {
+    "incremental_text_r9118.py": "38a6e0f92e0a0da67da2e977e7edb6cc9eae42188136249de2cc7bbb80f606a6",
+    "resident_api_r9118.py": "b83cb4dda2f766c1a15cedff41707b7a8a78c9539f25197f44401f59fd51eec4",
+    "resident_api_r9118b.py": "a86b2788a28c3da8b00aff31957b4edf2d90c5302c1c4bbdd7081b8289955cf0",
+    "client_load_r9118.py": "4f49f05f7af127cb0e3bbeeddafc36dac87062d9f15225a0f0d604ef1bebe1c9",
+    "committed_event_wire_r9118.py": "e01c2e8813673eb6cae247ea8419f79905801b2aec5ff8a3ff57b2e8d469d207",
+    "quality_bench_r9100.py": "62c0f052c65128a530f6de3c794c70e2667287d2ede12594359e010855af42ff",
+    "run_API_CPU_r9118.py": "3ff16f1d4c0af4f22c0d2b557b707651f547973cbacd269b1b60f9ce0ad8b8a7",
+    "run_API_CPU_r9118b.py": "ceb53682e703f328169975b3723e9624a2351804fe5916a0c32ce8bf6df4600d",
+    "run_CPU_replay_r9118.py": "89ecfdba1759156e79e8d226cd8a9d0e5111f96d47e68a58ea125ac07f268641",
+    "run_matrix_CPU_r9118.py": "2eceb5a59f33a26ca5f7145ba7263f923bd67a4f1d96916a8c80909dc43662fb",
+    "service_transport_replay_r9118.py": "94bc5abc93c34392519673fa0237c37f73d4cd5d47bede3d45f46e06767182dc"
+  },
+  "client_concurrency_matrix": [
+    1,
+    2,
+    4,
+    8,
+    16,
+    32
+  ],
+  "client_driver": "client_load_r9118.py",
+  "arrival_trace": "arrival-trace-r9118.json",
+  "card_denominator": "sum all target+draft+aux cards of all replicas; DP efficiency separate",
+  "metrics_columns": [
+    "overall_output_tok_s",
+    "overall_output_tok_s_per_card",
+    "user_decode_tok_s distribution",
+    "TTFT_seconds",
+    "first_nonempty_text_TTFT_s",
+    "ITL_seconds",
+    "server_queue_seconds",
+    "rejected",
+    "failed",
+    "unfinished",
+    "good_output_tok_s_per_card naturalEOS+strictuser>15",
+    "speed_only_output_tok_s_per_card includingcaps",
+    "output_cap_requests"
+  ],
+  "event_wire": "committed_event_wire_r9118.py; defaultOFF; nextprotocol only; sendsynchronous persistentboundedJSON; includes sendcost inuserwall",
+  "queue_metric": "APIb emits server_queue_seconds from serverstarted-arrival, same serverclock; absent before b is explicitly unobserved, never inferred from TTFT"
+}

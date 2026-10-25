@@ -1,0 +1,84 @@
+{
+  "review": 94,
+  "reportstatus": "COMPLETE_CONTINUE_R9114B",
+  "goal_complete": false,
+  "scope": "Local source and existing receipts only; no SSH, GPU, Git, model load or new gate. Sole written artifact is this JSON.",
+  "decision": "CONTINUE r9114b on existing authorized runtime path. No source blocker found in the shadow-length fix. First actual partial replay and subsequent verify remain runtime evidence, not startup prerequisites added by this review.",
+  "root_cause": "r9114a replay corrected recurrent shadow state and PairState but did not crop InferEngine::kimi_native_lengths_. Actual freeze_input requires read length == past; original verify commits shadow to past+full_width. After row swap the next input was rejected by stale full-width shadow ledger.",
+  "fix_evidence": [
+    "ProbeEngine::state_control_r9114 lines29-34 holds submission_mutex_, checks distinct bounded read/write, positive past, 1<=retained<verified_width<=8, read_length=past and shadow_length=past+verified_width before owner submission.",
+    "All submitted owners are waited even when a later submission fails; any first exception rethrows before length commit. All8 owners and typed7-word stats are required before setting only shadow_length=past+retained.",
+    "modern_kimi_state_replay_r9114 line263 checks phase3, retained prefix bounds, original epoch past and cached width; allocates prefix before mutation; calls PairState.completed only after owner replay and ledger commit. PairState completed then swaps active/shadow and advances past.",
+    "Begin/Clear keep verified_width default0; Replay-only validation does not reject these calls. Fullaccept and ordinary AR code unchanged by a-to-b source diff.",
+    "Lock order is pair_mutex -> context mutex -> submission_mutex -> short worker mutex acquisition. Worker processing releases worker mutex and does not acquire outer locks. No introduced reverse order found.",
+    "Worker uses appended typed STATE_BEGIN/REPLAY/CLEAR commands. Handler is separate from RUN and invokes owner-local state functions without Model forward or PP collectives.",
+    "Cached read/write metadata are owner-allocated tensors kept with cached activations; replay validates epoch/past and state-pool pointers on owner thread. Payload stack words remain alive through wait of every submitted owner.",
+    "Runtime target_protocol checks CAPI success and cross-host replay collection before z.extend/row completion. verify_emit only records event/timestamp locally; command failure does not append a successful committed cycle."
+  ],
+  "remaining_risks": [
+    "Partial owner failure can leave shadow recurrent state partially changed. It does not crop CPU ledger or swap PairState; failed worker or consumed cache rejects reuse. Existing runtime failure handling must end that attempt; rollback/retry is not proven and not required for this startup.",
+    "Review establishes source transaction ordering, not full-Model math correctness or actual speed. Component replay savings cannot be extrapolated to end-to-end throughput.",
+    "Private API is serialized single caller. Concurrent mode/replay invocation and mid-epoch Clear recovery are outside exercised harness.",
+    "Real first partial rejection -> next verify/width1 continuation, all-owner activation, natural completion and broader heldout quality remain unmeasured for b."
+  ],
+  "policy": {
+    "early": "Reasonable task outputs and correct answers; no exact token identity or F64 requirement.",
+    "late": "Real matched heldout benchmark, coverage, task scores and uncertainty; small math smoke is insufficient for no-degradation."
+  },
+  "accounting": {
+    "GLM651": "Old harness failed extra quality score qualification; not reviewed or promoted here.",
+    "single_user_above15": "NOT_ESTABLISHED",
+    "component_extrapolation": false,
+    "postreview93_pending": [
+      "510",
+      "1042"
+    ],
+    "new_completed_GPU_performance_rounds": 0,
+    "cancel711_1045_is_performance_round": false,
+    "CPU309_is_performance_round": false
+  },
+  "sourceSHA": [
+    {
+      "SHA256": "8ea5bcd4e18970a80a3ead22c5fed185546dc00bc3287076b19a1c7cfc4f6827",
+      "path": "Kimi-state-only-Model-private-r9114b/producer-index-r9114b.json"
+    },
+    {
+      "SHA256": "82bf8f7bdf07f5a8e0852793f7f72dc6cf16721f02f376d2d72b7bf3615a5f53",
+      "path": "Kimi-state-only-Model-private-r9114b/pair_probe.cpp"
+    },
+    {
+      "SHA256": "c01bf1f8e12d2c6cd89e0ce5af86418b1e9f1f697df9534dcc5027c060b97ffc",
+      "path": "Kimi-state-only-Model-private-r9114b/worker.cpp"
+    },
+    {
+      "SHA256": "431557e0e0194ac754add09cbd5654d0383c06424e1b7b0f500371b81c6b90e7",
+      "path": "Kimi-state-only-Model-private-r9114b/state_only_r9113.hpp"
+    },
+    {
+      "SHA256": "6f8469ab8dfbc8666d53a7251ff08e655d2c4990e1025e554920cb291c4163ab",
+      "path": "Kimi-state-only-Model-private-r9114b/engine/rank_worker.hpp"
+    },
+    {
+      "SHA256": "5ede891e984641fbec04f909730fc89e02102022ef357175f275f41ca51f494e",
+      "path": "Kimi-state-only-Model-private-r9114b/engine/infer_engine.hpp"
+    },
+    {
+      "SHA256": "7cfd86374167b3a7a8343dfa3a884f9fa3fd438e5797f2c789020b181ce0a92a",
+      "path": "Kimi-state-only-Model-private-r9114b/linked-engine-freeze.json"
+    },
+    {
+      "SHA256": "c6b3132b30a481c5e0fb4f998ff5f1577f3dff4da4c2c387e7ef12d5deb334cf",
+      "path": "Kimi-state-only-Model-private-r9114b/ledger_contract.cpp"
+    },
+    {
+      "SHA256": "9d03d21a6072b1e9f0c7bc65400cd613043e07e903522742f6ddb1fb448cf122",
+      "path": "Kimi-state-only-Model-private-r9114a/actual-engine-lengths.json"
+    },
+    {
+      "SHA256": "ed6b0dc47b5d33a527716577f316718830fb616a8c4eec71b306f4639e0c32ef",
+      "path": "Kimi-ordinary-pair-private-r9007/kimi_pair_state_r9006.hpp"
+    }
+  ],
+  "native_SHA256": "5022a2596945a9608200296e13aa34beee10864f8646b012cc1f8d5068ca3b57",
+  "UTC": "2026-10-25T19:18:08.6959266Z"
+}
