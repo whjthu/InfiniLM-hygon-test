@@ -1,0 +1,172 @@
+{
+  "hardware": "BW1000",
+  "level": "synthetic_attention_component",
+  "status": "COMPONENT_POSITIVE_WITH_DRIFT_NOT_MODEL_QUALIFIED",
+  "actual_step": "910374.946",
+  "node": "a02r4n01",
+  "DCUs": 1,
+  "CPUs_allocated": 8,
+  "owner_CPU_width": 1,
+  "scope": "One synthetic BF16 bank M16/C9/CAP9/H7168 with real layer92 self_attention_res norm/projection weights; actual maximum config domain, not captured activations",
+  "sourceclaim": "0166d28",
+  "config_SHA256": "9710e121a58d03ac92c8d6da287a19541994319afbbe6d6202af001ffd379213",
+  "allocation_source_SHA256": "9a8b992b6739eb39e04199aadb372bc7212a0f4489d2366e99d87679de925aef",
+  "native_SHA256": "13de5e9dd863cd6db6e9898a2b9a9552f1888e2adbeda5b53a93659191604dbd",
+  "manifest_SHA256": "03cb3a347b044276d2698fcb4c6e758f08d27c3f1ef7590c2de8de458b43b1dc",
+  "entry_SHA256": "dd7527e04aecacaf9fff44c568cd99b218c0e9d9492243846d132164180dbf47",
+  "runner_SHA256": "5fe02201c954be73ed972e9cdacab04ac9db889fc05285bd79b31265c30991cf",
+  "CPU_receipt_SHA256": "4a3fba455828e69b4f6054483accfa44032f803741d9b4441c7044f4db4a1545",
+  "actual_weights_SHA256": {
+    "language_model.model.layers.92.self_attention_res_norm.weight": "1b75e7b06039a6f5e0cd85bbe647b50ce22772ad95a33eca7b69f68a13b6a82c",
+    "language_model.model.layers.92.self_attention_res_proj.weight": "4664335ee0f3342b2f2d00ee38dcce14793e06ff61afbb25178b1c7ed4690e05"
+  },
+  "math": "Fuse only RMSNorm + scalar projection; F32 arithmetic with explicit BF16 normalized/score rounding; original SDK in-place Softmax + weighted Gemm unchanged; reduction differences diagnostic",
+  "timing_scope": "Host wall of full explicit native CAPI including original producer sync/final Runtime drain, views/allocations/SDK dispatch; not kernel-active time. Input/output setup and diagnostics outside timing. Both arms same owner/stream/operands/width1.",
+  "warm_ms_excluded": [
+    7967.104281298816,
+    2.3330170661211014
+  ],
+  "timed_A_ms": [
+    0.4255319945514202,
+    0.30138110741972923,
+    0.26679085567593575,
+    0.2719508484005928
+  ],
+  "timed_B_ms": [
+    0.24977000430226326,
+    0.27711084112524986,
+    0.230470672249794,
+    0.24132011458277702
+  ],
+  "pairs": [
+    {
+      "order": "ABBA",
+      "A_ms": [
+        0.4255319945514202,
+        0.30138110741972923
+      ],
+      "B_ms": [
+        0.24977000430226326,
+        0.27711084112524986
+      ],
+      "A_mean_ms": 0.3634565509855747,
+      "B_mean_ms": 0.26344042271375656,
+      "latency_reduction_percent": 27.518042528221677
+    },
+    {
+      "order": "BAAB",
+      "A_ms": [
+        0.26679085567593575,
+        0.2719508484005928
+      ],
+      "B_ms": [
+        0.230470672249794,
+        0.24132011458277702
+      ],
+      "A_mean_ms": 0.2693708520382643,
+      "B_mean_ms": 0.23589539341628551,
+      "latency_reduction_percent": 12.427275768212498
+    }
+  ],
+  "pooled": {
+    "A_mean_ms": 0.3164137015119195,
+    "B_mean_ms": 0.24966790806502104,
+    "latency_reduction_percent": 21.094470033366775,
+    "A_median_ms": 0.286665977910161,
+    "B_median_ms": 0.24554505944252014
+  },
+  "drift": {
+    "first_to_last_timed_A_percent": -36.09156258925415,
+    "first_to_last_timed_B_percent": -3.3830682523672717,
+    "restore_A_ms": 0.2852012403309345,
+    "interpretation": "A declines substantially despite warmup. Report both quartet effects (27.5%,12.4%); pooled21.1% is not a stable production gain. No repeated grid or extra warm test was added."
+  },
+  "quality": {
+    "calls": 11,
+    "warm": 2,
+    "timed": 8,
+    "restore": 1,
+    "native_phase_counters": [
+      [
+        1,
+        1
+      ],
+      [
+        4,
+        4
+      ],
+      [
+        1,
+        0
+      ]
+    ],
+    "all_fulloutputs_finite": true,
+    "ownrepeat_maxabs": 0,
+    "crossarm_maxabs": 0,
+    "crossarm_relative_RMS": 0,
+    "crossarm_BF16_ULP_max": 0,
+    "observed_crossarm_output_exact": true,
+    "input_unchanged_and_padding_canary_passed": true,
+    "output_padding_canary_passed": true,
+    "valid_stride": [
+      64512,
+      7168,
+      1
+    ],
+    "shutdown_returncode": 0,
+    "Model_tokens_EOS_qualification": false
+  },
+  "actual_affinity": {
+    "prior_failed_step": "910374.938",
+    "prior_pending_label": "kimi-attnres-C9-r8987",
+    "initial_affinity": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "final_affinity": [
+      0
+    ],
+    "SLURM_CPUS_PER_TASK": 8,
+    "owner_width": 1
+  },
+  "resource_caveat": "Width1 fixed the single-card harness admission. Do not extrapolate this CPU width or component gain to production Model/service.",
+  "prior_engineering": {
+    "938": "FAILED1 before first completed warm arm, affinity width4/c8; audit1/post939 empty",
+    "r8987": "c64/1DCU no numeric after300s; pending own srun cancelled, CPU post944 empty; not GPU computation/performance"
+  },
+  "terminal": {
+    "JobID": "910374.946",
+    "State": "COMPLETED",
+    "ExitCode": "0:0",
+    "NodeList": "a02r4n01",
+    "observed_utc": "2026-10-25T05:18:13.273626+00:00"
+  },
+  "audit_returncode": 0,
+  "normal_count": 1,
+  "post_KFD": {
+    "utc": "2026-10-25T05:18:13.633642+00:00",
+    "node": "a02r4n01",
+    "step": "910374.947",
+    "kfd_pids": [],
+    "ib0_ipv4": [
+      "12.1.2.61"
+    ],
+    "passed": true,
+    "CUDA_initialized": false,
+    "IPv4_source": "Linux SIOCGIFADDR ib0; no external binary"
+  },
+  "read_errors": 0,
+  "raw_result_SHA256": "9c9658481706fd0b95c6eebc1a00c04fd087f94e7c3cde46a3028f24f808acce",
+  "raw_log_SHA256": "951e375ac50c4c17cc526f1f0987338bf324b6623d6cfc74708052b4b2980243",
+  "watch_SHA256": "f26bd8c31e90b16816edb97413695899d82198a0103aaeb5d606aac7d7382cf5",
+  "launch_SHA256": "56268e2c8c2ab14dffd751ca9e3c061483ec7218515c3af86a27acefa9055a73",
+  "source_declared_removed_normalized_backing_bytes": 2064384,
+  "memory_caveat": "Source-sized removed intermediate only; no actual peak-memory claim.",
+  "next": "No automatic Model load or extra component. Model integration would require separate authorization and full tokens/EOS qualification."
+}

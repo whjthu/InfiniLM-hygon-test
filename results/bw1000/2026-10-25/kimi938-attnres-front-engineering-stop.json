@@ -1,0 +1,122 @@
+{
+  "hardware": "BW1000",
+  "level": "synthetic_attention_component",
+  "status": "FAILED_ENGINEERING_BEFORE_FIRST_ARM_STOP",
+  "actual_step": "910374.938",
+  "node": "a02r4n01",
+  "DCUs": 1,
+  "CPUs": 8,
+  "memory_MiB": 64000,
+  "scope": "M16/C9/CAP9/H7168 actual maximum layer92 domain; synthetic residual operands and real small norm/projection weights; no Model/CCL",
+  "sourceclaim": "0166d28",
+  "original_C24_CPU": "910406.232 completed only; original synthetic C24 domain, no GPU, not performance",
+  "actual_C9_CPU": "910406.233 COMPLETED0,12.312s,one GPU TU+one host TU+link,noGPU/noDLopen",
+  "planned_calls": {
+    "warm": 2,
+    "measure": 8,
+    "restore": 1
+  },
+  "actual_completed_arms": 0,
+  "native_SHA256": "13de5e9dd863cd6db6e9898a2b9a9552f1888e2adbeda5b53a93659191604dbd",
+  "CPU_receipt_SHA256": "4a3fba455828e69b4f6054483accfa44032f803741d9b4441c7044f4db4a1545",
+  "entry_SHA256": "0db65606bb4a043d3d447bcb28c4f08258c88a876dcde0e0c3c8496d2380e68c",
+  "manifest_SHA256": "e27480e8421cf19724dac7dd7308b8a2608ba34c76c9a1bffa3f6220cc46dd41",
+  "runner_SHA256": "5fe02201c954be73ed972e9cdacab04ac9db889fc05285bd79b31265c30991cf",
+  "domain": {
+    "CPU_only": true,
+    "config_path": "/public/home/aclsylqidf/shared/Kimi-K3/config.json",
+    "config_SHA256": "9710e121a58d03ac92c8d6da287a19541994319afbbe6d6202af001ffd379213",
+    "config": {
+      "attn_res_block_size": 12,
+      "num_hidden_layers": 93,
+      "hidden_size": 7168,
+      "rms_norm_eps": 1e-05
+    },
+    "config_extra_attn_res": {
+      "attn_res_block_size": 12
+    },
+    "max_persistent_blocks": 8,
+    "max_values_C": 9,
+    "formula": "ceil(layer/12)+1 plus reset before FFN; layer84..92 max9",
+    "fixture_CAP": 9,
+    "fixture_CAP_note": "actual final-stage capacity=ceil(local_layer_end93/12)+1=9; no unused logical slot; input/output padding canaries",
+    "allocation_source": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/models/kimi_k3/kimi_k3_text_model.cpp",
+    "allocation_source_SHA256": "9a8b992b6739eb39e04199aadb372bc7212a0f4489d2366e99d87679de925aef",
+    "allocation_line45": "block_residual_capacity_=(local_layer_end_+block_size-1)/block_size+1"
+  },
+  "actual_weights_SHA256": {
+    "language_model.model.layers.92.self_attention_res_norm.weight": "1b75e7b06039a6f5e0cd85bbe647b50ce22772ad95a33eca7b69f68a13b6a82c",
+    "language_model.model.layers.92.self_attention_res_proj.weight": "4664335ee0f3342b2f2d00ee38dcce14793e06ff61afbb25178b1c7ed4690e05"
+  },
+  "error": "RuntimeError('2392 owner mask too narrow for eight disjoint requested subsets')",
+  "failure_boundary": "First warm baseline CAPI: execution::submit affinity apply_once admission; exact Runtime::create-site claim withdrawn; no completed native arm",
+  "engineering_error": "Copied eight-owner INFINILM_OWNER_CPU_WIDTH_R2392=4 into c8 single-card fixture; Runtime admission requires eight disjoint requested subsets",
+  "quality": {
+    "evaluated": false,
+    "reason": "no completed baseline or candidate arm",
+    "shutdown_entered": true,
+    "shutdown_returncode": 0
+  },
+  "performance": {
+    "evaluated": false,
+    "Model_gain": false,
+    "valid_performance_round": false
+  },
+  "terminal": {
+    "JobID": "910374.938",
+    "State": "FAILED",
+    "ExitCode": "1:0",
+    "NodeList": "a02r4n01",
+    "observed_utc": "2026-10-25T04:58:25.451237+00:00"
+  },
+  "audit_returncode": 1,
+  "normal_count": 0,
+  "post_KFD": {
+    "utc": "2026-10-25T04:58:25.772657+00:00",
+    "node": "a02r4n01",
+    "step": "910374.939",
+    "kfd_pids": [],
+    "ib0_ipv4": [
+      "12.1.2.61"
+    ],
+    "passed": true,
+    "CUDA_initialized": false,
+    "IPv4_source": "Linux SIOCGIFADDR ib0; no external binary"
+  },
+  "read_errors": 0,
+  "raw_result_SHA256": "64efaaad6cc8dbe42052001fdd8652c5fb94b7194dc9228f010e847ddd9cd168",
+  "raw_log_SHA256": "05bd0d2f816c3a0e826c2065f9a0da063f97a1bc62d1ce8a87ccec791e6bae20",
+  "original_watch_SHA256": "178e09e9fead61671b775d89a8df96202f8237354ae06cab6d384b914ba933bc",
+  "original_launch_SHA256": "238ba4ee3ef967cba1a2620dbf6a26767af7a3ad9d70a981ceb81c05a5f9c687",
+  "watch_path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/kimi-attnres-C9-r8985-watch.json",
+  "reader": "read_Kimi_attnres_C9_watch_r8985.py",
+  "stop": "Both attempts closed; no valid numerical/performance component result or Model gain. Source/native remain available for a separately authorized resource repair. No further dispatch was made.",
+  "exact_policy": {
+    "path": "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/execution/owner_affinity_r2392.hpp",
+    "SHA256": "de2ffe645329558634740ed6b8a9ac7c70030160786eab38d065ce513afce71d",
+    "condition": "allowed.size() >= 8*width; width4 needs at least32 logical CPUs",
+    "called_from": "execution/submit.hpp SHA8c0bd70a372b0017bca78e54f037493fe79918f97b5fed6d885f5b5d8eb0c20d"
+  },
+  "explicit_resource_fix_attempt": {
+    "label": "kimi-attnres-C9-r8987",
+    "scope": "root-authorized single additional c8->c64 resource repair; width4/native13de5/math/weights unchanged; 1DCU intended",
+    "controller_pid": 2961098,
+    "actual_GPU_numeric": null,
+    "status": "NO_NUMERIC_ADMITTED_CONTROLLER_TIMEOUT300_PENDING_CANCELLED",
+    "matching_rows_before_cleanup": [],
+    "post_KFD": {
+      "utc": "2026-10-25T05:09:54.570368+00:00",
+      "node": "a02r4n01",
+      "step": "910374.944",
+      "kfd_pids": [],
+      "ib0_ipv4": [
+        "12.1.2.61"
+      ],
+      "passed": true,
+      "CUDA_initialized": false,
+      "IPv4_source": "Linux SIOCGIFADDR ib0; no external binary"
+    },
+    "cleanup_receipt_SHA256": "6028103b17196dc4256cec40d40d1cd69aed81c5a3c8fc382d03e5168170b808",
+    "resource_binding_cause": "UNRESOLVED; parent GresEnforceBind=Yes may constrain CPU/GPU combination; inference only"
+  }
+}
