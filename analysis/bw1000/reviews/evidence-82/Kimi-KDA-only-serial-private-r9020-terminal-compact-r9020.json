@@ -1,0 +1,79 @@
+{
+  "hardware": "BW1000",
+  "level": "NATIVE_PRIMITIVE_COMPONENT",
+  "status": "FAILED_ORIGINAL_OPS_SUPPORT_CHECK_BEFORE_CANDIDATE_KDA",
+  "producer": "910374.982",
+  "source_commit": "cd2440c40059db6b34354ff86b09521c7b36ecd9",
+  "CPU_step": "910407.240",
+  "native_SHA256": "a8be8c312ca2c0b0ff3333f38b3f4bce561adfec9188e8d77cf61cf63eeb7f82",
+  "original_evidence_file": "GPU-observed-a.json",
+  "original_evidence_SHA256": "a749a3f6b3894e4a0c192eb60f656b7e6ca1b06192536139f192c56a7613178a",
+  "resources": {
+    "node": "a02r4n01",
+    "DCUs": 1,
+    "cpus": 8,
+    "memory_MiB": 49152,
+    "hard_seconds": 240,
+    "inner_seconds": 210,
+    "owner_cpu_width": 1
+  },
+  "Slurm": [
+    [
+      "910374.982",
+      "Kimi-KDA-only-serial-r9020",
+      "FAILED",
+      "1:0",
+      "00:00:40",
+      "a02r4n01"
+    ]
+  ],
+  "pre": "910374.981 COMPLETED0/KFDempty",
+  "post": {
+    "returncode": 0,
+    "stdout": "{\"utc\": \"2026-10-25T10:16:32.016853+00:00\", \"node\": \"a02r4n01\", \"step\": \"910374.983\", \"kfd_proc_exists\": true, \"kfd_pids\": [], \"CUDA_not_initialized_by_probe\": true}\n",
+    "stderr": ""
+  },
+  "watch_ready_before_numeric": true,
+  "numeric_attempts": 1,
+  "post_attempts": 1,
+  "baseline_completed": {
+    "cases": 80,
+    "missing_replay_negative_controls": 35,
+    "counts_conv_silu_kda_tokens": [
+      1143,
+      1143,
+      1143,
+      1297
+    ],
+    "wholechain_harness_wall_s": 1.3046751148067415,
+    "diagnostic_maxima": {
+      "KDA_state_diagnostic": 0.0001220703125,
+      "continuation_output_diagnostic": 3.814697265625e-06,
+      "continuation_state_diagnostic": 0.0001220703125,
+      "verify_allposition_diagnostic": 3.814697265625e-06
+    },
+    "scope": "Full976 same80cases fixture, including host transfers/copies in exercise; notModel TPS"
+  },
+  "candidate": {
+    "closed_normally": true,
+    "selector_binding": {
+      "symbol": "kda_conv_run_serial_kda",
+      "file": "/refactor/candidates/Kimi-KDA-only-serial-r9020/libKimi_KDA_only_serial_r9020.so",
+      "SHA256": "a8be8c312ca2c0b0ff3333f38b3f4bce561adfec9188e8d77cf61cf63eeb7f82"
+    },
+    "exception": "AssertionError(b'requested operator implementation does not support these parameters')",
+    "traceback": "Traceback (most recent call last):\n  File \"/refactor/incoming/check_Kimi_serial_r9020.py\", line 24, in <module>\n    start=time.perf_counter();d['exercise']=base.exercise(native);d['wholechain_wall_s']=time.perf_counter()-start\n  File \"/refactor/incoming/lifecycle_base_r9020.py\", line 81, in exercise\n    ya=backend.run(repeat_a,0,8,1,2);yb=backend.run(repeat_b,0,8,1,2)\n  File \"/refactor/incoming/lifecycle_base_r9020.py\", line 60, in run\n    assert self.entry(self.ctx,width,3,ptrs)==0,self.lib.kda_conv_error()\nAssertionError: b'requested operator implementation does not support these parameters'\n",
+    "operation_counts_conv_silu_kda_tokens": [
+      1,
+      1,
+      0,
+      0
+    ]
+  },
+  "all_contexts_closed_normally": true,
+  "failure_scope": "Candidate firstT8 ownrepeat completed conv/Silu then failed before first KDA operation; no candidate numerical result",
+  "causal675": "NOT_ISOLATED",
+  "Model_final_IDs_EOS": "NOT_TESTED",
+  "action": "STOP; no automatic retry, no new build or GPU; read actual Supported rules only",
+  "UTC": "2026-10-25T10:18:58.357630+00:00"
+}

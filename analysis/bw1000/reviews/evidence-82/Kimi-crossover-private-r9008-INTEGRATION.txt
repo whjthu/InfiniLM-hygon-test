@@ -1,0 +1,44 @@
+PRIVATE SOURCE ONLY — NOT MODEL-READY until actual trace binding is supplied.
+
+Entry: modern_Kimi_crossover_Model_r9008.py retains original load, affinity,
+StageControl, owner destroy and audit producer mechanism. It imports the new
+Kimi_crossover_binding_r9008 supplied by the native source owner/root. No such
+binding is manufactured here. New immutable manifest name:
+incoming/Kimi-crossover-manifest-r9008.json. Launcher/root must freeze every
+source and actual built native SHA before GO; old r9007 native SHA is NOT valid.
+
+startup(lib) runs immediately after load_N4_Model(), BEFORE engine create and
+weights. A missing symbol or false/incomplete native capability is fatal there.
+The original launcher must retain concrete 32 DCUs, original pinned SDK/CCL,
+SHCA/StageControl, actual 32 normal owner markers, audit, unique post check.
+At least the observed ~27min loading plus <=10min diagnostics and drain must fit
+the new outer bound. No GPU/SSH/build/allocation is performed by these sources.
+
+Native ABI agreed with true_target_taps owner:
+const char* modern_kimi_diag_capabilities_r9008();
+int modern_kimi_diag_arm_r9008(void* ctx, const char* arm, int enabled);
+const char* modern_kimi_diag_read_r9008(void* ctx);
+All strings are copied immediately. read() memory lives until next native call.
+Capability JSON exact ABI: kimi-crossover-r9008-v1; positions [536,537].
+Required boolean fields actual_final_hidden, actual_layer_boundaries,
+actual_recurrent_state_metadata, actual_gpu_calls must all be true only when
+implemented on the real path. read JSON must have finite:true, no error, and
+actual vectors/layer identities/read-write-length metadata/call counters as
+defined by the native implementation. read is called before AND after every
+native forward, with all four node receipts persisted; snapshots must describe
+actual states, not synthetic estimates. Narrow recording is positions536/537.
+Python records actual BF16 head top2 and bits, margins, IDs8094/17375 logits
+from the ordinary/paired real logits buffer, independently of native traces.
+
+A yields 33 IDs including prefill anchor and 32 original ordinary inputs.
+B-E always consume those frozen 32 A inputs even when their own logits diverge.
+Each arm resets the same loaded context and identical prompt prefill. Each
+paired block full-commits width-1 solely to control causal history. This is not
+an oracle serving result, acceptance rate, rejection/replay qualification, EOS
+test or speed comparison. Differences are retained and subsequent arms finish;
+ABI/nonfinite/native launch/lifecycle errors stop immediately and drain.
+
+CPU test command: python -B test_crossover_protocol_r9008.py
+4 tests pass: exact 32-position teacherforced coverage, fixed crossover shapes,
+divergent output isolation and mandatory pre-weight missing-hook failure.
+No mock result qualifies native/GPU numerics or final token correctness.
