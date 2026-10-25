@@ -1,0 +1,112 @@
+{
+  "scope": "Capacity/execution planning only. Current r9122b actual ABI limitedC<=8,sumW<=16,pool17. C16/32 not GPUqualified.",
+  "hardware_candidates": [
+    {
+      "cards": 32,
+      "TP": 16,
+      "PP": 2,
+      "C16": "pool33/page132 additional0.335GiB worst tail vs currentpool17; actual precreate4GiB startup gate may be marginal; prompt prefill in subsets avoids16x512 temporary peak",
+      "C32": "pool65/page260 additional1.005GiB worst tail vs current; cannot assume existing32cardfit and cannot lower4GiBfloor"
+    },
+    {
+      "cards": 64,
+      "TP": 16,
+      "PP": 4,
+      "priority": "preferred capacity experiment preservingH6/I192 arithmetic",
+      "stages": [
+        {
+          "layers": [
+            0,
+            24
+          ],
+          "TP16_PP4_parameter_GiB_header_derived": 27.432885095477104,
+          "method": "TP8PP4 exact per-category header projection: preserve replicated, halve explicitly TP-sharded attention/shared-or-denseMLP/MXFP4 experts; not actual residency measurement",
+          "known_64card_total_cache_upper_GiB_C32": 0.8770179748535156
+        },
+        {
+          "layers": [
+            24,
+            47
+          ],
+          "TP16_PP4_parameter_GiB_header_derived": 25.10723964869976,
+          "method": "TP8PP4 exact per-category header projection: preserve replicated, halve explicitly TP-sharded attention/shared-or-denseMLP/MXFP4 experts; not actual residency measurement",
+          "known_64card_total_cache_upper_GiB_C32": 0.8770179748535156
+        },
+        {
+          "layers": [
+            47,
+            71
+          ],
+          "TP16_PP4_parameter_GiB_header_derived": 26.199008390307426,
+          "method": "TP8PP4 exact per-category header projection: preserve replicated, halve explicitly TP-sharded attention/shared-or-denseMLP/MXFP4 experts; not actual residency measurement",
+          "known_64card_total_cache_upper_GiB_C32": 0.8770179748535156
+        },
+        {
+          "layers": [
+            71,
+            93
+          ],
+          "TP16_PP4_parameter_GiB_header_derived": 26.203584529459476,
+          "method": "TP8PP4 exact per-category header projection: preserve replicated, halve explicitly TP-sharded attention/shared-or-denseMLP/MXFP4 experts; not actual residency measurement",
+          "known_64card_total_cache_upper_GiB_C32": 0.8770179748535156
+        }
+      ],
+      "source_support": "actual infer_engine globalTopology permitsTPnode2/PP1..4; Python target_model must explicitly add(2,4) with newmanifest and actual qualification",
+      "extra_work": "pool33/65 generic per-requestpair/cache guard; representative feature nodes0,2,4,6; controlled frontend gathers5taps bylayerID; MoEcompactI192 unchanged but stage layercount/constructorcounts differ; profile actualPP4 singleuser latency"
+    },
+    {
+      "cards": 64,
+      "TP": 32,
+      "PP": 2,
+      "parameter_GiB_header": [
+        29.427603635936975,
+        30.585498712956905
+      ],
+      "extra_work": "H3 localKDA insteadH6, localMoEI96 insteadI192; current cache guards/operators specializedH6/I192 cannot be declared fast-supported; originalSDK fallback must be explicitly reported/qualified, no silentfallback",
+      "tradeoff": "2PPstages instead4, 4nodeTPcomm instead2; compare actualinterconnect + compute, do not infer speedfromcardcount"
+    }
+  ],
+  "execution_graphs": [
+    {
+      "C": 16,
+      "logical_rows": "1..16",
+      "recurrent_pairs": "active i /shadow i+16, pool33",
+      "KV": "logical i owns4pages, physical shadow KV pages remain unused with currentconstructor",
+      "optionA": "one realtargetverify C16 W4(flatten64,K3) ->perreq independentaccepted/EOS ->fusedraggedpartialsubset ->perreqledgercrop/swap ->repeat; requiresT64 fullMoEprovider qualification first",
+      "optionB": "two microcohorts C8 W8(flatten64,K7) shareone modelweights and32recurrentrows, actual per-request waiting between cohorts included in decode ITL/throughput; not serialB1/DP",
+      "unsupported_current": "C16 W8 flatten128: notcoveredr9125T8..64; needs largerworkspace/routecapacity/exactproviderqualification and fullModelprofile"
+    },
+    {
+      "C": 32,
+      "logical_rows": "1..32",
+      "recurrent_pairs": "active i /shadow i+32, pool65",
+      "KV": "same logical4pages contract/page260 currentconstructor",
+      "optionA": "one realtargetverify C32 W2(flatten64,K1) ->independentaccept/EOS/fusedpartial ->crop/swap. Smallproposalsmaylimitusergain; mustreport actualquality/SLO",
+      "optionB": "four microcohorts C8 W8(flatten64,K7) or two C16W4(flatten64); weights shared once, all32requests resident. Explicit requestqueuetime and liveactiveC mustberecorded; PPinterleave notavailablein currentblockingModelAPI and needsseparate scheduler/operatorvalidation",
+      "unsupported_current": "C32 W8 flatten256 (orW4flatten128) is outsideT64providerguard. No capabilityclaim or implicitSDKfallback; expandroute/workspacecontract and run actualL1/profile beforefullModel."
+    }
+  ],
+  "provider_limits": {
+    "current_specialfast": "oldI192 onlyT16",
+    "r9125_candidate": "8..64 only after actualfullMoEqualification",
+    "per_request_W_max": 8,
+    "Model_cache_current": "pool17/H6/total16 hardguards",
+    "root_full_batch_goal": [
+      1,
+      2,
+      4,
+      8,
+      16,
+      32
+    ]
+  },
+  "metrics_mandatory": [
+    "aggregate usefuldecode outputtokens /wholeuserdecodewall, actualactiveC/time",
+    "perrequest decodeusefultokens /userdecodewall inclqueue, and first-last-readyspeed; TTFT/ITLp50/p95/p99/max",
+    "totalTPS /alltarget+draftcards; replicas/DP vs nativebatch reportedseparately",
+    "meanaccepted/usefulpercycle perrequest/qualityanswer/truncation/parsefailure",
+    "verifycompute/communication/profile routeU/maxexpertrows, kernelTime/RPC/featurecopy/replay/queue wall",
+    "true>15peruser measured at statedC/SLO andquality, notderived bytotal/C whereusers stagger/EOSvary"
+  ],
+  "memory_guard": "ActualallGPU mem_get_infobeforecreate/aftercreate/finish/prefill; preserve4GiBpreloadminimum andexistingruntimefreefloor. Headerestimate never overridesmeasuredguard."
+}

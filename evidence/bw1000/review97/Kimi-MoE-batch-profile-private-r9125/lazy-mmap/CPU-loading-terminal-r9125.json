@@ -1,0 +1,94 @@
+{
+  "scope": "CPU loading preparation only; no GPU retry/Model load gain",
+  "lazy_mapping": {
+    "sacct": [
+      "910376.657|Kimi-MoE-lazyCPU-r9125|COMPLETED|0:0|00:00:07|a02r4n[14-15]"
+    ],
+    "producers": [
+      {
+        "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Kimi-MoE-lazyCPU-r9125-910376.657-node1.json",
+        "SHA256": "08ba2bbbb9585b64a4e6150fb2b56e736742d3071d1768ccf6a9c2e13fde97a1",
+        "node": "a02r4n15",
+        "map_seconds": 1.707980526611209,
+        "logical_tensor_bytes": 16102205952,
+        "tensor_count": 5384,
+        "RSS_before_kB": 443648,
+        "RSS_after_kB": 933740,
+        "physical_read_increment": 140550144,
+        "threading": {
+          "intraop": 1,
+          "interop": 128,
+          "affinity": [
+            0,
+            1
+          ]
+        },
+        "sample_count": 8,
+        "GPU_initialized": false
+      },
+      {
+        "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Kimi-MoE-lazyCPU-r9125-910376.657-node0.json",
+        "SHA256": "66e8e5c738e38f196ed4fd555e7c4f1341dbe7dda64e769dff1cb30e0bae2bc0",
+        "node": "a02r4n14",
+        "map_seconds": 1.2005711202509701,
+        "logical_tensor_bytes": 16102205952,
+        "tensor_count": 5384,
+        "RSS_before_kB": 445788,
+        "RSS_after_kB": 937688,
+        "physical_read_increment": 16039936,
+        "threading": {
+          "intraop": 1,
+          "interop": 128,
+          "affinity": [
+            0,
+            1
+          ]
+        },
+        "sample_count": 8,
+        "GPU_initialized": false
+      }
+    ]
+  },
+  "targeted_prewarm": {
+    "sacct": [
+      "910376.658|Kimi-MoE-prewarmCPU-r9125|COMPLETED|0:0|00:00:05|a02r4n[14-15]"
+    ],
+    "producers": [
+      {
+        "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Kimi-MoE-prewarmCPU-r9125-910376.658-node1.json",
+        "SHA256": "8350024334c562f600e6493100d4778a18822f556865e211cc2691dc0c47eee0",
+        "node": "a02r4n15",
+        "completed": true,
+        "wall_seconds": 4.6502935090102255,
+        "logical_node_union_bytes": 8108911104,
+        "page_read_bytes": 10758675472,
+        "physical_read_increment": 718934016,
+        "maxRSS_kB": 35744,
+        "pinned": false
+      },
+      {
+        "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Kimi-MoE-prewarmCPU-r9125-910376.658-node0.json",
+        "SHA256": "d7a96f860bcb5bb7a3413febe7bc103ff7339db46f99b26397f9a4a6f05da25a",
+        "node": "a02r4n14",
+        "completed": true,
+        "wall_seconds": 2.4264902328141034,
+        "logical_node_union_bytes": 8108911104,
+        "page_read_bytes": 10788032512,
+        "physical_read_increment": 114376704,
+        "maxRSS_kB": 35268,
+        "pinned": false
+      }
+    ]
+  },
+  "original_failure": "654FAILED124, node0 CPUclones+fulltensorhash41.724s, node1 unfinished540s; no validperf round",
+  "causal_limit": "Current/post654 caches differ; original coldcache condition notcontrolled, threading/nodestats notmatched pre654. Cannot attribute41vs540 solelyclone/hash or callCPU657/658 acontrolledloadspeedup.",
+  "solution": "No-clone mmap keepsoriginalshape/stride untilnativeownerdrain; prewarm actualnode8rank requiredpage ranges in CPUstep beforeGPUadmission; requirebothcomplete toavoidoneCCLwaitnode. NoSDKchange.",
+  "actual_needed": {
+    "keys_per_node": 5384,
+    "full_weight_bytes_per_old_node_copy": 16102205952,
+    "node8rank_logical_union": 8108911104,
+    "one_rank_logical": 1114778112,
+    "replicated_alias_bytes": 115616256
+  },
+  "safety": "No checkpoint writes/coldcacheeviction/fulltensorrehash. PriorperTensorhashesfrom654node0CPUphase explicitlyhistorical, currentheader/statonly. CPUmmapregistration notfullresidentweightload, prewarmpagecache mayevict."
+}

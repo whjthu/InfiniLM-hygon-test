@@ -1,0 +1,8 @@
+#include "models/kimi_k3/kimi_k3_trace.hpp"
+#include <infini/rt/device_guard.h>
+#include <string>
+namespace rt=infinilm::runtime;namespace {struct Fixture{std::shared_ptr<rt::Runtime>r;};thread_local std::string error;}
+extern "C" const char*batch_trace_fixture_error_r9122(){return error.c_str();}
+extern "C" void*batch_trace_fixture_create_r9122(){try{infini::rt::DeviceGuard g{rt::Device::Type::kHygon,0,true};auto*c=new Fixture{rt::Runtime::create({rt::Device::Type::kHygon,0})};c->r->enableOwnerDrainFailStop();return c;}catch(const std::exception&e){error=e.what();return nullptr;}}
+extern "C" int batch_trace_fixture_call_r9122(void*ctx,void**p){try{auto*c=static_cast<Fixture*>(ctx);if(!c||!p)throw std::invalid_argument("9122 actualRuntime tracefixture");auto&r=*c->r;r.assertOwnerThread();auto wrap=[&](size_t i,rt::Shape shape,rt::DataType d){return rt::Tensor::from_blob(p[i],shape,d,r.device());};auto x=wrap(0,{1,16,7168},rt::DataType::kBFloat16);infinilm::global_state::ForwardContext fc;fc.runtime=&r;fc.attn_metadata.past_sequence_lengths=wrap(1,{4},rt::DataType::kInt32);fc.attn_metadata.total_sequence_lengths=wrap(2,{4},rt::DataType::kInt32);fc.attn_metadata.input_offsets=wrap(3,{5},rt::DataType::kInt32);fc.attn_metadata.block_tables=wrap(4,{4,4},rt::DataType::kInt32);for(size_t layer:{19,37,66,78,90})infinilm::models::kimi_k3::trace_hidden(r,x,fc,layer,"decoder");r.syncStream();return 0;}catch(const std::exception&e){error=e.what();return 1;}}
+extern "C" int batch_trace_fixture_close_r9122(void*ctx){auto*c=static_cast<Fixture*>(ctx);try{if(!c)return 1;c->r->assertOwnerThread();c->r->syncStream();c->r->trimMemory();delete c;return 0;}catch(const std::exception&e){error=e.what();return 1;}}

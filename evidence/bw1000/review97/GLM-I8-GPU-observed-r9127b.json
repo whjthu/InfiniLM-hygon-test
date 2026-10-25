@@ -1,0 +1,1929 @@
+{
+  "controller": {
+    "completed": true,
+    "controller_PID": 1532735,
+    "GPU_submitted": true,
+    "scope": "1DCU n12 operator only",
+    "CPU_closure_SHA256": "4ddbd046e0573e4f0c09fcfbfc43f4a01767728114852cb608e00c580a0a054c",
+    "CPU_producer": "910407.324",
+    "source_SHA256": {
+      "GPU_run.py": "8335638fbf57a1e57493a706da33cfbc237699752f3cf5c8a44aeae7f95f2718",
+      "GPU_inside.sh": "bd0eca687e4ed49928592269779d0ce6f024a968ed18c1600a10e98a6e69424c",
+      "conversion.py": "40dea2c3cba188103bdea85f882200971039465a6a764a4f910e0a1c6f0fae6b"
+    },
+    "fresh_sacct": "910376|llm-hold-4n|RUNNING|a02r4n[12-15]\n910376.batch|batch|RUNNING|a02r4n12\n910376.extern|extern|RUNNING|a02r4n[12-15]\n910376.644|GLM-5555-fixture-idle-r9058|COMPLETED|a02r4n12\n910376.645|GLM-5555-fixture-r9058|COMPLETED|a02r4n12\n910376.646|GLM-5555-fixture-post-r9058|COMPLETED|a02r4n12\n910376.647|glm-transient-Model-idle-r9059|COMPLETED|a02r4n[12-13]\n910376.648|glm-transient-Model-r9059|COMPLETED|a02r4n[12-13]\n910376.649|glm-transient-postidle-r9059|COMPLETED|a02r4n[12-13]\n910376.650|glm-transient-Model-idle-r9110|COMPLETED|a02r4n[14-15]\n910376.651|glm-transient-Model-r9110|FAILED|a02r4n[14-15]\n910376.652|glm-transient-postidle-r9110|COMPLETED|a02r4n[14-15]\n910376.653|Kimi-MoE-batch-profile-r9125-before|COMPLETED|a02r4n[14-15]\n910376.654|Kimi-MoE-batch-profile-r9125|FAILED|a02r4n[14-15]\n910376.655|Kimi-MoE-r9125-health|COMPLETED|a02r4n15\n910376.656|Kimi-MoE-batch-profile-r9125-post|COMPLETED|a02r4n[14-15]\n910376.657|Kimi-MoE-lazyCPU-r9125|COMPLETED|a02r4n[14-15]\n910376.658|Kimi-MoE-prewarmCPU-r9125|COMPLETED|a02r4n[14-15]\n910376.659|Kimi-MoE-batch-lazy-profile-r9125b-prewarm|COMPLETED|a02r4n[14-15]\n910376.660|Kimi-MoE-batch-lazy-profile-r9125b-before|COMPLETED|a02r4n[14-15]\n910376.661|Kimi-MoE-batch-lazy-profile-r9125b|COMPLETED|a02r4n[14-15]\n910376.662|Kimi-MoE-batch-lazy-profile-r9125b-post|COMPLETED|a02r4n[14-15]\n",
+    "before": {
+      "utc": "2026-10-25T20:52:39.793013+00:00",
+      "node": "a02r4n12",
+      "step": "910376.663",
+      "kfd_proc_exists": true,
+      "kfd_pids": [],
+      "CUDA_not_initialized_by_probe": true
+    },
+    "args": [
+      "srun",
+      "--jobid=910376",
+      "--overlap",
+      "--exact",
+      "--kill-on-bad-exit=1",
+      "-N1",
+      "-n1",
+      "-c8",
+      "-w",
+      "a02r4n12",
+      "--gres=dcu:1",
+      "--mem=32768M",
+      "-t",
+      "00:10:00",
+      "--job-name=GLM-I8-Q1-GPU-r9127",
+      "--output=/public/home/aclsylqidf/hygon-inference-refactor-20261014/logs/GLM-I8-Q1-GPU-r9127-%J.log",
+      "env",
+      "WAVE_INSIDE_R2323=GLM-selective-INT8-r9127/GPU_inside.sh",
+      "bash",
+      "/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/resource_wave_local_r3097_outer.sh",
+      "probe"
+    ],
+    "GPU_returncode": 0,
+    "controller_stdout": "",
+    "controller_stderr": "",
+    "after": {
+      "utc": "2026-10-25T20:53:37.069742+00:00",
+      "node": "a02r4n12",
+      "step": "910376.665",
+      "kfd_proc_exists": true,
+      "kfd_pids": [],
+      "CUDA_not_initialized_by_probe": true
+    },
+    "post_empty": true,
+    "producer_files": {
+      "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/GLM-I8-Q1-r9127-910376.664.json": {
+        "SHA256": "4bc2f690b5b784274c8245698f52a8f2d45d6488d9048fd01cc07200bd2a669d",
+        "data": {
+          "completed": true,
+          "producer": "910376.664",
+          "node": "a02r4n12",
+          "cases": [
+            {
+              "name": "w13",
+              "M": 1,
+              "K": 6144,
+              "N": 512,
+              "wall_ms": {
+                "baseline": [
+                  0.056355795823037624,
+                  0.056240311823785305,
+                  0.05442928522825241,
+                  0.056073348969221115
+                ],
+                "candidate": [
+                  0.11511815246194601,
+                  0.11191514786332846,
+                  0.11318866163492203,
+                  0.11002910323441029
+                ]
+              },
+              "candidate_mean_ms": 0.1125627662986517,
+              "baseline_mean_ms": 0.055774685461074114,
+              "speedup_vs_BF16_reference": 0.49549853201983896,
+              "error_vs_quantized_float_oracle": {
+                "finite": true,
+                "maxabs": 0.0072095394134521484,
+                "relative_RMS": 0.0016025162014830245
+              },
+              "error_vs_original_FP8_weight_FP32_matmul": {
+                "finite": true,
+                "maxabs": 0.07112681865692139,
+                "relative_RMS": 0.01800945973910496
+              },
+              "readonly_canary_finite": true,
+              "dynamic_activation_error": {
+                "finite": true,
+                "maxabs": 0.0175933837890625,
+                "relative_RMS": 0.009940176426322023
+              },
+              "error_vs_exact_I32_oracle": {
+                "finite": true,
+                "maxabs": 0.0072100162506103516,
+                "relative_RMS": 0.0016025556873391557
+              },
+              "I32_absmax": 196494
+            },
+            {
+              "name": "w13",
+              "M": 4,
+              "K": 6144,
+              "N": 512,
+              "wall_ms": {
+                "baseline": [
+                  0.055639282800257206,
+                  0.05627935752272606,
+                  0.054326304234564304,
+                  0.05596829578280449
+                ],
+                "candidate": [
+                  0.11342265643179417,
+                  0.11050209868699312,
+                  0.1093926141038537,
+                  0.10872615966945887
+                ]
+              },
+              "candidate_mean_ms": 0.11051088222302496,
+              "baseline_mean_ms": 0.055553310085088015,
+              "speedup_vs_BF16_reference": 0.5026953813740659,
+              "error_vs_quantized_float_oracle": {
+                "finite": true,
+                "maxabs": 0.011759281158447266,
+                "relative_RMS": 0.0016775188301587272
+              },
+              "error_vs_original_FP8_weight_FP32_matmul": {
+                "finite": true,
+                "maxabs": 0.11090987920761108,
+                "relative_RMS": 0.014844580891976348
+              },
+              "readonly_canary_finite": true,
+              "dynamic_activation_error": {
+                "finite": true,
+                "maxabs": 0.018085479736328125,
+                "relative_RMS": 0.00942315495224374
+              }
+            },
+            {
+              "name": "w13",
+              "M": 8,
+              "K": 6144,
+              "N": 512,
+              "wall_ms": {
+                "baseline": [
+                  0.05660585593432188,
+                  0.05755680613219738,
+                  0.05537034012377262,
+                  0.05674827843904495
+                ],
+                "candidate": [
+                  0.10987010318785906,
+                  0.10866615921258926,
+                  0.1093605998903513,
+                  0.10765916667878628
+                ]
+              },
+              "candidate_mean_ms": 0.10888900724239647,
+              "baseline_mean_ms": 0.05657032015733421,
+              "speedup_vs_BF16_reference": 0.5195227837039943,
+              "error_vs_quantized_float_oracle": {
+                "finite": true,
+                "maxabs": 0.007740974426269531,
+                "relative_RMS": 0.0016800883013708557
+              },
+              "error_vs_original_FP8_weight_FP32_matmul": {
+                "finite": true,
+                "maxabs": 0.06649678945541382,
+                "relative_RMS": 0.014108823778469164
+              },
+              "readonly_canary_finite": true,
+              "dynamic_activation_error": {
+                "finite": true,
+                "maxabs": 0.016855239868164062,
+                "relative_RMS": 0.008737943688920677
+              }
+            },
+            {
+              "name": "w13",
+              "M": 16,
+              "K": 6144,
+              "N": 512,
+              "wall_ms": {
+                "baseline": [
+                  0.05662830080837011,
+                  0.056756287813186646,
+                  0.054839812219142914,
+                  0.05676781293004751
+                ],
+                "candidate": [
+                  0.11145765893161297,
+                  0.10848464444279671,
+                  0.1101805828511715,
+                  0.10801558382809162
+                ]
+              },
+              "candidate_mean_ms": 0.1095346175134182,
+              "baseline_mean_ms": 0.056248053442686796,
+              "speedup_vs_BF16_reference": 0.5135185087563419,
+              "error_vs_quantized_float_oracle": {
+                "finite": true,
+                "maxabs": 0.007790327072143555,
+                "relative_RMS": 0.0016860369896830164
+              },
+              "error_vs_original_FP8_weight_FP32_matmul": {
+                "finite": true,
+                "maxabs": 0.07100069522857666,
+                "relative_RMS": 0.014649420876594092
+              },
+              "readonly_canary_finite": true,
+              "dynamic_activation_error": {
+                "finite": true,
+                "maxabs": 0.016855239868164062,
+                "relative_RMS": 0.008725133865417067
+              }
+            },
+            {
+              "name": "w13",
+              "M": 128,
+              "K": 6144,
+              "N": 512,
+              "wall_ms": {
+                "baseline": [
+                  0.06021128501743078,
+                  0.060386862605810165,
+                  0.05866880528628826,
+                  0.06062434986233711
+                ],
+                "candidate": [
+                  0.1111871562898159,
+                  0.10973066091537476,
+                  0.11061965487897396,
+                  0.10921561624854803
+                ]
+              },
+              "candidate_mean_ms": 0.11018827208317816,
+              "baseline_mean_ms": 0.05997282569296658,
+              "speedup_vs_BF16_reference": 0.5442759429759885,
+              "error_vs_quantized_float_oracle": {
+                "finite": true,
+                "maxabs": 0.014292716979980469,
+                "relative_RMS": 0.0016687370513971816
+              },
+              "error_vs_original_FP8_weight_FP32_matmul": {
+                "finite": true,
+                "maxabs": 0.0987725555896759,
+                "relative_RMS": 0.014700323856161305
+              },
+              "readonly_canary_finite": true,
+              "dynamic_activation_error": {
+                "finite": true,
+                "maxabs": 0.020054101943969727,
+                "relative_RMS": 0.009008898827363901
+              }
+            },
+            {
+              "name": "down",
+              "M": 1,
+              "K": 256,
+              "N": 6144,
+              "wall_ms": {
+                "baseline": [
+                  0.05523285362869501,
+                  0.05573930684477091,
+                  0.05419980734586716,
+                  0.055373855866491795
+                ],
+                "candidate": [
+                  0.0753479078412056,
+                  0.07250893395394087,
+                  0.07399143651127815,
+                  0.07197989616543055
+                ]
+              },
+              "candidate_mean_ms": 0.07345704361796379,
+              "baseline_mean_ms": 0.05513645592145622,
+              "speedup_vs_BF16_reference": 0.7505945407796495,
+              "error_vs_quantized_float_oracle": {
+                "finite": true,
+                "maxabs": 0.001922011375427246,
+                "relative_RMS": 0.001664269641901306
+              },
+              "error_vs_original_FP8_weight_FP32_matmul": {
+                "finite": true,
+                "maxabs": 0.008052296936511993,
+                "relative_RMS": 0.011980902083884548
+              },
+              "readonly_canary_finite": true,
+              "dynamic_activation_error": {
+                "finite": true,
+                "maxabs": 0.012364625930786133,
+                "relative_RMS": 0.007650449875743985
+              },
+              "error_vs_exact_I32_oracle": {
+                "finite": true,
+                "maxabs": 0.001922011375427246,
+                "relative_RMS": 0.0016642704826345621
+              },
+              "I32_absmax": 91854
+            },
+            {
+              "name": "down",
+              "M": 4,
+              "K": 256,
+              "N": 6144,
+              "wall_ms": {
+                "baseline": [
+                  0.05591029766947031,
+                  0.055495789274573326,
+                  0.05405785050243139,
+                  0.055385357700288296
+                ],
+                "candidate": [
+                  0.07336994167417288,
+                  0.07306088227778673,
+                  0.07363990880548954,
+                  0.07161139510571957
+                ]
+              },
+              "candidate_mean_ms": 0.07292053196579218,
+              "baseline_mean_ms": 0.05521232378669083,
+              "speedup_vs_BF16_reference": 0.757157446582967,
+              "error_vs_quantized_float_oracle": {
+                "finite": true,
+                "maxabs": 0.0019463896751403809,
+                "relative_RMS": 0.0016741693264234335
+              },
+              "error_vs_original_FP8_weight_FP32_matmul": {
+                "finite": true,
+                "maxabs": 0.01153060793876648,
+                "relative_RMS": 0.011602341935988046
+              },
+              "readonly_canary_finite": true,
+              "dynamic_activation_error": {
+                "finite": true,
+                "maxabs": 0.01522517204284668,
+                "relative_RMS": 0.007261351614697157
+              }
+            },
+            {
+              "name": "down",
+              "M": 8,
+              "K": 256,
+              "N": 6144,
+              "wall_ms": {
+                "baseline": [
+                  0.055228290148079395,
+                  0.05571783985942602,
+                  0.0542293069884181,
+                  0.055526779033243656
+                ],
+                "candidate": [
+                  0.07416193839162588,
+                  0.07380540482699871,
+                  0.07447591051459312,
+                  0.07281193975359201
+                ]
+              },
+              "candidate_mean_ms": 0.07381379837170243,
+              "baseline_mean_ms": 0.055175554007291794,
+              "speedup_vs_BF16_reference": 0.7474964738902277,
+              "error_vs_quantized_float_oracle": {
+                "finite": true,
+                "maxabs": 0.0019478201866149902,
+                "relative_RMS": 0.0016569127754836384
+              },
+              "error_vs_original_FP8_weight_FP32_matmul": {
+                "finite": true,
+                "maxabs": 0.009474709630012512,
+                "relative_RMS": 0.011554218757244494
+              },
+              "readonly_canary_finite": true,
+              "dynamic_activation_error": {
+                "finite": true,
+                "maxabs": 0.013533473014831543,
+                "relative_RMS": 0.006686715964740425
+              }
+            },
+            {
+              "name": "down",
+              "M": 16,
+              "K": 256,
+              "N": 6144,
+              "wall_ms": {
+                "baseline": [
+                  0.05532980430871248,
+                  0.05515236407518387,
+                  0.053400290198624134,
+                  0.055614300072193146
+                ],
+                "candidate": [
+                  0.07429043762385845,
+                  0.07461539935320616,
+                  0.07491540163755417,
+                  0.0726769445464015
+                ]
+              },
+              "candidate_mean_ms": 0.07412454579025507,
+              "baseline_mean_ms": 0.05487418966367841,
+              "speedup_vs_BF16_reference": 0.7402971455494916,
+              "error_vs_quantized_float_oracle": {
+                "finite": true,
+                "maxabs": 0.001951456069946289,
+                "relative_RMS": 0.001658003643771987
+              },
+              "error_vs_original_FP8_weight_FP32_matmul": {
+                "finite": true,
+                "maxabs": 0.011378496885299683,
+                "relative_RMS": 0.01162861748422484
+              },
+              "readonly_canary_finite": true,
+              "dynamic_activation_error": {
+                "finite": true,
+                "maxabs": 0.018823862075805664,
+                "relative_RMS": 0.007133227872902753
+              }
+            },
+            {
+              "name": "down",
+              "M": 128,
+              "K": 256,
+              "N": 6144,
+              "wall_ms": {
+                "baseline": [
+                  0.05700129549950361,
+                  0.057403347454965115,
+                  0.055371783673763275,
+                  0.05653230473399162
+                ],
+                "candidate": [
+                  0.08952799253165722,
+                  0.085117993876338,
+                  0.08706951048225164,
+                  0.085448008030653
+                ]
+              },
+              "candidate_mean_ms": 0.08679087623022497,
+              "baseline_mean_ms": 0.056577182840555906,
+              "speedup_vs_BF16_reference": 0.651879382925885,
+              "error_vs_quantized_float_oracle": {
+                "finite": true,
+                "maxabs": 0.0019527673721313477,
+                "relative_RMS": 0.0016563951370077218
+              },
+              "error_vs_original_FP8_weight_FP32_matmul": {
+                "finite": true,
+                "maxabs": 0.011821471154689789,
+                "relative_RMS": 0.011549217950189523
+              },
+              "readonly_canary_finite": true,
+              "dynamic_activation_error": {
+                "finite": true,
+                "maxabs": 0.017839431762695312,
+                "relative_RMS": 0.00701346153651846
+              }
+            }
+          ],
+          "scope": "actual checkpoint TP8 expert0 layer3 weights, synthetic seeded activations, operator only not model/task quality/performance",
+          "baseline": "Torch BF16 resident dequantized weight GEMM; not original GLM FP8 provider",
+          "CPU_closure_SHA256": "4ddbd046e0573e4f0c09fcfbfc43f4a01767728114852cb608e00c580a0a054c",
+          "library_SHA256": "48c6bf15ba53dadea4054f09d83ac21a589014b99dbc70ba059961ea69425192",
+          "normal_owner_cleanup": true,
+          "weights": [
+            {
+              "name": "w13",
+              "K": 6144,
+              "N": 512,
+              "TP_rank": 0,
+              "weight_error": {
+                "finite": true,
+                "maxabs": 0.0006497576832771301,
+                "relative_RMS": 0.01133180846868971
+              },
+              "sha_packed": "fd0d5bc6c5f0c8031a18b3b87b33ec30ab0c13b59fad487b21a2ccc9eba8bed1",
+              "sha_original_reconstructed": "b084cf85c07fd5c9a8fa28d7a765bb98d51ae5205551812b56cb781b97b599dc"
+            },
+            {
+              "name": "down",
+              "K": 256,
+              "N": 6144,
+              "TP_rank": 0,
+              "weight_error": {
+                "finite": true,
+                "maxabs": 0.0003652498126029968,
+                "relative_RMS": 0.009002668787209496
+              },
+              "sha_packed": "77b445df8411d1d398d2c2a85ee4bdb855654c986dc4fbdbeb28d06453cc984a",
+              "sha_original_reconstructed": "ae28fd6035a5cb3446fedf1211e4f317ff2bf19c7a8d34f425baca053950bc39"
+            }
+          ],
+          "actual_map_before": [
+            "/opt/dtk/cuda/cuda-12/targets/x86_64-linux/lib/libcublas.so.12.6.3.3",
+            "/opt/dtk/cuda/cuda-12/targets/x86_64-linux/lib/libcudart.so.12.6.77",
+            "/refactor/candidates/rebased-5f91ad7-r3668/Common/GLM/InfiniLM/python/infinilm/_lib/libinfinilm_runtime.so",
+            "/refactor/install/hygon-glm-5f91ad7-r3672/lib/libinfiniops.so",
+            "/refactor/install/hygon-glm-5f91ad7-r3672/lib/libinfinirt.so"
+          ],
+          "actual_dependency_SHA256": {
+            "/refactor/candidates/rebased-5f91ad7-r3668/Common/GLM/InfiniLM/python/infinilm/_lib/libinfinilm_runtime.so": "dc8542f14f70b85c67c227532f61756d432bbfee02308d373ff7ae5b9a540c36",
+            "/refactor/install/hygon-glm-5f91ad7-r3672/lib/libinfiniops.so": "0bd37990340f39bbcaf185abbc990ebeb9f56ea1b9992327eda96d627446a863",
+            "/refactor/install/hygon-glm-5f91ad7-r3672/lib/libinfinirt.so": "e78b7b4aed105e5968fc598f60a2cacafcaf7c07c13dd4a971abfbdd92d47560"
+          },
+          "actual_map_after": [
+            "/opt/dtk/cuda/cuda-12/targets/x86_64-linux/lib/libcublas.so.12.6.3.3",
+            "/opt/dtk/cuda/cuda-12/targets/x86_64-linux/lib/libcudart.so.12.6.77",
+            "/refactor/candidates/rebased-5f91ad7-r3668/Common/GLM/InfiniLM/python/infinilm/_lib/libinfinilm_runtime.so",
+            "/refactor/install/hygon-glm-5f91ad7-r3672/lib/libinfiniops.so",
+            "/refactor/install/hygon-glm-5f91ad7-r3672/lib/libinfinirt.so"
+          ]
+        }
+      }
+    }
+  },
+  "logs": {
+    "GLM-I8-Q1-GPU-r9127-910376.664.log": "LOCAL_PYCACHE_R3097 node=a02r4n12 filesystem=tmpfs root=/dev/shm/infini-pyc-910376.664-0\nSHARED_CACHED_R1780_START node=a02r4n12 step=910376.664 scratch=runtime-raw-sdk-graph-r2323-910376.664-rank0\nWARNING: Could not find any rocm files on this host!\nWARNING: Environment variable TMPDIR already has value [/tmp], will not forward new value [/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/runtime-raw-sdk-graph-r2323-910376.664-rank0] from parent process environment\nWARNING: /opt/hyhal/lib/cmake/rocm_smi doesn't exist, please install the latest driver(version >= 6.3.15)\nThe rocm_smi_lib will be used in default\n{\"name\": \"w13\", \"M\": 1, \"candidate_mean_ms\": 0.1125627662986517, \"baseline_mean_ms\": 0.055774685461074114, \"speedup_vs_BF16_reference\": 0.49549853201983896}\n{\"name\": \"w13\", \"M\": 4, \"candidate_mean_ms\": 0.11051088222302496, \"baseline_mean_ms\": 0.055553310085088015, \"speedup_vs_BF16_reference\": 0.5026953813740659}\n{\"name\": \"w13\", \"M\": 8, \"candidate_mean_ms\": 0.10888900724239647, \"baseline_mean_ms\": 0.05657032015733421, \"speedup_vs_BF16_reference\": 0.5195227837039943}\n{\"name\": \"w13\", \"M\": 16, \"candidate_mean_ms\": 0.1095346175134182, \"baseline_mean_ms\": 0.056248053442686796, \"speedup_vs_BF16_reference\": 0.5135185087563419}\n{\"name\": \"w13\", \"M\": 128, \"candidate_mean_ms\": 0.11018827208317816, \"baseline_mean_ms\": 0.05997282569296658, \"speedup_vs_BF16_reference\": 0.5442759429759885}\n{\"name\": \"down\", \"M\": 1, \"candidate_mean_ms\": 0.07345704361796379, \"baseline_mean_ms\": 0.05513645592145622, \"speedup_vs_BF16_reference\": 0.7505945407796495}\n{\"name\": \"down\", \"M\": 4, \"candidate_mean_ms\": 0.07292053196579218, \"baseline_mean_ms\": 0.05521232378669083, \"speedup_vs_BF16_reference\": 0.757157446582967}\n{\"name\": \"down\", \"M\": 8, \"candidate_mean_ms\": 0.07381379837170243, \"baseline_mean_ms\": 0.055175554007291794, \"speedup_vs_BF16_reference\": 0.7474964738902277}\n{\"name\": \"down\", \"M\": 16, \"candidate_mean_ms\": 0.07412454579025507, \"baseline_mean_ms\": 0.05487418966367841, \"speedup_vs_BF16_reference\": 0.7402971455494916}\n{\"name\": \"down\", \"M\": 128, \"candidate_mean_ms\": 0.08679087623022497, \"baseline_mean_ms\": 0.056577182840555906, \"speedup_vs_BF16_reference\": 0.651879382925885}\n{\"completed\": true, \"cases\": 10, \"error\": null, \"normal_owner_cleanup\": true}\nSHARED_CACHED_R1780_COMPLETE node=a02r4n12 scratch=runtime-raw-sdk-graph-r2323-910376.664-rank0\n",
+    "GLM-I8-Q1-controller-r9127.log": "{\"completed\": true, \"GPU_submitted\": true, \"error\": null}\n"
+  },
+  "sacct": "910376|llm-hold-4n|RUNNING|13-04:10:02|a02r4n[12-15]\n910376.batch|batch|RUNNING|13-04:10:02|a02r4n12\n910376.extern|extern|RUNNING|13-04:10:02|a02r4n[12-15]\n910376.644|GLM-5555-fixture-idle-r9058|COMPLETED|00:00:01|a02r4n12\n910376.645|GLM-5555-fixture-r9058|COMPLETED|00:01:31|a02r4n12\n910376.646|GLM-5555-fixture-post-r9058|COMPLETED|00:00:01|a02r4n12\n910376.647|glm-transient-Model-idle-r9059|COMPLETED|00:00:00|a02r4n[12-13]\n910376.648|glm-transient-Model-r9059|COMPLETED|00:41:28|a02r4n[12-13]\n910376.649|glm-transient-postidle-r9059|COMPLETED|00:00:01|a02r4n[12-13]\n910376.650|glm-transient-Model-idle-r9110|COMPLETED|00:00:01|a02r4n[14-15]\n910376.651|glm-transient-Model-r9110|FAILED|00:22:13|a02r4n[14-15]\n910376.652|glm-transient-postidle-r9110|COMPLETED|00:00:00|a02r4n[14-15]\n910376.653|Kimi-MoE-batch-profile-r9125-before|COMPLETED|00:00:01|a02r4n[14-15]\n910376.654|Kimi-MoE-batch-profile-r9125|FAILED|00:09:11|a02r4n[14-15]\n910376.655|Kimi-MoE-r9125-health|COMPLETED|00:00:01|a02r4n15\n910376.656|Kimi-MoE-batch-profile-r9125-post|COMPLETED|00:00:01|a02r4n[14-15]\n910376.657|Kimi-MoE-lazyCPU-r9125|COMPLETED|00:00:07|a02r4n[14-15]\n910376.658|Kimi-MoE-prewarmCPU-r9125|COMPLETED|00:00:05|a02r4n[14-15]\n910376.659|Kimi-MoE-batch-lazy-profile-r9125b-prewarm|COMPLETED|00:00:03|a02r4n[14-15]\n910376.660|Kimi-MoE-batch-lazy-profile-r9125b-before|COMPLETED|00:00:01|a02r4n[14-15]\n910376.661|Kimi-MoE-batch-lazy-profile-r9125b|COMPLETED|00:01:02|a02r4n[14-15]\n910376.662|Kimi-MoE-batch-lazy-profile-r9125b-post|COMPLETED|00:00:01|a02r4n[14-15]\n910376.663|GLM-I8-Q1-before-r9127|COMPLETED|00:00:01|a02r4n12\n910376.664|GLM-I8-Q1-GPU-r9127|COMPLETED|00:00:57|a02r4n12\n910376.665|GLM-I8-Q1-post-r9127|COMPLETED|00:00:01|a02r4n12\n",
+  "producer_files": {
+    "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/GLM-I8-Q1-r9127-910376.664.json": {
+      "SHA256": "4bc2f690b5b784274c8245698f52a8f2d45d6488d9048fd01cc07200bd2a669d",
+      "data": {
+        "completed": true,
+        "producer": "910376.664",
+        "node": "a02r4n12",
+        "cases": [
+          {
+            "name": "w13",
+            "M": 1,
+            "K": 6144,
+            "N": 512,
+            "wall_ms": {
+              "baseline": [
+                0.056355795823037624,
+                0.056240311823785305,
+                0.05442928522825241,
+                0.056073348969221115
+              ],
+              "candidate": [
+                0.11511815246194601,
+                0.11191514786332846,
+                0.11318866163492203,
+                0.11002910323441029
+              ]
+            },
+            "candidate_mean_ms": 0.1125627662986517,
+            "baseline_mean_ms": 0.055774685461074114,
+            "speedup_vs_BF16_reference": 0.49549853201983896,
+            "error_vs_quantized_float_oracle": {
+              "finite": true,
+              "maxabs": 0.0072095394134521484,
+              "relative_RMS": 0.0016025162014830245
+            },
+            "error_vs_original_FP8_weight_FP32_matmul": {
+              "finite": true,
+              "maxabs": 0.07112681865692139,
+              "relative_RMS": 0.01800945973910496
+            },
+            "readonly_canary_finite": true,
+            "dynamic_activation_error": {
+              "finite": true,
+              "maxabs": 0.0175933837890625,
+              "relative_RMS": 0.009940176426322023
+            },
+            "error_vs_exact_I32_oracle": {
+              "finite": true,
+              "maxabs": 0.0072100162506103516,
+              "relative_RMS": 0.0016025556873391557
+            },
+            "I32_absmax": 196494
+          },
+          {
+            "name": "w13",
+            "M": 4,
+            "K": 6144,
+            "N": 512,
+            "wall_ms": {
+              "baseline": [
+                0.055639282800257206,
+                0.05627935752272606,
+                0.054326304234564304,
+                0.05596829578280449
+              ],
+              "candidate": [
+                0.11342265643179417,
+                0.11050209868699312,
+                0.1093926141038537,
+                0.10872615966945887
+              ]
+            },
+            "candidate_mean_ms": 0.11051088222302496,
+            "baseline_mean_ms": 0.055553310085088015,
+            "speedup_vs_BF16_reference": 0.5026953813740659,
+            "error_vs_quantized_float_oracle": {
+              "finite": true,
+              "maxabs": 0.011759281158447266,
+              "relative_RMS": 0.0016775188301587272
+            },
+            "error_vs_original_FP8_weight_FP32_matmul": {
+              "finite": true,
+              "maxabs": 0.11090987920761108,
+              "relative_RMS": 0.014844580891976348
+            },
+            "readonly_canary_finite": true,
+            "dynamic_activation_error": {
+              "finite": true,
+              "maxabs": 0.018085479736328125,
+              "relative_RMS": 0.00942315495224374
+            }
+          },
+          {
+            "name": "w13",
+            "M": 8,
+            "K": 6144,
+            "N": 512,
+            "wall_ms": {
+              "baseline": [
+                0.05660585593432188,
+                0.05755680613219738,
+                0.05537034012377262,
+                0.05674827843904495
+              ],
+              "candidate": [
+                0.10987010318785906,
+                0.10866615921258926,
+                0.1093605998903513,
+                0.10765916667878628
+              ]
+            },
+            "candidate_mean_ms": 0.10888900724239647,
+            "baseline_mean_ms": 0.05657032015733421,
+            "speedup_vs_BF16_reference": 0.5195227837039943,
+            "error_vs_quantized_float_oracle": {
+              "finite": true,
+              "maxabs": 0.007740974426269531,
+              "relative_RMS": 0.0016800883013708557
+            },
+            "error_vs_original_FP8_weight_FP32_matmul": {
+              "finite": true,
+              "maxabs": 0.06649678945541382,
+              "relative_RMS": 0.014108823778469164
+            },
+            "readonly_canary_finite": true,
+            "dynamic_activation_error": {
+              "finite": true,
+              "maxabs": 0.016855239868164062,
+              "relative_RMS": 0.008737943688920677
+            }
+          },
+          {
+            "name": "w13",
+            "M": 16,
+            "K": 6144,
+            "N": 512,
+            "wall_ms": {
+              "baseline": [
+                0.05662830080837011,
+                0.056756287813186646,
+                0.054839812219142914,
+                0.05676781293004751
+              ],
+              "candidate": [
+                0.11145765893161297,
+                0.10848464444279671,
+                0.1101805828511715,
+                0.10801558382809162
+              ]
+            },
+            "candidate_mean_ms": 0.1095346175134182,
+            "baseline_mean_ms": 0.056248053442686796,
+            "speedup_vs_BF16_reference": 0.5135185087563419,
+            "error_vs_quantized_float_oracle": {
+              "finite": true,
+              "maxabs": 0.007790327072143555,
+              "relative_RMS": 0.0016860369896830164
+            },
+            "error_vs_original_FP8_weight_FP32_matmul": {
+              "finite": true,
+              "maxabs": 0.07100069522857666,
+              "relative_RMS": 0.014649420876594092
+            },
+            "readonly_canary_finite": true,
+            "dynamic_activation_error": {
+              "finite": true,
+              "maxabs": 0.016855239868164062,
+              "relative_RMS": 0.008725133865417067
+            }
+          },
+          {
+            "name": "w13",
+            "M": 128,
+            "K": 6144,
+            "N": 512,
+            "wall_ms": {
+              "baseline": [
+                0.06021128501743078,
+                0.060386862605810165,
+                0.05866880528628826,
+                0.06062434986233711
+              ],
+              "candidate": [
+                0.1111871562898159,
+                0.10973066091537476,
+                0.11061965487897396,
+                0.10921561624854803
+              ]
+            },
+            "candidate_mean_ms": 0.11018827208317816,
+            "baseline_mean_ms": 0.05997282569296658,
+            "speedup_vs_BF16_reference": 0.5442759429759885,
+            "error_vs_quantized_float_oracle": {
+              "finite": true,
+              "maxabs": 0.014292716979980469,
+              "relative_RMS": 0.0016687370513971816
+            },
+            "error_vs_original_FP8_weight_FP32_matmul": {
+              "finite": true,
+              "maxabs": 0.0987725555896759,
+              "relative_RMS": 0.014700323856161305
+            },
+            "readonly_canary_finite": true,
+            "dynamic_activation_error": {
+              "finite": true,
+              "maxabs": 0.020054101943969727,
+              "relative_RMS": 0.009008898827363901
+            }
+          },
+          {
+            "name": "down",
+            "M": 1,
+            "K": 256,
+            "N": 6144,
+            "wall_ms": {
+              "baseline": [
+                0.05523285362869501,
+                0.05573930684477091,
+                0.05419980734586716,
+                0.055373855866491795
+              ],
+              "candidate": [
+                0.0753479078412056,
+                0.07250893395394087,
+                0.07399143651127815,
+                0.07197989616543055
+              ]
+            },
+            "candidate_mean_ms": 0.07345704361796379,
+            "baseline_mean_ms": 0.05513645592145622,
+            "speedup_vs_BF16_reference": 0.7505945407796495,
+            "error_vs_quantized_float_oracle": {
+              "finite": true,
+              "maxabs": 0.001922011375427246,
+              "relative_RMS": 0.001664269641901306
+            },
+            "error_vs_original_FP8_weight_FP32_matmul": {
+              "finite": true,
+              "maxabs": 0.008052296936511993,
+              "relative_RMS": 0.011980902083884548
+            },
+            "readonly_canary_finite": true,
+            "dynamic_activation_error": {
+              "finite": true,
+              "maxabs": 0.012364625930786133,
+              "relative_RMS": 0.007650449875743985
+            },
+            "error_vs_exact_I32_oracle": {
+              "finite": true,
+              "maxabs": 0.001922011375427246,
+              "relative_RMS": 0.0016642704826345621
+            },
+            "I32_absmax": 91854
+          },
+          {
+            "name": "down",
+            "M": 4,
+            "K": 256,
+            "N": 6144,
+            "wall_ms": {
+              "baseline": [
+                0.05591029766947031,
+                0.055495789274573326,
+                0.05405785050243139,
+                0.055385357700288296
+              ],
+              "candidate": [
+                0.07336994167417288,
+                0.07306088227778673,
+                0.07363990880548954,
+                0.07161139510571957
+              ]
+            },
+            "candidate_mean_ms": 0.07292053196579218,
+            "baseline_mean_ms": 0.05521232378669083,
+            "speedup_vs_BF16_reference": 0.757157446582967,
+            "error_vs_quantized_float_oracle": {
+              "finite": true,
+              "maxabs": 0.0019463896751403809,
+              "relative_RMS": 0.0016741693264234335
+            },
+            "error_vs_original_FP8_weight_FP32_matmul": {
+              "finite": true,
+              "maxabs": 0.01153060793876648,
+              "relative_RMS": 0.011602341935988046
+            },
+            "readonly_canary_finite": true,
+            "dynamic_activation_error": {
+              "finite": true,
+              "maxabs": 0.01522517204284668,
+              "relative_RMS": 0.007261351614697157
+            }
+          },
+          {
+            "name": "down",
+            "M": 8,
+            "K": 256,
+            "N": 6144,
+            "wall_ms": {
+              "baseline": [
+                0.055228290148079395,
+                0.05571783985942602,
+                0.0542293069884181,
+                0.055526779033243656
+              ],
+              "candidate": [
+                0.07416193839162588,
+                0.07380540482699871,
+                0.07447591051459312,
+                0.07281193975359201
+              ]
+            },
+            "candidate_mean_ms": 0.07381379837170243,
+            "baseline_mean_ms": 0.055175554007291794,
+            "speedup_vs_BF16_reference": 0.7474964738902277,
+            "error_vs_quantized_float_oracle": {
+              "finite": true,
+              "maxabs": 0.0019478201866149902,
+              "relative_RMS": 0.0016569127754836384
+            },
+            "error_vs_original_FP8_weight_FP32_matmul": {
+              "finite": true,
+              "maxabs": 0.009474709630012512,
+              "relative_RMS": 0.011554218757244494
+            },
+            "readonly_canary_finite": true,
+            "dynamic_activation_error": {
+              "finite": true,
+              "maxabs": 0.013533473014831543,
+              "relative_RMS": 0.006686715964740425
+            }
+          },
+          {
+            "name": "down",
+            "M": 16,
+            "K": 256,
+            "N": 6144,
+            "wall_ms": {
+              "baseline": [
+                0.05532980430871248,
+                0.05515236407518387,
+                0.053400290198624134,
+                0.055614300072193146
+              ],
+              "candidate": [
+                0.07429043762385845,
+                0.07461539935320616,
+                0.07491540163755417,
+                0.0726769445464015
+              ]
+            },
+            "candidate_mean_ms": 0.07412454579025507,
+            "baseline_mean_ms": 0.05487418966367841,
+            "speedup_vs_BF16_reference": 0.7402971455494916,
+            "error_vs_quantized_float_oracle": {
+              "finite": true,
+              "maxabs": 0.001951456069946289,
+              "relative_RMS": 0.001658003643771987
+            },
+            "error_vs_original_FP8_weight_FP32_matmul": {
+              "finite": true,
+              "maxabs": 0.011378496885299683,
+              "relative_RMS": 0.01162861748422484
+            },
+            "readonly_canary_finite": true,
+            "dynamic_activation_error": {
+              "finite": true,
+              "maxabs": 0.018823862075805664,
+              "relative_RMS": 0.007133227872902753
+            }
+          },
+          {
+            "name": "down",
+            "M": 128,
+            "K": 256,
+            "N": 6144,
+            "wall_ms": {
+              "baseline": [
+                0.05700129549950361,
+                0.057403347454965115,
+                0.055371783673763275,
+                0.05653230473399162
+              ],
+              "candidate": [
+                0.08952799253165722,
+                0.085117993876338,
+                0.08706951048225164,
+                0.085448008030653
+              ]
+            },
+            "candidate_mean_ms": 0.08679087623022497,
+            "baseline_mean_ms": 0.056577182840555906,
+            "speedup_vs_BF16_reference": 0.651879382925885,
+            "error_vs_quantized_float_oracle": {
+              "finite": true,
+              "maxabs": 0.0019527673721313477,
+              "relative_RMS": 0.0016563951370077218
+            },
+            "error_vs_original_FP8_weight_FP32_matmul": {
+              "finite": true,
+              "maxabs": 0.011821471154689789,
+              "relative_RMS": 0.011549217950189523
+            },
+            "readonly_canary_finite": true,
+            "dynamic_activation_error": {
+              "finite": true,
+              "maxabs": 0.017839431762695312,
+              "relative_RMS": 0.00701346153651846
+            }
+          }
+        ],
+        "scope": "actual checkpoint TP8 expert0 layer3 weights, synthetic seeded activations, operator only not model/task quality/performance",
+        "baseline": "Torch BF16 resident dequantized weight GEMM; not original GLM FP8 provider",
+        "CPU_closure_SHA256": "4ddbd046e0573e4f0c09fcfbfc43f4a01767728114852cb608e00c580a0a054c",
+        "library_SHA256": "48c6bf15ba53dadea4054f09d83ac21a589014b99dbc70ba059961ea69425192",
+        "normal_owner_cleanup": true,
+        "weights": [
+          {
+            "name": "w13",
+            "K": 6144,
+            "N": 512,
+            "TP_rank": 0,
+            "weight_error": {
+              "finite": true,
+              "maxabs": 0.0006497576832771301,
+              "relative_RMS": 0.01133180846868971
+            },
+            "sha_packed": "fd0d5bc6c5f0c8031a18b3b87b33ec30ab0c13b59fad487b21a2ccc9eba8bed1",
+            "sha_original_reconstructed": "b084cf85c07fd5c9a8fa28d7a765bb98d51ae5205551812b56cb781b97b599dc"
+          },
+          {
+            "name": "down",
+            "K": 256,
+            "N": 6144,
+            "TP_rank": 0,
+            "weight_error": {
+              "finite": true,
+              "maxabs": 0.0003652498126029968,
+              "relative_RMS": 0.009002668787209496
+            },
+            "sha_packed": "77b445df8411d1d398d2c2a85ee4bdb855654c986dc4fbdbeb28d06453cc984a",
+            "sha_original_reconstructed": "ae28fd6035a5cb3446fedf1211e4f317ff2bf19c7a8d34f425baca053950bc39"
+          }
+        ],
+        "actual_map_before": [
+          "/opt/dtk/cuda/cuda-12/targets/x86_64-linux/lib/libcublas.so.12.6.3.3",
+          "/opt/dtk/cuda/cuda-12/targets/x86_64-linux/lib/libcudart.so.12.6.77",
+          "/refactor/candidates/rebased-5f91ad7-r3668/Common/GLM/InfiniLM/python/infinilm/_lib/libinfinilm_runtime.so",
+          "/refactor/install/hygon-glm-5f91ad7-r3672/lib/libinfiniops.so",
+          "/refactor/install/hygon-glm-5f91ad7-r3672/lib/libinfinirt.so"
+        ],
+        "actual_dependency_SHA256": {
+          "/refactor/candidates/rebased-5f91ad7-r3668/Common/GLM/InfiniLM/python/infinilm/_lib/libinfinilm_runtime.so": "dc8542f14f70b85c67c227532f61756d432bbfee02308d373ff7ae5b9a540c36",
+          "/refactor/install/hygon-glm-5f91ad7-r3672/lib/libinfiniops.so": "0bd37990340f39bbcaf185abbc990ebeb9f56ea1b9992327eda96d627446a863",
+          "/refactor/install/hygon-glm-5f91ad7-r3672/lib/libinfinirt.so": "e78b7b4aed105e5968fc598f60a2cacafcaf7c07c13dd4a971abfbdd92d47560"
+        },
+        "actual_map_after": [
+          "/opt/dtk/cuda/cuda-12/targets/x86_64-linux/lib/libcublas.so.12.6.3.3",
+          "/opt/dtk/cuda/cuda-12/targets/x86_64-linux/lib/libcudart.so.12.6.77",
+          "/refactor/candidates/rebased-5f91ad7-r3668/Common/GLM/InfiniLM/python/infinilm/_lib/libinfinilm_runtime.so",
+          "/refactor/install/hygon-glm-5f91ad7-r3672/lib/libinfiniops.so",
+          "/refactor/install/hygon-glm-5f91ad7-r3672/lib/libinfinirt.so"
+        ]
+      }
+    }
+  },
+  "CPU_closure": {
+    "SHA256": "4ddbd046e0573e4f0c09fcfbfc43f4a01767728114852cb608e00c580a0a054c",
+    "data": {
+      "completed": true,
+      "CPU_only": true,
+      "GPU_initialized": false,
+      "producer": "910407.324",
+      "parent_receipt_SHA256": "a8063c044c3c43d2ad1f922d095d40fb1f40090be8fb8ddc0b7f701bc7dd995a",
+      "parent_compile_producer": "910407.322",
+      "library": "/refactor/candidates/GLM-selective-INT8-r9127/libGLM_i8_r9127.so",
+      "library_SHA256": "48c6bf15ba53dadea4054f09d83ac21a589014b99dbc70ba059961ea69425192",
+      "identity": {
+        "path": "/old/models/ZhipuAI-GLM-5.3",
+        "resolve": "/old/models/ZhipuAI-GLM-5.3",
+        "config": {
+          "architectures": [
+            "GlmMoeDsaForCausalLM"
+          ],
+          "attention_bias": false,
+          "attention_dropout": 0.0,
+          "dtype": "bfloat16",
+          "eos_token_id": [
+            154820,
+            154827,
+            154829
+          ],
+          "ep_size": 1,
+          "first_k_dense_replace": 3,
+          "head_dim": 192,
+          "hidden_act": "silu",
+          "hidden_size": 6144,
+          "index_head_dim": 128,
+          "index_n_heads": 32,
+          "index_share_for_mtp_iteration": true,
+          "index_skip_topk_offset": 3,
+          "index_topk": 2048,
+          "index_topk_freq": 4,
+          "index_topk_pattern": null,
+          "indexer_rope_interleave": true,
+          "indexer_types": [
+            "full",
+            "full",
+            "full",
+            "shared",
+            "shared",
+            "shared",
+            "full",
+            "shared",
+            "shared",
+            "shared",
+            "full",
+            "shared",
+            "shared",
+            "shared",
+            "full",
+            "shared",
+            "shared",
+            "shared",
+            "full",
+            "shared",
+            "shared",
+            "shared",
+            "full",
+            "shared",
+            "shared",
+            "shared",
+            "full",
+            "shared",
+            "shared",
+            "shared",
+            "full",
+            "shared",
+            "shared",
+            "shared",
+            "full",
+            "shared",
+            "shared",
+            "shared",
+            "full",
+            "shared",
+            "shared",
+            "shared",
+            "full",
+            "shared",
+            "shared",
+            "shared",
+            "full",
+            "shared",
+            "shared",
+            "shared",
+            "full",
+            "shared",
+            "shared",
+            "shared",
+            "full",
+            "shared",
+            "shared",
+            "shared",
+            "full",
+            "shared",
+            "shared",
+            "shared",
+            "full",
+            "shared",
+            "shared",
+            "shared",
+            "full",
+            "shared",
+            "shared",
+            "shared",
+            "full",
+            "shared",
+            "shared",
+            "shared",
+            "full",
+            "shared",
+            "shared",
+            "shared"
+          ],
+          "initializer_range": 0.02,
+          "intermediate_size": 12288,
+          "kv_lora_rank": 512,
+          "max_position_embeddings": 1048576,
+          "mlp_layer_types": [
+            "dense",
+            "dense",
+            "dense",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse",
+            "sparse"
+          ],
+          "model_type": "glm_moe_dsa",
+          "moe_intermediate_size": 2048,
+          "moe_layer_freq": 1,
+          "moe_router_dtype": "float32",
+          "n_group": 1,
+          "n_routed_experts": 256,
+          "n_shared_experts": 1,
+          "norm_topk_prob": true,
+          "num_attention_heads": 64,
+          "num_experts_per_tok": 8,
+          "num_hidden_layers": 78,
+          "num_key_value_heads": 64,
+          "num_nextn_predict_layers": 1,
+          "pad_token_id": 154820,
+          "pretraining_tp": 1,
+          "q_lora_rank": 2048,
+          "qk_head_dim": 256,
+          "qk_nope_head_dim": 192,
+          "qk_rope_head_dim": 64,
+          "rms_norm_eps": 1e-05,
+          "rope_interleave": true,
+          "rope_parameters": {
+            "rope_theta": 8000000,
+            "rope_type": "default"
+          },
+          "routed_scaling_factor": 2.5,
+          "scoring_func": "sigmoid",
+          "tie_word_embeddings": false,
+          "topk_group": 1,
+          "topk_method": "noaux_tc",
+          "transformers_version": "5.15.0",
+          "use_cache": true,
+          "v_head_dim": 256,
+          "vocab_size": 154880,
+          "quantization_config": {
+            "activation_scheme": "dynamic",
+            "fmt": "e4m3",
+            "quant_method": "fp8",
+            "weight_block_size": [
+              128,
+              128
+            ],
+            "modules_to_not_convert": [
+              "model.layers.59.post_attention_layernorm",
+              "model.layers.47.mlp.gate.e_score_correction_bias",
+              "model.layers.71.self_attn.kv_a_layernorm",
+              "model.layers.46.mlp.gate.e_score_correction_bias",
+              "model.layers.30.self_attn.kv_a_layernorm",
+              "model.layers.23.self_attn.kv_a_layernorm",
+              "model.layers.73.mlp.gate.e_score_correction_bias",
+              "model.layers.36.mlp.gate",
+              "model.layers.12.self_attn.q_a_layernorm",
+              "model.layers.51.mlp.gate",
+              "model.layers.47.self_attn.kv_a_layernorm",
+              "model.layers.45.self_attn.q_a_layernorm",
+              "model.layers.15.self_attn.q_a_layernorm",
+              "model.layers.39.input_layernorm",
+              "model.layers.50.self_attn.kv_a_layernorm",
+              "model.layers.19.post_attention_layernorm",
+              "model.layers.71.input_layernorm",
+              "model.layers.72.self_attn.kv_a_layernorm",
+              "model.layers.70.mlp.gate",
+              "model.layers.52.input_layernorm",
+              "model.layers.78.self_attn.kv_a_layernorm",
+              "model.layers.48.post_attention_layernorm",
+              "model.layers.4.self_attn.q_a_layernorm",
+              "model.layers.62.self_attn.q_a_layernorm",
+              "model.layers.4.post_attention_layernorm",
+              "model.layers.38.self_attn.indexers_proj",
+              "model.layers.61.mlp.gate.e_score_correction_bias",
+              "model.layers.14.mlp.gate.e_score_correction_bias",
+              "model.layers.36.self_attn.kv_a_layernorm",
+              "model.layers.65.mlp.gate",
+              "model.layers.13.self_attn.kv_a_layernorm",
+              "model.layers.57.mlp.gate",
+              "model.layers.65.self_attn.kv_a_layernorm",
+              "model.layers.68.input_layernorm",
+              "model.layers.70.self_attn.kv_a_layernorm",
+              "model.layers.24.mlp.gate.e_score_correction_bias",
+              "model.layers.4.input_layernorm",
+              "model.layers.20.input_layernorm",
+              "model.layers.65.self_attn.q_a_layernorm",
+              "model.layers.38.mlp.gate",
+              "model.layers.76.mlp.gate.e_score_correction_bias",
+              "model.layers.62.input_layernorm",
+              "model.layers.45.input_layernorm",
+              "model.layers.68.post_attention_layernorm",
+              "model.layers.72.input_layernorm",
+              "model.layers.32.mlp.gate.e_score_correction_bias",
+              "model.layers.27.input_layernorm",
+              "model.layers.16.post_attention_layernorm",
+              "model.layers.35.self_attn.q_a_layernorm",
+              "model.layers.58.self_attn.indexers_proj",
+              "model.layers.3.mlp.gate.e_score_correction_bias",
+              "model.layers.49.self_attn.q_a_layernorm",
+              "model.layers.66.mlp.gate.e_score_correction_bias",
+              "model.layers.10.self_attn.q_a_layernorm",
+              "model.layers.51.mlp.gate.e_score_correction_bias",
+              "model.layers.64.self_attn.q_a_layernorm",
+              "model.layers.70.input_layernorm",
+              "model.layers.71.post_attention_layernorm",
+              "model.layers.67.post_attention_layernorm",
+              "model.layers.6.self_attn.indexer.k_norm",
+              "model.layers.3.mlp.gate",
+              "model.layers.11.mlp.gate",
+              "model.layers.17.input_layernorm",
+              "model.layers.13.mlp.gate",
+              "model.layers.15.mlp.gate",
+              "model.layers.71.self_attn.q_a_layernorm",
+              "model.layers.33.mlp.gate.e_score_correction_bias",
+              "model.layers.72.mlp.gate.e_score_correction_bias",
+              "model.layers.65.post_attention_layernorm",
+              "model.layers.78.hnorm",
+              "model.layers.40.post_attention_layernorm",
+              "model.layers.12.mlp.gate.e_score_correction_bias",
+              "model.layers.8.input_layernorm",
+              "model.layers.73.mlp.gate",
+              "model.layers.11.post_attention_layernorm",
+              "model.layers.61.input_layernorm",
+              "model.layers.14.self_attn.kv_a_layernorm",
+              "model.layers.39.self_attn.kv_a_layernorm",
+              "model.layers.70.self_attn.indexer.k_norm",
+              "model.layers.45.mlp.gate",
+              "model.layers.51.self_attn.q_a_layernorm",
+              "model.layers.64.post_attention_layernorm",
+              "model.layers.20.post_attention_layernorm",
+              "model.layers.66.self_attn.kv_a_layernorm",
+              "model.layers.10.self_attn.indexer.k_norm.bias",
+              "model.layers.23.input_layernorm",
+              "model.layers.38.self_attn.indexer.k_norm",
+              "model.layers.19.self_attn.kv_a_layernorm",
+              "model.layers.40.self_attn.q_a_layernorm",
+              "model.layers.10.self_attn.indexer.k_norm",
+              "model.layers.44.post_attention_layernorm",
+              "model.layers.70.post_attention_layernorm",
+              "model.layers.41.mlp.gate.e_score_correction_bias",
+              "model.layers.36.post_attention_layernorm",
+              "model.layers.30.self_attn.indexer.k_norm.bias",
+              "model.layers.54.self_attn.q_a_layernorm",
+              "model.layers.59.mlp.gate",
+              "model.layers.69.post_attention_layernorm",
+              "lm_head",
+              "model.layers.77.self_attn.kv_a_layernorm",
+              "model.layers.75.self_attn.q_a_layernorm",
+              "model.layers.56.self_attn.q_a_layernorm",
+              "model.layers.50.self_attn.indexer.k_norm.bias",
+              "model.layers.54.mlp.gate",
+              "model.layers.6.self_attn.indexer.k_norm.bias",
+              "model.layers.15.input_layernorm",
+              "model.layers.29.self_attn.q_a_layernorm",
+              "model.layers.54.self_attn.indexers_proj",
+              "model.layers.73.self_attn.kv_a_layernorm",
+              "model.layers.0.self_attn.indexer.k_norm",
+              "model.layers.58.self_attn.indexer.k_norm",
+              "model.layers.36.input_layernorm",
+              "model.layers.47.self_attn.q_a_layernorm",
+              "model.layers.26.mlp.gate.e_score_correction_bias",
+              "model.layers.50.input_layernorm",
+              "model.layers.16.self_attn.q_a_layernorm",
+              "model.layers.19.mlp.gate.e_score_correction_bias",
+              "model.layers.78.input_layernorm",
+              "model.layers.27.mlp.gate",
+              "model.layers.19.self_attn.q_a_layernorm",
+              "model.layers.25.input_layernorm",
+              "model.layers.33.self_attn.kv_a_layernorm",
+              "model.layers.32.mlp.gate",
+              "model.layers.61.self_attn.kv_a_layernorm",
+              "model.layers.50.self_attn.indexers_proj",
+              "model.layers.34.self_attn.indexers_proj",
+              "model.layers.4.mlp.gate.e_score_correction_bias",
+              "model.layers.76.post_attention_layernorm",
+              "model.layers.57.post_attention_layernorm",
+              "model.layers.73.post_attention_layernorm",
+              "model.layers.68.mlp.gate.e_score_correction_bias",
+              "model.layers.34.self_attn.kv_a_layernorm",
+              "model.layers.78.enorm",
+              "model.layers.30.mlp.gate",
+              "model.layers.10.self_attn.indexers_proj",
+              "model.layers.34.input_layernorm",
+              "model.layers.34.post_attention_layernorm",
+              "model.layers.20.mlp.gate.e_score_correction_bias",
+              "model.layers.54.self_attn.indexer.k_norm.bias",
+              "model.layers.44.mlp.gate",
+              "model.layers.25.mlp.gate.e_score_correction_bias",
+              "model.layers.26.self_attn.indexers_proj",
+              "model.layers.66.self_attn.indexer.k_norm.bias",
+              "model.layers.41.post_attention_layernorm",
+              "model.layers.51.post_attention_layernorm",
+              "model.layers.22.self_attn.indexer.k_norm.bias",
+              "model.layers.21.mlp.gate.e_score_correction_bias",
+              "model.layers.15.self_attn.kv_a_layernorm",
+              "model.layers.25.self_attn.kv_a_layernorm",
+              "model.layers.55.mlp.gate",
+              "model.layers.11.self_attn.q_a_layernorm",
+              "model.layers.72.mlp.gate",
+              "model.layers.21.self_attn.kv_a_layernorm",
+              "model.layers.59.mlp.gate.e_score_correction_bias",
+              "model.layers.2.input_layernorm",
+              "model.layers.5.mlp.gate",
+              "model.layers.54.self_attn.kv_a_layernorm",
+              "model.layers.0.self_attn.indexers_proj",
+              "model.layers.71.mlp.gate.e_score_correction_bias",
+              "model.layers.6.self_attn.q_a_layernorm",
+              "model.layers.14.mlp.gate",
+              "model.layers.44.self_attn.kv_a_layernorm",
+              "model.layers.61.post_attention_layernorm",
+              "model.layers.64.self_attn.kv_a_layernorm",
+              "model.layers.1.post_attention_layernorm",
+              "model.layers.4.mlp.gate",
+              "model.layers.22.post_attention_layernorm",
+              "model.layers.21.self_attn.q_a_layernorm",
+              "model.layers.74.self_attn.q_a_layernorm",
+              "model.layers.18.self_attn.indexers_proj",
+              "model.layers.75.input_layernorm",
+              "model.layers.70.self_attn.q_a_layernorm",
+              "model.layers.22.self_attn.indexer.k_norm",
+              "model.layers.42.mlp.gate.e_score_correction_bias",
+              "model.layers.5.self_attn.kv_a_layernorm",
+              "model.layers.31.mlp.gate.e_score_correction_bias",
+              "model.layers.62.self_attn.indexer.k_norm.bias",
+              "model.layers.29.post_attention_layernorm",
+              "model.layers.6.self_attn.kv_a_layernorm",
+              "model.layers.48.input_layernorm",
+              "model.layers.74.self_attn.indexer.k_norm.bias",
+              "model.layers.7.input_layernorm",
+              "model.layers.39.self_attn.q_a_layernorm",
+              "model.layers.41.input_layernorm",
+              "model.layers.54.self_attn.indexer.k_norm",
+              "model.layers.32.self_attn.q_a_layernorm",
+              "model.layers.39.mlp.gate.e_score_correction_bias",
+              "model.layers.42.input_layernorm",
+              "model.layers.43.mlp.gate",
+              "model.layers.72.self_attn.q_a_layernorm",
+              "model.layers.37.mlp.gate.e_score_correction_bias",
+              "model.layers.5.post_attention_layernorm",
+              "model.layers.28.mlp.gate",
+              "model.layers.2.post_attention_layernorm",
+              "model.layers.49.post_attention_layernorm",
+              "model.layers.43.self_attn.kv_a_layernorm",
+              "model.layers.12.input_layernorm",
+              "model.layers.56.mlp.gate",
+              "model.layers.5.input_layernorm",
+              "model.layers.29.mlp.gate.e_score_correction_bias",
+              "model.layers.4.self_attn.kv_a_layernorm",
+              "model.layers.20.self_attn.q_a_layernorm",
+              "model.layers.59.self_attn.q_a_layernorm",
+              "model.layers.68.mlp.gate",
+              "model.layers.21.post_attention_layernorm",
+              "model.layers.26.self_attn.q_a_layernorm",
+              "model.layers.52.self_attn.q_a_layernorm",
+              "model.layers.29.self_attn.kv_a_layernorm",
+              "model.layers.24.input_layernorm",
+              "model.layers.34.self_attn.indexer.k_norm.bias",
+              "model.layers.43.input_layernorm",
+              "model.layers.27.self_attn.kv_a_layernorm",
+              "model.layers.31.input_layernorm",
+              "model.layers.69.mlp.gate",
+              "model.layers.26.post_attention_layernorm",
+              "model.layers.3.self_attn.q_a_layernorm",
+              "model.layers.37.post_attention_layernorm",
+              "model.layers.52.mlp.gate",
+              "model.layers.73.input_layernorm",
+              "model.layers.19.input_layernorm",
+              "model.layers.13.self_attn.q_a_layernorm",
+              "model.layers.76.input_layernorm",
+              "model.layers.8.mlp.gate",
+              "model.layers.63.post_attention_layernorm",
+              "model.layers.58.mlp.gate",
+              "model.layers.31.post_attention_layernorm",
+              "model.layers.23.mlp.gate.e_score_correction_bias",
+              "model.layers.34.self_attn.q_a_layernorm",
+              "model.layers.78.self_attn.indexer.k_norm.bias",
+              "model.layers.13.mlp.gate.e_score_correction_bias",
+              "model.layers.71.mlp.gate",
+              "model.layers.14.input_layernorm",
+              "model.layers.17.mlp.gate.e_score_correction_bias",
+              "model.layers.8.post_attention_layernorm",
+              "model.layers.45.self_attn.kv_a_layernorm",
+              "model.layers.46.self_attn.indexer.k_norm",
+              "model.layers.20.self_attn.kv_a_layernorm",
+              "model.layers.78.self_attn.indexer.k_norm",
+              "model.layers.37.mlp.gate",
+              "model.layers.7.mlp.gate",
+              "model.layers.30.mlp.gate.e_score_correction_bias",
+              "model.layers.67.mlp.gate",
+              "model.layers.73.self_attn.q_a_layernorm",
+              "model.layers.10.self_attn.kv_a_layernorm",
+              "model.layers.61.mlp.gate",
+              "model.layers.22.mlp.gate.e_score_correction_bias",
+              "model.layers.58.input_layernorm",
+              "model.layers.8.self_attn.kv_a_layernorm",
+              "model.layers.33.self_attn.q_a_layernorm",
+              "model.layers.55.self_attn.q_a_layernorm",
+              "model.layers.32.input_layernorm",
+              "model.layers.17.self_attn.kv_a_layernorm",
+              "model.layers.46.self_attn.indexer.k_norm.bias",
+              "model.layers.11.mlp.gate.e_score_correction_bias",
+              "model.layers.9.input_layernorm",
+              "model.layers.77.input_layernorm",
+              "model.layers.16.self_attn.kv_a_layernorm",
+              "model.layers.45.post_attention_layernorm",
+              "model.layers.74.mlp.gate",
+              "model.layers.68.self_attn.q_a_layernorm",
+              "model.layers.55.self_attn.kv_a_layernorm",
+              "model.layers.44.input_layernorm",
+              "model.layers.60.self_attn.kv_a_layernorm",
+              "model.layers.14.post_attention_layernorm",
+              "model.layers.62.self_attn.indexers_proj",
+              "model.layers.0.self_attn.q_a_layernorm",
+              "model.layers.72.post_attention_layernorm",
+              "model.layers.78.post_attention_layernorm",
+              "model.layers.60.mlp.gate.e_score_correction_bias",
+              "model.layers.26.self_attn.indexer.k_norm.bias",
+              "model.layers.38.post_attention_layernorm",
+              "model.layers.50.post_attention_layernorm",
+              "model.layers.28.input_layernorm",
+              "model.layers.30.self_attn.indexer.k_norm",
+              "model.layers.37.self_attn.q_a_layernorm",
+              "model.layers.56.input_layernorm",
+              "model.layers.27.post_attention_layernorm",
+              "model.layers.74.input_layernorm",
+              "model.layers.78.self_attn.q_a_layernorm",
+              "model.layers.42.self_attn.q_a_layernorm",
+              "model.layers.26.self_attn.indexer.k_norm",
+              "model.layers.42.self_attn.kv_a_layernorm",
+              "model.layers.1.self_attn.indexer.k_norm",
+              "model.layers.39.post_attention_layernorm",
+              "model.layers.48.mlp.gate.e_score_correction_bias",
+              "model.layers.74.post_attention_layernorm",
+              "model.layers.69.self_attn.q_a_layernorm",
+              "model.layers.13.input_layernorm",
+              "model.layers.74.self_attn.indexer.k_norm",
+              "model.layers.29.mlp.gate",
+              "model.layers.7.mlp.gate.e_score_correction_bias",
+              "model.layers.3.self_attn.kv_a_layernorm",
+              "model.layers.35.self_attn.kv_a_layernorm",
+              "model.layers.46.self_attn.indexers_proj",
+              "model.layers.0.self_attn.kv_a_layernorm",
+              "model.layers.43.self_attn.q_a_layernorm",
+              "model.norm",
+              "model.layers.1.self_attn.kv_a_layernorm",
+              "model.layers.38.self_attn.indexer.k_norm.bias",
+              "model.layers.30.self_attn.q_a_layernorm",
+              "model.layers.0.input_layernorm",
+              "model.layers.47.input_layernorm",
+              "model.layers.8.self_attn.q_a_layernorm",
+              "model.layers.61.self_attn.q_a_layernorm",
+              "model.layers.1.self_attn.indexer.k_norm.bias",
+              "model.layers.62.mlp.gate.e_score_correction_bias",
+              "model.layers.66.self_attn.q_a_layernorm",
+              "model.layers.46.self_attn.kv_a_layernorm",
+              "model.layers.66.mlp.gate",
+              "model.layers.69.input_layernorm",
+              "model.layers.69.self_attn.kv_a_layernorm",
+              "model.layers.22.input_layernorm",
+              "model.layers.30.post_attention_layernorm",
+              "model.layers.24.self_attn.q_a_layernorm",
+              "model.layers.48.mlp.gate",
+              "model.layers.7.self_attn.kv_a_layernorm",
+              "model.layers.67.input_layernorm",
+              "model.layers.27.self_attn.q_a_layernorm",
+              "model.layers.23.mlp.gate",
+              "model.layers.45.mlp.gate.e_score_correction_bias",
+              "model.layers.76.self_attn.kv_a_layernorm",
+              "model.layers.22.self_attn.q_a_layernorm",
+              "model.layers.78.mlp.gate",
+              "model.layers.9.mlp.gate",
+              "model.layers.57.self_attn.q_a_layernorm",
+              "model.layers.78.mlp.gate.e_score_correction_bias",
+              "model.layers.23.post_attention_layernorm",
+              "model.layers.38.self_attn.q_a_layernorm",
+              "model.layers.53.mlp.gate",
+              "model.layers.77.self_attn.q_a_layernorm",
+              "model.layers.62.self_attn.kv_a_layernorm",
+              "model.layers.12.mlp.gate",
+              "model.layers.34.self_attn.indexer.k_norm",
+              "model.layers.46.self_attn.q_a_layernorm",
+              "model.layers.36.self_attn.q_a_layernorm",
+              "model.layers.58.self_attn.indexer.k_norm.bias",
+              "model.layers.60.post_attention_layernorm",
+              "model.layers.28.post_attention_layernorm",
+              "model.layers.2.self_attn.kv_a_layernorm",
+              "model.layers.70.self_attn.indexers_proj",
+              "model.layers.16.mlp.gate.e_score_correction_bias",
+              "model.layers.2.self_attn.indexer.k_norm",
+              "model.layers.31.self_attn.kv_a_layernorm",
+              "model.layers.64.input_layernorm",
+              "model.layers.6.mlp.gate.e_score_correction_bias",
+              "model.layers.50.self_attn.indexer.k_norm",
+              "model.layers.58.self_attn.q_a_layernorm",
+              "model.layers.57.mlp.gate.e_score_correction_bias",
+              "model.layers.13.post_attention_layernorm",
+              "model.layers.28.self_attn.kv_a_layernorm",
+              "model.layers.31.self_attn.q_a_layernorm",
+              "model.layers.1.self_attn.q_a_layernorm",
+              "model.layers.17.mlp.gate",
+              "model.layers.15.post_attention_layernorm",
+              "model.layers.18.self_attn.indexer.k_norm.bias",
+              "model.layers.18.self_attn.indexer.k_norm",
+              "model.layers.43.mlp.gate.e_score_correction_bias",
+              "model.layers.11.input_layernorm",
+              "model.layers.9.post_attention_layernorm",
+              "model.layers.33.input_layernorm",
+              "model.layers.66.input_layernorm",
+              "model.layers.78.self_attn.indexers_proj",
+              "model.layers.54.post_attention_layernorm",
+              "model.layers.53.mlp.gate.e_score_correction_bias",
+              "model.layers.5.mlp.gate.e_score_correction_bias",
+              "model.layers.19.mlp.gate",
+              "model.layers.49.mlp.gate",
+              "model.layers.66.self_attn.indexers_proj",
+              "model.layers.14.self_attn.indexer.k_norm.bias",
+              "model.layers.41.mlp.gate",
+              "model.layers.42.self_attn.indexer.k_norm.bias",
+              "model.layers.65.input_layernorm",
+              "model.layers.75.mlp.gate",
+              "model.layers.12.self_attn.kv_a_layernorm",
+              "model.layers.53.input_layernorm",
+              "model.layers.58.self_attn.kv_a_layernorm",
+              "model.layers.60.self_attn.q_a_layernorm",
+              "model.layers.6.mlp.gate",
+              "model.layers.49.self_attn.kv_a_layernorm",
+              "model.layers.16.mlp.gate",
+              "model.layers.22.mlp.gate",
+              "model.layers.58.post_attention_layernorm",
+              "model.layers.15.mlp.gate.e_score_correction_bias",
+              "model.layers.26.input_layernorm",
+              "model.layers.3.post_attention_layernorm",
+              "model.layers.6.input_layernorm",
+              "model.layers.22.self_attn.kv_a_layernorm",
+              "model.layers.16.input_layernorm",
+              "model.layers.33.post_attention_layernorm",
+              "model.layers.17.post_attention_layernorm",
+              "model.layers.35.mlp.gate",
+              "model.layers.56.post_attention_layernorm",
+              "model.layers.7.self_attn.q_a_layernorm",
+              "model.layers.24.mlp.gate",
+              "model.layers.24.post_attention_layernorm",
+              "model.layers.36.mlp.gate.e_score_correction_bias",
+              "model.layers.56.mlp.gate.e_score_correction_bias",
+              "model.layers.32.post_attention_layernorm",
+              "model.layers.47.post_attention_layernorm",
+              "model.layers.40.mlp.gate",
+              "model.layers.41.self_attn.kv_a_layernorm",
+              "model.layers.52.self_attn.kv_a_layernorm",
+              "model.layers.9.self_attn.kv_a_layernorm",
+              "model.layers.77.mlp.gate.e_score_correction_bias",
+              "model.layers.78.shared_head.norm",
+              "model.layers.53.post_attention_layernorm",
+              "model.layers.63.self_attn.kv_a_layernorm",
+              "model.layers.48.self_attn.kv_a_layernorm",
+              "model.layers.28.mlp.gate.e_score_correction_bias",
+              "model.layers.8.mlp.gate.e_score_correction_bias",
+              "model.layers.52.mlp.gate.e_score_correction_bias",
+              "model.layers.52.post_attention_layernorm",
+              "model.layers.18.self_attn.q_a_layernorm",
+              "model.layers.50.mlp.gate.e_score_correction_bias",
+              "model.layers.64.mlp.gate.e_score_correction_bias",
+              "model.layers.38.mlp.gate.e_score_correction_bias",
+              "model.layers.59.input_layernorm",
+              "model.layers.21.input_layernorm",
+              "model.layers.39.mlp.gate",
+              "model.layers.77.post_attention_layernorm",
+              "model.layers.76.self_attn.q_a_layernorm",
+              "model.layers.12.post_attention_layernorm",
+              "model.layers.43.post_attention_layernorm",
+              "model.layers.35.input_layernorm",
+              "model.layers.62.mlp.gate",
+              "model.layers.38.self_attn.kv_a_layernorm",
+              "model.layers.63.mlp.gate",
+              "model.layers.27.mlp.gate.e_score_correction_bias",
+              "model.layers.18.mlp.gate",
+              "model.layers.25.post_attention_layernorm",
+              "model.layers.55.mlp.gate.e_score_correction_bias",
+              "model.layers.66.self_attn.indexer.k_norm",
+              "model.layers.48.self_attn.q_a_layernorm",
+              "model.layers.78.eh_proj",
+              "model.layers.77.mlp.gate",
+              "model.layers.6.self_attn.indexers_proj",
+              "model.layers.14.self_attn.q_a_layernorm",
+              "model.layers.2.self_attn.q_a_layernorm",
+              "model.layers.42.mlp.gate",
+              "model.layers.54.mlp.gate.e_score_correction_bias",
+              "model.layers.60.input_layernorm",
+              "model.layers.40.self_attn.kv_a_layernorm",
+              "model.layers.51.self_attn.kv_a_layernorm",
+              "model.layers.18.input_layernorm",
+              "model.layers.30.self_attn.indexers_proj",
+              "model.layers.53.self_attn.kv_a_layernorm",
+              "model.layers.6.post_attention_layernorm",
+              "model.layers.70.self_attn.indexer.k_norm.bias",
+              "model.layers.54.input_layernorm",
+              "model.layers.41.self_attn.q_a_layernorm",
+              "model.layers.18.mlp.gate.e_score_correction_bias",
+              "model.layers.34.mlp.gate.e_score_correction_bias",
+              "model.layers.47.mlp.gate",
+              "model.layers.46.mlp.gate",
+              "model.layers.25.self_attn.q_a_layernorm",
+              "model.layers.63.mlp.gate.e_score_correction_bias",
+              "model.layers.66.post_attention_layernorm",
+              "model.layers.76.mlp.gate",
+              "model.embed_tokens",
+              "model.layers.67.self_attn.kv_a_layernorm",
+              "model.layers.67.mlp.gate.e_score_correction_bias",
+              "model.layers.26.self_attn.kv_a_layernorm",
+              "model.layers.31.mlp.gate",
+              "model.layers.18.self_attn.kv_a_layernorm",
+              "model.layers.34.mlp.gate",
+              "model.layers.55.post_attention_layernorm",
+              "model.layers.30.input_layernorm",
+              "model.layers.50.mlp.gate",
+              "model.layers.63.input_layernorm",
+              "model.layers.11.self_attn.kv_a_layernorm",
+              "model.layers.24.self_attn.kv_a_layernorm",
+              "model.layers.75.mlp.gate.e_score_correction_bias",
+              "model.layers.10.post_attention_layernorm",
+              "model.layers.1.self_attn.indexers_proj",
+              "model.layers.42.self_attn.indexers_proj",
+              "model.layers.46.input_layernorm",
+              "model.layers.23.self_attn.q_a_layernorm",
+              "model.layers.63.self_attn.q_a_layernorm",
+              "model.layers.14.self_attn.indexer.k_norm",
+              "model.layers.14.self_attn.indexers_proj",
+              "model.layers.60.mlp.gate",
+              "model.layers.70.mlp.gate.e_score_correction_bias",
+              "model.layers.53.self_attn.q_a_layernorm",
+              "model.layers.0.post_attention_layernorm",
+              "model.layers.35.mlp.gate.e_score_correction_bias",
+              "model.layers.75.self_attn.kv_a_layernorm",
+              "model.layers.1.input_layernorm",
+              "model.layers.42.post_attention_layernorm",
+              "model.layers.37.input_layernorm",
+              "model.layers.9.mlp.gate.e_score_correction_bias",
+              "model.layers.46.post_attention_layernorm",
+              "model.layers.26.mlp.gate",
+              "model.layers.65.mlp.gate.e_score_correction_bias",
+              "model.layers.67.self_attn.q_a_layernorm",
+              "model.layers.44.mlp.gate.e_score_correction_bias",
+              "model.layers.33.mlp.gate",
+              "model.layers.29.input_layernorm",
+              "model.layers.18.post_attention_layernorm",
+              "model.layers.75.post_attention_layernorm",
+              "model.layers.44.self_attn.q_a_layernorm",
+              "model.layers.10.mlp.gate",
+              "model.layers.21.mlp.gate",
+              "model.layers.58.mlp.gate.e_score_correction_bias",
+              "model.layers.7.post_attention_layernorm",
+              "model.layers.50.self_attn.q_a_layernorm",
+              "model.layers.9.self_attn.q_a_layernorm",
+              "model.layers.2.self_attn.indexers_proj",
+              "model.layers.0.self_attn.indexer.k_norm.bias",
+              "model.layers.74.self_attn.kv_a_layernorm",
+              "model.layers.74.mlp.gate.e_score_correction_bias",
+              "model.layers.49.mlp.gate.e_score_correction_bias",
+              "model.layers.62.post_attention_layernorm",
+              "model.layers.57.self_attn.kv_a_layernorm",
+              "model.layers.40.input_layernorm",
+              "model.layers.69.mlp.gate.e_score_correction_bias",
+              "model.layers.35.post_attention_layernorm",
+              "model.layers.74.self_attn.indexers_proj",
+              "model.layers.55.input_layernorm",
+              "model.layers.49.input_layernorm",
+              "model.layers.40.mlp.gate.e_score_correction_bias",
+              "model.layers.25.mlp.gate",
+              "model.layers.2.self_attn.indexer.k_norm.bias",
+              "model.layers.68.self_attn.kv_a_layernorm",
+              "model.layers.51.input_layernorm",
+              "model.layers.22.self_attn.indexers_proj",
+              "model.layers.10.input_layernorm",
+              "model.layers.42.self_attn.indexer.k_norm",
+              "model.layers.56.self_attn.kv_a_layernorm",
+              "model.layers.17.self_attn.q_a_layernorm",
+              "model.layers.59.self_attn.kv_a_layernorm",
+              "model.layers.3.input_layernorm",
+              "model.layers.57.input_layernorm",
+              "model.layers.38.input_layernorm",
+              "model.layers.62.self_attn.indexer.k_norm",
+              "model.layers.20.mlp.gate",
+              "model.layers.64.mlp.gate",
+              "model.layers.28.self_attn.q_a_layernorm",
+              "model.layers.32.self_attn.kv_a_layernorm",
+              "model.layers.10.mlp.gate.e_score_correction_bias",
+              "model.layers.5.self_attn.q_a_layernorm",
+              "model.layers.37.self_attn.kv_a_layernorm"
+            ]
+          }
+        },
+        "config_SHA256": "3ac72612095574542f7fff847ada8e59d9199dd8af44bdf625d7e02615572e69",
+        "index_SHA256": "e0fe7f28c1f853d4824e4d796374e3dacf1fe470988773952c79b063768134bf",
+        "README": null,
+        "metadata_files": []
+      },
+      "selected_headers": {
+        "model.layers.3.mlp.experts.0.down_proj.weight": {
+          "file": "model-00038-of-00141.safetensors",
+          "file_size": 5366353304,
+          "header_SHA256": "8607b1b281f5ca8c7b166376e8f6d7eb9ca07f79200f6095f0f55ca35149ba56",
+          "tensor": {
+            "dtype": "F8_E4M3",
+            "shape": [
+              6144,
+              2048
+            ],
+            "data_offsets": [
+              4057625024,
+              4070207936
+            ]
+          }
+        },
+        "model.layers.3.mlp.experts.0.down_proj.weight_scale_inv": {
+          "file": "model-00038-of-00141.safetensors",
+          "file_size": 5366353304,
+          "header_SHA256": "8607b1b281f5ca8c7b166376e8f6d7eb9ca07f79200f6095f0f55ca35149ba56",
+          "tensor": {
+            "dtype": "F32",
+            "shape": [
+              48,
+              16
+            ],
+            "data_offsets": [
+              990656,
+              993728
+            ]
+          }
+        },
+        "model.layers.3.mlp.experts.0.gate_proj.weight": {
+          "file": "model-00038-of-00141.safetensors",
+          "file_size": 5366353304,
+          "header_SHA256": "8607b1b281f5ca8c7b166376e8f6d7eb9ca07f79200f6095f0f55ca35149ba56",
+          "tensor": {
+            "dtype": "F8_E4M3",
+            "shape": [
+              2048,
+              6144
+            ],
+            "data_offsets": [
+              4070207936,
+              4082790848
+            ]
+          }
+        },
+        "model.layers.3.mlp.experts.0.gate_proj.weight_scale_inv": {
+          "file": "model-00038-of-00141.safetensors",
+          "file_size": 5366353304,
+          "header_SHA256": "8607b1b281f5ca8c7b166376e8f6d7eb9ca07f79200f6095f0f55ca35149ba56",
+          "tensor": {
+            "dtype": "F32",
+            "shape": [
+              16,
+              48
+            ],
+            "data_offsets": [
+              993728,
+              996800
+            ]
+          }
+        },
+        "model.layers.3.mlp.experts.0.up_proj.weight": {
+          "file": "model-00038-of-00141.safetensors",
+          "file_size": 5366353304,
+          "header_SHA256": "8607b1b281f5ca8c7b166376e8f6d7eb9ca07f79200f6095f0f55ca35149ba56",
+          "tensor": {
+            "dtype": "F8_E4M3",
+            "shape": [
+              2048,
+              6144
+            ],
+            "data_offsets": [
+              4082790848,
+              4095373760
+            ]
+          }
+        },
+        "model.layers.3.mlp.experts.0.up_proj.weight_scale_inv": {
+          "file": "model-00038-of-00141.safetensors",
+          "file_size": 5366353304,
+          "header_SHA256": "8607b1b281f5ca8c7b166376e8f6d7eb9ca07f79200f6095f0f55ca35149ba56",
+          "tensor": {
+            "dtype": "F32",
+            "shape": [
+              16,
+              48
+            ],
+            "data_offsets": [
+              996800,
+              999872
+            ]
+          }
+        }
+      },
+      "dependencies": {
+        "/refactor/candidates/rebased-5f91ad7-r3668/Common/GLM/InfiniLM/python/infinilm/_lib/libinfinilm_runtime.so": "dc8542f14f70b85c67c227532f61756d432bbfee02308d373ff7ae5b9a540c36",
+        "/refactor/install/hygon-glm-5f91ad7-r3672/lib/libinfiniops.so": "0bd37990340f39bbcaf185abbc990ebeb9f56ea1b9992327eda96d627446a863",
+        "/refactor/install/hygon-glm-5f91ad7-r3672/lib/libinfinirt.so": "e78b7b4aed105e5968fc598f60a2cacafcaf7c07c13dd4a971abfbdd92d47560"
+      },
+      "findspec": {
+        "torch": "/usr/local/lib/python3.10/dist-packages/torch/__init__.py",
+        "numpy": "/usr/local/lib/python3.10/dist-packages/numpy/__init__.py",
+        "safetensors": "/usr/local/lib/python3.10/dist-packages/safetensors/__init__.py",
+        "conversion": "/refactor/incoming/GLM-selective-INT8-r9127/conversion.py"
+      },
+      "ldd": "\tlinux-vdso.so.1 (0x00007ffd745c1000)\n\t/refactor/candidates/rebased-5f91ad7-r3668/Common/GLM/InfiniLM/python/infinilm/_lib/libinfinilm_runtime.so (0x00007f6ec0f49000)\n\tlibinfiniops.so => /refactor/install/hygon-glm-5f91ad7-r3672/lib/libinfiniops.so (0x00007f6ebe7ce000)\n\tlibinfinirt.so => /refactor/install/hygon-glm-5f91ad7-r3672/lib/libinfinirt.so (0x00007f6ebe7b2000)\n\tlibcudart.so.12 => /opt/dtk/cuda/cuda/lib64/libcudart.so.12 (0x00007f6ebe774000)\n\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007f6ebe539000)\n\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007f6ebe519000)\n\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f6ebe200000)\n\t/lib64/ld-linux-x86-64.so.2 (0x00007f6ec1046000)\n\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f6ebe432000)\n\tlibpython3.10.so.1.0 => /lib/x86_64-linux-gnu/libpython3.10.so.1.0 (0x00007f6ebdc29000)\n\tlibgalaxyhip.so.5 => /opt/dtk/hip/lib/libgalaxyhip.so.5 (0x00007f6ebd000000)\n\tlibomp.so => /opt/dtk/llvm/lib/libomp.so (0x00007f6ebcf02000)\n\tlibcublas.so.12 => /opt/dtk/cuda/cuda/lib64/libcublas.so.12 (0x00007f6ebceab000)\n\tlibcuda.so.1 => /opt/dtk/cuda/cuda/lib64/libcuda.so.1 (0x00007f6ebdbf0000)\n\tlibtorch.so => /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch.so (0x00007f6ebdbdb000)\n\tlibtorch_cpu.so => /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cpu.so (0x00007f6ea5000000)\n\tlibc10.so => /usr/local/lib/python3.10/dist-packages/torch/lib/libc10.so (0x00007f6ea4ec8000)\n\tlibtorch_hip.so => /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_hip.so (0x00007f6e71e00000)\n\tlibc10_hip.so => /usr/local/lib/python3.10/dist-packages/torch/lib/libc10_hip.so (0x00007f6ea4d86000)\n\tflash_attn_2_cuda.cpython-310-x86_64-linux-gnu.so => /usr/local/lib/python3.10/dist-packages/flash_attn_2_cuda.cpython-310-x86_64-linux-gnu.so (0x00007f6e4ee00000)\n\tlibpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007f6ebdbd6000)\n\tlibrt.so.1 => /lib/x86_64-linux-gnu/librt.so.1 (0x00007f6ebcea6000)\n\tlibexpat.so.1 => /lib/x86_64-linux-gnu/libexpat.so.1 (0x00007f6ea4d55000)\n\tlibz.so.1 => /lib/x86_64-linux-gnu/libz.so.1 (0x00007f6e71de4000)\n\tlibnuma.so.1 => /.singularity.d/libs/libnuma.so.1 (0x00007f6e4ea00000)\n\tlibdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2 (0x00007f6ebcea1000)\n\tlibhipblas.so.2 => /opt/dtk/lib/libhipblas.so.2 (0x00007f6e4ecca000)\n\tlibrocblas.so.4 => /opt/dtk/lib/librocblas.so.4 (0x00007f6e25e58000)\n\tlibgflags-8aee0f6c.so.2.1.2 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libgflags-8aee0f6c.so.2.1.2 (0x00007f6e25c00000)\n\tlibglog-6ed04f2c.so.0.0.0 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libglog-6ed04f2c.so.0.0.0 (0x00007f6e25800000)\n\tlibgomp-12261256.so.1.0.0 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libgomp-12261256.so.1.0.0 (0x00007f6e25400000)\n\tlibibverbs-1a5f644b.so.1.14.37.2 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libibverbs-1a5f644b.so.1.14.37.2 (0x00007f6e25000000)\n\tlibmpi-3fcb240d.so.40.40.3 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libmpi-3fcb240d.so.40.40.3 (0x00007f6e24c00000)\n\tlibMIOpen.so.1 => /opt/dtk/lib/libMIOpen.so.1 (0x00007f6e23a20000)\n\tlibhipfft.so.0 => /opt/dtk/lib/libhipfft.so.0 (0x00007f6e230a0000)\n\tlibhiprand.so.1 => /opt/dtk/lib/libhiprand.so.1 (0x00007f6e71ddc000)\n\tlibhipsparse.so.1 => /opt/dtk/lib/libhipsparse.so.1 (0x00007f6e71d9b000)\n\tlibhipsolver.so.0 => /opt/dtk/lib/libhipsolver.so.0 (0x00007f6e22d36000)\n\tlibhipblaslt.so.0 => /opt/dtk/lib/libhipblaslt.so.0 (0x00007f6e22838000)\n\tlibrocsolver.so.0 => /opt/dtk/lib/librocsolver.so.0 (0x00007f6ddc893000)\n\tlibrccl.so.1 => /opt/dtk/lib/librccl.so.1 (0x00007f6dd2276000)\n\tlibmagma.so => /usr/local/lib/python3.10/dist-packages/torch/lib/libmagma.so (0x00007f6dbcc00000)\n\tlibrocm_smi64.so.2 => /opt/hyhal/lib/librocm_smi64.so.2 (0x00007f6dbc800000)\n\tlibtorch_python.so => /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_python.so (0x00007f6dbae00000)\n\tlibflash_attention.so => /usr/local/lib/python3.10/dist-packages/flash_attn/lib/libflash_attention.so (0x00007f6d90600000)\n\tlibnl-route-3-9b7e574d.so.200.26.0 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libnl-route-3-9b7e574d.so.200.26.0 (0x00007f6d90200000)\n\tlibnl-3-04364822.so.200.26.0 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libnl-3-04364822.so.200.26.0 (0x00007f6d8fe00000)\n\tlibopen-pal-f45776ee.so.80.0.3 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libopen-pal-f45776ee.so.80.0.3 (0x00007f6e25ae9000)\n\tlibpmix-c3e24705.so.2.13.2 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libpmix-c3e24705.so.2.13.2 (0x00007f6d8fa00000)\n\tlibutil.so.1 => /lib/x86_64-linux-gnu/libutil.so.1 (0x00007f6e71d92000)\n\tlibevent_core-2-0b190d66.1.so.7.0.1 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libevent_core-2-0b190d66.1.so.7.0.1 (0x00007f6e71d55000)\n\tlibevent_pthreads-2-3c7151b0.1.so.7.0.1 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libevent_pthreads-2-3c7151b0.1.so.7.0.1 (0x00007f6e71d4f000)\n\tlibhwloc-977e6c34.so.15.10.0 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libhwloc-977e6c34.so.15.10.0 (0x00007f6e4ec62000)\n\tlibxml2-0301bbce.so.2.9.7 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libxml2-0301bbce.so.2.9.7 (0x00007f6d8f600000)\n\tlibhipnn.so => /opt/dtk/lib/libhipnn.so (0x00007f6d8ae83000)\n\tlibMIOpen-recommend.so => /opt/dtk/lib/libMIOpen-recommend.so (0x00007f6d75e4e000)\n\tlibrocfft.so.0 => /opt/dtk/lib/librocfft.so.0 (0x00007f6d756b4000)\n\tlibrocrand.so.1 => /opt/dtk/lib/librocrand.so.1 (0x00007f6d710d9000)\n\tlibrocsparse.so.1 => /opt/dtk/lib/librocsparse.so.1 (0x00007f6d44887000)\n\tlibgfortran.so.5 => /lib/x86_64-linux-gnu/libgfortran.so.5 (0x00007f6d445ac000)\n\tlibquadmath.so.0 => /lib/x86_64-linux-gnu/libquadmath.so.0 (0x00007f6e71d03000)\n\tlibmkl_gf_lp64-e350bb11.so => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libmkl_gf_lp64-e350bb11.so (0x00007f6d43800000)\n\tlibmkl_gnu_thread-b9643eeb.so => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libmkl_gnu_thread-b9643eeb.so (0x00007f6d41800000)\n\tlibmkl_core-efa527c4.so => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libmkl_core-efa527c4.so (0x00007f6d3d000000)\n\tlibshm.so => /usr/local/lib/python3.10/dist-packages/torch/lib/libshm.so (0x00007f6e71cf4000)\n\tliblzma-6edf4792.so.5.2.4 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/liblzma-6edf4792.so.5.2.4 (0x00007f6d3cc00000)\n",
+      "conversion_CPU": {
+        "passed": true,
+        "CPU_only": true,
+        "source": "syntheticseed20261026/notcheckpoint/notactivation",
+        "single_scale_epilogue_valid_for_requantized_weights": true,
+        "original_FP8_blockscales_not_directly_representable_by_one_channel_scalar": true,
+        "global_TP_block_offsets_pass": true,
+        "zero_and_nonfinite_checks_pass": true,
+        "weights_error": {
+          "finite": true,
+          "maxabs": 5.2440948486328125,
+          "relative_RMS": 0.009589037723322718
+        },
+        "activation_error": {
+          "finite": true,
+          "maxabs": 0.014994978904724121,
+          "relative_RMS": 0.007030590609318595
+        },
+        "output_error_vs_synthetic_unquantized_surrogate": {
+          "finite": true,
+          "maxabs": 100.52803039550781,
+          "relative_RMS": 0.01129380462924428
+        },
+        "integer_accumulator_max": 44764,
+        "no_Model_quality_or_speed_claim": true
+      }
+    }
+  }
+}

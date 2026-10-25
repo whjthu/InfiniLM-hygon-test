@@ -1,0 +1,12 @@
+from pathlib import Path
+import json,hashlib,ast,base64,subprocess,sys
+r=Path.cwd();d=r/'Deep-eos-compaction-private-r9130d';e=r/'Deep-eos-compaction-private-r9130e';e.mkdir(exist_ok=False)
+for p in d.iterdir():
+ if p.is_file()and not p.name.startswith('CPU_supervisor'):(e/p.name.replace('r9130d','r9130e')).write_bytes(p.read_text(encoding='utf8').replace('r9130d','r9130e').encode())
+p=e/'Deep-eos-compaction-manifest-r9130e.json';m=json.loads(p.read_bytes());m['incoming_source_SHA256']={q.name:hashlib.sha256(q.read_bytes()).hexdigest()for q in e.iterdir()if q.suffix in ['.py','.sh']};m['launch_environment_repair']='Sanitize inherited CPUkeeper SLURM allocation/rank/CPU-bind/GPU-mask env; actual nogres c64 containeraffinity probe and sacctterminal before freshGPU';m['predecessor_GPU']={'handle':'910374.1052','failure':'ownerCPUmasktooNarrow beforeweights','post_KFD_empty':'910374.1053','math_or_scheduler_change':False};p.write_bytes((json.dumps(m,indent=2)+'\n').encode())
+for p in e.iterdir():
+ assert b'\r'not in p.read_bytes()
+ if p.suffix=='.py':ast.parse(p.read_bytes(),str(p))
+fixture=r/'verify_Deep_eos_CPU_contract_r9130e.py';fixture.write_bytes((r/'verify_Deep_eos_CPU_contract_r9130d.py').read_text(encoding='utf-8-sig').replace('r9130d','r9130e').encode());subprocess.run([sys.executable,'-B','-X','utf8',str(fixture)],check=True)
+files={p.name:{'SHA256':hashlib.sha256(p.read_bytes()).hexdigest(),'b64':base64.b64encode(p.read_bytes()).decode()}for p in e.iterdir()if p.is_file()}
+code="import pathlib,json,hashlib,base64,subprocess\nr=pathlib.Path.home()/'hygon-inference-refactor-20261014';files="+repr(files)+"\nfor name,e in files.items():\n p=r/'incoming'/name;b=base64.b64decode(e['b64']);assert hashlib.sha256(b).hexdigest()==e['SHA256'];assert b'\\r'not in b\n if p.exists():assert p.read_bytes()==b,(name,'nooverwrite')\n else:p.write_bytes(b)\nfor name in files:\n if name.endswith('.sh'):subprocess.run(['bash','-n',str(r/'incoming'/name)],check=True)\np=r/'incoming/launch_Deep_eos_compaction_CPU_r9130e.py';x=subprocess.run(['python3',str(p)],capture_output=True,text=True,timeout=70);assert x.returncode==0,(x.stdout,x.stderr);print(x.stdout)\n";(r/'stage_Deep_eos_CPU_r9130e.py').write_bytes(code.encode());read=(r/'read_Deep_eos_CPU_r9130d.py').read_text().replace('r9130d','r9130e').replace("'-j','910406'","'-j','910406,910407'");(r/'read_Deep_eos_CPU_r9130e.py').write_bytes(read.encode());print(json.dumps({'math_unchanged':True,'all_LF':True,'192requestfixture':True,'GPU_launched':False}))

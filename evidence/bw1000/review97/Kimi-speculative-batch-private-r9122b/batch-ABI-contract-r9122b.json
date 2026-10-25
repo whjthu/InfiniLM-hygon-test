@@ -1,0 +1,194 @@
+{
+  "revision": "r9122b-draft-v1",
+  "status": "native source implemented, CPU build pending; GPU branch not launched",
+  "symbols": {
+    "modern_kimi_batch_capabilities_r9122": {
+      "args": [
+        "ctx:void*"
+      ],
+      "return": "const char* JSON",
+      "limits": {
+        "max_requests": 8,
+        "max_total_tokens": 16,
+        "max_request_width": 8,
+        "pool_rows": 17,
+        "flags": 3
+      }
+    },
+    "modern_kimi_batch_reset_r9122": {
+      "args": [
+        "ctx:void*",
+        "capture:int0or1"
+      ],
+      "return": "int0ok",
+      "effect": "Reset all GPU KV/Conv/KDA and PairState to phase0; preserve model weights; capture1 state-only/capture0 oldspec or pairAR; all cohort slots initially empty; epoch counter remains monotonic."
+    },
+    "modern_kimi_batch_mode_r9122": {
+      "args": [
+        "ctx:void*",
+        "capture:int0or1"
+      ],
+      "return": "int0ok",
+      "effect": "Clear only speculative feature-state cache, preserve per-request PairState/past/rows, used only after ready/terminal transactions."
+    },
+    "modern_kimi_batch_prefill_r9122": {
+      "args": [
+        "ctx:void*",
+        "tokens:size_t",
+        "count:size_t",
+        "logical:int32[count]",
+        "offset:int32[count+1]",
+        "ids:int64[tokens]",
+        "positions:int64[tokens]",
+        "logits:BF16[count,vocab] tail/allocation",
+        "out:int64[count] emitter/allocation",
+        "outflags:int32[1]"
+      ],
+      "return": "int0ok",
+      "effect": "Each selected unprefilled logical row gets input width=offset[i+1]-offset[i], positions0..width-1, past becomes width/phase1. Multiple subset prefill calls allowed before decode; no duplicate/reused/EOS slot admission.",
+      "tokens_bound": 8192,
+      "count_bound": 8,
+      "n_out": "count"
+    },
+    "modern_kimi_batch_forward_r9122": {
+      "args": [
+        "ctx:void*",
+        "tokens:size_t",
+        "count:size_t",
+        "flags:int3",
+        "read:int32[count]",
+        "write:int32[count]",
+        "logical:int32[count]",
+        "past:int32[count]",
+        "total:int32[count]",
+        "offset:int32[count+1]",
+        "ids:int64[tokens]",
+        "positions:int64[tokens]",
+        "logits:BF16[tokens,vocab] tail/allocation",
+        "out:int64[tokens] emitter/allocation",
+        "outflags:int32[1]"
+      ],
+      "return": "int0ok",
+      "effect": "Packed true native batch. All selected rows phase1; verify input anchor+K proposals per request, 1<=width<=8, sumwidth<=16; total_i=past_i+width_i, position_i=past_i+arange(width_i). On success each phase2; one immutable capture epoch covers selected vector if mode1.",
+      "n_out": "tokens"
+    },
+    "modern_kimi_batch_commit_r9122": {
+      "args": [
+        "ctx:void*",
+        "count:size_t",
+        "logical:int32[count]",
+        "accepted:size_t[count]",
+        "continuation:int32[count]"
+      ],
+      "return": "int0ok",
+      "effect": "Exactly same selected row order/count as last forward. Atomic preflight+commit. accepted0..width-1, retained=accepted+1. continuation0 marks phase4 (EOS/cap), fullaccept continuation1 swaps pair/advancespast/phase1, partial continuation1 sets phase3 until replay."
+    },
+    "modern_kimi_batch_replay_r9122": {
+      "args": [
+        "ctx:void*",
+        "state_only:int0or1",
+        "logits:BF16[sum_partial_retained,vocab] or NULL for state_only",
+        "out:int64[sum_partial_retained] or NULL for state_only",
+        "outflags:int32[1]"
+      ],
+      "return": "int0ok",
+      "effect": "Requires at least one phase3. state_only must match reset/mode capture. Partial subset order inherited last verify; original active state/past used; fullaccept and phase4 skipped. state1 fused owner state update then actual CPU shadow length crop then PairState swap, outflags0/no head output. state0 one packed fullModel prefix replay on phase3 subset then PairState completion, actual output shape sum partialretained; caller may capture new batch taps for that exact subset.",
+      "n_out": "sum(retained_i for phase3 rows) only for state0"
+    },
+    "modern_kimi_batch_rows_r9122": {
+      "args": [
+        "ctx:void*",
+        "count:size_t",
+        "logical:int32[count]",
+        "out:int32[count,4]"
+      ],
+      "return": "int0ok",
+      "columns": [
+        "active",
+        "shadow",
+        "past",
+        "phase0empty1ready2verified3replay4terminal"
+      ]
+    },
+    "modern_kimi_batch_stats_r9122": {
+      "args": [
+        "ctx:void*",
+        "out:uint64[64]",
+        "n:size_t64"
+      ],
+      "return": "int0ok",
+      "shape": "8 owners x8 counters",
+      "columns": [
+        "begins",
+        "captured_KDA_layers",
+        "replayed_partial_requests_xlayers",
+        "Conv_op_calls",
+        "KDA_op_calls",
+        "retained_rows_xlayers",
+        "captured_bytes_cumulative",
+        "captured_requests_cumulative"
+      ]
+    },
+    "modern_kimi_batch_taps_begin_r9122": {
+      "args": [
+        "ctx:void*",
+        "epoch:uint64>0",
+        "enabled:int0or1",
+        "count:size_t",
+        "logical:int32[count]",
+        "past:int32[count]",
+        "width:int32[count]"
+      ],
+      "return": "int0ok",
+      "effect": "Only batch feature memory export. Explicit immutable selected metadata. enabled0 accepts count0 and NULL arrays. ON total<=8192, count1..8, width1..1024. Does not arm old B1 live tap API."
+    },
+    "modern_kimi_batch_taps_count_r9122": {
+      "args": [
+        "ctx:void*",
+        "out:size_t[1]"
+      ],
+      "return": "int0ok",
+      "effect": "Number of layer records on this node representative. TP16PP2 node0 layers19,37; node2 layers66,78,90; node1/3 zero."
+    },
+    "modern_kimi_batch_taps_info_r9122": {
+      "args": [
+        "ctx:void*",
+        "index:size_t",
+        "out:int64[5+3*count]",
+        "n:size_t=5+3*count"
+      ],
+      "return": "int0ok",
+      "layout": "[epoch,layer,total_packed_tokens,7168,count,logical0,past0,width0,logical1,past1,width1,...]"
+    },
+    "modern_kimi_batch_taps_copy_r9122": {
+      "args": [
+        "ctx:void*",
+        "index:size_t",
+        "out:void*",
+        "bytes:size_t"
+      ],
+      "return": "int0ok",
+      "effect": "Packed BF16 [sumwidth,7168], request order from begin, exact bytes sumwidth*7168*2, CPU-owned until next begin; assemble layerwise then split by cumulative widths, independent requestcontext."
+    },
+    "modern_kimi_batch_taps_capabilities_r9122": {
+      "args": [],
+      "return": "uint64_t",
+      "value": 17302784
+    }
+  },
+  "common": {
+    "error": "modern_kimi_engine_error_r2475() char*",
+    "vocab": 163840,
+    "flags_output": {
+      "prefill_and_verify_or_full_replay": "tail int1 + emitter int2, hence node0/1=0 node2=3 node3=1 for TP16PP2",
+      "state_only_replay": 0
+    },
+    "create": "existing modern_kimi_engine_create_pair_r9006(config,node,tp_nodes=2,pp=2,address,port,logical=8)",
+    "destroy": "existing modern_kimi_engine_destroy_r2475(ctx)",
+    "max_total_context_per_user": 1024,
+    "prefill_prompt_max_frontend": 512,
+    "new_requests_after_EOS_supported": false,
+    "draft_request_identity": "(cohort_epoch,logicalID), never global reset after a single EOS",
+    "C16_C32": "not implemented in this pool17 native; explicit future pool33/65 & totalT64 qualification/4GiB startup gate; do not scale advertised capability"
+  }
+}
