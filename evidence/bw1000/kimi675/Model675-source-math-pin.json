@@ -1,0 +1,68 @@
+{
+  "candidates/rebased-5f91ad7-r3668/Ops/Kimi/InfiniOps/src/native/cuda/hygon/ops/indexed_kimi_delta_attention/math.cuh": {
+    "SHA256": "c34c0800d0989f9246ac430fcfe7dccf8241f89160185324688c5b25c962da48",
+    "selected_lines": [
+      {
+        "line": 160,
+        "text": "        state[dk] = kdaLoadAsFloat(initial_state, initial_base + static_cast<ptrdiff_t>(dk) * initial_s3);"
+      },
+      {
+        "line": 221,
+        "text": "            state[dk] = state[dk] * decay + k_vec[dk] * delta;"
+      },
+      {
+        "line": 227,
+        "text": "        final_state_target[final_base + static_cast<ptrdiff_t>(dk) * final_k_stride] = static_cast<Tdata>(state[dk]);"
+      }
+    ]
+  },
+  "candidates/Kimi-CCL512-r8606/src/kimi_k3_delta_attention_CCL512_r8603.cpp": {
+    "SHA256": "787af2aac64ae58dedfa2654f8efd94cc449c1aab7de03549b16789fed3898cd",
+    "selected_lines": [
+      {
+        "line": 407,
+        "text": "    auto selected_input_projection_r4305=[&](const auto& projection,size_t output_width){"
+      },
+      {
+        "line": 409,
+        "text": "        const bool selected=input_enabled_r4305&&infinilm::models::kimi_native::spec_math_mode_r3676(runtime)==11&&seq_len<=16;"
+      },
+      {
+        "line": 429,
+        "text": "    auto qkv_projected = selected_input_projection_r4305(qkv_proj_,3*local_projection_size_);"
+      },
+      {
+        "line": 471,
+        "text": "    auto selected_gate_projection_r4576=[&](const auto&projection,infinilm::runtime::Tensor source,size_t output_width,int branch){"
+      },
+      {
+        "line": 473,
+        "text": "      const bool selected=gate_policy_r4576>branch&&infinilm::models::kimi_native::spec_math_mode_r3676(runtime)==11&&seq_len<=16;"
+      },
+      {
+        "line": 491,
+        "text": "    auto f_a = selected_gate_projection_r4576(f_a_proj_,input,head_dim_,0);"
+      },
+      {
+        "line": 493,
+        "text": "    auto gate_decay_projected = selected_gate_projection_r4576(f_b_proj_,f_a,local_projection_size_,1);"
+      },
+      {
+        "line": 497,
+        "text": "    auto beta_projected = selected_gate_projection_r4576(b_proj_,input,local_num_heads_,2);"
+      },
+      {
+        "line": 511,
+        "text": "    if (infinilm::models::kimi_native::spec_math_mode_r3676(runtime)) {"
+      },
+      {
+        "line": 534,
+        "text": "    auto output_gate_input = selected_input_projection_r4305(g_proj_,local_projection_size_);"
+      },
+      {
+        "line": 565,
+        "text": "        const int mode = infinilm::models::kimi_native::spec_math_mode_r3676(runtime);"
+      }
+    ]
+  }
+}
