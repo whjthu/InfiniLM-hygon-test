@@ -1,0 +1,411 @@
+{
+  "hardware": "BW1000",
+  "level": "CPU_SOURCE_DIAGNOSTIC",
+  "status": "PARK_ALREADY_CACHED",
+  "CPU_only": true,
+  "new_GPU": 0,
+  "new_native_build": 0,
+  "git_mutation": false,
+  "actual923": {
+    "reference_source": "/refactor/candidates/deep-reference-scratch-r8954/src/deep_latent_reference_scratch_r8954.cpp",
+    "source_SHA256": "025729ee3182efe0e169677ad1b7cf44e938349360c297554c3cb81947e2832b",
+    "DSO_SHA256": "0c164dd3c783d6975b361da9d630edb8b242499e206d4bf88c4a5f425f2a5b53",
+    "receipt_SHA256": "092e50eafcd36058df8d28961b72c140419e08a8137d7b9ba77148ecf19687fd",
+    "actual_linked_infiniops_SHA256": "e1d9432e6de79cf09782fc3b3b332fb969d1a948dbac513b3da677d78f7f1f09"
+  },
+  "conclusion": "Do not add a second descriptor cache: actual linked Gemm/Softmax/Cast Call paths already own thread-local prepared-operator caches. This rejects the repeated-descriptor-construction hypothesis for stable metadata cache hits; it does not prove the total host submission cost is small.",
+  "cache_key": {
+    "tensor_fields": [
+      "shape",
+      "strides",
+      "dtype",
+      "device_type_and_index"
+    ],
+    "tensor_address_in_key": false,
+    "thread_scope": "thread_local per Operator/Call argument signature",
+    "stream_in_key": false,
+    "stream_behavior": "Handle stream is rebound on each invocation; the cache does not authorize cross-owner/thread reuse.",
+    "scalars": "Generic arguments are absorbed; Gemm key adds implementation index and GemmConfig precision, plus alpha/beta/transpose optionals.",
+    "source_tensor_key": {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/install/hygon-deep-5f91ad7-r3672/include/infini/rt/detail/tensor_view.h",
+      "SHA256": "bd2b1b42ad04beed4ecc753487b7c3e514ad74fcd53d0bf1fa03557454b085e5",
+      "lines": [
+        {
+          "line": 268,
+          "text": "};"
+        },
+        {
+          "line": 269,
+          "text": ""
+        },
+        {
+          "line": 270,
+          "text": "}  // namespace infini::rt"
+        },
+        {
+          "line": 271,
+          "text": ""
+        },
+        {
+          "line": 272,
+          "text": "template <>"
+        },
+        {
+          "line": 273,
+          "text": "struct std::hash<infini::rt::TensorView> {"
+        },
+        {
+          "line": 274,
+          "text": "  std::size_t operator()(const infini::rt::TensorView& tensor) const {"
+        },
+        {
+          "line": 275,
+          "text": "    std::size_t seed{0};"
+        },
+        {
+          "line": 276,
+          "text": ""
+        },
+        {
+          "line": 277,
+          "text": "    for (const auto& size : tensor.shape()) {"
+        },
+        {
+          "line": 278,
+          "text": "      HashCombine(seed, size);"
+        },
+        {
+          "line": 279,
+          "text": "    }"
+        },
+        {
+          "line": 280,
+          "text": ""
+        },
+        {
+          "line": 281,
+          "text": "    HashCombine(seed, tensor.dtype());"
+        },
+        {
+          "line": 282,
+          "text": ""
+        },
+        {
+          "line": 283,
+          "text": "    HashCombine(seed, tensor.device());"
+        },
+        {
+          "line": 284,
+          "text": ""
+        },
+        {
+          "line": 285,
+          "text": "    for (const auto& stride : tensor.strides()) {"
+        },
+        {
+          "line": 286,
+          "text": "      HashCombine(seed, stride);"
+        },
+        {
+          "line": 287,
+          "text": "    }"
+        },
+        {
+          "line": 288,
+          "text": ""
+        },
+        {
+          "line": 289,
+          "text": "    return seed;"
+        },
+        {
+          "line": 290,
+          "text": "  }"
+        },
+        {
+          "line": 291,
+          "text": "};"
+        },
+        {
+          "line": 292,
+          "text": ""
+        },
+        {
+          "line": 293,
+          "text": "template <>"
+        },
+        {
+          "line": 294,
+          "text": "struct std::equal_to<infini::rt::TensorView> {"
+        },
+        {
+          "line": 295,
+          "text": "  bool operator()(const infini::rt::TensorView& a,"
+        },
+        {
+          "line": 296,
+          "text": "                  const infini::rt::TensorView& b) const {"
+        },
+        {
+          "line": 297,
+          "text": "    return a.dtype() == b.dtype() && a.device() == b.device() &&"
+        },
+        {
+          "line": 298,
+          "text": "           a.shape() == b.shape() && a.strides() == b.strides();"
+        },
+        {
+          "line": 299,
+          "text": "  }"
+        },
+        {
+          "line": 300,
+          "text": "};"
+        },
+        {
+          "line": 301,
+          "text": ""
+        },
+        {
+          "line": 302,
+          "text": "#endif"
+        }
+      ]
+    }
+  },
+  "actual_binary_cache_symbols": [
+    "0000000000008800 W guard variable for infini::ops::Operator<infini::ops::Gemm, (infini::rt::Device::Type)10, 0ul>::Call<infini::rt::TensorView, infini::rt::TensorView, std::optional<infini::rt::TensorView>, std::optional<float>, std::optional<float>, std::optional<int>, std::optional<int>, infini::rt::TensorView>(infini::ops::Handle const&, infini::ops::Config const&, infini::rt::TensorView const&, infini::rt::TensorView const&, std::optional<infini::rt::TensorView> const&, std::optional<float> const&, std::optional<float> const&, std::optional<int> const&, std::optional<int> const&, infini::rt::TensorView const&)::cache",
+    "00000000000031f0 W guard variable for infini::ops::Operator<infini::ops::Softmax, (infini::rt::Device::Type)10, 0ul>::Call<infini::rt::TensorView, long, std::optional<infini::rt::DataType>, infini::rt::TensorView>(infini::ops::Handle const&, infini::ops::Config const&, infini::rt::TensorView const&, long const&, std::optional<infini::rt::DataType> const&, infini::rt::TensorView const&)::cache",
+    "000000000000ace8 W guard variable for infini::ops::Operator<infini::ops::Cast, (infini::rt::Device::Type)10, 0ul>::Call<infini::rt::TensorView, infini::rt::TensorView>(infini::ops::Handle const&, infini::ops::Config const&, infini::rt::TensorView const&, infini::rt::TensorView const&)::cache"
+  ],
+  "source_body": {
+    "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Deep/InfiniOps/src/operator.h",
+    "SHA256": "db33b09670ee6e4c5d503a1d117ea6920e8020fa7bf0800c6b811c10a429a637",
+    "qualification": "CMakeCache points here, but installed exported header differs because it crosses generated formal ABI. Use actual binary TLS symbols as direct cache-existence proof; do not substitute this source SHA for actual923 or assert a full historical binary-source reconstruction.",
+    "lines": [
+      {
+        "line": 418,
+        "text": ""
+      },
+      {
+        "line": 419,
+        "text": "    static thread_local std::unordered_map<detail::CacheKey,"
+      },
+      {
+        "line": 420,
+        "text": "                                           std::unique_ptr<Operator>>"
+      },
+      {
+        "line": 421,
+        "text": "        cache;"
+      },
+      {
+        "line": 422,
+        "text": "    static thread_local std::size_t generation{0};"
+      },
+      {
+        "line": 423,
+        "text": ""
+      },
+      {
+        "line": 424,
+        "text": "    const auto cache_generation ="
+      },
+      {
+        "line": 468,
+        "text": ""
+      },
+      {
+        "line": 469,
+        "text": "    auto it{cache.find(key)};"
+      },
+      {
+        "line": 470,
+        "text": ""
+      },
+      {
+        "line": 471,
+        "text": "    if (it == cache.end()) {"
+      },
+      {
+        "line": 472,
+        "text": "      it ="
+      },
+      {
+        "line": 473,
+        "text": "          cache.emplace(std::move(key), Make(*effective_config, args...)).first;"
+      },
+      {
+        "line": 474,
+        "text": "    }"
+      },
+      {
+        "line": 475,
+        "text": "#endif"
+      },
+      {
+        "line": 476,
+        "text": ""
+      },
+      {
+        "line": 477,
+        "text": "    auto& op{it->second};"
+      },
+      {
+        "line": 478,
+        "text": ""
+      },
+      {
+        "line": 480,
+        "text": "        HostRangeLayer::kOperatorInvoke};"
+      },
+      {
+        "line": 481,
+        "text": "    const auto required_workspace = op->workspace_size_in_bytes();"
+      },
+      {
+        "line": 482,
+        "text": "    if (required_workspace == 0) {"
+      },
+      {
+        "line": 483,
+        "text": "      return (*op)(handle, args...);"
+      },
+      {
+        "line": 484,
+        "text": "    }"
+      },
+      {
+        "line": 485,
+        "text": "    // An explicit workspace takes precedence. Providers validate their own"
+      },
+      {
+        "line": 486,
+        "text": "    // workspace requirements before accessing it."
+      },
+      {
+        "line": 490,
+        "text": "    }"
+      },
+      {
+        "line": 491,
+        "text": "    auto lease = handle.acquire_workspace(required_workspace);"
+      },
+      {
+        "line": 492,
+        "text": "    if (!lease.data) {"
+      },
+      {
+        "line": 493,
+        "text": "      return (*op)(handle, args...);"
+      },
+      {
+        "line": 494,
+        "text": "    }"
+      },
+      {
+        "line": 495,
+        "text": "    if (lease.size_in_bytes < required_workspace) {"
+      },
+      {
+        "line": 496,
+        "text": "      throw std::invalid_argument("
+      },
+      {
+        "line": 499,
+        "text": "    auto invocation_handle = handle.Clone();"
+      },
+      {
+        "line": 500,
+        "text": "    invocation_handle->set_workspace(lease.data.get());"
+      },
+      {
+        "line": 501,
+        "text": "    invocation_handle->set_workspace_size_in_bytes(lease.size_in_bytes);"
+      },
+      {
+        "line": 502,
+        "text": "    // Keep the lease alive through submission. Its owner implements the"
+      },
+      {
+        "line": 503,
+        "text": "    // stream-aware deferred release needed after an asynchronous kernel."
+      },
+      {
+        "line": 504,
+        "text": "    return (*op)(*invocation_handle, args...);"
+      },
+      {
+        "line": 505,
+        "text": "  }"
+      }
+    ]
+  },
+  "workspace_contract": {
+    "actual_submit_header_SHA256": "8c0bd70a372b0017bca78e54f037493fe79918f97b5fed6d885f5b5d8eb0c20d",
+    "handle_header_SHA256": "b248f1bd3304befe0a108b7b5c650e40d1523796c05969f5cbcc93145d670426",
+    "contract": "Call checks workspace_size_in_bytes; zero avoids acquire_workspace. Nonzero explicit workspace takes precedence; otherwise RuntimeWorkspaceHandle allocates a stream-ordered Runtime lease. Direct Make/invoke does not acquire transient storage.",
+    "inflight_rule": "A reusable buffer may be overwritten only after earlier work using it is complete, or ordered on the same stream; all owning storage must survive the original final/catch drain. No such new path was implemented.",
+    "provider_workspace_actual_sizes": "UNKNOWN, no Runtime/GPU invocation in this card."
+  },
+  "provider_source_inspection": {
+    "workspace": "Current CMake-root Hygon Gemm/BlasGemm, Softmax/CudaSoftmax and Cast definitions contain no workspace_size_in_bytes override, so inherit OperatorBase zero. This is source evidence; actual runtime required sizes were not queried.",
+    "softmax_metadata": "CudaSoftmax allocates/copies shape/strides metadata in its constructor and retains CudaDeviceBuffer in the cached instance; invoke only launches the existing kernel.",
+    "blas_handle": "HygonGemmHandle::Acquire already has thread_local (device,context) weak leases; cached Gemm owns shared handle, validates worker/device/context, and sets stream for each submission.",
+    "sources": [
+      {
+        "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Deep/InfiniOps/src/native/cuda/hygon/ops/gemm/hip_handle_owner.h",
+        "SHA256": "d26a4820a7d0c40b67501404ef6b504653f5dc2fe1188be745590b41aff8528f"
+      },
+      {
+        "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Deep/InfiniOps/src/native/cuda/hygon/ops/gemm/cublas.h",
+        "SHA256": "8701eb47fb5b1e363ebe3d3b2b8e36fcd41a62a5a43461707624072df04393fa"
+      },
+      {
+        "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Deep/InfiniOps/src/native/cuda/hygon/ops/cast/kernel.h",
+        "SHA256": "95e72f39d136216331064e21782c509283ebd0f84d6ea70fa2259d896a8fb4eb"
+      },
+      {
+        "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Deep/InfiniOps/src/native/cuda/hygon/ops/softmax/kernel.h",
+        "SHA256": "b396f34097fc418f91efbe01e2dafe5eea41ac247aa7ba6a90e7c2b24aba4170"
+      },
+      {
+        "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Deep/InfiniOps/src/native/cuda/ops/softmax/kernel.h",
+        "SHA256": "e8fb72ec1eb228468c494fbb26ae44c445d34f19bd5304f4878abd888106fa12"
+      },
+      {
+        "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Deep/InfiniOps/src/native/cuda/ops/gemm/blas.h",
+        "SHA256": "9d9e424fc6e890fe6dad857e44c44cc072b0e2f7bc9fa635023c1a5aa20012a4"
+      }
+    ]
+  },
+  "limits": [
+    "No performance measurement or new causal experiment.",
+    "No inference that all per-query cost is descriptor creation; cache lookup/hash/TensorView conversion, provider invocation, kernel launch and any nonzero workspace lease remain.",
+    "Existing scratch reuse and accepted T32 decode unchanged.",
+    "No further Model load or component is justified solely by a duplicate descriptor cache."
+  ],
+  "disposition": "PARK requested descriptor cache. A call-local prepared-instance bypass would optimize cache-key/lookup and handle/view construction rather than cache descriptors; its benefit is UNKNOWN and it needs a separately justified narrow proposal, not this duplicate-cache implementation.",
+  "evidence": [
+    {
+      "path": "Deep-ops-cache-source-r8959.json",
+      "SHA256": "b06271889bf70305419e50785699bafa620177c34666617abb447dd48f0dc3df"
+    },
+    {
+      "path": "Deep-ops-cache-impl-r8962.json",
+      "SHA256": "945b3471dba45876612dbc04d2bad1ca4405ff6b122ae9d74cf7199754cafe82"
+    },
+    {
+      "path": "Deep-ops-cache-body-r8963.json",
+      "SHA256": "3cb5d7e0ed9c08ffabe3d35d1f8c97dcff350d54b5ca9f76a4c527fd9740657a"
+    },
+    {
+      "path": "Deep-ops-cache-proof-r8964.json",
+      "SHA256": "42653100dff8aa1c0ab22bf74306a3d39ca94bd1669c8cd4fcade9fe9c8ee69a"
+    },
+    {
+      "path": "Deep-ops-provider-workspace-r8965.json",
+      "SHA256": "71bb8841d59e90a6c07aaeee34e863898b8663fde9f870a2211ae38eb86e3dc3"
+    }
+  ]
+}
