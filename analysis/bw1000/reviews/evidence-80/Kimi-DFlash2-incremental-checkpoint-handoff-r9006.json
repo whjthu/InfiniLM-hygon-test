@@ -1,0 +1,94 @@
+{
+  "hardware": "BW1000",
+  "level": "CPU engineering reference",
+  "status": "INCREMENTAL_CPU_PASS_WEIGHT_DOWNLOAD_INCOMPLETE_STOP",
+  "performance_round": false,
+  "CPU_compact": {
+    "path": "Kimi-DFlash2-incremental-compact-r9003.json",
+    "SHA256": "8c7e459114e2b635a9b85ae495ec3cde4ef024370d59760333d4adb0d2c78bfa"
+  },
+  "worker": {
+    "path": "Kimi-DFlash2-incremental-private-r9003\\dflash2_incremental_worker_r9003.py",
+    "SHA256": "5a00af8f940c43f438c4fc707ae1f360a09b99c76268958f88bb0ecd724cce96",
+    "default_OFF": true,
+    "methods": [
+      "append_context(features5tap,positions)",
+      "speculate(anchor)",
+      "crop_context(absolute_retained_context_length)",
+      "close()"
+    ],
+    "scope": "one owner thread, batch1, five pinned layers, input_embedding_scale1; external LM-head callable and explicit EOS ids",
+    "contextKV": "only true targetfeatures; per-layer immutableKV; no queryKV commit",
+    "convolution": "both canonical GroupedConv operations reset per eight-queryblock; no cross-block recurrent tail",
+    "cache_BF16_bytes_per_context_token": 204800,
+    "GPU_qualified": false
+  },
+  "CPU_actual": {
+    "steps": [
+      "910406.239",
+      "910406.240"
+    ],
+    "terminal": "COMPLETED0",
+    "final_receipt_SHA256": "ecc24209c2fb9644169500c084eb9dff5b55d3de64530be804dfa5f4cd68c0ff",
+    "maxabs": 5.960464477539062e-07,
+    "relativeRMS": 1.348367492406623e-07,
+    "tests": [
+      "split_append_SWA_boundary",
+      "ownrepeat_and_transient_conv_tail_reset",
+      "append_true_target_features",
+      "partial_accept_crop_two",
+      "reject_then_different_append",
+      "committed_anchor_EOS_no_query_no_cache_mutation",
+      "noncontiguous_positions_rejected",
+      "crop_zero_reset_and_short_mixedmask",
+      "use_after_close_rejected"
+    ],
+    "trained_weights_used": false,
+    "no_GPU_or_native_build": true
+  },
+  "checkpoint": {
+    "repo": "lightseekorg/kimi-k3-dflash2",
+    "revision": "e77935fb4804e17eb55085bffd045eae1d779769",
+    "expected_size": 7385765464,
+    "expected_LFS_SHA256": "1f2a5376315ce5d235303d48d975f78a3dcb19b906e820c1d6447e5fa66e52c2",
+    "actual_header_SHA256": "d250fe199d420a34c0bba811511d6e0ee79f11c95ad8f9482cd014ce9180fb24",
+    "actual_header_tensor_count": 87,
+    "actual_parameter_count": 3692877824,
+    "contains_embedding": true,
+    "contains_lm_head": false,
+    "remote_final_exists": false,
+    "remote_partial_path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/models/kimi-k3-dflash2/e77935fb4804e17eb55085bffd045eae1d779769/model.safetensors.r9004.partial",
+    "partial_bytes": 158446986,
+    "partial_prefix_SHA256": "ce78207a01d46bb50c4bd392f073ce0d2bfd2b2d5326bd534e7a867b4e41fbde",
+    "complete_SHA256_verified": false,
+    "stream_elapsed_s": 717.8279999999795,
+    "stream_error": "HTTP200 response body ended before expected file size; local exact-size assertion failed; remote receiver recorded EOFError. Underlying cause unresolved.",
+    "remote_receipt_SHA256": "4c70f1f3cc28d18805916272531337aef2bea53d4f18d72f78e32122c8f77be1",
+    "local_stream_record_SHA256": "eb59b0fb0b5f96c4f5d0fdd98d0131df373cd74761434b924b67ff059051dc4c",
+    "no_retry": true,
+    "local_weight_payload_file_bytes": 0,
+    "transfer_chunk_bytes": 8388608,
+    "signed_CDN_URLs_saved": false
+  },
+  "network_diagnostic": {
+    "step": "910406.241",
+    "body_bytes": 0,
+    "HTTPS_Host_SNI_preserved": true,
+    "static_HF_IPv4": "67.230.169.182",
+    "outcome": "TCP connect timeout on this fixed HF IP; CDN hop never reached; cannot infer all egress blocked",
+    "receipt_SHA256": "44e3e54814b4cfaae8e3981d6a7bcd9b825567d57b5432487bfbb240a1426756"
+  },
+  "remaining_actual_call_gaps": [
+    "Complete pinned checkpoint is unavailable; partial must not be passed to loader",
+    "Strict loader must map serving fc/hidden_norm/norm keys to creator context_proj/context_norm/final_norm if using the creator model names; all 87 shapes already pinned but trained load untested",
+    "Checkpoint has its own embed_tokens weight but no lm_head; external existing-target head and embedding values compatibility not measured, shape alone is insufficient",
+    "The worker is a PyTorch CPU mathematical implementation; trained BF16 GPU forward, fixed-stream owner binding, memory admission and incremental latency remain future qualification",
+    "Current TP16PP2 Math0 paired-state target verifier has independent ownership; no target load/capture or speculative acceptance/speedup claimed"
+  ],
+  "source_contract": {
+    "path": "Kimi-DFlash2-incremental-private-r9003\\CONTRACT.md",
+    "SHA256": "02be57d781e78e7da541f0c68feba718d78ca0b9e51eebba62797d730f3afe1f"
+  },
+  "no_Git_index_or_shared_manifest_mutation": true,
+  "no_GPU_Model_capture_download_retry": true
+}
