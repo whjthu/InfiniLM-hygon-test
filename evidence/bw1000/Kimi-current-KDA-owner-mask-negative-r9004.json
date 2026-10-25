@@ -1,0 +1,48 @@
+{
+  "compact": {
+    "status": "STOP_FAILED_OWNER_CPU_MASK_GUARD_NO_RETRY",
+    "source_commit": "1055f7d3e9755878e76b539fc15d7ed75aba09c6",
+    "schema_repair_commit": "98f601f7a2d1c4ba9566e6fd3f7f216da897d038",
+    "CPU_step": "910407.234 COMPLETED0",
+    "CPU_qualified_scope": "one hostTU compile/link,exports and dependencySHA only;CPUreference80lifecyclecases/35negativecontrols/canary/ownrepeat passed",
+    "GPU_step": "910374.969 FAILED1:0 38s",
+    "pre": "910374.968 COMPLETED0 KFDempty",
+    "post": "910374.970 COMPLETED0 KFDempty",
+    "watch_ready_before_numeric": true,
+    "numeric_attempts": 1,
+    "post_attempts": 1,
+    "failure": "first kda_conv_run ->2392 owner mask too narrow for eight disjoint requested subsets",
+    "native_successful_calls": "UNKNOWN; driver did not persist counts on failure, no lifecycle receipt produced",
+    "native_DSO_SHA256": "e5a074b402bbb518742de702a07e9d0c2e2ce04a370c610a12f944edb3ea45ea",
+    "real_source_pin": "currentdelta/refactor/candidates/Kimi-CCL512-r8606/src/kimi_k3_delta_attention_CCL512_r8603.cpp SHA787af2aac64ae58dedfa2654f8efd94cc449c1aab7de03549b16789fed3898cd",
+    "original_logs_SHA256": {
+      "logs/Kimi-current-KDA-r9004-910374.969.log": "d8790a520fde790e5d3dbceba77a74d16333a001b3dc4df253194f304ffd3c29",
+      "logs/Kimi-current-KDA-r9004-controller.log": "952aebd87412687d65b6500bcc0a512c4ba4d6611d151bd56ab684ffc1ed688e",
+      "results/Kimi-current-KDA-r9004-terminal.json": "dfd1b00980ed0dd49ba9a57eed33bee37fc343340b256119f0355f653c4e331f"
+    },
+    "mechanical_fix_private_only": "INFINILM_OWNER_CPU_WIDTH_R2392=1 for c8; no native/weights/math change",
+    "fixed_shell_SHA256": "15478a9903fa0224eadb7b3256b6bbab0c327dee2866a114796eeadd41a21c9f",
+    "corrected_retry": "NOT_AUTHORIZED_NOT_SUBMITTED",
+    "Model_finalIDs_EOS": "NOT_TESTED",
+    "Math0_TP16PP2_allposition_qualification": "NOT_ESTABLISHED",
+    "intermediate_errors": "diagnostic, no bitexact gate or GPUF64",
+    "new_GPU_kernel": false,
+    "weight_reads": 0,
+    "full_Model_loads": 0,
+    "UTC": "2026-10-25T07:59:56.674782+00:00"
+  },
+  "original_logs": {
+    "logs/Kimi-current-KDA-r9004-910374.969.log": {
+      "SHA256": "d8790a520fde790e5d3dbceba77a74d16333a001b3dc4df253194f304ffd3c29",
+      "text": "LOCAL_PYCACHE_R3097 node=a02r4n01 filesystem=tmpfs root=/dev/shm/infini-pyc-910374.969-0\nSHARED_CACHED_R1780_START node=a02r4n01 step=910374.969 scratch=runtime-raw-sdk-graph-r2323-910374.969-rank0\nWARNING: Could not find any rocm files on this host!\nWARNING: Environment variable TMPDIR already has value [/tmp], will not forward new value [/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/runtime-raw-sdk-graph-r2323-910374.969-rank0] from parent process environment\nWARNING: /opt/hyhal/lib/cmake/rocm_smi doesn't exist, please install the latest driver(version >= 6.3.15)\nThe rocm_smi_lib will be used in default\nTraceback (most recent call last):\n  File \"/refactor/incoming/check_Kimi_current_KDA_lifecycle_r9004c.py\", line 124, in <module>\n    result=exercise(backend);result['operation_counts_conv_silu_kda_tokens']=backend.counts();result['source_SHA256']=hashlib.sha256(pathlib.Path(__file__).read_bytes()).hexdigest()\n  File \"/refactor/incoming/check_Kimi_current_KDA_lifecycle_r9004c.py\", line 81, in exercise\n    ya=backend.run(repeat_a,0,8,1,2);yb=backend.run(repeat_b,0,8,1,2)\n  File \"/refactor/incoming/check_Kimi_current_KDA_lifecycle_r9004c.py\", line 60, in run\n    assert self.lib.kda_conv_run(self.ctx,width,3,ptrs)==0,self.lib.kda_conv_error()\nAssertionError: b'2392 owner mask too narrow for eight disjoint requested subsets'\n"
+    },
+    "logs/Kimi-current-KDA-r9004-controller.log": {
+      "SHA256": "952aebd87412687d65b6500bcc0a512c4ba4d6611d151bd56ab684ffc1ed688e",
+      "text": "srun: error: a02r4n01: task 0: Exited with exit code 1\nsrun: Terminating StepId=910374.969\n"
+    },
+    "results/Kimi-current-KDA-r9004-terminal.json": {
+      "SHA256": "dfd1b00980ed0dd49ba9a57eed33bee37fc343340b256119f0355f653c4e331f",
+      "text": "{\n  \"state\": \"terminal\",\n  \"watch_ready_before_numeric\": true,\n  \"numeric_attempts\": 1,\n  \"post_attempts\": 1,\n  \"exceptions\": [\n    {\n      \"phase\": \"numeric_or_audit\",\n      \"error\": \"FileNotFoundError(2, 'No such file or directory')\",\n      \"traceback\": \"Traceback (most recent call last):\\n  File \\\"/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/controller_Kimi_current_KDA_r9004.py\\\", line 19, in <module>\\n    assert q.get('actual_terminal');job=q['bound_handle'];path=r/'results'/f'Kimi-current-KDA-r9004-{job}.json';d=json.loads(path.read_text())\\n                                                                                                                             ^^^^^^^^^^^^^^^^\\n  File \\\"/usr/local/python3.12/lib/python3.12/pathlib.py\\\", line 1027, in read_text\\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/usr/local/python3.12/lib/python3.12/pathlib.py\\\", line 1013, in open\\n    return io.open(self, mode, buffering, encoding, errors, newline)\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nFileNotFoundError: [Errno 2] No such file or directory: '/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Kimi-current-KDA-r9004-910374.969.json'\\n\"\n    }\n  ],\n  \"Model_qualified\": false,\n  \"numeric_pid\": 3117527,\n  \"numeric_returncode\": 1,\n  \"Slurm_rows\": [\n    [\n      \"910374.969\",\n      \"Kimi-current-KDA-r9004\",\n      \"FAILED\",\n      \"1:0\",\n      \"00:00:38\",\n      \"a02r4n01\"\n    ]\n  ],\n  \"bound_handle\": \"910374.969\",\n  \"actual_terminal\": true,\n  \"post\": {\n    \"returncode\": 0,\n    \"stdout\": \"{\\\"utc\\\": \\\"2026-10-25T07:56:25.566964+00:00\\\", \\\"node\\\": \\\"a02r4n01\\\", \\\"step\\\": \\\"910374.970\\\", \\\"kfd_proc_exists\\\": true, \\\"kfd_pids\\\": [], \\\"CUDA_not_initialized_by_probe\\\": true}\\n\",\n    \"stderr\": \"\"\n  },\n  \"post_pass\": true,\n  \"completed\": true,\n  \"component_lifecycle_qualified\": false,\n  \"UTC\": \"2026-10-25T07:56:25.592971+00:00\"\n}"
+    }
+  }
+}
