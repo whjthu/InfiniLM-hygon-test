@@ -1,0 +1,72 @@
+{
+  "hardware": "BW1000",
+  "level": "CPU_integration_ready",
+  "status": "ONE_HOST_TU_COMPILE_PASS_NO_GPU_MODEL_TEST",
+  "CPU": "910407.228 COMPLETED0:0/3s; compile+link2.0043235607s",
+  "compiled_TUs": 1,
+  "reused_objects": 27,
+  "GPU": false,
+  "dlopen_on_CPU": false,
+  "Model_adoption": false,
+  "source": "glm_fp8_runtime_o_prepared_r8986.cpp",
+  "source_SHA256": "81f8d6970c4b79ff5e9cb5d78b2f29672cf70504209be4ecff2cee39db1098b3",
+  "diff": "GLM-o-prepared-source-r8986.diff",
+  "diff_SHA256": "04b9cfeeee9e7a6a375c296a5aedcf170b4aeeea81d428bd8b9aff0221ffae87",
+  "base_actual_source_SHA256": "7f994d97fc3b2a50173cf318b24d08d0b714a2258e4c4e183aab1d2f237a9a44",
+  "library": "/refactor/candidates/glm-o-prepared-r8986/libglm_o_prepared_r8986.so",
+  "library_SHA256": "c4d2efe5f5317ce6d8de9eb85180a2b1dc1863cdaf05de193040943a9b5ba1b6",
+  "original_link_parent": "/refactor/candidates/glm-prefix-bridge-r8705/CPU-build.json",
+  "parent_DSO_SHA256": "5f3dd3d9c2a6715992be48f5de514a145c11d971cb7e07a4ec1bc10fb6a7ad52",
+  "replaced_object_only": "/refactor/candidates/glm-transient-layer-r5681/private-15.o",
+  "exports_verified": [
+    "modern_glm_o_prepared_policy_r8986",
+    "modern_glm_o_prepared_stats_r8986",
+    "modern_glm_model_create",
+    "glm_layer_forward_r5670"
+  ],
+  "mechanism": "DefaultOFF O-only M8 dispatcher inside actual fp8_cached_r809, after all original tensor/device/dtype/contiguous checks. Existing2040 prepared ABI, no new kernel or SDK. Existing2078 ownership/cache pattern reused and bounded.",
+  "ABI": {
+    "policy": "int modern_glm_o_prepared_policy_r8986(int device,int enabled,size_t original_reserve_bytes)",
+    "policy_rule": "device0..7, enable0/1; enabling with reserve0 rejects. Caller supplies original Model reserve, not an invented constant. Disable does not destroy live plans; normal Runtime clear drains and destroys.",
+    "stats": "int modern_glm_o_prepared_stats_r8986(int device,uint64_t*out,size_t count16)",
+    "stats_indices": [
+      "created",
+      "destroyed",
+      "hits",
+      "misses",
+      "disabled_fallback",
+      "geometry_fallback",
+      "memory_fallback",
+      "cap_fallback",
+      "prepared_runs",
+      "livebytes",
+      "highwater_bytes",
+      "min_observed_free_bytes_zero_if_no_query",
+      "cold_prepare_ns",
+      "source_rejections",
+      "clears",
+      "liveentries"
+    ]
+  },
+  "coverage": {
+    "admitted": "M8 BF16 output[8,6144], FP8 W[6144,2048], X[8,2048], activation scales[8,128], W scales[48,128], rowOffset0,columnOffset multiple2048 within0..14336. Current TP8 main output projection.",
+    "B16_TP8_PP2": "CohortM8 calls admit;39layers per stage share each layer's prepared W across repeated tokens/cohorts.",
+    "B32": "Reusable in same Model process if scheduler still invokes M8 cohorts, with same W identity. If actual batch geometry becomesM16/M32, it falls back original807; do not claim B32 coverage from nominal request count alone.",
+    "other_paths": "M1/M16/M32/M64 and other projection shapes, prefill, QA fallback, MoE and all other math unchanged. No O-only-to-all5 extrapolation."
+  },
+  "ownership_and_memory": {
+    "key": "W data pointer + dtype/M/N/K + scale shape + row/column offsets. Strong W Tensor retained; nonzero monotonically increasing per-Runtime plan generation; weak Runtime identity with owner-thread/device/stream validation.",
+    "scope": "Thread-local Runtime map and per-device admission/run/clear lock; device livebytes cap accounts all owners. No807 geometry-hit assumption and no hotreload/mutableweights claim.",
+    "cap_bytes": 1342177280,
+    "fullplan_bytes_each": 28344320,
+    "39layer_plan_GiB_per_card": 1.029510498046875,
+    "admission": "On each new weight-plan miss under owner device guard, cudaMemGetInfo from existing libcudart records actual free lowwater. If free-planbytes < explicitly supplied original reserve, or cap exceeded, use original807 and increment fallback; no eviction or destroy of in-flight work.",
+    "cleanup": "Normal modern_glm_fp8_runtime_clear_r809 first drains and destroys prepared plans with explicit prepared DSO destroy, releases strong W, then original807 clear. Removes entries individually after successful destroy.",
+    "cold_cost": "Counts prepared-create wall ns (helper includes prepare drain) and creations; actualModel TTFT/wholeprefill/steady and fallback incidence must be reported separately. Component582 estimated18..22call amortization is not a Model guarantee.",
+    "Model_headroom": "UNKNOWN; no actualModel meminfo query occurred in CPU build. Policy cannot be enabled with reserve0. ActualModel flow supplies original reserve and records watermark during use."
+  },
+  "numeric_evidence_boundary": "582 existing2040-vs776 standalone real layer38 component passed all88 finite/canary/ownrepeat/crossarm0 errors and source/generation rejection, normal8/post583empty. New host integration itself has CPU compile/export proof only, no device execution or final token/EOS acceptance.",
+  "next_scope": "Root decides minimal integration component or Model after Deep and Astra76. A later run must bind this source/DSO, preserve current flags, log original reserve/actual free/counters/prepare/TTFT/steady, fallback and normal clear. Final natural token IDs/EOS remain Model acceptance; intermediate bits diagnostic only.",
+  "decision": "Private CPU-ready artifact frozen. No GPU/load/Model/Git action authorized by this card; no automatic retry.",
+  "CPU_receipt_SHA256": "980babce175e4e7c6e79c7ca034b232b8615d5fc42b047f80ccfbb243ee7a3cb"
+}
