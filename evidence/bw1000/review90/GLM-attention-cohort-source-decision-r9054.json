@@ -1,0 +1,36 @@
+{
+  "hardware": "BW1000",
+  "level": "SOURCE_DIFFERENCE_AND_SCOPE",
+  "status": "PARK_BELOW_PREDECLARED_COMPONENT_GATE",
+  "mechanism": "EqualP B8/16 collect alloriginalperrowQK into contiguousBF16backing; onceoriginalscaleRound392 BF16round; originalF32Softmax axis2 andCast withrowcount B*8,then originalperrowPV andoverallcopy. NoGEMMbatchedshape orproviderconfig change, noGPUkernel/SDK/precision/globalcache change. RaggedP/5555backend0/2 fallback.",
+  "source_dedup": "624 directPVonlycopy different;615 fusedQK/customSoftmax/PV math different;69 PPcohortinterleave different. No same mechanism receipt found in named currentsource/results scope.",
+  "same_perrow_layout": {
+    "dots_logits_prob_pb_shape": [
+      "8",
+      "1",
+      "P"
+    ],
+    "strides": [
+      "P",
+      "P",
+      "1"
+    ],
+    "QK_output_pointer_alignment_bytes": 16,
+    "PV_output_shape": [
+      8,
+      1,
+      256
+    ],
+    "PV_output_stride": [
+      256,
+      256,
+      1
+    ],
+    "BF16_result_row_offset_bytes": 4096
+  },
+  "original_scale_kernel_SHA256": "c54698d5c7fcb24e6ecadfea89fdffda305db508e049a0902eac1dc18ac61496",
+  "scale_math": "BF16 dot -> float *1/16 -> BF16 RNE -> float; original392 unchanged",
+  "actual_component_entry": "5096 ON;5555 compiled butnot numericallyentered by thisfixture",
+  "Model_target_if_later_authorized": "Existingqualified567 TP8PP2/16cards B32M16 plusnecessaryB16M8 same-load comparison; noModelGO here",
+  "post_result": "All4pairspositive andall88layeroutputbitsexact, butnativewholelayerreduction2.834392957percent <3%;onepair .029751ms <OFFspan .04105ms;PARK defaultOFF/no standaloneModelload"
+}

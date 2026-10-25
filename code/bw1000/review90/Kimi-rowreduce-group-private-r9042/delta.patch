@@ -1,0 +1,46 @@
+--- actual787af_delta.cpp
++++ delta.cpp
+@@ -2,6 +2,8 @@
+ #include <array>
+ #include <atomic>
+ #include "kimi_spec_math_r3676.hpp"
++#include <rccl/rccl.h>
++#include "engine/distributed/kimi_reduce_precision_r3226.hpp"
+ #include "kimi_owned_indices_r1213.hpp"
+ #include "kimi_k3_kda_trace.hpp"
+ #include "execution/submit.hpp"
+@@ -64,6 +66,22 @@
+ class Prefill512RowR8603 final : public infinilm::layers::linear::RowParallelLinear {
+ public:
+     using infinilm::layers::linear::RowParallelLinear::RowParallelLinear;
++    infinilm::runtime::Tensor forward_group_r9042(infinilm::runtime::Runtime &runtime,infinilm::runtime::Tensor &input,bool grouped)const{
++      runtime.assertOwnerThread();if(runtime.isGraphRecording()||tp_size_!=16||!communicator_||input->dtype()!=infinilm::runtime::DataType::kBFloat16||input->ndim()!=3||input->size(0)!=1||input->size(2)!=768||(input->size(1)!=1&&input->size(1)!=8)||has_bias()||alpha()!=1.f||output_dtype()!=input->dtype()||infinilm::engine::distributed::reduce_precision_r3226::selected(runtime)!=0)throw std::invalid_argument("9042 bounded original BF16 TP16 o_proj");
++      std::vector<infinilm::runtime::Tensor>held;auto output=compute_linear(runtime,input);
++      struct Drain{infinilm::runtime::Runtime&r;~Drain(){try{r.syncStream();}catch(...){std::terminate();}}}drain{runtime};
++      infinilm::models::kimi_k3::trace_kda_projection(runtime,output,"r9042_o_proj_local");
++      if(grouped&&input->size(1)==8){
++        // Materialize all arguments/copies before opening RCCL group; no sync/ops inside group.
++        for(size_t j=0;j<8;++j){auto part=infinilm::runtime::Tensor::empty(runtime,{1,1,7168},output->dtype());part->copy_from(runtime,output->narrow({{1,j,1}}));if(!part->is_contiguous()||part->numel()!=7168)throw std::logic_error("9042 packed row");held.push_back(part);}
++        if(ncclGroupStart()!=ncclSuccess)std::_Exit(86);
++        for(auto &part:held)infinilm::engine::distributed::allreduce_(runtime,part,part,infinicclSum,communicator_);
++        if(ncclGroupEnd()!=ncclSuccess)std::_Exit(86);
++        for(size_t j=0;j<8;++j)output->narrow({{1,j,1}})->copy_from(runtime,held[j]);
++      }else infinilm::engine::distributed::allreduce_(runtime,output,output,infinicclSum,communicator_);
++      infinilm::models::kimi_k3::trace_kda_projection(runtime,output,"r9042_o_proj_reduced");return output;
++    }
++
+     infinilm::runtime::Tensor forward_prefill512(
+         infinilm::runtime::Runtime &runtime, infinilm::runtime::Tensor &input) const {
+         // Unsupported scopes use the original actual provider unchanged.
+@@ -550,6 +568,11 @@
+     // KDA layers. This includes the existing same-owner collective per row;
+     // it deliberately avoids new broadcast-batched GEMM or unproven reduction.
+     auto result = [&]() {
++        auto flag9042=[](const char*n){const char*p=std::getenv(n);if(!p||std::string(p)=="0")return false;if(std::string(p)=="1")return true;throw std::invalid_argument("9042 flag0or1");};
++        bool selected9042=flag9042("INFINILM_KIMI_ROWGROUP_R9042"),trace9042=flag9042("INFINILM_KIMI_ROWGROUP_TRACE_R9042");
++        if(((selected9042&&seq_len==8)||trace9042)&&batch_size==1&&(seq_len==1||seq_len==8)){
++          auto p=std::dynamic_pointer_cast<Prefill512RowR8603>(o_proj_);if(!p)throw std::logic_error("9042 original class");return p->forward_group_r9042(runtime,gated,selected9042);
++        }
+         const char *cc=std::getenv("INFINILM_KIMI_CCL512_R8603");
+         if(cc && std::string(cc)!="0" && std::string(cc)!="1")
+             throw std::invalid_argument("8603 flag must be0or1");
