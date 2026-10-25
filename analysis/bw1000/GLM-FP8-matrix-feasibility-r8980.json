@@ -1,0 +1,49 @@
+{
+  "status": "BOUNDED_CPU_FEASIBILITY_COMPLETE_NO_NEW_MATERIAL_CANDIDATE",
+  "CPU_only": true,
+  "GPU": false,
+  "build": false,
+  "Git_changes": false,
+  "utc": "2026-10-25T04:15:03.952512+00:00",
+  "actual_pins": {
+    "main_runtime_source": "7f994d97fc3b2a50173cf318b24d08d0b714a2258e4c4e183aab1d2f237a9a44",
+    "actual_vector_source": "b257ff25f042d86a166bf7873c1b1a781b106a870dd7b62fae297f1de90b5eb0",
+    "actual_vector_dispatch": "3a39b4916568d577e8fe7ee994fc1db18754fce90ea8a63d5b1b9079c047140e",
+    "actual_cache_DSO": "1bd9ddbe75aad77a1ee59fa45784037a4aa00b7d2a44fc033a0a5cc41803268c",
+    "actual_main_BF16_batched_DSO": "e32b4dc2749b4012efbf4322d334b6460dd091190bca78bb8f41e4384f09a7e8",
+    "actual_hybrid_source": "d1b7b39996e11675fb998f555fce63329cf76f0fb1efc66eaa02f3b439210100",
+    "actual_hybrid_DSO": "f35956f532833ce964bf766c8a61b44b56fe79042921d86710ccd075101705d2"
+  },
+  "facts": [
+    "Attention main FP8 cached M8/16 already exact unscaled FP8->BF16 K128 stridedbatched GEMM BF16/F32 compute, then block-specific F32 scales and ascending accumulation; runtime explicitly mode1. Actual helper imports cublasGemmStridedBatchedEx. INT8 matrix not used. This establishes BF16/F32 GEMM API and tensor-op request, not which internal DTK BLAS kernel/ISA actually ran at M8; current runtime hardware instruction selection remains UNKNOWN without existing disassembly/profile.",
+    "Vector MoE decode gate/up W64V2 and down W32V4 are SIMT FP32 software decode/reduction/scales, not BF16/INT8 matrix. Prior emittedISA confirms no MMAC op; vector source widefetch/shuffle retains scalar tree.",
+    "Prior8508 one route repeated16 activation rows, onlyone useful row. Actual451 T8/U53 gate1.0949->6.8690ms/down.6762->2.8961ms negative applies only that16xpadding design.",
+    "Actual prefill5123->5386 already buckets DISTINCT routeIDs by expert, splits<=1024M, batches<=16experts<=2048physicalrows, gathers activation routes/token=route/8 for gate and route fordown. Existing FP8 bank layout all256experts/localI256 TP8 and fusedpack5106 support BF16 matrix without new EP layout.",
+    "Current5386 flag0 orroutes<4096 ->scalar; vector32/64 routes interceptsdecode first. With flag1/r>=4096 gate uses scalar rowreuse5206R8; down uses BF16BMM+absoluteBMM+certify/repair5248. Existing source contains all necessary BF16/MMAC support.",
+    "Top modern8855/8862 entry setsGROUPED0 for initialQA, but probe.run later setsGROUPED1 before perf I512 cohort labels. Entry0alone cannot establish unusedpath; actualrow policy/counters decide. No claim aggregate540 certtime fraction.",
+    "FP8 finite254codes lossless BF16 before scales; arbitraryF32 scales cannot be folded toBF16 exactly. Correct native scale semantics are ascending acc=FMA(RN(dot*sx),sw,acc), not sum or fusedsx*sw. BF16 MMAC internaldot order can differ scalar, even though inputconversion exact.",
+    "Oldrawpropergrouped5123 Model401 failed finalnatural128 despite12QApass. Faithful5158 fixedRNmul/FMA/ascendingK128 and passedcomponent405, but actualModel419 alsofailed finalIDs at14/26/32/36. Sameupstream actualcapture firstsample difference local_down_BF16. Laterguarded hybrid437 full128/QA/16normalqualified. Therefore deletingdownrepair is not an untested newmethod and has real finaltoken negative lineage."
+  ],
+  "hardware_boundary": {
+    "DTK_BF16_MMAC": "PriorCPU446/447 compiled gfx936 actual wmma/du_mma BF16->F32 atom and emitted mmac instructions; mma.hpp SHA bada0b8317ef5426cc362abbe0a9dacdb9c1b23f8e8b5d95ae41f4ece53c86b3. No new hardware/build needed to establish support.",
+    "missing": "A genuinely different grouped arithmetic/dataflow with bounded newcost and finalIDs/EOS validation; existingmatrix support is available, not missing. No measured certification fraction/currentModel wall breakdown here.",
+    "EP_TP_PP": "Current evidence TP8 localI256/PP2, noEP partition/dispatched expert exchange. Cannot extrapolate DP/EP benefit from tokenroute density or selectedlayer38.",
+    "current_main_GEMM_instruction_selection": "UNKNOWN: source calls CUDA_R_16BF/CUBLAS_COMPUTE_32F/CUBLAS_GEMM_DEFAULT_TENSOR_OP; BF16 MMAC available. No current cuBLAS/rocBLAS selectedkernel ISA evidence was collected, so do not assert all smallM GEMMs execute MMAC."
+  },
+  "minimal_TU_boundary": "Simple skipcertdown could use1HOSTTU + existingpack/5158accumulate GPU objects, noSDK/kernel compile, but this would revisit419rawdown. No diff created because no newmechanism demonstrated. A newfused groupedkernel would require1GPU TU+1hostdispatch TU, actualcode review/ISA binding beforefiniteGPU; not authorized here.",
+  "first_finite_verdict_plan_if_new_mechanism": [
+    "Reuse actual419/capture sameupstream/fullrouteIDs and realweights, nonewModel activationcapture; distinguish newkernel from raw5158 and currentguarded5386. Persist full gate/up/down/FFN numerical/ownrepeat/finite/canary diagnostics; intermediatebits nevergate Modeladoption.",
+    "One frozen highdensity prefill T512 or4096 actualrouter fixture, same ownerRuntime/stream; originalactivationquant/scales/Silu/down/reduce unchanged. WholeFFN enclosing wall includesbucketD2H/pack/matrix/scale/scatter/lifetimes, TPmax8owners/onecheckpointload; originaldrain+normalcleanup/post. No decodeM1dup16/no parametergrid.",
+    "Onlyif genuinelynewmethod and materialenclosinggain, a separatelyauthorized one-load final128IDs/EOS+QA Model test decides adoption. Existingraw/419negative alone gives no reason for newGPUrun."
+  ],
+  "decision": "NO_GPU_NO_BUILD_NO_BLIND_KERNEL. AlreadyBF16attention and existingtruegroupedprefill prevent genericnovelty claim; 419finaltokennegative blocks treating certification as arbitraryintermediatebit requirement. Stop bounded source feasibility here.",
+  "evidence_SHA256": {
+    "GLM-FP8-matrix-actual-source-r8980.json": "fbca98fad677b77a6f0f80032eb8fdbd118814e88d035d7dfbe93eedb17d83a1",
+    "GLM-FP8-matrix-actual-helpers-r8980.json": "9a96b4ed68b46e1f96d0115affb5b45fccecf61eb94a37531c17875c90ffdf25",
+    "GLM-FP8-block-semantics-r8506.json": "10859799ee5297f5eac4c7afebf8ffc03a1f5ba35dc698f503cb8fca94c300f6",
+    "GLM-matrix-negative-result-r8523.json": "385f204c2261e2a35f93d2e3bb2c8cf0513d73e301bc2aa25d9dc40dacc0d6d1",
+    "experiment-round-receipts-r4714/glm-faithful-native-r5158.json": "76c01ef3d41157140a7222145c80a0f8fed11a58e73a312a820bf29bdd050b46",
+    "experiment-round-receipts-r4714/glm-faithful-Model-r5194-negative.json": "2686c8b17b11234f4d0666dcfde6caf6c11975239f21b4a4bed4b07dd45610e4",
+    "experiment-round-receipts-r4714/glm-guarded-hybrid-Model-r5276-qualified-r5373.json": "b9ca53c06ee86d7ff3a6d888789a91f1ea4a494c1284af49892a4eba5773a1d3"
+  }
+}

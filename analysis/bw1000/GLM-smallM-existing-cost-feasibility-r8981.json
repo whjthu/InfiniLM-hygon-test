@@ -1,0 +1,57 @@
+{
+  "status": "CURRENT_SMALL_M_KERNEL_ID_AND_SUBSTAGE_COST_NOT_RECORDED_NO_NEW_CANDIDATE",
+  "CPU_only": true,
+  "new_build_GPU_load_Git": false,
+  "utc": "2026-10-25T04:22:36.725909+00:00",
+  "binding": {
+    "actual_profile": "910376.540",
+    "profile_DSO": "464ce86f4aba87c1e471ae355498e1c68c02c31a8c6e642313f52757cc63d4eb",
+    "profile_source_commit": "4a48288dbd0253669bd2641f22475bf6ea8415bd",
+    "current_helper": "e32b4dc2749b4012efbf4322d334b6460dd091190bca78bb8f41e4384f09a7e8"
+  },
+  "existing_data": {
+    "windows": 64,
+    "window_intervals_fields": [
+      "from",
+      "to",
+      "host_wall_ms",
+      "stream_timeline_ms",
+      "threadCPU_ms"
+    ],
+    "layer38_ms": 5.560475985053927,
+    "output_projection_stream_envelope_ms": 0.30264000594615936,
+    "output_projection_layer_fraction_percent": 5.442699631463731,
+    "output_projection_host_ms": 0.0481505,
+    "prepare_inclusive_stream_ms": 0.7408789992332458,
+    "prepare_inclusive_layer_fraction_percent": 13.324021202944925,
+    "fraction_limit": "Selected layer38/rank0 medians, stream intervals include host enqueue gaps/queued work; projection envelope is unpackX+unpackW+BLAS+combine, not actual BLAS busytime. Prepare includes quant/norm/RoPE/allprojections; not additive with nested spans or extrapolatable78layers."
+  },
+  "kernel_identity": {
+    "actual_selected_BLAS_kernel": "UNKNOWN",
+    "actual_selected_BLAS_ISA": "UNKNOWN",
+    "why": "540 reports markerintervals only. Existing r271 preload intercepts cublasCreate/atomics; noGEMM/solution/kernel trace. Existing helper ELF imports GemmStridedBatchedEx but cannot identify runtime-selected internalDTK kernel or confirm MMACvsSIMT atM8. No current kerneladdress/codeobject/dispatch record is present in those artifacts.",
+    "missing_existing_data": [
+      "Current samegeometry/provider/flags BLAS solution/kernel symbol+codeobject/dispatch record",
+      "Samecurrent invocation separate unpackX,unpackW,GEMM,combine start/end durations or equivalent current kerneltrace"
+    ],
+    "not_substituted": "No largeGEMM calibration, otherproviderpeak, differentM preparedweight timing or unrelated BF16 compileISA used as currentdispatch evidence."
+  },
+  "source_decisions": [
+    "M8 has chunk=min(M,256)=8: exactlyONE cublasGemmStridedBatchedEx APIcall; K128 groups are batchCount=K/128, not48 serialGEMM APIcalls. OutputK2048 batchCount16; qA/kaK6144 batchCount48. Additional explicit GPUlaunches2unpack+1combine. InternalBLASkernel launchesUNKNOWN.",
+    "Current cached807 owns scratch andhandle; it still decodescurrentweights eachcall. Full FP8->BF16 preparedweight reuse alreadyexists2040, with pointer/generationguard, and exacttree variant2175; these are notnew proposals and do not establish currentM8 memory/time payoff.",
+    "Sameinput qa/ka quantreuse alreadymeasured549: layerTPmax native6.125054->6.019362ms/1.7559percent; synthetic layer38 scope only/defaultOFF/noModel. Terminaldrain573 negative. Do notrelabel these newfusionideas.",
+    "A hypothetical fused FP8decode+BF16MMAC+K128scale could eliminate globalunpackedW/partialroundtrips and3explicitlaunches, but no currenttiming establishes whichpartdominates or whether fusionbeats existingBLASkernel. Existing8508 routed perrouteM16 duplication isnegative anddoesnotanswer denseM8 fusion. No newkernel invented orcoded from aggregatebudget alone."
+  ],
+  "decision": "Stop thisCPUcheck with explicit missingcurrentdata; algorithmicfusion is notprovenimpossible, but no sufficiently evidenced untestedmaterialcandidate orGPU GO is justified. No repeatedcertification-removal proposal.",
+  "future_discriminator_only_on_separately_necessary_load": "One currentM8 outputprojection (M8,N6144,K2048,TPoffset+originalscales) needs selectedBLAScodeobject+unpack/GEMM/combine timing tiedtoexistingownerstream before selectingfusioncandidate. Use existinglayer38 fixture/originaldrain and fullenclosingwall; no extraModel/load authorized. Numericaldiagnostics only; eventual finalIDs/EOS unchanged.",
+  "evidence_SHA256": {
+    "GLM540-decode-profile-compact-r8812.json": "7fc0003a86d2b241faf07571b1c14be24a23a6c45e7f8bd7eaa2da9e4ec206f3",
+    "GLM-decode-Model-observed-r8812-k.json": "afec3b18363e3e37601f6fd7596951475b2996ac49b91ec4332dfc99a0a4140f",
+    "GLM-FP8-matrix-actual-helpers-r8980.json": "9a96b4ed68b46e1f96d0115affb5b45fccecf61eb94a37531c17875c90ffdf25",
+    "hygon_blas_policy_r271.cpp": "08daa20bbc5192f9d504d46b320fcbed2d898cdc3666a22ed829d1d1e03f5798",
+    "glm_fp8_batched_r776.cu": "56f3e4b7a7c85a8a73ca8ab586348bb0ea897007f75fc7eb8de200c0ef93faac",
+    "glm_fp8_prepared_r2040.cu": "3440db9f278ee2474c2b3ce3295ef3918860430cd53ee6c1bd83e1e5eb91437f",
+    "glm_fp8_prepared_exact_r2175.cu": "be423f4b47b181b1a266b26cc89003dc6405368e1e8fbd7a64a777a74b9efe60",
+    "GLM549-attention-quant-pair-compact-r8838.json": "7603530f6f5c985e460b7748d597c172eafa896c1e380bf1c4a01606e3fcd214"
+  }
+}

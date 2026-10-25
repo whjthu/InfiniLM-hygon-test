@@ -1,0 +1,220 @@
+{
+  "task": "KIMI73 bounded profiler-impact same-case diagnostic",
+  "CPU_only": true,
+  "GPU": false,
+  "native_build": false,
+  "Model_load": false,
+  "Git_mutation": false,
+  "original_handle": "910375.639",
+  "run": "currentprofile8670-2780c25f37791711",
+  "decision": "ACTIVE_TRACE_MATERIAL_CADENCE_PERTURBATION_OBSERVED; production rank-skew attribution UNKNOWN/PARK",
+  "deduplication": "Bounded search of retained 639 compact/baseline and 897x cards found interposer caveats but no same-case adjacent-step paired calculation; no baseline/profile repeated.",
+  "source_binding": {
+    "native_DSO_SHA256": "f6f10c2b243e0336074b872859e6ca6acb08effdcd56d86b9ac4df1bf2ddb5e9",
+    "protocol_path": "kimi_current_profile_protocol_r8670.py",
+    "protocol_SHA256": "54cc71ee7700f9bc84ab9e504fbac388829863e64d67ca1bcae2de191bd4c1be",
+    "lines": {
+      "12": "All phases share hipprof interposer; ordinary active trace OFF; short traced phase separate.",
+      "40": "CAPI timer starts after hipProfilerStart has returned and stops before post-call memory/counter collection.",
+      "48": "local_forward_samples records one stage owner CAPI, not eight per-rank wall samples.",
+      "74-82": "Actual tracing case, Start at step32/cohort0; Stop after step33/cohort3. Actual report windows and CAPI containment independently confirm eight marked calls per node.",
+      "79": "Each node actual start_pasts is 544 for all16 rows; adjacent source advances each row once per decode; unmarked31 past543, marked32/33 past544/545, unmarked34 past546. Past per individual call is source-derived, not stored.",
+      "88": "Failure-only profiler stop; completed windows all Start/Stop0."
+    }
+  },
+  "comparison_contract": {
+    "case": "B64-M16-hiptrace36",
+    "actual_window_steps": [
+      32,
+      33
+    ],
+    "adjacent_unmarked_steps": [
+      31,
+      34
+    ],
+    "calls_per_stage": {
+      "marked": 8,
+      "adjacent_unmarked": 8
+    },
+    "stages": 4,
+    "same_case_same_shape": true,
+    "different_case_absolute_time_ratios_used": false,
+    "units": "ms unless ratio field",
+    "summaries": [
+      {
+        "stage_owner_node": 0,
+        "source_report_path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/kimi-current-profile-r8670-currentprofile8670-2780c25f37791711-node0.json",
+        "source_report_SHA256": "c637dfb7d5da982bc7c7576fdf5330726d493ce10a05284211adf7adb50813e1",
+        "actual_marked_steps": [
+          32,
+          33
+        ],
+        "start_pasts": [
+          544
+        ],
+        "start_stop_returncode": [
+          0,
+          0
+        ],
+        "matched_shape": {
+          "N": 16,
+          "B": 16,
+          "cohorts_per_step": 4
+        },
+        "median_CAPI_ms_by_step": {
+          "31": 110.06789561361074,
+          "32": 170.10945733636618,
+          "33": 168.61067293211818,
+          "34": 110.63373670913279
+        },
+        "mean_of_marked_step_medians_over_adjacent_step_medians": 1.5347422975701248,
+        "median_of_four_cohort_matched_ratios": 1.533764579603129,
+        "cohort_matched_ratios": [
+          1.535031693131321,
+          1.5191467724820704,
+          1.5504746346272607,
+          1.5324974660749369
+        ],
+        "first_marked_cohort_ms": 169.00088218972087
+      },
+      {
+        "stage_owner_node": 1,
+        "source_report_path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/kimi-current-profile-r8670-currentprofile8670-2780c25f37791711-node1.json",
+        "source_report_SHA256": "963c03bfdf2332a0510bcc6848ace9f25cbcbccd07f22e1d54cee1763abea910",
+        "actual_marked_steps": [
+          32,
+          33
+        ],
+        "start_pasts": [
+          544
+        ],
+        "start_stop_returncode": [
+          0,
+          0
+        ],
+        "matched_shape": {
+          "N": 16,
+          "B": 16,
+          "cohorts_per_step": 4
+        },
+        "median_CAPI_ms_by_step": {
+          "31": 114.488928578794,
+          "32": 169.7937254793942,
+          "33": 168.80170884542167,
+          "34": 130.90860098600388
+        },
+        "mean_of_marked_step_medians_over_adjacent_step_medians": 1.379783386268397,
+        "median_of_four_cohort_matched_ratios": 1.3847781373573795,
+        "cohort_matched_ratios": [
+          1.767460148428024,
+          1.5025979255765758,
+          1.2669583491381833,
+          1.2203294155563886
+        ],
+        "first_marked_cohort_ms": 225.78917583450675
+      },
+      {
+        "stage_owner_node": 2,
+        "source_report_path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/kimi-current-profile-r8670-currentprofile8670-2780c25f37791711-node2.json",
+        "source_report_SHA256": "3e65be3a74577923c3ac44f2e513a7331341f83667be1fefb3363b1f32fa4e37",
+        "actual_marked_steps": [
+          32,
+          33
+        ],
+        "start_pasts": [
+          544
+        ],
+        "start_stop_returncode": [
+          0,
+          0
+        ],
+        "matched_shape": {
+          "N": 16,
+          "B": 16,
+          "cohorts_per_step": 4
+        },
+        "median_CAPI_ms_by_step": {
+          "31": 113.63825085572898,
+          "32": 170.5284551717341,
+          "33": 168.94666338339448,
+          "34": 113.52571472525597
+        },
+        "mean_of_marked_step_medians_over_adjacent_step_medians": 1.4944056716341492,
+        "median_of_four_cohort_matched_ratios": 1.493332030649015,
+        "cohort_matched_ratios": [
+          1.8356750272084088,
+          1.5116006750775952,
+          1.475063386220435,
+          1.2872955200171932
+        ],
+        "first_marked_cohort_ms": 245.91723503544927
+      },
+      {
+        "stage_owner_node": 3,
+        "source_report_path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/kimi-current-profile-r8670-currentprofile8670-2780c25f37791711-node3.json",
+        "source_report_SHA256": "a0f1a014ca13ac2bfa007d1a7e66b74ee3e7e54148f1511cf56165ea54937fa0",
+        "actual_marked_steps": [
+          32,
+          33
+        ],
+        "start_pasts": [
+          544
+        ],
+        "start_stop_returncode": [
+          0,
+          0
+        ],
+        "matched_shape": {
+          "N": 16,
+          "B": 16,
+          "cohorts_per_step": 4
+        },
+        "median_CAPI_ms_by_step": {
+          "31": 113.54916915297508,
+          "32": 170.55841186083853,
+          "33": 169.84790214337409,
+          "34": 106.58497014082968
+        },
+        "mean_of_marked_step_medians_over_adjacent_step_medians": 1.546358575258902,
+        "median_of_four_cohort_matched_ratios": 1.547027286582059,
+        "cohort_matched_ratios": [
+          2.18352832815452,
+          1.5734623005733634,
+          1.5205922725907544,
+          1.393145823426393
+        ],
+        "first_marked_cohort_ms": 311.1085081472993
+      }
+    ]
+  },
+  "causal_interpretation": {
+    "supported": [
+      "Same-case N16/B16 calls show a sharp reversible rise while tracing is active on all four stage owners.",
+      "Step32/33 owner medians are about169–171ms versus110–114ms at31;34 mostly returns near107–114ms, node1 median131ms has two slower tail calls.",
+      "Matched-cohort active/adjacent ratio medians range1.385–1.547 across stage owners. This is material observer-associated cadence perturbation, not the sub-percent drift previously relevant to tiny components.",
+      "First marked cohort CAPI grows along downstream stage owners169/226/246/311ms, consistent with start-transition or PP dependency propagation; no cross-host start-time alignment is used and no exact cause is assigned."
+    ],
+    "not_established": [
+      "Not a randomized profiler toggle experiment: past advances by1 and PP dependencies can propagate profiler delays. Exact profiler overhead fraction is UNKNOWN.",
+      "Unmarked calls still run with hipprof interposer; total interposer-vs-production cost is UNKNOWN.",
+      "No per-rank unprofiled kernel/CAPI timing is retained here. Rank skew induced by profiler vs pre-existing production skew cannot be separated.",
+      "Cannot transfer traced kernel arrival spreads, CCL wait/blank proportions, or same-case slowdown ratio into production removable wall cost.",
+      "API-to-HIPOPS causal correlation remains unvalidated."
+    ]
+  },
+  "production_attribution_allowed": [
+    "639 trace proves selected provider/sequence/geometry and shows behavior under active profiling.",
+    "Previous W2/upstream-boundary alignment findings remain valid for the observed traced window only.",
+    "Neither network bottleneck nor production CPU-launch/rank-skew bottleneck is established; no affinity, communication flag, stream or scheduling change justified."
+  ],
+  "candidate": null,
+  "next_action": "PARK this trace-derived production bottleneck inference. Ordinary path already turns active trace OFF; no new code or capture proposed from this evidence.",
+  "evidence": {
+    "CPU_result": "Kimi-observer-local-CPU-r8977.json",
+    "CPU_result_SHA256": "f13a2c2ddcc58b16d028e87b0b1be0ecf2dcac6748e666269a24e1b107e19ca8",
+    "producer": "analyze_Kimi_observer_local_r8977.py",
+    "producer_SHA256": "dfdebc3e180f0b09bc34dc2542f6e8a31018eea893d50aba3b3688932851caca"
+  },
+  "performance_round": false,
+  "new_Model_gain": false
+}
