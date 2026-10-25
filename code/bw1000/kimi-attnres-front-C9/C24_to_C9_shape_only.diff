@@ -1,0 +1,116 @@
+--- attnres_front_r8982.cu
++++ attnres_front_C9_r8984.cu
+@@ -17,7 +17,7 @@
+ __global__ void front(const __nv_bfloat16 *x, const __nv_bfloat16 *w,
+                       const __nv_bfloat16 *p, __nv_bfloat16 *scores,
+                       float eps) {
+-    constexpr int H = 7168, C = 24, CAP = 25;
++    constexpr int H = 7168, C = 9, CAP = 9;
+     const int row = blockIdx.x, t = threadIdx.x;
+     const size_t offset = (size_t(row / C) * CAP + row % C) * H;
+     __shared__ float tmp[256];
+@@ -44,7 +44,7 @@
+ }
+ extern "C" int kimi_attnres_front_launch_r8982(
+     const void *x, const void *w, const void *p, void *scores, float eps, void *stream) {
+-    front<<<16 * 24, 256, 0, static_cast<cudaStream_t>(stream)>>>(
++    front<<<16 * 9, 256, 0, static_cast<cudaStream_t>(stream)>>>(
+         static_cast<const __nv_bfloat16 *>(x), static_cast<const __nv_bfloat16 *>(w),
+         static_cast<const __nv_bfloat16 *>(p), static_cast<__nv_bfloat16 *>(scores), eps);
+     return int(cudaGetLastError());
+--- attnres_explicit_r8982.cpp
++++ attnres_explicit_C9_r8984.cpp
+@@ -50,9 +50,9 @@
+     std::vector<rt::Tensor> held;
+     try {
+         error.clear();
+-        if (device < 0 || tokens != 16 || blocks != 24 || capacity != 25 || hidden != 7168 ||
++        if (device < 0 || tokens != 16 || blocks != 9 || capacity != 9 || hidden != 7168 ||
+             !std::isfinite(eps) || eps <= 0 || !storage || !norm || !proj || !out)
+-            throw std::invalid_argument("r8982 fixed M16/C24/CAP25/H7168 geometry");
++            throw std::invalid_argument("r8982 fixed M16/C9/CAP9/H7168 geometry");
+         // Guard outlives producer handoff, all allocations, launches and original drain.
+         infini::rt::DeviceGuard guard{rt::Device::Type::kHygon, device, true};
+         if (cudaStreamSynchronize(static_cast<cudaStream_t>(stream)) != cudaSuccess)
+--- run_attnres_front_r8982.py
++++ run_attnres_front_C9_r8984.py
+@@ -31,7 +31,7 @@
+ assert cfg['hidden_size'] == 7168
+ weights, weight_hashes = [], {}
+ for suffix in ['self_attention_res_norm.weight', 'self_attention_res_proj.weight']:
+-    name = 'language_model.model.layers.46.' + suffix
++    name = 'language_model.model.layers.92.' + suffix
+     with safe_open(model/mapping[name], framework='pt', device='cpu') as f:
+         t = f.get_tensor(name).contiguous()
+     assert t.dtype == torch.bfloat16 and t.numel() == 7168
+@@ -48,7 +48,7 @@
+ lib.modern_attnres_front_count_r8982.restype = ctypes.c_ulonglong
+ lib.modern_attnres_shutdown_r8982.argtypes = [ctypes.c_int]
+ report = {'hardware':'BW1000','level':'synthetic_attention_component','status':'RUNNING',
+-          'scope':'M16/history24/cap25/H7168; real layer46 small weights, synthetic operands; no Model qualification',
++          'scope':'M16/history9/cap9/H7168; real layer92 small weights, synthetic operands; no Model qualification',
+           'native_SHA256':a.sha256,'weights_SHA256':weight_hashes,'arms':[],
+           'math':'Explicit BF16 normalized and score rounding; original current-SDK Softmax and weighted Gemm',
+           'difference_policy':'Intermediate/output error diagnostic, no bitexact crossarm gate; final Model tokens remain untested'}
+@@ -69,10 +69,12 @@
+ saved = {}
+ try:
+     gen=torch.Generator(device='cuda').manual_seed(8982001)
+-    storage=torch.full((16,25,7168),float('nan'),device='cuda',dtype=torch.bfloat16)
+-    storage[:,:24].copy_(torch.randn((16,24,7168),generator=gen,device='cuda').mul_(.1).to(torch.bfloat16))
+-    assert not storage[:,:24].is_contiguous()  # Actual [CAP*H,H,1] residual-bank stride.
+-    report['valid_bank_stride']=list(storage[:,:24].stride())
++    input_padded=torch.full((16*9*7168+64,),.3125,device='cuda',dtype=torch.bfloat16)
++    storage=input_padded[32:-32].view(16,9,7168)
++    storage[:,:9].copy_(torch.randn((16,9,7168),generator=gen,device='cuda').mul_(.1).to(torch.bfloat16))
++    assert storage.stride()==(9*7168,7168,1)
++    input_reference=storage.clone()
++    report['valid_bank_stride']=list(storage[:,:9].stride())
+     schedule=[(0,m) for m in [0,1]]+[(1,m) for m in [0,1,1,0,1,0,0,1]]+[(2,0)]
+     for index,(phase,mode) in enumerate(schedule):
+         assert lib.modern_attnres_front_mode_r8982(mode)==0
+@@ -81,13 +83,14 @@
+         out=padded[32:-32].view(16,7168);out.fill_(float('nan'))
+         torch.cuda.synchronize()
+         start=time.perf_counter()
+-        rc=lib.modern_attnres(a.device,16,24,25,7168,float(cfg['rms_norm_eps']),
++        rc=lib.modern_attnres(a.device,16,9,9,7168,float(cfg['rms_norm_eps']),
+             *[ctypes.c_void_p(t.data_ptr()) for t in [storage,*weights,out]],
+             ctypes.c_void_p(torch.cuda.current_stream().cuda_stream))
+         elapsed=time.perf_counter()-start
+         if rc: raise RuntimeError(lib.modern_attnres_error().decode())
+         assert bool(torch.isfinite(out).all()), 'STOP_nonfinite'
+-        assert bool(torch.isnan(storage[:,24]).all()), 'STOP_unused_bank_corruption'
++        assert torch.equal(storage,input_reference), 'STOP_input_corruption'
++        assert bool((input_padded[:32]==.3125).all() and (input_padded[-32:]==.3125).all()), 'STOP_input_canary'
+         assert bool((padded[:32]==.3125).all() and (padded[-32:]==.3125).all()), 'STOP_output_canary'
+         row={'index':index,'phase':['warm','measure','restore'][phase],'mode':mode,
+              'wall_s_including_original_drains':elapsed,'included_in_timing':phase==1,'finite':True,'canary':True,
+@@ -107,3 +110,6 @@
+     rc=lib.modern_attnres_shutdown_r8982(a.device)
+     report['shutdown_returncode']=rc;save()
+     if rc: raise RuntimeError(lib.modern_attnres_error().decode())
++
++if report['status']=='COMPONENT_COMPLETED_NOT_MODEL_QUALIFIED' and report.get('shutdown_returncode')==0:
++    print('KIMI_ATTNRES_FRONT_NORMAL',json.dumps({'normal':True,'counter':report['arms'][-1]['counter']}),flush=True)
+--- cpu_build_plan_r8982.py
++++ cpu_build_plan_C9_r8984.py
+@@ -1,15 +1,15 @@
+ """PRINT ONLY: two-TU build plan for review. Does not create jobs or invoke compilers."""
+ import json,pathlib
+ r=pathlib.Path('/refactor')
+-b=r/'candidates/Kimi-attnres-front-r8982'
++b=r/'candidates/Kimi-attnres-front-C9-r8984'
+ ops=r/'candidates/rebased-5f91ad7-r3668/Ops/Kimi/InfiniOps'
+ sdk=r/'install/hygon-kimi-5f91ad7-r3672'
+ common=r/'candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM'
+ model=r/'candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM'
+ inc=['-I/opt/dtk/cuda/cuda/include','-I'+str(model/'csrc'),'-I'+str(common/'csrc'),'-I'+str(sdk/'include'),'-I'+str(common/'third_party/json/include'),'-I'+str(common/'third_party/spdlog/include')]
+ commands=[
+- ['/opt/dtk/cuda/cuda/bin/nvcc','-std=c++17','-O3','-arch=gfx936','-Xcompiler=-fPIC','-D_GLIBCXX_USE_CXX11_ABI=1','-I'+str(ops/'src'),'-I'+str(ops/'generated'),'-I'+str(sdk/'include'),'-MMD','-MF',str(b/'front.d'),'-c',str(b/'src/attnres_front_r8982.cu'),'-o',str(b/'front.o')],
+- ['g++','-std=c++17','-O2','-fno-omit-frame-pointer','-fPIC','-shared','-D_GLIBCXX_USE_CXX11_ABI=1',*inc,'-MMD','-MF',str(b/'adapter.d'),str(b/'src/attnres_explicit_r8982.cpp'),str(b/'front.o'),'-Wl,--no-as-needed',str(common/'python/_infinilm.cpython-310-x86_64-linux-gnu.so'),'-Wl,--as-needed','-L'+str(common/'python/infinilm/_lib'),'-linfinilm_runtime','-L'+str(sdk/'lib'),'-linfiniops','-linfinirt','-linfiniccl','-ldl','-Wl,-rpath,'+str(common/'python/infinilm/_lib')+':'+str(sdk/'lib'),'-o',str(b/'libattnres_front_r8982.so')]
++ ['/opt/dtk/cuda/cuda/bin/nvcc','-std=c++17','-O3','-arch=gfx936','-Xcompiler=-fPIC','-D_GLIBCXX_USE_CXX11_ABI=1','-I'+str(ops/'src'),'-I'+str(ops/'generated'),'-I'+str(sdk/'include'),'-MMD','-MF',str(b/'front.d'),'-c',str(b/'src/attnres_front_C9_r8984.cu'),'-o',str(b/'front.o')],
++ ['g++','-std=c++17','-O2','-fno-omit-frame-pointer','-fPIC','-shared','-D_GLIBCXX_USE_CXX11_ABI=1',*inc,'-MMD','-MF',str(b/'adapter.d'),str(b/'src/attnres_explicit_C9_r8984.cpp'),str(b/'front.o'),'-Wl,--no-as-needed',str(common/'python/_infinilm.cpython-310-x86_64-linux-gnu.so'),'-Wl,--as-needed','-L'+str(common/'python/infinilm/_lib'),'-linfinilm_runtime','-L'+str(sdk/'lib'),'-linfiniops','-linfinirt','-linfiniccl','-ldl','-Wl,-rpath,'+str(common/'python/infinilm/_lib')+':'+str(sdk/'lib'),'-o',str(b/'libattnres_front_C9_r8984.so')]
+ ]
+ print(json.dumps({'status':'PLAN_NOT_EXECUTED','CPU_only':True,'GPU':False,'dlopen':False,
+  'scope':'one GPU TU, one host TU + link; reuse Runtime/current SDK; no Model/native/SDK rebuild',

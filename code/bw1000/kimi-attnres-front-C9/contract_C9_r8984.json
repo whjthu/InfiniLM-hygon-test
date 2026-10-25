@@ -1,0 +1,64 @@
+{
+  "status": "SOURCE_IMPLEMENTED_NOT_BUILT_NOT_GPU_READY",
+  "scope": "Single-card explicit-weights synthetic component M16/actual maximum operands C9/CAP9/H7168",
+  "default": "OFF; modern_attnres_front_mode_r8982(1) is component-only opt-in",
+  "actual_callsite": "code/bw1000/kimi-model-events/kimi_decoder_model_events_r8669zq.cpp apply_attn_res; first norm->projection pair only",
+  "binding": "Explicit BF16 norm H and projection [1,H] pointers; same original modern_attnres ABI; no Model getter needed",
+  "RMSNorm_source": "/refactor/candidates/rebased-5f91ad7-r3668/Ops/Kimi/InfiniOps/src/native/cuda/ops/rms_norm/kernel.cuh",
+  "RMSNorm_source_SHA256": "9402d9af0fe27a8c708b32ffc298e655ebd73d6cf4c6cf747b857916e7fde746",
+  "RMSNorm_arithmetic": "F32 square accumulation, rsqrtf(sum/H+epsilon), BF16 cast of (F32(x)*F32(weight))*rms; candidate retains multiply order and BF16 boundary",
+  "projection_arithmetic": "BF16 normalized register values times BF16 projection weights, F32 dot accumulation, explicit BF16 score round; reduction tree differs from SDK Gemm and is diagnostic",
+  "unchanged": [
+    "Current SDK in-place Softmax axis1",
+    "Current SDK weighted Gemm shape [16,1,24]x[16,24,7168]",
+    "Runtime owner thread",
+    "Canonical DeviceGuard",
+    "producer handoff synchronization",
+    "original final Runtime drain"
+  ],
+  "stride": "[16,9,7168] actual [64512,7168,1]",
+  "lifetime": "caller retains input/weights/output; host held vector retains all Tensor views and temporaries through final Runtime sync; catch drains before releasing held tensors; explicit owner shutdown on same thread",
+  "fixture": "One seeded synthetic bank, actual layer92 two small weights; two warm + 8 timed ABBA+BAAB + restoreA; input/output padding canaries, no unused logical slot",
+  "diagnostic": [
+    "finite all output",
+    "maxabs",
+    "relative RMS",
+    "ordered BF16 ULP max",
+    "ownrepeat bit equality",
+    "input unchanged and padding canaries preserved",
+    "phase counters warm[1,1], measure[4,4],restore[1,0]",
+    "32 BF16 output canaries before/after"
+  ],
+  "stop": [
+    "native error",
+    "nonfinite output",
+    "ownrepeat instability",
+    "input or padding canary corruption",
+    "timeout; no retry"
+  ],
+  "performance": "Both modes warmed; only 8 measure-phase calls included. Component only; no Model or bottleneck claim.",
+  "remaining": "No compile/link/nm proof yet. Root CPU build GO required. No controller/Slurm/GPU dispatch exists. Future Model tokens/EOS gate remains necessary.",
+  "domain_proof": {
+    "CPU_only": true,
+    "config_path": "/public/home/aclsylqidf/shared/Kimi-K3/config.json",
+    "config_SHA256": "9710e121a58d03ac92c8d6da287a19541994319afbbe6d6202af001ffd379213",
+    "config": {
+      "attn_res_block_size": 12,
+      "num_hidden_layers": 93,
+      "hidden_size": 7168,
+      "rms_norm_eps": 1e-05
+    },
+    "config_extra_attn_res": {
+      "attn_res_block_size": 12
+    },
+    "max_persistent_blocks": 8,
+    "max_values_C": 9,
+    "formula": "ceil(layer/12)+1 plus reset before FFN; layer84..92 max9",
+    "fixture_CAP": 9,
+    "fixture_CAP_note": "actual final-stage capacity=ceil(local_layer_end93/12)+1=9; no unused logical slot; input/output padding canaries",
+    "allocation_source": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/models/kimi_k3/kimi_k3_text_model.cpp",
+    "allocation_source_SHA256": "9a8b992b6739eb39e04199aadb372bc7212a0f4489d2366e99d87679de925aef",
+    "allocation_line45": "block_residual_capacity_=(local_layer_end_+block_size-1)/block_size+1"
+  },
+  "supersedes": "C24 CPU232 source remains preserved; no C24 GPU was submitted"
+}
