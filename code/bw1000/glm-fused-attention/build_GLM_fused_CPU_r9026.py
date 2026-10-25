@@ -1,0 +1,14 @@
+import pathlib,json,hashlib,subprocess,time,os
+r=pathlib.Path('/refactor');i=r/'incoming';b=r/'candidates/glm-fused-r9026';b.mkdir();sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest();q={'completed':False,'GPU':False,'dlopen':False,'GPU_TUs_compiled_on_CPU':0,'HOST_TUs_compiled':0,'producer':os.environ['SLURM_JOB_ID']+'.'+os.environ['SLURM_STEP_ID'],'commands':[]};start=time.perf_counter()
+def run(a):
+ q['commands'].append(a);p=subprocess.run(a,text=True,capture_output=True,timeout=100);(b/f'command-{len(q["commands"])}.log').write_text(p.stdout+p.stderr);assert p.returncode==0,p.stderr[:18000]
+try:
+ m=json.loads((i/'GLM-fused-CPU-manifest-r9026.json').read_text())
+ for n,h in m['sources_SHA256'].items():assert sha(i/n)==h,n
+ parent=json.loads((r/'candidates/glm-exact-budget-r8854/CPU-build.json').read_text());assert parent['completed'];link=next(list(a)for a in parent['commands']if '-shared'in a);objects={a:sha(a)for a in link if a.endswith('.o')};assert len(objects)==28;old='/refactor/candidates/glm-transient-layer-r5681/private-18.o';assert objects[old]=='1be70ebc8b38be475491aba59902b22bd3443330e84efe26f790bf5d88fb117e'
+ doc=json.loads((r/'candidates/glm-transient-layer-r5681/CPU-build.json').read_text());rec=next(x for x in doc['compiled']if x['object']==old);assert sha(rec['source'])==rec['source_SHA256']=='2390bf53024ea92e119aa8fdebcdeb2731d12d3f3050368aa5576c0f7c5b2a79';a=next(list(a)for a in doc['commands']if '-c'in a and '-o'in a and a[a.index('-o')+1]==old)
+ gpu=b/'fused.o';run(['/opt/dtk/cuda/cuda/bin/nvcc','-std=c++17','-O3','-arch=gfx936','-Xcompiler=-fPIC','-MD','-MF',str(b/'fused.d'),'-c',str(i/'glm_fused_decode_r9026.cu'),'-o',str(gpu)]);q['GPU_TUs_compiled_on_CPU']=1
+ host=b/'caller.o';a[a.index('-c')+1]=str(i/'glm_fused_exact_rows_r9026.cpp');a[a.index('-o')+1]=str(host);a[a.index('-MF')+1]=str(b/'caller.d');run(a);q['HOST_TUs_compiled']=1
+ lib=b/'libglm_fused_r9026.so';link=[str(host)if x==old else x for x in link];link.insert(1,str(gpu));link[link.index('-o')+1]=str(lib);run(link);run(['nm','-D','--defined-only',str(lib)]);assert all(sha(p)==h for p,h in objects.items());q.update(completed=True,library=str(lib),library_SHA256=sha(lib),reused_objects_SHA256={p:h for p,h in objects.items()if p!=old},sources_SHA256={n:sha(i/n)for n in ['glm_fused_decode_r9026.cu','glm_fused_exact_rows_r9026.cpp']},newobjects_SHA256={str(p):sha(p)for p in [gpu,host]},elapsed_seconds=time.perf_counter()-start,scope='OneGPU TU + oneHOST caller; defaultOFF fused exactprefixB8H8D256 attention, noSDK/RT/GPU weights/cache/drain changes; BF16 boundary preserved, reduction order differs')
+except BaseException as exc:q['failure']=repr(exc)
+(b/'CPU-build.json').write_text(json.dumps(q,indent=2));print(json.dumps({k:v for k,v in q.items()if k not in ['commands','reused_objects_SHA256']}));assert q['completed']

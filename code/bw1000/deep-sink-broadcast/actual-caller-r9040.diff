@@ -1,0 +1,41 @@
+--- actual967caller
++++ r9040caller
+@@ -10,6 +10,7 @@
+ #include <set>
+ #include <stdexcept>
+ extern "C" int deep_packed_gather_r374(void*,const void*,const void*,const void*,size_t,size_t,int64_t,int64_t,int64_t,int64_t,void*);
++extern "C" int deep_sink_broadcast_r9040(void*,const void*,size_t,size_t,size_t,void*);
+ namespace infinilm::models::deepseek_v4 {
+ namespace rt=infinilm::runtime;namespace ex=infinilm::execution;
+ namespace {std::atomic<int> reference_scratch_mode_r8953{0};std::array<std::array<std::atomic<uint64_t>,4>,8> reference_scratch_counts_r8954{};}
+@@ -17,6 +18,8 @@
+ namespace {
+ std::atomic<int> packed_batch_mode_r8996b{0};
+ std::array<std::array<std::atomic<uint64_t>,7>,8> packed_batch_counts_r8996b{};
++std::atomic<int> sink_broadcast_mode_r9040{0};
++std::array<std::array<std::atomic<uint64_t>,3>,8>sink_broadcast_counts_r9040{};
+ struct PackedRunR8996b {size_t query_begin,count,n,packed_begin;};
+ bool packed_runs_r8996b(const std::vector<std::vector<int64_t>>&selected,
+  const std::vector<size_t>&offsets,size_t packed_rows,std::vector<PackedRunR8996b>&runs){
+@@ -65,10 +68,13 @@
+  auto logits=logits_store->narrow({{0,0,R*H*(N+1)}})->view({R,H,N+1});
+  auto probs=probs_store->narrow({{0,0,R*H*(N+1)}})->view({R,H,N+1});
+  auto results=result_store->narrow({{0,0,R*H*512}})->view({R,H,512});
++ const bool broadcast=sink_broadcast_mode_r9040.load()==1;
++ if(broadcast){if(R<2||H!=8||!N)throw std::logic_error("r9040 geometry");if(deep_sink_broadcast_r9040(logits->data(),sink->data(),R,H,N,r.stream()))throw std::runtime_error("r9040 sink launch");auto&c=sink_broadcast_counts_r9040.at(r.device().index());++c[0];c[1].fetch_add(R*H);c[2].fetch_add(R-1);}
++
+  for(size_t j=0;j<R;++j){
+   size_t t=run.query_begin+j;
+   auto l=logits->narrow({{0,j,1}})->view({H,N+1});
+-  l->narrow({{1,N,1}})->copy_from(r,sink->view({H,1}));
++  if(!broadcast)l->narrow({{1,N,1}})->copy_from(r,sink->view({H,1}));
+   auto values=packed->narrow({{0,run.packed_begin+j*N,N}});
+   ex::submit<infini::ops::Gemm>(r,infini::ops::Gemm::DefaultConfig(r.device().type()),qf->narrow({{0,t,1}})->view({H,512}),values->permute({1,0}),std::optional<rt::Tensor>{},std::optional<float>{1.f/std::sqrt(512.f)},std::optional<float>{0},std::optional<int>{},std::optional<int>{},l->narrow({{1,0,N}}));
+  }
+@@ -142,3 +148,6 @@
+ 
+ extern "C" int deep_reference_packed_batch_mode_r8996b(int v){if(v<0||v>2)return 1;infinilm::models::deepseek_v4::packed_batch_mode_r8996b.store(v);return 0;}
+ extern "C" int deep_reference_packed_batch_counts_r8996b(int d,uint64_t*out,size_t n){if(d<0||d>=8||!out||n!=7)return 1;for(size_t k=0;k<7;++k)out[k]=infinilm::models::deepseek_v4::packed_batch_counts_r8996b[d][k].load();return 0;}
++
++extern "C" int deep_sink_broadcast_mode_r9040(int v){if(v!=0&&v!=1)return 1;infinilm::models::deepseek_v4::sink_broadcast_mode_r9040.store(v);return 0;}
++extern "C" int deep_sink_broadcast_counts_r9040(int d,uint64_t*out,size_t n){if(d<0||d>=8||!out||n!=3)return 1;for(size_t k=0;k<3;++k)out[k]=infinilm::models::deepseek_v4::sink_broadcast_counts_r9040[d][k].load();return 0;}
