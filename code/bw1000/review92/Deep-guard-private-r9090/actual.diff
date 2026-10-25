@@ -1,0 +1,27 @@
+--- deep_values_reuse_r9083.cpp
++++ deep_guard_r9090.cpp
+@@ -1,7 +1,7 @@
+ #include <algorithm>
+ #include "deep_selection_r356.hpp"
+ #include "deepseek_v4_latent_attention.hpp"
+-#include "execution/submit.hpp"
++#include "deep_submit_r9090.hpp"
+ #include <cmath>
+ #include <atomic>
+ #include <array>
+@@ -12,7 +12,7 @@
+ extern "C" int deep_packed_gather_r374(void*,const void*,const void*,const void*,size_t,size_t,int64_t,int64_t,int64_t,int64_t,void*);
+ extern "C" int deep_sink_broadcast_r9040(void*,const void*,size_t,size_t,size_t,void*);
+ namespace infinilm::models::deepseek_v4 {
+-namespace rt=infinilm::runtime;namespace ex=infinilm::execution;
++namespace rt=infinilm::runtime;namespace ex=infinilm::execution_guard_r9090;
+ namespace {std::atomic<int> reference_scratch_mode_r8953{0};std::array<std::array<std::atomic<uint64_t>,4>,8> reference_scratch_counts_r8954{};}
+ 
+ namespace {
+@@ -185,3 +185,6 @@
+ 
+ extern "C" int deep_values_reuse_mode_r9083(int v){if(v!=0&&v!=1)return 1;infinilm::models::deepseek_v4::values_reuse_mode_r9083.store(v);return 0;}
+ extern "C" int deep_values_reuse_counts_r9083(int d,uint64_t*out,size_t n){if(d<0||d>=8||!out||n!=2)return 1;for(size_t k=0;k<2;++k)out[k]=infinilm::models::deepseek_v4::values_reuse_counts_r9083[d][k].load();return 0;}
++
++extern "C" int deep_guard_mode_r9090(int mode) {if(mode==2)return 1;if(mode<0||mode>1)return -1;infini::rt::deep_guard_mode_r9090.store(mode);return 0;}
++extern "C" int deep_guard_counts_r9090(int d,uint64_t*out,size_t n) {if(d<0||d>=8||!out||n<4)return -1;for(size_t j=0;j<4;++j)out[j]=infini::rt::deep_guard_counts_r9090[d][j].load();return 0;}

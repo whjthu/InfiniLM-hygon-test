@@ -1,0 +1,79 @@
+--- CPU286-independentAR.cpp
++++ KDA-only-T1-plus-D.cpp
+@@ -37,6 +37,13 @@
+ namespace {thread_local std::array<std::uint64_t,3>kimi_rowar_counts_r9043{};}
+ extern "C" int modern_kimi_rowar_stats_r9043(std::uint64_t*out,std::size_t count){if(!out||count!=3)return 1;for(std::size_t j=0;j<3;++j)out[j]=kimi_rowar_counts_r9043[j];return 0;}
+ namespace infinilm::models::kimi_k3 {
++inline std::array<std::array<std::atomic<uint64_t>,3>,8> serial_kda_counts_r9027{};
++extern "C" int modern_kimi_KDA_serial_counts_r9027(int device,uint64_t*out,size_t n){
++    if(device<0||device>=8||!out||n!=3)return 1;
++    for(size_t i=0;i<3;++i)out[i]=serial_kda_counts_r9027[device][i].load();return 0;
++}
++
++
+ inline std::array<std::array<std::atomic<uint64_t>,3>,8> ccl512_counts_r8603{};
+ extern "C" int modern_kimi_CCL512_counts_r8603(int device,uint64_t*out,size_t n){
+     if(device<0||device>=8||!out||n!=3)return 1;
+@@ -529,7 +536,61 @@
+     const auto packed_shape = infinilm::runtime::Shape{1, batch_size * seq_len, local_num_heads_, head_dim_};
+     auto kda_config = infini::ops::IndexedKimiDeltaAttention::DefaultConfig(forward_context.runtime->device().type());
+     kda_config.set_implementation_index(0);
+-    if (infinilm::models::kimi_native::spec_math_mode_r3676(runtime)) {
++    // Independent default-OFF KDA-only carry boundary experiment. No projection,
++    // Conv/Silu, normalization, output projection or CCL policy is changed.
++    const char* serial_env_r9027=std::getenv("INFINILM_KIMI_KDA_SERIAL_R9027");
++    const bool serial_enabled_r9027=serial_env_r9027&&std::string(serial_env_r9027)=="1";
++    if(serial_env_r9027&&std::string(serial_env_r9027)!="0"&&std::string(serial_env_r9027)!="1")
++        throw std::invalid_argument("9027 KDA serial selector must0or1");
++    auto serial_kda_r9027=[&](){
++        namespace rt=infinilm::runtime;
++        if(!serial_enabled_r9027||seq_len<2||seq_len>8||batch_size!=1
++           ||metadata.init_state_indices.value()->numel()!=1)return false;
++        auto offsets=metadata.input_offsets.value(),read=metadata.init_state_indices.value(),write=metadata.final_state_indices.value();
++        if(runtime.isGraphRecording()||offsets->shape()!=rt::Shape{2}||read->shape()!=rt::Shape{1}||write->shape()!=rt::Shape{1}
++           ||offsets->dtype()!=rt::DataType::kInt32||read->dtype()!=rt::DataType::kInt32||write->dtype()!=rt::DataType::kInt32)
++            throw std::invalid_argument("9027 eager single-request I32 metadata required");
++        std::array<int32_t,2> host_offsets{},one_offsets{{0,1}};
++        int32_t host_read=0,host_write=0;
++        rt::Tensor step_offsets;
++        std::vector<rt::Tensor> views,packed;
++        struct DrainR9027{rt::Runtime&r;bool done=false;~DrainR9027()noexcept{if(!done)try{r.syncStream();}catch(...){std::terminate();}}}drain{runtime};
++        runtime.syncStream();
++        runtime.memcpyD2H(host_offsets.data(),offsets->data(),sizeof(host_offsets));
++        runtime.memcpyD2H(&host_read,read->data(),sizeof(host_read));
++        runtime.memcpyD2H(&host_write,write->data(),sizeof(host_write));
++        if(host_offsets[0]!=0||host_offsets[1]!=int32_t(seq_len))throw std::invalid_argument("9027 offsets must describe one complete packed request");
++        if(host_read==host_write){runtime.syncStream();drain.done=true;return false;}
++        if(local_num_heads_!=6||head_dim_!=128||pool!=17||output->dtype()!=rt::DataType::kBFloat16
++           ||host_read<1||host_read>16||host_write<1||host_write>16
++           ||std::abs(host_read-host_write)!=8
++           ||infinilm::models::kimi_native::spec_math_mode_r3676(runtime)!=0
++           ||infinilm::models::kimi_native::owned_indices_active_r1213(runtime))
++            throw std::invalid_argument("9027 requires current H6D128 BF16 Math0 disjoint paired-state rows1..16");
++        step_offsets=rt::Tensor::empty(runtime,{2},rt::DataType::kInt32);
++        runtime.memcpyH2D(step_offsets->data(),one_offsets.data(),sizeof(one_offsets));
++        views.reserve(seq_len*6);packed.reserve(seq_len*6);
++        auto gate_heads=gate_decay->view(packed_shape);
++        auto beta_heads=beta->view({1,seq_len,local_num_heads_});
++        for(size_t token=0;token<seq_len;++token){
++            const size_t base=views.size();
++            for(const auto&t:{output,q_heads,k_heads,v_heads,gate_heads,beta_heads})views.push_back(t->narrow({{1,token,1}}));
++            packed.push_back(rt::Tensor::empty(runtime,{1,1,local_num_heads_,head_dim_},output->dtype()));
++            for(size_t n=1;n<6;++n)packed.push_back(views[base+n]->contiguous(runtime));
++            auto token_read=token==0?read:write;
++            infinilm::execution::submit<infini::ops::IndexedKimiDeltaAttention>(runtime,infinilm::execution::RecordingPolicy::HostOnly,kda_config,
++                packed[base],forward_context.ssm_state_vec.at(layer_idx_),packed[base+1],packed[base+2],packed[base+3],packed[base+4],packed[base+5],
++                A_log_.tensor(),dt_bias,step_offsets,token_read,write,1.0f/std::sqrt(static_cast<float>(head_dim_)),gate_lower_bound_,true);
++            views[base]->copy_from(runtime,packed[base]);
++            ++serial_kda_counts_r9027.at(runtime.device().index())[1];
++        }
++        runtime.syncStream();drain.done=true;
++        auto&counts=serial_kda_counts_r9027.at(runtime.device().index());++counts[0];counts[2].fetch_add(seq_len);
++        return true;
++    };
++    if(serial_kda_r9027()) {
++        // Output is already assembled into the original full-block tensor.
++    } else if (infinilm::models::kimi_native::spec_math_mode_r3676(runtime)) {
+         infinilm::models::kimi_native::spec_kda_roundstep_r3676(runtime, output->view(packed_shape), forward_context.ssm_state_vec.at(layer_idx_), q_heads->view(packed_shape), k_heads->view(packed_shape), v_heads->view(packed_shape), gate_decay->view(packed_shape), beta->view({1, batch_size * seq_len, local_num_heads_}), A_log_.tensor(), dt_bias, metadata.input_offsets.value(), metadata.init_state_indices.value(), metadata.final_state_indices.value(), 1.0f/std::sqrt(static_cast<float>(head_dim_)), gate_lower_bound_, true);
+     } else if (infinilm::models::kimi_native::owned_indices_active_r1213(runtime)) {
+         infinilm::models::kimi_native::owned_indices_kda_r1213(runtime, output->view(packed_shape), forward_context.ssm_state_vec.at(layer_idx_), q_heads->view(packed_shape), k_heads->view(packed_shape), v_heads->view(packed_shape), gate_decay->view(packed_shape), beta->view({1, batch_size * seq_len, local_num_heads_}), A_log_.tensor(), dt_bias, 1.0f / std::sqrt(static_cast<float>(head_dim_)), gate_lower_bound_, true);

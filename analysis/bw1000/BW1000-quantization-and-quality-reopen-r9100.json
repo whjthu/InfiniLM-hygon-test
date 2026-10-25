@@ -1,0 +1,167 @@
+{
+  "hardware": "BW1000 gfx936",
+  "level": "PRIMARY_SOURCE_RESEARCH_AND_LOCAL_CANDIDATE_SELECTION",
+  "status": "COMPLETE_ACTIONABLE_NO_NEW_GPU_IN_THIS_REPORT",
+  "created_UTC": "2026-10-25T17:21:35.545819+00:00",
+  "quality_policy": "User now allows differing tokens. Earlygate basicreasonable taskcorrect output; finalpromotion actualbench score without materialdrop. Original exacttoken outcomes immutablehistoricaldiagnostics, no longer rejectioncriterion. NaN/OOB/lifecycle/statecorruption remain errors.",
+  "primary_sources": {
+    "hardware": "https://ai.gitee.com/docs/compute/clusters_gpu/hygon_gpu",
+    "hygon_w8a8": "https://github.com/HYGON-AI/inference-cookbook-das/blob/main/docs/model-deployment/vllm/qwen3.md",
+    "hygon_moe": "https://github.com/HYGON-AI/Moe",
+    "int8_isa": "https://github.com/sinpeyw/qwen3.5-vllm-dcu-optimization/blob/main/csrc/rocm/attention.cu",
+    "vllm": "https://docs.vllm.ai/en/stable/features/quantization/index.html",
+    "sglang": "https://docs.sglang.io/docs/advanced_features/quantization",
+    "compressor": "https://github.com/vllm-project/llm-compressor",
+    "compression_schemes": "https://github.com/vllm-project/llm-compressor/blob/main/docs/guides/compression_schemes.md",
+    "moe_calibration": "https://github.com/vllm-project/llm-compressor/blob/main/docs/developer-tutorials/add-moe-support.md",
+    "awq": "https://github.com/mit-han-lab/llm-awq",
+    "gptq": "https://github.com/IST-DASLab/gptq",
+    "marlin": "https://github.com/IST-DASLab/marlin",
+    "hqq": "https://github.com/dropbox/hqq",
+    "smoothquant": "https://github.com/mit-han-lab/smoothquant",
+    "hcu_codegen": "https://github.com/tile-ai/tilelang-hygon"
+  },
+  "evidence_SHA256": {
+    "Deep955-packed-batch-final-r8995.json": "f3bb69e658a53731eb82dafc92ad8a3c12383596c391d81ef9837a1233f147b8",
+    "GLM618-fused-Model-compact-r9030.json": "61eefccefa75a1b565771b88452a4eb091e2034dbce816f7221c832473c5a1d8",
+    "Kimi929-corrected-WFP4-real-final-r8970.json": "00c232590d8b9433c62d56b67a7b16a1572d8ff6278d7a594676bd2df76488f4",
+    "InfiniLM-hygon-test/analysis/bw1000/quantized-moe-feasibility-r8912.json": "70fde5e7309dd787825185438ff6baa3878d9e5588dae0a21f069b3d5d143560",
+    "GLM-FP8-block-semantics-r8506.json": "10859799ee5297f5eac4c7afebf8ffc03a1f5ba35dc698f503cb8fca94c300f6",
+    "GLM-production-MoE-dedup-decision-r9047.json": "b12bf54ac866b1d76a494a125aec061e2f493d484c1c4e8144739b34435fef31",
+    "deepseek_v4_int8_mlp_bank_r20.cpp": "2f9f4ab4140f2522069374cd731a7e6e99cd2a368edeadd7791d9fafb114dc9b",
+    "Deep-guard-private-r9090/terminal-compact-r9090.json": "0d03573e2519c9420338fe819428c6ada5ef2244cf5aa6afb487a2d89e8f125c"
+  },
+  "hardware_findings": [
+    "BW1000 directFP8 compute unsupported per operatorplatform hardwarepage; Hygon officialcookbook BW1000 INT8W8A8 recipes exist while FP8 modelrecipes shownBW1100. FP8 weightbytes/FP8KVstorage do not prove nativeFP8arithmetic. No physicalBF16peak number inferred from blanktable.",
+    "gfx936 INT8 MMAC 16x16x32->INT32 directly appears in authorprimarysource attention.cu. Hygon MoE reference covers936/938; local8912 reports signed4 16x16x64 and signed8 16x16x32 in existingdu_mma.h, but thisreview didnot independentlyreopen du_mma orrerun ISA. INT4compute thus existingprojectevidence, not newlycertified spec. No736/1440TOPS as real small-M throughput.",
+    "GLM existingE4M3FNweights+block128F32scales and E4M3dynamicactivations runsoftwaredecode/FP32vectorarithmetic; no hardwareFP8. Kimi MXFP4/E2M1+E8M0scale32 isnonlinear floatingcode, notsignedINT4. Deep alreadyhasINT8checkpoint/I8Gemm+PerChannelQuantI8 paths; recommendingW8A8again alone isnot newoptimization."
+  ],
+  "compatibility": [
+    {
+      "component": "AWQ/GPTQ",
+      "role": "Weightselection/calibration algorithms; AWQactivationimportance, GPTQ approximateHessian. TheirINT4/group128 exports need exactpack/zero/scale/transpose adaptation. PublicCUDAkernel isnotHCUdropin. MoE all-expert statistics needed, notonlyhotexpert traces.",
+      "sources": [
+        "awq",
+        "gptq",
+        "moe_calibration"
+      ]
+    },
+    {
+      "component": "Marlin",
+      "role": "OriginalCUDA>=11.8/NVIDIA>=SM80 weight4 activation16 kernel; usepipelining/packing principles only. Hygon slimquant_marlin forkrecipe exists but newformat/Runtime.stream bridge required. 929fullcompoundnegative survives newqualitypolicy.",
+      "sources": [
+        "marlin",
+        "hygon_w8a8"
+      ]
+    },
+    {
+      "component": "vLLM/SGLang",
+      "role": "Publichardware tables mentionAMD but notgfx936. CurrentSGLangofficialdocument differsfromoldersearchcache: plainGPTQremovedNVIDIA/AMD,usegptq_marlin; marlin variantsCUDAonly; AWQAMD usesTritondequant. INT4toFP8 MoE path needsCDNA3/4 so notBW1000. Pinactualfork/code not genericpipinstall.",
+      "sources": [
+        "vllm",
+        "sglang"
+      ]
+    },
+    {
+      "component": "llm-compressor",
+      "role": "CanprepareINT8/INT4,mixedprecision,AWQ/GPTQ/SmoothQuant andKimiK3architecture. Producingcompressed-tensors checkpoint doesnotimplement InfiniLMHCU kernel. Reusealgorithm/exportlogic separately, noSDKreplacement.",
+      "sources": [
+        "compressor",
+        "compression_schemes"
+      ]
+    },
+    {
+      "component": "HQQ",
+      "role": "Calibrationfreeweightquantizer; firstquickqualitycandidateW4group64axis1. ItsfastbackendsstillneedHCUprovider. LowerqualityriskthanW4A4but extraFP8->INT4quantizationlossmustmeasure.",
+      "sources": [
+        "hqq"
+      ]
+    },
+    {
+      "component": "SmoothQuant",
+      "role": "Diagonalrescale migratesactivationoutliers toweights enablingW8A8; collectrepresentativeactivationstats, donotapplydenseformula acrossnonlinearKDA/Conv blindly. StartdenseLinear/FFNselectively, keepNorm/router/softmax/logits highprecision.",
+      "sources": [
+        "smoothquant"
+      ]
+    }
+  ],
+  "reopened": [
+    {
+      "rank": 1,
+      "candidate": "Deep955packedmode1",
+      "decision": "RUN_ACTUAL_TASK_BENCH_FIRST_ROOT_ALREADY_DISPATCHED",
+      "existing_evidence": "A0prefill139.644636204s,C1partialprefill91.393219744s =34.553percentlatencyreduction; samefirst10tokens then16/32 rows differ at11th. Finite/CAPI0. No complete128 candidate or closingA, so notqualifiedthroughput/quality.",
+      "minimal_change": "Newconsumer protocol only, useexistingcandidateDSO58a306f7.../originalloader; replaceexacttoken STOPwithtaskscore; baselinecurrentmode2sinkCast versusmode1samefixedsettings. OneModelweightload, nativeEOS andlongenoughgeneration.",
+      "expected_first_result": "ExistingDSO/noGPUcompile; loadinghistorical450s then shortQA/taskgeneration,45minboundedjob. Queue/loadvariable; no guaranteedETA.",
+      "quality": "GSM8K numericanswer exacttaskscore (nottokenmatch), parse/truncationrate,fulltexts; first32screen notformalno-dropclaim. Laterlargersamepromptbenchmark/pairedscoreCI.",
+      "impact": "Largestexistingmeasuredprefilllead, doesnotyetproveDecodegain"
+    },
+    {
+      "rank": 2,
+      "candidate": "GLM618fusedattention",
+      "decision": "BENCH_SECOND_WHILE_DEEP_RUNS",
+      "existing_evidence": "Layer6156.37percentwallreduction; Model618ONactuallygenerated128/15of16 sequencesdifferent, originalexactgoldgatepreventedtimingreport. Actual5555activationverified,16normal. NoModelONspeed/semanticqualityknown.",
+      "minimal_change": "ReuseDSO8ee7abcc.../actual5555TP8PP2; removeexactIDs gate innewconsumer. RunobjectiveQA/MMLUMCQ shortchoicesthenGSM8K withadequatecontext/output. Do notcombinewithnewquantizationinfirstcomparison.",
+      "expected_first_result": "NoGPUcompile, one16cardload historical10-15min plusbenchtime; timing afteractivepathguard.",
+      "quality": "Taskcorrectness canpasswithdifferentwording; do nottreat15of16 mismatchasqualityfailure. Preservefinite/canary/memoryguards.",
+      "impact": "Decodecomponentlead6.37percent only; Modelspeedunknown"
+    }
+  ],
+  "routes": [
+    {
+      "rank": 1,
+      "id": "Q1_GLM_INT8_MMAC_SELECTIVE",
+      "status": "TOP_NEW_QUANT_CANDIDATE_SOURCE_AND_ONE_LAYER_FIRST",
+      "format": "Atload decodeoriginalE4M3FN*block128scale then requantINT8 perchannel orperKgroup128; choosepergroup ifscalevaryingKcannotfuseoneepilogue. BF16activation dynamicpertoken/pergroupINT8; INT32MMAC accumulation eachgroup, FP32scaledgroupsum, BF16output.",
+      "calibration": "StartRTNweights+dynamicA forfastfeasibility; ifqualitydropscollect128-512 diverseprompts/routecoverage and SmoothQuant onlylegallinear. Keeprouter/norm/softmax/LMhead andsensitivefirstlastlayersoriginal.",
+      "minimal_code": "ExistingI8Gemm/PerChannelQuantI8 boundary canreuseifscale/stridecontractmatches; newloadtimeFP8->INT8packer andgroupK128scaledepilogue otherwise. No fullBF16GPUbank. FirstactualroutedhistR64U54Mmax3andR128U93Mmax5 versushighMprefill separately; 636paddedM16slowwarningapplies.",
+      "expected_first_result": "1-3hengineeringestimateforfirstactualcomponent ifexistingI8Gemmfits; fullModel lateroneweightsload. Notcompiled/benchmarkednow.",
+      "likely_effect": "Eliminatessoftwarefloatingdecode andraisesarithmeticthroughput; strongestinprefill/highM denseprojection. INT8sameweightbytesasFP8 givesnoHBMtraffic2xclaim; sparseMMApaddingmayerasebenefit."
+    },
+    {
+      "rank": 2,
+      "id": "Q2_GLM_INT4_WEIGHTONLY_FUSED_VECTOR",
+      "status": "SECOND_QUANT_ROUTE_MEMORY_OR_DECODER_BOUND_ONLY",
+      "format": "Signed/asymmetricINT4group64or128 weights, activationBF16, fusedonregister/LDSdequant + FP32acc; canuseBF16MMAC onlywhenactualMoccupancyjustifies. StartHQQ/RTNthenAWQ/GPTQifqualityneeds.",
+      "calibration": "HQQnofirstcalibration; AWQneedsrepresentativeactivations, GPTQHessian; all256expertcoverage. QuantizereconstructedexistingFP8checkpointisadditionalerror relativetoFP8baseline; nooriginalBF16truthclaim.",
+      "minimal_code": "Privateweightpacker+newvectorW4decoder/provider, preservetherouter/gather/merge/TP. Layercomponentretainsoriginalandnewweights; wholeModelcannotretainbothalllayersiffree~1.8GB, streamCPUconvert/releasesourceGPUoruseindependentreplicasforbaselinequality. ThisisnotpreviousBF16cache/unpackgrid.",
+      "expected_first_result": "2-4hengineeringestimate; startactualone-layerendtoend includingpack/route, notisolatedGEMM.",
+      "likely_effect": "ApproxhalvesFP8weightpayload plusmetadata, lowersdecodecost; idealHBMonly2xbounddoesnotpredictModel2x. Newqualityscoremandatory."
+    },
+    {
+      "rank": 3,
+      "id": "Q3_INT8_KV_AND_FUSED_ATTENTION",
+      "status": "AFTER_EXISTING955_618_BENCH",
+      "format": "Pertoken/perblockINT8K/V, optionalINT8Q withdynamicamax; QKINT32acc, FP32scale/softmax; PV keepBF16accinitially orINT8probINT32withnewscale. KeepRMS/RoPE highprecisionbeforequant.",
+      "calibration": "Dynamicperblockscalesnoofflinerequirement; measurelongcontextretrieval+math, saturations/outliers. Avoid assumingFP8KVstoragefromrecipe=hardwareFP8.",
+      "minimal_code": "Cachequantization/read path +runtimeowner/rowIDcontract, fusedkernelconsumeINT8direct notwholecachedequanttemporaries; authorprimarygfx936int8attentioncodeprovidesinstruction/layoutreference. Deepcompressedlatentcache semanticsdifferentfromQwenGQA; GLMsparseattention firstreplayactualmap.",
+      "expected_first_result": "3-8hengineeringestimate; firstshortsinglelayercomponent, notnewservingstack.",
+      "likely_effect": "LongcontextKVbytes2xreductionpossible; atI512currentdecode hostlaunch/weights maydominate. ExistingGLM618fusedBF16leadshouldbebenchmarkedfirst."
+    },
+    {
+      "rank": 4,
+      "id": "Q4_KIMI_PACKEDFP4_TO_INT8_FRAGMENTS",
+      "status": "DEFER_UNTIL_PROFILE_JUSTIFIES",
+      "format": "RetainpackedE2M1/E8M0weightbytes; decodeeachK32fragmenttocodes0,±1,±2,±3,±4,±6,±8,±12withadjustedpowerof2scale; INT8Apergroup32; INT32MMACthenFP32groupscales, BF16egress. No fullresidentINT8weightbank/noinvalidsignedINT4reinterpret.",
+      "calibration": "Activationquantlossy; collectKDA/MLPoutlierstats, dynamicgroup32initially; keepKDArecurrence/routerprecisionoriginal andbenchactualanswers.",
+      "minimal_code": "NewtrueINT8fragmentprovider/packing/egress; 929BF16WFP4negativecannotbereusedasperformanceclaim. LowexpertMpluspad16seriousrisk.",
+      "expected_first_result": "4-8hengineeringestimate minimum; lowerprioritythanQ1/Q2andcurrenttokenmismatchcandidates.",
+      "likely_effect": "Potentialfasterdotnotlessweightbytes thanexistingFP4; hardwareTOPSnotexpectedModelgain."
+    }
+  ],
+  "benchmark_contract": {
+    "early": "32fixedheldouttaskcases forsmokegrossregression; outputtextscomplete, numericanswerparseandcapstoprecord; tokenmismatchdiagnosticonly.",
+    "later": "GSM8Klargerheldoutset+MMLUtaskscore/pplasapplicable, baseline/candidatesamechat_template/fewshot/maxcontext/reasoningbudget, preserveEOS andunparsedfailures. Pairedbootstrap/CI andpercategoryscores; thresholdroot/userpolicy, do notinventno-dropfrom32cases.",
+    "timing": "Separateprefill/decode/usefulnonEOSoutputTPS/first-lastuserTPSp50p95ITL/TTFT. Avoidcountpadfinishedrows/draftrejectedtokens as usefulthroughput. Reportloadandnonoptimizationwallseparately.",
+    "context": "GLM historicalcap640 cannotfitarbitrarymathreasoning. Deep actualctx128x1024 admits prompt<=512 +max512 generation; filterlongpromptwithouttruncationandreportselectionbias. Iftruncationfrequentthenqualityinconclusiveuntiladequategenerationbudget."
+  },
+  "negative_retained": [
+    "Kimi929completecompoundevent4.17percent/host3.56percentslower:performanceSTOPsurvivesqualityrelaxation.",
+    "GLM636registerBF16MMAC67.83percentslower andold5344dequant/BF16cache72-84percentslower:do notretryunchangedgrid.",
+    "Deep1030removedthousandsofSetDevicebutmedian<1percentmixedpairs:PARKperformance."
+  ],
+  "no_new_GPU_or_framework": true,
+  "no_model_weights_download": true,
+  "no_shared_SDK_mutation": true,
+  "goal_complete": false
+}
