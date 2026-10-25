@@ -1,0 +1,14 @@
+import pathlib,json,subprocess
+r=pathlib.Path.home()/'hygon-inference-refactor-20261014'
+code='''import pathlib,json,hashlib,statistics,datetime
+r=pathlib.Path.home()/'hygon-inference-refactor-20261014';p=r/'results/deep-eos-compaction-r9148-910374.1060.json';raw=p.read_bytes();h=hashlib.sha256(raw).hexdigest();assert h=='13ce3b0463db5fd46bc767d79d6fa3ef0c84bef53282316a2859fa76d5bd9a57';d=json.loads(raw);o={'UTC':datetime.datetime.now(datetime.timezone.utc).isoformat(),'actual_handle':'910374.1060','report_SHA256':h,'source_manifest_SHA256':hashlib.sha256((r/'incoming/Deep-eos-compaction-manifest-r9148.json').read_bytes()).hexdigest(),'completed':d['completed'],'grid_complete':d['grid_complete'],'engine_worker_shutdown_completed':d['engine_worker_shutdown_completed'],'shutdown_error':d.get('shutdown_error'),'loading_seconds':d.get('loading_seconds'),'grid':d['grid'],'cards':8,'scope':'Fresh64 disjointGSMcustom3shot B32twofreshcohorts AB_BA; actualnative notHTTP; CAPI andcommonwall separate; noqualitynoninferiority proof','cohorts':[],'no_new_token_identity_gate':True}
+for q in d['quality_trials']:
+ rates=[];users=[]
+ for a,b in zip(q['requests'],q['records']):
+  ts=[e['time']for e in a['events']if e['kind']=='committed'and e['token_id']!=1];rate=(len(ts)-1)/(ts[-1]-ts[0])if len(ts)>1 and ts[-1]>ts[0]else None
+  if rate is not None:rates.append(rate)
+  users.append({'id':b['id'],'firstlast_decode_tok_s':rate,'generated_nonEOS':len(ts),'stop_reason':b['stop_reason'],'taskcorrect':b['score']['flexible_correct'],'parsefail':b['score']['parse_failed'],'TTFT_seconds':ts[0]-a['arrival']if ts else None})
+ o['cohorts'].append({**{k:q.get(k)for k in ['label','B','compact_EOS_rows','native_prefill_seconds','prefill_completed_input_tokens','native_prefill_input_tok_s','native_decode_seconds','native_decode_useful_tok_s','native_decode_useful_tokens','common_decode_window_seconds','common_decode_useful_tok_s','common_decode_tok_s_per_card','driver_wall_seconds','physical_decode_row_steps','budget_stop','finite_readonly_canary_all_calls','all_prefill_packed_hit']},'taskcorrect':sum(x['taskcorrect']for x in users),'naturalEOS':sum(x['stop_reason']=='EOS'for x in users),'caps':sum(x['stop_reason']=='max_new_tokens'for x in users),'users':users,'user_rate_min_median_mean_max':[min(rates),statistics.median(rates),statistics.mean(rates),max(rates)]if rates else None})
+print(json.dumps(o))
+'''
+args=['srun','--jobid=910374','--overlap','--exact','--cpu-bind=none','-N1','-n1','-c1','-w','a02r4n05','--gres=none','--mem=1024M','-t','00:02:00','--job-name=Deep1060-local-summary-r9154','python3','-c',code];p=subprocess.run(args,capture_output=True,text=True,timeout=145);assert p.returncode==0,(p.stdout[-500:],p.stderr[-1500:]);d=json.loads(p.stdout);d['projection']='Actualwriter-node CPUread-cache, noGPUinitialization/noModelrepeat';print(json.dumps(d))
