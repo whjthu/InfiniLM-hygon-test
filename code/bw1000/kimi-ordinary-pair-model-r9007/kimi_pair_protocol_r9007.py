@@ -41,8 +41,8 @@ def run(g):
   while len(z)<128 and z[-1]not in eos:
    z+=call([z[-1]],p,'ordinary');p+=1;times.append(time.perf_counter()-tick)
    if len(z)%16==0:report['phase']=label+':'+str(len(z));save()
-  assert not any(x in eos for x in z[:-1]);q={'label':label,'mode':'original_ordinary_forward','generated_ids':z,'first_EOS':next((i for i,x in enumerate(z)if x in eos),None),'timestamps_emitter_clock':times if node==emitter else None};report['pair_cases'].append(q);save();return z
- def paired(inp,gold,intended,label):
+  assert not any(x in eos for x in z[:-1]);q={'label':label,'mode':'original_ordinary_forward','generated_ids':z,'first_EOS':next((i for i,x in enumerate(z)if x in eos),None),'timestamps_emitter_clock':times if node==emitter else None,'AR_decode_tok_s':((len([v for v in z if v not in eos])-1)/(times[len([v for v in z if v not in eos])-1]-times[0]) if len([v for v in z if v not in eos])>1 else None)};report['pair_cases'].append(q);save();return z
+ def paired(inp,gold,intended,label,oracle_every_round=False):
   D0=gold[1:min(len(gold),8)]
   if intended<7 and intended<len(D0):D0=D0.copy();D0[intended]=(D0[intended]+1)%vocab
   forced_inputs=[gold[0]]+D0
@@ -51,9 +51,10 @@ def run(g):
   report.setdefault('teacherforced_same_prefix',[]).append({'label':label,'input_ids':forced_inputs,'ordinary_selected_by_position':teacher,'scope':'actual oldordinaryforward,includes positions after deliberatelywrongproposal;no greedy-continuation substitution'})
   mode(False,label);z=call(inp,0,'prefill');assert z==gold[:1];p=len(inp);first=True;rounds=[]
   while len(z)<128 and z[-1]not in eos:
-   D=D0 if first else []
-   inputs=[z[-1]]+D;before=rows();out=call(inputs,p,'verify'if first else'continuation');m=0
+   D=D0 if first else gold[len(z):min(len(gold)-1,len(z)+7)] if oracle_every_round else []
+   inputs=[z[-1]]+D;before=rows();cycle_start=time.perf_counter();out=call(inputs,p,'verify'if first else'continuation');m=0
    if first:assert out==teacher,('allposition_same_proposed_prefix_greedy',label,out,teacher)
+   elif oracle_every_round:assert out==gold[len(z):len(z)+len(inputs)],('allposition_same_AR_prefix',label,out)
    while m<len(D)and D[m]==out[m]and D[m]not in eos:m+=1
    emitted=D[:m]+[out[m]];emitted=emitted[:128-len(z)]
    if any(v in eos for v in emitted):emitted=emitted[:next(j+1 for j,v in enumerate(emitted)if v in eos)]
@@ -65,17 +66,20 @@ def run(g):
    after=rows()
    if continuation:assert after[:3]==[before[1],before[0],p+m+1]and after[3]==1
    else:assert after[3]==4
-   rounds.append({'intended_prefix':intended if first else None,'actual_prefix':m,'input_width':len(inputs),'before':before,'after_commit':after_commit,'after':after,'replayed':replayed,'emitted':emitted,'continuation':continuation,'target_EOS_terminal_skip':emitted[-1]in eos,'same_proposed_prefix_ordinary_IDs':teacher if first else None})
+   cycle_wall=time.perf_counter()-cycle_start
+   rounds.append({'cycle_emitter_wall_seconds':cycle_wall if node==emitter else None,'useful_emitted_tokens':sum(v not in eos for v in emitted),'intended_prefix':intended if first else None,'actual_prefix':m,'input_width':len(inputs),'before':before,'after_commit':after_commit,'after':after,'replayed':replayed,'emitted':emitted,'continuation':continuation,'target_EOS_terminal_skip':emitted[-1]in eos,'same_proposed_prefix_ordinary_IDs':teacher if first else None})
    z+=emitted;p+=m+1;first=False
    if len(z)%16==0:report['phase']=label+':'+str(len(z));save()
-  exact=z==gold;q={'label':label,'mode':'paired_target_recomputed_greedy','intended_prefix':intended,'generated_ids':z,'complete_IDs_firstEOS_equal_samecontext_AR':exact,'rounds':rounds,'first_EOS':next((i for i,v in enumerate(z)if v in eos),None)};report['pair_cases'].append(q);save();assert exact,('final_target_IDs_EOS',label,z,gold);return q
+  exact=z==gold;q={'label':label,'mode':'paired_target_recomputed_greedy','intended_prefix':intended,'generated_ids':z,'complete_IDs_firstEOS_equal_samecontext_AR':exact,'rounds':rounds,'oracle_every_round':oracle_every_round,'oracle_useful_decode_tok_s':(sum(a['useful_emitted_tokens']for a in rounds)/sum(a['cycle_emitter_wall_seconds']for a in rounds) if node==emitter and rounds else None),'first_EOS':next((i for i,v in enumerate(z)if v in eos),None)};report['pair_cases'].append(q);save();assert exact,('final_target_IDs_EOS',label,z,gold);return q
  natural=ordinary(prompt,'AR-natural512');cross=ordinary(prompt[:255],'AR-prefix255');qa_gold=ordinary(qa_prompt,'QA-before:'+qa_name)
  key='sort'if qa_name.startswith('sort_probe')else qa_name;expected=[v['generated_ids'][0]for v in known['cases']if v['task']==key and v['grouped']];assert qa_gold in expected;report['QA'].append({'epoch':'before','task':qa_name,'complete_frozen_IDs_exact':True})
- paired(prompt,natural,7,'paired-natural512')
+ paired(prompt,natural,7,'paired-natural512',oracle_every_round=True)
  for m in range(8):paired(prompt[:255],cross,m,'page255-prefix'+str(m))
  q=paired(qa_prompt,qa_gold,7,'paired-QA-EOS');assert q['first_EOS']is not None, 'actual target EOS coverage required'
  restore=ordinary(prompt,'AR-restore512');assert restore==natural
  qa_after=ordinary(qa_prompt,'QA-after:'+qa_name);assert qa_after==qa_gold;report['QA'].append({'epoch':'after','task':qa_name,'complete_frozen_IDs_exact':True})
  probes=[v for v in report['pair_cases']if v['label'].startswith('page255-prefix')];assert len(probes)==8
  assert [v['rounds'][0]['actual_prefix']for v in probes]==list(range(8)), 'forced diagnostic coverage incomplete; no output override permitted'
+ if node==emitter:
+  ar=next(v for v in report['pair_cases']if v['label']=='AR-natural512')['AR_decode_tok_s'];oracle=next(v for v in report['pair_cases']if v['label']=='paired-natural512')['oracle_useful_decode_tok_s'];report['oracle_upper_bound_diagnostic']={'AR_decode_tok_s':ar,'width8_all_round_oracle_decode_tok_s':oracle,'ratio':oracle/ar,'clock':'emitter perf_counter verify entry through commit/replay including host coordination; excludes prefill/teacherforcing; no trained draft computation or acceptance claim'}
  report.update(serving_protocol_complete=True,trained_spec_speed_claim=False,allposition_finalIDs_EOS_pass=True,actual_page255_crossing_tested=True,actual_EOS_skip_tested=any(a['target_EOS_terminal_skip']for a in q['rounds']));save()
