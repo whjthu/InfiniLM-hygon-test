@@ -1,0 +1,9 @@
+import pathlib,json,hashlib,ast
+r=pathlib.Path.cwd();sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest();mp=r/'Deep-scratch-Model-manifest-r8956.json';m=json.loads(mp.read_bytes())
+for n in m['incoming_source_SHA256']:m['incoming_source_SHA256'][n]=sha(r/n)
+for k in ['CPU_consumer_contract','CPU_exception_contract']:m[k]['SHA256']=sha(r/m[k]['path'])
+m['status']='CPU_READY_PENDING_ACTUALREAD_SOURCECLAIM_ROOT_GO';mp.write_bytes((json.dumps(m,ensure_ascii=False,indent=2)+'\n').encode())
+s=(r/'stage_Deep_latent_Model_runner_r8943.py').read_text().replace('Deep_latent_Model','Deep_scratch_Model').replace('Deep-latent-Model','Deep-scratch-Model').replace('r8943','r8956').replace('Deep_latent_Model','Deep_scratch_Model').replace('CPU218','CPU219').replace('910407.218','910407.219');ast.parse(s);(r/'stage_Deep_scratch_Model_runner_r8956.py').write_bytes(s.encode())
+s=(r/'check_Deep_latent_Model_actual_r8943.py').read_text().replace('Deep_latent_Model','Deep_scratch_Model').replace('Deep-latent-Model','Deep-scratch-Model').replace('r8943','r8956').replace("q['producer']=='910407.218'","q['producer']=='910407.219'").replace('be4fcce4e340a00644dff9940720fa27d0f86f7a675f1c77443bc33b00dd22b0','025729ee3182efe0e169677ad1b7cf44e938349360c297554c3cb81947e2832b').replace("'deep_latent_prefill_mode_r8933(arm)'", "'deep_reference_scratch_mode_r8953(arm)'")
+s=s.replace("assert 'shutdown_entered'in es", "assert 'deep_latent_prefill_mode_r8933(0)'in ps and 'accepted_decode_fused_counter_delta'in ps and '5461'in ps\nassert 'shutdown_entered'in es")
+s=s.replace('latent_actual_Tblock_path','scratch_actual_Tblock_path');ast.parse(s);(r/'check_Deep_scratch_Model_actual_r8956.py').write_bytes(s.encode());print(json.dumps({'entry_SHA256':m['incoming_source_SHA256']['modern_Deep_scratch_Model_r8956.py'],'manifest_SHA256':sha(mp),'budget':m['budget']}))
