@@ -1,0 +1,143 @@
+{
+  "hardware": "BW1000",
+  "level": "CPU_SOURCE_READY",
+  "status": "NATIVE_BUILD_NOT_AUTHORIZED",
+  "CPU_only": true,
+  "new_native_build": 0,
+  "new_GPU": 0,
+  "parent_source_SHA256": "025729ee3182efe0e169677ad1b7cf44e938349360c297554c3cb81947e2832b",
+  "parent_DSO_SHA256": "0c164dd3c783d6975b361da9d630edb8b242499e206d4bf88c4a5f425f2a5b53",
+  "parent_receipt_path": "results/deep-reference-scratch-CPU-r8954.json",
+  "parent_receipt_SHA256": "092e50eafcd36058df8d28961b72c140419e08a8137d7b9ba77148ecf19687fd",
+  "source": {
+    "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\Deep-reference-sink-private-r8967\\deep_latent_reference_sink_r8967.cpp",
+    "SHA256": "54cf4654cd56e55421cd4b0ec0779d8e0f74e4ce310ae7ec71ea6005590ea166"
+  },
+  "diff": {
+    "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\Deep-reference-sink-private-r8967\\proposal.diff",
+    "SHA256": "2e98f65f9d0f32bfe9a65c660e75b812ada5093fa414f414c318d6873e60aeb4"
+  },
+  "independent_default_OFF": "deep_reference_sink_mode_r8967",
+  "counter_CAPI": "deep_reference_sink_counts_r8967(owner,uint64_t*,4)",
+  "counter_fields": [
+    "baseline_sink_copy_calls",
+    "actual_sink_copy_calls",
+    "skipped_sink_copy_calls",
+    "sink_reuse_prefill_calls"
+  ],
+  "counter_scope": "Accumulate only tokens>64 after original successful syncStream; existing scratch counter ABI unchanged.",
+  "fixtures": [
+    {
+      "kind": "swa",
+      "T": 2048,
+      "heads": 8,
+      "logical_n_SHA256": "23a9493a4e9fbd13fe364d7bdf32d50c357505b3c5423790e5e7cbe818636f5d",
+      "n_min": 1,
+      "n_max": 128,
+      "original_copies": 2048,
+      "candidate_copies": 512,
+      "removed_copies": 1536,
+      "removed_percent": 75.0,
+      "per_owner_counters_OFF": [
+        2048,
+        2048,
+        0,
+        0
+      ],
+      "per_owner_counters_ON": [
+        2048,
+        512,
+        1536,
+        1
+      ],
+      "CPU_storage_boundary_oracle": true
+    },
+    {
+      "kind": "hca128",
+      "T": 2048,
+      "heads": 8,
+      "logical_n_SHA256": "b88d2fe06002628253182d47effd78d7b87bb38226f4b34ab3086f9e8d1efca7",
+      "n_min": 1,
+      "n_max": 132,
+      "original_copies": 2048,
+      "candidate_copies": 524,
+      "removed_copies": 1524,
+      "removed_percent": 74.4140625,
+      "per_owner_counters_OFF": [
+        2048,
+        2048,
+        0,
+        0
+      ],
+      "per_owner_counters_ON": [
+        2048,
+        524,
+        1524,
+        1
+      ],
+      "CPU_storage_boundary_oracle": true
+    },
+    {
+      "kind": "csa4",
+      "T": 2048,
+      "heads": 8,
+      "logical_n_SHA256": "8c02abfc9028803b3384b8c5f7fcbea6b04201c6bac50d4c0e274b9a1f00b23f",
+      "n_min": 1,
+      "n_max": 256,
+      "original_copies": 2048,
+      "candidate_copies": 896,
+      "removed_copies": 1152,
+      "removed_percent": 56.25,
+      "per_owner_counters_OFF": [
+        2048,
+        2048,
+        0,
+        0
+      ],
+      "per_owner_counters_ON": [
+        2048,
+        896,
+        1152,
+        1
+      ],
+      "CPU_storage_boundary_oracle": true
+    }
+  ],
+  "math_submit_lines_unchanged": true,
+  "native_compile_status": "NOT_BUILT: source has no new SDK/API dependencies; needs exactly one replacement host TU plus original link when authorized.",
+  "contract": [
+    "Candidate only if scratch reuse is ON, tokens>64 and new independent sink mode ON; ordinary OFF and accepted T32 decode execute original copy path.",
+    "last_seeded_n is call-local; new n always reseeds, even if that n appeared earlier.",
+    "Same n preserves logits view shape [heads,n+1], same storage base and sink addresses h*(n+1)+n.",
+    "First GEMM output is logits narrow columns [0,n), physical row stride n+1; sink column n is outside its written matrix.",
+    "Softmax input logits is read-only; probabilities and result have separate stores; second GEMM and Cast never target logits.",
+    "Sink Tensor is held by caller and is not written by this function; same owner stream and original final/catch drain unchanged. Concurrent external writes are not an authorized input contract.",
+    "No cached Tensor view or descriptor was introduced.",
+    "Counts describe logical copy_from calls skipped, not measured device memcpy count or performance."
+  ],
+  "limits": [
+    "CPU oracle checks address/write-set preservation, not GPU arithmetic.",
+    "No native compile or GPU/fullModel validation yet; no speedup claim.",
+    "Any component must compare accepted scratchON/sinkOFF vs scratchON/sinkON, leave8933 prefill tiles OFF and retain original reference Ops."
+  ],
+  "source_contract_proof": {
+    "copy_from": {
+      "path": "/refactor/candidates/rebased-5f91ad7-r3668/Model/Deep/InfiniLM/csrc/runtime/tensor/copy.cc",
+      "SHA256": "5617a0cf75df7b78e4ccae48a9b1d4a8b948b11339bdd8134970b1f7178a07f9",
+      "lines": "223-240 owner/shape/dtype validation;279-284 same-device GPU submits Ops::Copy(src,false,dst) and returns without drain",
+      "source_binding_limit": "Read current pinned Runtime candidate source; this card does not rebuild or rederive historical reused-object dependency receipts. Existing qualified923 header/Runtime entry remains unchanged."
+    },
+    "softmax_readonly": {
+      "source_SHA256": "e8fb72ec1eb228468c494fbb26ae44c445d34f19bd5304f4878abd888106fa12",
+      "contract": "CudaSoftmax passes input.data as const T* and out.data as T*; out is separate probability storage."
+    },
+    "gemm_write_bounds": {
+      "source_SHA256": "9d9e424fc6e890fe6dad857e44c44cc072b0e2f7bc9fa635023c1a5aa20012a4",
+      "contract": "BlasGemm uses original narrowed y m/n and ldy. For output narrow [heads,n] stride[n+1,1], last written index per head is h*(n+1)+(n-1); sink is h*(n+1)+n. No change to alpha,beta,transposes,compute type or provider."
+    },
+    "evidence": {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\Deep-sink-copy-contract-r8967b.json",
+      "SHA256": "bb60f4cc3a09296222e1282201490e4101abd3ac4cf9560de339f3b2f0d03099"
+    }
+  }
+}

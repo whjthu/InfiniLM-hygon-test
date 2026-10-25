@@ -1,0 +1,1424 @@
+{
+  "CPU_only": true,
+  "files": [
+    {
+      "path": "/refactor/candidates/rebased-5f91ad7-r3668/Model/Deep/InfiniLM/csrc/runtime/tensor.hpp",
+      "SHA256": "dfc787f233bef2fb5888d0954440746334386023bad3f6207164024b377eb658",
+      "lines": [
+        {
+          "line": 204,
+          "text": "    // Copy on the owning Runtime without consulting caller TLS. The"
+        },
+        {
+          "line": 205,
+          "text": "    // destination belongs to runtime for same-device/H2D; for D2H the GPU"
+        },
+        {
+          "line": 206,
+          "text": "    // source belongs to runtime and destination is CPU. Host data is consumed"
+        },
+        {
+          "line": 207,
+          "text": "    // or produced before this call returns. D2H is refused while recording."
+        },
+        {
+          "line": 208,
+          "text": "    void copy_from(Runtime &runtime, Tensor src);"
+        },
+        {
+          "line": 209,
+          "text": "    // Explicit completed-source handoff. Allocation identity is not a last writer;"
+        },
+        {
+          "line": 210,
+          "text": "    // external/other-stream writers must be completed by the caller before entry."
+        },
+        {
+          "line": 211,
+          "text": "    void copy_from(Runtime &destination_runtime, Runtime &source_runtime, Tensor src);"
+        },
+        {
+          "line": 212,
+          "text": ""
+        },
+        {
+          "line": 213,
+          "text": "    /**"
+        },
+        {
+          "line": 214,
+          "text": "     * Return a tensor with the same data in contiguous arrangement as current tensor."
+        },
+        {
+          "line": 215,
+          "text": "     * If this tensor is already contiguous, the original tensor is returned."
+        },
+        {
+          "line": 216,
+          "text": "     *"
+        },
+        {
+          "line": 217,
+          "text": "     * @return A new tensor with the same data on the specified device"
+        },
+        {
+          "line": 218,
+          "text": "     */"
+        },
+        {
+          "line": 219,
+          "text": "    Tensor contiguous() const;"
+        },
+        {
+          "line": 220,
+          "text": "    Tensor contiguous(Runtime &runtime) const;"
+        },
+        {
+          "line": 221,
+          "text": ""
+        },
+        {
+          "line": 222,
+          "text": "    ///"
+        },
+        {
+          "line": 223,
+          "text": "    /// View APIs"
+        },
+        {
+          "line": 224,
+          "text": "    ///"
+        },
+        {
+          "line": 225,
+          "text": ""
+        },
+        {
+          "line": 226,
+          "text": "    /**"
+        },
+        {
+          "line": 227,
+          "text": "     * Returns a new tensor with a dimension of size one removed at the specified position."
+        },
+        {
+          "line": 228,
+          "text": "     * Throws runtime_error if the dimension to be removed is not of size 1."
+        },
+        {
+          "line": 229,
+          "text": "     *"
+        },
+        {
+          "line": 230,
+          "text": "     * @param dim The dimension index to remove"
+        },
+        {
+          "line": 231,
+          "text": "     * @return A new tensor with the removed dimension"
+        },
+        {
+          "line": 232,
+          "text": "     *"
+        },
+        {
+          "line": 233,
+          "text": "     * Example:"
+        },
+        {
+          "line": 234,
+          "text": "     *   // For a 3D tensor with shape [1, 3, 4], squeeze at dim 0 results in shape [3, 4]"
+        },
+        {
+          "line": 235,
+          "text": "     *   tensor->squeeze(0);"
+        },
+        {
+          "line": 236,
+          "text": "     */"
+        },
+        {
+          "line": 237,
+          "text": "    Tensor squeeze(size_t dim) const;"
+        },
+        {
+          "line": 238,
+          "text": ""
+        },
+        {
+          "line": 239,
+          "text": "    /**"
+        },
+        {
+          "line": 240,
+          "text": "     * Returns a new tensor with a dimension of size one inserted at the specified position."
+        },
+        {
+          "line": 241,
+          "text": "     * The returned tensor shares the same underlying storage with the original tensor."
+        },
+        {
+          "line": 242,
+          "text": "     *"
+        },
+        {
+          "line": 243,
+          "text": "     * @param dim The dimension index at which to insert the new dimension"
+        },
+        {
+          "line": 244,
+          "text": "     * @return A new tensor with the added dimension"
+        },
+        {
+          "line": 245,
+          "text": "     *"
+        },
+        {
+          "line": 246,
+          "text": "     * Example:"
+        },
+        {
+          "line": 247,
+          "text": "     *   // For a 2D tensor with shape [3, 4], unsqueeze at dim 0 results in shape [1, 3, 4]"
+        },
+        {
+          "line": 248,
+          "text": "     *   // unsqueeze at dim 1 results in shape [3, 1, 4]"
+        },
+        {
+          "line": 249,
+          "text": "     *   // unsqueeze at dim 2 results in shape [3, 4, 1]"
+        },
+        {
+          "line": 250,
+          "text": "     *   tensor->unsqueeze(0);"
+        },
+        {
+          "line": 251,
+          "text": "     */"
+        },
+        {
+          "line": 252,
+          "text": "    Tensor unsqueeze(size_t dim) const;"
+        },
+        {
+          "line": 253,
+          "text": ""
+        },
+        {
+          "line": 254,
+          "text": "    /**"
+        },
+        {
+          "line": 255,
+          "text": "     * Returns a new tensor that is a narrowed version of the current tensor."
+        },
+        {
+          "line": 256,
+          "text": "     * The returned tensor shares the same underlying storage with the original tensor."
+        },
+        {
+          "line": 257,
+          "text": "     *"
+        },
+        {
+          "line": 258,
+          "text": "     * @param slices A vector of slice parameters specifying the dimension, start index,"
+        },
+        {
+          "line": 259,
+          "text": "     *               and length for each dimension to narrow"
+        },
+        {
+          "line": 260,
+          "text": "     * @return A new tensor with narrowed dimensions"
+        },
+        {
+          "line": 261,
+          "text": "     *"
+        },
+        {
+          "line": 262,
+          "text": "     * Example:"
+        },
+        {
+          "line": 263,
+          "text": "     *   // Narrow dimension 0 from index 2 to 5 (length 3)"
+        },
+        {
+          "line": 264,
+          "text": "     *   // and dimension 1 from index 1 to 3 (length 2)"
+        },
+        {
+          "line": 265,
+          "text": "     *   tensor.narrow({{0, 2, 3}, {1, 1, 2}});"
+        },
+        {
+          "line": 266,
+          "text": "     */"
+        },
+        {
+          "line": 267,
+          "text": "    Tensor narrow(const std::vector<TensorSliceParams> &slices) const;"
+        },
+        {
+          "line": 268,
+          "text": ""
+        },
+        {
+          "line": 269,
+          "text": "    /**"
+        },
+        {
+          "line": 270,
+          "text": "     * Returns a new tensor with the dimensions permuted (reordered) according to the given order."
+        },
+        {
+          "line": 271,
+          "text": "     * The returned tensor shares the same underlying storage with the original tensor."
+        },
+        {
+          "line": 272,
+          "text": "     *"
+        },
+        {
+          "line": 273,
+          "text": "     * @param order The desired ordering of dimensions"
+        },
+        {
+          "line": 274,
+          "text": "     * @return A new tensor with permuted dimensions"
+        },
+        {
+          "line": 275,
+          "text": "     *"
+        },
+        {
+          "line": 276,
+          "text": "     * Example:"
+        },
+        {
+          "line": 277,
+          "text": "     *   // For a 3D tensor with shape [2, 3, 4], permute to [2, 0, 1]"
+        },
+        {
+          "line": 278,
+          "text": "     *   // This swaps the dimensions: dim0->dim2, dim1->dim0, dim2->dim1"
+        },
+        {
+          "line": 279,
+          "text": "     *   tensor->permute({2, 0, 1});"
+        },
+        {
+          "line": 280,
+          "text": "     */"
+        },
+        {
+          "line": 281,
+          "text": "    Tensor permute(const Shape &order) const;"
+        },
+        {
+          "line": 282,
+          "text": ""
+        },
+        {
+          "line": 283,
+          "text": "    /**"
+        },
+        {
+          "line": 284,
+          "text": "     * Returns a new tensor with the same data but a different shape."
+        },
+        {
+          "line": 285,
+          "text": "     * The returned tensor shares the same underlying storage with the original tensor."
+        },
+        {
+          "line": 286,
+          "text": "     * The tensor is rearranged if the new shape is not compatible with the current shape."
+        },
+        {
+          "line": 287,
+          "text": "     *"
+        },
+        {
+          "line": 288,
+          "text": "     * @param new_shape The desired new shape"
+        },
+        {
+          "line": 289,
+          "text": "     * @return A new tensor with the specified shape"
+        },
+        {
+          "line": 290,
+          "text": "     *"
+        },
+        {
+          "line": 291,
+          "text": "     * Example:"
+        },
+        {
+          "line": 292,
+          "text": "     *   // Reshape a 2x3 tensor (6 elements) to a 3x2 tensor"
+        },
+        {
+          "line": 293,
+          "text": "     *   tensor->view({3, 2});"
+        },
+        {
+          "line": 294,
+          "text": "     */"
+        },
+        {
+          "line": 295,
+          "text": "    Tensor view(const Shape &new_shape) const;"
+        },
+        {
+          "line": 296,
+          "text": ""
+        },
+        {
+          "line": 297,
+          "text": "    /**"
+        },
+        {
+          "line": 298,
+          "text": "     * Insecurely returns a new tensor with the specified shape and strides."
+        },
+        {
+          "line": 299,
+          "text": "     * The returned tensor shares the same underlying storage with the original tensor."
+        },
+        {
+          "line": 300,
+          "text": "     *"
+        },
+        {
+          "line": 301,
+          "text": "     * @param new_shape The desired new shape"
+        },
+        {
+          "line": 302,
+          "text": "     * @param new_strides The desired new strides"
+        },
+        {
+          "line": 303,
+          "text": "     * @return A new tensor with the specified shape and strides"
+        },
+        {
+          "line": 304,
+          "text": "     *"
+        },
+        {
+          "line": 305,
+          "text": "     * Example:"
+        },
+        {
+          "line": 306,
+          "text": "     *   // Create a non-contiguous view with custom strides"
+        },
+        {
+          "line": 307,
+          "text": "     *   tensor->as_strided({2, 3}, {6, 2}); // Stride of 6 for dim0, 2 for dim1"
+        },
+        {
+          "line": 308,
+          "text": "     */"
+        },
+        {
+          "line": 309,
+          "text": "    Tensor as_strided(const Shape &new_shape, const Strides &new_strides) const;"
+        },
+        {
+          "line": 310,
+          "text": ""
+        }
+      ]
+    },
+    {
+      "path": "/refactor/candidates/rebased-5f91ad7-r3668/Model/Deep/InfiniLM/csrc/runtime/tensor/copy.cc",
+      "SHA256": "5617a0cf75df7b78e4ccae48a9b1d4a8b948b11339bdd8134970b1f7178a07f9",
+      "lines": [
+        {
+          "line": 125,
+          "text": "        copy_from(*destination, *source, std::move(src));"
+        },
+        {
+          "line": 126,
+          "text": "    }"
+        },
+        {
+          "line": 127,
+          "text": "}"
+        },
+        {
+          "line": 128,
+          "text": ""
+        },
+        {
+          "line": 129,
+          "text": "void TensorImpl::copy_from(Runtime &destination, Runtime &source, Tensor src) {"
+        },
+        {
+          "line": 130,
+          "text": "    destination.assertOwnerThread();"
+        },
+        {
+          "line": 131,
+          "text": "    source.assertOwnerThread();"
+        },
+        {
+          "line": 132,
+          "text": "    if (!src) {"
+        },
+        {
+          "line": 133,
+          "text": "        throw std::invalid_argument(\"copy_from requires a source tensor\");"
+        },
+        {
+          "line": 134,
+          "text": "    }"
+        },
+        {
+          "line": 135,
+          "text": "    if ((device().type() != Device::Type::kCpu && destination.device() != device())"
+        },
+        {
+          "line": 136,
+          "text": "        || (src->device().type() != Device::Type::kCpu && source.device() != src->device())) {"
+        },
+        {
+          "line": 137,
+          "text": "        throw std::invalid_argument(\"copy_from explicit owners and tensor devices differ\");"
+        },
+        {
+          "line": 138,
+          "text": "    }"
+        },
+        {
+          "line": 139,
+          "text": "    if (src->shape() != shape() || src->dtype() != dtype()) {"
+        },
+        {
+          "line": 140,
+          "text": "        throw std::runtime_error(\"Cannot copy from tensor with different shape or dtype\");"
+        },
+        {
+          "line": 141,
+          "text": "    }"
+        },
+        {
+          "line": 142,
+          "text": "    if (src->device().type() == Device::Type::kCpu) {"
+        },
+        {
+          "line": 143,
+          "text": "        copy_from(destination, std::move(src));"
+        },
+        {
+          "line": 144,
+          "text": "    } else if (device().type() == Device::Type::kCpu) {"
+        },
+        {
+          "line": 145,
+          "text": "        copy_from(source, std::move(src));"
+        },
+        {
+          "line": 146,
+          "text": "    } else if (&source == &destination) {"
+        },
+        {
+          "line": 147,
+          "text": "        copy_from(destination, std::move(src));"
+        },
+        {
+          "line": 148,
+          "text": "    } else {"
+        },
+        {
+          "line": 149,
+          "text": "        if (source.graphCaptureState() != ::infinilm::execution::graph::GraphManager::CaptureState::kInactive"
+        },
+        {
+          "line": 150,
+          "text": "            || destination.graphCaptureState() != ::infinilm::execution::graph::GraphManager::CaptureState::kInactive) {"
+        },
+        {
+          "line": 151,
+          "text": "            throw std::logic_error(\"cross-owner copies are not allowed during graph recording\");"
+        },
+        {
+          "line": 152,
+          "text": "        }"
+        },
+        {
+          "line": 153,
+          "text": "        if (source.device() == destination.device()) {"
+        },
+        {
+          "line": 154,
+          "text": "            source.syncStream();"
+        },
+        {
+          "line": 155,
+          "text": "            try {"
+        },
+        {
+          "line": 156,
+          "text": "                copy_from(destination, src);"
+        },
+        {
+          "line": 157,
+          "text": "                destination.syncStream(); // Do not return src to another pool before its read completes."
+        },
+        {
+          "line": 158,
+          "text": "            } catch (...) {"
+        },
+        {
+          "line": 159,
+          "text": "                try {"
+        },
+        {
+          "line": 160,
+          "text": "                    destination.syncStream();"
+        },
+        {
+          "line": 161,
+          "text": "                } catch (...) { detail::require_proven_owner_drain(true, false); }"
+        },
+        {
+          "line": 162,
+          "text": "                throw;"
+        },
+        {
+          "line": 163,
+          "text": "            }"
+        },
+        {
+          "line": 164,
+          "text": "        } else {"
+        },
+        {
+          "line": 165,
+          "text": "            // The existing completed D2H/H2D leaves own gather/scatter and unwind."
+        },
+        {
+          "line": 166,
+          "text": "            auto staging = src->to(source, Device{Device::Type::kCpu});"
+        },
+        {
+          "line": 167,
+          "text": "            copy_from(destination, std::move(staging));"
+        },
+        {
+          "line": 168,
+          "text": "        }"
+        },
+        {
+          "line": 169,
+          "text": "    }"
+        },
+        {
+          "line": 170,
+          "text": "}"
+        },
+        {
+          "line": 171,
+          "text": ""
+        },
+        {
+          "line": 172,
+          "text": "Tensor TensorImpl::contiguous() const {"
+        },
+        {
+          "line": 173,
+          "text": "    if (is_contiguous()) {"
+        },
+        {
+          "line": 174,
+          "text": "        return Tensor(const_cast<TensorImpl *>(this)->shared_from_this());"
+        },
+        {
+          "line": 175,
+          "text": "    } else {"
+        },
+        {
+          "line": 176,
+          "text": "        auto runtime = allocation_owner();"
+        },
+        {
+          "line": 177,
+          "text": "        const bool external_gpu = !runtime && device().type() != Device::Type::kCpu;"
+        },
+        {
+          "line": 178,
+          "text": "        if (!runtime || runtime->device() != device()) {"
+        },
+        {
+          "line": 179,
+          "text": "            runtime = context::resolveRuntime(device());"
+        },
+        {
+          "line": 180,
+          "text": "        }"
+        },
+        {
+          "line": 181,
+          "text": "        if (external_gpu) {"
+        },
+        {
+          "line": 182,
+          "text": "            if (runtime->graphCaptureState() != ::infinilm::execution::graph::GraphManager::CaptureState::kInactive) {"
+        },
+        {
+          "line": 183,
+          "text": "                throw std::logic_error(\"completed external GPU materialization is not allowed during graph recording\");"
+        },
+        {
+          "line": 184,
+          "text": "            }"
+        },
+        {
+          "line": 185,
+          "text": "            auto source = Tensor(const_cast<TensorImpl *>(this)->shared_from_this());"
+        },
+        {
+          "line": 186,
+          "text": "            try {"
+        },
+        {
+          "line": 187,
+          "text": "                auto result = contiguous(*runtime);"
+        },
+        {
+          "line": 188,
+          "text": "                runtime->syncStream();"
+        },
+        {
+          "line": 189,
+          "text": "                return result;"
+        },
+        {
+          "line": 190,
+          "text": "            } catch (...) {"
+        },
+        {
+          "line": 191,
+          "text": "                try {"
+        },
+        {
+          "line": 192,
+          "text": "                    runtime->syncStream();"
+        },
+        {
+          "line": 193,
+          "text": "                } catch (...) { detail::require_proven_owner_drain(true, false); }"
+        },
+        {
+          "line": 194,
+          "text": "                throw;"
+        },
+        {
+          "line": 195,
+          "text": "            }"
+        },
+        {
+          "line": 196,
+          "text": "        }"
+        },
+        {
+          "line": 197,
+          "text": "        return contiguous(*runtime);"
+        },
+        {
+          "line": 198,
+          "text": "    }"
+        },
+        {
+          "line": 199,
+          "text": "}"
+        },
+        {
+          "line": 200,
+          "text": ""
+        },
+        {
+          "line": 201,
+          "text": "Tensor TensorImpl::contiguous(Runtime &runtime) const {"
+        },
+        {
+          "line": 202,
+          "text": "    runtime.assertOwnerThread();"
+        },
+        {
+          "line": 203,
+          "text": "    if (runtime.device() != device()) {"
+        },
+        {
+          "line": 204,
+          "text": "        throw std::invalid_argument(\"contiguous runtime and tensor devices differ\");"
+        },
+        {
+          "line": 205,
+          "text": "    }"
+        },
+        {
+          "line": 206,
+          "text": "    auto source = Tensor(const_cast<TensorImpl *>(this)->shared_from_this());"
+        },
+        {
+          "line": 207,
+          "text": "    if (is_contiguous()) {"
+        },
+        {
+          "line": 208,
+          "text": "        return source;"
+        },
+        {
+          "line": 209,
+          "text": "    }"
+        },
+        {
+          "line": 210,
+          "text": "    auto result = Tensor::empty(runtime, shape(), dtype());"
+        },
+        {
+          "line": 211,
+          "text": "    if (device().type() == Device::Type::kCpu) {"
+        },
+        {
+          "line": 212,
+          "text": "        // Newly allocated output cannot overlap the input: no staging needed."
+        },
+        {
+          "line": 213,
+          "text": "        copyCpuStrided(result->data(), data(), shape(), result->strides(),"
+        },
+        {
+          "line": 214,
+          "text": "                       strides(), element_size());"
+        },
+        {
+          "line": 215,
+          "text": "    } else {"
+        },
+        {
+          "line": 216,
+          "text": "        infinilm::execution::submit<infini::ops::Copy>("
+        },
+        {
+          "line": 217,
+          "text": "            runtime, infini::ops::Copy::DefaultConfig(runtime.device().type()),"
+        },
+        {
+          "line": 218,
+          "text": "            source, false, result);"
+        },
+        {
+          "line": 219,
+          "text": "    }"
+        },
+        {
+          "line": 220,
+          "text": "    return result;"
+        },
+        {
+          "line": 221,
+          "text": "}"
+        },
+        {
+          "line": 222,
+          "text": ""
+        },
+        {
+          "line": 223,
+          "text": "void TensorImpl::copy_from(Runtime &runtime, Tensor src) {"
+        },
+        {
+          "line": 224,
+          "text": "    runtime.assertOwnerThread();"
+        },
+        {
+          "line": 225,
+          "text": "    if (!src) {"
+        },
+        {
+          "line": 226,
+          "text": "        throw std::invalid_argument(\"copy_from requires a source tensor\");"
+        },
+        {
+          "line": 227,
+          "text": "    }"
+        },
+        {
+          "line": 228,
+          "text": "    const bool d2h = this->device().type() == Device::Type::kCpu"
+        },
+        {
+          "line": 229,
+          "text": "                  && src->device().type() != Device::Type::kCpu;"
+        },
+        {
+          "line": 230,
+          "text": "    if ((d2h && runtime.device() != src->device())"
+        },
+        {
+          "line": 231,
+          "text": "        || (!d2h && (runtime.device() != this->device() || (src->device() != this->device() && src->device().type() != Device::Type::kCpu)))) {"
+        },
+        {
+          "line": 232,
+          "text": "        throw std::invalid_argument(\"copy_from Runtime and tensor devices differ\");"
+        },
+        {
+          "line": 233,
+          "text": "    }"
+        },
+        {
+          "line": 234,
+          "text": "    if (src->shape() != this->shape()) {"
+        },
+        {
+          "line": 235,
+          "text": "        throw std::runtime_error("
+        },
+        {
+          "line": 236,
+          "text": "            \"Cannot copy from tensor with different shape. Src: \" + src->info() + \" Dst: \" + this->info());"
+        },
+        {
+          "line": 237,
+          "text": "    }"
+        },
+        {
+          "line": 238,
+          "text": "    if (src->dtype() != this->dtype()) {"
+        },
+        {
+          "line": 239,
+          "text": "        throw std::runtime_error("
+        },
+        {
+          "line": 240,
+          "text": "            \"Cannot copy from tensor with different dtype. Src: \" + src->info() + \" Dst: \" + this->info());"
+        },
+        {
+          "line": 241,
+          "text": "    }"
+        },
+        {
+          "line": 242,
+          "text": ""
+        },
+        {
+          "line": 243,
+          "text": "    if (d2h) {"
+        },
+        {
+          "line": 244,
+          "text": "        if (runtime.graphCaptureState() != ::infinilm::execution::graph::GraphManager::CaptureState::kInactive) {"
+        },
+        {
+          "line": 245,
+          "text": "            throw std::logic_error(\"D2H host observation is not allowed during graph recording\");"
+        },
+        {
+          "line": 246,
+          "text": "        }"
+        },
+        {
+          "line": 247,
+          "text": "        // These resources must survive the catch-side completion proof."
+        },
+        {
+          "line": 248,
+          "text": "        auto contiguous_src = src;"
+        },
+        {
+          "line": 249,
+          "text": "        auto destination = Tensor(const_cast<TensorImpl *>(this)->shared_from_this());"
+        },
+        {
+          "line": 250,
+          "text": "        std::vector<std::byte> gathered;"
+        },
+        {
+          "line": 251,
+          "text": "        try {"
+        },
+        {
+          "line": 252,
+          "text": "            if (!src->is_contiguous()) {"
+        },
+        {
+          "line": 253,
+          "text": "                contiguous_src = Tensor::empty(runtime, src->shape(), src->dtype());"
+        },
+        {
+          "line": 254,
+          "text": "                infinilm::execution::submit<infini::ops::Copy>("
+        },
+        {
+          "line": 255,
+          "text": "                    runtime, infini::ops::Copy::DefaultConfig(runtime.device().type()),"
+        },
+        {
+          "line": 256,
+          "text": "                    src, false, contiguous_src);"
+        },
+        {
+          "line": 257,
+          "text": "            }"
+        },
+        {
+          "line": 258,
+          "text": "            if (this->is_contiguous()) {"
+        },
+        {
+          "line": 259,
+          "text": "                runtime.memcpyD2H(this->data(), contiguous_src->data(), this->nbytes());"
+        },
+        {
+          "line": 260,
+          "text": "            } else {"
+        },
+        {
+          "line": 261,
+          "text": "                gathered.resize(this->nbytes());"
+        },
+        {
+          "line": 262,
+          "text": "                runtime.memcpyD2H(gathered.data(), contiguous_src->data(), gathered.size());"
+        },
+        {
+          "line": 263,
+          "text": "                auto packed = Tensor::from_blob(gathered.data(), shape(), dtype(), device());"
+        },
+        {
+          "line": 264,
+          "text": "                copyCpuStrided(data(), packed->data(), shape(), strides(),"
+        },
+        {
+          "line": 265,
+          "text": "                               packed->strides(), element_size());"
+        },
+        {
+          "line": 266,
+          "text": "            }"
+        },
+        {
+          "line": 267,
+          "text": "        } catch (...) {"
+        },
+        {
+          "line": 268,
+          "text": "            try {"
+        },
+        {
+          "line": 269,
+          "text": "                runtime.syncStream();"
+        },
+        {
+          "line": 270,
+          "text": "            } catch (...) {"
+        },
+        {
+          "line": 271,
+          "text": "                detail::require_proven_owner_drain(true, false);"
+        },
+        {
+          "line": 272,
+          "text": "            }"
+        },
+        {
+          "line": 273,
+          "text": "            throw;"
+        },
+        {
+          "line": 274,
+          "text": "        }"
+        },
+        {
+          "line": 275,
+          "text": "        return;"
+        },
+        {
+          "line": 276,
+          "text": "    }"
+        },
+        {
+          "line": 277,
+          "text": ""
+        },
+        {
+          "line": 278,
+          "text": "    auto dst = Tensor(const_cast<TensorImpl *>(this)->shared_from_this());"
+        },
+        {
+          "line": 279,
+          "text": "    if (this->device() == src->device()) {"
+        },
+        {
+          "line": 280,
+          "text": "        if (this->device().type() != Device::Type::kCpu) {"
+        },
+        {
+          "line": 281,
+          "text": "            infinilm::execution::submit<infini::ops::Copy>("
+        },
+        {
+          "line": 282,
+          "text": "                runtime, infini::ops::Copy::DefaultConfig(runtime.device().type()),"
+        },
+        {
+          "line": 283,
+          "text": "                src, false, dst);"
+        },
+        {
+          "line": 284,
+          "text": "            return;"
+        },
+        {
+          "line": 285,
+          "text": "        }"
+        },
+        {
+          "line": 286,
+          "text": "        if (this->is_contiguous() && src->is_contiguous()) {"
+        },
+        {
+          "line": 287,
+          "text": "            if (this->nbytes() != 0) {"
+        },
+        {
+          "line": 288,
+          "text": "                std::memmove(this->data(), src->data(), this->nbytes());"
+        },
+        {
+          "line": 289,
+          "text": "            }"
+        },
+        {
+          "line": 290,
+          "text": "            return;"
+        },
+        {
+          "line": 291,
+          "text": "        }"
+        },
+        {
+          "line": 292,
+          "text": "        // Gather before scattering so overlapping CPU views retain the old"
+        },
+        {
+          "line": 293,
+          "text": "        // copy_from behavior without selecting a thread-local Runtime."
+        },
+        {
+          "line": 294,
+          "text": "        std::vector<std::byte> gathered(this->nbytes());"
+        },
+        {
+          "line": 295,
+          "text": "        auto contiguous = Tensor::from_blob("
+        },
+        {
+          "line": 296,
+          "text": "            gathered.data(), this->shape(), this->dtype(), this->device());"
+        },
+        {
+          "line": 297,
+          "text": "        copyCpuStrided(contiguous->data(), src->data(), this->shape(),"
+        },
+        {
+          "line": 298,
+          "text": "                       contiguous->strides(), src->strides(), this->element_size());"
+        },
+        {
+          "line": 299,
+          "text": "        copyCpuStrided(this->data(), contiguous->data(), this->shape(),"
+        },
+        {
+          "line": 300,
+          "text": "                       this->strides(), contiguous->strides(), this->element_size());"
+        },
+        {
+          "line": 301,
+          "text": "        return;"
+        },
+        {
+          "line": 302,
+          "text": "    }"
+        },
+        {
+          "line": 303,
+          "text": ""
+        },
+        {
+          "line": 304,
+          "text": "    // Only CPU -> Runtime device crosses devices in this explicit contract."
+        },
+        {
+          "line": 305,
+          "text": "    // Synchronize H2D before releasing a caller-owned or gathered host buffer."
+        },
+        {
+          "line": 306,
+          "text": "    std::vector<std::byte> gathered;"
+        },
+        {
+          "line": 307,
+          "text": "    Tensor local_src;"
+        },
+        {
+          "line": 308,
+          "text": "    try {"
+        },
+        {
+          "line": 309,
+          "text": "        if (this->is_contiguous()"
+        },
+        {
+          "line": 310,
+          "text": "            && this->device().type() == Device::Type::kNvidia"
+        },
+        {
+          "line": 311,
+          "text": "            && runtime.graphCaptureState() == ::infinilm::execution::graph::GraphManager::CaptureState::kInactive"
+        },
+        {
+          "line": 312,
+          "text": "            && (src->dtype() == DataType::kFloat32"
+        },
+        {
+          "line": 313,
+          "text": "                || src->dtype() == DataType::kFloat16"
+        },
+        {
+          "line": 314,
+          "text": "                || src->dtype() == DataType::kBFloat16)"
+        },
+        {
+          "line": 315,
+          "text": "            && src->ndim() == 2 && src->shape()[0] > 1 && src->shape()[1] > 1"
+        },
+        {
+          "line": 316,
+          "text": "            && src->strides()[0] == 1 && src->strides()[1] > 0"
+        },
+        {
+          "line": 317,
+          "text": "            && static_cast<size_t>(src->strides()[1]) >= src->shape()[0]) {"
+        },
+        {
+          "line": 318,
+          "text": "            const auto span = storage_span_bytes(src->shape(), src->strides(), src->element_size());"
+        },
+        {
+          "line": 319,
+          "text": "            if (src->data_.offset > src->data_.memory->size()"
+        },
+        {
+          "line": 320,
+          "text": "                || span > src->data_.memory->size() - src->data_.offset) {"
+        },
+        {
+          "line": 321,
+          "text": "                throw std::out_of_range(\"strided H2D source exceeds underlying storage\");"
+        },
+        {
+          "line": 322,
+          "text": "            }"
+        },
+        {
+          "line": 323,
+          "text": "            // ceil(span / 3) avoids overflowing the three-times-logical bound."
+        },
+        {
+          "line": 324,
+          "text": "            if (span / 3 + (span % 3 != 0) <= src->nbytes()) {"
+        },
+        {
+          "line": 325,
+          "text": "                local_src = Tensor::strided_empty(runtime, src->shape(), src->strides(), src->dtype());"
+        },
+        {
+          "line": 326,
+          "text": "                runtime.memcpyH2D(local_src->data(), src->data(), span, false);"
+        },
+        {
+          "line": 327,
+          "text": "                infinilm::execution::submit<infini::ops::Copy>("
+        },
+        {
+          "line": 328,
+          "text": "                    runtime, infini::ops::Copy::DefaultConfig(runtime.device().type()),"
+        },
+        {
+          "line": 329,
+          "text": "                    local_src, false, dst);"
+        },
+        {
+          "line": 330,
+          "text": "                runtime.syncStream(); // Keep src/dst/local_src alive through completion."
+        },
+        {
+          "line": 331,
+          "text": "                return;"
+        },
+        {
+          "line": 332,
+          "text": "            }"
+        },
+        {
+          "line": 333,
+          "text": "        }"
+        },
+        {
+          "line": 334,
+          "text": "        const std::byte *host_data = src->data();"
+        },
+        {
+          "line": 335,
+          "text": "        if (!src->is_contiguous()) {"
+        },
+        {
+          "line": 336,
+          "text": "            gathered.resize(this->nbytes());"
+        },
+        {
+          "line": 337,
+          "text": "            auto contiguous = Tensor::from_blob("
+        },
+        {
+          "line": 338,
+          "text": "                gathered.data(), src->shape(), src->dtype(), src->device());"
+        },
+        {
+          "line": 339,
+          "text": "            copyCpuStrided(contiguous->data(), src->data(), src->shape(),"
+        },
+        {
+          "line": 340,
+          "text": "                           contiguous->strides(), src->strides(), src->element_size());"
+        },
+        {
+          "line": 341,
+          "text": "            host_data = gathered.data();"
+        },
+        {
+          "line": 342,
+          "text": "        }"
+        },
+        {
+          "line": 343,
+          "text": "        if (this->is_contiguous()) {"
+        },
+        {
+          "line": 344,
+          "text": "            runtime.memcpyH2D(this->data(), host_data, this->nbytes(), false);"
+        },
+        {
+          "line": 345,
+          "text": "        } else {"
+        },
+        {
+          "line": 346,
+          "text": "            local_src = Tensor::empty(runtime, this->shape(), this->dtype());"
+        },
+        {
+          "line": 347,
+          "text": "            runtime.memcpyH2D(local_src->data(), host_data, this->nbytes(), false);"
+        },
+        {
+          "line": 348,
+          "text": "            infinilm::execution::submit<infini::ops::Copy>("
+        },
+        {
+          "line": 349,
+          "text": "                runtime, infini::ops::Copy::DefaultConfig(runtime.device().type()),"
+        },
+        {
+          "line": 350,
+          "text": "                local_src, false, dst);"
+        },
+        {
+          "line": 351,
+          "text": "        }"
+        },
+        {
+          "line": 352,
+          "text": "    } catch (...) {"
+        },
+        {
+          "line": 353,
+          "text": "        // Keep host gather and device temporary alive until completion is known."
+        },
+        {
+          "line": 354,
+          "text": "        try {"
+        },
+        {
+          "line": 355,
+          "text": "            runtime.syncStream();"
+        },
+        {
+          "line": 356,
+          "text": "        } catch (...) {"
+        },
+        {
+          "line": 357,
+          "text": "            detail::require_proven_owner_drain(true, false);"
+        },
+        {
+          "line": 358,
+          "text": "        }"
+        },
+        {
+          "line": 359,
+          "text": "        throw;"
+        },
+        {
+          "line": 360,
+          "text": "    }"
+        },
+        {
+          "line": 361,
+          "text": "}"
+        },
+        {
+          "line": 362,
+          "text": ""
+        },
+        {
+          "line": 363,
+          "text": "} // namespace infinilm::runtime"
+        }
+      ]
+    }
+  ],
+  "runtime_source_files": [
+    "context_impl.hpp",
+    "tensor.hpp",
+    "device.cc",
+    "memory.hpp",
+    "dtype.cc",
+    "owner_drain_fail_stop.hpp",
+    "api.hpp",
+    "io.cc",
+    "utils.hpp",
+    "memory.cc",
+    "dtype.hpp",
+    "runtime.hpp",
+    "device.hpp",
+    "context.hpp",
+    "context_impl.cc",
+    "custom_types.cc",
+    "custom_types.h",
+    "runtime.cc",
+    "tensor/copy.cc",
+    "tensor/tensor.cc",
+    "tensor/view.cc"
+  ]
+}
