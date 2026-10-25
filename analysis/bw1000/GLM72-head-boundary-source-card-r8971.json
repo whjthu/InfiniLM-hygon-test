@@ -1,0 +1,53 @@
+{
+  "card": "GLM72-HEAD-BOUNDARY-CAUSAL-SOURCE-DECISION",
+  "CPU_only": true,
+  "GPU": false,
+  "build": false,
+  "load": false,
+  "Git_or_sharedpolicy_mutation": false,
+  "current_provider_SHA256": "68bdbddc918063dee48b4da21bb3ca24a55abdc4a4a3c0d7c415e3e167de100e",
+  "actual_head": {
+    "source": "candidates/glm-M16-r8861/tree/candidates/glm-PP2-B32-r8843/tree/candidates/glm-window-model-r5797/src/glm_moe_dsa_balanced_text_model_r126.cpp",
+    "SHA256": "d94016e3adc4ffccac58adc24aef415c7069ad2503cb21e230f12753c0b2ad98",
+    "lines": {
+      "31": "Work::alloc default dtype BF16",
+      "46": "immutable head weight BF16 [vocab/TP,6144]",
+      "79": "final RMSNorm and weight multiplication round into BF16 allocations",
+      "81": "chosen [requestcount,6144] gathers last input position for eachrow",
+      "82": "Gemm chosen x head.T into defaultBF16 local [n,vocab/8]",
+      "84": "TP allgather of sameBF16 local outputs; no F32 retained"
+    },
+    "current_FP32_logits_flag": "NONE in actual bound allocation/call chain; all_positions bool selects rows, notdtype. No claim about unrelated historical flag/provider."
+  },
+  "actual_bridge": {
+    "source": "GLM_exact_budget_bridge_r8854.cpp",
+    "SHA256": "1d50a250f5b1f82687c879e3f320b97e3d4ebeefd97a0505375700d60b2c15dd",
+    "lines": "47,55-56",
+    "contract": "all_positions!=0 passes bool; tail creates from_blob with result.logits dtype and copies. A Pythonfloat32 output allocation alone is unsafe: native stillcopiesBF16 bytes."
+  },
+  "570_schedule": {
+    "source": "GLM-chunk128-Model-private-r8872/glm_prefill_micro_probe_r8872.py",
+    "source_SHA256": "7ec4b9fc8979ddb7190fa98caa83c8c2e0759f9ed92947a2f9fbcd45ccd58a29",
+    "packing_source": "glm_chunk128_schedule_r8872.py",
+    "A": "Cohortrows0..7,count512,past0;firsttoken afterreturn. C1thenoriginaldecode.",
+    "C_before_failure": "rows0..7 fourcalls/past0,128,256,384,count128; positionspast..past+127; native perrow cache lengths commit. Goldcheck only after512. Row1 actual1336/gold1654. No C1prefill or inserteddecode occurred.",
+    "upstream_shape_changes": "PackedT4096 vs1024;indexer querycount512 vs128 andprefix128/256/384/512;samecausal absoluteposition semantics. GEMM/provider/reduction shapes maychange. Sourcevalidcontinuation doesnotprove numericalidentity or cachebugabsence.",
+    "dedup": "479 and501 retained logits diagnostics also BF16 only; no recoveredhidden or preroundF32 fixture. Do notrepeat old501 M4/perquerybatching. Known8524/8525fastdecoder alreadydedup; irrelevant."
+  },
+  "smallest_actionable_direction": {
+    "scope": "ONE current TextModel hostTU; diagnosticdefaultOFF; noSDK/kernel/math/argmax/gold changes. No unchangedModelreload. Capture onlyduring next independentlynecessary Model load, thenreuse bounded headfixture.",
+    "hook": "Immediately after L81 chosen and before L82 Gemm, capture tailstage TPowner0, originalphysicalrow1 atpast0/count512 A vs past384/count128 C (both finalposition511). Gate explicitphase+row+past/count+owner; use same existing Runtime/stream lifetime/drain. No new stream/device synchronizations beyond existing forward drain; persist after drained return.",
+    "payload": "chosenrow BF16 6144=12288B eachA/C; optionalpreRMS hidden row another12288B each; loaded head weight rows1336/1654 localTPowner0=24576B total; immutable weightSHA/TPpartition/globaltokenIDs/geometry/positions plusoriginalBF16 logits pair/fullrawrefs. ~72KiB includingoptionalhidden, notweightsreload/fullcheckpoint/fullnetworkdump.",
+    "why_two_head_rows": "Vocab154880/TP8=19360 so1336/1654 bothowner0; same frozen BF16weightrows reusable with bothchoseninputs. Needed bridge/report retrieval can followexistingboundedcapture idiom; no newABIframework.",
+    "decision_table": [
+      "chosenA==chosenC and sameweightrows: upstream postnorm headinput identical; any head/outputdifference is head/backend/result/argmax side (still check determinism), not hidden divergence.",
+      "chosenA!=chosenC: upstream boundarydivergence established; preRMS hidden ifcaptured distinguishes prehead norm effects. This doesnotlocalize attention/cache/math culprit.",
+      "CPU float32 pairdot diagnostic on copiedsameBF16input/weights mayshow margin sensitivity; it cannotrecover originalGPUaccumulator tree. If outputF32 shadow is laterused it mayselect another GEMMkernel/tree, so labelshadow andneveroriginalpre-round.",
+      "Onlytwo token rows do notprove fullvocabulary F32winner; near-top tiedset orfullvocab shadow wouldbeneeded for that claim. No F64."
+    ],
+    "performance": "UNKNOWN; observerdata notperformanceadoption; no newGPU orbuildauthorization inthiscard",
+    "alternative_not_selected": "Switch wholehead outputF32 requires newtyped native outputcontract/bridge+consumer and wholeModel fulltokens qualification; not an existing toggle. Do not implement blindtie-fix or caster afterBF16."
+  },
+  "limits": "Existing570 storedBF16cannotrecover FP32preround values. No original chosen/hidden fixture exists, so cause remainsUNKNOWN today. Exact originalGemm preround accumulator wouldrequire provider/kernel instrumentation beyondthisminimalhostscope; STOP that demand ratherthanfalseclaim.",
+  "canonical_coordination_note": "Root identified coordination/reviews/bw1000/latest.json stale71; rootwillfixon72completion. Future publication mustupdatecanonicalcoordlatest togetherwithstatus. No currentmutation."
+}
