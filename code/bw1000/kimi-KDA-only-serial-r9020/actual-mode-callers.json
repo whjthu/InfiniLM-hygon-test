@@ -1,0 +1,616 @@
+{
+  "candidates/Kimi-CCL512-r8606/src/kimi_k3_delta_attention_CCL512_r8603.cpp": {
+    "SHA256": "787af2aac64ae58dedfa2654f8efd94cc449c1aab7de03549b16789fed3898cd",
+    "lines": [
+      {
+        "line": 402,
+        "text": "          output->narrow({{1,row,512}})->copy_from(runtime,value);counts[2].fetch_add(1,std::memory_order_relaxed);"
+      },
+      {
+        "line": 403,
+        "text": "        }"
+      },
+      {
+        "line": 404,
+        "text": "        return output;"
+      },
+      {
+        "line": 405,
+        "text": "      }catch(...){try{runtime.syncStream();}catch(...){std::terminate();}throw;}"
+      },
+      {
+        "line": 406,
+        "text": "    };"
+      },
+      {
+        "line": 407,
+        "text": "    auto selected_input_projection_r4305=[&](const auto& projection,size_t output_width){"
+      },
+      {
+        "line": 408,
+        "text": "        if(split512_r8562)return project512_r8562(projection,input,output_width);"
+      },
+      {
+        "line": 409,
+        "text": "        const bool selected=input_enabled_r4305&&infinilm::models::kimi_native::spec_math_mode_r3676(runtime)==11&&seq_len<=16;"
+      },
+      {
+        "line": 410,
+        "text": "        if(!selected)return projection->forward(runtime,input);"
+      },
+      {
+        "line": 411,
+        "text": "        runtime.assertOwnerThread();"
+      },
+      {
+        "line": 412,
+        "text": "        if(runtime.isGraphRecording()||input->dtype()!=infinilm::runtime::DataType::kBFloat16||!seq_len||batch_size!=1)"
+      },
+      {
+        "line": 413,
+        "text": "            throw std::invalid_argument(\"4305 bounded eager same-owner BF16 projection contract\");"
+      },
+      {
+        "line": 414,
+        "text": "        auto&counts=input_projection_counts_r4305.at(runtime.device().index());"
+      },
+      {
+        "line": 415,
+        "text": "        counts[0].fetch_add(1,std::memory_order_relaxed);counts[1].fetch_add(seq_len,std::memory_order_relaxed);"
+      },
+      {
+        "line": 416,
+        "text": "        if(seq_len==1)return projection->forward(runtime,input);"
+      },
+      {
+        "line": 424,
+        "text": "                throw std::logic_error(\"4305 child projection output geometry differs\");"
+      },
+      {
+        "line": 425,
+        "text": "            output->narrow({{1,i,1}})->copy_from(runtime,value);"
+      },
+      {
+        "line": 426,
+        "text": "        }"
+      },
+      {
+        "line": 427,
+        "text": "        return output;"
+      },
+      {
+        "line": 428,
+        "text": "    };"
+      },
+      {
+        "line": 429,
+        "text": "    auto qkv_projected = selected_input_projection_r4305(qkv_proj_,3*local_projection_size_);"
+      },
+      {
+        "line": 430,
+        "text": "    raw_trace.capture(qkv_projected, \"qkv_projected\");"
+      },
+      {
+        "line": 431,
+        "text": ""
+      },
+      {
+        "line": 432,
+        "text": "    const auto &conv_state = forward_context.conv_state_vec.at(layer_idx_);"
+      },
+      {
+        "line": 433,
+        "text": "    if (!qkv_projected || !conv_state || !packed_conv_weight_ || qkv_projected->ndim() != 3 || conv_state->ndim() != 3 || packed_conv_weight_->ndim() != 3 || qkv_projected->device() != forward_context.runtime->device() || conv_state->device() != forward_context.runtime->device() || packed_conv_weight_->device() != forward_context.runtime->device())"
+      },
+      {
+        "line": 434,
+        "text": "        throw std::invalid_argument(\"causal conv required input shape/device mismatch\");"
+      },
+      {
+        "line": 435,
+        "text": "    if (packed_conv_weight_->shape()[2] != 4)"
+      },
+      {
+        "line": 436,
+        "text": "        throw std::invalid_argument(\"causal conv allocating API requires qualified K4\");"
+      },
+      {
+        "line": 466,
+        "text": "    if(gate_env_r4576){"
+      },
+      {
+        "line": 467,
+        "text": "      std::string value(gate_env_r4576);"
+      },
+      {
+        "line": 468,
+        "text": "      if(value.size()!=1||value[0]<'0'||value[0]>'3')throw std::invalid_argument(\"4571 gate policy must be 0..3\");"
+      },
+      {
+        "line": 469,
+        "text": "      gate_policy_r4576=value[0]-'0';"
+      },
+      {
+        "line": 470,
+        "text": "    }"
+      },
+      {
+        "line": 471,
+        "text": "    auto selected_gate_projection_r4576=[&](const auto&projection,infinilm::runtime::Tensor source,size_t output_width,int branch){"
+      },
+      {
+        "line": 472,
+        "text": "      if(split512_r8562)return project512_r8562(projection,source,output_width);"
+      },
+      {
+        "line": 473,
+        "text": "      const bool selected=gate_policy_r4576>branch&&infinilm::models::kimi_native::spec_math_mode_r3676(runtime)==11&&seq_len<=16;"
+      },
+      {
+        "line": 474,
+        "text": "      if(!selected)return projection->forward(runtime,source);"
+      },
+      {
+        "line": 475,
+        "text": "      runtime.assertOwnerThread();"
+      },
+      {
+        "line": 476,
+        "text": "      if(runtime.isGraphRecording()||!source||source->dtype()!=infinilm::runtime::DataType::kBFloat16||source->device()!=runtime.device()||!seq_len||batch_size!=1||source->ndim()!=3||source->size(0)!=1||source->size(1)!=seq_len)"
+      },
+      {
+        "line": 477,
+        "text": "        throw std::invalid_argument(\"4571 bounded eager same-owner BF16 gate projection contract\");"
+      },
+      {
+        "line": 478,
+        "text": "      auto&counts=gate_projection_counts_r4576.at(runtime.device().index());counts[branch*3].fetch_add(1,std::memory_order_relaxed);counts[branch*3+1].fetch_add(seq_len,std::memory_order_relaxed);"
+      },
+      {
+        "line": 479,
+        "text": "      if(seq_len==1)return projection->forward(runtime,source);"
+      },
+      {
+        "line": 480,
+        "text": "      counts[branch*3+2].fetch_add(1,std::memory_order_relaxed);"
+      },
+      {
+        "line": 486,
+        "text": "        if(!value||value->shape()!=infinilm::runtime::Shape{1,1,output_width}||value->device()!=runtime.device()||value->dtype()!=source->dtype())throw std::logic_error(\"4571 gate child output geometry differs\");"
+      },
+      {
+        "line": 487,
+        "text": "        result->narrow({{1,row,1}})->copy_from(runtime,value);"
+      },
+      {
+        "line": 488,
+        "text": "      }"
+      },
+      {
+        "line": 489,
+        "text": "      return result;"
+      },
+      {
+        "line": 490,
+        "text": "    };"
+      },
+      {
+        "line": 491,
+        "text": "    auto f_a = selected_gate_projection_r4576(f_a_proj_,input,head_dim_,0);"
+      },
+      {
+        "line": 492,
+        "text": "    raw_trace.capture(f_a, \"f_a\");"
+      },
+      {
+        "line": 493,
+        "text": "    auto gate_decay_projected = selected_gate_projection_r4576(f_b_proj_,f_a,local_projection_size_,1);"
+      },
+      {
+        "line": 494,
+        "text": "    raw_trace.capture(gate_decay_projected, \"gate_projected\");"
+      },
+      {
+        "line": 495,
+        "text": "    auto gate_decay = gate_decay_projected->view("
+      },
+      {
+        "line": 496,
+        "text": "        {batch_size, seq_len, local_num_heads_, head_dim_});"
+      },
+      {
+        "line": 497,
+        "text": "    auto beta_projected = selected_gate_projection_r4576(b_proj_,input,local_num_heads_,2);"
+      },
+      {
+        "line": 498,
+        "text": "    raw_trace.capture(beta_projected, \"beta_projected\");"
+      },
+      {
+        "line": 499,
+        "text": "    auto beta = beta_projected->view("
+      },
+      {
+        "line": 500,
+        "text": "        {batch_size, seq_len, local_num_heads_});"
+      },
+      {
+        "line": 501,
+        "text": "    auto q_heads = q->view({batch_size, seq_len, local_num_heads_, head_dim_});"
+      },
+      {
+        "line": 502,
+        "text": "    auto k_heads = k->view({batch_size, seq_len, local_num_heads_, head_dim_});"
+      },
+      {
+        "line": 503,
+        "text": "    auto v_heads = v->view({batch_size, seq_len, local_num_heads_, head_dim_});"
+      },
+      {
+        "line": 504,
+        "text": ""
+      },
+      {
+        "line": 506,
+        "text": "    auto output = infinilm::runtime::Tensor::empty("
+      },
+      {
+        "line": 507,
+        "text": "        *forward_context.runtime, q_heads->shape(), q_heads->dtype());"
+      },
+      {
+        "line": 508,
+        "text": "    const auto packed_shape = infinilm::runtime::Shape{1, batch_size * seq_len, local_num_heads_, head_dim_};"
+      },
+      {
+        "line": 509,
+        "text": "    auto kda_config = infini::ops::IndexedKimiDeltaAttention::DefaultConfig(forward_context.runtime->device().type());"
+      },
+      {
+        "line": 510,
+        "text": "    kda_config.set_implementation_index(0);"
+      },
+      {
+        "line": 511,
+        "text": "    if (infinilm::models::kimi_native::spec_math_mode_r3676(runtime)) {"
+      },
+      {
+        "line": 512,
+        "text": "        infinilm::models::kimi_native::spec_kda_roundstep_r3676(runtime, output->view(packed_shape), forward_context.ssm_state_vec.at(layer_idx_), q_heads->view(packed_shape), k_heads->view(packed_shape), v_heads->view(packed_shape), gate_decay->view(packed_shape), beta->view({1, batch_size * seq_len, local_num_heads_}), A_log_.tensor(), dt_bias, metadata.input_offsets.value(), metadata.init_state_indices.value(), metadata.final_state_indices.value(), 1.0f/std::sqrt(static_cast<float>(head_dim_)), gate_lower_bound_, true);"
+      },
+      {
+        "line": 513,
+        "text": "    } else if (infinilm::models::kimi_native::owned_indices_active_r1213(runtime)) {"
+      },
+      {
+        "line": 514,
+        "text": "        infinilm::models::kimi_native::owned_indices_kda_r1213(runtime, output->view(packed_shape), forward_context.ssm_state_vec.at(layer_idx_), q_heads->view(packed_shape), k_heads->view(packed_shape), v_heads->view(packed_shape), gate_decay->view(packed_shape), beta->view({1, batch_size * seq_len, local_num_heads_}), A_log_.tensor(), dt_bias, 1.0f / std::sqrt(static_cast<float>(head_dim_)), gate_lower_bound_, true);"
+      },
+      {
+        "line": 515,
+        "text": "    } else {"
+      },
+      {
+        "line": 516,
+        "text": "        infinilm::execution::submit<infini::ops::IndexedKimiDeltaAttention>("
+      },
+      {
+        "line": 517,
+        "text": "            *forward_context.runtime, infinilm::execution::RecordingPolicy::HostOnly, kda_config,"
+      },
+      {
+        "line": 518,
+        "text": "            output->view(packed_shape), forward_context.ssm_state_vec.at(layer_idx_),"
+      },
+      {
+        "line": 519,
+        "text": "            q_heads->view(packed_shape), k_heads->view(packed_shape), v_heads->view(packed_shape),"
+      },
+      {
+        "line": 529,
+        "text": "        {batch_size * seq_len * local_num_heads_, head_dim_});"
+      },
+      {
+        "line": 530,
+        "text": "    auto normalized_2d = o_norm_->forward(*forward_context.runtime, output_2d);"
+      },
+      {
+        "line": 531,
+        "text": "    raw_trace.capture(normalized_2d, \"normalized_f32\");"
+      },
+      {
+        "line": 532,
+        "text": "    auto normalized = normalized_2d->view("
+      },
+      {
+        "line": 533,
+        "text": "        {batch_size, seq_len, local_projection_size_});"
+      },
+      {
+        "line": 534,
+        "text": "    auto output_gate_input = selected_input_projection_r4305(g_proj_,local_projection_size_);"
+      },
+      {
+        "line": 535,
+        "text": "    raw_trace.capture(output_gate_input, \"output_gate_input\");"
+      },
+      {
+        "line": 536,
+        "text": "    auto output_gate = infinilm::runtime::Tensor::empty((*forward_context.runtime), output_gate_input->shape(), output_gate_input->dtype());"
+      },
+      {
+        "line": 537,
+        "text": "    INFINILM_ASSERT((*forward_context.runtime).device().type() != infinilm::runtime::Device::Type::kCpu && (*forward_context.runtime).device().type() != infinilm::runtime::Device::Type::kMars && (*forward_context.runtime).device().type() != infinilm::runtime::Device::Type::kThead);"
+      },
+      {
+        "line": 538,
+        "text": "    infinilm::execution::submit<infini::ops::Sigmoid>("
+      },
+      {
+        "line": 539,
+        "text": "        (*forward_context.runtime), infini::ops::Sigmoid::DefaultConfig((*forward_context.runtime).device().type()), output_gate_input, output_gate);"
+      },
+      {
+        "line": 540,
+        "text": "    INFINILM_TRACE_OP(Sigmoid, output_gate);"
+      },
+      {
+        "line": 541,
+        "text": "    raw_trace.capture(output_gate, \"gate_sigmoid\");"
+      },
+      {
+        "line": 560,
+        "text": "            // Checked RTTI, never an arbitrary base-to-derived reinterpretation."
+      },
+      {
+        "line": 561,
+        "text": "            auto selected=std::dynamic_pointer_cast<Prefill512RowR8603>(o_proj_);"
+      },
+      {
+        "line": 562,
+        "text": "            if(!selected)throw std::logic_error(\"8603 actual constructed Row type\");"
+      },
+      {
+        "line": 563,
+        "text": "            return selected->forward_prefill512(runtime,gated);"
+      },
+      {
+        "line": 564,
+        "text": "        }"
+      },
+      {
+        "line": 565,
+        "text": "        const int mode = infinilm::models::kimi_native::spec_math_mode_r3676(runtime);"
+      },
+      {
+        "line": 566,
+        "text": "        const bool selected = mode == 4 || mode >= 6 || ((mode == 3 || mode == 5) && layer_idx_ == 1);"
+      },
+      {
+        "line": 567,
+        "text": "        if (!selected) return o_proj_->forward(runtime, gated);"
+      },
+      {
+        "line": 568,
+        "text": "        runtime.assertOwnerThread();"
+      },
+      {
+        "line": 569,
+        "text": "        if (runtime.isGraphRecording() || runtime.device().type() != infinilm::runtime::Device::Type::kHygon"
+      },
+      {
+        "line": 570,
+        "text": "            || gated->dtype() != infinilm::runtime::DataType::kBFloat16 || gated->ndim() != 3"
+      },
+      {
+        "line": 571,
+        "text": "            || gated->size(0) != 1 || gated->size(2) != local_projection_size_"
+      },
+      {
+        "line": 572,
+        "text": "            || !gated->size(1) || gated->size(1) > 128 || o_proj_->has_bias()"
+      }
+    ]
+  },
+  "candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/models/kimi_k3/kimi_k3_moe.cpp": {
+    "SHA256": "5a45581c9d76a000ae383de8a592fa9b6d3d397c9658f18f89a032b1b32f933a",
+    "lines": [
+      {
+        "line": 271,
+        "text": "    const auto shape = hidden_states->shape();"
+      },
+      {
+        "line": 272,
+        "text": "    auto flattened = hidden_states->view({shape[0] * shape[1], shape[2]});"
+      },
+      {
+        "line": 273,
+        "text": "    auto routing_pair_r4635=[&](){"
+      },
+      {
+        "line": 274,
+        "text": "      const char*flag=std::getenv(\"INFINILM_KIMI_ROUTER_M1_R4635\");"
+      },
+      {
+        "line": 275,
+        "text": "      if(flag&&std::string(flag)!=\"0\"&&std::string(flag)!=\"1\")throw std::invalid_argument(\"4635 router flag0or1\");"
+      },
+      {
+        "line": 276,
+        "text": "      const bool selected=flag&&std::string(flag)==\"1\"&&infinilm::models::kimi_native::spec_math_mode_r3676(runtime)==11&&flattened->size(0)<=16;"
+      },
+      {
+        "line": 277,
+        "text": "      if(!selected)return gate_->forward(runtime,flattened);"
+      },
+      {
+        "line": 278,
+        "text": "      runtime.assertOwnerThread();"
+      },
+      {
+        "line": 279,
+        "text": "      if(runtime.isGraphRecording()||runtime.device().type()!=infinilm::runtime::Device::Type::kHygon||tp_size_!=8||shape.size()!=3||shape[0]!=1||flattened->ndim()!=2||!flattened->size(0)||flattened->size(1)!=7168||flattened->dtype()!=infinilm::runtime::DataType::kBFloat16||flattened->device()!=runtime.device())throw std::invalid_argument(\"4635 sameownerTP8eagerBF16routergeometry\");"
+      },
+      {
+        "line": 280,
+        "text": "      const size_t T=flattened->size(0);auto&counts=router_counts_r4635.at(runtime.device().index());counts[0].fetch_add(1);counts[1].fetch_add(T);"
+      },
+      {
+        "line": 281,
+        "text": "      if(T==1)return gate_->forward(runtime,flattened);"
+      },
+      {
+        "line": 282,
+        "text": "      counts[2].fetch_add(1);auto rw=infinilm::runtime::Tensor::empty(runtime,{T,16},infinilm::runtime::DataType::kFloat32);auto ri=infinilm::runtime::Tensor::empty(runtime,{T,16},infinilm::runtime::DataType::kInt32);"
+      },
+      {
+        "line": 283,
+        "text": "      std::vector<infinilm::runtime::Tensor>held;held.reserve(2*T);"
+      },
+      {
+        "line": 287,
+        "text": "        held.push_back(w);held.push_back(k);rw->narrow({{0,i,1}})->copy_from(runtime,w);ri->narrow({{0,i,1}})->copy_from(runtime,k);"
+      },
+      {
+        "line": 288,
+        "text": "      }"
+      },
+      {
+        "line": 289,
+        "text": "      return std::make_tuple(rw,ri);"
+      },
+      {
+        "line": 290,
+        "text": "    }();auto [routing_weights,selected_experts]=routing_pair_r4635;"
+      },
+      {
+        "line": 291,
+        "text": "    auto routed_input = [&]() {"
+      },
+      {
+        "line": 292,
+        "text": "        const int mode = infinilm::models::kimi_native::spec_math_mode_r3676(runtime);"
+      },
+      {
+        "line": 293,
+        "text": "        const bool selected = mode >= 6 || (mode == 5 && stable_down_layer_r4012_ == 1);"
+      },
+      {
+        "line": 294,
+        "text": "        if (!selected) return routed_expert_down_proj_->forward(runtime, flattened);"
+      },
+      {
+        "line": 295,
+        "text": "        runtime.assertOwnerThread();"
+      },
+      {
+        "line": 296,
+        "text": "        if (runtime.isGraphRecording() || runtime.device().type() != infinilm::runtime::Device::Type::kHygon"
+      },
+      {
+        "line": 297,
+        "text": "            || flattened->ndim() != 2 || flattened->dtype() != infinilm::runtime::DataType::kBFloat16"
+      },
+      {
+        "line": 298,
+        "text": "            || !flattened->size(0) || flattened->size(0) > 128)"
+      },
+      {
+        "line": 299,
+        "text": "            throw std::invalid_argument(\"4012 bounded nativeBF16 replicated projection contract\");"
+      },
+      {
+        "line": 350,
+        "text": "            weights.w2_scale,"
+      },
+      {
+        "line": 351,
+        "text": "            size_t{2});"
+      },
+      {
+        "line": 352,
+        "text": "    }"
+      },
+      {
+        "line": 353,
+        "text": "    if (tp_size_ > 1 && communicator_ != nullptr) {"
+      },
+      {
+        "line": 354,
+        "text": "        const char*flag=std::getenv(\"INFINILM_KIMI_MOE_AUX_M1_R4430\");"
+      },
+      {
+        "line": 355,
+        "text": "        const bool selected=flag&&std::string(flag)==\"1\"&&infinilm::models::kimi_native::spec_math_mode_r3676(runtime)==11&&routed->size(0)<=16;"
+      },
+      {
+        "line": 356,
+        "text": "        if(selected){"
+      },
+      {
+        "line": 357,
+        "text": "            if(runtime.isGraphRecording()||tp_size_!=8||runtime.device().type()!=infinilm::runtime::Device::Type::kHygon||routed->ndim()!=2||routed->size(1)!=3584||!routed->size(0)||routed->dtype()!=infinilm::runtime::DataType::kBFloat16)throw std::invalid_argument(\"4435 eagerTP8BF16routeH3584chunk8contract\");"
+      },
+      {
+        "line": 358,
+        "text": "            const size_t T=routed->size(0);auto&count=route_chunk_counts_r4435.at(runtime.device().index());count[0].fetch_add(1);count[1].fetch_add(T);count[2].fetch_add((T+7)/8);"
+      },
+      {
+        "line": 359,
+        "text": "            for(size_t i=0;i<T;i+=8){auto row=routed->narrow({{0,i,T-i<8?T-i:8}});infinilm::engine::distributed::allreduce_(runtime,row,row,infinicclSum,communicator_);}"
+      },
+      {
+        "line": 360,
+        "text": "        }else infinilm::engine::distributed::allreduce_(runtime,routed,routed,infinicclSum,communicator_);"
+      },
+      {
+        "line": 361,
+        "text": "    }"
+      },
+      {
+        "line": 362,
+        "text": "    routed = routed_expert_norm_->forward(runtime, routed);"
+      },
+      {
+        "line": 363,
+        "text": "    const char*aux_flag_r4430=std::getenv(\"INFINILM_KIMI_MOE_AUX_M1_R4430\");"
+      },
+      {
+        "line": 364,
+        "text": "    if(aux_flag_r4430&&std::string(aux_flag_r4430)!=\"0\"&&std::string(aux_flag_r4430)!=\"1\")throw std::invalid_argument(\"4430 auxflag0or1\");"
+      },
+      {
+        "line": 365,
+        "text": "    const bool aux_selected_r4430=aux_flag_r4430&&std::string(aux_flag_r4430)==\"1\"&&infinilm::models::kimi_native::spec_math_mode_r3676(runtime)==11&&flattened->size(0)<=16;"
+      },
+      {
+        "line": 366,
+        "text": "    if(aux_selected_r4430&&(runtime.isGraphRecording()||tp_size_!=8||runtime.device().type()!=infinilm::runtime::Device::Type::kHygon||shape.size()!=3||shape[0]!=1||!flattened->size(0)||flattened->dtype()!=infinilm::runtime::DataType::kBFloat16))throw std::invalid_argument(\"4430 boundedTP8 eagerBF16 auxM1contract\");"
+      },
+      {
+        "line": 367,
+        "text": "    if(aux_selected_r4430){auto&count=aux_counts_r4430.at(runtime.device().index());count[3].fetch_add(1);count[4].fetch_add(flattened->size(0));if(flattened->size(0)>1)count[5].fetch_add(1);}"
+      },
+      {
+        "line": 368,
+        "text": "    if(aux_selected_r4430&&flattened->size(0)>1){auto output=infinilm::runtime::Tensor::empty(runtime,{flattened->size(0),shape[2]},routed->dtype());for(size_t i=0;i<flattened->size(0);++i){auto row=routed->narrow({{0,i,1}});auto z=routed_expert_up_proj_->forward(runtime,row);output->narrow({{0,i,1}})->copy_from(runtime,z);}routed=output->view(shape);}"
+      },
+      {
+        "line": 369,
+        "text": "    else routed=routed_expert_up_proj_->forward(runtime,routed)->view(shape);"
+      },
+      {
+        "line": 370,
+        "text": "    if(aux_selected_r4430){auto&count=aux_counts_r4430.at(runtime.device().index());count[0].fetch_add(1);count[1].fetch_add(flattened->size(0));if(flattened->size(0)>1)count[2].fetch_add(1);}"
+      },
+      {
+        "line": 371,
+        "text": "    auto shared=[&](){"
+      },
+      {
+        "line": 372,
+        "text": "        if(!aux_selected_r4430||flattened->size(0)==1)return shared_experts_->forward(runtime,hidden_states);"
+      }
+    ]
+  }
+}
