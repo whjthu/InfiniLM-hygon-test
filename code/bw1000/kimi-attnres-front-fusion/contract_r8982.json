@@ -1,0 +1,41 @@
+{
+  "status": "SOURCE_IMPLEMENTED_NOT_BUILT_NOT_GPU_READY",
+  "scope": "Single-card explicit-weights synthetic AttnRes component; M16/history24/cap25/H7168 only",
+  "default": "OFF; modern_attnres_front_mode_r8982(1) is component-only opt-in",
+  "actual_callsite": "code/bw1000/kimi-model-events/kimi_decoder_model_events_r8669zq.cpp apply_attn_res; first norm->projection pair only",
+  "binding": "Explicit BF16 norm H and projection [1,H] pointers; same original modern_attnres ABI; no Model getter needed",
+  "RMSNorm_source": "/refactor/candidates/rebased-5f91ad7-r3668/Ops/Kimi/InfiniOps/src/native/cuda/ops/rms_norm/kernel.cuh",
+  "RMSNorm_source_SHA256": "9402d9af0fe27a8c708b32ffc298e655ebd73d6cf4c6cf747b857916e7fde746",
+  "RMSNorm_arithmetic": "F32 square accumulation, rsqrtf(sum/H+epsilon), BF16 cast of (F32(x)*F32(weight))*rms; candidate retains multiply order and BF16 boundary",
+  "projection_arithmetic": "BF16 normalized register values times BF16 projection weights, F32 dot accumulation, explicit BF16 score round; reduction tree differs from SDK Gemm and is diagnostic",
+  "unchanged": [
+    "Current SDK in-place Softmax axis1",
+    "Current SDK weighted Gemm shape [16,1,24]x[16,24,7168]",
+    "Runtime owner thread",
+    "Canonical DeviceGuard",
+    "producer handoff synchronization",
+    "original final Runtime drain"
+  ],
+  "stride": "storage [16,25,7168], valid narrow [16,24,7168] with stride [179200,7168,1]; kernel uses cap25 offset; unused history25 poisoned NaN",
+  "lifetime": "caller retains input/weights/output; host held vector retains all Tensor views and temporaries through final Runtime sync; catch drains before releasing held tensors; explicit owner shutdown on same thread",
+  "fixture": "One seeded bank and real layer46 small weights; 2 unmeasured warm calls, 8 timed ABBA+BAAB, final restore A; padded output canary",
+  "diagnostic": [
+    "finite all output",
+    "maxabs",
+    "relative RMS",
+    "ordered BF16 ULP max",
+    "ownrepeat bit equality",
+    "unused poisoned input preserved",
+    "phase counters warm[1,1], measure[4,4],restore[1,0]",
+    "32 BF16 output canaries before/after"
+  ],
+  "stop": [
+    "native error",
+    "nonfinite output",
+    "ownrepeat instability",
+    "unused bank corruption",
+    "timeout; no retry"
+  ],
+  "performance": "Both modes warmed; only 8 measure-phase calls included. Component only; no Model or bottleneck claim.",
+  "remaining": "No compile/link/nm proof yet. Root CPU build GO required. No controller/Slurm/GPU dispatch exists. Future Model tokens/EOS gate remains necessary."
+}

@@ -1,0 +1,88 @@
+#include "execution/submit.hpp"
+#include <infini/rt/device_guard.h>
+#include <cuda_runtime_api.h>
+#include <cmath>
+#include <map>
+#include <memory>
+#include <optional>
+#include <stdexcept>
+#include <string>
+#include <vector>
+namespace rt = infinilm::runtime;
+namespace ex = infinilm::execution;
+extern "C" int kimi_attnres_front_launch_r8982(const void*, const void*, const void*, void*, float, void*);
+namespace {
+thread_local std::string error;
+thread_local int mode = 0; // Independent opt-in; Model has no integration.
+thread_local std::map<int, std::shared_ptr<rt::Runtime>> owners;
+thread_local int phase = 0; // warm=0, measure=1, restore=2
+thread_local unsigned long long counts[3][2] = {};
+std::shared_ptr<rt::Runtime> worker(int device) {
+    auto &r = owners[device];
+    if (!r) { r = rt::Runtime::create({rt::Device::Type::kHygon, device}); r->enableOwnerDrainFailStop(); }
+    r->assertOwnerThread(); return r;
+}
+}
+extern "C" const char *modern_attnres_error() { return error.c_str(); }
+extern "C" int modern_attnres_front_mode_r8982(int value) {
+    if (value != 0 && value != 1) return 1;
+    mode = value; return 0;
+}
+extern "C" int modern_attnres_front_phase_r8982(int value) {
+    if (value < 0 || value > 2) return 1;
+    phase = value; return 0;
+}
+extern "C" unsigned long long modern_attnres_front_count_r8982(int stage, int value) {
+    return (stage >= 0 && stage < 3 && (value == 0 || value == 1)) ? counts[stage][value] : 0;
+}
+extern "C" int modern_attnres_shutdown_r8982(int device) {
+    try { auto it = owners.find(device); if (it != owners.end()) {
+        auto &r = *it->second; r.assertOwnerThread();
+        infini::rt::DeviceGuard guard{r.device().type(), r.device().index(), true};
+        r.syncStream(); owners.erase(it);
+    } return 0; } catch (const std::exception &e) { error = e.what(); return 1; }
+}
+// Original explicit-weights ABI, intentionally fixed to one current case.
+extern "C" int modern_attnres(int device, size_t tokens, size_t blocks, size_t capacity,
+    size_t hidden, float eps, const void *storage, const void *norm, const void *proj,
+    void *out, void *stream) {
+    std::shared_ptr<rt::Runtime> owner;
+    std::vector<rt::Tensor> held;
+    try {
+        error.clear();
+        if (device < 0 || tokens != 16 || blocks != 24 || capacity != 25 || hidden != 7168 ||
+            !std::isfinite(eps) || eps <= 0 || !storage || !norm || !proj || !out)
+            throw std::invalid_argument("r8982 fixed M16/C24/CAP25/H7168 geometry");
+        // Guard outlives producer handoff, all allocations, launches and original drain.
+        infini::rt::DeviceGuard guard{rt::Device::Type::kHygon, device, true};
+        if (cudaStreamSynchronize(static_cast<cudaStream_t>(stream)) != cudaSuccess)
+            throw std::runtime_error("producer stream synchronization failed");
+        owner = worker(device); auto &r = *owner;
+        auto view = [&](const void *p, rt::Shape shape) {
+            auto t = rt::Tensor::from_blob(const_cast<void*>(p), shape, rt::DataType::kBFloat16, r.device());
+            held.push_back(t); return t;
+        };
+        auto alloc = [&](rt::Shape shape) { auto t = rt::Tensor::empty(r, shape, rt::DataType::kBFloat16); held.push_back(t); return t; };
+        auto values = view(storage, {tokens, capacity, hidden})->narrow({{1, 0, blocks}}); held.push_back(values);
+        auto scores = alloc({tokens, blocks, 1}); auto output = view(out, {tokens, 1, hidden});
+        auto w = view(norm, {hidden}); auto p = view(proj, {1, hidden});
+        if (!mode) {
+            auto normalized = alloc({tokens, blocks, hidden});
+            ex::submit<infini::ops::RmsNorm>(r, infini::ops::RmsNorm::DefaultConfig(r.device().type()), values, w, eps, normalized);
+            ex::submit<infini::ops::Gemm>(r, infini::ops::Gemm::DefaultConfig(r.device().type()), normalized->view({tokens*blocks, hidden}), p->permute({1, 0}), std::optional<rt::Tensor>{}, std::optional<float>{1}, std::optional<float>{0}, std::optional<int>{}, std::optional<int>{}, scores->view({tokens*blocks, 1}));
+        } else {
+            if (kimi_attnres_front_launch_r8982(storage, norm, proj, scores->data(), eps, r.stream()))
+                throw std::runtime_error("fused RMSNorm/projection launch failed");
+        }
+        ex::submit<infini::ops::Softmax>(r, infini::ops::Softmax::DefaultConfig(r.device().type()), scores, int64_t{1}, std::optional<infini::ops::DataType>{}, scores);
+        ex::submit<infini::ops::Gemm>(r, infini::ops::Gemm::DefaultConfig(r.device().type()), scores->view({tokens, 1, blocks}), values, std::optional<rt::Tensor>{}, std::optional<float>{1}, std::optional<float>{0}, std::optional<int>{}, std::optional<int>{}, output);
+        r.syncStream(); ++counts[phase][mode]; return 0;
+    } catch (const std::exception &e) {
+        error = e.what();
+        if (owner) try {
+            infini::rt::DeviceGuard guard{owner->device().type(), owner->device().index(), true};
+            owner->syncStream();
+        } catch (...) { std::terminate(); }
+        return 1;
+    }
+}
