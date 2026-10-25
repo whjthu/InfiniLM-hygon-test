@@ -1,0 +1,95 @@
+{
+  "hardware": "BW1000",
+  "level": "CURRENT_LAYER_ORIGINAL_GATE_RAW_PMC",
+  "status": "ACTUAL_603_QUALIFIED_RAW_NOT_PERFORMANCE_GAIN",
+  "source_commit": "006246a75da5bde8e231a75bf80f09aa6893dc4a",
+  "actual_handle": "910376.603",
+  "post": "910376.604 KFD empty",
+  "all8_normal": true,
+  "audit_errors": 0,
+  "numeric_attempts": 1,
+  "raw_SHA256": "a2f474fe38a2e085c31a2c76f4c37fc03450a20fa949bea9ae26f4ec6f223aef",
+  "raw_bytes": 16713,
+  "records": [
+    {
+      "header": "dispatch[0], gpu-id(0), queue-id(3), queue-index(19700), pid(2394443), tid(2394443), grd(1048576), wgr(256), lds(0), scr(0), vgpr(40), sgpr(48), sig(0x0), kernel-name(\"_ZN12_GLOBAL__N_17gate_upEP13__nv_bfloat16S1_PKhPKfPKlS3_S5_S3_S5_mm\")",
+      "SQ_INSTS_VALU": 109002752,
+      "SQ_ACTIVE_INST_VALU": 109002752,
+      "SQ_INSTS_VMEM_RD": 3932160,
+      "SQ_INSTS_VMEM_WR": 32768,
+      "SQ_INSTS_LDS": 14155776,
+      "GRBM_GUI_ACTIVE": 1535907,
+      "GRBM_COUNT": 1535907,
+      "SQ_WAVES": null,
+      "SQ_LEVEL_WAVES": null,
+      "BeginNs": 2941487159815734,
+      "EndNs": 2941487160825173,
+      "TCC_instances": 32,
+      "TCC_HIT": 445372,
+      "TCC_MISS": 3150118,
+      "PMC_duration_ns": 1009439
+    },
+    {
+      "header": "dispatch[1], gpu-id(0), queue-id(3), queue-index(37513), pid(2394443), tid(2394443), grd(1048576), wgr(256), lds(0), scr(0), vgpr(40), sgpr(48), sig(0x0), kernel-name(\"_ZN12_GLOBAL__N_17gate_upEP13__nv_bfloat16S1_PKhPKfPKlS3_S5_S3_S5_mm\")",
+      "SQ_INSTS_VALU": 109002752,
+      "SQ_ACTIVE_INST_VALU": 109002752,
+      "SQ_INSTS_VMEM_RD": 3932160,
+      "SQ_INSTS_VMEM_WR": 32768,
+      "SQ_INSTS_LDS": 14155776,
+      "GRBM_GUI_ACTIVE": 1486543,
+      "GRBM_COUNT": 1486543,
+      "SQ_WAVES": null,
+      "SQ_LEVEL_WAVES": null,
+      "BeginNs": 2941488050127114,
+      "EndNs": 2941488051107593,
+      "TCC_instances": 32,
+      "TCC_HIT": 417775,
+      "TCC_MISS": 3148474,
+      "PMC_duration_ns": 980479
+    },
+    {
+      "header": "dispatch[2], gpu-id(0), queue-id(3), queue-index(55324), pid(2394443), tid(2394443), grd(1048576), wgr(256), lds(0), scr(0), vgpr(40), sgpr(48), sig(0x0), kernel-name(\"_ZN12_GLOBAL__N_17gate_upEP13__nv_bfloat16S1_PKhPKfPKlS3_S5_S3_S5_mm\")",
+      "SQ_INSTS_VALU": 109002752,
+      "SQ_ACTIVE_INST_VALU": 109002752,
+      "SQ_INSTS_VMEM_RD": 3932160,
+      "SQ_INSTS_VMEM_WR": 32768,
+      "SQ_INSTS_LDS": 14155776,
+      "GRBM_GUI_ACTIVE": 1488587,
+      "GRBM_COUNT": 1488587,
+      "SQ_WAVES": null,
+      "SQ_LEVEL_WAVES": null,
+      "BeginNs": 2941488924293244,
+      "EndNs": 2941488925275163,
+      "TCC_instances": 32,
+      "TCC_HIT": 418024,
+      "TCC_MISS": 3148467,
+      "PMC_duration_ns": 981919
+    }
+  ],
+  "limits": [
+    "Only rank0 original8528 gate_up, not down/wholeModel/capturedModelactivations",
+    "Instrumented duration is not ordinary performance",
+    "Raw32TCC counters not bytes/GBps or calibratedoccupancy; physicalpeak unknown"
+  ],
+  "observation_SHA256": "31723d2df7b7d046b678e4501305b5717037ec127e1ef97337fafff843160f84",
+  "source_analysis": {
+    "geometric_waves": 16384,
+    "per_geometric_wave": {
+      "VALU": 6653,
+      "VMEM_RD": 240,
+      "LDS": 864
+    },
+    "VALU_over_VMEM_RD": 27.720833333333335,
+    "source_explains_LDS": "48 quantization blocks * (6 take_gate cross-lane broadcasts + 2 reductions * 6 shfl_down) = 864 wave LDS-class instructions, matching raw864; LDS allocation is0, so this is cross-lane communication, not a shared-array footprint. SQ LDS class attribution is source/count correspondence, not independently disassembled opcode proof.",
+    "current_gate_source_SHA256": "be60adc1bd5dcf3bfcc43630edee59d85c7ba535bb256e575b47ae67367a940d",
+    "not_proven": [
+      "memory unit saturation",
+      "active wave occupancy",
+      "FP vs INT instruction split",
+      "measured byte traffic",
+      "unprofiled kernel bandwidth/compute utilization"
+    ],
+    "new_testable_candidate_not_authorized": "Read each original FP8 byte directly at original lane+{0,64} K positions instead of three packed16bitloads plus six cross-lane byte broadcasts. Preserve decode function/F32 tree/scales/route. Predicted remove288/864 shuffle-class instructions perwave, but increase VMEM read issue count; only one balanced exactquant wholelayer comparison can decide. This is not the parked decode-table/bitdecode/CTA-LDS route.",
+    "candidate_tradeoff": "Original3u16 loads/block plus2lane0scale reads =>240VMEM/wave. Direct6u8 loads/block plus2scales =>384 predictedVMEM/wave (+60%) while LDS864\u2192576(-33.3%); prediction only."
+  }
+}
