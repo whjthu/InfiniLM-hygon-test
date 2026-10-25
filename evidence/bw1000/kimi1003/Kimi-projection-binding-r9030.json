@@ -1,0 +1,4185 @@
+{
+  "files": {
+    "candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/layers/linear/linear.cpp": {
+      "SHA256": "07b4ed6fc6d21fb25b04ecfa09c3a89e98ac9f9fa73b607b192c2c0630858e89",
+      "text": "#include \"linear.hpp\"\n#include \"dense.hpp\"\n#include \"runtime/runtime.hpp\"\n#include <stdexcept>\n\nnamespace infinilm::nn {\n\nnamespace {\ninfinilm::runtime::Runtime &checked_row_runtime(infinilm::runtime::Runtime &runtime, infinilm::runtime::Size tp_size,\n                                                infinicclComm_t communicator) {\n    runtime.assertOwnerThread();\n    if (runtime.isGraphRecording()) {\n        throw std::logic_error(\"Row Linear construction requires eager Runtime\");\n    }\n    if (tp_size > 1 && !communicator) {\n        throw std::invalid_argument(\"Row Linear requires its TP communicator\");\n    }\n    return runtime;\n}\n} // namespace\nLinear::Linear(infinilm::runtime::Runtime &runtime, size_t in_features, size_t out_features, bool bias,\n               const infinilm::runtime::DataType &dtype,\n               std::optional<infinilm::runtime::DataType> output_dtype)\n    : BaseLinear(runtime, in_features, out_features,\n                 std::make_shared<infinilm::quantization::NoneQuantization>(nullptr, output_dtype),\n                 bias, dtype, -1, 0, 1) {\n}\n\nLinear::Linear(infinilm::runtime::Runtime &runtime, size_t in_features, size_t out_features,\n               std::shared_ptr<infinilm::quantization::BaseQuantization> quantization,\n               bool bias, const infinilm::runtime::DataType &dtype)\n    : BaseLinear(runtime, in_features, out_features, quantization, bias, dtype, -1, 0, 1) {\n}\n\nColumnParallelLinear::ColumnParallelLinear(infinilm::runtime::Runtime &runtime, size_t in_features, size_t out_features, bool bias,\n                                           const infinilm::runtime::DataType &dtype,\n                                           infinilm::runtime::Size tp_rank, infinilm::runtime::Size tp_size,\n                                           int tp_num_heads)\n    : BaseLinear(runtime, in_features, out_features,\n                 std::make_shared<infinilm::quantization::NoneQuantization>(nullptr),\n                 bias, dtype, 0, tp_rank, tp_size, tp_num_heads),\n      tp_rank_(tp_rank),\n      tp_size_(tp_size) {\n}\n\nColumnParallelLinear::ColumnParallelLinear(infinilm::runtime::Runtime &runtime, size_t in_features, size_t out_features,\n                                           std::shared_ptr<infinilm::quantization::BaseQuantization> quantization,\n                                           bool bias, const infinilm::runtime::DataType &dtype,\n                                           infinilm::runtime::Size tp_rank, infinilm::runtime::Size tp_size,\n                                           int tp_num_heads)\n    : BaseLinear(runtime, in_features, out_features, quantization, bias, dtype,\n                 0, tp_rank, tp_size, tp_num_heads),\n      tp_rank_(tp_rank),\n      tp_size_(tp_size) {\n}\n\nRowParallelLinear::RowParallelLinear(infinilm::runtime::Runtime &runtime, size_t in_features, size_t out_features, bool bias,\n                                     const infinilm::runtime::DataType &dtype,\n                                     infinilm::runtime::Size tp_rank, infinilm::runtime::Size tp_size,\n                                     infinicclComm_t communicator)\n    : BaseLinear(checked_row_runtime(runtime, tp_size, communicator), in_features, out_features,\n                 std::make_shared<infinilm::quantization::NoneQuantization>(nullptr),\n                 bias, dtype, 1, tp_rank, tp_size),\n      tp_rank_(tp_rank),\n      tp_size_(tp_size), communicator_(communicator) {\n}\n\nRowParallelLinear::RowParallelLinear(infinilm::runtime::Runtime &runtime, size_t in_features, size_t out_features,\n                                     std::shared_ptr<infinilm::quantization::BaseQuantization> quantization,\n                                     bool bias, const infinilm::runtime::DataType &dtype,\n                                     infinilm::runtime::Size tp_rank, infinilm::runtime::Size tp_size,\n                                     infinicclComm_t communicator)\n    : BaseLinear(checked_row_runtime(runtime, tp_size, communicator), in_features, out_features, quantization, bias, dtype,\n                 1, tp_rank, tp_size),\n      tp_rank_(tp_rank),\n      tp_size_(tp_size), communicator_(communicator) {\n}\n\n// ---- RowParallelLinear ----\n\ninfinilm::runtime::Tensor RowParallelLinear::forward(infinilm::runtime::Runtime &runtime, infinilm::runtime::Tensor &input) const {\n    if (tp_size_ > 1 && communicator_ != nullptr) {\n        return compute_linear_allreduce(runtime, input, communicator_);\n    }\n    return BaseLinear::forward(runtime, input);\n}\n\n} // namespace infinilm::nn\n\nnamespace infinilm::layers::linear {\n\nstd::optional<infinilm::runtime::DataType> prepare_lm_head_output_dtype(\n    const infinilm::runtime::Device &device, infinilm::runtime::DataType weight_dtype,\n    std::optional<infinilm::runtime::DataType> requested_output_dtype) {\n    if (!requested_output_dtype.has_value()) {\n        return std::nullopt;\n    }\n    if (*requested_output_dtype != infinilm::runtime::DataType::kFloat32\n        || weight_dtype != infinilm::runtime::DataType::kBFloat16) {\n        throw std::invalid_argument(\n            \"lm_head_output_dtype requires float32 output and bfloat16 weights\");\n    }\n    // Share the literal Linear contract; this does not probe or choose a provider.\n    (void)infinilm::layers::linear::resolve_output_dtype(\n        device, weight_dtype, weight_dtype, false, requested_output_dtype);\n    return requested_output_dtype;\n}\n\n} // namespace infinilm::layers::linear\n"
+    },
+    "candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/layers/linear/linear.hpp": {
+      "SHA256": "811cc1c0ed04c9e045b7e7fe88dec7c28c79f79767d1656acb0ffdab6f646310",
+      "text": "#pragma once\n\n#include \"../../weights/weights.hpp\"\n#include \"../quantization/quantization.hpp\"\n#include \"base_linear.hpp\"\n#include <infiniccl/infiniccl.h>\n#include <optional>\n\nnamespace infinilm::nn {\n\nclass Linear : public BaseLinear {\npublic:\n    // Runtime-first supply; output dtype defaults to the parameter dtype.\n    Linear(infinilm::runtime::Runtime &runtime, size_t in_features, size_t out_features, bool bias,\n           const infinilm::runtime::DataType &dtype = infinilm::runtime::DataType::kFloat32,\n           std::optional<infinilm::runtime::DataType> output_dtype = std::nullopt);\n\n    Linear(infinilm::runtime::Runtime &runtime, size_t in_features, size_t out_features,\n           std::shared_ptr<infinilm::quantization::BaseQuantization> quantization,\n           bool bias = true,\n           const infinilm::runtime::DataType &dtype = infinilm::runtime::DataType::kFloat32);\n};\n\nclass ColumnParallelLinear : public BaseLinear {\npublic:\n    // Runtime-first supply.\n    ColumnParallelLinear(infinilm::runtime::Runtime &runtime, size_t in_features, size_t out_features, bool bias,\n                         const infinilm::runtime::DataType &dtype,\n                         infinilm::runtime::Size tp_rank = 0, infinilm::runtime::Size tp_size = 1,\n                         int tp_num_heads = -1);\n\n    ColumnParallelLinear(infinilm::runtime::Runtime &runtime, size_t in_features, size_t out_features,\n                         std::shared_ptr<infinilm::quantization::BaseQuantization> quantization,\n                         bool bias = true,\n                         const infinilm::runtime::DataType &dtype = infinilm::runtime::DataType::kFloat32,\n                         infinilm::runtime::Size tp_rank = 0, infinilm::runtime::Size tp_size = 1,\n                         int tp_num_heads = -1);\n\nprotected:\n    infinilm::runtime::Size tp_rank_ = 0;\n    infinilm::runtime::Size tp_size_ = 1;\n};\n\nclass RowParallelLinear : public BaseLinear {\npublic:\n    // Runtime-first supply.\n    RowParallelLinear(infinilm::runtime::Runtime &runtime, size_t in_features, size_t out_features, bool bias,\n                      const infinilm::runtime::DataType &dtype,\n                      infinilm::runtime::Size tp_rank = 0, infinilm::runtime::Size tp_size = 1,\n                      infinicclComm_t communicator = nullptr);\n\n    RowParallelLinear(infinilm::runtime::Runtime &runtime, size_t in_features, size_t out_features,\n                      std::shared_ptr<infinilm::quantization::BaseQuantization> quantization,\n                      bool bias = true,\n                      const infinilm::runtime::DataType &dtype = infinilm::runtime::DataType::kFloat32,\n                      infinilm::runtime::Size tp_rank = 0, infinilm::runtime::Size tp_size = 1,\n                      infinicclComm_t communicator = nullptr);\n\n    infinilm::runtime::Tensor forward(infinilm::runtime::Runtime &runtime, infinilm::runtime::Tensor &input) const;\n\nprotected:\n    infinilm::runtime::Size tp_rank_ = 0;\n    infinilm::runtime::Size tp_size_ = 1;\n    infinicclComm_t communicator_;\n};\n\n} // namespace infinilm::nn\n\n#include \"fused_linear.hpp\"\n\nnamespace infinilm::layers::linear {\n\n// Pure metadata preparation for an explicit final dense-head request.\n// Absence preserves the existing platform/dtype behavior; no provider is selected here.\nstd::optional<infinilm::runtime::DataType> prepare_lm_head_output_dtype(\n    const infinilm::runtime::Device &device, infinilm::runtime::DataType weight_dtype,\n    std::optional<infinilm::runtime::DataType> requested_output_dtype);\n\nusing ReplicatedLinear = infinilm::nn::Linear;\nusing ColumnParallelLinear = infinilm::nn::ColumnParallelLinear;\nusing RowParallelLinear = infinilm::nn::RowParallelLinear;\nusing BaseLinear = infinilm::nn::BaseLinear;\n\n} // namespace infinilm::layers::linear\n"
+    },
+    "candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/layers/linear/base_linear.cpp": {
+      "SHA256": "5bd430bdf3a42a285ecbca531295bfb74a049a49334a341981d33156ff710806",
+      "text": "#include \"base_linear.hpp\"\n#include \"../../weights/weights.hpp\"\n#include \"../quantization/w4_marlin_adapter.hpp\"\n#include \"dense.hpp\"\n#include \"execution/submit.hpp\"\n#include \"runtime/runtime.hpp\"\n#include <climits>\n#include <exception>\n#include <spdlog/spdlog.h>\n\nnamespace infinilm::nn {\n\nnamespace {\n\ninfinilm::runtime::DataType dense_output_dtype(\n    const std::shared_ptr<infinilm::quantization::BaseQuantization> &quantization,\n    const infinilm::runtime::Device &device, infinilm::runtime::DataType dtype, bool bias) {\n    if (!quantization) {\n        throw std::invalid_argument(\"Linear quantization must be nonnull\");\n    }\n    if (quantization->get_quant_scheme() != infinilm::quantization::QuantScheme::NONE) {\n        return dtype;\n    }\n    // Checked once at construction, never in a forward or parameter binding.\n    const auto dense = std::dynamic_pointer_cast<const infinilm::quantization::NoneQuantization>(quantization);\n    if (!dense) {\n        throw std::invalid_argument(\"NONE execution must be a dense binding\");\n    }\n    return infinilm::layers::linear::resolve_output_dtype(\n        device, dtype, dtype, bias, dense->output_dtype());\n}\n\n} // namespace\n\nBaseLinear::BaseLinear(infinilm::runtime::Runtime &runtime, size_t in_features, size_t out_features,\n                       std::shared_ptr<infinilm::quantization::BaseQuantization> quantization,\n                       bool bias, const infinilm::runtime::DataType &dtype,\n                       int split_dim, int tp_rank, int tp_size, int tp_num_heads)\n    : in_features_(in_features), out_features_(out_features), has_bias_(bias), dtype_(dtype),\n      output_dtype_(dense_output_dtype(quantization, runtime.device(), dtype, bias)),\n      split_dim_(split_dim), loading_tp_rank_(tp_rank), loading_tp_size_(tp_size),\n      quantization_(std::move(quantization)) {\n    runtime.assertOwnerThread();\n    if (runtime.isGraphRecording()) {\n        throw std::logic_error(\"Linear construction requires eager Runtime\");\n    }\n    if (!in_features || !out_features || !quantization_ || split_dim < -1 || split_dim > 1\n        || tp_size <= 0 || tp_rank < 0 || tp_rank >= tp_size || tp_num_heads < -1) {\n        throw std::invalid_argument(\"Invalid explicit Linear construction geometry\");\n    }\n    device_ = runtime.device();\n    const auto layout = quantization_->get_param_layout(\n        in_features, out_features, split_dim, tp_rank, tp_size, tp_num_heads, dtype, bias);\n    // Validate the entire layout before its first Parameter allocation.\n    for (const auto &desc : layout) {\n        if (desc.tp_size <= 0 || desc.tp_rank < 0 || desc.tp_rank >= desc.tp_size || desc.tp_num_heads < -1\n            || desc.split_dim < -1 || (desc.split_dim >= 0 && static_cast<size_t>(desc.split_dim) >= desc.shape.size())) {\n            throw std::invalid_argument(\"Invalid explicit Linear parameter TP geometry\");\n        }\n        const auto shards = desc.tp_num_heads > 0 ? desc.tp_num_heads : desc.tp_size;\n        if (desc.tp_size > 1 && desc.split_dim < desc.shape.size()\n            && desc.shape[desc.split_dim] % shards != 0) {\n            throw std::invalid_argument(\"Explicit Linear parameter partition is not divisible\");\n        }\n    }\n    infinilm::weights::Weight pending;\n    try {\n        for (const auto &desc : layout) {\n            pending = infinilm::weights::Weight(runtime, desc.shape, desc.dtype,\n                                                desc.split_dim, desc.tp_rank, desc.tp_size,\n                                                desc.tp_num_heads >= 0 ? desc.tp_num_heads : 0);\n            this->bind_weight(desc.name, pending);\n        }\n        bound_params_.reserve(local_weights_.size());\n        for (const auto &[name, param] : local_weights_) {\n            bound_params_.emplace(name, static_cast<const infinilm::runtime::Tensor &>(param));\n        }\n    } catch (...) {\n        const auto failure = std::current_exception();\n        try {\n            runtime.syncStream();\n        } catch (...) { std::terminate(); }\n        std::rethrow_exception(failure);\n    }\n}\n\ninfinilm::runtime::Tensor BaseLinear::compute_linear(infinilm::runtime::Runtime &runtime, infinilm::runtime::Tensor &input) const {\n    runtime.assertOwnerThread();\n    if (infinilm::quantization::is_w4(quantization_->get_quant_scheme())) {\n        if (!w4_execution_) {\n            throw std::logic_error(\"W4 layer has no published explicit Runtime binding\");\n        }\n        return w4_execution_->forward(runtime, input, has_bias_, alpha_);\n    }\n    return quantization_->forward(runtime, bound_params_, input, has_bias_, alpha_);\n}\n\ninfinilm::runtime::Tensor BaseLinear::compute_linear_allreduce(\n    infinilm::runtime::Runtime &runtime,\n    infinilm::runtime::Tensor &input,\n    infinicclComm_t communicator) const {\n    runtime.assertOwnerThread();\n    if (output_dtype_ != dtype_) {\n        throw std::invalid_argument(\"mixed dense output is not qualified for allreduce\");\n    }\n    if (infinilm::quantization::is_w4(quantization_->get_quant_scheme())) {\n        if (!w4_execution_) {\n            throw std::logic_error(\"W4 layer has no published explicit Runtime binding\");\n        }\n        return w4_execution_->forward_allreduce(runtime, input, has_bias_, communicator, alpha_);\n    }\n    return quantization_->forward_allreduce(\n        runtime, bound_params_, input, has_bias_, communicator, alpha_);\n}\n\ninfinilm::runtime::Tensor BaseLinear::forward(infinilm::runtime::Runtime &runtime, infinilm::runtime::Tensor &input) const {\n    return compute_linear(runtime, input);\n}\n\ninfinilm::runtime::Tensor BaseLinear::forward(infinilm::runtime::Runtime &runtime, infinilm::runtime::Tensor &input,\n                                              infinilm::runtime::Tensor &residual) const {\n    runtime.assertOwnerThread();\n    if (output_dtype_ != dtype_) {\n        throw std::invalid_argument(\"mixed dense output is not qualified for residual addition\");\n    }\n    if (infinilm::quantization::is_w4(quantization_->get_quant_scheme())) {\n        runtime.assertOwnerThread();\n        infinilm::runtime::Tensor output;\n        try {\n            output = compute_linear(runtime, input);\n            infinilm::execution::submit<infini::ops::Add>(\n                runtime, infini::ops::Add::DefaultConfig(runtime.device().type()), output, residual, output);\n            INFINILM_TRACE_OP(Add, output);\n            return output;\n        } catch (...) {\n            infinilm::quantization::w4_detail::drain_or_terminate(runtime);\n            throw;\n        }\n    }\n    auto output = compute_linear(runtime, input);\n    infinilm::execution::submit<infini::ops::Add>(\n        runtime, infini::ops::Add::DefaultConfig(runtime.device().type()), output, residual, output);\n    INFINILM_TRACE_OP(Add, output);\n    return output;\n}\n\nvoid BaseLinear::validate_awq_metadata(infinilm::runtime::Runtime &runtime) const {\n    runtime.assertOwnerThread();\n    if (quantization_->get_quant_scheme() != infinilm::quantization::QuantScheme::AWQ_W4A16) {\n        throw std::invalid_argument(\"AWQ preflight requires an AWQ layer\");\n    }\n    if (has_bias_ && (!bound_params_.count(\"bias\") || !bound_params_.at(\"bias\"))) {\n        throw std::invalid_argument(\"AWQ layer requires its bias\");\n    }\n    const auto &config = quantization_->get_config();\n    if (!config.is_object() || config.at(\"quant_method\") != \"awq\") {\n        throw std::invalid_argument(\"AWQ preflight config differs from layer scheme\");\n    }\n    (void)infinilm::quantization::w4_detail::validate_metadata(runtime, bound_params_, config, split_dim_, false);\n}\n\nbool BaseLinear::retained_gptq_scale_table() const {\n    const auto &config = quantization_->get_config();\n    const bool desc = config.value(\"desc_act\", false);\n    if (!desc) {\n        return false;\n    }\n    if (loading_tp_size_ <= 0 || loading_tp_rank_ < 0 || loading_tp_rank_ >= loading_tp_size_ || (split_dim_ == 1 && in_features_ % size_t(loading_tp_size_))) {\n        throw std::invalid_argument(\"GPTQ constructor TP geometry is invalid\");\n    }\n    const size_t local_k = split_dim_ == 1 ? in_features_ / size_t(loading_tp_size_) : in_features_;\n    const auto qw = bound_params_.at(\"qweight\");\n    const auto scales = bound_params_.at(\"scales\");\n    const auto zeros = bound_params_.at(\"qzeros\");\n    const auto ids = bound_params_.at(\"g_idx\");\n    const int group = config.value(\"group_size\", config.value(\"q_group_size\", 128));\n    if (!qw || qw->ndim() != 2 || local_k % 8 || qw->size(0) != local_k / 8 || !ids || ids->shape() != infinilm::runtime::Shape{local_k} || (group != -1 && (group <= 0 || in_features_ % size_t(group)))) {\n        throw std::invalid_argument(\"GPTQ desc_act packed K/group geometry differs from constructor\");\n    }\n    const size_t global_groups = group == -1 ? 1 : in_features_ / size_t(group);\n    const size_t n = qw->size(1);\n    if (!scales || scales->shape() != infinilm::runtime::Shape{global_groups, n} || !zeros || n % 8 || zeros->shape() != infinilm::runtime::Shape{global_groups, n / 8}) {\n        throw std::invalid_argument(\"GPTQ desc_act requires constructor-sized retained scale and zero tables\");\n    }\n    return local_k != in_features_;\n}\n\nstd::optional<int64_t> BaseLinear::validate_gptq_metadata(\n    infinilm::runtime::Runtime &runtime) const {\n    runtime.assertOwnerThread();\n    if (quantization_->get_quant_scheme() != infinilm::quantization::QuantScheme::GPTQ_W4A16) {\n        throw std::invalid_argument(\"GPTQ preflight requires a GPTQ layer\");\n    }\n    if (has_bias_ && (!bound_params_.count(\"bias\") || !bound_params_.at(\"bias\"))) {\n        throw std::invalid_argument(\"GPTQ layer requires its bias\");\n    }\n    const auto &config = quantization_->get_config();\n    if (!config.is_object() || config.at(\"quant_method\") != \"gptq\") {\n        throw std::invalid_argument(\"GPTQ preflight config differs from layer scheme\");\n    }\n    const auto metadata = infinilm::quantization::w4_detail::validate_metadata(\n        runtime, bound_params_, config, split_dim_, retained_gptq_scale_table());\n    if (metadata.desc) {\n        return std::nullopt; // g_idx bounds/cardinality are checked against the proven table during prepare\n    }\n    size_t local_k = in_features_, expected = 0;\n    if (split_dim_ == 1) {\n        if (loading_tp_size_ <= 0 || loading_tp_rank_ < 0 || loading_tp_rank_ >= loading_tp_size_ || in_features_ % size_t(loading_tp_size_)) {\n            throw std::invalid_argument(\"GPTQ constructor row TP geometry is invalid\");\n        }\n        local_k = in_features_ / size_t(loading_tp_size_);\n        if (local_k != metadata.k) {\n            throw std::invalid_argument(\"GPTQ constructor local K differs from packed checkpoint\");\n        }\n        if (metadata.group > 0) {\n            if (local_k % size_t(metadata.group)) {\n                throw std::invalid_argument(\"GPTQ constructor row TP shard crosses group boundary\");\n            }\n            const size_t local_groups = local_k / size_t(metadata.group);\n            if (local_groups > size_t(INT32_MAX) || size_t(loading_tp_rank_) > size_t(INT32_MAX) / local_groups) {\n                throw std::invalid_argument(\"GPTQ constructor group offset overflows int32\");\n            }\n            expected = size_t(loading_tp_rank_) * local_groups;\n        }\n    }\n    if (local_k != metadata.k) {\n        throw std::invalid_argument(\"GPTQ constructor local K differs from packed checkpoint\");\n    }\n    const size_t tail = metadata.group == -1 ? 0 : (local_k / size_t(metadata.group) - 1);\n    if (expected > size_t(INT32_MAX) || tail > size_t(INT32_MAX) - expected) {\n        throw std::invalid_argument(\"GPTQ constructor canonical group tail overflows int32\");\n    }\n    return int64_t(expected);\n}\n\nstd::shared_ptr<const infinilm::quantization::W4Execution> BaseLinear::prepare_w4_after_loading(\n    infinilm::runtime::Runtime &runtime) {\n    runtime.assertOwnerThread();\n    if (!infinilm::quantization::is_w4(quantization_->get_quant_scheme())) {\n        throw std::logic_error(\"explicit W4 preparation requires AWQ/GPTQ layer\");\n    }\n    if (w4_prepared_ || w4_execution_) {\n        throw std::logic_error(\"W4 layer preparation is single-use\");\n    }\n    if (quantization_->get_quant_scheme() == infinilm::quantization::QuantScheme::AWQ_W4A16) {\n        validate_awq_metadata(runtime); // same pure predicate, never trust a prior ACK\n    }\n    std::optional<int64_t> expected_non_desc_group_offset;\n    if (quantization_->get_quant_scheme() == infinilm::quantization::QuantScheme::GPTQ_W4A16) {\n        expected_non_desc_group_offset = validate_gptq_metadata(runtime);\n    }\n    auto candidate = quantization_->prepare_w4_after_loading(\n        runtime, bound_params_, split_dim_,\n        quantization_->get_quant_scheme() == infinilm::quantization::QuantScheme::GPTQ_W4A16 && retained_gptq_scale_table(),\n        expected_non_desc_group_offset);\n    w4_staged_identity_ = candidate;\n    w4_prepared_ = true; // only after every validation, allocation, map copy and final drain succeeded\n    return candidate;\n}\n\nvoid BaseLinear::publish_w4_after_loading(\n    std::shared_ptr<const infinilm::quantization::W4Execution> candidate) noexcept {\n    // Calling with null/mismatched/reused candidate is a violated commit contract,\n    // never a silent Ready publication. This function does no allocation/work.\n    if (!w4_prepared_ || w4_execution_ || !candidate || w4_staged_identity_.lock() != candidate) {\n        std::terminate();\n    }\n    w4_execution_.swap(candidate);\n    w4_staged_identity_.reset();\n}\n\nvoid BaseLinear::process_weights_after_loading(infinilm::runtime::Runtime &runtime, bool pre_transpose) {\n    runtime.assertOwnerThread();\n    if (runtime.device() != device_) {\n        throw std::invalid_argument(\"postload Runtime and Linear devices differ\");\n    }\n    if (infinilm::quantization::is_w4(quantization_->get_quant_scheme())) {\n        throw std::logic_error(\"W4 requires explicit Runtime stage/publish; recursive no-arg finalize is not supported\");\n    }\n    if (pre_transpose && runtime.graphCaptureState() != infinilm::execution::graph::GraphManager::CaptureState::kInactive) {\n        throw std::logic_error(\"dense pre_transpose requires inactive graph state\");\n    }\n    if (typed_postload_started_) {\n        throw std::logic_error(\"typed Linear postload is single-use\");\n    }\n    // All old/new bindings stay live through completion proof on every failure.\n    auto old_parameters = local_weights_;\n    auto old_bound = bound_params_;\n    auto old_quant = quantization_;\n    auto params = bound_params_;\n    decltype(local_weights_) prepared_parameters;\n    std::shared_ptr<infinilm::quantization::BaseQuantization> new_quant;\n    try {\n        // A throwing quantization hook cannot be retried on a partially changed\n        // object. Worker failure still owns the model-wide not-Ready decision.\n        typed_postload_started_ = true;\n        new_quant = quantization_->process_weights_after_loading(runtime, params, pre_transpose, split_dim_);\n        if (!new_quant) {\n            return;\n        }\n        prepared_parameters.reserve(params.size());\n        for (const auto &[name, tensor] : params) {\n            prepared_parameters.emplace(name, infinilm::weights::Weight(tensor));\n        }\n        // Same allocator, nonthrowing swaps: never publish a half-empty parameter map.\n        local_weights_.swap(prepared_parameters);\n        bound_params_.swap(params);\n        quantization_.swap(new_quant);\n    } catch (...) {\n        const auto failure = std::current_exception();\n        try {\n            runtime.syncStream();\n        } catch (...) { std::terminate(); }\n        std::rethrow_exception(failure);\n    }\n}\n\n// Backward compatible accessors\n\ninfinilm::runtime::Tensor BaseLinear::weight() const {\n    auto it = local_weights_.find(\"weight\");\n    if (it != local_weights_.end()) {\n        return it->second;\n    }\n    it = local_weights_.find(\"qweight\");\n    if (it != local_weights_.end()) {\n        return it->second;\n    }\n    return infinilm::runtime::Tensor();\n}\n\ninfinilm::runtime::Tensor BaseLinear::bias() const {\n    auto it = local_weights_.find(\"bias\");\n    if (it != local_weights_.end()) {\n        return it->second;\n    }\n    return infinilm::runtime::Tensor();\n}\n\nconst infinilm::weights::Weight &BaseLinear::get_parameter_ref(const std::string &name) const {\n    return local_weights_.at(name);\n}\n\nstd::vector<infinilm::quantization::SplitParam> BaseLinear::split_params(\n    const std::vector<infinilm::quantization::SplitInfo> &splits,\n    int tp_rank, int tp_size, int tp_num_heads) const {\n    if (w4_prepared_ || w4_execution_) {\n        throw std::logic_error(\"W4 fused raw slicing must precede explicit preparation\");\n    }\n    return quantization_->split_params(\n        local_weights_, splits, split_dim_, tp_rank, tp_size, tp_num_heads);\n}\n\n} // namespace infinilm::nn\n"
+    },
+    "candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/layers/linear/base_linear.hpp": {
+      "SHA256": "cc4d6e0c8bfbc24dc3f588ce20c2d3a8df28a5b66a2d0e9d1cab26f1fc5c2029",
+      "text": "#pragma once\n\n#include \"../../weights/weights.hpp\"\n#include \"../quantization/quantization.hpp\"\n#include \"../quantization/w4_execution.hpp\"\n#include <infiniccl/infiniccl.h>\n#include <optional>\n\nnamespace infinilm::nn {\n\nusing infinilm::weights::Weight;\n\nclass BaseLinear : public infinilm::weights::ModelWeights {\nprotected:\n    infinilm::runtime::Device device_;\n\npublic:\n    // Runtime-first supply.\n    BaseLinear(infinilm::runtime::Runtime &runtime, size_t in_features, size_t out_features,\n               std::shared_ptr<infinilm::quantization::BaseQuantization> quantization = std::make_shared<infinilm::quantization::NoneQuantization>(nullptr),\n               bool bias = true,\n               const infinilm::runtime::DataType &dtype = infinilm::runtime::DataType::kFloat32,\n               int split_dim = -1, int tp_rank = 0, int tp_size = 1,\n               int tp_num_heads = -1);\n\n    // Forward pass: output = input @ weight.T + bias\n    infinilm::runtime::Tensor forward(infinilm::runtime::Runtime &runtime, infinilm::runtime::Tensor &input) const;\n\n    // Forward pass with residual connection\n    infinilm::runtime::Tensor forward(infinilm::runtime::Runtime &runtime, infinilm::runtime::Tensor &input,\n                                      infinilm::runtime::Tensor &residual) const;\n\n    // Module information\n    size_t in_features() const { return in_features_; }\n    size_t out_features() const { return out_features_; }\n    bool has_bias() const { return has_bias_; }\n    infinilm::runtime::DataType dtype() const { return dtype_; }\n    infinilm::runtime::DataType output_dtype() const { return output_dtype_; }\n    float alpha() const { return alpha_; }\n    void set_alpha(float alpha) { alpha_ = alpha; }\n\n    // Accessors for parameters (backward compatible)\n    infinilm::runtime::Tensor weight() const;\n    infinilm::runtime::Tensor bias() const;\n\n    std::shared_ptr<infinilm::quantization::BaseQuantization> get_quantization() const { return quantization_; }\n    void process_weights_after_loading(infinilm::runtime::Runtime &runtime, bool pre_transpose) override;\n    void validate_awq_metadata(infinilm::runtime::Runtime &runtime) const;\n    // Pure checkpoint metadata + constructor geometry, never device-value readback.\n    std::optional<int64_t> validate_gptq_metadata(\n        infinilm::runtime::Runtime &runtime) const;\n    // Loading-only stage; raw Parameter registrations and published binding stay\n    // unchanged until publish. Caller must complete raw TP/fused loading first.\n    std::shared_ptr<const infinilm::quantization::W4Execution> prepare_w4_after_loading(\n        infinilm::runtime::Runtime &runtime);\n    // Precondition: nonnull candidate returned by this layer's successful prepare;\n    // model/worker must be quiescent.\n    void publish_w4_after_loading(std::shared_ptr<const infinilm::quantization::W4Execution> candidate) noexcept;\n\n    // Split fused linear parameters into named sub-parameters\n    std::vector<infinilm::quantization::SplitParam> split_params(\n        const std::vector<infinilm::quantization::SplitInfo> &splits,\n        int tp_rank, int tp_size, int tp_num_heads) const;\n\n    // Allow subclasses to access the raw parameters map\n    const infinilm::weights::Weight &get_parameter_ref(const std::string &name) const;\n\nprotected:\n    infinilm::runtime::Tensor compute_linear(infinilm::runtime::Runtime &runtime, infinilm::runtime::Tensor &input) const;\n    infinilm::runtime::Tensor compute_linear_allreduce(\n        infinilm::runtime::Runtime &runtime, infinilm::runtime::Tensor &input, infinicclComm_t communicator) const;\n\n    bool retained_gptq_scale_table() const;\n    size_t in_features_;\n    size_t out_features_;\n    bool has_bias_;\n    infinilm::runtime::DataType dtype_;\n    const infinilm::runtime::DataType output_dtype_;\n    int split_dim_ = -1;\n    const int loading_tp_rank_;\n    const int loading_tp_size_;\n    float alpha_ = 1.0f;\n    std::shared_ptr<infinilm::quantization::BaseQuantization> quantization_;\n    // Bound once at construction and refreshed after post-load repacking.\n    // The Tensor handles share the parameter storage while weights are loaded.\n    infinilm::quantization::ParamsMap bound_params_;\n    std::shared_ptr<const infinilm::quantization::W4Execution> w4_execution_;\n    std::weak_ptr<const infinilm::quantization::W4Execution> w4_staged_identity_;\n    bool w4_prepared_ = false; // successful prepare is single-use, not a model Ready state\n    // Typed loading is one attempt, including a successful no-op. This is not\n    // Ready: a failed transformation may have mutated shared quantization state.\n    bool typed_postload_started_ = false;\n};\n\n} // namespace infinilm::nn\n"
+    },
+    "candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/layers/linear/dense_prefill_f32_r2475.hpp": {
+      "SHA256": "4fecfa4e4586991690d426dc3a80e9a57dc134bb5b574c46cb01fbc1e786d147",
+      "text": "#pragma once\n#include \"../../execution/submit.hpp\"\n#include <cstddef>\n#include <cstdint>\n\nnamespace infinilm::layers::linear {\n// Explicit opt-in numerical candidate. The predicate rejects graph recording\n// before any candidate allocation or submission. Decode rows stay on baseline.\nbool use_dense_prefill_f32_r2475(\n    infinilm::runtime::Runtime &runtime,\n    const infinilm::runtime::Tensor &input,\n    const infinilm::runtime::Tensor &weight,\n    infinilm::runtime::DataType output_dtype);\n\n// Matrix views [M,K] * [K,N] -> [M,N], all BF16. Returns the owned FP32\n// temporary for independent diagnostics; production callers may discard it.\ninfinilm::runtime::Tensor dense_prefill_f32_r2475(\n    infinilm::runtime::Runtime &runtime,\n    const infinilm::runtime::Tensor &input,\n    const infinilm::runtime::Tensor &weight,\n    const infinilm::runtime::Tensor &output, float alpha);\n}\nextern \"C\" int modern_dense_prefill_stats_r2475(\n    int device, std::uint64_t *out, std::size_t count);\n"
+    }
+  },
+  "qkv_fixture_manifest": {
+    "revision": 8544,
+    "created_utc": "2026-10-24T00:11:53.034758+00:00",
+    "scope": "CPU-only actual operand preparation; no GPU/model/dlopen",
+    "cases": [
+      {
+        "label": "Oconfirm",
+        "rank": 0,
+        "job_seq": 0,
+        "pasts": [
+          0
+        ],
+        "packed_offsets": [
+          0,
+          512
+        ],
+        "points": {
+          "input": {
+            "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Kimi-missing-detail-r8533-missing8533-52e1933fdb52546d/Oconfirm/stage0/job0/stage0-rank0-layer0-kda-call0-input-raw.bin",
+            "SHA256": "e15c9b8f8b00f8650d957caefb1a7fa8782dd0839cbe7d13500c06ca3b7e164b",
+            "record": {
+              "bytes": 7340032,
+              "call": 0,
+              "dtype": "bf16",
+              "file": "stage0-rank0-layer0-kda-call0-input-raw.bin",
+              "fnv1a64": "10266292829185527066",
+              "layer": 0,
+              "nonfinite": 0,
+              "point": "input",
+              "rank": 0,
+              "shape": [
+                1,
+                512,
+                7168
+              ],
+              "source_layout": {
+                "shape": [
+                  1,
+                  512,
+                  7168
+                ],
+                "strides": [
+                  3670016,
+                  7168,
+                  1
+                ]
+              },
+              "stage": 0
+            }
+          },
+          "qkv_projected": {
+            "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Kimi-missing-detail-r8533-missing8533-52e1933fdb52546d/Oconfirm/stage0/job0/stage0-rank0-layer0-kda-call0-qkv_projected-raw.bin",
+            "SHA256": "6cc5507c5719b46f6d836fa64d29d47779d2d2a6ce6cb366ad19635801fff2ea",
+            "record": {
+              "bytes": 4718592,
+              "call": 0,
+              "dtype": "bf16",
+              "file": "stage0-rank0-layer0-kda-call0-qkv_projected-raw.bin",
+              "fnv1a64": "3059169209758487512",
+              "layer": 0,
+              "nonfinite": 0,
+              "point": "qkv_projected",
+              "rank": 0,
+              "shape": [
+                1,
+                512,
+                4608
+              ],
+              "source_layout": {
+                "shape": [
+                  1,
+                  512,
+                  4608
+                ],
+                "strides": [
+                  2359296,
+                  4608,
+                  1
+                ]
+              },
+              "stage": 0
+            }
+          }
+        }
+      },
+      {
+        "label": "Wmissing",
+        "rank": 0,
+        "job_seq": 0,
+        "pasts": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "packed_offsets": [
+          0,
+          512,
+          1024,
+          1536,
+          2048
+        ],
+        "points": {
+          "input": {
+            "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Kimi-missing-detail-r8533-missing8533-52e1933fdb52546d/Wmissing/stage0/job0/stage0-rank0-layer0-kda-call0-input-raw.bin",
+            "SHA256": "196223b0f7f11cd7a1ba7eb429b10b2a6cfff79b6e409d4db920bc1235a9d05b",
+            "record": {
+              "bytes": 29360128,
+              "call": 0,
+              "dtype": "bf16",
+              "file": "stage0-rank0-layer0-kda-call0-input-raw.bin",
+              "fnv1a64": "17544154124558304173",
+              "layer": 0,
+              "nonfinite": 0,
+              "point": "input",
+              "rank": 0,
+              "shape": [
+                1,
+                2048,
+                7168
+              ],
+              "source_layout": {
+                "shape": [
+                  1,
+                  2048,
+                  7168
+                ],
+                "strides": [
+                  14680064,
+                  7168,
+                  1
+                ]
+              },
+              "stage": 0
+            }
+          },
+          "qkv_projected": {
+            "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Kimi-missing-detail-r8533-missing8533-52e1933fdb52546d/Wmissing/stage0/job0/stage0-rank0-layer0-kda-call0-qkv_projected-raw.bin",
+            "SHA256": "10f7169f0081fe5a34a7b49920b9b9ef1679256321431ac63ad53bc27c0b9a53",
+            "record": {
+              "bytes": 18874368,
+              "call": 0,
+              "dtype": "bf16",
+              "file": "stage0-rank0-layer0-kda-call0-qkv_projected-raw.bin",
+              "fnv1a64": "11899959711175923909",
+              "layer": 0,
+              "nonfinite": 0,
+              "point": "qkv_projected",
+              "rank": 0,
+              "shape": [
+                1,
+                2048,
+                4608
+              ],
+              "source_layout": {
+                "shape": [
+                  1,
+                  2048,
+                  4608
+                ],
+                "strides": [
+                  9437184,
+                  4608,
+                  1
+                ]
+              },
+              "stage": 0
+            }
+          }
+        }
+      }
+    ],
+    "weight": {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/Kimi-qkv-component-r8544/rank0-qkv-bf16-contiguous.bin",
+      "bytes": 66060288,
+      "shape": [
+        4608,
+        7168
+      ],
+      "strides": [
+        7168,
+        1
+      ],
+      "packed_GEMM_shape": [
+        7168,
+        4608
+      ],
+      "packed_GEMM_strides": [
+        1,
+        7168
+      ],
+      "dtype": "bf16",
+      "SHA256": "83a380fdcdb0aeec37f52063da686d92e9e74e881ee606692eb2dcb4a4d02c06",
+      "keys": [
+        {
+          "key": "language_model.model.layers.0.self_attn.q_proj.weight",
+          "source": "/public/home/aclsylqidf/shared/Kimi-K3/model-00001-of-000096.safetensors",
+          "metadata": {
+            "dtype": "BF16",
+            "shape": [
+              12288,
+              7168
+            ],
+            "data_offsets": [
+              1988891648,
+              2165052416
+            ]
+          },
+          "header_SHA256": "bfd47268eb1556d004cc0d8a8ce63935a73e812c87333cfa56d46312b1c692c8",
+          "file_byte_range": [
+            1988894576,
+            2010914672
+          ],
+          "source_rank": 0,
+          "tp_size": 8,
+          "selected_shape": [
+            1536,
+            7168
+          ],
+          "selected_SHA256": "828b7f893359cc8f52c3d15bcc8d698003f6be3811c1a23ff908119e1cf8d57e"
+        },
+        {
+          "key": "language_model.model.layers.0.self_attn.k_proj.weight",
+          "source": "/public/home/aclsylqidf/shared/Kimi-K3/model-00001-of-000096.safetensors",
+          "metadata": {
+            "dtype": "BF16",
+            "shape": [
+              12288,
+              7168
+            ],
+            "data_offsets": [
+              1636570112,
+              1812730880
+            ]
+          },
+          "header_SHA256": "bfd47268eb1556d004cc0d8a8ce63935a73e812c87333cfa56d46312b1c692c8",
+          "file_byte_range": [
+            1636573040,
+            1658593136
+          ],
+          "source_rank": 0,
+          "tp_size": 8,
+          "selected_shape": [
+            1536,
+            7168
+          ],
+          "selected_SHA256": "64812f104139bf30fa4f5933836c5ee4cabe455b9b644cf17c5e1faacfe88461"
+        },
+        {
+          "key": "language_model.model.layers.0.self_attn.v_proj.weight",
+          "source": "/public/home/aclsylqidf/shared/Kimi-K3/model-00001-of-000096.safetensors",
+          "metadata": {
+            "dtype": "BF16",
+            "shape": [
+              12288,
+              7168
+            ],
+            "data_offsets": [
+              2165052416,
+              2341213184
+            ]
+          },
+          "header_SHA256": "bfd47268eb1556d004cc0d8a8ce63935a73e812c87333cfa56d46312b1c692c8",
+          "file_byte_range": [
+            2165055344,
+            2187075440
+          ],
+          "source_rank": 0,
+          "tp_size": 8,
+          "selected_shape": [
+            1536,
+            7168
+          ],
+          "selected_SHA256": "931e5f23693517a1cfd9cbf1a97d4b627629cbd853ad2581f7292a8b8d54a0ff"
+        }
+      ],
+      "scale": null,
+      "bias": null,
+      "index": "/public/home/aclsylqidf/shared/Kimi-K3/model.safetensors.index.json",
+      "index_SHA256": "a1c5210650ce71d2d3ae9ec5a101ac4afd3cf4b10091be589853437eb967febd",
+      "transform": "Each checkpoint BF16 q/k/v output dimension rank0 slice[0:1536], concatenate q,k,v; no quant scale, conversion, transpose or padding. This mirrors current source load mapping; validate against captured full output before adoption."
+    },
+    "historical_native_weight_readback": "NOT_CAPTURED; faithful output replay required before causal qualification",
+    "target_prefill_qkv_actual_differences": {
+      "compared_elements": 2359296,
+      "changed_elements": 757,
+      "max_abs": 0.03125,
+      "mean_abs": 5.173056365492812e-07,
+      "bit_ulp_max": 45312,
+      "not_final_token_acceptance": true
+    },
+    "offline_SHA256": "4307c8e9216f0a9f6359cc3900e97dc822e089db55865c4c1fa217570cb562f2"
+  },
+  "linear_directory": [
+    "base_linear.hpp",
+    "fused_linear.cpp",
+    "linear.hpp",
+    "base_linear.cpp",
+    "fused_linear.hpp",
+    "dense.hpp",
+    "linear.cpp",
+    "dense_prefill_f32_r2475.hpp"
+  ],
+  "678_records": [
+    {
+      "arm": "A",
+      "record": {
+        "actual_final_state_indices": [
+          1
+        ],
+        "actual_init_state_indices": [
+          1
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "3815867516062201872",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          536
+        ],
+        "point": "attn_norm",
+        "positions": [
+          536
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "10965983852861583954",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "10965983852861583954",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "10653943633577784901",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "10653943633577784901",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e1-n0-50.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          537
+        ]
+      }
+    },
+    {
+      "arm": "A",
+      "record": {
+        "actual_final_state_indices": [
+          1
+        ],
+        "actual_init_state_indices": [
+          1
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "3815867516062201872",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          536
+        ],
+        "point": "attn_norm",
+        "positions": [
+          536
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "10965983852861583954",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "10965983852861583954",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "10653943633577784901",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "10653943633577784901",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e1-n0-50.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          537
+        ]
+      }
+    },
+    {
+      "arm": "A",
+      "record": {
+        "actual_final_state_indices": [
+          1
+        ],
+        "actual_init_state_indices": [
+          1
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "13627640274607996679",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          537
+        ],
+        "point": "attn_norm",
+        "positions": [
+          537
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "3597019147620674393",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "3597019147620674393",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "15336549560853893252",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "15336549560853893252",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e1-n0-190.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          538
+        ]
+      }
+    },
+    {
+      "arm": "A",
+      "record": {
+        "actual_final_state_indices": [
+          1
+        ],
+        "actual_init_state_indices": [
+          1
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "3815867516062201872",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          536
+        ],
+        "point": "attn_norm",
+        "positions": [
+          536
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "10965983852861583954",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "10965983852861583954",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "10653943633577784901",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "10653943633577784901",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e1-n0-50.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          537
+        ]
+      }
+    },
+    {
+      "arm": "A",
+      "record": {
+        "actual_final_state_indices": [
+          1
+        ],
+        "actual_init_state_indices": [
+          1
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "13627640274607996679",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          537
+        ],
+        "point": "attn_norm",
+        "positions": [
+          537
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "3597019147620674393",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "3597019147620674393",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "15336549560853893252",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "15336549560853893252",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e1-n0-190.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          538
+        ]
+      }
+    },
+    {
+      "arm": "A",
+      "record": {
+        "actual_final_state_indices": [
+          1
+        ],
+        "actual_init_state_indices": [
+          1
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "3815867516062201872",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          536
+        ],
+        "point": "attn_norm",
+        "positions": [
+          536
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "10965983852861583954",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "10965983852861583954",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "10653943633577784901",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "10653943633577784901",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e1-n0-50.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          537
+        ]
+      }
+    },
+    {
+      "arm": "A",
+      "record": {
+        "actual_final_state_indices": [
+          1
+        ],
+        "actual_init_state_indices": [
+          1
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "13627640274607996679",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          537
+        ],
+        "point": "attn_norm",
+        "positions": [
+          537
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "3597019147620674393",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "3597019147620674393",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "15336549560853893252",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "15336549560853893252",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e1-n0-190.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          538
+        ]
+      }
+    },
+    {
+      "arm": "A",
+      "record": {
+        "actual_final_state_indices": [
+          1
+        ],
+        "actual_init_state_indices": [
+          1
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "3815867516062201872",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          536
+        ],
+        "point": "attn_norm",
+        "positions": [
+          536
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "10965983852861583954",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "10965983852861583954",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "10653943633577784901",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "10653943633577784901",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e1-n0-50.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          537
+        ]
+      }
+    },
+    {
+      "arm": "A",
+      "record": {
+        "actual_final_state_indices": [
+          1
+        ],
+        "actual_init_state_indices": [
+          1
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "13627640274607996679",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          537
+        ],
+        "point": "attn_norm",
+        "positions": [
+          537
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "3597019147620674393",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "3597019147620674393",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "15336549560853893252",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "15336549560853893252",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e1-n0-190.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          538
+        ]
+      }
+    },
+    {
+      "arm": "A",
+      "record": {
+        "actual_final_state_indices": [
+          1
+        ],
+        "actual_init_state_indices": [
+          1
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "3815867516062201872",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          536
+        ],
+        "point": "attn_norm",
+        "positions": [
+          536
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "10965983852861583954",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "10965983852861583954",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "10653943633577784901",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "10653943633577784901",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e1-n0-50.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          537
+        ]
+      }
+    },
+    {
+      "arm": "A",
+      "record": {
+        "actual_final_state_indices": [
+          1
+        ],
+        "actual_init_state_indices": [
+          1
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "13627640274607996679",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          537
+        ],
+        "point": "attn_norm",
+        "positions": [
+          537
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "3597019147620674393",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "3597019147620674393",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "15336549560853893252",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "15336549560853893252",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e1-n0-190.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          538
+        ]
+      }
+    },
+    {
+      "arm": "A",
+      "record": {
+        "actual_final_state_indices": [
+          1
+        ],
+        "actual_init_state_indices": [
+          1
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "3815867516062201872",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          536
+        ],
+        "point": "attn_norm",
+        "positions": [
+          536
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "10965983852861583954",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "10965983852861583954",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "10653943633577784901",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "10653943633577784901",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e1-n0-50.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          537
+        ]
+      }
+    },
+    {
+      "arm": "A",
+      "record": {
+        "actual_final_state_indices": [
+          1
+        ],
+        "actual_init_state_indices": [
+          1
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "13627640274607996679",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          537
+        ],
+        "point": "attn_norm",
+        "positions": [
+          537
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "3597019147620674393",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "3597019147620674393",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "15336549560853893252",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "15336549560853893252",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e1-n0-190.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          538
+        ]
+      }
+    },
+    {
+      "arm": "A",
+      "record": {
+        "actual_final_state_indices": [
+          1
+        ],
+        "actual_init_state_indices": [
+          1
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "3815867516062201872",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          536
+        ],
+        "point": "attn_norm",
+        "positions": [
+          536
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "10965983852861583954",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "10965983852861583954",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "10653943633577784901",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "10653943633577784901",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e1-n0-50.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          537
+        ]
+      }
+    },
+    {
+      "arm": "A",
+      "record": {
+        "actual_final_state_indices": [
+          1
+        ],
+        "actual_init_state_indices": [
+          1
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "13627640274607996679",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          537
+        ],
+        "point": "attn_norm",
+        "positions": [
+          537
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "3597019147620674393",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "3597019147620674393",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "15336549560853893252",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "15336549560853893252",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e1-n0-190.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          538
+        ]
+      }
+    },
+    {
+      "arm": "B",
+      "record": {
+        "actual_final_state_indices": [
+          9
+        ],
+        "actual_init_state_indices": [
+          1
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "3815867516062201872",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          536
+        ],
+        "point": "attn_norm",
+        "positions": [
+          536
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "10965983852861583954",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "17957097187741150368",
+            "row": 9,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "10653943633577784901",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "2147858126898852011",
+            "row": 9,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e2-n0-50.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          537
+        ]
+      }
+    },
+    {
+      "arm": "B",
+      "record": {
+        "actual_final_state_indices": [
+          9
+        ],
+        "actual_init_state_indices": [
+          1
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "3815867516062201872",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          536
+        ],
+        "point": "attn_norm",
+        "positions": [
+          536
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "10965983852861583954",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "17957097187741150368",
+            "row": 9,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "10653943633577784901",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "2147858126898852011",
+            "row": 9,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e2-n0-50.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          537
+        ]
+      }
+    },
+    {
+      "arm": "B",
+      "record": {
+        "actual_final_state_indices": [
+          1
+        ],
+        "actual_init_state_indices": [
+          9
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "13627640274607996679",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          537
+        ],
+        "point": "attn_norm",
+        "positions": [
+          537
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "3597019147620674393",
+            "row": 9,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "10965983852861583954",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "15336549560853893252",
+            "row": 9,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "10653943633577784901",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e2-n0-190.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          538
+        ]
+      }
+    },
+    {
+      "arm": "B",
+      "record": {
+        "actual_final_state_indices": [
+          9
+        ],
+        "actual_init_state_indices": [
+          1
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "3815867516062201872",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          536
+        ],
+        "point": "attn_norm",
+        "positions": [
+          536
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "10965983852861583954",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "17957097187741150368",
+            "row": 9,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "10653943633577784901",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "2147858126898852011",
+            "row": 9,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e2-n0-50.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          537
+        ]
+      }
+    },
+    {
+      "arm": "B",
+      "record": {
+        "actual_final_state_indices": [
+          1
+        ],
+        "actual_init_state_indices": [
+          9
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "13627640274607996679",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          537
+        ],
+        "point": "attn_norm",
+        "positions": [
+          537
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "3597019147620674393",
+            "row": 9,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "10965983852861583954",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "15336549560853893252",
+            "row": 9,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "10653943633577784901",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e2-n0-190.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          538
+        ]
+      }
+    },
+    {
+      "arm": "B",
+      "record": {
+        "actual_final_state_indices": [
+          9
+        ],
+        "actual_init_state_indices": [
+          1
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "3815867516062201872",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          536
+        ],
+        "point": "attn_norm",
+        "positions": [
+          536
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "10965983852861583954",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "17957097187741150368",
+            "row": 9,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "10653943633577784901",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "2147858126898852011",
+            "row": 9,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e2-n0-50.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          537
+        ]
+      }
+    },
+    {
+      "arm": "B",
+      "record": {
+        "actual_final_state_indices": [
+          1
+        ],
+        "actual_init_state_indices": [
+          9
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "13627640274607996679",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          537
+        ],
+        "point": "attn_norm",
+        "positions": [
+          537
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "3597019147620674393",
+            "row": 9,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "10965983852861583954",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "15336549560853893252",
+            "row": 9,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "10653943633577784901",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e2-n0-190.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          538
+        ]
+      }
+    },
+    {
+      "arm": "B",
+      "record": {
+        "actual_final_state_indices": [
+          9
+        ],
+        "actual_init_state_indices": [
+          1
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "3815867516062201872",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          536
+        ],
+        "point": "attn_norm",
+        "positions": [
+          536
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "10965983852861583954",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "17957097187741150368",
+            "row": 9,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "10653943633577784901",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "2147858126898852011",
+            "row": 9,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e2-n0-50.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          537
+        ]
+      }
+    },
+    {
+      "arm": "B",
+      "record": {
+        "actual_final_state_indices": [
+          1
+        ],
+        "actual_init_state_indices": [
+          9
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "13627640274607996679",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          537
+        ],
+        "point": "attn_norm",
+        "positions": [
+          537
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "3597019147620674393",
+            "row": 9,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "10965983852861583954",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "15336549560853893252",
+            "row": 9,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "10653943633577784901",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e2-n0-190.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          538
+        ]
+      }
+    },
+    {
+      "arm": "B",
+      "record": {
+        "actual_final_state_indices": [
+          9
+        ],
+        "actual_init_state_indices": [
+          1
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "3815867516062201872",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          536
+        ],
+        "point": "attn_norm",
+        "positions": [
+          536
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "10965983852861583954",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "17957097187741150368",
+            "row": 9,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "10653943633577784901",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "2147858126898852011",
+            "row": 9,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e2-n0-50.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          537
+        ]
+      }
+    },
+    {
+      "arm": "B",
+      "record": {
+        "actual_final_state_indices": [
+          1
+        ],
+        "actual_init_state_indices": [
+          9
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "13627640274607996679",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          537
+        ],
+        "point": "attn_norm",
+        "positions": [
+          537
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "3597019147620674393",
+            "row": 9,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "10965983852861583954",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "15336549560853893252",
+            "row": 9,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "10653943633577784901",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e2-n0-190.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          538
+        ]
+      }
+    },
+    {
+      "arm": "B",
+      "record": {
+        "actual_final_state_indices": [
+          9
+        ],
+        "actual_init_state_indices": [
+          1
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "3815867516062201872",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          536
+        ],
+        "point": "attn_norm",
+        "positions": [
+          536
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "10965983852861583954",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "17957097187741150368",
+            "row": 9,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "10653943633577784901",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "2147858126898852011",
+            "row": 9,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e2-n0-50.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          537
+        ]
+      }
+    },
+    {
+      "arm": "B",
+      "record": {
+        "actual_final_state_indices": [
+          1
+        ],
+        "actual_init_state_indices": [
+          9
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "13627640274607996679",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          537
+        ],
+        "point": "attn_norm",
+        "positions": [
+          537
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "3597019147620674393",
+            "row": 9,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "10965983852861583954",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "15336549560853893252",
+            "row": 9,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "10653943633577784901",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e2-n0-190.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          538
+        ]
+      }
+    },
+    {
+      "arm": "B",
+      "record": {
+        "actual_final_state_indices": [
+          9
+        ],
+        "actual_init_state_indices": [
+          1
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "3815867516062201872",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          536
+        ],
+        "point": "attn_norm",
+        "positions": [
+          536
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "10965983852861583954",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "17957097187741150368",
+            "row": 9,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "10653943633577784901",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "2147858126898852011",
+            "row": 9,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e2-n0-50.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          537
+        ]
+      }
+    },
+    {
+      "arm": "B",
+      "record": {
+        "actual_final_state_indices": [
+          1
+        ],
+        "actual_init_state_indices": [
+          9
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "13627640274607996679",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          537
+        ],
+        "point": "attn_norm",
+        "positions": [
+          537
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "3597019147620674393",
+            "row": 9,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "10965983852861583954",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "15336549560853893252",
+            "row": 9,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "10653943633577784901",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e2-n0-190.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          538
+        ]
+      }
+    },
+    {
+      "arm": "C",
+      "record": {
+        "actual_final_state_indices": [
+          9
+        ],
+        "actual_init_state_indices": [
+          1
+        ],
+        "bytes": 28672,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "3875339122224469102",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          8
+        ],
+        "past": [
+          536
+        ],
+        "point": "attn_norm",
+        "positions": [
+          536,
+          537
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "10965983852861583954",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "17957097187741150368",
+            "row": 9,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "10653943633577784901",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "2147858126898852011",
+            "row": 9,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e3-n0-50.bf16",
+        "shape": [
+          1,
+          2,
+          7168
+        ],
+        "total": [
+          544
+        ]
+      }
+    },
+    {
+      "arm": "D",
+      "record": {
+        "actual_final_state_indices": [
+          1
+        ],
+        "actual_init_state_indices": [
+          9
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "3815867516062201872",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          536
+        ],
+        "point": "attn_norm",
+        "positions": [
+          536
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "11645449478240855237",
+            "row": 9,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "18241099836938472866",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "16217003135819718336",
+            "row": 9,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "5911187916811935843",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e4-n0-8.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          537
+        ]
+      }
+    },
+    {
+      "arm": "D",
+      "record": {
+        "actual_final_state_indices": [
+          1
+        ],
+        "actual_init_state_indices": [
+          9
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "3815867516062201872",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          536
+        ],
+        "point": "attn_norm",
+        "positions": [
+          536
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "11645449478240855237",
+            "row": 9,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "18241099836938472866",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "16217003135819718336",
+            "row": 9,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "5911187916811935843",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e4-n0-8.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          537
+        ]
+      }
+    },
+    {
+      "arm": "D",
+      "record": {
+        "actual_final_state_indices": [
+          9
+        ],
+        "actual_init_state_indices": [
+          1
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "13627640274607996679",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          537
+        ],
+        "point": "attn_norm",
+        "positions": [
+          537
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "14910064849527970154",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "11645449478240855237",
+            "row": 9,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "15643213578599026221",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "16217003135819718336",
+            "row": 9,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e4-n0-148.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          538
+        ]
+      }
+    },
+    {
+      "arm": "D",
+      "record": {
+        "actual_final_state_indices": [
+          1
+        ],
+        "actual_init_state_indices": [
+          9
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "3815867516062201872",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          536
+        ],
+        "point": "attn_norm",
+        "positions": [
+          536
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "11645449478240855237",
+            "row": 9,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "18241099836938472866",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "16217003135819718336",
+            "row": 9,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "5911187916811935843",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e4-n0-8.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          537
+        ]
+      }
+    },
+    {
+      "arm": "D",
+      "record": {
+        "actual_final_state_indices": [
+          9
+        ],
+        "actual_init_state_indices": [
+          1
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "13627640274607996679",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          537
+        ],
+        "point": "attn_norm",
+        "positions": [
+          537
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "14910064849527970154",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "11645449478240855237",
+            "row": 9,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "15643213578599026221",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "16217003135819718336",
+            "row": 9,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e4-n0-148.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          538
+        ]
+      }
+    },
+    {
+      "arm": "D",
+      "record": {
+        "actual_final_state_indices": [
+          1
+        ],
+        "actual_init_state_indices": [
+          9
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "3815867516062201872",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          536
+        ],
+        "point": "attn_norm",
+        "positions": [
+          536
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "11645449478240855237",
+            "row": 9,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "18241099836938472866",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "16217003135819718336",
+            "row": 9,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "5911187916811935843",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e4-n0-8.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          537
+        ]
+      }
+    },
+    {
+      "arm": "D",
+      "record": {
+        "actual_final_state_indices": [
+          9
+        ],
+        "actual_init_state_indices": [
+          1
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "13627640274607996679",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          537
+        ],
+        "point": "attn_norm",
+        "positions": [
+          537
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "14910064849527970154",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "11645449478240855237",
+            "row": 9,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "15643213578599026221",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "16217003135819718336",
+            "row": 9,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e4-n0-148.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          538
+        ]
+      }
+    },
+    {
+      "arm": "D",
+      "record": {
+        "actual_final_state_indices": [
+          1
+        ],
+        "actual_init_state_indices": [
+          9
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "3815867516062201872",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          536
+        ],
+        "point": "attn_norm",
+        "positions": [
+          536
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "11645449478240855237",
+            "row": 9,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "18241099836938472866",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "16217003135819718336",
+            "row": 9,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "5911187916811935843",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e4-n0-8.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          537
+        ]
+      }
+    },
+    {
+      "arm": "D",
+      "record": {
+        "actual_final_state_indices": [
+          9
+        ],
+        "actual_init_state_indices": [
+          1
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "13627640274607996679",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          537
+        ],
+        "point": "attn_norm",
+        "positions": [
+          537
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "14910064849527970154",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "11645449478240855237",
+            "row": 9,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "15643213578599026221",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "16217003135819718336",
+            "row": 9,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e4-n0-148.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          538
+        ]
+      }
+    },
+    {
+      "arm": "D",
+      "record": {
+        "actual_final_state_indices": [
+          1
+        ],
+        "actual_init_state_indices": [
+          9
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "3815867516062201872",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          536
+        ],
+        "point": "attn_norm",
+        "positions": [
+          536
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "11645449478240855237",
+            "row": 9,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "18241099836938472866",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "16217003135819718336",
+            "row": 9,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "5911187916811935843",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e4-n0-8.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          537
+        ]
+      }
+    },
+    {
+      "arm": "D",
+      "record": {
+        "actual_final_state_indices": [
+          9
+        ],
+        "actual_init_state_indices": [
+          1
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "13627640274607996679",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          537
+        ],
+        "point": "attn_norm",
+        "positions": [
+          537
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "14910064849527970154",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "11645449478240855237",
+            "row": 9,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "15643213578599026221",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "16217003135819718336",
+            "row": 9,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e4-n0-148.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          538
+        ]
+      }
+    },
+    {
+      "arm": "D",
+      "record": {
+        "actual_final_state_indices": [
+          1
+        ],
+        "actual_init_state_indices": [
+          9
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "3815867516062201872",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          536
+        ],
+        "point": "attn_norm",
+        "positions": [
+          536
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "11645449478240855237",
+            "row": 9,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "18241099836938472866",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "16217003135819718336",
+            "row": 9,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "5911187916811935843",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e4-n0-8.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          537
+        ]
+      }
+    },
+    {
+      "arm": "D",
+      "record": {
+        "actual_final_state_indices": [
+          9
+        ],
+        "actual_init_state_indices": [
+          1
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "13627640274607996679",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          537
+        ],
+        "point": "attn_norm",
+        "positions": [
+          537
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "14910064849527970154",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "11645449478240855237",
+            "row": 9,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "15643213578599026221",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "16217003135819718336",
+            "row": 9,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e4-n0-148.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          538
+        ]
+      }
+    },
+    {
+      "arm": "D",
+      "record": {
+        "actual_final_state_indices": [
+          1
+        ],
+        "actual_init_state_indices": [
+          9
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "3815867516062201872",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          536
+        ],
+        "point": "attn_norm",
+        "positions": [
+          536
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "11645449478240855237",
+            "row": 9,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "18241099836938472866",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "16217003135819718336",
+            "row": 9,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "5911187916811935843",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e4-n0-8.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          537
+        ]
+      }
+    },
+    {
+      "arm": "D",
+      "record": {
+        "actual_final_state_indices": [
+          9
+        ],
+        "actual_init_state_indices": [
+          1
+        ],
+        "bytes": 14336,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "13627640274607996679",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          1
+        ],
+        "past": [
+          537
+        ],
+        "point": "attn_norm",
+        "positions": [
+          537
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "14910064849527970154",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "11645449478240855237",
+            "row": 9,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "15643213578599026221",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "16217003135819718336",
+            "row": 9,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e4-n0-148.bf16",
+        "shape": [
+          1,
+          1,
+          7168
+        ],
+        "total": [
+          538
+        ]
+      }
+    },
+    {
+      "arm": "E",
+      "record": {
+        "actual_final_state_indices": [
+          1
+        ],
+        "actual_init_state_indices": [
+          9
+        ],
+        "bytes": 28672,
+        "device": 0,
+        "dtype": "BF16",
+        "fnv1a64": "3875339122224469102",
+        "layer": 0,
+        "node": 0,
+        "nonfinite": 0,
+        "offsets": [
+          0,
+          8
+        ],
+        "past": [
+          536
+        ],
+        "point": "attn_norm",
+        "positions": [
+          536,
+          537
+        ],
+        "recurrent_rows_at_boundary": {
+          "conv_read": {
+            "bytes": 13824,
+            "fnv1a64": "11645449478240855237",
+            "row": 9,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "conv_write": {
+            "bytes": 13824,
+            "fnv1a64": "18241099836938472866",
+            "row": 1,
+            "shape": [
+              1,
+              2304,
+              3
+            ]
+          },
+          "ssm_read": {
+            "bytes": 196608,
+            "fnv1a64": "16217003135819718336",
+            "row": 9,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          },
+          "ssm_write": {
+            "bytes": 196608,
+            "fnv1a64": "5911187916811935843",
+            "row": 1,
+            "shape": [
+              1,
+              6,
+              128,
+              128
+            ]
+          }
+        },
+        "remote_owned_buffer": "/refactor/results/Kimi-crossover-private-r9026-910375.678/e5-n0-8.bf16",
+        "shape": [
+          1,
+          2,
+          7168
+        ],
+        "total": [
+          544
+        ]
+      }
+    }
+  ]
+}

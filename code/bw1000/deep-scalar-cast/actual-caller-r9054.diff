@@ -1,0 +1,64 @@
+--- actual1000caller
++++ r9054caller
+@@ -20,6 +20,8 @@
+ std::array<std::array<std::atomic<uint64_t>,7>,8> packed_batch_counts_r8996b{};
+ std::atomic<int> sink_broadcast_mode_r9040{0};
+ std::array<std::array<std::atomic<uint64_t>,3>,8>sink_broadcast_counts_r9040{};
++std::atomic<int> scalar_cast_mode_r9054{0};
++std::array<std::array<std::atomic<uint64_t>,3>,8>scalar_cast_counts_r9054{};
+ struct PackedRunR8996b {size_t query_begin,count,n,packed_begin;};
+ bool packed_runs_r8996b(const std::vector<std::vector<int64_t>>&selected,
+  const std::vector<size_t>&offsets,size_t packed_rows,std::vector<PackedRunR8996b>&runs){
+@@ -121,23 +123,43 @@
+   if(reuse){size_t max_n=0;for(const auto&v:selected)if(v.size()>max_n)max_n=v.size();logits_storage=alloc({heads*(max_n+1)});probability_storage=alloc({heads*(max_n+1)});result_storage=alloc({heads,512});}
+   rt::Tensor batch_logits_r8996b,batch_probs_r8996b,batch_result_r8996b;
+   if(packed_batch_r8996b){size_t max_logits=0,max_result=0;for(const auto&v:runs_r8996b){max_logits=std::max(max_logits,v.count*heads*(v.n+1));max_result=std::max(max_result,v.count*heads*512);}batch_logits_r8996b=alloc({max_logits});batch_probs_r8996b=alloc({max_logits});batch_result_r8996b=alloc({max_result});}
++  // Default OFF. Prefix intervals stop before every packed run and request boundary.
++  const bool scalar_cast_r9054=scalar_cast_mode_r9054.load()==1&&packed_batch_r8996b&&packed_batch_mode_r8996b.load()==2&&sink_broadcast_mode_r9040.load()==1;
++  std::vector<size_t>prefix_end_r9054(tokens,0);
++  size_t largest_prefix_r9054=0;
++  if(scalar_cast_r9054){
++   std::vector<unsigned char>batched(tokens,0);for(const auto&run:runs_r8996b)for(size_t j=0;j<run.count;++j)batched[run.query_begin+j]=1;
++   for(size_t t=0;t<tokens;){if(batched[t]){++t;continue;}size_t e=t+1,limit=(t/512+1)*512;while(e<limit&&!batched[e])++e;
++    // Only the actual current short prefix; isolated tails and other shapes stay original.
++    if(e-t>1&&e-t<=127){prefix_end_r9054[t]=e;largest_prefix_r9054=std::max(largest_prefix_r9054,e-t);}t=e;}
++  }
++  rt::Tensor prefix_results_r9054;if(largest_prefix_r9054)prefix_results_r9054=alloc({largest_prefix_r9054,heads,512});
++  size_t prefix_begin_r9054=0,prefix_stop_r9054=0,skipped_casts_r9054=0;
+   size_t next_run_r8996b=0,scalar_queries_r8996b=0,batch_queries_r8996b=0,scalar_ops_r8996b=0;
+   for(size_t t=0;t<tokens;++t){
+    if(packed_batch_r8996b&&next_run_r8996b<runs_r8996b.size()&&t==runs_r8996b[next_run_r8996b].query_begin){
+     const auto&run=runs_r8996b[next_run_r8996b];(packed_batch_mode_r8996b.load()==2?softmax_cast_run_r8996b:packed_run_submit_r8996b)(r,run,qf,packed_values,sink,output,batch_logits_r8996b,batch_probs_r8996b,batch_result_r8996b);
+     batch_queries_r8996b+=run.count;++next_run_r8996b;t+=run.count-1;continue;
+    }
++   if(prefix_end_r9054[t]){if(prefix_stop_r9054)throw std::logic_error("r9054 overlapping prefix");prefix_begin_r9054=t;prefix_stop_r9054=prefix_end_r9054[t];}
+    ++scalar_queries_r8996b;size_t n=selected[t].size();scalar_ops_r8996b+=n?4:2;auto logits=reuse?logits_storage->narrow({{0,0,heads*(n+1)}})->view({heads,n+1}):alloc({heads,n+1});logits->narrow({{1,n,1}})->copy_from(r,sink->view({heads,1}));
+    rt::Tensor values;
+    if(n){values=packed_values->narrow({{0,packed_offsets[t],n}});
+     ex::submit<infini::ops::Gemm>(r,infini::ops::Gemm::DefaultConfig(r.device().type()),qf->narrow({{0,t,1}})->view({heads,512}),values->permute({1,0}),std::optional<rt::Tensor>{},std::optional<float>{1.f/std::sqrt(512.f)},std::optional<float>{0},std::optional<int>{},std::optional<int>{},logits->narrow({{1,0,n}}));
+    }
+    auto probabilities=reuse?probability_storage->narrow({{0,0,heads*(n+1)}})->view({heads,n+1}):alloc({heads,n+1});ex::submit<infini::ops::Softmax>(r,infini::ops::Softmax::DefaultConfig(r.device().type()),logits,int64_t{1},std::optional<infini::ops::DataType>{},probabilities);
+-   auto result=reuse?result_storage:alloc({heads,512});
++   auto result=prefix_stop_r9054?prefix_results_r9054->narrow({{0,t-prefix_begin_r9054,1}})->view({heads,512}):(reuse?result_storage:alloc({heads,512}));
+    if(n)ex::submit<infini::ops::Gemm>(r,infini::ops::Gemm::DefaultConfig(r.device().type()),probabilities->narrow({{1,0,n}}),values,std::optional<rt::Tensor>{},std::optional<float>{1},std::optional<float>{0},std::optional<int>{},std::optional<int>{},result);
+    else{std::vector<float>zero(heads*512,0);r.memcpyH2D(result->data(),zero.data(),zero.size()*4,false);}
++   if(prefix_stop_r9054){
++    if(t+1==prefix_stop_r9054){size_t R=prefix_stop_r9054-prefix_begin_r9054;auto from=prefix_results_r9054->narrow({{0,0,R}});auto to=output->narrow({{0,prefix_begin_r9054,R}});
++     ex::submit<infini::ops::Cast>(r,infini::ops::Cast::DefaultConfig(r.device().type()),from,to);
++     auto&c=scalar_cast_counts_r9054.at(r.device().index());++c[0];c[1].fetch_add(R);c[2].fetch_add(R-1);skipped_casts_r9054+=R-1;prefix_stop_r9054=0;}
++   }else{
+    ex::submit<infini::ops::Cast>(r,infini::ops::Cast::DefaultConfig(r.device().type()),result,output->narrow({{0,t,1}})->view({heads,512}));
+-  }r.syncStream();if(tokens>64){auto&c=reference_scratch_counts_r8954.at(r.device().index());++c[reuse?1:0];c[reuse?3:2].fetch_add(reuse?3:3*tokens);}if(tokens>64){auto&c=packed_batch_counts_r8996b.at(r.device().index());c[0].fetch_add(packed_batch_r8996b);c[1].fetch_add(packed_requested_r8996b&&!packed_batch_r8996b);c[2].fetch_add(scalar_queries_r8996b);c[3].fetch_add(next_run_r8996b);c[4].fetch_add(batch_queries_r8996b);c[5].fetch_add(scalar_ops_r8996b+(packed_batch_mode_r8996b.load()==2?2*batch_queries_r8996b+2*next_run_r8996b:4*next_run_r8996b));c[6].fetch_add(packed_batch_r8996b?3:0);}return output;
++   }
++
++  }if(prefix_stop_r9054)throw std::logic_error("r9054 unfinished prefix");scalar_ops_r8996b-=skipped_casts_r9054;r.syncStream();if(tokens>64){auto&c=reference_scratch_counts_r8954.at(r.device().index());++c[reuse?1:0];c[reuse?3:2].fetch_add(reuse?3:3*tokens);}if(tokens>64){auto&c=packed_batch_counts_r8996b.at(r.device().index());c[0].fetch_add(packed_batch_r8996b);c[1].fetch_add(packed_requested_r8996b&&!packed_batch_r8996b);c[2].fetch_add(scalar_queries_r8996b);c[3].fetch_add(next_run_r8996b);c[4].fetch_add(batch_queries_r8996b);c[5].fetch_add(scalar_ops_r8996b+(packed_batch_mode_r8996b.load()==2?2*batch_queries_r8996b+2*next_run_r8996b:4*next_run_r8996b));c[6].fetch_add(packed_batch_r8996b?3:0);}return output;
+  }catch(...){try{r.syncStream();}catch(...){std::terminate();}throw;}
+ }
+ }
+@@ -151,3 +173,6 @@
+ 
+ extern "C" int deep_sink_broadcast_mode_r9040(int v){if(v!=0&&v!=1)return 1;infinilm::models::deepseek_v4::sink_broadcast_mode_r9040.store(v);return 0;}
+ extern "C" int deep_sink_broadcast_counts_r9040(int d,uint64_t*out,size_t n){if(d<0||d>=8||!out||n!=3)return 1;for(size_t k=0;k<3;++k)out[k]=infinilm::models::deepseek_v4::sink_broadcast_counts_r9040[d][k].load();return 0;}
++
++extern "C" int deep_scalar_cast_mode_r9054(int v){if(v!=0&&v!=1)return 1;infinilm::models::deepseek_v4::scalar_cast_mode_r9054.store(v);return 0;}
++extern "C" int deep_scalar_cast_counts_r9054(int d,uint64_t*out,size_t n){if(d<0||d>=8||!out||n!=3)return 1;for(size_t k=0;k<3;++k)out[k]=infinilm::models::deepseek_v4::scalar_cast_counts_r9054[d][k].load();return 0;}
