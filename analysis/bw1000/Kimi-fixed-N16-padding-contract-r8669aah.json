@@ -1,0 +1,77 @@
+{
+  "CPU_only": true,
+  "GPU": false,
+  "new_native": 0,
+  "Model_load": false,
+  "review_card": "KIMI69-FIXED-N16-PADDING-CONTRACT-ONLY",
+  "status": "PARK_EXISTING_CAP16_SELECTIVE_RESET_MISSING",
+  "current_model_native_SHA256": "2c2961d29d56788c4e59061b241dc108bc0e9bff3153ed8d7aa6f3f575b83444",
+  "binding": "CPU223changedonlydecoder/rankworkerhostevents;retainedactualcompactEngine12d295/probea28276/delta76442/MLAfd4cf/MoEsmoke283855/I192providerdf43. No sourcepatch/build/GPU.",
+  "sources": [
+    {
+      "path": "kimi_interleaved_service_protocol_r8669aaa.py",
+      "SHA256": "7538bf77da9b8ad9cd47c2fcf374e2773febcfa4820e6a01d019eb6d67560170",
+      "location": "L83-91forward immutable rows/pasts;L154..reset global;L182..interleavedcall"
+    },
+    {
+      "path": "kimi_interleaved_prefill_decode_r8669zq.py",
+      "SHA256": "55c31fc535a5f993f0773caeaf759dd823adc4e76a41321fdec9934905f4c473",
+      "location": "L18-34call rows mapped i+1;L38-47actualprefillthenearlydecode"
+    },
+    {
+      "path": "Kimi-trim-owner-private-r8669zb/kimi_compact_probe_r4974.cpp",
+      "SHA256": "937cc344eaa8116321d6fef5f8b97dccdb5918ac6f65a29d5c7f64d4caa5e211",
+      "location": "L39-45onephysicalrow maps sameKDAread/write and ownedKVpages;L52allownerreset;L59resize allcache;L175..209actualfreezetest stalehistoryrejected"
+    },
+    {
+      "path": "Kimi-trim-owner-private-r8669zb/kimi_compact_engine_r4974.cpp",
+      "SHA256": "ecb34f431e81b60c6b3e18fa1ef2b2db7997fcfbad0e089e9123ae5f25758150",
+      "location": "L509freeze beforeownerdispatch/L522commit;L603..630globalreset lengthsclear"
+    },
+    {
+      "path": "kimi_compact_contract_r4974.cpp.inc",
+      "SHA256": "16f04098064ace49a401ff0c6bf81323c8bd0bcf0a97c9148e89dd28f72a53b7",
+      "location": "L28..34realfreeze/commit;L38reject past0whenphysicalrowalreadycommitted1"
+    },
+    {
+      "path": "InfiniLM-hygon-test/code/bw1000/kimi-CCL512-model/kimi_k3_delta_attention_CCL512_r8603.cpp",
+      "SHA256": "787af2aac64ae58dedfa2654f8efd94cc449c1aab7de03549b16789fed3898cd",
+      "location": "L433-450CausalConv metadataindices read/write;L503-519IndexedKDA mutatesSSM indexedpool"
+    },
+    {
+      "path": "r7291_kimi_k3_mla_attention.cpp",
+      "SHA256": "788c905159b7cba1f5db194e4f6817e452ce5fc8887f8e0516827de7bf2f4b80",
+      "location": "L309-331backendforward/cache write;L228-239observer derivedslots validprefix only"
+    },
+    {
+      "path": "kimi_k3_moe_I192_dispatch_r8669y.cpp",
+      "SHA256": "98f498dd091e708be56678b63dbd4fb22c7f6b0e4cfdfcd65c850e6f0c65c44e",
+      "location": "L322exactT16/H3584/localI192 qualification;L365..372originalTP allreduce"
+    },
+    {
+      "path": "kimi_I192_grouped_provider_r8669y.cu",
+      "SHA256": "1cf1389954e4ae4441ab5e9e23a9d9cb68deb84539bebe62565d3e0ee545c99c",
+      "location": "L10-14counts/jobs acrossT*16routes;L16-42TT2 perrouteW13;L44-88W2per-token sum"
+    }
+  ],
+  "positive_facts": {
+    "provider": "T16 is totalroutedinput tokens, exactBF16[16,3584], E896/localI192/serving1/Math0. PaddingcouldreplaceearlygenericN2..14withI192; no empiricalwallbenefit measured.",
+    "deterministic_input": "An ordinary vocab0 token and explicitpast/position need nofuturegold. Outputsforinactive logicalrows can be suppressed atemitter, but nativewritesremain.",
+    "ownership": "CurrentordinaryCAPI supplies row>=1 with rowunique; physicalpagebase=1+(row-1)*4; slot derivedpast+j; KDAinitrows==finalrows. All4frontends same metadata/jobseq, TP/PP preserve explicitrowmap.",
+    "routes": "Counts allocateallT*16routes, noobserved batchcapdrop. Dummyrowscanchangeexpertcounts/jobs/TT2partner and work; output/tokeninvariance remains unproved. This isnot evidence batchcouplingmustfail."
+  },
+  "blocker": {
+    "specific": "No existing selective request-row retire/reset interface resets both engine committedlogical_length and all93-layer KDAconv/SSM plusMLA KV validity while otherrealrowsremainactive. Existingreset clearsentirepool/lengthledger afterallownersdrained.",
+    "why_padding_future_slots_fails": "Incap16 all16futureusersalready ownrows1..16. Paddingunprefilledrow j withdummycall advancesphysicalhistory and writesconv/SSM/KV. Itslateroriginalpast0prefill is stale relative toenginecommit; merely suppressingdummyoutputdoesnotundo cache. CAPIrejectsduplicate/row0/emptyranges;cannotcollapserepeateddummyroworrequestno-write.",
+    "why_alternatives_not_this_card": "Separatenonreuseddummyrowswouldneedadditionalphysicalcapacity and qualifiedstategeometry; noextra capavailable/provenhere. Packingmultiplepaddingtokensintooneextra dummysequence changesrequest/head metadata and isnotfixed16physicalrequestshape. Usingfutureprompttokenspiecemeal isnewchunkprefillgeometry/arrivalcontract, not existing safe padding.",
+    "reset_limit": "Globalreset destroys active userscache, so cannot precedelaterprefill andpreservealreadygenerated users withoutreplay."
+  },
+  "scope_limits": [
+    "Localkimi_engine_input_r145.hpp is anoldfixed65header and was deliberatelyNOTtreatedascurrentpin. Currentretainedcompact contractsource explicitly tests rejecting stalepast0 history, andactualEngine source commitsallrequests. FreshMDcompleteheader-to-oldobject mappingremains historicalUNKNOWN; itcannotbeusedtoassert a new permissiveselectivereset.",
+    "ExistingKDA provider reset/initsemanticsonpast0 alone do notsolveengineledger norprove allMLAvalidstateoverwritten. No speculative shadowAPI: TP16 ordinarycurrentguard rejectspairedspeculation.",
+    "Full128 finalIDs/EOS/QA remainfutureModeladoptiongate; middlebitsnotnewgate."
+  ],
+  "minimal_required_change_or_stop": "PARK: wouldrequire source-reviewedselectiveall-layerstate+lengthrowreset or separatelyqualifiedextra dummyphysicalcapacity/metadata. Both exceed0native10mincard and arenot authorized for implementation. No unchanged657reload.",
+  "expected_removed_work": "Earlysmall-MgenericroutedMoE could be replaced bycurrentI192T16, butaddsdummycomputeandcache; netwallUNKNOWN/no numericalequivalenceproof.",
+  "elapsed_scope": "Onebounded localCPUreading during663; noSSH/sourcecapture/newnative/GPU forpadding."
+}

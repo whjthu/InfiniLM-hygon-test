@@ -1,0 +1,170 @@
+{
+  "card": "GLM69-ONE-M8-COHORT-INTERLEAVE-SOURCE-DECISION",
+  "CPU_only": true,
+  "GPU": false,
+  "nativebuild": false,
+  "Model_load": false,
+  "Git_mutation": false,
+  "decision": "Legal complete-CAPI yield exists; narrow Python/control/cursor change is source-feasible. PARK automatic Model as maximum-gap fix: one early decode cannot interrupt the next measured31s fullprefill. No implementation or GPU authorization implied.",
+  "evidence": {
+    "file": "GLM507-gap-source-CPU-r8870.json",
+    "SHA256": "8b472d7f69d0ee1cfcb26009e37e7175ecf2c9703ef121de5b09ed19bc9cd3ab",
+    "same_emitter_and_collector": {
+      "A": {
+        "report": "glm-transient-Model-r8868-DP32-M8M16-8868-eb2d6f2e03ba4e479864-A-stage1-rank0.json",
+        "SHA256": "1599b53174aa6f1cf0b6c4a5ce88b8516c7ebb8d6d16eea5c434901cd92c6f6c",
+        "row0_emitter_token0": 60.57432305905968,
+        "row0_emitter_token1": 92.24869576375932,
+        "row0_first_gap": 31.674372704699636,
+        "same_row_common_collector_first_gap": 31.773489549,
+        "second_prefill_rows": [
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "second_prefill_native_seconds": 31.022567837964743,
+        "second_prefill_start_minus_first_end_seconds": 0.023332959,
+        "first_decode_native_seconds": 0.5319305420853198,
+        "prefill_calls": 2,
+        "prefill_shapes": [
+          [
+            8,
+            4096
+          ],
+          [
+            8,
+            4096
+          ]
+        ]
+      },
+      "B": {
+        "report": "glm-transient-Model-r8868-DP32-M8M16-8868-eb2d6f2e03ba4e479864-B-stage1-rank0.json",
+        "SHA256": "9568b22f3e3365fc97d8ef1c82ed75456af7ab0b15bfa0182545791b95876482",
+        "row0_emitter_token0": 60.27082347823307,
+        "row0_emitter_token1": 91.7763570738025,
+        "row0_first_gap": 31.505533595569432,
+        "same_row_common_collector_first_gap": 31.580409787,
+        "second_prefill_rows": [
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "second_prefill_native_seconds": 30.828868640121073,
+        "second_prefill_start_minus_first_end_seconds": 0.036650382,
+        "first_decode_native_seconds": 0.5464414581656456,
+        "prefill_calls": 2,
+        "prefill_shapes": [
+          [
+            8,
+            4096
+          ],
+          [
+            8,
+            4096
+          ]
+        ]
+      }
+    },
+    "actual_native_sources": [
+      {
+        "path": "candidates/glm-M16-r8861/tree/candidates/glm-exact-budget-r8854/src/modern_glm_cached_model_bridge_r809.cpp",
+        "SHA256": "1d50a250f5b1f82687c879e3f320b97e3d4ebeefd97a0505375700d60b2c15dd",
+        "selected_lines": [
+          {
+            "line": 47,
+            "text": "extern \"C\" int modern_glm_model_forward(void*raw,size_t tokens,size_t count,const size_t*requests,const void*input,const void*positions,void*logits,int all_positions,void*stream){auto*c=static_cast<Context*>(raw);try{"
+          },
+          {
+            "line": 56,
+            "text": " if(c->stage+1==c->pp){if(!result.logits)throw std::runtime_error(\"Missing final-stage GLM logits\");rt::Tensor::from_blob(logits,result.logits->shape(),result.logits->dtype(),r.device())->copy_from(r,result.logits);}if(lease_frame.enabled)lease_frame.finish();else r.syncStream();return 0;"
+          }
+        ]
+      },
+      {
+        "path": "candidates/glm-M16-r8861/tree/candidates/glm-PP2-B32-r8843/tree/candidates/glm-window-model-r5797/src/glm_moe_dsa_balanced_text_model_r126.cpp",
+        "SHA256": "d94016e3adc4ffccac58adc24aef415c7069ad2503cb21e230f12753c0b2ad98",
+        "selected_lines": [
+          {
+            "line": 59,
+            "text": " for(auto q:requests){if(q.row>=rows_||!seen.insert(q.row).second||!q.tokens||q.past!=lengths_[q.row]||q.past>capacity_||q.tokens>capacity_-q.past||q.tokens>tokens-total)throw std::invalid_argument(\"GLM text stack row/past/count differs\");for(size_t i=0;i<q.tokens;++i)if(hp[total+i]!=int64_t(q.past+i))throw std::invalid_argument(\"GLM text stack logical position differs\");total+=q.tokens;last.push_back(int64_t(total-1));}"
+          },
+          {
+            "line": 67,
+            "text": "   size_t shard=6144/size_t(rank_.tp_size);auto local=work.alloc({tokens,shard});engine::distributed::recv_(r,local,(rank_.pp_stage-1)*rank_.tp_size+rank_.tp_rank,rank_.world_comm);"
+          },
+          {
+            "line": 77,
+            "text": "   size_t shard=6144/size_t(rank_.tp_size);auto local=work.alloc({tokens,shard});local->copy_from(r,hidden->narrow({{1,size_t(rank_.tp_rank)*shard,shard}}));engine::distributed::send(r,local,(rank_.pp_stage+1)*rank_.tp_size+rank_.tp_rank,rank_.world_comm);"
+          },
+          {
+            "line": 87,
+            "text": "  for(auto q:requests)lengths_[q.row]=q.past+q.tokens;gpu_windows.record(3);r.syncStream();gpu_windows.finish();glm_r16_profile[2]=std::chrono::duration<double>(GlmClock::now()-outgoing_begin).count();return {hidden,logits};"
+          }
+        ]
+      }
+    ]
+  },
+  "current_queue": {
+    "probe": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\GLM-DP-Mmatrix-private-r8868\\glm_prefill_micro_probe_r8868.py",
+    "SHA256": "e8c21fcfcc637fee6957bbddb48460bbba09a591e1ec9d12972d3beec2c71800",
+    "lines": {
+      "begin_cohorts": 119,
+      "allprefill_gate": 126,
+      "all_one_token_assert": 128,
+      "callback": 139,
+      "prefill_loop": 213,
+      "tail_stamp_and_observe": 267,
+      "per_group_control_existing_branch": 273,
+      "current_allgroup_control": 283
+    },
+    "order": "P0(rows0..7,past0,count512),P1(rows8..15,past0,count512),wholebatch first-token control,decode_cohorts. Early C0 emittertoken0 exists before P1, but other owners have not accepted it. Do not directly call decode there."
+  },
+  "gap_cause": {
+    "A": "Emitterfirstgap31.67437s; secondfullprefill31.02257s; firstdecode.53193s. Samecollectorfirstgap31.77349s.",
+    "B": "Emitterfirstgap31.50553s; secondfullprefill30.82887s; firstdecode.54644s. Samecollectorfirstgap31.58041s.",
+    "scope": "Same tailowner elapsed/native intervals and independent actualcollector timing; not crosshost absolute-clock subtraction or GPUbusy/CPUspin claim."
+  },
+  "minimal_future_diff": [
+    "Lift existing M8 decode callback so it can be called at the first complete prefill CAPI boundary; give it an absolute percohort generation step rather than mutating outerprefill step. Keep same native_forward and8rows/1token math.",
+    "After P0, execute existing per-group control/accept branch on all16owners of eachreplica, validate original477 firsttoken for rows0..7; this makes C0 genuinely ready. Preserve token0 emitter/collector stamps at original emission time. No reset/policy/mask mutation.",
+    "Perform exactly one existing feedback publish/take turn for C0, with originalHub cohort0/step0. Every consumer must accept it before continuing P1. No global collective inside CheckedFeedback.forward.",
+    "Then P1 unchanged full512/8rows and same per-group control/accept. Replace all-one-token assertion by exact cursor/length accounting. Resume ordinary M8 scheduler with cohort cursor[1,0], not[0,0]; derive pasts from512+generated_length-1. Total outputs remain128/request; early turn replaces one later turn.",
+    "Extend existing decode_cohorts helper only with initial percohort cursor/state, retaining pending/drain and EOS handling. Original L230..231 unconditionally zero state, so re-entering it unchanged would duplicate C0 step0/history. No new native/kernel/cache framework."
+  ],
+  "ownership_and_PP": {
+    "cache": "Keep same ctx/Runtime/ownerthread/stream and persistent slots. C0 rows0..7 advance native past512->513; C1 rows8..15 allocate atpast0 and advance to512. Later descriptors must exactly match each row length. Noeviction/finished-slot reuse/reset; original mask/6208MiB/.5GiBguards unchanged.",
+    "bound_producer": "CPU210 selected prefix source SHA74b6700fb87b608e1aca232755954d367b64542e2aa6eb63e576c8456e091cad, commits rowlengths atL247; actualTextModel d940...L59 checks past/position perrow.",
+    "PP_order": "All16owners use exactly P0->control0->D0->feedbackconsume->P1->control1->remainingD. ActualTextModel receivesL67, sendsL77, commits length+syncL87; actualbridge1d50...L56 finishes lease or sync before return. Thus fullcall return is a yield; no yield inside P1. Control is existing synchronous world16 SUM, separate replicated worlds; one extra small worldcontrol perreplica must count in ordinary wall.",
+    "not_allowed": "No overlapped same-Runtime owner threads, native stream change, partialprefill, micro4, new packets/comms, crossreplica token mixing, or hotpatch507."
+  },
+  "clock_contract": {
+    "hub": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\GLM-DP-Mmatrix-private-r8868\\kimi_cohort_feedback_idle_r4915.py",
+    "SHA256": "6b8d917174851def69fa16f03a2127013c79a58d0f19495639bda30e976db225",
+    "current_state_lines": [
+      133,
+      152,
+      230,
+      231,
+      255,
+      261
+    ],
+    "emitter": "Keep tailstage/rank0 canonical actualtoken-ready stamps. Token1 early must be recorded asindex1 before P1; no relabel/rebaseline/resetanchor. Collector already accepts sequential index perrow. dp_prefill_complete stays after BOTH complete prefills.",
+    "scoring": "Early decisions before allprefill anchor are excluded from existing postallprefill numerator by actualarrival filter; do not use fixed127*32. Report fullphase E2E/TTFT/all128 peruserfirstlast/ITLP95/P99/maxgap alongside remainingdecode window. Moving a token before anchor is not free throughput."
+  },
+  "hard_limit": "P1 itself is currently one synchronous full512 CAPI lasting30.83..31.02s at tail; an early D0 supplies token1 first, then the same long exclusion moves to token1->token2. Without changing/preempting P1 (outside this card), no bounded maxgap improvement follows.",
+  "future_minimal_packet_only_if_root_decides": {
+    "resources": "Original910371 n03/n07/n15/n16,32DCU,c64/240000Meach,60min3500;freshownership/KFD/sourceclaim first. No GPU GO now.",
+    "arms": "One weightsload perreplica; A=currentjointM8, C=jointM8 with exactly one earlyC0 turn then unchanged remaining turns. Same total32distinct477 split2xB16,I512O128,fulltokensEOS/QA/32normal/audit/post. NoM16/iso/extraarms.",
+    "metrics": "Actualcommonclock/end-to-end and alluserclock; record gap index to detect relocation, allnativecalls and extra control ordinarywall included. Maxgap unchanged is a meaningful negative; no claimed performance expectation."
+  }
+}
