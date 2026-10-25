@@ -1,0 +1,75 @@
+{
+  "review": 77,
+  "status": "COMPLETE",
+  "goal_complete": false,
+  "scope": "Existing seven local evidence files only; reviewer performed no Git, shared-policy change, SSH, build, GPU work or Model load.",
+  "input": {
+    "path": "astra-review-77-input.json",
+    "SHA256": "2656c8e13909ba95acbe5150dafb7cc49df577c20edc5d750c348e8a0e690fc6",
+    "all_seven_source_hashes_verified": true,
+    "Deep_compact_SHA256": "f3bb69e658a53731eb82dafc92ad8a3c12383596c391d81ef9837a1233f147b8",
+    "evidence_boundary": "CPU229 PASS and CPU237 bitfield-removal results are coordinator-reported followthrough, not independently present as separate receipts among these seven sources. Frozen ISA lookup independently shows the indexed global load in the old kernel. No additional receipts requested."
+  },
+  "consume_once": ["910376.585", "910374.957", "910374.955"],
+  "accounting": {
+    "completed_discriminating_experiments_consumed": 3,
+    "already_in_after76_watermark": false,
+    "CPU_builds_ISA_and_review_additional_rounds": 0,
+    "new_accepted_Model_gains": 0,
+    "physical_peak": "UNKNOWN",
+    "15_tokens_per_second_per_user": "NOT_REACHED",
+    "ledger_note": "After76 watermark correctly ends in949/582/952 and contains none of these three. Its latest_review_SHA256/latest_implementation scalar fields remain stale relative to its actual76 review entry and supplied implementation76. Root should correct those fields in the existing update, without creating an audit chain."
+  },
+  "followthrough76": [
+    {
+      "id": "76-GLM-ONE-INTEGRATED-LAYER-BEFORE-MODEL",
+      "verdict": "IMPLEMENTED_AND_STANDALONE_MODEL_CORRECTLY_PARKED",
+      "evidence": "585 matched enclosing layer OFF6.0360995->ON5.8592525ms, latency reduction2.9298%; driver6.16854->5.99479ms. All88 finite/canary, ownrepeat and crossarm exact diagnostics,8normal/audit0/post586 empty. Actual first preparation3.065..3.645ms, cache created=destroyed1/owner, final livebytes0; actual512MiB runtime floor and1.25GiB cap retained. Selected-layer admission/free evidence does not establish whole-Model peak or fit. The few-percent effect meets76's park condition; no standalone roughly16min Model load is justified. Separate prefill profile is a distinct already-authorized question."
+    },
+    {
+      "id": "76-KIMI-FINISH-ONE-CANDIDATE-DISCRIMINATOR",
+      "verdict": "BOUNDED_ABI_FIX_QUALIFIED_MATH_BUT_PERFORMANCE_NEGATIVE; DISTINCT_LUT_CONTROL_JUSTIFIED",
+      "evidence": "CPU234/235 failures preserved;236 isolated HIP matrix/CUDA adapter succeeded.957 raw A8 W13 exactly matches its independent quantized CPU oracle with q/scale exact/error0, finite/canary/ownrepeat,1normal and post958 empty. This is not exactness versus original BF16 provider: output relativeRMS versus current0.00594 remains diagnostic. Complete provider event1.373819->1.630899ms (+18.71% time), host1.445433->1.700828ms (+17.67%); all8 pairs negative. Original candidate stays stopped. ISA shows code_i8 indexed global dword lookup; the coordinator-reported equivalent bitfield replacement removes that lookup without extra spill. This supports the separately authorized A/B/C component, not a presumed speedup or Model promotion. Original SiTU, not SiLU, remains unchanged."
+    },
+    {
+      "id": "76-DEEP-PROCEED-AUTHORIZED-MODEL",
+      "verdict": "IMPLEMENTED; FINAL_TOKEN_NEGATIVE_STOP_CORRECT",
+      "evidence": "955 A0 all32x128 IDs and EOS behavior match independent reference; before6 and restored6 natural QA pass with EOS. C1 first10 outputs match, then output11 differs on all16 odd rows:22899 versus1043. All finite/CPUargmax agrees/CAPI0, packed paths hit across43 layers. Original FAILED1 and audit1 remain true; C2/A3 not run. engine_worker_shutdown_completed=true and post959 empty are observed, but independent8normal close markers were not retained and cannot be claimed. A0 prefill139.6446s versus C1 91.3932s is a34.553% diagnostic reduction only; partial C1 decode5.3634s cannot be compared with complete A0 decode69.5558s for a gain claim."
+    }
+  ],
+  "Deep_causal_assessment": {
+    "known": "Intervention-level Model failure is established; exact upstream operator cause is UNKNOWN. Candidate logits41.5 versus41.0 have margin0.5, not an observed tie. CPU argmax agreement rules out a CPU/GPU selection disagreement at the recorded output, not upstream arithmetic or layout faults.",
+    "selected_next_intervention": "Keep both QK and PV original per-query2D Gemm descriptors, operand ordering, types, alpha/beta and drains; batch only Softmax and Cast on the existing equal-selected-length packed groups. This removes both matrix batching changes together and asks whether launch reduction can survive while retaining original matrix arithmetic. It does not separately identify QK versus PV.",
+    "uncertainty": "Changing Softmax row count may change actual provider dispatch/reduction order. Resolve that narrow dispatch fact during implementation of this control, without assuming rowwise mathematical independence implies identical floating-point evaluation. Preserve original scale, sink/mask, selected-bank order and Cast rounding. There are no retained actual955 intermediate tensors, so a component result cannot establish the causal source of its token11 failure."
+  },
+  "decisions": [
+    {
+      "id": "77-DEEP-MINIMAL-SOFTMAX-CAST-CONTROL",
+      "priority": 1,
+      "owner": "/root/online_service_scheduler, with root resource control",
+      "resources": "First one bounded CPU-only implementation window, at most15min, reusing existing952 fixture and955 integration. No Model load/capture/replay. Recommend at most one subsequent original component allocation under root: existing8-owner fixture,8DCU,6min hard/300s inner, no whole-Model weights. Reviewer allocates nothing.",
+      "action": "Prepare one control that retains original2D QK/PV and batches only Softmax/Cast. Use the same seeded SWA/HCA/CSA fixture and original ordered banks. Within one component compare original scalar path A, already-existing full packed path B, and this control C using balanced order and ordinary enclosing attention wall. Reuse operands and existing finite/canary/lifecycle checks; record QK, Softmax, Cast and PV numerical differences only at existing component boundaries, outside timing, to distinguish which changes the control actually removes. Check only the actual Softmax dispatch decision needed for these shapes during preparation; no broad source audit or new capture. If implementation exposes a row-count-dependent kernel, report that concrete fact and preserve it as part of the tested intervention rather than asserting equivalence.",
+      "first_decidable_result": "Whether C removes matrix-path numerical changes while retaining useful enclosing attention savings on the existing fixture. Numerical distance and intermediate exactness are diagnostics, never new promotion gates. Even a component-exact C does not prove955 Model correctness; a non-bitexact C is not automatically disqualified.",
+      "stop": "Stop on finite/canary/layout/lifecycle failure, loss of original operand/ordering semantics, bounded-window expiry, or no enclosing savings after ordinary costs. Do not launch a shape grid or automatic Model reload. If this single control is promising, root can decide one subsequent same-load Model comparison from its measured cost and scope; full generated IDs/EOS and natural QA remain the correctness gate, and complete paired end-to-end/user metrics remain the performance gate. No GPU F64, token-ID overrides or hard-coded gold."
+    },
+    {
+      "id": "77-GLM-CONTINUE-AUTHORIZED-PREFILL-PROFILE",
+      "priority": 2,
+      "owner": "/root/glm_prepare_fence",
+      "resources": "Continue the root-authorized unique component preparation/allocation and its existing finite resource envelope; CPU229 PASS is coordinator-reported. No new Model load, no O-cache repeat, no extra allocation requested by this review.",
+      "action": "Continue exact5248 T512 synthetic4096 routes with real layer3 weights and unchanged5386 mathematics. Use the prepared host-TU events to separate signed BMM, absolute-materialization plus BMM, and bound/compact/repair. Retain original whole-provider wall and observer OFF/ON controls, actual bucket histogram and repair density. Select any next optimization from measured removable enclosing cost, including host materialization/repair cost; do not infer benefit from individual event percentages.",
+      "first_decidable_result": "A bounded attribution of the real-weight synthetic-prefill provider's cost and observer impact, sufficient to choose one actual implementation target. It is not real captured activation coverage, Model speedup or physical peak.",
+      "stop": "Stop on invalid events, excessive observer disturbance that prevents attribution, finite/canary/lifecycle failure or expiry. Preserve unobserved wall even if event attribution is inconclusive; do not restart a profiling/report chain. O-only585 remains defaultOFF and parked for any independently justified compatible future same-load Model opportunity."
+    },
+    {
+      "id": "77-KIMI-CONTINUE-AUTHORIZED-LUT-ABC",
+      "priority": 3,
+      "owner": "/root/transport_gdr_probe_1",
+      "resources": "Existing root-authorized one-load1DCU/39-call component; retain957 fixture,8CPU/49152MiB and6min hard/300s inner if unchanged in the concrete allocation. No Model load, extra calibration or new shape grid.",
+      "action": "Complete A=current original provider, B=957 A8 table lookup, C=equivalent A8 bitfield extraction with only LUT implementation changed between B/C. Preserve quantization, K32 rescale, original SiTU/BF16/W2/routing and stream0. Balance A/B/C order in the already-prepared39 calls. Compare complete provider event and host wall with current A as well as B; B-to-C improvement alone cannot rehabilitate a candidate still slower than A.",
+      "first_decidable_result": "Does removal of the demonstrated indexed global load materially improve whole-provider cost and beat original A under the existing stable-gain screen? Keep oracle/finite/canary checks and numerical differences at their established diagnostic scope. ISA instruction removal alone is no performance result.",
+      "stop": "Stop if C still loses or fails the existing stable5% screen against A, or if finite/canary/error/lifecycle checks fail. No automatic retries, further integer-kernel variants or Model promotion. Even a positive C is only fixture/defaultstream0 component evidence; future Model scope requires root's concrete decision."
+    }
+  ],
+  "root_followthrough": "Implement only these three cards in the existing ledger/owner flow. Deep has first priority for numerical causal narrowing; GLM and Kimi independently authorized preparations continue without a review barrier. Consume585/957/955 once, count CPU/ISA work zero extra rounds, retain original failures and unknown lifecycle details. New accepted Model gain remains0; physical peak UNKNOWN;15userTPS not reached; goal remains active."
+}
