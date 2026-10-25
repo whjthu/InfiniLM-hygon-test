@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-10-25T00:49:21.644914+00:00",
+  "updated_at_utc": "2026-10-25T00:59:56.077551+00:00",
   "owner": "bw1000-agent",
   "hardware": "BW1000",
   "goal_complete": false,
@@ -19,10 +19,10 @@
     "InfiniCCL": "51cc9db31d58aac21643d72f0f77cf5c9ecfaee5"
   },
   "current_cycle_checkpoint": {
-    "utc": "2026-10-25T00:49:21.644914+00:00",
-    "review": "67_COMPLETED_IMPLEMENTED",
-    "ledger": "optimization-review-ledger-after-67-round1.json",
-    "new_valid_rounds": 1,
+    "utc": "2026-10-25T00:56:05.516853+00:00",
+    "review": "68_RUNNING",
+    "ledger": "optimization-review-ledger-after-67-round3-format-normalized.json",
+    "new_valid_rounds": 3,
     "Kimi": "910rawcolumnpermutation diagnosed;B32sourceNO-GO;cap16interleaveCPUpreparing;oneCUDAegressfix queued duringload",
     "Deep": "908RUNNING n05/8DCU latentprefillModel A/C/C+optionalA,source12ed7e4",
     "GLM": "504qualified77.463743TPS/32cards2.420742,usermean1.974225;567M16 stillrunning/provisional52.646 notadopted",
@@ -291,20 +291,20 @@
     }
   },
   "latest_review": {
-    "updated_at_utc": "2026-10-25T00:49:21.644914+00:00",
+    "updated_at_utc": "2026-10-25T00:59:56.077551+00:00",
     "policy": "coordination/ASTRA_REVIEW.zh-CN.md",
-    "status": "COMPLETED_IMPLEMENTED_FOLLOWTHROUGH",
-    "review_id": "astra-review-67-current",
+    "status": "RUNNING",
+    "review_id": "astra-review-68-current",
     "model": "gpt-6-astra",
-    "agent": "/root/astra_review_67",
-    "report": "analysis/bw1000/reviews/astra-review-67-current.json",
-    "implementation": "analysis/bw1000/reviews/astra-review-implementation-67-current.json",
-    "ledger": "analysis/bw1000/reviews/optimization-review-ledger-after-67-round1.json",
-    "completed_rounds_since_review": 1,
+    "agent": "/root/astra_review_68",
+    "report": "analysis/bw1000/reviews/astra-review-68-current.json",
+    "implementation": null,
+    "ledger": "analysis/bw1000/reviews/optimization-review-ledger-after-67-round3-format-normalized.json",
+    "completed_rounds_since_review": 3,
     "normal_trigger": 3,
     "independent_work_continues": true,
-    "report_available": true,
-    "inflight_review": null,
+    "report_available": false,
+    "inflight_review": "/root/astra_review_68",
     "unreviewed_completed_experiments": [
       {
         "handle": "910376.567",
@@ -312,31 +312,42 @@
         "SHA256": "8c55c6c5ce1f24681782d846f3c2373aa3279dcb1ec9c8a1c6a5aabec8dd3976",
         "scope": "Qualified same-load16DCU B32M8->M16 full128/477 IDsEOS/QA/16normal/audit0/post568empty. Decode+32.9458%, no prefill benefit. Not DP or15/user.",
         "performance_round": true
+      },
+      {
+        "handle": "910374.908",
+        "evidence": "results/bw1000/2026-10-25/deep908-prefill-attention-tiles-model.json",
+        "SHA256": "d6d970a2eba78910ca7bc9e6e7aac3d25c2b9510273fc635de57eeae4cc7261e",
+        "scope": "ActualModel quality negative: A0 full128 exact; C1 firstdiff11thtoken in16rows, finite/argmax matched, STOP. FAILED1/audit1/shutdown/post912empty;afterQA absent. Not qualified speedup; exact cause unresolved.",
+        "performance_round": false
+      },
+      {
+        "handle": "910374.914",
+        "evidence": "results/bw1000/2026-10-25/kimi914-wfp4-egress-mapping-qualified.json",
+        "SHA256": "56be278283e745d3d16a5c65c24c974ffc2c8045f17c8e2beaea38a8b7d63691",
+        "performance_round": false,
+        "scope": "Completed onehot synthetic mapping causal fix,6144/6144identity/error0/normal/audit/post915empty. No actual realMoE/Model performance."
       }
     ],
-    "current_followthrough_summary": {
-      "DEEP67-CLOSE-ORIGINAL908": "ACCEPT_EXECUTED: original908 FAILED1 after C1 output-token mismatch; original A0 full128 exact, worker shutdown complete/post912empty, audit1. Do not adopt component speedup as Model performance. Original owner resumed for <=10min CPU-only first-difference/source diagnosis and negative compact; no new GPU/load/build/profile.",
-      "GLM67-CLOSE-ORIGINAL567": "ACCEPT_COMPLETED: actual567 qualified COMPLETED0/16normal/full477 IDsEOS/QA/audit0/post568empty. Matched B32M8->M16 decode39.641672->52.701955 (+32.9458%), no prefill benefit. Publish final evidence; reserve once after67.",
-      "GLM67-ONE-CONDITIONAL-M16-DP-COMPARISON": "ACCEPT_CPU_PREPARATION: original GLM owner <=10min prepares one fixed32distinct I512O128 joint B16M8 vs B16M16 packet, two16DCU replicas/one load each, common collector/independentCCL, no iso arms/nativebuild. Confirm actual B16M16 support/finish path; no GPU yet. Root reviews ready packet for unique launch, no 64-request scope drift or 52.70x2 forecast.",
-      "KIMI67-CAP16-INTERLEAVE-FIRST-DECISIVE-MODEL": "ACCEPT_RUNNING: source d645f7e2c6b95079b4e5d91af5f92057909b9703, entryf2b97e7b/manifest4660ecb7, unique910375.657 observed RUNNING00:47:37UTC n08..11/32DCU/45min2640. Full128 A/C plus budget-only optionalC, originalgold/16QA/guards, no nativebuild/profile/OFF/reference arms. Same watcher only.",
-      "KIMI67-ONE-W13-EGRESS-HYPOTHESIS": "ACCEPT_CPU_ONLY: original Kimi owner during657 load <=10min exactlyone CUDA egress-column suffix fix plus necessarylinks. Do not hot-modify657. Root must read corrected tiny packet before any newGPU; correct tiny alone does not authorize realMoE/Model or establish speed gain. Preserve902/910 negatives."
-    }
+    "current_followthrough_summary": {},
+    "pending_early_review": "New actualModel finaltoken contradiction after67: bounded original-owner source/fixture diagnosis ready; next review must address numerical exposure before any Model reload.",
+    "previous_completed_review_id": "astra-review-67-current",
+    "previous_report": "analysis/bw1000/reviews/astra-review-67-current.json"
   },
   "astra_review": {
-    "updated_at_utc": "2026-10-25T00:49:21.644914+00:00",
+    "updated_at_utc": "2026-10-25T00:59:56.077551+00:00",
     "policy": "coordination/ASTRA_REVIEW.zh-CN.md",
-    "status": "COMPLETED_IMPLEMENTED_FOLLOWTHROUGH",
-    "review_id": "astra-review-67-current",
+    "status": "RUNNING",
+    "review_id": "astra-review-68-current",
     "model": "gpt-6-astra",
-    "agent": "/root/astra_review_67",
-    "report": "analysis/bw1000/reviews/astra-review-67-current.json",
-    "implementation": "analysis/bw1000/reviews/astra-review-implementation-67-current.json",
-    "ledger": "analysis/bw1000/reviews/optimization-review-ledger-after-67-round1.json",
-    "completed_rounds_since_review": 1,
+    "agent": "/root/astra_review_68",
+    "report": "analysis/bw1000/reviews/astra-review-68-current.json",
+    "implementation": null,
+    "ledger": "analysis/bw1000/reviews/optimization-review-ledger-after-67-round3-format-normalized.json",
+    "completed_rounds_since_review": 3,
     "normal_trigger": 3,
     "independent_work_continues": true,
-    "report_available": true,
-    "inflight_review": null,
+    "report_available": false,
+    "inflight_review": "/root/astra_review_68",
     "unreviewed_completed_experiments": [
       {
         "handle": "910376.567",
@@ -344,15 +355,26 @@
         "SHA256": "8c55c6c5ce1f24681782d846f3c2373aa3279dcb1ec9c8a1c6a5aabec8dd3976",
         "scope": "Qualified same-load16DCU B32M8->M16 full128/477 IDsEOS/QA/16normal/audit0/post568empty. Decode+32.9458%, no prefill benefit. Not DP or15/user.",
         "performance_round": true
+      },
+      {
+        "handle": "910374.908",
+        "evidence": "results/bw1000/2026-10-25/deep908-prefill-attention-tiles-model.json",
+        "SHA256": "d6d970a2eba78910ca7bc9e6e7aac3d25c2b9510273fc635de57eeae4cc7261e",
+        "scope": "ActualModel quality negative: A0 full128 exact; C1 firstdiff11thtoken in16rows, finite/argmax matched, STOP. FAILED1/audit1/shutdown/post912empty;afterQA absent. Not qualified speedup; exact cause unresolved.",
+        "performance_round": false
+      },
+      {
+        "handle": "910374.914",
+        "evidence": "results/bw1000/2026-10-25/kimi914-wfp4-egress-mapping-qualified.json",
+        "SHA256": "56be278283e745d3d16a5c65c24c974ffc2c8045f17c8e2beaea38a8b7d63691",
+        "performance_round": false,
+        "scope": "Completed onehot synthetic mapping causal fix,6144/6144identity/error0/normal/audit/post915empty. No actual realMoE/Model performance."
       }
     ],
-    "current_followthrough_summary": {
-      "DEEP67-CLOSE-ORIGINAL908": "ACCEPT_EXECUTED: original908 FAILED1 after C1 output-token mismatch; original A0 full128 exact, worker shutdown complete/post912empty, audit1. Do not adopt component speedup as Model performance. Original owner resumed for <=10min CPU-only first-difference/source diagnosis and negative compact; no new GPU/load/build/profile.",
-      "GLM67-CLOSE-ORIGINAL567": "ACCEPT_COMPLETED: actual567 qualified COMPLETED0/16normal/full477 IDsEOS/QA/audit0/post568empty. Matched B32M8->M16 decode39.641672->52.701955 (+32.9458%), no prefill benefit. Publish final evidence; reserve once after67.",
-      "GLM67-ONE-CONDITIONAL-M16-DP-COMPARISON": "ACCEPT_CPU_PREPARATION: original GLM owner <=10min prepares one fixed32distinct I512O128 joint B16M8 vs B16M16 packet, two16DCU replicas/one load each, common collector/independentCCL, no iso arms/nativebuild. Confirm actual B16M16 support/finish path; no GPU yet. Root reviews ready packet for unique launch, no 64-request scope drift or 52.70x2 forecast.",
-      "KIMI67-CAP16-INTERLEAVE-FIRST-DECISIVE-MODEL": "ACCEPT_RUNNING: source d645f7e2c6b95079b4e5d91af5f92057909b9703, entryf2b97e7b/manifest4660ecb7, unique910375.657 observed RUNNING00:47:37UTC n08..11/32DCU/45min2640. Full128 A/C plus budget-only optionalC, originalgold/16QA/guards, no nativebuild/profile/OFF/reference arms. Same watcher only.",
-      "KIMI67-ONE-W13-EGRESS-HYPOTHESIS": "ACCEPT_CPU_ONLY: original Kimi owner during657 load <=10min exactlyone CUDA egress-column suffix fix plus necessarylinks. Do not hot-modify657. Root must read corrected tiny packet before any newGPU; correct tiny alone does not authorize realMoE/Model or establish speed gain. Preserve902/910 negatives."
-    }
+    "current_followthrough_summary": {},
+    "pending_early_review": "New actualModel finaltoken contradiction after67: bounded original-owner source/fixture diagnosis ready; next review must address numerical exposure before any Model reload.",
+    "previous_completed_review_id": "astra-review-67-current",
+    "previous_report": "analysis/bw1000/reviews/astra-review-67-current.json"
   },
   "current_speculative_evidence": "analysis/bw1000/Kimi-speculative-latest-r8892.json",
   "current_Kimi879": "results/bw1000/2026-10-25/kimi879-owner-stream-diagnostic.json",
@@ -442,5 +464,17 @@
     "review_round": "root owns; postfreeze67 once",
     "evidence": "results/bw1000/2026-10-25/glm567-B32-M16-qualified.json",
     "scope": "Same-load B32M8/M16 qualified. Single pair; no DP, B16 or15/user inference."
-  }
+  },
+  "current_Deep908": {
+    "actual_handle": "910374.908",
+    "qualified": false,
+    "adopted": false,
+    "evidence": "results/bw1000/2026-10-25/deep908-prefill-attention-tiles-model.json",
+    "diagnosis": "analysis/bw1000/Deep908-source-diagnosis-r8945.json",
+    "first_difference": "11thoutput,16oddrows",
+    "cause": "UNRESOLVED",
+    "cleanup": "original8workersshutdown/post912empty",
+    "next_action": "Original owner CPU prepares faithful RMSNorm/RoPE and SWA/HCA128/CSA4 component fixtures, <=10min/no nativebuild/GPU or Model reload pending root decision."
+  },
+  "current_Kimi914": "results/bw1000/2026-10-25/kimi914-wfp4-egress-mapping-qualified.json"
 }
