@@ -1,0 +1,121 @@
+{
+  "CPU_source_only": true,
+  "new_GPU_or_Model_submitted": false,
+  "source_DSO": "9330b4f13a6f26b5be205dd80e8feb7c44041ebbf143a6d444fd82789b9fc0dc",
+  "measured_latest": "1083 B32 decodeOFF33.4371624/ON33.3921845; actualsinkdecodecounterszero both; noexistingdecodeinnerprofile",
+  "current_attention_gates": {
+    "T32pastpositive": "All latent modes0/1/2 endon scalarquery path.",
+    "mode0": "packedrequestedfalse; scalar.",
+    "mode1": "Outer geometryH8SW128 passes, packed_runs returnsfalse forT<=32; scalar.",
+    "mode2": "Outer gate requiresmode1 OR T2048, soT32false evenbeforeinnerguard.",
+    "scratchON": "Actualscratchreuse requiresT>64, soT32uses3perqueryTensorobjects,notreusedscratch.",
+    "sink9040ON": "Usedinside mode2packedrun; currently no decode selection. Newr9207sink mode1alsozero decode.",
+    "scalarCast9054ON": "Requires packedselected+mode2+sinkON; falseforT32.",
+    "valuesReuse9083": "CurrentlyOFF andonlymode2packedrun; no decodeeffect.",
+    "counters": "Oldscratch/packedcounters onlyupdateT>64, sozeros alonecannotproveall decodeoperatorcounts; exactsourcegates+newr9207actualzero arejointproof."
+  },
+  "current_scalar_decode_path": {
+    "per_layer_at_B32_positive_N": {
+      "QK_Gemm_submits": 32,
+      "PV_Gemm_submits": 32,
+      "Softmax_submits": 32,
+      "Cast_result_submits": 32,
+      "sink_copy_calls": 32,
+      "logits_probs_result_Tensor_objects": 96,
+      "additional_common": "qF32 Cast1 + packedgather1; idsH2D1; metadataD2H3; output/qf/ids/packedbackings4"
+    },
+    "no_false_sync_claim": "Noexplicit perquery r.syncStream inside scalarloop. Oneoriginalfinal drain +exceptiondrain; wrappers/Work have their own original fences. D2H metadatahostvisibility costs exist but actualduration unknown. Tensorobjects are not necessarily cudaMalloc dueRuntimepool. Submit/copy counts are not measured GPUkernel count orspeed."
+  },
+  "MoE_decode": {
+    "bound_source_SHA256": "9872e3553ee22c1292637559a116fe8c0fd9726aaa1290206a3bfc6beb5117c6",
+    "T32": "tokens<=64 goesrouted_r20::forward GPUbatched already; phase_counts[10]++, notprefillperexpertHOSTloop. topk6 ->192routes/card/layer.",
+    "quant": "InputBF16->PerChannelQuantI8 implementationindex0; INT8weights/channelF32scale; gate/upW64 DP4A source, downW32 DP4A source, INT32dot +F32scale, BF16 intermediate/output; not FP8 or MMAC claim. Actualobjectsymbols three32/64templateinstances; localCU==remoteincomingSHA; exacthelper/src compilemanifestnotretrievedthisround.",
+    "kernel_launch_structure": "onevalidate +onegateup +onedown; routesaregrid.y not192 HOSTkernellaunches. Clamp2/SiluAndMul/quant2/Cast/Mul/Sum+sharedMLP/collectiveadditional.",
+    "validation_fence": "GPUroutevalidate ->4byte D2H status before use; routedforward finalr.sync andWorkdestructor drain. No perroute explicitdrain.",
+    "prefill_flags": "model_quant1/activation arms and packedupload are>64 only; cannot treatasnewdecodeINT8 gains.",
+    "missing_actual": "No currentB32decodeMoE/attention/comm split, expertU/maxrows/hist oractualcacheBW. Old1073 82.17%latent isPFonly andcannotextrapolatetodecode."
+  },
+  "existing_profile_can_capture_decode": {
+    "native": "r8918 owner Context onlyrequiresnonzeroWindow/validowner; noT/past/B4 predicate. Inner9193 Frame requiresoldwindow1 +tokens>0/count>0; noT1681/B4 predicate.",
+    "sequence": "At nextnecessaryresidentModel, oldOwnerarm0/innerarm0; innerarm1 thenoldOwnerarm1; ONEactualB32decodeCAPI; immediatelyoldOwnerread theninnerread; validate344rows/43kinds/deviceownerthread/7events+destroyed, expectedtokens32/requests32; closeflags.",
+    "avoid": "Do not useownerwindow2withinner:innerhardrequires1. Do notreusePythonPFvalidatorunchanged:it hardcodes1681/4. Adjustonlyprivatefrontendexpectedgeometry; noDSO/newprofiler needed.",
+    "measurement_limits": "Eventstreamelapsed includesHOSTlaunchgap/dependency/commwait; noGPUbusyclaim. Diagnosticcallnotinthroughputstatistics; consecutivepastdifferencesprecludeclaimingpureobserveroverheadfromneighborsteps.",
+    "status": "Sourcepossible, notGPUqualifiedfordecodeyet; no1083reopen/reloadsolelyforprofile."
+  },
+  "single_candidate": {
+    "name": "defaultOFF smallT2..32 existingmode1 packedEqualN path",
+    "minimal_change": "ONEHOST latentTU: explicitoptin permits2<=T<=32 onlyformode1; B1original; T33..2048existingPFbehaviorunchanged; H8/SW128/Npositive<=2048/offsetN+1/nonoverlapvalues/originalprovider/scratchowners/finaldrainunchanged. DistinctsmallTcounterforselected/scalar/run/query/avoidcopiesnotoldT>64PFcounter. Reusealreadyqualifiedr9207broadcastwithinpack; not reoptimizingPFsink.",
+    "why": "Group independentqueries withsameN intoexisting3DGemm/Softmax/PV/Cast; ungroupedraggedqueriesstayoriginalscalar. Neverpadprompt, alterorder/state, ormergeKVbetweenrequests.",
+    "CPU_geometry_bound": "Existing code acceptsR>=2 andalreadyqualifiedlargerPF R. Need actualR2/3/7/16/31/32 GPUfull-latent becauseproviderdispatch mayvary; sourceproofaloneisnotperformance.",
+    "actual_SWA_firstdecode": "All32actualpromptlengths377..458 >SW128, soN128 andone32queryrun ineach2SWA layers, versus32scalarqueries.",
+    "HCA_conditional_metadata_estimate": {
+      "condition": "If currentratio128 causal allcompressed selection yieldN=128+floor((past+1)/128), verifyactualNhistbeforeModelclaim; indexselectioncouldchangeit.",
+      "actual_prompt_lengths": [
+        413,
+        433,
+        458,
+        377,
+        416,
+        387,
+        423,
+        436,
+        436,
+        391,
+        414,
+        388,
+        415,
+        389,
+        390,
+        406,
+        445,
+        418,
+        427,
+        396,
+        396,
+        411,
+        414,
+        454,
+        392,
+        379,
+        421,
+        383,
+        418,
+        451,
+        383,
+        400
+      ],
+      "first_decode_equalN_runs": [
+        {
+          "begin": 0,
+          "count": 3,
+          "N": 131
+        },
+        {
+          "begin": 3,
+          "count": 1,
+          "N": 130
+        },
+        {
+          "begin": 4,
+          "count": 21,
+          "N": 131
+        },
+        {
+          "begin": 25,
+          "count": 1,
+          "N": 130
+        },
+        {
+          "begin": 26,
+          "count": 6,
+          "N": 131
+        }
+      ],
+      "packed_queries_estimate": 30,
+      "scalar_queries_estimate": 2
+    },
+    "minimal_qualification": "SingleGPU existingr681CAPI, noModelweights: actualB32uniqueSWA_KV128/query1 metadata +one mixedN128..132 fixture andEOStailB7/31, originalF32QK/PV/Softmax; syntheticRMSRoPEclearlylabeled. 2warm+4pairedfull-latentwall/CUDAevents, actualnewbranchcounts, finite/readonly/canary/lifetime/errorreport+normal/post. NoallModelloaduntilcomponentpositive andnextnecessaryload.",
+    "not_claimed": "Noattnshare/modelTPS/rooflineoruser>15predictionfromsourcecallcounts."
+  },
+  "next_priority": "QualifythissmallTcomponent; atnextnecessaryModelcaptureexistingoneDecodeowner+inner beforechoosingMoEvsattentionkernel. No repeatedsinkload/grid."
+}

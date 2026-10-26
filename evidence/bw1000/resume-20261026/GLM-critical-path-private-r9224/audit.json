@@ -1,0 +1,72 @@
+{
+  "scope": "READONLY_SOURCE_AND_PRIOR_PROFILE_NO_NEW_GPU_NO_MODEL_SPEED_CLAIM",
+  "sources": {
+    "GLM-B32-Model-private-r9183/glm_ragged_probe_r9183.py": "88c5043711199a984dfd64f9e1dec49ad4d69d09a6878d9f78102a1fc5c1358f",
+    "GLM-B32-Model-private-r9183/model_entry_r9183.py": "8b61d1e57d54a7e466ea33fc77064c416f201ac73d5bc54ec082466ee5da85e1",
+    "GLM-B32-Model-private-r9183/CPU-build.json": "9296819f10c071b5d9379981291ecd8e2fe1ed83b141609d50608a1ad2cf21f8",
+    "GLM-lease32-private-r9205/bridge_lease32_r9205.cpp": "587dda17d446e76b5c838016c49827ba0d956c12177e30d29bc0ef90e415d0ff",
+    "glm_fp8_runtime_r809.cpp": "5a9f1c4de4ca1edfd022984687555674e01ff82ed9573cde92489e27459cb4f4",
+    "glm_fp8_cache_r807.cpp": "98499bc7dc070801ddaca969e947fb36ed16ece2c602b46aa86812b7b24e3c50",
+    "glm_fp8_batched_r776.cu": "56f3e4b7a7c85a8a73ca8ab586348bb0ea897007f75fc7eb8de200c0ef93faac",
+    "GLM540-decode-profile-compact-r8812.json": "7fc0003a86d2b241faf07571b1c14be24a23a6c45e7f8bd7eaa2da9e4ec206f3",
+    "GLM-selective-INT8-private-r9127/RESULT.zh-CN.md": "3b8b81f974b0c01a32d5b6b3de4c12ccf57f0a472afec707a25e46a6164bb330",
+    "GLM-lease32-component-private-r9222/terminal-metrics-r9222.json": "1b3e9e66b3577c2afa5a30e438485b319677c7808050d2ad0046f22556a9daaa"
+  },
+  "actual_Model_SHA256": "a549b9b3951b51b52d3f8a96f0fe585da6a92cb88e77054970fdbef3ad483078",
+  "pipeline": {
+    "frontend": "glm_ragged_probe_r9183.py L27-40 synchronous forward; L77-84 emit worldcontrol+CPUvote; L94-96 forward -> emit -> nextmicro",
+    "order": [
+      "allstage synchronous forward micro0",
+      "all16rank feedback micro0",
+      "allstage synchronous forward micro1",
+      "all16rank feedback micro1"
+    ],
+    "conclusion": "No next micro submitted while tail computes currentmicro; synchronous native CAPI alone does not prohibit overlap of different stage processes, immediate globalfeedback does. Perrow independent KV makes delayfeedback possible only for disjoint rows in same decode round.",
+    "native": "bridge9205 L52-61 validates positions, calls moduleforward, copies tail logits, leaseFinish/drain before return; globalcontrol L63 is separate CAPI. Existing native drain must remain."
+  },
+  "fp8_cache": {
+    "r809_dispatch": "M8/16 cached_r807; M>=32 prefill_r780; otherM false",
+    "r807_key": "dtype,M,N,K,scaleRows,scaleCols,rowOffset,colOffset, NOT weightidentity",
+    "persisted": "workspace Xunpack/Wunpack/FP32partials plus BLAShandle; NOT converted weights",
+    "run": "r776 mode1 unpacks X and W every invocation, stridedBatchedBF16 GEMM per128K then F32 scale combine",
+    "bytes_formula": "blocks*(2*M*128+2*N*128+4*M*N), blocks=ceil((co+K)/128)-floor(co/128)",
+    "limits": "10 entries/192MiB logical workspace perRuntime; evictions drain, no immutableweightcache",
+    "actual714": {
+      "created": 1,
+      "destroyed": 1,
+      "workspace_peak_bytes": 4128768,
+      "live_after": 0,
+      "physical_peak": "UNKNOWN",
+      "scope": "one actual sharedMLP synthetic originalformat, not fullModel perRuntime total"
+    },
+    "weightcache_caution": "Cannot skipWunpack on geometry hit: layers sharegeometry but different weight pointers. A valid decodedweightcache needs immutable Widentity+generation+ro/co+device/Runtime/lifetime and a physicalmemory admission budget; not proposed this round."
+  },
+  "prior_profile": {
+    "actual": "910376.540 COMPLETED0, post541empty",
+    "geometry": "TP8PP2 B16 M8, I512 O128; decode round63/64; single layer38 fullindex, not currentC32 EOSragged profile",
+    "stage_host_ms": [
+      183.356,
+      198.902
+    ],
+    "stage_layers_host_ms": [
+      180.966,
+      197.706
+    ],
+    "layer38_host_ms": 5.559,
+    "routed_gate_up_stream_ms": 1.02288,
+    "routed_down_stream_ms": 0.62224,
+    "shared_MLP_host_ms": 1.7118,
+    "shared_MLP_stream_ms": 0.3756,
+    "warnings": [
+      "host layers includes communication/CPU submission/waits, not purecompute",
+      "eventelapsed includes stream queue and gaps, not GPUbusy",
+      "nested spans cannot sum",
+      "sharedMLP host1.7118 may absorb preceding routedwork, not isolatedcompute",
+      "oldprofile cannot quantify currentpipeline gain"
+    ]
+  },
+  "INT8_existing": {
+    "actual": "910376.664 COMPLETED0, post665empty",
+    "result": "M1/4/8/16/128 actual inputquant+I8Gemm+epilogue+sync slower than residentBF16 reference for both upproj/downproj; reference is NOT same originalFP8layer; no newnaiveINT8 candidate or Model load warranted"
+  }
+}

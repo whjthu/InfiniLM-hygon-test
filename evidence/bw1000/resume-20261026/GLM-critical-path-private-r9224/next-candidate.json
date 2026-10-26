@@ -1,0 +1,25 @@
+{
+  "candidate": "DEFAULT_OFF_TWO_MICRO_DEFERRED_FEEDBACK",
+  "single_change": "Within one round, partition active logicalrows exactly as existing schedule, execute up to2 forwards before any emit/globalfeedback, retaining each distinct logits Tensor until its ordered emit. Keep nativeCAPI/math/M16/leases/residentKV/positionchecks/all sync unchanged.",
+  "pseudocode": [
+    "snapshot active, generatedlasttokens, pasts at roundstart",
+    "for wave in chunks(existing_microbatches,2):",
+    "  pending=[]",
+    "  for disjointrows in wave: pending.append(rows,forward(rows, frozeninput, past))",
+    "  for rows,logits in pending: emit(rows,logits); advance onlythose pasts once",
+    "finish allwave feedback before next perrow token is submitted"
+  ],
+  "geometry": "Primary C32M16, secondary C16M8; C<=M has one micro and must be an unchanged control. EOS shrink preserves fixed round membership. No padding fakeusers.",
+  "lifetime": "Every rank owner stays same thread/process. No concurrent calls into sameRuntime. Keep logits buffers stronguntil orderedfeedback; all processforward/feedback sequence identical. Intermediate PythonH2D inputs can finish with originalCAPI drain.",
+  "collective_risk": "Audit actual linked Model for hidden WORLD collectives insideforward before GPU; TP-localcollectives and matching PPsend/recv can be interleaved across stages. Control communicator must not alias world in a way requiring oldglobalorder; allranks issue identical operation order. Do not use ThreadPool on Runtime owner.",
+  "failure": "Explicit forward failure aborts owned run normally; no skipping feedback asymmetrically or reused row/past. Preserve floor/cleanup.",
+  "test_plan": "CPU strict owner/raggedEOS/perrowpast/disjointrows/collectiveorder tests first, then one justified same-load native16card Model ABBA serial/deferred C32M16 same32distinct heldout inputs, plus one-micro control. Report perstage timing/PPwait/fullcommondecode/userITL/quality/EOS/allcardTPS/physicalobservedfree; not only CAPIrate. No GPU requested/launched here.",
+  "conditional_bound": "For 2micro, neglect overhead, serial2*(a+b), pipelined a+b+max(a,b); balanced reduction25%, rate+33%. Old183/199ms illustrative rate1.315 only, not measured currentprediction.",
+  "not_this_round": [
+    "M32lease widening",
+    "decodedweightcache",
+    "INT8 perexpertgrid",
+    "removing nativefences",
+    "fullModel coldload only tovalidate gate"
+  ]
+}
