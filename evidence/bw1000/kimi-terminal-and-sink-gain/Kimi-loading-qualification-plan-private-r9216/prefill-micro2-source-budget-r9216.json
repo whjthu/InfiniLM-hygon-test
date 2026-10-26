@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "scope": "futureindependent33cardPP2candidate sourcebudgetonly; no coldload/GPU submitted",
+  "baseline_prefill_micro": 4,
+  "candidate_prefill_micro": 2,
+  "required_private_changes": [
+    "cohort optionalprefill_micro strictint in2/4, default4; range/group slices/finalgroup emit test useactualmicro",
+    "caseallownerconfigbarrier includesmicro; reportactualmicro",
+    "manifest/pins separate, samefrozen32distinctquestions/cap/tokenization/TP16PP2cap16+1draft=33cards; nootherkernel/cache/loaderchanges"
+  ],
+  "source_dims": {
+    "max_prompt_rows": 512,
+    "hidden": 7168,
+    "KDA_localheads": 6,
+    "KDA_dim": 128,
+    "local_qkv_width": 2304,
+    "MoE_routed_expert_hidden": 3584,
+    "topK": 16
+  },
+  "linear_tensor_examples_bytes": {
+    "hidden_BF16_T2048": 29360128,
+    "hidden_BF16_T1024": 14680064,
+    "localQKV_BF16_T2048": 9437184,
+    "localQKV_BF16_T1024": 4718592,
+    "expandedroute_input_ifmaterialized_T2048_top16_latent3584_BF16": 234881024,
+    "expandedroute_input_ifmaterialized_T1024_top16_latent3584_BF16": 117440512
+  },
+  "not_allocation_peak": "examples fromsource dimensions only; simultaneous livebuffer count/providerworkspace+allocator buckets need actualGPUprofile; noassertmemoryexactlyhalves",
+  "persistent_memory_unchanged": [
+    "parameters",
+    "cap16pool33 andgenericMLApage132",
+    "fullpool snapshots percall",
+    "allocator retainedblocks/highwater maypersist"
+  ],
+  "potential_benefit": "maxpackedprefillT2048->1024 reduces T-linear scratch; couldavoidC8PFfloor but unmeasured",
+  "tradeoff": "ceil(C/2) vsceil(C/4)prefillcalls doubles C8/16 andPP/TPfixedlatency, maylowerprefillthroughput/increaseTTFT; decode geometry unchanged",
+  "quality_and_metrics": "actualsamequestionsanswers/EOSbenchmark; all32memorygate inclprefillsampledmin/evidence; TTFTperuser andprefilltimevsdecode separately; no15tok/sclaim",
+  "GO": false,
+  "PP2_cap32_not_claimed": "Thisfuture33cardPP2imagecapacity16:32distinctquestions means2cohorts\u00d716. CPUgroupingC32 onlygenericcoverage, not PP2nativeC32support. ActualC32 ModelremainsseparatePP4cap32."
+}

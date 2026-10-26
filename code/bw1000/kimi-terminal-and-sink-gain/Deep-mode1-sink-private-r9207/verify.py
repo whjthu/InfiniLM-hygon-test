@@ -1,0 +1,2 @@
+import pathlib,json,sys
+q=json.loads(pathlib.Path(sys.argv[1]).read_text());assert q['completed']and q['normal']and len(q['measurements'])==11;assert len([v for v in q['measurements']if v['phase']=='measure'])==8;assert all(v['finite']and v['readonly']and v['canary']for v in q['measurements']);assert all(v['relative_RMS']<1e-4 for v in q['numerical']);print(json.dumps({'qualified':True,'level':'CSA_COMPONENT_ONLY','step':q['step']}))

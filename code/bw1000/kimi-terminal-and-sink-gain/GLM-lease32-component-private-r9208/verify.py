@@ -1,0 +1,2 @@
+import json,pathlib,sys
+q=json.loads(pathlib.Path(sys.argv[1]).read_text());assert q['completed']and q['normal']and len(q['fixtures'])==4;assert [v['M']for v in q['fixtures']]==[16,17,31,32];assert all(len(v['measurements'])==11 and all(a['finite']and a['input_readonly']and a['canary']for a in v['measurements'])and all(a['relative_RMS']<1e-3 for a in v['numerical'])for v in q['fixtures']);print(json.dumps({'qualified':True,'level':'FP8MLP_COMPONENT_ONLY','step':q['step']}))

@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "status": "SOURCE_CPU_PLAN_ONLY_NO_GPU_GO",
+  "candidate_native": "2e5c21ba5738ce3711e1dfd2c033ebb641f99fa934268af3757b28010127ec75",
+  "current_legal_APIs": {
+    "partial_load": "modern_kimi_engine_load_r2475(ctx,jsondescriptors): Loading state accepts unique strict subset; allworker sourcefences complete before return. Neverforward/finish incomplete model.",
+    "partial_destroy": "modern_kimi_engine_destroy_r2475 existing path stops+joinsownedworkers; Scope destructor owner sync+abort+release before Runtime/modelteardown, source-proved notyetGPUexecuted",
+    "stats": "modern_kimi_loading_binding_counts_r9212(dev,uint64[4],4): builds/hits/initialkeycount/ONsourcecount; cumulative keys is NOT liveheldrefs",
+    "limitations": [
+      "cache mode fixedatconstruction; cannot samectxOFFONABBA withcurrentnative",
+      "no owner-safe GPU parameter readback CAPI",
+      "no explicit sessionactive/abortdestroy/liveref telemetry; currentcumulative counters cannot proveabortrelease"
+    ]
+  },
+  "minimal_private_patch": {
+    "TUs": [
+      "weights_r9212.cpp+loading_scope_r9212.hpp helper telemetry and capability/mode separation",
+      "worker_r9212.cpp+private rank_worker.hpp new nonvirtual submit and strongtypedCommand withoutobjectlayoutchange",
+      "private pair_probe.cpp ProbeEngine dispatchalllocalowners thenwait, ctxmutex serializes mode/readback againstload"
+    ],
+    "new_CAPI_proposal": {
+      "modern_kimi_loading_mode_r9217": "ctx,intmode: 0/1 only, Loading/noinflight; dispatch owner command all8 thenwait. ScopecapabilityfixedON optin, selectedmode independently controlslookup; OFF must still drain/validate/release earlierONbindings atabort/finish. Rejectclosed/wrongowner/modelgeneration.",
+      "modern_kimi_loading_parameter_readback_r9217": "ctx,localdevice,key,offset,bytes,outCPU; one ownercommand resolvesregisteredWeight/narrow onownerRuntime->DtoH+sync; bounded<=4096B, offsets aligned dtype/range; callback outsideperf only.",
+      "modern_kimi_loading_session_r9217": "read onlyperowner generation/currentmode/sessionactive/cacheheldkeys/lastclose reason/counters. Afterpartialdestroy allsessionactive=0,liveheld=0; cumulativekeys remainshistorical."
+    },
+    "preserve": [
+      "engine duplicatekeys guards andWeightState",
+      "LoadBatch256 source/destination owners, drains",
+      "same TPselect_source policy andsource dtype/shape validators",
+      "noModel forward/finish unlessfullrequired coverage",
+      "noF64/allSDKbytes unchanged"
+    ]
+  },
+  "recommended_first_qualification": {
+    "kind": "smaller actualKimiDeltaAttention Module, not fullModel",
+    "resources_proposed": "2nodes TP16/16DCU, c64/node/mem128000M/node/10min540inner; exact parent379/380nodes mustinventory/freshclaim first, noGPU GO",
+    "source": "reusequalifiedlayer0nativeTP16fixture actualModelWeights-boundmodule+realcheckpointmatchedsmallconv/gate/projection weights. No synthetic240k alias registry.",
+    "native": "sameprivateWeightsmethod+newScopeownercommands inoneDSO; do not splitinlineTLS intoanotherDSO",
+    "payload": "header selectunique matched keys/dtypes/shapes/bytes, max256MiB/stage, prewarmON/OFF disjoint keys; warm excluded. originalsourcebuffers kept untilAPIreturns; rawweightsnotupload",
+    "measure": "ABBA OFF/ON/ON/OFF distinct same-shape/byteskeys avoidingduplicateguard. metadata/nativeCAPIhostwall; H2Dwallincluded. smallmodule correctness/counter path qualifies, not actualfullstageflatten gain.",
+    "readback": "outside timing selectfirst/middle/lastphysicalrank-slice bytes vs actualCPU expectedtpSlice/digest, fullsourceCPU beforeafterreadonly digest",
+    "abort": "neverfinish/forward incomplete. exactdestroy thenactualGPUmemreturn, perowner sessionactive/liveheld0/normal exit/KFDpost; exactownedhandleonly"
+  },
+  "optional_whole_model_qualification_after_API_CPU": {
+    "resources": "parents910379+910380 8nodes64DCU TP16PP4cap32/pool65/pages260, c64/mem128000M/node, rootmustfreshinventoryandpublishclaim, noGPU GO",
+    "flow": "actualkeys/ranges/shardhead/layout/all64free>4GiB -> legalpartialmatchedloads only <=256MiB/stage -> ownerreadback+sessioncounter -> abortdestroy/allnormal/post; no1.45TBwholecheckpoint/noincompleteforward/nofinish",
+    "purpose": "actual fullstage bindingtree HOSTscan benefit; reportpureloadingtimeonly, notdecodegain"
+  },
+  "CPU_boundaries_next": [
+    "mode0/1/invalid andcapabilityOFF",
+    "closed/wrongctx/owner/generation andwhileinflight reject",
+    "samectxperphase all8ack beforeload; unknownstatus neverrelaunch",
+    "distinctkeyshape/bytesmatch; duplicatekeyguard unchanged",
+    "ownerreadback dtype/alignment/bounds andsourcefence",
+    "aborttelemetry cumulativeversuslive andgenerationreuse"
+  ],
+  "current_scope_no_GPU": true
+}
