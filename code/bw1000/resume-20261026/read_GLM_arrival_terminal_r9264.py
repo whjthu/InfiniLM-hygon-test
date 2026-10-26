@@ -1,0 +1,9 @@
+import pathlib,json,hashlib,subprocess,collections
+r=pathlib.Path.home()/'hygon-inference-refactor-20261014';label='GLM-arrival-Model-r9260';w=json.loads((r/(label+'-watch.json')).read_bytes());assert w['qualified']and w['audit_returncode']==0 and w['post_passed'];p=pathlib.Path(w['audit_path']);raw=p.read_bytes();assert hashlib.sha256(raw).hexdigest()==w['audit_SHA256'];audit=json.loads(raw);assert audit['qualified']and len(audit['owners'])==16 and all(x['normal']for x in audit['owners']);run=w['run'];f=r/'results'/f'glm-arrival-r9260-{run}-stage1-rank0.json';b=f.read_bytes();report=json.loads(b);profiles={}
+for a in report['episodes']:
+ groups={}
+ for c,e in zip(a['native_calls'],report['native_events'][a['native_event_start']:a['native_event_end']]):
+  key=c['op']+'/B'+str(len(c['rows']));z=groups.setdefault(key,{'calls':0,'HOST_CAPI_seconds':0.,'input_tokens':0,'existing_pipeline_profile_raw_sum':[0.,0.,0.]});z['calls']+=1;z['HOST_CAPI_seconds']+=e['native_seconds'];z['input_tokens']+=e['input_tokens'];z['existing_pipeline_profile_raw_sum']=[x+y for x,y in zip(z['existing_pipeline_profile_raw_sum'],e['existing_pipeline_profile'])]
+ profiles[a['label']]=groups
+rows=[x.split('|')for x in subprocess.check_output(['sacct','-S','2026-10-24','-j','910376','-n','-P','-o','JobID,JobName%100,State%40,ExitCode,Elapsed,NodeList%120'],text=True,timeout=30).splitlines()if x.split('|')[1]in[label,'GLM-arrival-keeper-r9260',label+'-before',label+'-post']];assert all(z[2:4]==['COMPLETED','0:0']for z in rows)
+print(json.dumps({'Slurm':rows,'watch':w,'audit':audit,'audit_original_SHA256':hashlib.sha256(raw).hexdigest(),'emitter_report_SHA256':hashlib.sha256(b).hexdigest(),'existing_native_profiles_grouped_by_real_B':profiles,'GPU_performance_round':True,'scope':'one complete4arm same-load causal experiment; negativecandidate retained, no new profiling','minimum_free_bytes':report['minimum_driver_free_bytes']}))

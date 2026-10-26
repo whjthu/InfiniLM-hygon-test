@@ -1,0 +1,18 @@
+import pathlib,json,hashlib,statistics,math
+r=pathlib.Path.home()/'hygon-inference-refactor-20261014';launch=json.loads((r/'GLM-arrival-Model-r9260-launch.json').read_bytes());run=launch['run'];p=r/'results'/f'glm-arrival-r9260-{run}-stage1-rank0.json';out={'run':run,'actual_handle':json.loads((r/'GLM-arrival-Model-r9260-watch.json').read_bytes()).get('actual_handle'),'report_exists':p.exists(),'arms':[]}
+def desc(x):
+ x=sorted(x)
+ def at(p):
+  v=(len(x)-1)*p;lo=int(v);hi=math.ceil(v);return x[lo]*(hi-v)+x[hi]*(v-lo)if lo!=hi else x[lo]
+ return {'n':len(x),'min':min(x)if x else None,'mean':statistics.mean(x)if x else None,'p50':at(.5)if x else None,'p95':at(.95)if x else None,'p99':at(.99)if x else None,'max':max(x)if x else None}
+if p.exists():
+ raw=p.read_bytes();q=json.loads(raw);out.update(report_SHA256=hashlib.sha256(raw).hexdigest(),warm_passed=q.get('warm_CCL_progress_passed'),benchmark_complete=q.get('benchmark_complete'),completed=q.get('completed'),normal_reset_close=q.get('normal_reset_close'),error=q.get('error'))
+ for arm in q.get('episodes',[]):
+  data=arm['serving'];reqs=data['requests'];es=q['native_events'][arm['native_event_start']:arm['native_event_end']];origin=min(e['native_return_clock_s']-e['native_seconds']for e in es);calls=arm['native_calls'];assert len(es)==len(calls);phases={}
+  for op in ['PREFIX','ANCHOR','DECODE']:
+   ee=[(e,c)for e,c in zip(es,calls)if c['op']==op];intervals=[[e['native_return_clock_s']-e['native_seconds']-origin,e['native_return_clock_s']-origin]for e,c in ee];phases[op]={'calls':len(ee),'input_tokens':sum(e['input_tokens']for e,c in ee),'HOST_CAPI_wall_sum_seconds':sum(e['native_seconds']for e,c in ee),'HOST_CAPI_wall_distribution':desc([e['native_seconds']for e,c in ee]),'nativeCAPI_B_distribution':desc([len(c['rows'])for e,c in ee]),'first_CAPI_entry_from_first_any_CAPI':intervals[0][0]if intervals else None,'last_CAPI_return_from_first_any_CAPI':intervals[-1][1]if intervals else None,'intervals_from_first_any_CAPI':intervals,'scope':'HOST ordinaryModel CAPI includes waits/communication/submission, not GPUbusy; origin firstnativeentry NOTarrival; do not removePwait fromuserclocks'}
+  user=[]
+  for row,rec in enumerate(reqs):
+   t=[z['time']for z in rec['events']];rate=(len(t)-1)/(t[-1]-t[0])if len(t)>1 and t[-1]>t[0]else None;user.append({'id':rec['id'],'row':row,'arrival':rec['arrival'],'admission_queue_seconds':rec['queue_wait_seconds'],'dispatch_queue_seconds':rec['dispatch_queue_wait_seconds'],'TTFT_seconds':rec['TTFT_seconds'],'completion_from_arrival_seconds':rec.get('end_time',data['elapsed_seconds'])-rec['arrival'],'visible_tokens':len(t),'user_firstlast_tok_s':rate,'EOS':rec.get('stop_reason')=='EOS','output_cap':rec.get('stop_reason')=='max_new_tokens','status':rec['status'],'score':rec.get('score')})
+  scores=arm['task_scores'];out['arms'].append({'label':arm['label'],'chunked':arm['chunked'],'complete':arm['complete'],'service_wall_seconds':data['elapsed_seconds'],'metrics':arm['metrics'],'queue_seconds':desc([v['dispatch_queue_seconds']for v in user if v['dispatch_queue_seconds']is not None]),'completion_from_arrival_seconds':desc([v['completion_from_arrival_seconds']for v in user]),'TTFT_first8':desc([v['TTFT_seconds']for v in user[:8]if v['TTFT_seconds']is not None]),'TTFT_later24':desc([v['TTFT_seconds']for v in user[8:]if v['TTFT_seconds']is not None]),'EOS_count':sum(v['EOS']for v in user),'cap_count':sum(v['output_cap']for v in user),'unfinished':data['unfinished'],'not_arrived':data['not_arrived'],'correct':sum(s['flexible_correct']for s in scores),'n':len(scores),'native_phases':phases,'requests':user,'quality_no_tokenidentity_gate':True})
+print(json.dumps(out))
