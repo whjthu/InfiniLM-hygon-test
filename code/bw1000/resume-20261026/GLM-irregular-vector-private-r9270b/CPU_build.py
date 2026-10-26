@@ -1,0 +1,16 @@
+import pathlib,json,hashlib,subprocess,os,time,traceback
+r=pathlib.Path('/refactor');inc=pathlib.Path(__file__).parent;b=r/'candidates/GLM-irregular-vector-r9270b';assert not b.exists();b.mkdir();sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest();m=json.loads((inc/'CPU-manifest.json').read_bytes());q={'completed':False,'CPU_only':True,'GPU_initialized':False,'dlopen':False,'producer':os.environ['SLURM_JOB_ID']+'.'+os.environ['SLURM_STEP_ID'],'commands':[]};begin=time.monotonic()
+def run(a,name):
+ q['commands'].append(a);z=subprocess.run(a,capture_output=True,text=True,timeout=120);(b/(name+'.log')).write_text(z.stdout+z.stderr);assert z.returncode==0,(name,z.stderr[-6000:]);return z.stdout
+try:
+ for n,h in m['source_SHA256'].items():assert sha(inc/n)==h,n
+ for n,h in m['parent_SHA256'].items():assert sha(n)==h,n
+ for n in ['dispatch-r9270.cpp','component-bridge-r9270.cpp','glm_vector_dispatch_r8540.hpp','CPU-dispatch-r9270.cpp']:(b/n).write_bytes((inc/n).read_bytes())
+ objects=[];compiled=[]
+ for name in ['dispatch-r9270.cpp','component-bridge-r9270.cpp']:
+  obj=b/(name+'.o');md=b/(name+'.d');run(['g++','-std=c++17','-O2','-fPIC','-D_GLIBCXX_USE_CXX11_ABI=1','-I'+str(b),'-MD','-MF',str(md),'-c',str(b/name),'-o',str(obj)],name);objects.append(str(obj));compiled.append({'source':str(b/name),'source_SHA256':sha(b/name),'object':str(obj),'object_SHA256':sha(obj),'MD_SHA256':sha(md)})
+ run(['g++','-std=c++17','-O2','-pthread','-I'+str(b),str(b/'dispatch-r9270.cpp'),str(b/'component-bridge-r9270.cpp'),str(b/'CPU-dispatch-r9270.cpp'),'-o',str(b/'CPUcheck')],'CPUcheck-build');test=json.loads(run([str(b/'CPUcheck')],'CPUcheck-run'));assert test['passed']
+ reused=['/refactor/candidates/glm-vector-r8529/vector.o'];lib=b/'libGLM_irregular_vector_r9270.so';run(['g++','-shared',*objects,*reused,'-L/refactor/candidates/glm-hybrid-decode-r5386','-lnative','-Wl,-rpath,/refactor/candidates/glm-hybrid-decode-r5386','-L/opt/dtk/cuda/cuda/lib64','-lcudart','-Wl,-Bsymbolic','-Wl,--no-undefined','-o',str(lib)],'link');exports=run(['nm','-D','--defined-only',str(lib)],'exports');required=['modern_glm_vector_counts_r8540','modern_glm_vector_policy_r8540','modern_glm_vector_get_r8540','modern_glm_irregular_vector_policy_r9270','modern_glm_irregular_vector_get_r9270','glm_component_gate_r9270','glm_component_down_r9270','glm_vec_gate_r8528','glm_vec_down_r8528'];assert all(any(line.split()[-1]==n for line in exports.splitlines())for n in required);ld=run(['ldd',str(lib)],'ldd');assert 'not found'not in ld
+ q.update(completed=True,HOST_TUs_compiled=2,GPU_TUs_compiled=0,compiled=compiled,reused_GPU_objects_SHA256={n:sha(n)for n in reused},library=str(lib),library_SHA256=sha(lib),CPU_contract=test,ldd=ld,source_manifest_SHA256=sha(inc/'CPU-manifest.json'),default_OFF=True,only_added_routes=[104,120],legacy_routes=[32,64,128],Frame_ABI_unchanged=True,actual_GPU_qualification=False)
+except BaseException as e:q.update(error=repr(e),traceback=traceback.format_exc())
+q['seconds']=time.monotonic()-begin;(b/'CPU-build.json').write_text(json.dumps(q,indent=2));print(json.dumps({k:q.get(k)for k in ['completed','producer','seconds','HOST_TUs_compiled','library_SHA256','CPU_contract','error']}));assert q['completed']

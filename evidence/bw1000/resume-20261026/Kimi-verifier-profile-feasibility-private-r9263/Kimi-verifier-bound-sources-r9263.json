@@ -1,0 +1,312 @@
+{
+  "GPU": false,
+  "native_dlopen": false,
+  "actual_named_exports": [
+    "modern_kimi_batch_forward_r9122",
+    "modern_kimi_diag_arm_r9008",
+    "modern_kimi_diag_capabilities_r9008",
+    "modern_kimi_diag_read_r9008",
+    "modern_kimi_engine_create_batch_r9122c",
+    "modern_kimi_engine_create_pair_r9006",
+    "modern_kimi_engine_create_r2475",
+    "modern_kimi_engine_create_spec_r3632",
+    "modern_kimi_engine_forward_r2475",
+    "modern_kimi_engine_load_r2475",
+    "modern_kimi_engine_output_metrics_r2475",
+    "modern_kimi_model_events_configure_r8669zq",
+    "modern_kimi_model_events_disable_r8669zq",
+    "modern_kimi_model_events_read_r8669zq",
+    "modern_kimi_moe_profile_r9125",
+    "modern_kimi_pair_forward_r9006",
+    "modern_kimi_pair_ordinary_forward_r9007",
+    "modern_kimi_serving_unit_create_r4665",
+    "modern_kimi_serving_unit_forward_r4665"
+  ],
+  "actual_source": [
+    {
+      "path": "/refactor/candidates/Kimi-Model-events-r8669zq1/src/kimi_model_events_impl_r8669zq.hpp",
+      "SHA256": "da687e2628bbc2463c19a9976e83fa79235359475c7d809848ec90135a9faf3a",
+      "relevant_lines": [
+        {
+          "line": 20,
+          "text": "constexpr size_t max_events=640,max_calls=3;"
+        },
+        {
+          "line": 27,
+          "text": "bool enabled(){const char*p=std::getenv(\"INFINILM_KIMI_MODEL_EVENTS_R8669ZQ\");return p&&std::string(p)==\"1\";}"
+        },
+        {
+          "line": 31,
+          "text": "void prepare(R&r,int rank,int tp,int stage,int pp){if(!enabled())return;r.assertOwnerThread();if(s.r||r.isGraphRecording()||r.device().type()!=infinilm::runtime::Device::Type::kHygon||r.device().index()<0||r.device().index()>=8||(tp!=8&&tp!=16)||pp<1||pp>4)throw std::invalid_argument(\"model-events prepare geometry\");infini::rt::DeviceGuard guard{r.device().type(),r.device().index(),true};s.r=&r;s.owner=std::this_thread::get_id();s.rank=rank;s.tp=tp;s.stage=stage;s.pp=pp;try{for(auto&e:s.events)ck(cudaEventCreate(&e));}catch(...){for(auto&e:s.events)if(e)cudaEventDestroy(e);s=State{};throw;}}"
+        },
+        {
+          "line": 32,
+          "text": "void mark(R&r,const char*name,int layer,bool kda,bool moe){if(!s.active)return;owner(r);if(s.used>=max_events)throw std::runtime_error(\"model-events finite pool overflow\");infini::rt::DeviceGuard guard{r.device().type(),r.device().index(),true};ck(cudaEventRecord(s.events[s.used],static_cast<cudaStream_t>(r.stream())));s.stamps[s.used]={name,layer,kda,moe,C::now(),cpu()};++s.used;}"
+        },
+        {
+          "line": 33,
+          "text": "void begin_task(R&r){if(!s.r||!armed.load(std::memory_order_acquire))return;owner(r);if(s.active)throw std::logic_error(\"model-events nestedtask\");auto e=epoch.load(std::memory_order_acquire);if(e!=s.epoch){if(s.used)throw std::logic_error(\"model-events epoch before original-drain flush\");std::lock_guard<std::mutex>lock(global_mutex);if(e!=epoch.load())throw std::logic_error(\"model-events configure raced owner\");s.epoch=e;s.ordinal=0;s.label=configuration.at(\"label\").get<std::string>();s.selected=configuration.at(\"selected_forward_ordinals\").get<std::vector<size_t>>();}const size_t n=s.ordinal++;if(std::find(s.selected.begin(),s.selected.end(),n)==s.selected.end())return;if(s.ncalls>=max_calls)throw std::logic_error(\"model-events max3samplecalls\");pending[r.device().index()].store(true);auto&c=s.calls[s.ncalls];c=Call{};c.ordinal=n;c.first=s.used;c.wall_begin=C::now();c.cpu_begin=cpu();s.active=true;mark(r,\"task.begin\");}"
+        },
+        {
+          "line": 37,
+          "text": "void flush_after_original_drain(R&r){if(!s.r||!s.used)return;owner(r);if(s.active||s.draining||s.ncalls!=s.selected.size())throw std::logic_error(\"model-events incomplete selectedcalls at original reset\");infini::rt::DeviceGuard guard{r.device().type(),r.device().index(),true};for(size_t i=0;i<s.used;++i)ck(cudaEventQuery(s.events[i]));J calls=J::array();for(size_t c=0;c<s.ncalls;++c){auto&x=s.calls[c];J points=J::array();for(size_t i=x.first;i<x.last;++i){auto&a=s.stamps[i];J row={{\"name\",a.name},{\"layer\",a.layer},{\"is_KDA\",a.kda},{\"is_MoE\",a.moe},{\"host_from_task_begin_ms\",std::chrono::duration<double,std::milli>(a.wall-x.wall_begin).count()},{\"threadCPU_from_task_begin_ms\",1000*(a.cpu-x.cpu_begin)}};if(i>x.first){auto&b=s.stamps[i-1];float ms=0;ck(cudaEventElapsedTime(&ms,s.events[i-1],s.events[i]));row[\"from\"]=b.name;row[\"from_layer\"]=b.layer;row[\"stream_span_ms\"]=ms;row[\"host_span_ms\"]=std::chrono::duration<double,std::milli>(a.wall-b.wall).count();row[\"threadCPU_span_ms\"]=1000*(a.cpu-b.cpu);}points.push_back(std::move(row));}float total=0;ck(cudaEventElapsedTime(&total,s.events[x.first],s.events[x.last-1]));calls.push_back({{\"forward_ordinal\",x.ordinal},{\"host_task_return_ms\",x.host_wall_ms},{\"threadCPU_task_return_ms\",x.thread_cpu_ms},{\"original_tail_drain_ms\",x.original_drain_ms},{\"original_tail_drain_threadCPU_ms\",x.original_drain_cpu_ms},{\"whole_task_stream_span_ms\",t"
+        },
+        {
+          "line": 39,
+          "text": "void close_after_original_drain(R&r){if(!s.r)return;try{flush_after_original_drain(r);destroy_events_noexcept(r);}catch(...){abandon_noexcept(r);}}"
+        },
+        {
+          "line": 42,
+          "text": "extern \"C\" const char*modern_kimi_model_events_configure_r8669zq(const char*raw){using namespace kimi_model_events_r8669zq;static thread_local std::string result;try{if(!enabled())throw std::logic_error(\"model-events optin absent\");auto q=J::parse(raw);auto selected=q.at(\"selected_forward_ordinals\").get<std::vector<size_t>>();if(selected.empty()||selected.size()>max_calls||!std::is_sorted(selected.begin(),selected.end())||std::adjacent_find(selected.begin(),selected.end())!=selected.end()||selected.back()>8192||q.at(\"label\").get<std::string>().size()>128)throw std::invalid_argument(\"model-events finite configure\");std::lock_guard<std::mutex>lock(global_mutex);for(auto&p:pending)if(p.load())throw std::logic_error(\"model-events configure before original-drain allowner publish\");configuration=q;published=J::object();auto e=epoch.fetch_add(1)+1;armed.store(true,std::memory_order_release);result=J({{\"configured\",true},{\"epoch\",e},{\"max_events\",max_events},{\"max_calls\",max_calls}}).dump();}catch(const std::exception&e){result=J({{\"configured\",false},{\"error\",e.what()}}).dump();}return result.c_str();}"
+        },
+        {
+          "line": 43,
+          "text": "extern \"C\" const char*modern_kimi_model_events_read_r8669zq(){using namespace kimi_model_events_r8669zq;static thread_local std::string result;std::lock_guard<std::mutex>lock(global_mutex);bool complete=published.size()==8;for(auto&p:pending)complete=complete&&!p.load();result=J({{\"epoch\",epoch.load()},{\"all8_published\",complete},{\"owners\",published}}).dump();return result.c_str();}"
+        },
+        {
+          "line": 44,
+          "text": "extern \"C\" int modern_kimi_model_events_disable_r8669zq(){using namespace kimi_model_events_r8669zq;std::lock_guard<std::mutex>lock(global_mutex);for(auto&p:pending)if(p.load())return 1;armed.store(false,std::memory_order_release);return 0;}"
+        }
+      ]
+    },
+    {
+      "path": "/refactor/candidates/Kimi-Model-events-r8669zq1/src/kimi_decoder_model_events_r8669zq.cpp",
+      "SHA256": "26119225b7efb6128eaa31b17afe96cc4081f8aa86bf50465341b6fecfabd640",
+      "relevant_lines": [
+        {
+          "line": 25,
+          "text": "extern \"C\" int modern_kimi_dense0_counts_r4346(int device,uint64_t*out,size_t n){if(device<0||device>=8||!out||n!=3)return 1;for(size_t i=0;i<3;++i)out[i]=dense0_counts_r4346[device][i].load();return 0;}"
+        },
+        {
+          "line": 155,
+          "text": "    kimi_model_events_r8669zq::mark(runtime,\"decoder.entry\",int(layer_idx_),is_kda_,use_moe_);"
+        },
+        {
+          "line": 185,
+          "text": "    kimi_model_events_r8669zq::mark(runtime,\"attention.end\",int(layer_idx_),is_kda_,use_moe_);"
+        },
+        {
+          "line": 204,
+          "text": "    kimi_model_events_r8669zq::mark(runtime,\"FFN.begin\",int(layer_idx_),is_kda_,use_moe_);"
+        },
+        {
+          "line": 224,
+          "text": "    kimi_model_events_r8669zq::mark(runtime,\"FFN.end\",int(layer_idx_),is_kda_,use_moe_);"
+        }
+      ]
+    },
+    {
+      "path": "/refactor/incoming/Kimi-speculative-batch-Model-r9122c/worker.cpp",
+      "SHA256": "c8312e7c272e98c1760c2b5f776e3becdb95b34be326d4b28cfd9c86961d542e",
+      "relevant_lines": [
+        {
+          "line": 6,
+          "text": "extern \"C\" void modern_kimi_set_tiled_w13_r1861(int);"
+        },
+        {
+          "line": 12,
+          "text": "extern \"C\" void modern_kimi_set_grouped_prefill(int);"
+        },
+        {
+          "line": 119,
+          "text": "        *paged_config, model_config_.get(), model_->supports_kv_only_prepare(),"
+        },
+        {
+          "line": 470,
+          "text": "        runtime_->syncStream();"
+        },
+        {
+          "line": 538,
+          "text": "            runtime_->syncStream();"
+        },
+        {
+          "line": 594,
+          "text": "            if (model_config_->get<std::string>(\"model_type\") == \"kimi_k3\") kimi_model_events_r8669zq::prepare(*runtime_,rank_info_.tp_rank,rank_info_.tp_size,rank_info_.pp_stage,rank_info_.pp_size);"
+        },
+        {
+          "line": 607,
+          "text": "                runtime_->syncStream();"
+        },
+        {
+          "line": 692,
+          "text": "                    model_->load_parameters_no_sync(*runtime_, local_params, local_params_strict);"
+        },
+        {
+          "line": 693,
+          "text": "                    runtime_->syncStream();"
+        },
+        {
+          "line": 724,
+          "text": "                        w4_plan_->prepare(*runtime_);"
+        },
+        {
+          "line": 725,
+          "text": "                        runtime_->syncStream();"
+        },
+        {
+          "line": 739,
+          "text": "                        runtime_->syncStream();"
+        },
+        {
+          "line": 758,
+          "text": "                    runtime_->syncStream();"
+        },
+        {
+          "line": 780,
+          "text": "                    std::array<uint64_t,7>stats{};::kimi_state_only_r9113::stats(*runtime_,stats.data(),stats.size());auto output=Tensor::empty(*runtime_,{7},DataType::kInt64);runtime_->memcpyH2D(output->data(),stats.data(),sizeof(stats));runtime_->syncStream();"
+        },
+        {
+          "line": 789,
+          "text": "                    std::array<uint64_t,8>stats{};::kimi_batch_r9122::stats(*runtime_,stats.data(),stats.size());auto output=Tensor::empty(*runtime_,{8},DataType::kInt64);runtime_->memcpyH2D(output->data(),stats.data(),sizeof(stats));runtime_->syncStream();{std::lock_guard<std::mutex>lock(mutex_);output_=Output{};output_.output_ids=output;local_args.target_hidden_states.reset();job_done_=true;}cv_.notify_all();"
+        },
+        {
+          "line": 938,
+          "text": "                                        static_decode_metadata_.prepare("
+        },
+        {
+          "line": 951,
+          "text": "                                if (attention_backend_ == backends::AttentionBackend::STATIC_ATTN && model_->supports_kv_only_prepare() && model_config_->get_kv_quant_scheme() == quantization::KVQuantAlgo::NONE && model_args.input_ids && model_args.input_ids.value()->ndim() == 2 && model_args.input_ids.value()->size(1) > 1) {"
+        },
+        {
+          "line": 982,
+          "text": "                                kimi_model_events_r8669zq::mark(*runtime_,\"model.begin\");"
+        },
+        {
+          "line": 984,
+          "text": "                                kimi_model_events_r8669zq::mark(*runtime_,\"model.return\");"
+        },
+        {
+          "line": 1007,
+          "text": "                                    runtime_->syncStream();"
+        },
+        {
+          "line": 1096,
+          "text": "                                runtime_->syncStream();"
+        },
+        {
+          "line": 1110,
+          "text": "                                runtime_->syncStream();"
+        },
+        {
+          "line": 1152,
+          "text": "                        runtime_->syncStream();"
+        },
+        {
+          "line": 1153,
+          "text": "                        kimi_model_events_r8669zq::flush_after_original_drain(*runtime_);"
+        },
+        {
+          "line": 1166,
+          "text": "                        runtime_->syncStream();"
+        },
+        {
+          "line": 1186,
+          "text": "                            runtime_->syncStream();"
+        },
+        {
+          "line": 1240,
+          "text": "            runtime_->syncStream();"
+        }
+      ]
+    },
+    {
+      "path": "/refactor/candidates/Kimi-I192-batch-Model-r9129/kimi_moe_batch_r9129.cpp",
+      "SHA256": "4e7ba0931773476d1c8e88c2649e9a0b238b8a2142062fff310ed47e13d641ad",
+      "relevant_lines": [
+        {
+          "line": 6,
+          "text": "extern \"C\" const char*modern_kimi_moe_profile_r9125(int d){if(d<0||d>=8)return \"{}\";profile_text_r9125=profile_r9125[d].dump();return profile_text_r9125.c_str();}"
+        },
+        {
+          "line": 33,
+          "text": "extern \"C\" int modern_grouped_mxfp4_owned(infinilm::runtime::Runtime *, size_t, size_t, size_t, size_t, size_t, void *, const void *, const void *, const void *, const void *, const void *, const void *, const void *);"
+        },
+        {
+          "line": 34,
+          "text": "extern \"C\" const char *modern_grouped_error();"
+        },
+        {
+          "line": 35,
+          "text": "extern \"C\" int modern_kimi_grouped_I192_r8669y(int,void*,void*,const void*,const void*,const void*,const void*,const void*,const void*,const void*,void*,void*,void*,void*,void*,size_t,size_t,void*);"
+        },
+        {
+          "line": 39,
+          "text": "extern \"C\" int modern_kimi_I192_T_counts_r9129(int device,uint64_t*out,size_t n){if(device<0||device>=8||!out||n!=65)return 1;for(size_t t=0;t<65;++t)out[t]=i192_T_counts_r9129[device][t].load(std::memory_order_relaxed);return 0;}"
+        },
+        {
+          "line": 48,
+          "text": "extern \"C\" int modern_kimi_I192_workspace_r8669zc(int device,uint64_t*out,size_t n) {"
+        },
+        {
+          "line": 54,
+          "text": "extern \"C\" int modern_kimi_I192_counts_r8669y(int device,uint64_t*out,size_t n){if(device<0||device>=8||!out||n!=2)return 1;for(size_t i=0;i<2;++i)out[i]=i192_counts_r8669y[device][i].load();return 0;}"
+        },
+        {
+          "line": 65,
+          "text": "extern \"C\" int modern_kimi_router_counts_r4635(int d,uint64_t*out,size_t n){if(d<0||d>=8||!out||n!=3)return 1;for(size_t i=0;i<3;++i)out[i]=router_counts_r4635[d][i].load();return 0;}"
+        },
+        {
+          "line": 68,
+          "text": "extern \"C\" int modern_kimi_route_chunk_counts_r4435(int d,uint64_t*out,size_t n){if(d<0||d>=8||!out||n!=3)return 1;for(size_t i=0;i<3;++i)out[i]=route_chunk_counts_r4435[d][i].load();return 0;}"
+        },
+        {
+          "line": 71,
+          "text": "extern \"C\" int modern_kimi_moe_aux_counts_r4430(int d,uint64_t*out,size_t n){if(d<0||d>=8||!out||n!=6)return 1;for(size_t i=0;i<6;++i)out[i]=aux_counts_r4430[d][i].load();return 0;}"
+        },
+        {
+          "line": 74,
+          "text": "extern \"C\" int modern_kimi_stable_down_counts_r4012(int d,uint64_t*out,size_t n){if(d<0||d>=8||!out||n!=3)return 1;for(size_t i=0;i<3;++i)out[i]=stable_down_counts_r4012[d][i].load();return 0;}"
+        },
+        {
+          "line": 83,
+          "text": "extern \"C\" void modern_kimi_set_tiled_w13_r1861(int enabled) { qualify_tiled_w13_r1861 = enabled != 0; }"
+        },
+        {
+          "line": 84,
+          "text": "extern \"C\" uint64_t modern_kimi_tiled_calls_r1861(int device) { return device >= 0 && device < 8 ? tiled_calls_r1861[size_t(device)].load() : 0; }"
+        },
+        {
+          "line": 85,
+          "text": "extern \"C\" int modern_kimi_tiled_raw_r1861(int, void *, void *, const void *, const void *, const void *, const void *, const void *, const void *, const void *, size_t, void *);"
+        },
+        {
+          "line": 87,
+          "text": "extern \"C\" void modern_kimi_set_grouped_prefill(int value) { qualify_grouped_prefill = value != 0; }"
+        },
+        {
+          "line": 326,
+          "text": "    const bool profile=std::getenv(\"INFINILM_KIMI_PROFILE_R9125\")&&std::string(std::getenv(\"INFINILM_KIMI_PROFILE_R9125\"))==\"1\";"
+        },
+        {
+          "line": 455,
+          "text": "extern \"C\" const char *modern_kimi_I192_caller_smoke_r8669zf() {"
+        }
+      ]
+    }
+  ],
+  "tool_metadata": [
+    {
+      "container_path": "/opt/dtk",
+      "is_symlink": false,
+      "exists_as_host": true
+    },
+    {
+      "container_path": "/opt/dtk/bin/hipprof",
+      "is_symlink": true,
+      "exists_as_host": true,
+      "link": "../hip/bin/hipprof"
+    },
+    {
+      "container_path": "/opt/dtk/lib/libamdhip64.so",
+      "is_symlink": true,
+      "exists_as_host": true,
+      "link": "libamdhip64.so.4"
+    },
+    {
+      "container_path": "/opt/dtk/lib/libroctracer64.so",
+      "is_symlink": true,
+      "exists_as_host": true,
+      "link": "libroctracer64.so.1"
+    }
+  ]
+}
