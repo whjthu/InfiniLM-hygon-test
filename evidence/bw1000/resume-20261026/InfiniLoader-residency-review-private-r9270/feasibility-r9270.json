@@ -1,0 +1,69 @@
+{
+  "schema": 1,
+  "observedUTC": "2026-10-26T17:55:05.126918+00:00",
+  "hardware": "BW1000",
+  "level": "UPSTREAM_SOURCE_FEASIBILITY_ONLY",
+  "status": "REVIEWED_NOT_INSTALLED_OR_BENCHMARKED",
+  "upstream": "git@github.com:InfiniTensor/InfiniLoader.git",
+  "branch": "improve-weight-residency",
+  "commit": "33b176e937ce6035ef39d4aab7414fd74a247424",
+  "source_files": {
+    "src/infiniloader/torch_store.py": {
+      "SHA256": "6da3c1b0f39664d800936797336c16eae1643e909bdd24943514206beef4290a",
+      "bytes": 5901
+    },
+    "src/infiniloader/memory.py": {
+      "SHA256": "b5839dc3daf32a0a19c1c4da272e6873d97ab68f2681c9406c74836f61d91f66",
+      "bytes": 6627
+    },
+    "src/infiniloader/shards.py": {
+      "SHA256": "91db7dcea039cb9a082a8a751985faa3ddd9f51ceff3242f3d4d4f9b88a09b49",
+      "bytes": 15987
+    },
+    "docs/distributed.md": {
+      "SHA256": "5a9e653c51c5042a4a245c0c1328daaf51f59ab8554b2122a8a0bb016b8cf4a8",
+      "bytes": 11082
+    },
+    "docs/roadmap.zh-CN.md": {
+      "SHA256": "664555dcfc04040f0aaa69ce4eecfe5d5216c5dc6da2df748a35ab0dd83e7df1",
+      "bytes": 7026
+    },
+    "LICENSE": {
+      "SHA256": "8578023f59faa37e9234a0ccc0ad03e43499c8279a3df2a834233b1f5c95b18d",
+      "bytes": 1082
+    }
+  },
+  "current_Kimi_loader": {
+    "evidence": "Kimi-relaxed-hostlogits-private-r9258b/pilot-small-observed-f.json",
+    "loading_seconds": 1837.2485359772108,
+    "get_tensor_inclusive_seconds": 425.20696508232504,
+    "native_load_inclusive_seconds": 1399.4719829214737,
+    "native_load_calls": 378,
+    "keys": 253914,
+    "boundary": "mmap pagefaults can occur inside native_load; not pure H2D/compute/I/O separation"
+  },
+  "supported_in_reviewed_source": [
+    "Node-local sealed memfd canonical files can be shared across readers",
+    "TensorStore maps COW and torch.frombuffer retains mappings",
+    "Explicit exact tensor-layout TP/PP exports and replicated canonical slicing",
+    "U8/BF16/I8 metadata support, but no implicit packing/dequant/pin/H2D",
+    "Currenttorch_store initialization performs catalog plus each mappedfile SHA; per-rank repetition potentially expensive"
+  ],
+  "integration_gaps": [
+    "Explicit rank exports are not drop-in native InfiniLM checkpoints: current native loader expects global tensors and performs its own TP/PP slicing/packing",
+    "Current model-specific quantized layouts/scales/packed QKV must be bound explicitly; no generic split-name heuristics",
+    "Full pernode replica memory and cgroup reservation not yet measured for this actual model; select actual capacity before preparing a large replica",
+    "Memfd proc paths node-local, not usable cross-host via shared path",
+    "Full file view can retain original loader semantics, but only improves repeated storage faults; native installation/packing/H2D still remain"
+  ],
+  "next_bounded_action": "Before any large warmup/allocation, derive exact checkpoint payload and selected PP file bytes plus current parent cgroup budgets; prefer one shared daemon pernode. Consider original-shape view first to avoid double TP slicing. Measure original mmap vs warmcache vs memfd CPU pages and actual startup only alongside a justified next Model load; do not repeat31min load for report. Reuse old qualified negative warmcache results where matching.",
+  "GPU_started": false,
+  "source_executed": false,
+  "performance_gain_claim": false,
+  "InfiniLM_ref_check": {
+    "requested": "refactor/modern-infini-stack-review",
+    "git_ls_remote_heads_success": true,
+    "advertised_ref": false,
+    "stack_change": false
+  }
+}

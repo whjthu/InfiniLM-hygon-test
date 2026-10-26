@@ -1,0 +1,6 @@
+import pathlib,json,hashlib,subprocess,datetime
+p=pathlib.Path('/public/home/aclsylqidf/shared/Kimi-K3');raw=(p/'model.safetensors.index.json').read_bytes();assert hashlib.sha256(raw).hexdigest()=='a1c5210650ce71d2d3ae9ec5a101ac4afd3cf4b10091be589853437eb967febd';idx=json.loads(raw);files=sorted(set(idx['weight_map'].values()));sizes={n:(p/n).stat().st_size for n in files};allowed={'JobId','JobState','UserId','NumNodes','NumCPUs','NodeList','ReqTRES','AllocTRES','MinMemoryNode','MinMemoryCPU','TRESPerNode'}
+rows={}
+for job in ['910379','910407']:
+ z=subprocess.check_output(['scontrol','show','job',job,'-o'],text=True,timeout=20);rows[job]={x.split('=',1)[0]:x.split('=',1)[1] for x in z.split() if '='in x and x.split('=',1)[0]in allowed}
+print(json.dumps({'UTC':datetime.datetime.now(datetime.timezone.utc).isoformat(),'CPU_readonly':True,'GPU_initialized':False,'new_Slurm_step':False,'source_index_SHA256':hashlib.sha256(raw).hexdigest(),'index_total_payload_bytes':idx.get('metadata',{}).get('total_size'),'tensor_count':len(idx['weight_map']),'file_count':len(files),'file_bytes':sizes,'sum_checkpoint_file_bytes':sum(sizes.values()),'parent_resources':rows,'limits':'No payload bytes read or hash; no daemon/cache allocations; Slurm resources not observed physical cgroup usage.'}))
