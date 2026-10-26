@@ -1,0 +1,70 @@
+{
+  "review": 110,
+  "recorded_at_utc": "2026-10-26T17:47:26.980286+00:00",
+  "report_SHA256": "dbdd9d8e7739d56d362c709edaf0ec0f591dd1b3f480e224c4b6afbd778bec0f",
+  "actions": [
+    {
+      "card": "D110A",
+      "decision": "ADOPT",
+      "state": "SOURCE_f822e15_PUBLISHED_UNIQUE_GPU_GO_DISPATCHED",
+      "owner": "deep_continue_92；root沿现有明确授权",
+      "resources": "原9330/1083已验证全Model拓扑；CPU47成功对象reuse+CPU416 unit19，一次load。",
+      "hypothesis": "T1..7 C4 guard的组件收益能进入低并发整Model关键路径。",
+      "minimal_change": "仅unit19新guard；bank/readback/精度不变；默认OFF保留同驻留配对。",
+      "exit": "整Model收益超过配对漂移、质量/尾延迟无明显退步才opt-in；语义/生命周期失败停定位，不重播。",
+      "fallback": "原unit19/guardOFF；不为bank另load。"
+    },
+    {
+      "card": "G110A",
+      "decision": "ADOPT",
+      "state": "CPU_SOURCE_CHAIN_AND_PRIVATE_COMPONENT_PREPARATION_DISPATCHED",
+      "owner": "kimi_state_only_replay_93；root确认源链",
+      "resources": "CPU先行；之后最小现有组件资源，单设备若契约允许，否则完整TP8；不先load16卡Model。",
+      "hypothesis": "真实T13/T15回落到慢provider；现有vector内核对routes104/120可直接处理且更快。",
+      "minimal_change": "先闭合730 a549 DSO->对象->源码/8999替换/9059 compiled_units以及enabled调用；利用已有modern_glm_vector_counts_r8540前后差值。只放行T13/T15试验，T16正控；不pad假用户/KV、不改调度。",
+      "exit": "链或counter不闭合即不作归因；至少3/4对正、中位组件wall下降>=5%、T16无实质退步且QA过才G110B。",
+      "fallback": "原provider；若同条件旧负直接复用。MoE非关键则短当前DSO device/CCL trace，绝不chunk网格。"
+    },
+    {
+      "card": "G110B",
+      "decision": "ADOPT",
+      "state": "CONDITIONAL_NO_MODEL_LOAD_UNTIL_COMPONENT_PASS",
+      "owner": "kimi_state_only_replay_93",
+      "resources": "仅G110A阳性后，原16卡TP8PP2一次Model load。",
+      "hypothesis": "非2幂真实shape provider改善可进入whole服务完成速度。",
+      "minimal_change": "whole-prefill策略固定，仅dispatch OFF/ON，chunk32 OFF；原arrival/cap16不变。",
+      "exit": "实际完整任务/用户收益超过漂移且质量与尾延迟可接受才opt-in；否则原dispatch。",
+      "fallback": "719/724既有scope，停止该候选不另load补救。"
+    },
+    {
+      "card": "K110A",
+      "decision": "ADOPT",
+      "state": "CURRENT_VERIFIER_INTERFACE_CPU_FEASIBILITY_DISPATCHED",
+      "owner": "kimi_continue_92；root辅助当前native pins",
+      "resources": "先CPU；466/580按既定stop清理，不追加命令/保活。实际已结束则不声称驻留可复用。",
+      "hypothesis": "降低strict W8当前verifier主导区段可提高有用tokens/verify成本；小额gap gather不是主要瓶颈。",
+      "minimal_change": "20min内绑定b4f916dc当前DSO真实source与已有profiler/event入口；准备2warm后8代表verify cycles的短trace，覆盖两PPstage/TP critical owner；不造新框架/热改共享DSO。已有cycle先分verify/replay/draft。",
+      "exit": "只让一个当前trace/同源组件证明可改的区段进入K110B。无现有profiler入口20min即返回具体阻塞，停止占卡。",
+      "fallback": "已有Kimi checkpoint组件runner，真实flatT/量化/route测试单区段；它不能回答PP空泡，保留UNKNOWN。拒绝W2/W4/MMAC/EP2/coldcache及阈值网格旧负重试。"
+    },
+    {
+      "card": "K110B",
+      "decision": "ADOPT",
+      "state": "CONDITIONAL_NO_ARBITRARY_CANDIDATE_OR_MODEL_LOAD",
+      "owner": "kimi_continue_92；root在具体单改动准备后派发",
+      "resources": "条件动作：原33卡A、4GiBfloor/cap16/cacheOFF/成功环境；一次load合并候选、短trace、质量。",
+      "hypothesis": "保持strict W8接受语义，减少已测主导verifier成本能改善正确完整任务速度与高C用户速度。",
+      "minimal_change": "K110A只选一个有源绑定的局部候选：MoE主导先已有合法kernel/provider组件；CCL/PP主导只改trace证明可去除的一处同步/空泡并核对rank顺序。具体source/改动必须先登记，当前卡不授权任意实现；epsilon OFF、width/cap/样本不变。",
+      "exit": "组件至少3/4对正且中位>=5%才新load；Model完整任务速度超过漂移且无明显质量/尾延迟损失才opt-in。",
+      "fallback": "strict W8已有scope、cap16，承认高C目标未达；负结果不阈值重调或盲加载。"
+    }
+  ],
+  "not_adopted": [],
+  "clarifications": {
+    "Deep": "Original9330 ModelDSO clean48objects/47reuse+CPU416unit19linkdone421;sourcef822e15/manifestb8c820 published before uniqueGO; actualGPUhandlepending, notclaimrunning untilobserved",
+    "GLM": "T13/T15 only newtest; originalT16control; trueprovider count andactualDSO/source binding required.730shape alone nothit. Sourcepreparation canproceed beforecomponentGPU anddoesnotauthorizeModel",
+    "Kimi": "466580 completed+CPU422 auditpass+postempty; noresidentreuseclaim. ExistingGPUeventpool appearsrequiresENVbeforeRuntime/3selectedforward limit; exactsourcefeasibilitywillboundmeasurement insteadofclaiming8cyclesalreadycovered",
+    "Kimi_quality": "Oldpilotcapsstopnotuniversalqualityrequirement. Differenttokenoutputsallowed;newbenchmarktolerances predeclare,capsgoodputexclude. epsilon.10notadopted"
+  },
+  "goal_complete": false
+}

@@ -1,0 +1,291 @@
+{
+  "review": 110,
+  "reportstatus": "COMPLETE",
+  "goal_complete": false,
+  "input_SHA256": "1cef1a72fb3c0a33a742f09f9cbd6e8e490c2e1724bc1367661405d626204ec4",
+  "decision": "Deep小T整Model配对继续；GLM停止chunk32并先闭合实际provider源链/小组件；Kimi epsilon.10不采用，按既定stop清理并核验生命周期。下一投机优化优先降低当前strict W8 verifier成本，不能以更多输出token冒充任务加速。",
+  "accounting": {
+    "consume_once": [
+      "910374.1102",
+      "910374.1108",
+      "910376.730"
+    ],
+    "qualified_rounds": 3,
+    "Model_rounds": 1,
+    "component_rounds": 2,
+    "next_counter": 0,
+    "exclude": [
+      "CPU工作/shape解析/单独arms/1105前端失败",
+      "Kimi466+580在110原input后才qualified；留作nextwave1，不进入本次consume3"
+    ],
+    "pending_next_wave": [
+      "910379.466+910371.580"
+    ]
+  },
+  "previous109": {
+    "D109A": "1102已落实：B32 wholeCSA wall -3.5802%，4对正向但未达预设5%，维持OFF/PARK。",
+    "D109B": "正确暂缓bank专用Model；1108是另一个小T guard候选，不能称bank晋级。",
+    "G109A": "730 ABBA完成、audit0、16正常退出、post731空；负结果已满足退出，停止chunk32。",
+    "K109A": "CPU418与实际466/580已完成；input为14cases，增量f为16cases；最后terminal增量已由独立CPU422 unchanged checks通过，原keeper419 metadata失败保留。epsilon.10无可采用任务收益。",
+    "K109B": "95/96可入场heldout为条件动作；遵循原stop，不追加reverse4/held95，不改cap/epsilon/样本。原pilot stop不是所有未来benchmark零错误通用门槛。"
+  },
+  "findings": {
+    "Deep": {
+      "scope": "单checkpoint CSA16/TP8、synthetic hidden+真实past、whole blocking CAPI含proofcopy；不是整Model质量/速度。",
+      "smallT_wall_change_pct": {
+        "T1": -19.984897,
+        "T2": -21.420317,
+        "T4": -32.781223,
+        "T7": -34.605448
+      },
+      "stability": "T1 3/4正，T2/T4/T7 4/4；T8 -5.44%与B32 +3.30%零新guard命中属于漂移。",
+      "semantics": "prepare_pooled/新keys/slots/compressor/commit/revision不变，连续512->513与EOS/past/duplicate已验。当前direct abort/stalePending/foreigncommit无新增API覆盖；旧1855仅历史证据。",
+      "Model_gain": "UNKNOWN，禁止乘CSA/层数外推。"
+    },
+    "GLM": {
+      "scope": "16卡TP8PP2，固定32题到达0/4/8/12s、cap16、重复两次；非HTTP/非64未见题/非32同时驻留。",
+      "whole_chunk": {
+        "output_tok_s": [
+          12.979693762,
+          10.533849105
+        ],
+        "throughput_change_pct": -18.84362375,
+        "servicewall_change_pct": 27.89176878,
+        "TTFT_mean_s": [
+          46.43612315,
+          68.4225795
+        ],
+        "first8_TTFT_s": [
+          13.55542519,
+          21.46198754
+        ],
+        "ITL_P99_s": [
+          6.32797342,
+          4.84472361
+        ],
+        "correct": [
+          62,
+          62
+        ],
+        "EOS": [
+          64,
+          64
+        ],
+        "caps": [
+          0,
+          0
+        ]
+      },
+      "shape": "prefill调用每episode16->52；A0 T4/8/16占52.55%调用/53.36%HOST时间，B0占27.32%/22.44%。实际vector命中UNKNOWN。",
+      "source": "独立读r8861 selected只接受enabled且routes32/64/128；r8528 grid.y=routes、route>=routes guard、gate token=route/8。只是其他8倍routes可试验的源码线索，非当前a549最终对象链证明。",
+      "profile": "HOST_CAPI约99.5%wall不是GPU忙碌率；IBext_v8/noSocketData不证明无通信瓶颈。",
+      "keep": "719首响基线与724原scope burst吞吐opt-in；730负结果停止chunk网格。"
+    },
+    "Kimi": {
+      "scope": "93层、33总服务卡、TP节点2/PP2、cap16、prefillmicro2/cacheOFF、flatT<=64、trained W8；当前pilot C1。",
+      "original_input": "7对、6对正确EOS；MMLU11645两arm cap512无最终答案。",
+      "addendum": {
+        "path": "Kimi-relaxed-hostlogits-private-r9258b/pilot-small-observed-f.json",
+        "SHA256": "5c865f05c667909ba0401195515abcc3567ed7146cfac26a4e56bc7b49a842ea",
+        "observedUTC": "2026-10-27T01:32:37.771449+08:00",
+        "cases": 16,
+        "completed": true,
+        "whole_run_terminal_qualified": false,
+        "tokens": [
+          2300,
+          2388
+        ],
+        "decode_wall_s": [
+          194.964769226,
+          195.931528162
+        ],
+        "token_s": [
+          11.797003167,
+          12.187931276
+        ],
+        "correct_naturalEOS": [
+          6,
+          6
+        ],
+        "numeric_correct": [
+          7,
+          7
+        ],
+        "caps": [
+          2,
+          2
+        ],
+        "correct_EOS_tasks_per_decode_second": [
+          0.03077479087,
+          0.0306229429
+        ],
+        "emitted_relaxed": 9,
+        "conclusion": "token/s+3.31%、tokens+3.83%、wall+0.50%；正确EOS任务/此decode计时下降约0.49%，不是端到端生产goodput。numeric正确含cap，不视为质量通过。",
+        "lifecycle": "后续terminal-canonical-r9262及producer SHA均独立核验。CPU422 COMPLETED0/1s，原checks不变，32target owners与draft正常退出；post467/581 KFD均空。419 FAILED1为最终审计元数据缺SLURM环境，原失败保留；无GPU重跑。此qualified增量留nextwave1。"
+      },
+      "verify": "当前14case verify_CAPI_maxhost占cycle wall约86.1..90.5%，为inclusive verifier主导，非GPUcompute/MoE归因，不能外推C16/32。",
+      "baseline": "strict C1 usermedian18.04；C8 5.35、C16 2.94；aggregate38.71/45.47。高C逐用户>15未达；C32必须在cap16下把排队计入，不能称32原生驻留。",
+      "terminal_addendum": {
+        "qualified": true,
+        "canonical_path": "Kimi-relaxed-hostlogits-private-r9258b/terminal-canonical-r9262.json",
+        "canonical_SHA256": "091e0f1bbe14162779f3825aac6121e10c5657fddae589b2a4a05f462e5e0a19",
+        "producer_path": "Kimi-relaxed-hostlogits-private-r9258b/producer-terminal-r9262.json",
+        "producer_SHA256": "9149fb418aa45ebf409b7be0c900d7f85825969ed8561abd5deef54113ca79c2",
+        "consumed_this_review": false,
+        "current_verify_fraction": "strict86.93% / gap86.75% of pooled decodewall (inclusive HOST)",
+        "gap_gather_seconds": 0.09744,
+        "gap_gather_fraction_pct": 0.05,
+        "cycles": [
+          561,
+          562
+        ],
+        "conclusion": "cycles未减少且输出+88；gather不是主瓶颈。原f的terminal=false为其时点状态，不再作为当前状态。"
+      }
+    }
+  },
+  "hardware": "BW1000精确物理roof UNKNOWN。dense BF16大GEMM峰值不可用于FP4 scalar MoE/小T verifier。当前权重字节、真实expert重复、GPU区间、CCL及PP依赖未测齐，不能给算力/带宽roof；旧MMAC/EP2/coldcache负结果不重跑。",
+  "time": {
+    "window": "review109结束至input110约95分20秒，新增3波只有1个整Model且负；没有新整Model提升。",
+    "Kimi_load_s": 1837.248536,
+    "Kimi_load_minutes": 30.620809,
+    "load_parts": "native_load_inclusive1399.47s、get_tensor_inclusive425.21s，按原inclusive范围，不再叠加重复计时。",
+    "free_resources": "当前真实可用节点数UNKNOWN，审核未访问集群；历史post空不等于当前可分配。root依现有owner隔离资源。",
+    "parallel": "Deep CPU47对象reuse+unit19独立继续；GLM源链/小组件准备与Kimi生命周期/当前verifier源码准备并行。无候选允许空闲，不假占GPU。",
+    "timing": "原receipt分列prepare/queue/load/measurement/QA/cleanup；未知填UNKNOWN。"
+  },
+  "next_actions": {
+    "D110A": {
+      "priority": 1,
+      "owner": "deep_continue_92；root沿现有明确授权",
+      "resources": "原9330/1083已验证全Model拓扑；CPU47成功对象reuse+CPU416 unit19，一次load。",
+      "hypothesis": "T1..7 C4 guard的组件收益能进入低并发整Model关键路径。",
+      "minimal_change": "仅unit19新guard；bank/readback/精度不变；默认OFF保留同驻留配对。",
+      "reuse": "1108/9251及原1083 naturalEOS前8固定题、完整成功加载环境。",
+      "samples": "cap512正式、cap2仅排除的warm；C1/C2/C4各至少2平衡OFF/ON对，firstcall分列，首C1对即可报告；记录实际hit/完整最终答案/EOS/cap/emitter。",
+      "quality": "任务答案/finite/生命周期；不同token允许，RMS仅诊断；directabort覆盖缺口保留不新造框架。",
+      "wall_impact": "UNKNOWN，不乘21CSA/43layers。",
+      "ETA": "准备在途，剩余约10..20min（成功reuse前提）；queue/load UNKNOWN；ready后首对5..10min、矩阵15..30min。",
+      "exit": "整Model收益超过配对漂移、质量/尾延迟无明显退步才opt-in；语义/生命周期失败停定位，不重播。",
+      "fallback": "原unit19/guardOFF；不为bank另load。"
+    },
+    "G110A": {
+      "priority": 1,
+      "owner": "kimi_state_only_replay_93；root确认源链",
+      "resources": "CPU先行；之后最小现有组件资源，单设备若契约允许，否则完整TP8；不先load16卡Model。",
+      "hypothesis": "真实T13/T15回落到慢provider；现有vector内核对routes104/120可直接处理且更快。",
+      "minimal_change": "先闭合730 a549 DSO->对象->源码/8999替换/9059 compiled_units以及enabled调用；利用已有modern_glm_vector_counts_r8540前后差值。只放行T13/T15试验，T16正控；不pad假用户/KV、不改调度。",
+      "reuse": "r8861/r8528、原grouped/provider组件runner、arrival形状；先按源码/shape/量化去重旧负结果。",
+      "samples": "真实checkpoint/量化/路由分布T13/T15/T16，2warm+4平衡pairs，全gate/up/down或既有MoE边界；counter证明命中；既有finite/RMS/reference/canary及非连续expert边界。",
+      "wall_impact": "UNKNOWN；非T4/8/16 HOST占比只是形状暴露，不是可节省比例。",
+      "ETA": "源链/去重10..20min；准备10..20min、queueUNKNOWN、load+measure5..10min；首结果约25..50min。",
+      "exit": "链或counter不闭合即不作归因；至少3/4对正、中位组件wall下降>=5%、T16无实质退步且QA过才G110B。",
+      "fallback": "原provider；若同条件旧负直接复用。MoE非关键则短当前DSO device/CCL trace，绝不chunk网格。"
+    },
+    "G110B": {
+      "priority": 2,
+      "owner": "kimi_state_only_replay_93",
+      "resources": "仅G110A阳性后，原16卡TP8PP2一次Model load。",
+      "hypothesis": "非2幂真实shape provider改善可进入whole服务完成速度。",
+      "minimal_change": "whole-prefill策略固定，仅dispatch OFF/ON，chunk32 OFF；原arrival/cap16不变。",
+      "reuse": "730固定32题/到达/emitter/环境+G110A单对象。",
+      "samples": "2warm后ABBA两对；首对即看方向；QA/EOS/cap/queue/TTFT/ITL、逐用户速度/总输出除全部16卡、长度标准化任务时延。",
+      "quality": "32重复不当64独立；token可不同；小样本不称统计非劣。",
+      "wall_impact": "UNKNOWN，禁止shape份额乘组件倍率。",
+      "ETA": "prepare10..20min、queue/loadUNKNOWN、ready后首对8..15min、ABBA15..30min。",
+      "exit": "实际完整任务/用户收益超过漂移且质量与尾延迟可接受才opt-in；否则原dispatch。",
+      "fallback": "719/724既有scope，停止该候选不另load补救。"
+    },
+    "K110A": {
+      "priority": 1,
+      "owner": "kimi_continue_92；root辅助当前native pins",
+      "resources": "先CPU；466/580按既定stop清理，不追加命令/保活。实际已结束则不声称驻留可复用。",
+      "hypothesis": "降低strict W8当前verifier主导区段可提高有用tokens/verify成本；小额gap gather不是主要瓶颈。",
+      "minimal_change": "20min内绑定b4f916dc当前DSO真实source与已有profiler/event入口；准备2warm后8代表verify cycles的短trace，覆盖两PPstage/TP critical owner；不造新框架/热改共享DSO。已有cycle先分verify/replay/draft。",
+      "reuse": "r9258b Native/HostObserver/manifest/成功对象；StageControl含barrier，不能称纯通信。",
+      "samples": "下一次有已准备实际候选的合法加载中，observer OFF/ON开销对照后采低C和实际C16各8cycles；GPU kernel与CCL取时间线并集，PP按依赖/各stage本地时间判断，不跨机直接减未同步clock。若已有expert/bytes计数可用则同时读。",
+      "quality": "trace前后状态/最终输出正常；性能判定取未instrumented配对。",
+      "wall_impact": "C1 verify inclusive86..91%为研究区段；compute/MoEload/CCL/PP分别UNKNOWN。",
+      "ETA": "CPU10..20min；合法驻留可用则ready后5..10min；已结束则参考load>=30.6min+queueUNKNOWN。不得为单独报告重开33卡，须与K110B已准备候选合并，否则先当前checkpoint小组件。",
+      "exit": "只让一个当前trace/同源组件证明可改的区段进入K110B。无现有profiler入口20min即返回具体阻塞，停止占卡。",
+      "fallback": "已有Kimi checkpoint组件runner，真实flatT/量化/route测试单区段；它不能回答PP空泡，保留UNKNOWN。拒绝W2/W4/MMAC/EP2/coldcache及阈值网格旧负重试。"
+    },
+    "K110B": {
+      "priority": 2,
+      "owner": "kimi_continue_92；root在具体单改动准备后派发",
+      "resources": "条件动作：原33卡A、4GiBfloor/cap16/cacheOFF/成功环境；一次load合并候选、短trace、质量。",
+      "hypothesis": "保持strict W8接受语义，减少已测主导verifier成本能改善正确完整任务速度与高C用户速度。",
+      "minimal_change": "K110A只选一个有源绑定的局部候选：MoE主导先已有合法kernel/provider组件；CCL/PP主导只改trace证明可去除的一处同步/空泡并核对rank顺序。具体source/改动必须先登记，当前卡不授权任意实现；epsilon OFF、width/cap/样本不变。",
+      "reuse": "strict W8与已有AR/固定GSM8K/MMLU数据模板和预算；已见pilot不伪装heldout。",
+      "samples": "组件2warm+4平衡pairs过后，Model至少2对；C1合理性screen，重点C16与C32前端并发（最多16native admitted，其余排队全计）。C32若现有生命周期不支持，明确缺口，不伪造32resident。多域QA固定并同load完成。",
+      "quality": "每域score、paired差/区间、解析/截断/覆盖；允许不同正确token。新screen预先约定容忍范围，原pilot任一cap即停不普遍化。raw taskwall和长度标准化时延、完整正确任务吞吐、逐用户(n-1)/(last-first)、all33卡aggregate齐列；cap tokenrate非goodput。",
+      "wall_impact": "UNKNOWN；C16基线2.94离15远，不承诺局部改动达标。",
+      "ETA": "具体改动/组件约5..30min依归因；prepare10..20min+queueUNKNOWN+load约31min参考；ready后首对10..20min、C16/32与QA20..40min。",
+      "exit": "组件至少3/4对正且中位>=5%才新load；Model完整任务速度超过漂移且无明显质量/尾延迟损失才opt-in。",
+      "fallback": "strict W8已有scope、cap16，承认高C目标未达；负结果不阈值重调或盲加载。"
+    }
+  },
+  "execution": "root在现有implementation110逐卡登记采纳/暂缓/拒绝及理由并派给原owner；G110B/K110B保持条件。Deep独立继续。审核只读+结果写入，无GPU/network/Git、新agent/框架，无私钥/nonce。",
+  "source_additional": [
+    {
+      "path": "InfiniLM-hygon-test/code/bw1000/glm-m16/GLM_M16_vector_dispatch_r8861.cpp",
+      "SHA256": "dd166080a756df6b9d87afbb0bc91cf250202929e643877bd96fb6b9d50c9e6b"
+    },
+    {
+      "path": "InfiniLM-hygon-test/code/bw1000/glm-model-candidates/glm_scalar_vectorload_r8528.cu",
+      "SHA256": "b257ff25f042d86a166bf7873c1b1a781b106a870dd7b62fae297f1de90b5eb0"
+    }
+  ],
+  "UTC": "2026-10-26T17:44:34.9078238Z",
+  "source_verification": [
+    {
+      "path": "astra-review-109-current.json",
+      "SHA256": "850a9fe08e3bbccdbc874212cce798fa43e02efcc3484ea68ee2641246a54b29",
+      "verified": true
+    },
+    {
+      "path": "InfiniLM-hygon-test/analysis/bw1000/reviews/astra-review-implementation-109-current.json",
+      "SHA256": "f55eecb3454af0c646024259b15cdf07dadf8551f7cfcccf3ae4f8a1ac51e348",
+      "verified": true
+    },
+    {
+      "path": "Deep-CSA-bank-terminal-private-r9250/canonical-Deep1102-r9250.json",
+      "SHA256": "721d47994df9f9bc596ad0de266944d86ec623d0fba32dc5011495b0e4afa802",
+      "verified": true
+    },
+    {
+      "path": "Deep-C4-smallT-terminal-private-r9253/canonical-Deep1108-r9253.json",
+      "SHA256": "dec58c04481aec38ddd8d7995525de71628dec652268c092da1ee32c1152867c",
+      "verified": true
+    },
+    {
+      "path": "Deep-C4-smallT-semantic-private-r9251/semantic-audit-r9251.json",
+      "SHA256": "4f348c54c0de5c033f96419922475dadef6fd8d2be1880905e368250f00489de",
+      "verified": true
+    },
+    {
+      "path": "GLM-arrival-Model-private-r9260/terminal-canonical-r9264.json",
+      "SHA256": "662cb5aacdfa372b05485a6f29beb2adc4f867361ea07cb07e6519cd7b543d5b",
+      "verified": true
+    },
+    {
+      "path": "GLM-arrival-Model-private-r9260/native-shapes-r9265.json",
+      "SHA256": "787e31d6a4b2752566c5d24c9470d35cbee112ca09b7018cacf612dd583bf25c",
+      "verified": true
+    },
+    {
+      "path": "GLM-arrival-Model-private-r9260/producer-shapes-r9265.json",
+      "SHA256": "d5dccfcea4aa5c117d8db95b3bac2fdf5c86dea42279c1b13881d6fcbfaa8de8",
+      "verified": true
+    },
+    {
+      "path": "Kimi-relaxed-hostlogits-private-r9258b/pilot-small-observed-e.json",
+      "SHA256": "0eebd9db27787194047f111e8d7ef8b0a2af8cff6bb6c6e863422b439d47997c",
+      "verified": true
+    },
+    {
+      "path": "Kimi-relaxed-hostlogits-private-r9258b/producer-CPU-qualified-r9258b.json",
+      "SHA256": "602464a8e93741e4b239f4ffea1cfc76826a2a121f3d8849518498ca393632f9",
+      "verified": true
+    }
+  ]
+}
