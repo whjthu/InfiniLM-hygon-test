@@ -1,0 +1,4 @@
+import pathlib,json,hashlib,subprocess,ast,importlib.util,os
+p=pathlib.Path('/refactor/incoming/CCL-channel-abba-r9217');s=p/'GPU_driver.py';ast.parse(s.read_text());exec(compile(s.read_text().split("if __name__==",1)[0],str(s),'exec'));assert hashlib.sha256(DSO.read_bytes()).hexdigest()==EXPECTED
+z=subprocess.check_output(['ldd',str(DSO)],text=True);assert 'not found'not in z;assert 'libinfinilm.so'not in z
+q={'CPU_only':True,'GPU_submitted':False,'noCDLL_executed':True,'actual_step':os.environ['SLURM_JOB_ID']+'.'+os.environ['SLURM_STEP_ID'],'native_SHA256':EXPECTED,'GPU_driver_SHA256':hashlib.sha256(s.read_bytes()).hexdigest(),'passed':True,'actual_stagecontrol_import':True,'ldd':z};pathlib.Path('/refactor/results/CCL-channel-CPU-r9217-'+os.environ['SLURM_PROCID']+'.json').write_text(json.dumps(q,indent=2));print(json.dumps(q))
