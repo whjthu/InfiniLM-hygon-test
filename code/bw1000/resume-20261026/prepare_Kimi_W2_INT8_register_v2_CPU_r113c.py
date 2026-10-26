@@ -1,0 +1,10 @@
+import pathlib,base64,json,hashlib
+r=pathlib.Path(__file__).resolve().parent;d=r/'Kimi-W2-INT8-register-v2-private-r113c';sh='#!/bin/bash\nset -euo pipefail\nsource /opt/dtk/env.sh\nexport CUDA_VISIBLE_DEVICES= HIP_VISIBLE_DEVICES= ROCR_VISIBLE_DEVICES=\nexport PYTHONPYCACHEPREFIX=/local/Kimi-i8-register-v2-CPU-r113c\ntimeout --kill-after=5s 840 python -B -u /refactor/incoming/Kimi-W2-INT8-register-v2-r113c/CPU_build_r113v2.py\n';(d/'CPU_inside.sh').write_bytes(sh.encode());assert b'\r'not in(d/'CPU_inside.sh').read_bytes()
+files={p.name:base64.b64encode(p.read_bytes()).decode()for p in d.iterdir()if p.is_file()}
+code="import pathlib,json,base64,subprocess,os\nr=pathlib.Path.home()/'hygon-inference-refactor-20261014';D=r/'incoming/Kimi-W2-INT8-register-v2-r113c';D.mkdir(exist_ok=False)\nfor n,v in "+repr(files)+".items():(D/n).write_bytes(base64.b64decode(v))\n"
+code+='''prior=subprocess.check_output(['squeue','--steps','-j','910375','-h','-o','%i|%j|%N'],text=True,timeout=20).splitlines();numeric=[x for x in prior if x.split('|')[0].split('.')[-1].isdigit()];assert not any('a02r4n08'in x for x in numeric),numeric
+env={k:v for k,v in os.environ.items()if not k.startswith(('SLURM_','PMI_','PMIX_','OMPI_','CUDA_VISIBLE','HIP_VISIBLE','ROCR_VISIBLE'))};env['WAVE_INSIDE_R2323']='Kimi-W2-INT8-register-v2-r113c/CPU_inside.sh'
+a=['srun','--jobid=910375','--overlap','--exact','--cpu-bind=none','-N1','-n1','-c2','--gres=none','--mem=8192M','-w','a02r4n08','-t','00:15:00','--job-name=Kimi-i8-register-v2-CPU-r113c','--output='+str(r/'logs/Kimi-i8-register-v2-CPU-r113c-%J.log'),'bash',str(r/'incoming/resource_wave_local_r3097_outer.sh'),'probe']
+f=(r/'logs/Kimi-i8-register-v2-CPU-r113c-client.log').open('x');p=subprocess.Popen(a,env=env,stdin=subprocess.DEVNULL,stdout=f,stderr=subprocess.STDOUT,start_new_session=True);print(json.dumps({'PID':p.pid,'args':a,'GPU':False,'claim_publication':'7a93d286b5c83588188b38dd5f9770c278657cc6','prior_numeric':numeric}))
+'''
+(r/'invoke_Kimi_W2_INT8_register_v2_CPU_r113c.py').write_text(code);print(hashlib.sha256((d/'CPU_build_r113v2.py').read_bytes()).hexdigest())
