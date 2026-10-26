@@ -1,0 +1,68 @@
+{
+  "review": 111,
+  "recorded_at_utc": "2026-10-26T19:01:01.459312+00:00",
+  "report_SHA256": "bfa37e2723ebff91ffd8e3266163cbe4eb6987256d918cd2928b5ab05de7d844",
+  "actions": [
+    {
+      "card": "D111A",
+      "decision": "ADOPT",
+      "state": "FOUR_REPLICA_C4_64QA_CPU_PREPARATION_DISPATCHED",
+      "owner": "deep_continue_92；root落实",
+      "resources": "四个独立原8GPU拓扑replica=32DCU：候选parent374 n01/n04先行，n05/n07错峰加入；均须权威fresh确认自有健康空闲。留375 n08/n09给Kimi16卡，376 n12给GLM，不碰无关384。复用keeper/DSO和原audit/post，不造调度框架。",
+      "exit": "每replica首8题出现明显质量/任务wall回退则不继续本replica后8题，按现有正常stop定位；首两node加载显著恶化、fresh不健康或资源不足则不启后两node，已在途不擅杀。无异常完成64题，仅C4 opt-in；不默认扩8replica/128题，不把64题当广域非劣证明。",
+      "fallback": "两个8GPU replica各16题=32独立题；若仅一node健康则原32题单node方案。guard OFF始终可回退，绝不靠占空闲卡证明效率。"
+    },
+    {
+      "card": "G111A",
+      "decision": "ADOPT",
+      "state": "QUEUED_UNTIL_SOURCE_OWNER_SLOT_AVAILABLE",
+      "owner": "kimi_state_only_replay_93",
+      "resources": "先CPU；最小既有单GPU TP8rank0组件，不16卡Model load；若当前ABI必须TP，则先报真实需求，不能借全Model诊断。",
+      "exit": "20min内入口无法可靠绑定则停止加仪表；确认一个主导可改段才G111B。若算子不主导或没有可改段，转已有whole trace看attention/CCL/CPU而不追加load。",
+      "fallback": "仅T2真实高暴露fallback路径组件或现成whole trace，二选一；不扩T表。"
+    },
+    {
+      "card": "G111B",
+      "decision": "ADOPT",
+      "state": "CONDITIONAL_SINGLE_LOCAL_CHANGE_NO_MODEL_LOAD",
+      "owner": "kimi_state_only_replay_93",
+      "resources": "同一最小组件；组件有价值才原16卡TP8PP2一load多arm，CPU739不需重编27对象。",
+      "exit": "不能减少已测关键段、收益落在漂移或native质量不合理即停止；无另一个低暴露小收益的补救load。",
+      "fallback": "原739/原dispatch，保留组件成果；把资源让给更有区分力试验。"
+    },
+    {
+      "card": "K111A",
+      "decision": "ADOPT",
+      "state": "COMPLETE739_LATE_ADDENDUM_PENDING_NEXTWAVE",
+      "owner": "kimi_continue_92",
+      "resources": "739/425已结束，post740双空，不保留空占。",
+      "exit": "进入K111B一个明确W2候选；nextwave1等待下轮消费。",
+      "fallback": "无profile完整chain与现有phase syncdiag选最保守组件结论，当前Model GPU/CCL分解保留UNKNOWN。"
+    },
+    {
+      "card": "K111B",
+      "decision": "ADOPT",
+      "state": "W2_TWO_OUTPUT_CTA_PRIVATE_CPU_IMPLEMENTATION_DISPATCHED",
+      "owner": "kimi_continue_92",
+      "resources": "先CPU编译与现有source/object复用；随后当前同源16卡TP16组件（真实contract），不动33卡Model。",
+      "exit": "复用110门：至少3/4对正且median>=5%，T8无实质回退、输出finite/误差合理，才考虑一次33卡Model真实任务质量；若寄存器/occupancy代价抵消或无收益即结束，不扫pair宽度。",
+      "fallback": "原W2；复用W13主导信息等待另有具体源证据，不复活MMAC/EP2/width/cache。"
+    },
+    {
+      "card": "L111A",
+      "decision": "ADOPT",
+      "state": "ACTUAL_R2515_SOURCE_BINDING_DISPATCHED_SUFFIX_WITHDRAWN",
+      "owner": "loader_residency_111；root可在已授权范围另做CPU源绑定",
+      "resources": "原loader owner先CPU只读实际DSO/disasm/source；原成功容器与只读权重，no GPU/no新Model load/no sharedCore热改。旧suffix候选准备授权已撤回，不执行。",
+      "exit": "25min无法绑定则返回具体缺少source/symbol/stat接口，停止从working copy推出瓶颈。若已优化路径无可测主导重复成本，不再造suffix实现；找到新主导成本后仅选一个尚未实现的改动。",
+      "fallback": "保持原r2515 helper；已有r9212d缓存为备选。warm mmap默认，不扩容量不足的memfd全量cache。"
+    }
+  ],
+  "clarifications": {
+    "Deep": "4replica64independentIDs,first2nodesstaggerthen2;predeclaredfirst8pairedstop:>=2additionalwrong/nonEOS or>=20pctcorrectEOSgoodputlosswith>=4successboth. Noqualityoraclefilter/crop/replacement. NoGPUuntilsourcepushGO.",
+    "GLM": "T13/15CPU739notdedicatedcoldModel;T16currentcomponentpriority. G111Aexecutionqueueddue3otheractiveownerlines,notclaimedrunning.",
+    "Kimi": "K111Aactual739qualifiedafterinput;newK111BcodeCPUonly,oneGPUkernel/defaultOFF,noprofile mandatoryrerun",
+    "Loader": "Per-elementgatherclaimfromstaleworkingcopywithdrawnbeforetest;actual04a6 DSOr2515helperalreadybulk suffix. No duplicateCPUoptimization. Existing5globalcountersoffernextloadmetadata,nolocalownerinterpretation."
+  },
+  "goal_complete": false
+}

@@ -1,0 +1,291 @@
+{
+  "review": 111,
+  "reportstatus": "COMPLETE",
+  "goal_complete": false,
+  "UTC": "2026-10-26T18:50:59.338Z",
+  "input_SHA256": "46483b37b290fb4980d15d65aeaea8dc5ab414280c71cca842561a06a0918acf",
+  "decision": "优先Deep C4独立质量/任务完成验证；GLM暂缓仅T13/15的独立Model加载，转T16高暴露单组件归因；Kimi现有16卡归因独立继续；Loader先拆native_load真实路径。",
+  "accounting": {
+    "consume_once": [
+      "910379.466+910371.580",
+      "910376.737",
+      "910374.1112"
+    ],
+    "qualified_new_waves": 3,
+    "excluded": [
+      "CPU739 Model DSO ready",
+      "Loader423/424/425机械失败",
+      "Loader426 CPU组件补充",
+      "Kimi910375.739截止后qualified，留nextwave1",
+      "Deep重复C/arm/可选C32不另计"
+    ],
+    "pending": "111输入截止后Kimi910375.739已qualified，作为nextwave1待下轮消费；不改本轮consume3。"
+  },
+  "previous110": [
+    {
+      "card": "D110A",
+      "execution": "落实：1112完成，原audit0、post1113 KFD空，canonical02c03f5e/producer9b7531a7 sourcebound，47对象复用且仅unit19替换。",
+      "decision": "保留C4候选；不因pilot成功扩至所有C。"
+    },
+    {
+      "card": "G110A",
+      "execution": "落实：737当前真实checkpoint单TP8rank0链，T13/T15各4/4正，原provider counter闭合、audit0、post738空。",
+      "decision": "组件门通过。"
+    },
+    {
+      "card": "G110B",
+      "execution": "CPU739完成27对象复用与dispatch替换，尚无Model frontend/GPU试验。",
+      "decision": "改为DEFER_STANDALONE_LOAD：原5%门是最低组件筛选，新增whole暴露10.14s/170.98s使单独load的机会成本不合算。保留候选，其他高价值GLM加载中才顺带验证。"
+    },
+    {
+      "card": "K110A",
+      "execution": "当前b4真实provider/I192绑定并进入910375.739的16卡组件，避免为报告重载33卡。 截止后739已qualified，224内部样本口径闭合，留nextwave1。",
+      "decision": "K110A完成，直接推进一个W2 candidate；不重复profile。"
+    },
+    {
+      "card": "K110B",
+      "execution": "未任意生成算子或加载33卡，符合条件动作。",
+      "decision": "继续等待当前测量选择一个算子；epsilon.10明确不采用。"
+    }
+  ],
+  "findings": {
+    "Deep": {
+      "authority": "canonical-Deep1112-r9276.json 02c03f5e8cf1ae98825671b505e12961f47f627c5a8e6ee11a5b9035c66d38ff；producer-index 9b7531a74b06617b8b0478c39c102b1fe14e9a5572132bf1651be392ee86966a",
+      "scope": "8卡、同源OFF/ON、closed-cohort native emitter，不是HTTP在线服务。资格闭合不等于质量非劣已证明。",
+      "C1": "decode+7.45%，taskwall-13.19%，tokens757→692，correct8→7；正确EOS任务/秒只约+0.79%。不采用全局ON。",
+      "C2": "decode+1.75%，taskwall+8.73%，tokens659→738，correct7→8；相同953方向反转，不能说候选单向质量退步，也不能以更快token率称任务更快。",
+      "C4": "decode5.6022→6.5630（+17.15%）；taskwall156.508→134.198s（-14.25%）；correct/EOS8/8两臂，tokens777→763。每用户median2.2758→2.5897tok/s、ITL P95 .4554→.4046s；此小样本有实用信号，单用户目标15仍未达。",
+      "C32": "decode+2.20%，taskwall155.928→155.628s（-0.193%），两臂32/32correct/EOS、0cap；仅一对，不能称稳定实际任务提升。",
+      "independence": "C1/C2/C4重复同8题，C32含该8题；不pool成80独立样本，不把tokens一致作质量门。"
+    },
+    "GLM": {
+      "component": "737 T13+5.5135%、T15+5.6973%，各4/4正；T16 -0.4537%作为对照，不能宣传所有shape变快。synthetic BF16 hidden + trained router formula，非真实Model activation。",
+      "exposure": "whole730 T13/15仅12/196 decode calls，HOST10.141s/170.98s wall≈5.93%；不是GPU关键路径份额。即便乐观按同份额、同收益估算也只是约0.3%总wall量级，用于排优先级而非预测或上界。",
+      "priority": "当前T16已有vector但HOST48.29s，比T13/15暴露大；先同源T16分phase确认主导段，必要时T2作为唯一备选（HOST6.94s）。provider小收益无法解释whole T15 .86s vs T16 .53s，CCL/attention/host仍UNKNOWN。",
+      "stop": "不恢复chunk32，不扫所有T，不将CPU739称Model完成。"
+    },
+    "Kimi": {
+      "pilot": "466/580 epsilon.10：rawTPS+3.31%，tokens+3.83%，wall+.50%，正确EOS goodput-.493%；两臂6/8正确EOS、2cap，负结果。419原metadata失败保留，422独立同checker通过及33owner退出/post空闭合。",
+      "profile": "截止后补充已SHA验证：739/keeper425 COMPLETED0，16owner正常、auditPASS、post740双节点KFD空。缺失仅每ON窗rep7，所有owner所有窗统一剔除rep7（包括完整的rep7），每T保留224内部样本、W13/W2完整；missing ledger保留。不是恢复全256，也不需重跑。OFF maxrank median T8=1.3703ms、T64=6.2893ms；profile开销约36%/7%，性能看OFF；T64 activity median W13=2.6072/W2=2.7238/CCL=.4967ms，T8=.3293/.3479/.3138ms。分device区段不相加当Model wall，historical teacher限制不变。",
+      "unknown": "局部T64 W2略大于W13，足够选择pair-output W2候选，不证明全93层/PP瓶颈；T8通信相对份额不同，不普遍认定通信非瓶颈。物理峰/HBM流量/current32user routes UNKNOWN。",
+      "alternatives": "draft质量/典型接受率改进在原则上可减少每有效token的verify次数，需真实代表请求及完整任务质量收益；不重扫旧width/epsilon。INT8/INT4只有真实算子、指令/量化布局与主导段匹配才值得组件验证；已有FP4不等于有原生FP4矩阵指令，也不假设原生FP8可用。当前不分叉这些路线。"
+    },
+    "Loader": {
+      "actual": "426 CPU_COMPONENT_PASS；真实2.18GiB shard、每arm两个并发reader、ABBA四臂。warm mmap与memfd均PSS1170608128 bytes/reader、private0；memfd无共享内存优势。",
+      "cost": "copy .81834s；daemon start→ready11.1172s。warm page touch亚秒差不能解释31min整Model加载。100ms采样step peak2.405GB/48GiB，不把parent其他charge算该step。",
+      "limit": "native safetensors safe_open仍未通过（librocm_smi64.so.2缺失）；CPU原shape/header/bytes/lifecycle通过不等于native stack/GPU收益。实际1.56TB权重大于四node约1.006TB reservation，全量副本及总唯一payload不fit。",
+      "decision": "停止共享PSS省内存主张及全量cache部署，复用其工程成果；下一动作是当前native_load1399s源绑定和单层真实栈因果拆分，不新增31min冷加载。",
+      "late_owner_binding": "已纠正并撤回过时working copy.cc推断：实际04a6a1a8 DSO在a8117/a8430调用copy_cpu_strided_r2515且更新copy_calls_r2515，不能说当前未优化逐字节memmove。root已取消suffix候选；本轮仅要求追真实helper/source/counters与单层分段，不另计性能轮次。"
+    }
+  },
+  "hardware": {
+    "exact_physical_BW1000_peak": "UNKNOWN",
+    "rule": "旧dense BF16/MMAC经验峰不可外推FP4 MoE/小T。只按当前指令、字节、路由负载与实测device/通信区段解释；不以HOST inclusive计算利用率或用户速度上限。"
+  },
+  "time": {
+    "Deep1112": {
+      "total_seconds": 2121,
+      "load_seconds": 451.2078128810972,
+      "remainder_seconds": 1669.7921871189028,
+      "remainder_note": "含预热/测量/质量/清理，不能全算GPU计算；排队和CPU准备UNKNOWN。"
+    },
+    "GLM737": {
+      "checkpoint_load_seconds": 18.553297440055758,
+      "other_stage_seconds": "UNKNOWN"
+    },
+    "Loader426": {
+      "elapsed_seconds": 16,
+      "ready_seconds": 11.117226108908653,
+      "copy_seconds": 0.8183393478393555,
+      "avoidable": "423运行时缺os.memfd_create；424/425 compound断言未持久化字段，反复封包与环境错误没有性能信息。"
+    },
+    "Kimi": {
+      "Model_load_prior_seconds": "约31分钟，native_load约1399秒",
+      "profile_progress": "当前16卡已跑，不为报告重复加载。"
+    },
+    "resources_snapshot": "输入后新证据：Kimi739及425已终态、post740双空；Deep1112、GLM737、Loader426均结束。新GPU动作须fresh核验，自有reservation不是健康/空闲证据。"
+  },
+  "next_actions": [
+    {
+      "id": "D111A",
+      "priority": 1,
+      "model": "Deep",
+      "owner": "deep_continue_92；root落实",
+      "decision": "ADOPT_NEXT_BOUNDED_MODEL_VALIDATION",
+      "hypothesis": "当前unit19 T1..7改动在C4能提升独立请求的正确完整任务完成速度，质量无明显掉点。",
+      "minimal_change": "源码不再改；从已有disjoint256中按预冻结顺序取64个不在原32题的独立题，分4个固定16题块。每replica C4 OFF/ON同驻留，cohort交替先后顺序；保留cap512/精度/权重/原47对象。不得按答案/长度挑选，capacity不fit保留拒绝，不裁剪/补题。",
+      "resources": "四个独立原8GPU拓扑replica=32DCU：候选parent374 n01/n04先行，n05/n07错峰加入；均须权威fresh确认自有健康空闲。留375 n08/n09给Kimi16卡，376 n12给GLM，不碰无关384。复用keeper/DSO和原audit/post，不造调度框架。",
+      "reuse": "1112 canonical/producer、原unit19 guard、audit、成功启动环境。",
+      "quality": "完整答案正确率、自然EOS/cap、错误类型逐对保留；允许token和答案路径不同，不要求位相等；原953只作已知诊断不计独立集。",
+      "samples": "各replica先固定8题两臂得到首块，再完成另8题，总64独立题/128 outputs；节点内配对，不跨node时钟。质量按唯一题汇总，性能保留node paired分布；四replica仍一实验wave，不宣称四次独立全模型收益。",
+      "affected_wall": "既有pilot156.508→134.198s、约22.31s/8题，新的可实现收益UNKNOWN；优先级因已见Model收益最高。",
+      "eta": "CPU冻结/封包5–10min；先两node load基准约8min，观察进入load与共享存储进展后错峰启另两node。首8题块预计总20–30min；64题全块约30–45min+排队。共享存储可能放大load，ETA非保证；逐node实记load/测量。",
+      "exit": "每replica首8题出现明显质量/任务wall回退则不继续本replica后8题，按现有正常stop定位；首两node加载显著恶化、fresh不健康或资源不足则不启后两node，已在途不擅杀。无异常完成64题，仅C4 opt-in；不默认扩8replica/128题，不把64题当广域非劣证明。",
+      "fallback": "两个8GPU replica各16题=32独立题；若仅一node健康则原32题单node方案。guard OFF始终可回退，绝不靠占空闲卡证明效率。"
+    },
+    {
+      "id": "G111A",
+      "priority": 3,
+      "model": "GLM",
+      "owner": "kimi_state_only_replay_93",
+      "decision": "ADOPT_HIGHER_EXPOSURE_COMPONENT",
+      "hypothesis": "当前T16 whole的48.29s HOST范围中有可在现有provider链移除的主导开销；先确认而不假定其为GPU算力。",
+      "minimal_change": "复用737单rank当前真实权重/provider runner固定T16，只给已有quant、gate/up、Silu/Mul、down、reduce边界加最少本地计时或复用现有trace；最终性能仍用无trace整链。记录真实route skew，最多T2一个备选，不做T网格。",
+      "resources": "先CPU；最小既有单GPU TP8rank0组件，不16卡Model load；若当前ABI必须TP，则先报真实需求，不能借全Model诊断。",
+      "reuse": "737实际8529vector/f359fallback、source counter及CPU739私有DSO。",
+      "quality": "原full-chain数值诊断继续，有限误差允许按原质量策略处理；无GPU F64。",
+      "samples": "2warm、4交替OFF/ON配对；trace只取代表调用。此卡诊断无新算子时只量一次现状，不假称性能对照。",
+      "affected_wall": "HOST48.29s候选暴露，关键路径及可消除部分UNKNOWN。",
+      "eta": "CPU绑定/计时入口10–20min；现有checkpoint约19s，组件首结果再10–20min；合计20–40min，排队另计。",
+      "exit": "20min内入口无法可靠绑定则停止加仪表；确认一个主导可改段才G111B。若算子不主导或没有可改段，转已有whole trace看attention/CCL/CPU而不追加load。",
+      "fallback": "仅T2真实高暴露fallback路径组件或现成whole trace，二选一；不扩T表。"
+    },
+    {
+      "id": "G111B",
+      "priority": 5,
+      "model": "GLM",
+      "owner": "kimi_state_only_replay_93",
+      "decision": "CONDITIONAL_ONE_LOCAL_CHANGE",
+      "hypothesis": "G111A实测主导段中的一次重复转换、准备或同步可移除，或现有合法provider可覆盖T2并有实际收益。",
+      "minimal_change": "仅实施G111A证实的一处操作；登记具体函数与区段后动手。不把同时改多phase作为一个候选。旧T13/15 dispatch保留OFF可在后续有更高价值理由的Model load顺带配对。",
+      "resources": "同一最小组件；组件有价值才原16卡TP8PP2一load多arm，CPU739不需重编27对象。",
+      "reuse": "G111A当前证据、737与739；whole730基线/原arrival cap16。",
+      "quality": "组件数值合理；Model若晋级用完整任务benchmark及EOS/质量/TTFT/ITL，不exact-token。",
+      "samples": "原2warm+4交替对；Model同arrival OFF/ON/ON/OFF，chunk32 OFF。",
+      "affected_wall": "UNKNOWN；必须按实际命中份额决定是否值得load，不自动因5%局部门通过晋级。",
+      "eta": "选出具体操作后组件实现/判定30–60min；Model ETA取原实际load+测量，不编造当前未知加载时间。",
+      "exit": "不能减少已测关键段、收益落在漂移或native质量不合理即停止；无另一个低暴露小收益的补救load。",
+      "fallback": "原739/原dispatch，保留组件成果；把资源让给更有区分力试验。"
+    },
+    {
+      "id": "K111A",
+      "priority": 2,
+      "model": "Kimi",
+      "owner": "kimi_continue_92",
+      "decision": "COMPLETE_BY_LATE_ADDENDUM",
+      "hypothesis": "rep7窗口边界丢失可与内部完整样本区分。",
+      "minimal_change": "接受已闭合的统一rep0..6与missing ledger，归档引用，无新运行。",
+      "resources": "739/425已结束，post740双空，不保留空占。",
+      "reuse": "producer-CPU-qualified-r9264与Component-scalars-observed-a；真实b4/provider/I192绑定。",
+      "quality": "原组件合理性与生命周期；historical teacher不替代Model质量。",
+      "samples": "已完成每T224内部trace样本；原OFF/ON/ON/OFF完整host计时保留。",
+      "affected_wall": "Model未知；owner0 T8/T64单组件1.3569/6.2751ms无profile，不能乘层数或用慢34.1%的profile臂宣传。",
+      "eta": "完成，不新增准备/加载。",
+      "exit": "进入K111B一个明确W2候选；nextwave1等待下轮消费。",
+      "fallback": "无profile完整chain与现有phase syncdiag选最保守组件结论，当前Model GPU/CCL分解保留UNKNOWN。"
+    },
+    {
+      "id": "K111B",
+      "priority": 2,
+      "model": "Kimi",
+      "owner": "kimi_continue_92",
+      "decision": "ADOPT_W2_PAIR_OUTPUT_COMPONENT",
+      "hypothesis": "当前T64 W2大量单output CTA的调度/activated输入重读可通过相邻两输出共享加载降低整链wall。",
+      "minimal_change": "唯一修改W2 grid T*3584→T*1792：原8warps计算相邻两个输出channel，共享activated input loads，但每输出独立FP32 sum、原ascending16route最终weighted reduction保持。T64 CTA229376→114688，默认OFF；不假定2倍提速。",
+      "resources": "先CPU编译与现有source/object复用；随后当前同源16卡TP16组件（真实contract），不动33卡Model。",
+      "reuse": "739 canonical a268279e、producer dda6cf99、当前b4/I192/provider f6ae35e8与真实权重/历史teacher fixture。",
+      "quality": "组件输出合理；真实代表benchmark完整任务无明显掉点，允许不同tokens；caps不当goodput。",
+      "samples": "原2warm；T8/T64无profile全链4交替OFF/ON对，原counter/readonly/normal exit；profiling不作为必要重跑。",
+      "affected_wall": "T64 W2内部activity median2.7238ms vs无profile整链maxrank6.2893ms，口径不同不能直接算可节省比例；实际component/Model收益UNKNOWN。",
+      "eta": "证据选定后局部实现与首组件30–60min；通过才承担约31min Model load和相应试验。",
+      "exit": "复用110门：至少3/4对正且median>=5%，T8无实质回退、输出finite/误差合理，才考虑一次33卡Model真实任务质量；若寄存器/occupancy代价抵消或无收益即结束，不扫pair宽度。",
+      "fallback": "原W2；复用W13主导信息等待另有具体源证据，不复活MMAC/EP2/width/cache。"
+    },
+    {
+      "id": "L111A",
+      "priority": 2,
+      "model": "Infrastructure",
+      "owner": "loader_residency_111；root可在已授权范围另做CPU源绑定",
+      "decision": "ADOPT_ACTUAL_R2515_BINDING_AND_SINGLE_LAYER_SPLIT",
+      "hypothesis": "native_load1399s内TPdim1 drain/copy_from/H2D同步可能有可移除成本，但当前实际DSO已调用r2515 helper；必须先测已优化路径，不能把过时working source逐字节循环当当前瓶颈。",
+      "minimal_change": "绑定实际04a6a1a8 DSO：TensorImpl::copy_from a8117/a8430调用detail::copy_cpu_strided_r2515(...CpuCopyStatsR2515&)并更新copy_calls_r2515。追回该helper真实source/元数据和已存在统计接口，读取当前r2515 counters，复用单层真实W2 packed/scales路径分drain/CPUcopy/pack/H2D/sync；先CPU，设备区段搭载下次正当load。当前不改copy函数。",
+      "resources": "原loader owner先CPU只读实际DSO/disasm/source；原成功容器与只读权重，no GPU/no新Model load/no sharedCore热改。旧suffix候选准备授权已撤回，不执行。",
+      "reuse": "当前04a6a1a8 DSO及r2515 helper/copy_calls统计；426正常wrapper；已有r9212d state_dict缓存未GPU验证，保留替补不重实现。",
+      "quality": "先确保二进制/源码/统计接口对应同一实际已装路径；重用已有正确性检查。之后若提出新CPU搬运改动，byteexact是搬运语义验证，Model仍允许不同tokens。",
+      "samples": "复用现有r2515 counters；单层固定真实W2 shape的原路径warm两次，准备/读取/复制分别计时。没有新实现则只是诊断，不声称性能配对；CPU计时不能冒充H2D/sync耗时。",
+      "affected_wall": "1399s native_load候选范围；当前CPUcopy、drain、H2D、sync占比及可节省量UNKNOWN。tp_dim1禁异步/先drain和H2D(false)sync可定位，但不足以证明瓶颈。",
+      "eta": "实际r2515源/DSO/统计绑定15–25min；单层CPU分段首判再20–40min；设备分段等待下次有实际候选的正当load，不新增31min加载。",
+      "exit": "25min无法绑定则返回具体缺少source/symbol/stat接口，停止从working copy推出瓶颈。若已优化路径无可测主导重复成本，不再造suffix实现；找到新主导成本后仅选一个尚未实现的改动。",
+      "fallback": "保持原r2515 helper；已有r9212d缓存为备选。warm mmap默认，不扩容量不足的memfd全量cache。"
+    }
+  ],
+  "execution": {
+    "coordinator": "逐卡登记采纳/暂缓/拒绝及理由并发给原owner；不以保存本报告替代落实。",
+    "efficiency": "复用成功源码/对象/环境和原checks；启动前用轻量能力probe持久化memfd/真实Slurm/cgroup字段，避免payload后才发现runtime错。修依赖保持成功容器与挂载顺序；步骤实际状态未知不盲重播。",
+    "record_time": "每卡沿现有记录补实际准备/排队/加载/测量/质量耗时，未知写UNKNOWN；不另造框架。",
+    "parallel": "Deep可4replica分摊独立题，先2后2错峰；Kimi立即一个W2候选CPU实现/组件；GLM与Loader CPU准备继续。每项有具体判别问题，避免闲置也不以占卡数量为目标。"
+  },
+  "source_verification": {
+    "all_passed": true,
+    "count": 13,
+    "input_passed": true,
+    "details": "写出时再次逐项Get-FileHash SHA256验证；sources数组附原path和hash。",
+    "scope": "仅本地只读审查与报告写入；无GPU/network/Git/newagent操作。",
+    "additional_count": 2,
+    "total_verified": 15,
+    "sources": [
+      {
+        "path": "astra-review-110-current.json",
+        "SHA256": "dbdd9d8e7739d56d362c709edaf0ec0f591dd1b3f480e224c4b6afbd778bec0f"
+      },
+      {
+        "path": "InfiniLM-hygon-test/analysis/bw1000/reviews/astra-review-implementation-110-current.json",
+        "SHA256": "b02621d2064097f70ac4fc450ecfb42c28985c5be818955efad66f63b4374c3e"
+      },
+      {
+        "path": "Kimi-relaxed-hostlogits-private-r9258b/terminal-canonical-r9262.json",
+        "SHA256": "091e0f1bbe14162779f3825aac6121e10c5657fddae589b2a4a05f462e5e0a19"
+      },
+      {
+        "path": "GLM-irregular-vector-private-r9270b/terminal-canonical-r9271.json",
+        "SHA256": "143889e6aec1500fb483b8ebd79611ce2ec1bd3f8093320e1c71e3dfaa74488f"
+      },
+      {
+        "path": "GLM-irregular-vector-Model-private-r9274/source-exposure-budget-r9274.json",
+        "SHA256": "2775d86b73023bdefd3f7356f0f73a9e13c26fa1c29587b381feae994c714c72"
+      },
+      {
+        "path": "Deep-C4-smallT-Model-observed-r9254-terminal-a.json",
+        "SHA256": "6facfa03f188dec194a9ccb5ac2a4b27d93969069fa466261f37bd7200d3dc1f"
+      },
+      {
+        "path": "Deep-smallT-task-economics-observed-r9275-a.json",
+        "SHA256": "a8e6f732fb02e6e6fde0b26267a2d3c1061269985461c0762b5c31d696a207aa"
+      },
+      {
+        "path": "InfiniLoader-partial-CPU-private-r9272c/producer-source-r9272c.json",
+        "SHA256": "853ae8a8122e819b25f94b3a5ca50f2e472f140ae5d34e6370d65fd01359c165"
+      },
+      {
+        "path": "Kimi-current-MoE-profile-private-r9264/producer-CPU-qualified-r9264.json",
+        "SHA256": "1cb071902cfe9d88c8b03cc842d654103716f942f3fab069de608d2b5e7282fd"
+      },
+      {
+        "path": "Deep-C4-smallT-Model-terminal-private-r9276/canonical-Deep1112-r9276.json",
+        "SHA256": "02c03f5e8cf1ae98825671b505e12961f47f627c5a8e6ee11a5b9035c66d38ff"
+      },
+      {
+        "path": "Deep-C4-smallT-Model-terminal-private-r9276/producer-index-r9276.json",
+        "SHA256": "9b7531a74b06617b8b0478c39c102b1fe14e9a5572132bf1651be392ee86966a"
+      },
+      {
+        "path": "InfiniLoader-partial-CPU-private-r9272c/producer-terminal-r9272c.json",
+        "SHA256": "fb9a85ec777588520874a698c1b0e66d2dd60bfc9aa34586f747818e20e2c602"
+      },
+      {
+        "path": "Kimi-current-MoE-profile-private-r9264/Component-scalars-observed-a.json",
+        "SHA256": "d8329116dfd66f45f52b1bf986f1671c1119014d663a55859fc38bbc4e183f24"
+      }
+    ]
+  },
+  "source_additional": [
+    {
+      "path": "Kimi-current-MoE-profile-private-r9264/terminal-canonical-r9264.json",
+      "SHA256": "a268279e003dbb11eaa5c81baaaaa9c5bee2f81b6187aaba5c2f6fe7d8f809df"
+    },
+    {
+      "path": "Kimi-current-MoE-profile-private-r9264/producer-terminal-r9264.json",
+      "SHA256": "dda6cf999258fc4ab2165e81de44cfd86eb86a211fe7371ec427046ead9eaf0a"
+    }
+  ]
+}
