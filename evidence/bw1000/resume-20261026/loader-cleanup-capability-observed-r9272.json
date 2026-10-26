@@ -1,0 +1,72 @@
+{
+  "UTC": "2026-10-26T18:22:19.084083+00:00",
+  "exact_step_accounting": {
+    "args": [
+      "sacct",
+      "-j",
+      "910380.423",
+      "-n",
+      "-P",
+      "-o",
+      "JobID,JobName,State,ExitCode,Elapsed,MaxRSS,AllocTRES,NodeList"
+    ],
+    "rc": 0,
+    "stdout": "910380.423|loader-partial-CPU-r9272|FAILED|1:0|00:00:15|24296K|cpu=8,mem=48G,node=1|a14r2n08\n",
+    "stderr": ""
+  },
+  "steps": {
+    "args": [
+      "squeue",
+      "--steps",
+      "-j",
+      "910380",
+      "-h",
+      "-o",
+      "%i|%j|%N"
+    ],
+    "rc": 0,
+    "stdout": "910380.batch|batch|a14r2n08\n910380.extern|extern|a14r2n[08-10,12]\n",
+    "stderr": ""
+  },
+  "runtime_files": [
+    "daemon.log",
+    "run",
+    ".cached-view.owner.lock",
+    "result.json",
+    "run/d.owner.lock",
+    "run/.d.pid.owner.lock",
+    "run/.d.state.json.owner.lock",
+    "run/resident.json",
+    "run/resident.lock"
+  ],
+  "runtime_contents": {
+    "run/resident.json": "{\n  \"entries\": {},\n  \"max_resident_bytes\": 17179869184\n}"
+  },
+  "candidate_existing_container_python": {
+    "args": [
+      "/public/software/apps/apptainer/1.3.4/bin/apptainer",
+      "exec",
+      "--cleanenv",
+      "--no-home",
+      "/public/home/aclsylqidf/hygon-inference-refactor-20261014/containers/dtk26-sandbox-r1",
+      "python",
+      "-B",
+      "-c",
+      "import os,sys,json;print(json.dumps(dict(python=sys.version,executable=sys.executable,memfd_create=hasattr(os,\"memfd_create\"),MFD_ALLOW_SEALING=hasattr(os,\"MFD_ALLOW_SEALING\"),uname=list(os.uname()))))"
+    ],
+    "rc": 0,
+    "stdout": "{\"python\": \"3.10.12 (main, Mar  3 2026, 11:56:32) [GCC 11.4.0]\", \"executable\": \"/usr/bin/python\", \"memfd_create\": true, \"MFD_ALLOW_SEALING\": true, \"uname\": [\"Linux\", \"zz-login02\", \"5.10.134-17.1.3.sga8.x86_64\", \"#1 SMP Tue Jan 14 10:52:30 CST 2025\", \"x86_64\"]}\n",
+    "stderr": ""
+  },
+  "host_python": {
+    "args": [
+      "/usr/local/python3.12/bin/python3",
+      "-B",
+      "-c",
+      "import os,sys,json;print(json.dumps(dict(python=sys.version,executable=sys.executable,memfd_create=hasattr(os,\"memfd_create\"),MFD_ALLOW_SEALING=hasattr(os,\"MFD_ALLOW_SEALING\"),uname=list(os.uname()))))"
+    ],
+    "rc": 0,
+    "stdout": "{\"python\": \"3.12.6 (main, Dec 25 2024, 15:49:08) [GCC 4.8.5 20150623 (Red Hat 4.8.5-44)]\", \"executable\": \"/usr/local/python3.12/bin/python3\", \"memfd_create\": false, \"MFD_ALLOW_SEALING\": false, \"uname\": [\"Linux\", \"zz-login02\", \"5.10.134-17.1.3.sga8.x86_64\", \"#1 SMP Tue Jan 14 10:52:30 CST 2025\", \"x86_64\"]}\n",
+    "stderr": ""
+  }
+}

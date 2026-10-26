@@ -1,0 +1,41 @@
+{
+  "UTC": "2026-10-26T18:23:41.641304+00:00",
+  "args": [
+    "srun",
+    "--jobid=910380",
+    "--overlap",
+    "--exact",
+    "--cpu-bind=none",
+    "-N1",
+    "-n1",
+    "-c1",
+    "--gres=none",
+    "--mem=1024M",
+    "-w",
+    "a14r2n08",
+    "-t",
+    "00:03:00",
+    "--job-name=loader-memfd-preflight-r9272b",
+    "/public/software/apps/apptainer/1.3.4/bin/apptainer",
+    "exec",
+    "--cleanenv",
+    "--no-home",
+    "--bind",
+    "/public/home/aclsylqidf/hygon-inference-refactor-20261014:/public/home/aclsylqidf/hygon-inference-refactor-20261014",
+    "--bind",
+    "/public/home/aclsylqidf/shared:/public/home/aclsylqidf/shared:ro",
+    "/public/home/aclsylqidf/hygon-inference-refactor-20261014/containers/dtk26-sandbox-r1",
+    "python",
+    "-B",
+    "-c",
+    "import os,sys,json,pathlib,fcntl\nr=pathlib.Path('/public/home/aclsylqidf/hygon-inference-refactor-20261014');d=r/'incoming/InfiniLoader-partial-CPU-r9272'\nsys.path.insert(0,str(d/'src'));from infiniloader.memory import memory_info\nold=[]\nfor p in pathlib.Path('/proc').iterdir():\n if p.name.isdigit() and int(p.name)!=os.getpid():\n  try:\n   if p.stat().st_uid!=os.getuid():continue\n   args=(p/'cmdline').read_bytes().split(b'\\x00')\n   if str(d/'partial_probe_r9272.py').encode() in args:old.append({'pid':int(p.name),'argv':[a.decode(errors='replace')for a in args]})\n  except (OSError,ValueError):pass\nassert not old,old\nassert hasattr(os,'memfd_create') and hasattr(os,'MFD_ALLOW_SEALING')\nfd=os.memfd_create('loader-r9272b-preflight',os.MFD_CLOEXEC|os.MFD_ALLOW_SEALING)\ntry:\n os.write(fd,b'x');fcntl.fcntl(fd,fcntl.F_ADD_SEALS,fcntl.F_SEAL_WRITE|fcntl.F_SEAL_GROW|fcntl.F_SEAL_SHRINK|fcntl.F_SEAL_SEAL);seals=fcntl.fcntl(fd,fcntl.F_GET_SEALS)\n assert seals==15;assert os.pread(fd,1,0)==b'x'\nfinally:os.close(fd)\nm=memory_info();assert m['cgroups'];assert m['available_bytes']>2*2341216112+8*1024**3\nprint(json.dumps({'host':os.uname().nodename,'step':os.environ['SLURM_JOB_ID']+'.'+os.environ['SLURM_STEP_ID'],'python':sys.version,'executable':sys.executable,'memfd_1byte_create_seal_read_close':True,'seals':seals,'memory':m,'old_probe_processes':old,'GPU_initialized':False,'no_payload_read':True}))\n"
+  ],
+  "rc": 1,
+  "stdout": "",
+  "stderr": "Traceback (most recent call last):\n  File \"<string>\", line 19, in <module>\nAssertionError\nsrun: error: a14r2n08: task 0: Exited with exit code 1\nsrun: Terminating StepId=910380.424\n",
+  "prior_steps": [
+    "910380.batch|batch|a14r2n08",
+    "910380.extern|extern|a14r2n[08-10,12]"
+  ],
+  "old423_runtime_metadata_clean": true
+}

@@ -1,0 +1,3232 @@
+{
+  "UTC": "2026-10-26T18:20:55.632370+00:00",
+  "steps": {
+    "args": [
+      "squeue",
+      "--steps",
+      "-j",
+      "910380",
+      "-h",
+      "-o",
+      "%i|%j|%N"
+    ],
+    "rc": 0,
+    "stdout": "910380.batch|batch|a14r2n08\n910380.extern|extern|a14r2n[08-10,12]\n",
+    "stderr": ""
+  },
+  "launch": {
+    "UTC": "2026-10-26T18:19:54.296619+00:00",
+    "client_PID": 3464891,
+    "args": [
+      "srun",
+      "--jobid=910380",
+      "--overlap",
+      "--exact",
+      "--cpu-bind=none",
+      "-N1",
+      "-n1",
+      "-c8",
+      "--gres=none",
+      "--mem=49152M",
+      "-w",
+      "a14r2n08",
+      "-t",
+      "00:30:00",
+      "--job-name=loader-partial-CPU-r9272",
+      "--output=/public/home/aclsylqidf/hygon-inference-refactor-20261014/logs/InfiniLoader-partial-CPU-r9272-%J.log",
+      "timeout",
+      "--kill-after=10s",
+      "1500",
+      "/usr/local/python3.12/bin/python3",
+      "-B",
+      "/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/InfiniLoader-partial-CPU-r9272/partial_probe_r9272.py",
+      "run",
+      "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/loader-cpu-r9272"
+    ],
+    "prior_steps": [
+      "910380.batch|batch|a14r2n08",
+      "910380.extern|extern|a14r2n[08-10,12]"
+    ],
+    "GPU": false,
+    "source_producer_SHA256": "5df2d6c008c973f5297fa468003c2787defb5badbf0ebcd9f239073b358a7216"
+  },
+  "work_exists": true,
+  "result_exists": true,
+  "logs": [
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/logs/InfiniLoader-partial-CPU-r9272-910380.423.log",
+      "tail": "Traceback (most recent call last):\n  File \"/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/InfiniLoader-partial-CPU-r9272/partial_probe_r9272.py\", line 144, in <module>\n    else:main(sys.argv[2])\n         ^^^^^^^^^^^^^^^^^\n  File \"/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/InfiniLoader-partial-CPU-r9272/partial_probe_r9272.py\", line 101, in main\n    assert dp.poll() is None, (dp.returncode,(work/'daemon.log').read_text());assert time.monotonic()<deadline;time.sleep(.1)\n           ^^^^^^^^^^^^^^^^^\nAssertionError: (1, '[load] source=/public/home/aclsylqidf/shared/Kimi-K3\\n[load]   0.00% 0 B / 2.18 GiB cached; last=.\\n[stop] daemon exited\\nTraceback (most recent call last):\\n  File \"/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/InfiniLoader-partial-CPU-r9272/partial_probe_r9272.py\", line 143, in <module>\\n    elif sys.argv[1]==\\'daemon\\':sys.exit(daemon(sys.argv[2]))\\n                                        ^^^^^^^^^^^^^^^^^^^\\n  File \"/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/InfiniLoader-partial-CPU-r9272/partial_probe_r9272.py\", line 63, in daemon\\n    return d.serve_forever()\\n           ^^^^^^^^^^^^^^^^^\\n  File \"/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/InfiniLoader-partial-CPU-r9272/src/infiniloader/daemon.py\", line 382, in serve_forever\\n    return self._serve_owned()\\n           ^^^^^^^^^^^^^^^^^^^\\n  File \"/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/InfiniLoader-partial-CPU-r9272/src/infiniloader/daemon.py\", line 403, in _serve_owned\\n    self.load()\\n  File \"/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/InfiniLoader-partial-CPU-r9272/src/infiniloader/daemon.py\", line 135, in load\\n    self.cached = load_model_into_memory(\\n                  ^^^^^^^^^^^^^^^^^^^^^^^\\n  File \"/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/InfiniLoader-partial-CPU-r9272/src/infiniloader/cache.py\", line 332, in load_model_into_memory\\n    cached_item = copy_file_to_memfd(item, chunk_size=chunk_size)\\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \"/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/InfiniLoader-partial-CPU-r9272/src/infiniloader/cache.py\", line 237, in copy_file_to_memfd\\n    raise RuntimeError(\"memfd_create is not available; InfiniLoader requires Linux\")\\nRuntimeError: memfd_create is not available; InfiniLoader requires Linux\\n')\n"
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/logs/InfiniLoader-partial-CPU-r9272-client.log",
+      "tail": "srun: error: a14r2n08: task 0: Exited with exit code 1\nsrun: Terminating StepId=910380.423\n"
+    }
+  ],
+  "daemon_tail": "[load] source=/public/home/aclsylqidf/shared/Kimi-K3\n[load]   0.00% 0 B / 2.18 GiB cached; last=.\n[stop] daemon exited\nTraceback (most recent call last):\n  File \"/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/InfiniLoader-partial-CPU-r9272/partial_probe_r9272.py\", line 143, in <module>\n    elif sys.argv[1]=='daemon':sys.exit(daemon(sys.argv[2]))\n                                        ^^^^^^^^^^^^^^^^^^^\n  File \"/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/InfiniLoader-partial-CPU-r9272/partial_probe_r9272.py\", line 63, in daemon\n    return d.serve_forever()\n           ^^^^^^^^^^^^^^^^^\n  File \"/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/InfiniLoader-partial-CPU-r9272/src/infiniloader/daemon.py\", line 382, in serve_forever\n    return self._serve_owned()\n           ^^^^^^^^^^^^^^^^^^^\n  File \"/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/InfiniLoader-partial-CPU-r9272/src/infiniloader/daemon.py\", line 403, in _serve_owned\n    self.load()\n  File \"/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/InfiniLoader-partial-CPU-r9272/src/infiniloader/daemon.py\", line 135, in load\n    self.cached = load_model_into_memory(\n                  ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/InfiniLoader-partial-CPU-r9272/src/infiniloader/cache.py\", line 332, in load_model_into_memory\n    cached_item = copy_file_to_memfd(item, chunk_size=chunk_size)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/InfiniLoader-partial-CPU-r9272/src/infiniloader/cache.py\", line 237, in copy_file_to_memfd\n    raise RuntimeError(\"memfd_create is not available; InfiniLoader requires Linux\")\nRuntimeError: memfd_create is not available; InfiniLoader requires Linux\n",
+  "result_sha256": "b9e788b918a70e83781d100435a9c6df6c333e5619a33123a3a341162539590e",
+  "result_bytes": 97907,
+  "result": {
+    "schema": 1,
+    "scope": "CPU_COMPONENT_ONLY_WARM_PAGECACHE_NO_COLD_OR_MODEL_SPEED_CLAIM",
+    "host": "a14r2n08",
+    "step": "910380.423",
+    "source": "/public/home/aclsylqidf/shared/Kimi-K3",
+    "shard": "model-00001-of-000096.safetensors",
+    "shard_bytes": 2341216112,
+    "upstream_commit": "33b176e937ce6035ef39d4aab7414fd74a247424",
+    "before": {
+      "host_available_bytes": 493526859776,
+      "cgroups": [
+        {
+          "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+          "limit_bytes": 51539607552,
+          "used_bytes": 15478784,
+          "available_bytes": 51524128768
+        },
+        {
+          "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+          "limit_bytes": 251658240000,
+          "used_bytes": 201121087488,
+          "available_bytes": 50537152512
+        }
+      ],
+      "available_bytes": 50537152512
+    },
+    "pairs": [],
+    "GPU_initialized": false,
+    "unscored_original_warmup": {
+      "pid": 1790506,
+      "path": "/public/home/aclsylqidf/shared/Kimi-K3/model-00001-of-000096.safetensors",
+      "inode": 11329058173,
+      "header_sha256": "bfd47268eb1556d004cc0d8a8ce63935a73e812c87333cfa56d46312b1c692c8",
+      "tensor_count": 23,
+      "selected": [
+        {
+          "name": "language_model.model.layers.0.input_layernorm.weight",
+          "shape": [
+            7168
+          ],
+          "dtype": "BF16",
+          "bytes": 14336,
+          "sha256": "cae42a3274b32d56979ad9321af9659e7219725531ad676d8057d28fa8d639d2"
+        },
+        {
+          "name": "language_model.model.layers.0.mlp_res_norm.weight",
+          "shape": [
+            7168
+          ],
+          "dtype": "BF16",
+          "bytes": 14336,
+          "sha256": "35177fb420535a1bb7bf3757060de5624b7e4f77f07c2fe60ec8897c7e3afd51"
+        },
+        {
+          "name": "language_model.model.layers.0.mlp_res_proj.weight",
+          "shape": [
+            1,
+            7168
+          ],
+          "dtype": "BF16",
+          "bytes": 14336,
+          "sha256": "bc3edaf32ca2a68e5888a1cebaaef69cf4f2c9d6130986d62f90f5be515e24cd"
+        }
+      ],
+      "page_touch_seconds": 4.4025909854099154,
+      "open_header_touch_identity_seconds": 4.4087521568872035,
+      "page_checksum": 68288677,
+      "minor_fault_delta": 37318,
+      "major_fault_delta": 18018,
+      "safe_open": {
+        "available": false
+      }
+    },
+    "passed": false,
+    "failure": "Traceback (most recent call last):\n  File \"/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/InfiniLoader-partial-CPU-r9272/partial_probe_r9272.py\", line 101, in main\n    assert dp.poll() is None, (dp.returncode,(work/'daemon.log').read_text());assert time.monotonic()<deadline;time.sleep(.1)\n           ^^^^^^^^^^^^^^^^^\nAssertionError: (1, '[load] source=/public/home/aclsylqidf/shared/Kimi-K3\\n[load]   0.00% 0 B / 2.18 GiB cached; last=.\\n[stop] daemon exited\\nTraceback (most recent call last):\\n  File \"/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/InfiniLoader-partial-CPU-r9272/partial_probe_r9272.py\", line 143, in <module>\\n    elif sys.argv[1]==\\'daemon\\':sys.exit(daemon(sys.argv[2]))\\n                                        ^^^^^^^^^^^^^^^^^^^\\n  File \"/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/InfiniLoader-partial-CPU-r9272/partial_probe_r9272.py\", line 63, in daemon\\n    return d.serve_forever()\\n           ^^^^^^^^^^^^^^^^^\\n  File \"/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/InfiniLoader-partial-CPU-r9272/src/infiniloader/daemon.py\", line 382, in serve_forever\\n    return self._serve_owned()\\n           ^^^^^^^^^^^^^^^^^^^\\n  File \"/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/InfiniLoader-partial-CPU-r9272/src/infiniloader/daemon.py\", line 403, in _serve_owned\\n    self.load()\\n  File \"/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/InfiniLoader-partial-CPU-r9272/src/infiniloader/daemon.py\", line 135, in load\\n    self.cached = load_model_into_memory(\\n                  ^^^^^^^^^^^^^^^^^^^^^^^\\n  File \"/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/InfiniLoader-partial-CPU-r9272/src/infiniloader/cache.py\", line 332, in load_model_into_memory\\n    cached_item = copy_file_to_memfd(item, chunk_size=chunk_size)\\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \"/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/InfiniLoader-partial-CPU-r9272/src/infiniloader/cache.py\", line 237, in copy_file_to_memfd\\n    raise RuntimeError(\"memfd_create is not available; InfiniLoader requires Linux\")\\nRuntimeError: memfd_create is not available; InfiniLoader requires Linux\\n')\n",
+    "memory_samples": [
+      {
+        "t": 3059258.620747694,
+        "memory": {
+          "host_available_bytes": 493513396224,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 44589056,
+              "available_bytes": 51495018496
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 201150328832,
+              "available_bytes": 50507911168
+            }
+          ],
+          "available_bytes": 50507911168
+        }
+      },
+      {
+        "t": 3059258.722403432,
+        "memory": {
+          "host_available_bytes": 493514113024,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 105676800,
+              "available_bytes": 51433930752
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 201211285504,
+              "available_bytes": 50446954496
+            }
+          ],
+          "available_bytes": 50446954496
+        }
+      },
+      {
+        "t": 3059258.824037021,
+        "memory": {
+          "host_available_bytes": 493513830400,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 170688512,
+              "available_bytes": 51368919040
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 201276297216,
+              "available_bytes": 50381942784
+            }
+          ],
+          "available_bytes": 50381942784
+        }
+      },
+      {
+        "t": 3059258.925597068,
+        "memory": {
+          "host_available_bytes": 493513641984,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 231501824,
+              "available_bytes": 51308105728
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 201337241600,
+              "available_bytes": 50320998400
+            }
+          ],
+          "available_bytes": 50320998400
+        }
+      },
+      {
+        "t": 3059259.027148176,
+        "memory": {
+          "host_available_bytes": 493513797632,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 290353152,
+              "available_bytes": 51249254400
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 201396092928,
+              "available_bytes": 50262147072
+            }
+          ],
+          "available_bytes": 50262147072
+        }
+      },
+      {
+        "t": 3059259.128703403,
+        "memory": {
+          "host_available_bytes": 493513527296,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 338456576,
+              "available_bytes": 51201150976
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 201444065280,
+              "available_bytes": 50214174720
+            }
+          ],
+          "available_bytes": 50214174720
+        }
+      },
+      {
+        "t": 3059259.230282681,
+        "memory": {
+          "host_available_bytes": 493513404416,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 397701120,
+              "available_bytes": 51141906432
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 201503309824,
+              "available_bytes": 50154930176
+            }
+          ],
+          "available_bytes": 50154930176
+        }
+      },
+      {
+        "t": 3059259.331809678,
+        "memory": {
+          "host_available_bytes": 493514342400,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 456945664,
+              "available_bytes": 51082661888
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 201562554368,
+              "available_bytes": 50095685632
+            }
+          ],
+          "available_bytes": 50095685632
+        }
+      },
+      {
+        "t": 3059259.433303345,
+        "memory": {
+          "host_available_bytes": 493515210752,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 515665920,
+              "available_bytes": 51023941632
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 201621405696,
+              "available_bytes": 50036834304
+            }
+          ],
+          "available_bytes": 50036834304
+        }
+      },
+      {
+        "t": 3059259.534740042,
+        "memory": {
+          "host_available_bytes": 493516165120,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 574779392,
+              "available_bytes": 50964828160
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 201680388096,
+              "available_bytes": 49977851904
+            }
+          ],
+          "available_bytes": 49977851904
+        }
+      },
+      {
+        "t": 3059259.636069988,
+        "memory": {
+          "host_available_bytes": 493516283904,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 598765568,
+              "available_bytes": 50940841984
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 201704374272,
+              "available_bytes": 49953865728
+            }
+          ],
+          "available_bytes": 49953865728
+        }
+      },
+      {
+        "t": 3059259.737535875,
+        "memory": {
+          "host_available_bytes": 493516271616,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 633630720,
+              "available_bytes": 50905976832
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 201739239424,
+              "available_bytes": 49919000576
+            }
+          ],
+          "available_bytes": 49919000576
+        }
+      },
+      {
+        "t": 3059259.838831031,
+        "memory": {
+          "host_available_bytes": 493516627968,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 694972416,
+              "available_bytes": 50844635136
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 201800712192,
+              "available_bytes": 49857527808
+            }
+          ],
+          "available_bytes": 49857527808
+        }
+      },
+      {
+        "t": 3059259.940134166,
+        "memory": {
+          "host_available_bytes": 493516210176,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 753823744,
+              "available_bytes": 50785783808
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 201859432448,
+              "available_bytes": 49798807552
+            }
+          ],
+          "available_bytes": 49798807552
+        }
+      },
+      {
+        "t": 3059260.041462012,
+        "memory": {
+          "host_available_bytes": 493516271616,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 787378176,
+              "available_bytes": 50752229376
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 201893117952,
+              "available_bytes": 49765122048
+            }
+          ],
+          "available_bytes": 49765122048
+        }
+      },
+      {
+        "t": 3059260.142828199,
+        "memory": {
+          "host_available_bytes": 493516480512,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 845180928,
+              "available_bytes": 50694426624
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 201950789632,
+              "available_bytes": 49707450368
+            }
+          ],
+          "available_bytes": 49707450368
+        }
+      },
+      {
+        "t": 3059260.244147105,
+        "memory": {
+          "host_available_bytes": 493516578816,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 900755456,
+              "available_bytes": 50638852096
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 202006364160,
+              "available_bytes": 49651875840
+            }
+          ],
+          "available_bytes": 49651875840
+        }
+      },
+      {
+        "t": 3059260.345493201,
+        "memory": {
+          "host_available_bytes": 493516578816,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 917532672,
+              "available_bytes": 50622074880
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 202023141376,
+              "available_bytes": 49635098624
+            }
+          ],
+          "available_bytes": 49635098624
+        }
+      },
+      {
+        "t": 3059260.446787516,
+        "memory": {
+          "host_available_bytes": 493516627968,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 976252928,
+              "available_bytes": 50563354624
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 202081992704,
+              "available_bytes": 49576247296
+            }
+          ],
+          "available_bytes": 49576247296
+        }
+      },
+      {
+        "t": 3059260.548109422,
+        "memory": {
+          "host_available_bytes": 493516333056,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 1033924608,
+              "available_bytes": 50505682944
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 202139664384,
+              "available_bytes": 49518575616
+            }
+          ],
+          "available_bytes": 49518575616
+        }
+      },
+      {
+        "t": 3059260.649455328,
+        "memory": {
+          "host_available_bytes": 493516361728,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 1099722752,
+              "available_bytes": 50439884800
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 202205462528,
+              "available_bytes": 49452777472
+            }
+          ],
+          "available_bytes": 49452777472
+        }
+      },
+      {
+        "t": 3059260.750778164,
+        "memory": {
+          "host_available_bytes": 493516681216,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 1158311936,
+              "available_bytes": 50381295616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 202263920640,
+              "available_bytes": 49394319360
+            }
+          ],
+          "available_bytes": 49394319360
+        }
+      },
+      {
+        "t": 3059260.85209148,
+        "memory": {
+          "host_available_bytes": 493517197312,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 1209561088,
+              "available_bytes": 50330046464
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 202315169792,
+              "available_bytes": 49343070208
+            }
+          ],
+          "available_bytes": 49343070208
+        }
+      },
+      {
+        "t": 3059260.953407006,
+        "memory": {
+          "host_available_bytes": 493517197312,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 1268805632,
+              "available_bytes": 50270801920
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 202374545408,
+              "available_bytes": 49283694592
+            }
+          ],
+          "available_bytes": 49283694592
+        }
+      },
+      {
+        "t": 3059261.054723582,
+        "memory": {
+          "host_available_bytes": 493517230080,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 1332375552,
+              "available_bytes": 50207232000
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 202437984256,
+              "available_bytes": 49220255744
+            }
+          ],
+          "available_bytes": 49220255744
+        }
+      },
+      {
+        "t": 3059261.156023898,
+        "memory": {
+          "host_available_bytes": 493517746176,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 1396731904,
+              "available_bytes": 50142875648
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 202502471680,
+              "available_bytes": 49155768320
+            }
+          ],
+          "available_bytes": 49155768320
+        }
+      },
+      {
+        "t": 3059261.257344774,
+        "memory": {
+          "host_available_bytes": 493517230080,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 1460170752,
+              "available_bytes": 50079436800
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 202565779456,
+              "available_bytes": 49092460544
+            }
+          ],
+          "available_bytes": 49092460544
+        }
+      },
+      {
+        "t": 3059261.35866185,
+        "memory": {
+          "host_available_bytes": 493517230080,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 1509965824,
+              "available_bytes": 50029641728
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 202615574528,
+              "available_bytes": 49042665472
+            }
+          ],
+          "available_bytes": 49042665472
+        }
+      },
+      {
+        "t": 3059261.459968856,
+        "memory": {
+          "host_available_bytes": 493517230080,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 1571700736,
+              "available_bytes": 49967906816
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 202677440512,
+              "available_bytes": 48980799488
+            }
+          ],
+          "available_bytes": 48980799488
+        }
+      },
+      {
+        "t": 3059261.561301512,
+        "memory": {
+          "host_available_bytes": 493517475840,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 1628192768,
+              "available_bytes": 49911414784
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 202733801472,
+              "available_bytes": 48924438528
+            }
+          ],
+          "available_bytes": 48924438528
+        }
+      },
+      {
+        "t": 3059261.662780249,
+        "memory": {
+          "host_available_bytes": 493518643200,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 1676034048,
+              "available_bytes": 49863573504
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 202781773824,
+              "available_bytes": 48876466176
+            }
+          ],
+          "available_bytes": 48876466176
+        }
+      },
+      {
+        "t": 3059261.764069794,
+        "memory": {
+          "host_available_bytes": 493518790656,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 1735147520,
+              "available_bytes": 49804460032
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 202840756224,
+              "available_bytes": 48817483776
+            }
+          ],
+          "available_bytes": 48817483776
+        }
+      },
+      {
+        "t": 3059261.86538442,
+        "memory": {
+          "host_available_bytes": 493519380480,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 1796489216,
+              "available_bytes": 49743118336
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 202902097920,
+              "available_bytes": 48756142080
+            }
+          ],
+          "available_bytes": 48756142080
+        }
+      },
+      {
+        "t": 3059261.966741836,
+        "memory": {
+          "host_available_bytes": 493519187968,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 1840529408,
+              "available_bytes": 49699078144
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 202946138112,
+              "available_bytes": 48712101888
+            }
+          ],
+          "available_bytes": 48712101888
+        }
+      },
+      {
+        "t": 3059262.068145623,
+        "memory": {
+          "host_available_bytes": 493519187968,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 1905672192,
+              "available_bytes": 49633935360
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203011411968,
+              "available_bytes": 48646828032
+            }
+          ],
+          "available_bytes": 48646828032
+        }
+      },
+      {
+        "t": 3059262.169496099,
+        "memory": {
+          "host_available_bytes": 493519187968,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 1964654592,
+              "available_bytes": 49574952960
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203070394368,
+              "available_bytes": 48587845632
+            }
+          ],
+          "available_bytes": 48587845632
+        }
+      },
+      {
+        "t": 3059262.270807085,
+        "memory": {
+          "host_available_bytes": 493519192064,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2002796544,
+              "available_bytes": 49536811008
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203108405248,
+              "available_bytes": 48549834752
+            }
+          ],
+          "available_bytes": 48549834752
+        }
+      },
+      {
+        "t": 3059262.372101661,
+        "memory": {
+          "host_available_bytes": 493518675968,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2064531456,
+              "available_bytes": 49475076096
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203170140160,
+              "available_bytes": 48488099840
+            }
+          ],
+          "available_bytes": 48488099840
+        }
+      },
+      {
+        "t": 3059262.473410397,
+        "memory": {
+          "host_available_bytes": 493518954496,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2108833792,
+              "available_bytes": 49430773760
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203214442496,
+              "available_bytes": 48443797504
+            }
+          ],
+          "available_bytes": 48443797504
+        }
+      },
+      {
+        "t": 3059262.574724342,
+        "memory": {
+          "host_available_bytes": 493519409152,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2136621056,
+              "available_bytes": 49402986496
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203242360832,
+              "available_bytes": 48415879168
+            }
+          ],
+          "available_bytes": 48415879168
+        }
+      },
+      {
+        "t": 3059262.676016108,
+        "memory": {
+          "host_available_bytes": 493519171584,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2203992064,
+              "available_bytes": 49335615488
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203309600768,
+              "available_bytes": 48348639232
+            }
+          ],
+          "available_bytes": 48348639232
+        }
+      },
+      {
+        "t": 3059262.777302314,
+        "memory": {
+          "host_available_bytes": 493519429632,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2267955200,
+              "available_bytes": 49271652352
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203373563904,
+              "available_bytes": 48284676096
+            }
+          ],
+          "available_bytes": 48284676096
+        }
+      },
+      {
+        "t": 3059262.87860038,
+        "memory": {
+          "host_available_bytes": 493521018880,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2308849664,
+              "available_bytes": 49230757888
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203414589440,
+              "available_bytes": 48243650560
+            }
+          ],
+          "available_bytes": 48243650560
+        }
+      },
+      {
+        "t": 3059262.979883975,
+        "memory": {
+          "host_available_bytes": 493520674816,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2359705600,
+              "available_bytes": 49179901952
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203465314304,
+              "available_bytes": 48192925696
+            }
+          ],
+          "available_bytes": 48192925696
+        }
+      },
+      {
+        "t": 3059263.081170901,
+        "memory": {
+          "host_available_bytes": 493530152960,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2358833152,
+              "available_bytes": 49180774400
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203464441856,
+              "available_bytes": 48193798144
+            }
+          ],
+          "available_bytes": 48193798144
+        }
+      },
+      {
+        "t": 3059263.182835669,
+        "memory": {
+          "host_available_bytes": 493525331968,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2371543040,
+              "available_bytes": 49168064512
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203477151744,
+              "available_bytes": 48181088256
+            }
+          ],
+          "available_bytes": 48181088256
+        }
+      },
+      {
+        "t": 3059263.284228476,
+        "memory": {
+          "host_available_bytes": 493524979712,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2372853760,
+              "available_bytes": 49166753792
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478462464,
+              "available_bytes": 48179777536
+            }
+          ],
+          "available_bytes": 48179777536
+        }
+      },
+      {
+        "t": 3059263.385518731,
+        "memory": {
+          "host_available_bytes": 493525045248,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2372775936,
+              "available_bytes": 49166831616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478384640,
+              "available_bytes": 48179855360
+            }
+          ],
+          "available_bytes": 48179855360
+        }
+      },
+      {
+        "t": 3059263.486763577,
+        "memory": {
+          "host_available_bytes": 493525045248,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2372775936,
+              "available_bytes": 49166831616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478384640,
+              "available_bytes": 48179855360
+            }
+          ],
+          "available_bytes": 48179855360
+        }
+      },
+      {
+        "t": 3059263.588008872,
+        "memory": {
+          "host_available_bytes": 493525045248,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2372775936,
+              "available_bytes": 49166831616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478384640,
+              "available_bytes": 48179855360
+            }
+          ],
+          "available_bytes": 48179855360
+        }
+      },
+      {
+        "t": 3059263.689271988,
+        "memory": {
+          "host_available_bytes": 493525131264,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2372775936,
+              "available_bytes": 49166831616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478384640,
+              "available_bytes": 48179855360
+            }
+          ],
+          "available_bytes": 48179855360
+        }
+      },
+      {
+        "t": 3059263.790542523,
+        "memory": {
+          "host_available_bytes": 493525131264,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2372775936,
+              "available_bytes": 49166831616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478384640,
+              "available_bytes": 48179855360
+            }
+          ],
+          "available_bytes": 48179855360
+        }
+      },
+      {
+        "t": 3059263.891799759,
+        "memory": {
+          "host_available_bytes": 493525131264,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2372775936,
+              "available_bytes": 49166831616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478384640,
+              "available_bytes": 48179855360
+            }
+          ],
+          "available_bytes": 48179855360
+        }
+      },
+      {
+        "t": 3059263.993035284,
+        "memory": {
+          "host_available_bytes": 493525389312,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2372775936,
+              "available_bytes": 49166831616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478384640,
+              "available_bytes": 48179855360
+            }
+          ],
+          "available_bytes": 48179855360
+        }
+      },
+      {
+        "t": 3059264.094274589,
+        "memory": {
+          "host_available_bytes": 493525389312,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2372775936,
+              "available_bytes": 49166831616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478384640,
+              "available_bytes": 48179855360
+            }
+          ],
+          "available_bytes": 48179855360
+        }
+      },
+      {
+        "t": 3059264.195522915,
+        "memory": {
+          "host_available_bytes": 493525389312,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2372775936,
+              "available_bytes": 49166831616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478384640,
+              "available_bytes": 48179855360
+            }
+          ],
+          "available_bytes": 48179855360
+        }
+      },
+      {
+        "t": 3059264.29677043,
+        "memory": {
+          "host_available_bytes": 493525389312,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2372775936,
+              "available_bytes": 49166831616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478384640,
+              "available_bytes": 48179855360
+            }
+          ],
+          "available_bytes": 48179855360
+        }
+      },
+      {
+        "t": 3059264.398034246,
+        "memory": {
+          "host_available_bytes": 493525651456,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2372775936,
+              "available_bytes": 49166831616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478384640,
+              "available_bytes": 48179855360
+            }
+          ],
+          "available_bytes": 48179855360
+        }
+      },
+      {
+        "t": 3059264.499283771,
+        "memory": {
+          "host_available_bytes": 493525663744,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2372775936,
+              "available_bytes": 49166831616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478384640,
+              "available_bytes": 48179855360
+            }
+          ],
+          "available_bytes": 48179855360
+        }
+      },
+      {
+        "t": 3059264.600543177,
+        "memory": {
+          "host_available_bytes": 493525663744,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2372775936,
+              "available_bytes": 49166831616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478384640,
+              "available_bytes": 48179855360
+            }
+          ],
+          "available_bytes": 48179855360
+        }
+      },
+      {
+        "t": 3059264.701799492,
+        "memory": {
+          "host_available_bytes": 493526110208,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2372775936,
+              "available_bytes": 49166831616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478384640,
+              "available_bytes": 48179855360
+            }
+          ],
+          "available_bytes": 48179855360
+        }
+      },
+      {
+        "t": 3059264.803031398,
+        "memory": {
+          "host_available_bytes": 493526216704,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2372775936,
+              "available_bytes": 49166831616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478384640,
+              "available_bytes": 48179855360
+            }
+          ],
+          "available_bytes": 48179855360
+        }
+      },
+      {
+        "t": 3059264.904249953,
+        "memory": {
+          "host_available_bytes": 493527265280,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2372775936,
+              "available_bytes": 49166831616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478384640,
+              "available_bytes": 48179855360
+            }
+          ],
+          "available_bytes": 48179855360
+        }
+      },
+      {
+        "t": 3059265.005505968,
+        "memory": {
+          "host_available_bytes": 493527523328,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2372775936,
+              "available_bytes": 49166831616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478384640,
+              "available_bytes": 48179855360
+            }
+          ],
+          "available_bytes": 48179855360
+        }
+      },
+      {
+        "t": 3059265.106744693,
+        "memory": {
+          "host_available_bytes": 493527523328,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2372775936,
+              "available_bytes": 49166831616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478384640,
+              "available_bytes": 48179855360
+            }
+          ],
+          "available_bytes": 48179855360
+        }
+      },
+      {
+        "t": 3059265.207973659,
+        "memory": {
+          "host_available_bytes": 493527523328,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2372775936,
+              "available_bytes": 49166831616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478384640,
+              "available_bytes": 48179855360
+            }
+          ],
+          "available_bytes": 48179855360
+        }
+      },
+      {
+        "t": 3059265.309221874,
+        "memory": {
+          "host_available_bytes": 493527216128,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376970240,
+              "available_bytes": 49162637312
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478384640,
+              "available_bytes": 48179855360
+            }
+          ],
+          "available_bytes": 48179855360
+        }
+      },
+      {
+        "t": 3059265.41053178,
+        "memory": {
+          "host_available_bytes": 493527216128,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376970240,
+              "available_bytes": 49162637312
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478384640,
+              "available_bytes": 48179855360
+            }
+          ],
+          "available_bytes": 48179855360
+        }
+      },
+      {
+        "t": 3059265.511716255,
+        "memory": {
+          "host_available_bytes": 493527216128,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376970240,
+              "available_bytes": 49162637312
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478384640,
+              "available_bytes": 48179855360
+            }
+          ],
+          "available_bytes": 48179855360
+        }
+      },
+      {
+        "t": 3059265.61288801,
+        "memory": {
+          "host_available_bytes": 493527216128,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376970240,
+              "available_bytes": 49162637312
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478384640,
+              "available_bytes": 48179855360
+            }
+          ],
+          "available_bytes": 48179855360
+        }
+      },
+      {
+        "t": 3059265.714071585,
+        "memory": {
+          "host_available_bytes": 493514620928,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376970240,
+              "available_bytes": 49162637312
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478384640,
+              "available_bytes": 48179855360
+            }
+          ],
+          "available_bytes": 48179855360
+        }
+      },
+      {
+        "t": 3059265.815277201,
+        "memory": {
+          "host_available_bytes": 493512622080,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376876032,
+              "available_bytes": 49162731520
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478163456,
+              "available_bytes": 48180076544
+            }
+          ],
+          "available_bytes": 48180076544
+        }
+      },
+      {
+        "t": 3059265.916482066,
+        "memory": {
+          "host_available_bytes": 493496365056,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376876032,
+              "available_bytes": 49162731520
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478163456,
+              "available_bytes": 48180076544
+            }
+          ],
+          "available_bytes": 48180076544
+        }
+      },
+      {
+        "t": 3059266.017663321,
+        "memory": {
+          "host_available_bytes": 493483040768,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376876032,
+              "available_bytes": 49162731520
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478163456,
+              "available_bytes": 48180076544
+            }
+          ],
+          "available_bytes": 48180076544
+        }
+      },
+      {
+        "t": 3059266.118879766,
+        "memory": {
+          "host_available_bytes": 493467652096,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376876032,
+              "available_bytes": 49162731520
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478163456,
+              "available_bytes": 48180076544
+            }
+          ],
+          "available_bytes": 48180076544
+        }
+      },
+      {
+        "t": 3059266.220086931,
+        "memory": {
+          "host_available_bytes": 493464915968,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376826880,
+              "available_bytes": 49162780672
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478114304,
+              "available_bytes": 48180125696
+            }
+          ],
+          "available_bytes": 48180125696
+        }
+      },
+      {
+        "t": 3059266.321347137,
+        "memory": {
+          "host_available_bytes": 493472952320,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376826880,
+              "available_bytes": 49162780672
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478114304,
+              "available_bytes": 48180125696
+            }
+          ],
+          "available_bytes": 48180125696
+        }
+      },
+      {
+        "t": 3059266.422548102,
+        "memory": {
+          "host_available_bytes": 493462114304,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376957952,
+              "available_bytes": 49162649600
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478245376,
+              "available_bytes": 48179994624
+            }
+          ],
+          "available_bytes": 48179994624
+        }
+      },
+      {
+        "t": 3059266.523754247,
+        "memory": {
+          "host_available_bytes": 493458321408,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376732672,
+              "available_bytes": 49162874880
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478020096,
+              "available_bytes": 48180219904
+            }
+          ],
+          "available_bytes": 48180219904
+        }
+      },
+      {
+        "t": 3059266.624978972,
+        "memory": {
+          "host_available_bytes": 493457293312,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376732672,
+              "available_bytes": 49162874880
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478020096,
+              "available_bytes": 48180219904
+            }
+          ],
+          "available_bytes": 48180219904
+        }
+      },
+      {
+        "t": 3059266.726167037,
+        "memory": {
+          "host_available_bytes": 493455683584,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376732672,
+              "available_bytes": 49162874880
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478020096,
+              "available_bytes": 48180219904
+            }
+          ],
+          "available_bytes": 48180219904
+        }
+      },
+      {
+        "t": 3059266.827395102,
+        "memory": {
+          "host_available_bytes": 493471453184,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376863744,
+              "available_bytes": 49162743808
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478151168,
+              "available_bytes": 48180088832
+            }
+          ],
+          "available_bytes": 48180088832
+        }
+      },
+      {
+        "t": 3059266.928605577,
+        "memory": {
+          "host_available_bytes": 493472698368,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376740864,
+              "available_bytes": 49162866688
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478028288,
+              "available_bytes": 48180211712
+            }
+          ],
+          "available_bytes": 48180211712
+        }
+      },
+      {
+        "t": 3059267.029810322,
+        "memory": {
+          "host_available_bytes": 493472698368,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059267.131010737,
+        "memory": {
+          "host_available_bytes": 493472698368,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059267.232185302,
+        "memory": {
+          "host_available_bytes": 493472698368,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059267.333373897,
+        "memory": {
+          "host_available_bytes": 493472632832,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059267.434543942,
+        "memory": {
+          "host_available_bytes": 493472698368,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059267.535848088,
+        "memory": {
+          "host_available_bytes": 493472698368,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059267.637030503,
+        "memory": {
+          "host_available_bytes": 493472698368,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059267.738223189,
+        "memory": {
+          "host_available_bytes": 493472698368,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059267.839412464,
+        "memory": {
+          "host_available_bytes": 493472698368,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059267.940600129,
+        "memory": {
+          "host_available_bytes": 493472698368,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059268.041788094,
+        "memory": {
+          "host_available_bytes": 493472698368,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059268.142977729,
+        "memory": {
+          "host_available_bytes": 493472894976,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059268.244158354,
+        "memory": {
+          "host_available_bytes": 493473153024,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059268.345357489,
+        "memory": {
+          "host_available_bytes": 493473153024,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059268.446547693,
+        "memory": {
+          "host_available_bytes": 493474369536,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059268.547743169,
+        "memory": {
+          "host_available_bytes": 493475131392,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059268.648920244,
+        "memory": {
+          "host_available_bytes": 493475635200,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059268.750087999,
+        "memory": {
+          "host_available_bytes": 493475635200,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059268.851277104,
+        "memory": {
+          "host_available_bytes": 493476151296,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059268.952449539,
+        "memory": {
+          "host_available_bytes": 493476409344,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059269.053635224,
+        "memory": {
+          "host_available_bytes": 493479628800,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059269.154813509,
+        "memory": {
+          "host_available_bytes": 493479821312,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059269.255983064,
+        "memory": {
+          "host_available_bytes": 493480632320,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059269.357169709,
+        "memory": {
+          "host_available_bytes": 493481156608,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059269.458392054,
+        "memory": {
+          "host_available_bytes": 493483302912,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059269.559572389,
+        "memory": {
+          "host_available_bytes": 493483737088,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059269.660752864,
+        "memory": {
+          "host_available_bytes": 493483737088,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059269.761929539,
+        "memory": {
+          "host_available_bytes": 493483995136,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059269.863115204,
+        "memory": {
+          "host_available_bytes": 493483864064,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059269.964288469,
+        "memory": {
+          "host_available_bytes": 493483864064,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059270.065488374,
+        "memory": {
+          "host_available_bytes": 493483864064,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059270.166700479,
+        "memory": {
+          "host_available_bytes": 493483864064,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059270.267893764,
+        "memory": {
+          "host_available_bytes": 493484122112,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059270.369073589,
+        "memory": {
+          "host_available_bytes": 493484122112,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059270.470258724,
+        "memory": {
+          "host_available_bytes": 493484122112,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059270.571451799,
+        "memory": {
+          "host_available_bytes": 493484380160,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059270.672649054,
+        "memory": {
+          "host_available_bytes": 493484503040,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059270.773828059,
+        "memory": {
+          "host_available_bytes": 493484503040,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059270.875014394,
+        "memory": {
+          "host_available_bytes": 493485019136,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059270.976204179,
+        "memory": {
+          "host_available_bytes": 493488398336,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059271.077396214,
+        "memory": {
+          "host_available_bytes": 493488398336,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059271.178566699,
+        "memory": {
+          "host_available_bytes": 493488398336,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059271.279739324,
+        "memory": {
+          "host_available_bytes": 493488398336,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059271.380935149,
+        "memory": {
+          "host_available_bytes": 493488398336,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059271.482154935,
+        "memory": {
+          "host_available_bytes": 493488656384,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059271.58332196,
+        "memory": {
+          "host_available_bytes": 493488914432,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059271.684509435,
+        "memory": {
+          "host_available_bytes": 493488914432,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059271.78567503,
+        "memory": {
+          "host_available_bytes": 493489430528,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059271.886858184,
+        "memory": {
+          "host_available_bytes": 493489430528,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059271.988028199,
+        "memory": {
+          "host_available_bytes": 493489430528,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059272.089203574,
+        "memory": {
+          "host_available_bytes": 493481177088,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376871936,
+              "available_bytes": 49162735616
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478159360,
+              "available_bytes": 48180080640
+            }
+          ],
+          "available_bytes": 48180080640
+        }
+      },
+      {
+        "t": 3059272.19052094,
+        "memory": {
+          "host_available_bytes": 493471633408,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376708096,
+              "available_bytes": 49162899456
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203477995520,
+              "available_bytes": 48180244480
+            }
+          ],
+          "available_bytes": 48180244480
+        }
+      },
+      {
+        "t": 3059272.291759646,
+        "memory": {
+          "host_available_bytes": 493466988544,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376708096,
+              "available_bytes": 49162899456
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203477995520,
+              "available_bytes": 48180244480
+            }
+          ],
+          "available_bytes": 48180244480
+        }
+      },
+      {
+        "t": 3059272.393065291,
+        "memory": {
+          "host_available_bytes": 493461929984,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376642560,
+              "available_bytes": 49162964992
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203477929984,
+              "available_bytes": 48180310016
+            }
+          ],
+          "available_bytes": 48180310016
+        }
+      },
+      {
+        "t": 3059272.494357807,
+        "memory": {
+          "host_available_bytes": 493461561344,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376773632,
+              "available_bytes": 49162833920
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478061056,
+              "available_bytes": 48180178944
+            }
+          ],
+          "available_bytes": 48180178944
+        }
+      },
+      {
+        "t": 3059272.595559992,
+        "memory": {
+          "host_available_bytes": 493454356480,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376773632,
+              "available_bytes": 49162833920
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478061056,
+              "available_bytes": 48180178944
+            }
+          ],
+          "available_bytes": 48180178944
+        }
+      },
+      {
+        "t": 3059272.696757777,
+        "memory": {
+          "host_available_bytes": 493450960896,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376773632,
+              "available_bytes": 49162833920
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478061056,
+              "available_bytes": 48180178944
+            }
+          ],
+          "available_bytes": 48180178944
+        }
+      },
+      {
+        "t": 3059272.797951583,
+        "memory": {
+          "host_available_bytes": 493446590464,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376658944,
+              "available_bytes": 49162948608
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203477946368,
+              "available_bytes": 48180293632
+            }
+          ],
+          "available_bytes": 48180293632
+        }
+      },
+      {
+        "t": 3059272.899230348,
+        "memory": {
+          "host_available_bytes": 493440970752,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376658944,
+              "available_bytes": 49162948608
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203477946368,
+              "available_bytes": 48180293632
+            }
+          ],
+          "available_bytes": 48180293632
+        }
+      },
+      {
+        "t": 3059273.000532904,
+        "memory": {
+          "host_available_bytes": 493440024576,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376658944,
+              "available_bytes": 49162948608
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203477946368,
+              "available_bytes": 48180293632
+            }
+          ],
+          "available_bytes": 48180293632
+        }
+      },
+      {
+        "t": 3059273.101732539,
+        "memory": {
+          "host_available_bytes": 493433303040,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376658944,
+              "available_bytes": 49162948608
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203477946368,
+              "available_bytes": 48180293632
+            }
+          ],
+          "available_bytes": 48180293632
+        }
+      },
+      {
+        "t": 3059273.203108695,
+        "memory": {
+          "host_available_bytes": 493428682752,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376790016,
+              "available_bytes": 49162817536
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478077440,
+              "available_bytes": 48180162560
+            }
+          ],
+          "available_bytes": 48180162560
+        }
+      },
+      {
+        "t": 3059273.30430715,
+        "memory": {
+          "host_available_bytes": 493427531776,
+          "cgroups": [
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+              "limit_bytes": 51539607552,
+              "used_bytes": 2376921088,
+              "available_bytes": 49162686464
+            },
+            {
+              "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+              "limit_bytes": 251658240000,
+              "used_bytes": 203478208512,
+              "available_bytes": 48180031488
+            }
+          ],
+          "available_bytes": 48180031488
+        }
+      }
+    ],
+    "after": {
+      "host_available_bytes": 493435940864,
+      "cgroups": [
+        {
+          "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+          "limit_bytes": 51539607552,
+          "used_bytes": 2364227584,
+          "available_bytes": 49175379968
+        },
+        {
+          "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+          "limit_bytes": 251658240000,
+          "used_bytes": 203465515008,
+          "available_bytes": 48192724992
+        }
+      ],
+      "available_bytes": 48192724992
+    },
+    "peak_parent_rss_bytes": 24571904
+  }
+}

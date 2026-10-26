@@ -1,0 +1,77 @@
+{
+  "schema": 1,
+  "status": "SOURCE_CPU_BINDING_PREPARATION_NO_GPU",
+  "question": "current I192 groupedW13 versus staticW2 and CCL cost at actual verify flatT8 versus64, not another candidate sweep",
+  "current_native": "/refactor/candidates/Kimi-shard-only-Model-r9183/libKimi_shard_only_Model_r9183.so",
+  "current_native_SHA256": "b4f916dcf32f3bafb7451c94d6a98746a0e6c084edf73aeb6e229275579dbb8d",
+  "current_MoE_object_SHA256": "55fb31b5f4fa1510f06e8b62894d64d52926862371f43e1e2d8c5aaeb2624800",
+  "current_GPU_provider_SHA256": "f6ae35e870a8730c7f8e564d566503c6c31c1d253ea10758b5a2d3959b2f0c9d",
+  "fixture": {
+    "files": [
+      {
+        "path": "/refactor/results/moe-teacher-history-r6110-910373.2050/teacher0/rank0-layer1-ffn_norm-bf16.bin",
+        "bytes": 229376,
+        "SHA256": "0d0f2385a5006dfe0ac1b6f9ad6539fe5793393aca4bc4125eaf135a0ae47e4a"
+      },
+      {
+        "path": "/refactor/results/moe-teacher-history-r6110-910373.2050/teacher0/rank6-layer1-ffn_norm-bf16.bin",
+        "bytes": 229376,
+        "SHA256": "0d0f2385a5006dfe0ac1b6f9ad6539fe5793393aca4bc4125eaf135a0ae47e4a"
+      }
+    ],
+    "shape": [
+      16,
+      7168
+    ],
+    "dtype": "BF16",
+    "scope": "Historical6110 first-two-layer TP8PP1 teacherforced decode input/past512, originalB64M16 gold first16requests. Replayed current183 fullMoEL1/SpecMath0/serving1; not literal63993layer runtime/laterlayers/currenttraffic capture. Router recomputed originalcurrentMoE.",
+    "original_audit_SHA256": "c2afd099df8fc57266c8e0917c6f1c82bd5133e953dc1f0acb531daca2c193bb"
+  },
+  "input_policy": {
+    "T8": "first8 rows of original historical16 BF16 fixture",
+    "T64": "historical16 repeated4 times",
+    "current_pilot_activation": false,
+    "not_fullModel_PP_evidence": true
+  },
+  "shapes": [
+    8,
+    64
+  ],
+  "quant": "unchanged actual checkpoint MXFP4 packed uint8/scales, BF16 hidden/outputs, original FP32 scalar accum; topk16/E896/H3584/I192",
+  "Model_exact_flags": {
+    "INFINILM_KIMI_SPEC_MATH_R3676": "0",
+    "INFINILM_KIMI_I192_GROUPED_R8669Y": "1",
+    "INFINILM_KIMI_BATCH_I192_R9125": "1",
+    "INFINILM_KIMI_MOE_EXECUTION_R4665": "1",
+    "INFINILM_KIMI_MOE_WORKSPACE_R4665": "1",
+    "INFINILM_KIMI_I192_COMPACT_R8669ZC": "1",
+    "modern_kimi_set_tiled_w13_r1861": 0,
+    "modern_kimi_set_grouped_prefill": 1
+  },
+  "legacy384_unit_used": false,
+  "new_GPU_math_compiles": 0,
+  "new_HOST_TUs": 1,
+  "matrix": "2warm, ABBA activityOFF/ON/ON/OFF \u00d78 full forwards each, separate one sync-diagnostic forward (35 current calls/T); profiled environment OFF not unwrappedbaseline",
+  "candidate_math": null,
+  "future_resources_candidate": {
+    "parent": "910375",
+    "nodes": [
+      "a02r4n08",
+      "a02r4n09"
+    ],
+    "target_cards": 16,
+    "CPU_per_node": 32,
+    "memoryMiB_per_node": 128000,
+    "hard_s": 1200,
+    "inner_s": 1100
+  },
+  "GPU_GO": false,
+  "must_report": [
+    "perowner fullwall distribution and criticalmax, per-device kernel/copy/CCL intervalunion with source/sequence roles",
+    "W13 and W2 actual kernel durations, neither summedacrossGPUs nor labeledpureHBM",
+    "actual expert histogram/CV/jobs/logicalbytes (not measuredHBM)",
+    "sync-diagnostic perturbation versus OFF, actualI192 hits35/T and legacy0",
+    "finite/RMS diagnostics/readonlycanary/16normal/audit/post"
+  ],
+  "source_dedupe": "old3740 T16/32/64 had combined expert span; this newT8+currentb4 kernel attribution is not old numbers or a new performance claim"
+}

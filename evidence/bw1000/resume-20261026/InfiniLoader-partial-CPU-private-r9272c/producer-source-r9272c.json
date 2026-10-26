@@ -1,0 +1,88 @@
+{
+  "schema": 1,
+  "status": "MECHANICAL_CONTAINER_RUNTIME_REPAIR_AWAIT_ROOT_PUBLISH_GO",
+  "upstream_commit": "33b176e937ce6035ef39d4aab7414fd74a247424",
+  "files": {
+    "launch_remote_r9272c.py": "0fdb020e919d3dc2151da03bb4b59f4ae26500458d0fb4b94d4fce566435640a",
+    "LICENSE": "8578023f59faa37e9234a0ccc0ad03e43499c8279a3df2a834233b1f5c95b18d",
+    "partial_probe_r9272.py": "c3dc402f309db8c51efa18e9824a32b72ac09a76be458992e0e1ee17eb13e39c",
+    "src/infiniloader/__init__.py": "87b4ce7bd41d4497aa12a9d3390a7001aa34878623dfe32d4c7444c3cf890216",
+    "src/infiniloader/cache.py": "ba077981f94cfa2bee634e5512021155728639a33c0c94494a60d6546e4b821f",
+    "src/infiniloader/daemon.py": "bee78bb18aa8cb3577daaff5831f59acdb9d77e5c237c1bfc755343238dbe0a5",
+    "src/infiniloader/ipc.py": "824a3a92501cbbd6cf95ddcd388e62da5caa10597494af51789731652539db78",
+    "src/infiniloader/local_cache.py": "5d0e328fc9db3c0316c82af4f36aae37dc6c2cf1b2f7be140dccab704d133b09",
+    "src/infiniloader/memory.py": "b5839dc3daf32a0a19c1c4da272e6873d97ab68f2681c9406c74836f61d91f66",
+    "src/infiniloader/paths.py": "c78e793f4f10be566cfc73e2f0f1754175359fbf83e8c8b35f2768454ad211c2",
+    "src/infiniloader/runtime.py": "02d3367d8dfb43bac39d977c60a794b1777077ec431f9fff7efc279a8c8e8402",
+    "upstream-pins.json": "ea62f924d54e219a532f520b3d903e53ea91b3cef33fbf735c1af764e9b205c4"
+  },
+  "resource": {
+    "parent": "910380",
+    "node": "a14r2n08",
+    "cpus": 8,
+    "gres": "none",
+    "mem_MiB": 49152,
+    "hard_minutes": 30,
+    "inner_seconds": 1500,
+    "reserve_bytes": 8589934592,
+    "max_selected_bytes": 17179869184,
+    "actual_shard_bytes": 2341216112
+  },
+  "experiment": [
+    "one real first shard full bytes copied to sealed memfd by reviewed upstream daemon",
+    "private overlay retains other original files through read-only source links; no source writes",
+    "unscored warmup then AB/BA two warm rounds; two simultaneous mmap readers per arm",
+    "matching exact headers/shapes and three bounded tensor byte SHA; page-checksum diagnostic",
+    "per-reader held-map RSS/PSS/share and sampled actual cgroup usage; exact observed scope reported",
+    "active leases reject stop, then release and stop; no GPU/model/full catalog or hash"
+  ],
+  "source_review": {
+    "dependencies": "eight exact upstream Python files, stdlib only; package license copied",
+    "include_build_view": "include filters cache and build_view only includes selected; overlay separately created under private experiment result path",
+    "memory": "cgroup ancestors+host min availability, resident reservation, total+64MiB worker buffer, 8GiB reserve, 16GiB cap; refuses missing cgroup",
+    "lifecycle": "per-process start-token leases, same-UID socket, private view owned by daemon, stop(remove_view=True) after lease release; tracked-child TERM/KILL only on failure"
+  },
+  "qualification_limit": "CPU filesystem/header/tensor-byte compatibility only; safe_open existing dependency only if available; no native Model/TP/PP claim or full-model speed extrapolation",
+  "parent_observation": "loader-parent-observed-r9272.json",
+  "parent_observation_SHA256": "8594b9e946800fdad8ba1a15f1231402d072b707f2e15c6570dc6321cd5376ec",
+  "local_check": "Python AST/py_compile passed; no remote payload test yet",
+  "remote_result_dir": "results/loader-cpu-r9272c",
+  "expected_socket_path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/loader-cpu-r9272c/run/d.sock",
+  "expected_socket_path_bytes": 94,
+  "supersedes_execution_only": "original source/run preserved: 910380.423 FAILED os.memfd_create unavailable, paired=0 and memfd bytes=0",
+  "runtime": "existing dtk26-sandbox-r1 Python3.10.12, apptainer without --rocm, original absolute project/shared binds, shared ro plus explicit cgroup ro bind; GPU env empty",
+  "mechanical_changes": [
+    "existing container interpreter instead of host Python missing memfd API",
+    "one-byte memfd seal/read/close check and persisted preflight before payload reads",
+    "optional availability requires both existing torch and safetensors; import failure recorded, no install"
+  ],
+  "preflight_evidence": [
+    "loader-cleanup-capability-observed-r9272.json",
+    "loader-container-preflight-observed-r9272b.json",
+    "loader-container-preflight-observed-r9272c.json"
+  ],
+  "preflight_limit": "424/425 tiny CPU steps proved one-byte seal/read/close before last cgroup assertion failed; not a payload/paired performance result. Main checks its own actual 48GiB cgroup and 8GiB reserve before reading.",
+  "tiny_preflight_assertions": {
+    "424_line19": "m=memory_info();assert m['cgroups'];assert m['available_bytes']>2*2341216112+8*1024**3",
+    "425_line19": "m=memory_info();assert m['cgroups'];assert m['available_bytes']>128*1024**2;assert min(g['available_bytes']for g in m['cgroups']if '/step_'not in g['path'])>2*2341216112+8*1024**3",
+    "actual_container_memory_info_fields": "NOT_CAPTURED: line19 failed before JSON print; cannot identify which compound assertion failed or claim container cgroup available/reserve passed",
+    "earlier_423_host_step": {
+      "path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380/step_423",
+      "limit_bytes": 51539607552,
+      "used_bytes_before": 15478784,
+      "available_bytes_before": 51524128768,
+      "parent_path": "/sys/fs/cgroup/memory/slurm/uid_154459/job_910380",
+      "parent_limit_bytes": 251658240000,
+      "parent_used_before": 201121087488,
+      "parent_available_before": 50537152512
+    },
+    "old_process_scan_tiny_limit": "tiny argv delimiter was incorrectly escaped, so its empty list is not used as PID cleanup proof; exact Slurm accounting/runtime cleanup retained, main version now does exact null-byte argv scan before payload"
+  },
+  "unchanged_actual_main_memory_guard": [
+    "assert out['before']['cgroups']",
+    "assert out['before']['available_bytes']>2*out['shard_bytes']+8*GIB",
+    "upstream ResidentReservation/check_memory total+64MiB buffer, reserve8GiB,max_memory16GiB,max_resident16GiB,force=False"
+  ],
+  "environment_note": "apptainer inherits srun actual SLURM_JOB_ID/SLURM_STEP_ID; --cleanenv intentionally omitted. Explicit empty CUDA/HIP/ROCR env flags override inherited GPU visibility; no --rocm.",
+  "unused_staged_revision": "r9272b staged but never launched; r9272c only removes --cleanenv and unique private run/source names"
+}
