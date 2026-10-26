@@ -1,0 +1,8 @@
+#!/bin/bash
+set -euo pipefail
+source /opt/dtk/env.sh
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 KIMI_TRUE_DRAFT_BATCH_R9142=1
+export PYTHONPYCACHEPREFIX=/local/draft-r9144
+export ROCBLAS_TENSILE_LIBPATH=/opt/dtk/lib/rocblas/library_gpu5
+export CUDA_VISIBLE_DEVICES='' HIP_VISIBLE_DEVICES='' ROCR_VISIBLE_DEVICES=''
+timeout --kill-after=5s 180 python -B -u /refactor/incoming/Kimi-shard-PP4-cache-Model-r9206/runtime/verify_draft_flat_CPU_r9192.py
