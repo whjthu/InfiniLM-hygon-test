@@ -1,0 +1,50 @@
+{
+  "scope": "SOURCE_CPU_ONLY_NO_GPU_NO_NATIVE_RECOMPILE",
+  "actual719_evidence": {
+    "file": "GLM-prefill-existing719-r9240.json",
+    "SHA256": "fbf1b21dbf2763d0ad9264772b775294bdb790e4d57343f3d9d979a9317738ef",
+    "stage0_prefix_seconds": 24.782454133033752,
+    "stage0_anchor_seconds": 0.7259726291522384,
+    "stage0_nextprefix_afteranchor_gap_seconds": [
+      6.862261068075895,
+      6.6240805657580495,
+      6.776467745192349
+    ],
+    "tail_prefix_seconds": 51.30571787059307,
+    "tail_anchor_seconds": 0.7785423104651272,
+    "tail_prefix_incoming_HOST_seconds": [
+      6.457247654,
+      6.164790348,
+      6.311577638,
+      5.850070655
+    ],
+    "not_pure_GPU_compute": "All HOST windows include CPU/GPUqueue/communication/waits; cannot infer utilization or exactspeedgain.",
+    "conclusion": "Actualstage0 anchorreturnsquickly then waits~6.6..6.9s atsourceemit WORLD feedback, whiletailprefix consumes priorstagewait+locallayers. Nativeprefixchunk doesnot callworldfeedback; trueexposed gap exists between microgroups."
+  },
+  "exact_single_change": "Keep original nativepayload/CAPI order prefix0chunks\u2192anchor0\u2192prefix1chunks\u2192anchor1. Moveemit0/emit1 aftertwo independenthelpers. Originalprefix_chunks(max4096), row/past/positions, math/native/owner/sync/sharedWORLD/defaultlease allunchanged. Nochunkrotation/newCAPI/newcommunicator.",
+  "history_dedup": {
+    "GLM522qualified": true,
+    "legacy_source": "glm_prefill_micro_probe_r8708.py",
+    "legacy_source_SHA256": "ea194266bf0a5237d17f4cde19bfaf136abf19a976301917dbddebd2debe014a",
+    "legacy_lines": "265-284 pergroupfeedbackOFF/pipelinedTrue wholeprefillgroups\u2192singleWORLDfeedback; actual perf callsTrueL436",
+    "legacy_scope": "Wholeprompt I512B16M8 oldnative, sourceconceptknown. ActualO/N522 wasprefixproof cache switch, NOT feedback-only A/B. Do not reuse its19.18percentprefill reduction as thiscandidategain.",
+    "legacy_receipt_SHA256": "28ac5a1d912adc1f4121985c1a58b381d598e6e3929fc067ebc2d4a1c177fb86",
+    "chunk128_history": "r8871 onlyCPU source feasibility; its128chunk+readydecode interleave isdifferent/notimplementedhere.",
+    "chunk128_sourceproof_SHA256": "1671a836b09f3dea9169abd9c1c882a1e6bab692fbc12bef49494a1de8112f52"
+  },
+  "memory_budget": {
+    "max_live_frontend_logits": 2,
+    "maximum_rows_per_logit": 8,
+    "vocab": 154880,
+    "dtype_bytes": 2,
+    "max_logits_bytes": 4956160,
+    "additional_logit_bytes_over_singlemicro": 2478080,
+    "max_single_input_positions_plus_ids_bytes": 65536,
+    "native_context_geometry": "unchanged32rows/640ctx/TP8PP2; perGPU nativecallsserial andeachreturnsdrained, no crosscall nativeworkspaceextension",
+    "floor_bytes": 536870912,
+    "physical_peak": "UNKNOWN;719 minobserved3.544921875GiB is historicalsnapshot, not newfit qualification",
+    "qualified_decode_max2logits_bytes_reference": 9912320
+  },
+  "tradeoff": "First8TTFT may increase while waitingsecondhelper; recordoriginalarrival\u2192firstvisible perrequest and allprefillcompletewindow, not only inputtps. Do notshift firsttoken clock or emitpartialprefix.",
+  "next_if_root_GO": "C32 natural32 prefillOFF/ON ABBA withdecode_deferfixed1, C8oneprefillmicro control; same fullquality/EOS/cap/scoring andoriginalnative. Max2actualprefillwarm withboundedprogress beforematrix, noquant/shapegrid."
+}
