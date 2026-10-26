@@ -1,0 +1,24 @@
+{
+  "hardware": "BW1000",
+  "level": "CPU_SOURCE_AND_EXISTING_EVENT_ANALYSIS",
+  "status": "NEXT_HYPOTHESIS_NOT_MEASURED_GAIN",
+  "GPU": "910376.730 completed, no new GPU",
+  "source_files": [
+    {
+      "path": "code/bw1000/glm-m16/GLM_M16_vector_dispatch_r8861.cpp",
+      "SHA256": "dd166080a756df6b9d87afbb0bc91cf250202929e643877bd96fb6b9d50c9e6b"
+    },
+    {
+      "path": "code/bw1000/glm-model-candidates/glm_scalar_vectorload_r8528.cu",
+      "SHA256": "b257ff25f042d86a166bf7873c1b1a781b106a870dd7b62fae297f1de90b5eb0"
+    }
+  ],
+  "observation": "Vector dispatch permits routes32/64/128 only; original8528 kernel launches dynamic grid.y=routes, guards route bounds and indexes token=route/8. Source suggests other whole-token widths possible without fake KV rows.",
+  "uncertainties": [
+    "Must verify final a549 actual object chain and current CUDA unit before changing dispatch",
+    "Actual730 vector counters were not recorded; shape coverage is not provider-hit evidence",
+    "No component timing for irregular T, no Model gain claim"
+  ],
+  "next": "Astra110 ranking then source-bound private defaultOFF route extension component, if supported; no blind extra16card Model load",
+  "paired_shape_evidence": "evidence/bw1000/resume-20261026/GLM-arrival-Model-private-r9260/native-shapes-r9265.json"
+}
