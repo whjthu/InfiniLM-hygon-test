@@ -1,0 +1,47 @@
+{
+  "work_item": "speculative-concurrency-matrix",
+  "state": "REQUIRED_PENDING_MODEL_VALIDATION",
+  "updated_at_utc": "2026-10-26T00:51:17.822009+00:00",
+  "explicit_user_requirement": "Include concurrency16 and32 in speculative inference",
+  "concurrency_matrix": [
+    1,
+    2,
+    4,
+    8,
+    16,
+    32
+  ],
+  "mandatory_model_comparisons": [
+    {
+      "concurrency": 16,
+      "arms": [
+        "ordinary_decode",
+        "speculative_decode"
+      ]
+    },
+    {
+      "concurrency": 32,
+      "arms": [
+        "ordinary_decode",
+        "speculative_decode"
+      ]
+    }
+  ],
+  "clock": "Decode only; per-user actual first-to-last emitted generated tokens, prefill separately",
+  "metrics": [
+    "aggregate decode tokens/s",
+    "per-user median/p95 intertoken latency",
+    "per-user decode throughput distribution",
+    "acceptance rate and accepted length",
+    "draft fullcost",
+    "target verification cost",
+    "naturalEOS taskcorrect goodput",
+    "caps and unfinished",
+    "all target plus draft cards throughput/card"
+  ],
+  "no_aggregate_divide_C_as_measured_user_rate": true,
+  "no_component_result_as_model_gain": true,
+  "quality": "Output token identity not required; benchmark task accuracy and no material regression assessed separately",
+  "owner": "/root/kimi_state_only_replay_93",
+  "current_state": "C32capacity PP4 successor engineering closure; no C16/C32 fullmodel speculative gain yet"
+}

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-10-26T00:39:01.580885+00:00",
+  "updated_at_utc": "2026-10-26T00:51:17.822009+00:00",
   "owner": "bw1000-agent",
   "hardware": "BW1000",
   "goal_complete": false,
@@ -3431,5 +3431,84 @@
       "next": "NoCPPbuild; sameexistingDSOoneLoad OFFwarm/OFF/ON1realPF/OFF thenadoptedB32naturalEOS,readbeforeanynextforward. 344rows32markers andoriginalpackcounters,bracketobserveroverhead. 16nestedSpansnotadditive/streamtimeincludesgapsnotpurebusy/no rawactivationdump"
     },
     "goal_complete": false
+  },
+  "current_GLM_ragged_Model": {
+    "work_item": "glm-ragged-resident-model",
+    "owner": "/root/deep_continue_92",
+    "updated_at_utc": "2026-10-26T00:51:17.822009+00:00",
+    "state": "CPU352_355_PASS_PENDING_UNIQUE_MODEL",
+    "manifest": "evidence/bw1000/ragged-model-and-spec-concurrency/GLM-ragged-Model-private-r9136/GPU-manifest.json",
+    "manifest_SHA256": "4f95193e70b760b3bca3a49eefc848864e7dfa9d27c5091333437f777a8a897b",
+    "source_producer_SHA256": "f7c546cf05e392483afcc18d9d54d87339bbaae4c473fd1b6ba80aaaba05b636",
+    "resource": {
+      "parent": 910376,
+      "nodes": [
+        "a02r4n12",
+        "a02r4n13"
+      ],
+      "DCU": 16,
+      "CPU_per_node": 64,
+      "memoryMiB_per_node": 240000,
+      "hard_seconds": 3600,
+      "inner_seconds": 3500,
+      "cpu_bind": "none",
+      "clean_Slurm_environment": true,
+      "runtime_free_floor_bytes": 536870912
+    },
+    "test": "Singleload MMLU32 plus C16M16/C32M16 ordinary native decode newragged OFF/ON; old648cohort ON in both",
+    "quality": "NaturalEOS/task correctness/caps/unfinished; pilot not formal noninferiority; outputs need not match",
+    "branch_gate": "Actual resident eligiblecalls/Bhist; stage counters must match actual invocation",
+    "GPU_started": false,
+    "protected": [
+      "910384",
+      "Kimi PP4 910375/910381"
+    ]
+  },
+  "current_speculative_concurrency_requirement": {
+    "work_item": "speculative-concurrency-matrix",
+    "state": "REQUIRED_PENDING_MODEL_VALIDATION",
+    "updated_at_utc": "2026-10-26T00:51:17.822009+00:00",
+    "explicit_user_requirement": "Include concurrency16 and32 in speculative inference",
+    "concurrency_matrix": [
+      1,
+      2,
+      4,
+      8,
+      16,
+      32
+    ],
+    "mandatory_model_comparisons": [
+      {
+        "concurrency": 16,
+        "arms": [
+          "ordinary_decode",
+          "speculative_decode"
+        ]
+      },
+      {
+        "concurrency": 32,
+        "arms": [
+          "ordinary_decode",
+          "speculative_decode"
+        ]
+      }
+    ],
+    "clock": "Decode only; per-user actual first-to-last emitted generated tokens, prefill separately",
+    "metrics": [
+      "aggregate decode tokens/s",
+      "per-user median/p95 intertoken latency",
+      "per-user decode throughput distribution",
+      "acceptance rate and accepted length",
+      "draft fullcost",
+      "target verification cost",
+      "naturalEOS taskcorrect goodput",
+      "caps and unfinished",
+      "all target plus draft cards throughput/card"
+    ],
+    "no_aggregate_divide_C_as_measured_user_rate": true,
+    "no_component_result_as_model_gain": true,
+    "quality": "Output token identity not required; benchmark task accuracy and no material regression assessed separately",
+    "owner": "/root/kimi_state_only_replay_93",
+    "current_state": "C32capacity PP4 successor engineering closure; no C16/C32 fullmodel speculative gain yet"
   }
 }

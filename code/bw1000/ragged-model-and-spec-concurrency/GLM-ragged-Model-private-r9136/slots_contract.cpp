@@ -1,0 +1,6 @@
+#include "glm_model_resident_policy_r5640.hpp"
+#include <iostream>
+#include <thread>
+#include <cassert>
+using namespace glm_model_resident_r5640;
+int main(){Slots base;for(size_t g=0;g<2;++g){std::vector<Request>v;for(size_t i=g*16;i<(g+1)*16;++i){size_t row=(i*13)%32;v.push_back({row,0,55+row});}base=base.propose(v,32);}assert(base.active()==32);int tests=0;for(size_t B:{size_t(2),size_t(3),size_t(7),size_t(9),size_t(15),size_t(16)}){auto s=base;std::vector<Request>v;for(size_t i=0;i<B;++i){size_t row=(i*13)%32;v.push_back({row,55+row,1});}auto n=s.propose(v,32);for(auto q:v)assert(n.length(q.row)==q.past+1&&s.length(q.row)==q.past);++tests;}int rejected=0;for(auto v:{std::vector<Request>{{0,55,1},{0,55,1}},std::vector<Request>{{0,56,1}},std::vector<Request>{{32,0,1}},std::vector<Request>{{0,55,640}}}){try{base.propose(v,32);}catch(const std::invalid_argument&){++rejected;}}assert(rejected==4);bool foreign=false;std::thread t([&]{try{base.active();}catch(const std::invalid_argument&){foreign=true;}});t.join();assert(foreign);base.reset();assert(base.empty());std::cout<<"{\"passed\":true,\"actualSlotsHeader\":true,\"batch_tests\":"<<tests<<",\"invalid_cases\":"<<rejected<<",\"foreign_owner_rejected\":true,\"reset_cleared\":true}";}
