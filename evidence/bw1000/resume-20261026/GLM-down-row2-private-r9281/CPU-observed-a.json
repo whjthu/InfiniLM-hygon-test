@@ -1,0 +1,142 @@
+{
+  "Slurm": [
+    [
+      "910376.745",
+      "GLM-down-row2-CPU-r9281",
+      "COMPLETED",
+      "0:0",
+      "00:00:17",
+      "a02r4n12"
+    ]
+  ],
+  "receipt": {
+    "completed": true,
+    "CPU_only": true,
+    "GPU_initialized": false,
+    "producer": "910376.745",
+    "commands": [
+      [
+        "python",
+        "-B",
+        "/refactor/incoming/GLM-down-row2-r9281/CPU_contract.py"
+      ],
+      [
+        "/opt/dtk/cuda/cuda/bin/nvcc",
+        "-std=c++17",
+        "-O3",
+        "-arch=gfx936",
+        "-Xcompiler=-fPIC",
+        "-MD",
+        "-MF",
+        "/refactor/candidates/GLM-down-row2-r9281/vector.d",
+        "-c",
+        "/refactor/incoming/GLM-down-row2-r9281/vector-row2-r9281.cu",
+        "-o",
+        "/refactor/candidates/GLM-down-row2-r9281/vector.o"
+      ],
+      [
+        "/opt/dtk/cuda/cuda/bin/nvcc",
+        "-std=c++17",
+        "-O3",
+        "-arch=gfx936",
+        "-S",
+        "/refactor/incoming/GLM-down-row2-r9281/vector-row2-r9281.cu",
+        "-o",
+        "/refactor/candidates/GLM-down-row2-r9281/vector.s"
+      ],
+      [
+        "g++",
+        "-std=c++17",
+        "-O2",
+        "-fPIC",
+        "-MD",
+        "-MF",
+        "/refactor/candidates/GLM-down-row2-r9281/policy.d",
+        "-c",
+        "/refactor/incoming/GLM-down-row2-r9281/policy-row2-r9281.cpp",
+        "-o",
+        "/refactor/candidates/GLM-down-row2-r9281/policy.o"
+      ],
+      [
+        "g++",
+        "-shared",
+        "/refactor/candidates/GLM-down-row2-r9281/policy.o",
+        "/refactor/candidates/GLM-down-row2-r9281/vector.o",
+        "/refactor/candidates/GLM-irregular-vector-r9270b/dispatch-r9270.cpp.o",
+        "/refactor/candidates/GLM-irregular-vector-r9270b/component-bridge-r9270.cpp.o",
+        "-L/refactor/candidates/glm-hybrid-decode-r5386",
+        "-lnative",
+        "-Wl,-rpath,/refactor/candidates/glm-hybrid-decode-r5386",
+        "-L/opt/dtk/cuda/cuda/lib64",
+        "-lcudart",
+        "-Wl,-Bsymbolic",
+        "-Wl,--no-undefined",
+        "-o",
+        "/refactor/candidates/GLM-down-row2-r9281/libGLM_down_row2_r9281.so"
+      ],
+      [
+        "ldd",
+        "/refactor/candidates/GLM-down-row2-r9281/libGLM_down_row2_r9281.so"
+      ],
+      [
+        "nm",
+        "-D",
+        "--defined-only",
+        "/refactor/candidates/GLM-down-row2-r9281/libGLM_down_row2_r9281.so"
+      ]
+    ],
+    "library": "/refactor/candidates/GLM-down-row2-r9281/libGLM_down_row2_r9281.so",
+    "library_SHA256": "3fd131f536a003e8f11aaaafa593312bb06614010a44e92e62d06d14e5748239",
+    "HOST_TUs_compiled": 1,
+    "GPU_TUs_compiled": 1,
+    "CPU_contract": {
+      "passed": true,
+      "CPU_only": true,
+      "checks": 196736,
+      "T": [
+        16,
+        8
+      ],
+      "row_K_scale_coverage": true,
+      "gate_reference_math_unchanged": true,
+      "no_GPU_F64": true
+    },
+    "reused_HOST_objects_SHA256": {
+      "/refactor/candidates/GLM-irregular-vector-r9270b/dispatch-r9270.cpp.o": "57abbff5add40e5fcdd80ad88c4289966f8370337634d62faf42b345cefaf10b",
+      "/refactor/candidates/GLM-irregular-vector-r9270b/component-bridge-r9270.cpp.o": "6372a5228b3ee19ea2bbc16dd6e6a4836aad3d51292e0320b4d4ada251cfc365"
+    },
+    "new_objects_SHA256": {
+      "/refactor/candidates/GLM-down-row2-r9281/vector.o": "d4a4361bef63a31158001abda0c06870722a531249584b1b1769412da8f70e23",
+      "/refactor/candidates/GLM-down-row2-r9281/policy.o": "033bd1fad84c4b16145628623a83f1b9f65dcba7ecbcf3ea4dfe0944e39b7af1"
+    },
+    "GPU_source_SHA256": "de7484cba5f59ba3443b66b90e99985ede0d0265782328c6aee8e1cf4b616c1b",
+    "GPU_MD_SHA256": "0bc483012e947a6c3026ca9fcf2a7bbb6ac1d1800456c06386642b8eb911a8bf",
+    "assembly_SHA256": "e76e7ce2fce2b58904508c9d4b523f5253217ab032068fce80d72b81e796053f",
+    "kernel_metadata": [
+      "    .name:           _ZN12_GLOBAL__N_18validateEPKlmmPi",
+      "    .private_segment_fixed_size: 0",
+      "    .sgpr_count:     20",
+      "    .vgpr_count:     3",
+      "    .name:           _ZN12_GLOBAL__N_17gate_upEP13__nv_bfloat16S1_PKhPKfPKlS3_S5_S3_S5_mm",
+      "    .private_segment_fixed_size: 0",
+      "    .sgpr_count:     34",
+      "    .vgpr_count:     39",
+      "    .name:           _ZN12_GLOBAL__N_14downEP13__nv_bfloat16PKhPKfPKlS3_S5_mm",
+      "    .private_segment_fixed_size: 0",
+      "    .sgpr_count:     30",
+      "    .vgpr_count:     32",
+      "    .name:           _ZN12_GLOBAL__N_115down_row2_r9281EP13__nv_bfloat16PKhPKfPKlS3_S5_mm",
+      "    .private_segment_fixed_size: 0",
+      "    .sgpr_count:     30",
+      "    .vgpr_count:     42"
+    ],
+    "ldd": "\tlinux-vdso.so.1 (0x00007fffc5652000)\n\tlibnative.so => /refactor/candidates/glm-hybrid-decode-r5386/libnative.so (0x00007f785a646000)\n\tlibcudart.so.12 => /opt/dtk/cuda/cuda/lib64/libcudart.so.12 (0x00007f785a608000)\n\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007f785a3cd000)\n\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007f785a3ab000)\n\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f785a000000)\n\tlibtorch.so => /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch.so (0x00007f785a396000)\n\tlibtorch_cpu.so => /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cpu.so (0x00007f7842000000)\n\tlibc10.so => /usr/local/lib/python3.10/dist-packages/torch/lib/libc10.so (0x00007f785a25e000)\n\tlibc10_hip.so => /usr/local/lib/python3.10/dist-packages/torch/lib/libc10_hip.so (0x00007f7859ebe000)\n\tlibgalaxyhip.so.5 => /opt/dtk/hip/lib/libgalaxyhip.so.5 (0x00007f7841400000)\n\t/lib64/ld-linux-x86-64.so.2 (0x00007f785a6aa000)\n\tlibpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007f785a257000)\n\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f7841319000)\n\tlibrt.so.1 => /lib/x86_64-linux-gnu/librt.so.1 (0x00007f785a252000)\n\tlibtorch_hip.so => /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_hip.so (0x00007f780e200000)\n\tlibdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2 (0x00007f785a24b000)\n\tlibgflags-8aee0f6c.so.2.1.2 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libgflags-8aee0f6c.so.2.1.2 (0x00007f780de00000)\n\tlibglog-6ed04f2c.so.0.0.0 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libglog-6ed04f2c.so.0.0.0 (0x00007f780da00000)\n\tlibgomp-12261256.so.1.0.0 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libgomp-12261256.so.1.0.0 (0x00007f780d600000)\n\tlibibverbs-1a5f644b.so.1.14.37.2 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libibverbs-1a5f644b.so.1.14.37.2 (0x00007f780d200000)\n\tlibmpi-3fcb240d.so.40.40.3 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libmpi-3fcb240d.so.40.40.3 (0x00007f780ce00000)\n\tlibnuma.so.1 => /.singularity.d/libs/libnuma.so.1 (0x00007f780ca00000)\n\tlibMIOpen.so.1 => /opt/dtk/lib/libMIOpen.so.1 (0x00007f780b820000)\n\tlibhipblas.so.2 => /opt/dtk/lib/libhipblas.so.2 (0x00007f78411e3000)\n\tlibhipfft.so.0 => /opt/dtk/lib/libhipfft.so.0 (0x00007f780aea0000)\n\tlibhiprand.so.1 => /opt/dtk/lib/libhiprand.so.1 (0x00007f785a241000)\n\tlibhipsparse.so.1 => /opt/dtk/lib/libhipsparse.so.1 (0x00007f78411a2000)\n\tlibhipsolver.so.0 => /opt/dtk/lib/libhipsolver.so.0 (0x00007f780ab36000)\n\tlibhipblaslt.so.0 => /opt/dtk/lib/libhipblaslt.so.0 (0x00007f780a638000)\n\tlibrocsolver.so.0 => /opt/dtk/lib/librocsolver.so.0 (0x00007f77c4693000)\n\tlibrccl.so.1 => /opt/dtk/lib/librccl.so.1 (0x00007f77ba076000)\n\tlibrocblas.so.4 => /opt/dtk/lib/librocblas.so.4 (0x00007f77914ce000)\n\tlibmagma.so => /usr/local/lib/python3.10/dist-packages/torch/lib/libmagma.so (0x00007f777be00000)\n\tlibrocm_smi64.so.2 => /opt/hyhal/lib/librocm_smi64.so.2 (0x00007f777ba00000)\n\tlibnl-route-3-9b7e574d.so.200.26.0 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libnl-route-3-9b7e574d.so.200.26.0 (0x00007f777b600000)\n\tlibnl-3-04364822.so.200.26.0 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libnl-3-04364822.so.200.26.0 (0x00007f777b200000)\n\tlibopen-pal-f45776ee.so.80.0.3 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libopen-pal-f45776ee.so.80.0.3 (0x00007f780e0e9000)\n\tlibpmix-c3e24705.so.2.13.2 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libpmix-c3e24705.so.2.13.2 (0x00007f777ae00000)\n\tlibutil.so.1 => /lib/x86_64-linux-gnu/libutil.so.1 (0x00007f785a238000)\n\tlibevent_core-2-0b190d66.1.so.7.0.1 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libevent_core-2-0b190d66.1.so.7.0.1 (0x00007f7841167000)\n\tlibevent_pthreads-2-3c7151b0.1.so.7.0.1 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libevent_pthreads-2-3c7151b0.1.so.7.0.1 (0x00007f785a230000)\n\tlibhwloc-977e6c34.so.15.10.0 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libhwloc-977e6c34.so.15.10.0 (0x00007f780e081000)\n\tlibxml2-0301bbce.so.2.9.7 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libxml2-0301bbce.so.2.9.7 (0x00007f777aa00000)\n\tlibhipnn.so => /opt/dtk/lib/libhipnn.so (0x00007f7776283000)\n\tlibMIOpen-recommend.so => /opt/dtk/lib/libMIOpen-recommend.so (0x00007f776124e000)\n\tlibrocfft.so.0 => /opt/dtk/lib/librocfft.so.0 (0x00007f7760ab4000)\n\tlibrocrand.so.1 => /opt/dtk/lib/librocrand.so.1 (0x00007f775c4d9000)\n\tlibrocsparse.so.1 => /opt/dtk/lib/librocsparse.so.1 (0x00007f772fc87000)\n\tlibgfortran.so.5 => /lib/x86_64-linux-gnu/libgfortran.so.5 (0x00007f772f9ac000)\n\tlibquadmath.so.0 => /lib/x86_64-linux-gnu/libquadmath.so.0 (0x00007f780e039000)\n\tlibomp.so => /opt/dtk/llvm/lib/libomp.so (0x00007f780dd02000)\n\tlibmkl_gf_lp64-e350bb11.so => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libmkl_gf_lp64-e350bb11.so (0x00007f772ec00000)\n\tlibmkl_gnu_thread-b9643eeb.so => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libmkl_gnu_thread-b9643eeb.so (0x00007f772cc00000)\n\tlibmkl_core-efa527c4.so => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libmkl_core-efa527c4.so (0x00007f7728400000)\n\tlibz.so.1 => /lib/x86_64-linux-gnu/libz.so.1 (0x00007f7859ea2000)\n\tliblzma-6edf4792.so.5.2.4 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/liblzma-6edf4792.so.5.2.4 (0x00007f7728000000)\n",
+    "default_OFF": true,
+    "actual_GPU_qualified": false,
+    "seconds": 17.311121569015086
+  },
+  "logs": {
+    "/public/home/aclsylqidf/hygon-inference-refactor-20261014/logs/GLM-down-row2-CPU-r9281-client.log": "",
+    "/public/home/aclsylqidf/hygon-inference-refactor-20261014/logs/GLM-down-row2-CPU-r9281-910376.745.log": "ib/libgalaxyhip.so.5 (0x00007f7841400000)\\n\\t/lib64/ld-linux-x86-64.so.2 (0x00007f785a6aa000)\\n\\tlibpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007f785a257000)\\n\\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f7841319000)\\n\\tlibrt.so.1 => /lib/x86_64-linux-gnu/librt.so.1 (0x00007f785a252000)\\n\\tlibtorch_hip.so => /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_hip.so (0x00007f780e200000)\\n\\tlibdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2 (0x00007f785a24b000)\\n\\tlibgflags-8aee0f6c.so.2.1.2 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libgflags-8aee0f6c.so.2.1.2 (0x00007f780de00000)\\n\\tlibglog-6ed04f2c.so.0.0.0 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libglog-6ed04f2c.so.0.0.0 (0x00007f780da00000)\\n\\tlibgomp-12261256.so.1.0.0 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libgomp-12261256.so.1.0.0 (0x00007f780d600000)\\n\\tlibibverbs-1a5f644b.so.1.14.37.2 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libibverbs-1a5f644b.so.1.14.37.2 (0x00007f780d200000)\\n\\tlibmpi-3fcb240d.so.40.40.3 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libmpi-3fcb240d.so.40.40.3 (0x00007f780ce00000)\\n\\tlibnuma.so.1 => /.singularity.d/libs/libnuma.so.1 (0x00007f780ca00000)\\n\\tlibMIOpen.so.1 => /opt/dtk/lib/libMIOpen.so.1 (0x00007f780b820000)\\n\\tlibhipblas.so.2 => /opt/dtk/lib/libhipblas.so.2 (0x00007f78411e3000)\\n\\tlibhipfft.so.0 => /opt/dtk/lib/libhipfft.so.0 (0x00007f780aea0000)\\n\\tlibhiprand.so.1 => /opt/dtk/lib/libhiprand.so.1 (0x00007f785a241000)\\n\\tlibhipsparse.so.1 => /opt/dtk/lib/libhipsparse.so.1 (0x00007f78411a2000)\\n\\tlibhipsolver.so.0 => /opt/dtk/lib/libhipsolver.so.0 (0x00007f780ab36000)\\n\\tlibhipblaslt.so.0 => /opt/dtk/lib/libhipblaslt.so.0 (0x00007f780a638000)\\n\\tlibrocsolver.so.0 => /opt/dtk/lib/librocsolver.so.0 (0x00007f77c4693000)\\n\\tlibrccl.so.1 => /opt/dtk/lib/librccl.so.1 (0x00007f77ba076000)\\n\\tlibrocblas.so.4 => /opt/dtk/lib/librocblas.so.4 (0x00007f77914ce000)\\n\\tlibmagma.so => /usr/local/lib/python3.10/dist-packages/torch/lib/libmagma.so (0x00007f777be00000)\\n\\tlibrocm_smi64.so.2 => /opt/hyhal/lib/librocm_smi64.so.2 (0x00007f777ba00000)\\n\\tlibnl-route-3-9b7e574d.so.200.26.0 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libnl-route-3-9b7e574d.so.200.26.0 (0x00007f777b600000)\\n\\tlibnl-3-04364822.so.200.26.0 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libnl-3-04364822.so.200.26.0 (0x00007f777b200000)\\n\\tlibopen-pal-f45776ee.so.80.0.3 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libopen-pal-f45776ee.so.80.0.3 (0x00007f780e0e9000)\\n\\tlibpmix-c3e24705.so.2.13.2 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libpmix-c3e24705.so.2.13.2 (0x00007f777ae00000)\\n\\tlibutil.so.1 => /lib/x86_64-linux-gnu/libutil.so.1 (0x00007f785a238000)\\n\\tlibevent_core-2-0b190d66.1.so.7.0.1 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libevent_core-2-0b190d66.1.so.7.0.1 (0x00007f7841167000)\\n\\tlibevent_pthreads-2-3c7151b0.1.so.7.0.1 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libevent_pthreads-2-3c7151b0.1.so.7.0.1 (0x00007f785a230000)\\n\\tlibhwloc-977e6c34.so.15.10.0 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libhwloc-977e6c34.so.15.10.0 (0x00007f780e081000)\\n\\tlibxml2-0301bbce.so.2.9.7 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libxml2-0301bbce.so.2.9.7 (0x00007f777aa00000)\\n\\tlibhipnn.so => /opt/dtk/lib/libhipnn.so (0x00007f7776283000)\\n\\tlibMIOpen-recommend.so => /opt/dtk/lib/libMIOpen-recommend.so (0x00007f776124e000)\\n\\tlibrocfft.so.0 => /opt/dtk/lib/librocfft.so.0 (0x00007f7760ab4000)\\n\\tlibrocrand.so.1 => /opt/dtk/lib/librocrand.so.1 (0x00007f775c4d9000)\\n\\tlibrocsparse.so.1 => /opt/dtk/lib/librocsparse.so.1 (0x00007f772fc87000)\\n\\tlibgfortran.so.5 => /lib/x86_64-linux-gnu/libgfortran.so.5 (0x00007f772f9ac000)\\n\\tlibquadmath.so.0 => /lib/x86_64-linux-gnu/libquadmath.so.0 (0x00007f780e039000)\\n\\tlibomp.so => /opt/dtk/llvm/lib/libomp.so (0x00007f780dd02000)\\n\\tlibmkl_gf_lp64-e350bb11.so => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libmkl_gf_lp64-e350bb11.so (0x00007f772ec00000)\\n\\tlibmkl_gnu_thread-b9643eeb.so => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libmkl_gnu_thread-b9643eeb.so (0x00007f772cc00000)\\n\\tlibmkl_core-efa527c4.so => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/libmkl_core-efa527c4.so (0x00007f7728400000)\\n\\tlibz.so.1 => /lib/x86_64-linux-gnu/libz.so.1 (0x00007f7859ea2000)\\n\\tliblzma-6edf4792.so.5.2.4 => /usr/local/lib/python3.10/dist-packages/torch/lib/../../torch.libs/liblzma-6edf4792.so.5.2.4 (0x00007f7728000000)\\n\", \"default_OFF\": true, \"actual_GPU_qualified\": false, \"seconds\": 17.311121569015086}\nSHARED_CACHED_R1780_COMPLETE node=a02r4n12 scratch=runtime-raw-sdk-graph-r2323-910376.745-rank0\n"
+  }
+}
