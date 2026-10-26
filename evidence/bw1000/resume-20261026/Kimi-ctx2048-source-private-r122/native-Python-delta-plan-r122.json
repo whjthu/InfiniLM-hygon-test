@@ -1,0 +1,136 @@
+{
+  "schema": 1,
+  "status": "STOP_UNCHANGED_NATIVE305726_CTX1024_ONLY; REVIEWABLE_HOST_PYTHON_DELTA_PLAN_NO_BUILD",
+  "GPU_GO": false,
+  "new_compile": false,
+  "new_GPU_or_Slurm_steps": 0,
+  "native_base_SHA256": "3057262312679f86bcdb181ce198b9b1f1d2fccc59fc204b4adbc197132b60dd",
+  "immutable_current_run_untouched": [
+    "910379.474",
+    "910371.586",
+    "910406.277"
+  ],
+  "candidate": {
+    "TP": 16,
+    "PP": 2,
+    "capacity": 8,
+    "physical_rows": 16,
+    "KDA_pool_rows": 17,
+    "page_size": 256,
+    "pages_per_row": 8,
+    "pages": 132,
+    "reserved_extra_blocks": 4,
+    "ctx": 2048,
+    "max_input": 1024,
+    "output_cap": 1024,
+    "micro": 1,
+    "verify_width_max": 8,
+    "verify_flatT_max": 64,
+    "strict_greedy": true,
+    "epsilon": 0,
+    "projected_cache": false,
+    "minimum_free_bytes": 4294967296,
+    "head_and_FP4_dtype_unchanged": true,
+    "KDA_actual_local_heads": 6,
+    "KDA_local_heads_provenance": "checkpoint96/TP16; no H3 geometry rewrite"
+  },
+  "pages_note": "132 is valid if preserve4spareblocks:8*physical16+4; usedmaxblock128<132. Uniform8*(physical+1)would136 and isadditional4blocks; currentheaderacceptsneither. Explicitnewgeometrymustdeclarechosen132.",
+  "minimum_HOST_TU_rebuilds": [
+    "pair_probe.cpp",
+    "kimi_compact_engine_r4974.cpp",
+    "kimi_compact_allocate_r4974.cpp",
+    "worker.cpp",
+    "delta.cpp (batchstateimplementation)",
+    "kimi_live_trace_r9046.cpp (batchtapmetadata)"
+  ],
+  "GPU_math_TU_rebuilds": 0,
+  "do_not_relink_existing_shared_SDK": true,
+  "defaultOFF_newAPI": "modern_kimi_engine_create_ctx2048_r122 with explicitINFINILM_KIMI_CTX2048_R122=1; legacycreate remains1k",
+  "native_changes": [
+    {
+      "file": "pair_probe.cpp",
+      "base_SHA256": "c704a99e0d261ded3e185a18f39ac3e1ffe14a3c53ced0f9f9ed028c3a1f96fa",
+      "anchors": [
+        23,
+        55,
+        98,
+        100,
+        102,
+        103,
+        248,
+        282,
+        283
+      ],
+      "delta": "Reuseexistingpages_per_rowmember=8 beforeconstructor. CacheConfig(8*maxrows+4,256,maxrows)=132. Newtypedcreatewrapper capacity8/TP16PP2/ctx2048 only. Ordinaryforwardalreadydynamicpages; Specforwardreplace!=4 gate/tablecount4/strides4/total1024 withvalidatedctxpages. Stateconstructor/resetpassmaxctx. Cachegeometry/CAPIcapabilitiesreportactual8/132/17/2048. No Context/RankWorker/newGPUmathlayoutchange."
+    },
+    {
+      "file": "actual-kimi_engine_input_r145.hpp",
+      "base_SHA256": "9ec9ef4c3c2ff5af60474729f156c16f24c6a2fb16c15510585eb08ee5d278a4",
+      "anchors": [
+        15,
+        19,
+        43,
+        50,
+        51,
+        52
+      ],
+      "delta": "Privateheader cache_pages_r4974 recognizeexplicit8*rows+4 geometry. freeze_inputalreadytakespages_per_row; keepintegerposition/pageownershipchecks, maxpast=256*pages. HOSTinfer_engine recompileneeded; oldbinaryrejects8pages."
+    },
+    {
+      "file": "kimi_compact_allocate_r4974.cpp",
+      "base_SHA256": "1e491a0359c05c5a6bd9d749342b31dfaa6c5081f25294e3883e163a762b36d0",
+      "anchors": [
+        71,
+        74
+      ],
+      "delta": "TP16 currentlycompact=false andKDApool=numblocks/4. Underexplicitctx2048flagallocateKDApool=max_batch_size+1=17 independentlyofMLApages; otherwise132/4=33 silentlywrongthenbatchcapturefails. Preserveoriginal4pagebranch/defaultbehavior and93stagepartition."
+    },
+    {
+      "file": "kimi_pair_state_r9006.hpp",
+      "base_SHA256": "ed6b0dc47b5d33a527716577f316718830fb616a8c4eec71b306f4639e0c32ef",
+      "delta": "Stateprivate max_contextdefault1024; newfactorypasses2048; prefill/checklimitusesit; copy/resetretainit. Geometryphysicalfloor16/bankoffset8 unchanged. Legacygeometry(logical) remains1k-onlydocumented; frontendmustuseactualctxgeometry."
+    },
+    {
+      "file": "batch_payload_r9122c.hpp +worker.cpp +batch_state_r9122.hpp",
+      "base_SHA256s": {
+        "batch_payload_r9122c.hpp": "b94f5a67e4817f3edd7b0cb8e57bad7eabee27d66f193b52b98773f83f37b038",
+        "worker.cpp": "c8312e7c272e98c1760c2b5f776e3becdb95b34be326d4b28cfd9c86961d542e",
+        "batch_state_r9122.hpp": "2d5d828ac87951277e35f22fad1b88c4face40e0153b73b7903b846002f07985"
+      },
+      "delta": "Keeptypedpayloadmagic/version/232ints/classlayout; validatewithctxboundderivedfromactualPagedCacheConfig (8pages), workerduplicatepastguardandbatchbeginlimituse2048. worker/deltaHOSTrecompileboth needed toavoid signature/ODRsplit. ActualKDAstatecaptureexpects17 unchanged. LegacyB1r9114inactive1024guardsnotgloballyrelaxed."
+    },
+    {
+      "file": "batch_live_taps_r9122.hpp / traceHOSTTU",
+      "base_SHA256": "6aaa5200e4bafd55282f193449b8718488a5e3e4de86dc30b5da07a0a2a87877",
+      "delta": "Queryactualctxcachegeometryoncewhenarm; expectedblocktables[C,8], vectorsC*8/strides8, past+width<=2048. Inputprefillwidth<=1024alreadyfine; totalT8192fine; metadatawire5+3C unchanged/five7168tapsallpositions preserved. Legacy9046B1inactivewidth512notnewbatchlimit."
+    }
+  ],
+  "Python_changes": [
+    {
+      "file": "entry_contract_r9143.py,target_model.py,native_binding_r9143.py",
+      "delta": "Newimmutablemanifest+newprivateDSOSHA required; bindnewexplicitcreateAPI, actualgeometry132/8/17/2048. 93keys/ranges/headpayload and4GiBbeforeweights/afterfinish/everyPF/warm unchanged."
+    },
+    {
+      "file": "target_protocol.py,batch_cohort_r9128.py",
+      "delta": "Actualinput<=1024/cap<=1024/sum<=2048 andeffective=min(W,remainingoutput,2048-past); strictactualinput/proposal/top1modelV, micro1, terminalcontinuation0/prefixrollbackunchanged. First8matchedqualitypolicyunchanged; noEOSdefinitionchange."
+    },
+    {
+      "file": "draft_context_r9128.py,query_flathead_r9188.py,batch_frames_r9142.py,batch_wire_r9128.py",
+      "delta": "Rawcommittedstoremax2048, initialappendrows<=1024 (noninitial<=8unchanged), flatquerycontext<=2048; perrequestframe1024*71680=70MiB exceedsold64MiB, explicitprivateMAX_BODY128MiB required. Header64KiB/requestcountunchanged; atomicpast/epoch/retire/rejectedprefixchecks retained."
+    },
+    {
+      "file": "committed_context_r9202.py,query_projected_r9200.py,batched_query_r9142.py",
+      "delta": "ActualnewrunkeepsprojectedOFF; inheritedrawContextStorelimitmust2k. OptionalON/unusedold3Dpathsretainseparateunsupportedledger orreceiveexplicit2kguardandnewqualification; do not advertise2kcacheONqualified."
+    }
+  ],
+  "position_bounds": {
+    "target_max_position_embeddings": 1048576,
+    "draft_max_position_embeddings": 1048576,
+    "draft_config_SHA256": "aac0900105b9099b99a452c728ff9c4685889d264f7bed0101e57788df8f09c8",
+    "draft_full8query_positions_atctxmax": "up to2054 forcontext2047; checkbuilder/rope2055rows boundarylater, no1024learnedpositiontableobserved",
+    "training_acceptance_at2k": "UNKNOWN needsactualacceptance/quality, positionalcapacitynotqualityguarantee"
+  },
+  "retained_quality_scope": "matchedMMLU15partial:10correct/11EOS/4capbotharms. uncappednotintrinsicmodelwrong. Existingcustomnumericchoice MMLU, notpubliclikelihoodscore. New2k admissioncanincludeoriginal11704(576+1024=1600), noquestioncrop/replacement/newanswerfilter.",
+  "next_minimum_validation_without_coldload": "HOSTcompile/layout/sourceODR+CPUtypedtable/ledger/rollback boundary1023/1024/2047; then separatelyauthorizedsmallcachedoperatorfixture+draftRoPE/framepositions; actualsame-runallownerfloor/longprefill checks beforeonejustifiedModel. No newjob authorizedhere.",
+  "scope_limits": "No current474 source/SDK/queuechanges. NoGPU/compile/upload/weightreads. PlanisnotbuildreadyDSOorModelGO."
+}

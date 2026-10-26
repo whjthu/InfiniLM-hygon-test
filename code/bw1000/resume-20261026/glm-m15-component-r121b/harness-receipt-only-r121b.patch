@@ -1,0 +1,11 @@
+--- original-r121-harness
++++ r121b-receipt-selection
+@@ -5,7 +5,7 @@
+  import ctypes as C,pathlib,json,hashlib,time,statistics,traceback,os
+  import torch
+  from safetensors import safe_open
+- r=pathlib.Path('/refactor');inc=pathlib.Path(__file__).resolve().parent;b=r/'candidates/GLM-M15-component-r121';sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
++ r=pathlib.Path('/refactor');inc=r/'incoming/GLM-M15-component-r121';b=r/'candidates/GLM-M15-component-r121b';sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+  m=json.loads((inc/'manifest-r121.json').read_bytes());cpu=json.loads((b/'CPU-build.json').read_bytes());assert cpu['completed'] and cpu['CPU_only'] and not cpu['dlopen'];assert sha(cpu['library'])==cpu['library_SHA256']
+  for n,h in m['source_SHA256'].items():assert sha(inc/n)==h,n
+  for n,h in m['actual_binding_SHA256'].items():assert sha(r/n)==h,n

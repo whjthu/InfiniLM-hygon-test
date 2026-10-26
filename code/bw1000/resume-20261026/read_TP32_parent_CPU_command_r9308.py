@@ -1,0 +1,2 @@
+import pathlib,json,hashlib
+r=pathlib.Path('/public/home/aclsylqidf/hygon-inference-refactor-20261014');p=r/'candidates/Kimi-W2-pair-r9280/CPU-build.json';d=json.loads(p.read_bytes());cs=[c for c in d['commands']if any(str(v).endswith('/W2_pair_runner_r9280.cpp')for v in c)];print(json.dumps({'parent_SHA256':hashlib.sha256(p.read_bytes()).hexdigest(),'matching_commands':cs,'have_no_undefined':['-Wl,--no-undefined'in c for c in cs]}))

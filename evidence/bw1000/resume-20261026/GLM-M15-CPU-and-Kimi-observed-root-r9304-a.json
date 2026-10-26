@@ -1,0 +1,168 @@
+{
+  "Slurm": [
+    [
+      "910371.586",
+      "Kimi-cap8micro1-A-draft-kimi-cap8-micro1-r9293-5efe17cbd6",
+      "COMPLETED",
+      "0:0",
+      "01:11:18"
+    ],
+    [
+      "910379.474",
+      "Kimi-cap8micro1-A-g0-kimi-cap8-micro1-r9293-5efe17cbd6",
+      "COMPLETED",
+      "0:0",
+      "01:12:41"
+    ],
+    [
+      "910406.277",
+      "Kimi-cap8micro1-Model-keeper-r9293",
+      "COMPLETED",
+      "0:0",
+      "01:13:01"
+    ],
+    [
+      "910407.438",
+      "GLM-M15-CPU-r121",
+      "FAILED",
+      "1:0",
+      "00:00:07"
+    ]
+  ],
+  "CPU_receipt_exists": true,
+  "CPU_receipt": {
+    "completed": false,
+    "CPU_only": true,
+    "GPU_initialized": false,
+    "dlopen": false,
+    "GPU_TUs_compiled": 0,
+    "commands": [
+      [
+        "g++",
+        "-std=c++17",
+        "-O2",
+        "-fPIC",
+        "-D_GLIBCXX_USE_CXX11_ABI=1",
+        "-pthread",
+        "-I/refactor/incoming/GLM-M15-component-r121",
+        "-I/refactor/candidates/rebased-5f91ad7-r3668/Common/GLM/InfiniLM/csrc",
+        "-I/refactor/install/hygon-glm-5f91ad7-r3672/include",
+        "-I/refactor/install/hygon-glm-5f91ad7-r3672/include/infiniccl",
+        "-I/refactor/candidates/rebased-5f91ad7-r3668/Common/GLM/InfiniLM/third_party/json/include",
+        "-I/refactor/candidates/rebased-5f91ad7-r3668/Common/GLM/InfiniLM/third_party/spdlog/include",
+        "-I/opt/dtk/cuda/cuda/include",
+        "/refactor/incoming/GLM-M15-component-r121/glm_fp8_cache_m15_r119.cpp",
+        "/refactor/incoming/GLM-M15-component-r121/cache_mock_contract_r121.cpp",
+        "-o",
+        "/refactor/candidates/GLM-M15-component-r121/CPUcachecontract"
+      ],
+      [
+        "/refactor/candidates/GLM-M15-component-r121/CPUcachecontract"
+      ],
+      [
+        "g++",
+        "-std=c++17",
+        "-O2",
+        "-fPIC",
+        "-D_GLIBCXX_USE_CXX11_ABI=1",
+        "-pthread",
+        "-I/refactor/incoming/GLM-M15-component-r121",
+        "-I/refactor/candidates/rebased-5f91ad7-r3668/Common/GLM/InfiniLM/csrc",
+        "-I/refactor/install/hygon-glm-5f91ad7-r3672/include",
+        "-I/refactor/install/hygon-glm-5f91ad7-r3672/include/infiniccl",
+        "-I/refactor/candidates/rebased-5f91ad7-r3668/Common/GLM/InfiniLM/third_party/json/include",
+        "-I/refactor/candidates/rebased-5f91ad7-r3668/Common/GLM/InfiniLM/third_party/spdlog/include",
+        "-I/opt/dtk/cuda/cuda/include",
+        "-MD",
+        "-MF",
+        "/refactor/candidates/GLM-M15-component-r121/glm_fp8_cache_m15_r119.cpp.d",
+        "-c",
+        "/refactor/incoming/GLM-M15-component-r121/glm_fp8_cache_m15_r119.cpp",
+        "-o",
+        "/refactor/candidates/GLM-M15-component-r121/glm_fp8_cache_m15_r119.cpp.o"
+      ],
+      [
+        "g++",
+        "-std=c++17",
+        "-O2",
+        "-fPIC",
+        "-D_GLIBCXX_USE_CXX11_ABI=1",
+        "-pthread",
+        "-I/refactor/incoming/GLM-M15-component-r121",
+        "-I/refactor/candidates/rebased-5f91ad7-r3668/Common/GLM/InfiniLM/csrc",
+        "-I/refactor/install/hygon-glm-5f91ad7-r3672/include",
+        "-I/refactor/install/hygon-glm-5f91ad7-r3672/include/infiniccl",
+        "-I/refactor/candidates/rebased-5f91ad7-r3668/Common/GLM/InfiniLM/third_party/json/include",
+        "-I/refactor/candidates/rebased-5f91ad7-r3668/Common/GLM/InfiniLM/third_party/spdlog/include",
+        "-I/opt/dtk/cuda/cuda/include",
+        "-MD",
+        "-MF",
+        "/refactor/candidates/GLM-M15-component-r121/glm_m15_component_r121.cpp.d",
+        "-c",
+        "/refactor/incoming/GLM-M15-component-r121/glm_m15_component_r121.cpp",
+        "-o",
+        "/refactor/candidates/GLM-M15-component-r121/glm_m15_component_r121.cpp.o"
+      ],
+      [
+        "g++",
+        "-shared",
+        "/refactor/candidates/GLM-M15-component-r121/glm_fp8_cache_m15_r119.cpp.o",
+        "/refactor/candidates/GLM-M15-component-r121/glm_m15_component_r121.cpp.o",
+        "-L/refactor/candidates/glm-grouped-native-model-r5117/helpers",
+        "-lglm_fp8_batched_r776",
+        "-Wl,-rpath,/refactor/candidates/glm-grouped-native-model-r5117/helpers",
+        "-L/refactor/candidates/rebased-5f91ad7-r3668/Common/GLM/InfiniLM/python/infinilm/_lib",
+        "-linfinilm_runtime",
+        "-Wl,-rpath,/refactor/candidates/rebased-5f91ad7-r3668/Common/GLM/InfiniLM/python/infinilm/_lib",
+        "-L/refactor/install/hygon-glm-5f91ad7-r3672/lib",
+        "-linfiniops",
+        "-linfinirt",
+        "-Wl,-rpath,/refactor/install/hygon-glm-5f91ad7-r3672/lib",
+        "-L/opt/dtk/cuda/cuda/lib64",
+        "-lcudart",
+        "-pthread",
+        "-Wl,-Bsymbolic",
+        "-Wl,--no-undefined",
+        "-o",
+        "/refactor/candidates/GLM-M15-component-r121/libGLM_M15_component_r121.so"
+      ],
+      [
+        "nm",
+        "-D",
+        "--defined-only",
+        "/refactor/candidates/GLM-M15-component-r121/libGLM_M15_component_r121.so"
+      ],
+      [
+        "readelf",
+        "-d",
+        "/refactor/candidates/GLM-M15-component-r121/libGLM_M15_component_r121.so"
+      ],
+      [
+        "ldd",
+        "/refactor/candidates/GLM-M15-component-r121/libGLM_M15_component_r121.so"
+      ]
+    ],
+    "CPU_mock_contract": {
+      "passed": true,
+      "CPU_mock_only": true,
+      "GPU_math_proof": false,
+      "tests": "M15/otherM/owner/stream/thread/invalid/outputpreserve/freshweight/LRU/normalclear"
+    },
+    "error": "AssertionError()",
+    "seconds": 6.613525295630097,
+    "producer": "910407.438"
+  },
+  "CPU_receipt_SHA256": "3264902bffe35ca722d837a510cfe601ee505b645554d57f63b7a33ad6b7ca71",
+  "Kimi_health": {
+    "heartbeat_UTC": "2026-10-26T23:08:42.461246+00:00",
+    "completed": true,
+    "passed": true,
+    "audit": {
+      "returncode": 0,
+      "stdout": "{\"mode\": \"A\", \"passed\": true, \"actual_CPU_step\": \"910406.277\", \"normal_target_owners\": 32, \"peak_CPU_RSS_bytes\": 120504320}\n",
+      "stderr": ""
+    },
+    "post_KFD_passed": true,
+    "error_present": false
+  }
+}

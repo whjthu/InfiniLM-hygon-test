@@ -1,0 +1,26 @@
+--- r121b-newreceipt-harness
++++ r121b-qualified-onecard-harness
+@@ -6,7 +6,13 @@
+  import torch
+  from safetensors import safe_open
+  r=pathlib.Path('/refactor');inc=r/'incoming/GLM-M15-component-r121';b=r/'candidates/GLM-M15-component-r121b';sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+- m=json.loads((inc/'manifest-r121.json').read_bytes());cpu=json.loads((b/'CPU-build.json').read_bytes());assert cpu['completed'] and cpu['CPU_only'] and not cpu['dlopen'];assert sha(cpu['library'])==cpu['library_SHA256']
++ gp=pathlib.Path(__file__).resolve().parent;gm=json.loads((gp/'GPU-manifest-r121b.json').read_bytes())
++ for n,h in gm['source_SHA256'].items():assert sha(gp/n)==h,n
++ assert sha(gp/'manifest-r121b.json')==gm['CPU_manifest_SHA256']
++ expected_cpu=os.environ.get('GLM_M15_CPU_RECEIPT_SHA256_R121B','');assert len(expected_cpu)==64 and sha(b/'CPU-build.json')==expected_cpu
++ m=json.loads((inc/'manifest-r121.json').read_bytes());cpu=json.loads((b/'CPU-build.json').read_bytes());assert cpu['completed'] and cpu['CPU_only'] and not cpu['dlopen'] and cpu['no_recompile_or_relink']
++ assert cpu['repair_manifest_SHA256']==gm['CPU_manifest_SHA256'] and cpu['library_SHA256']==gm['original_DSO_SHA256']==sha(cpu['library'])
++ assert os.environ['SLURM_JOB_ID']=='910376' and os.uname().nodename=='a02r4n12' and torch.cuda.device_count()==1
+  for n,h in m['source_SHA256'].items():assert sha(inc/n)==h,n
+  for n,h in m['actual_binding_SHA256'].items():assert sha(r/n)==h,n
+  device=0;rank=7;co=rank*2048;torch.set_num_threads(1);torch.cuda.set_device(device);torch.backends.cuda.matmul.allow_tf32=False;torch.backends.cuda.matmul.allow_bf16_reduced_precision_reduction=False
+@@ -17,7 +23,7 @@
+  def stats():
+   v=(C.c_uint64*16)();ck(lib.glm_m15_component_stats_r121(ctx,v,16));return list(v)
+  report={'completed':False,'scope':'oneM15o_proj wholequant+projection+drain; syntheticBF16input/trainedcheckpointweights; notModel/notactual755activation','device':device,'logical_TP_rank':rank,'M':15,'N':6144,'K':2048,'scale_shape':[48,128],'column_offset':co,'CPU_receipt_SHA256':sha(b/'CPU-build.json'),'library_SHA256':cpu['library_SHA256'],'warm':[],'trials':[],'runtime_floor_bytes':536870912,'physical_peak':'UNKNOWN','GPU_F64':False,'only_one_weight_read':True};ctx=None
+- out=r/'results'/('GLM-M15-component-r121-'+os.environ['SLURM_JOB_ID']+'.'+os.environ['SLURM_STEP_ID']+'.json');assert not out.exists()
++ out=r/'results'/('GLM-M15-component-r121b-'+os.environ['SLURM_JOB_ID']+'.'+os.environ['SLURM_STEP_ID']+'.json');assert not out.exists()
+  def save():out.write_text(json.dumps(report,indent=2))
+  try:
+   model=pathlib.Path('/old/models/ZhipuAI-GLM-5.3');index=json.loads((model/'model.safetensors.index.json').read_bytes())['weight_map'];wk='model.layers.38.self_attn.o_proj.weight';sk=wk.removesuffix('.weight')+'.weight_scale_inv'
