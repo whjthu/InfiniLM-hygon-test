@@ -1,0 +1,474 @@
+{
+  "CPU_source_only": true,
+  "GPU": false,
+  "matches": [
+    {
+      "path": "candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/csrc/runtime/tensor.hpp",
+      "SHA256": "dfc787f233bef2fb5888d0954440746334386023bad3f6207164024b377eb658",
+      "matches": [
+        {
+          "line": 166,
+          "context": "\n    /**\n     * Unsafe API that returns a new tensor with the same raw memory untracked by allocator\n     * This API is used for loosely tracking a piece of memory while allowing it to be reused,\n     * typically in a compute graph scenario."
+        },
+        {
+          "line": 173,
+          "context": "\n    /**\n     * Unsafe API that returns a new tensor with the same memory and let allocator retracks the memory.\n     * Should only be used on the tensor returned by to_blob_(runtime).\n     */"
+        }
+      ]
+    },
+    {
+      "path": "candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/csrc/runtime/runtime.cc",
+      "SHA256": "a4742905290618c740bc81f4e0316b289de86819ece50d7a95da62652bb0a4e9",
+      "matches": [
+        {
+          "line": 70,
+          "context": "Runtime::Runtime(Device device) : device_(device), owner_generation_(currentOwnerGeneration()), graph_manager_(std::make_unique<::infinilm::execution::graph::GraphManager>()) {\n    try {\n        device_memory_allocator_ = std::make_unique<infini::rt::ReusableMemoryPool>(device);\n        // Borrow the RT-owned execution stream. Pin leases retain its state;\n        // Runtime never independently destroys this queue."
+        },
+        {
+          "line": 73,
+          "context": "        // Borrow the RT-owned execution stream. Pin leases retain its state;\n        // Runtime never independently destroys this queue.\n        stream_ = device_memory_allocator_->stream();\n    } catch (...) {\n        device_memory_allocator_.reset();"
+        },
+        {
+          "line": 75,
+          "context": "        stream_ = device_memory_allocator_->stream();\n    } catch (...) {\n        device_memory_allocator_.reset();\n        stream_ = nullptr;\n        throw;"
+        },
+        {
+          "line": 95,
+          "context": "\n    graph_manager_.reset();\n    device_memory_allocator_.reset();\n    stream_ = nullptr; // Pool state drains/frees/destroys after its last lease.\n}"
+        },
+        {
+          "line": 170,
+          "context": "void Runtime::trimMemory() {\n    infini::rt::DeviceGuard device_guard{device_.type(), device_.index(), true};\n    device_memory_allocator_->trim();\n}\n"
+        },
+        {
+          "line": 175,
+          "context": "size_t Runtime::graphPinnedMemoryBytes() {\n    assertOwnerThread();\n    return device_memory_allocator_->pinned_bytes();\n}\n"
+        },
+        {
+          "line": 197,
+          "context": "    if (release_is_safe) {\n        try {\n            device_memory_allocator_->deallocate(ptr);\n        } catch (const std::exception &error) {\n            warn_runtime_cleanup_failure(\"releasing device memory\", error.what());"
+        },
+        {
+          "line": 209,
+          "context": "    infini::rt::DeviceGuard device_guard{device_.type(), device_.index(), true};\n    auto runtime = shared_from_this();\n    std::byte *data_ptr = runtime->device_memory_allocator_->allocate(size);\n    try {\n        return std::make_shared<Memory>("
+        },
+        {
+          "line": 214,
+          "context": "            data_ptr, size, device_,\n            [runtime](std::byte *p) { runtime->releaseDeviceMemory(p); },\n            false, size > 0, runtime); // Zero allocations have no allocator block to pin.\n    } catch (...) {\n        runtime->device_memory_allocator_->deallocate(data_ptr);"
+        },
+        {
+          "line": 216,
+          "context": "            false, size > 0, runtime); // Zero allocations have no allocator block to pin.\n    } catch (...) {\n        runtime->device_memory_allocator_->deallocate(data_ptr);\n        throw;\n    }"
+        },
+        {
+          "line": 224,
+          "context": "    infini::rt::DeviceGuard device_guard{device_.type(), device_.index(), true};\n    auto runtime = shared_from_this();\n    std::byte *data_ptr = runtime->device_memory_allocator_->allocate_exact(size);\n    try {\n        return std::make_shared<Memory>("
+        },
+        {
+          "line": 231,
+          "context": "            false, true, runtime);\n    } catch (...) {\n        runtime->device_memory_allocator_->deallocate(data_ptr);\n        throw;\n    }"
+        },
+        {
+          "line": 279,
+          "context": "    auto runtime = shared_from_this();\n    auto ptr = blob->data();\n    // Every resumed view has its own logical span. The allocator's Block\n    // use_count is the shared physical lease, incremented once per view and\n    // decremented once by that view's Memory deleter."
+        },
+        {
+          "line": 282,
+          "context": "    // use_count is the shared physical lease, incremented once per view and\n    // decremented once by that view's Memory deleter.\n    const auto block_size = device_memory_allocator_->retain_allocation(ptr);\n    try {\n        if (blob->size() > block_size) {"
+        },
+        {
+          "line": 285,
+          "context": "    try {\n        if (blob->size() > block_size) {\n            throw std::out_of_range(\"graph blob exceeds its allocator block\");\n        }\n        return std::make_shared<Memory>("
+        },
+        {
+          "line": 303,
+          "context": "            \"graph capture cannot retain memory from a different device\");\n    }\n    return device_memory_allocator_->retain_for_capture(memory->data());\n}\n"
+        },
+        {
+          "line": 394,
+          "context": "    graph_manager_->start_recording(require_device_graph);\n    try {\n        device_memory_allocator_->begin_pin_mode();\n    } catch (...) {\n        graph_manager_->cancel_recording();"
+        },
+        {
+          "line": 416,
+          "context": "        const auto original_error = std::current_exception();\n        try {\n            device_memory_allocator_->cancel_pin_mode();\n        } catch (...) {\n        }"
+        },
+        {
+          "line": 423,
+          "context": "    }\n\n    std::shared_ptr<infini::rt::ReusableMemoryPool::PinLease> allocation_lease;\n    try {\n        allocation_lease = device_memory_allocator_->commit_pin_mode();"
+        },
+        {
+          "line": 425,
+          "context": "    std::shared_ptr<infini::rt::ReusableMemoryPool::PinLease> allocation_lease;\n    try {\n        allocation_lease = device_memory_allocator_->commit_pin_mode();\n    } catch (...) {\n        const auto original_error = std::current_exception();"
+        },
+        {
+          "line": 429,
+          "context": "        const auto original_error = std::current_exception();\n        try {\n            device_memory_allocator_->cancel_pin_mode();\n        } catch (...) {\n        }"
+        },
+        {
+          "line": 455,
+          "context": "    }\n    try {\n        device_memory_allocator_->cancel_pin_mode();\n    } catch (const std::exception &error) {\n        warn_runtime_cleanup_failure(\"rolling back graph allocations\", error.what());"
+        }
+      ]
+    },
+    {
+      "path": "candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/csrc/runtime/runtime.hpp",
+      "SHA256": "c127b4cf91ab3b64721efe7c9a3e90a84cca9e35dc004ddb6abd9c5e067896d4",
+      "matches": [
+        {
+          "line": 3,
+          "context": "#pragma once\n\n#include <infini/rt/reusable_memory_pool.h>\n\n#include \"runtime/context.hpp\""
+        },
+        {
+          "line": 20,
+          "context": "    const uint64_t owner_generation_;\n    infini::rt::runtime::Stream stream_ = nullptr;\n    std::unique_ptr<infini::rt::ReusableMemoryPool> device_memory_allocator_;\n    std::unique_ptr<::infinilm::execution::graph::GraphManager> graph_manager_;\n"
+        },
+        {
+          "line": 48,
+          "context": "    void trimMemory();\n\n    // LM graph budgeting: unique InfiniCore allocator blocks retained by any\n    // live capture. Excludes driver-internal CUDA Graph allocations.\n    size_t graphPinnedMemoryBytes();"
+        },
+        {
+          "line": 53,
+          "context": "\n    std::shared_ptr<Memory> allocateMemory(size_t size);\n    // Initial physical Parameter storage, tracked by the same owner/graph allocator.\n    std::shared_ptr<Memory> allocateParameterMemory(size_t size);\n    std::shared_ptr<Memory> allocatePinnedHostMemory(size_t size);"
+        }
+      ]
+    },
+    {
+      "path": "candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/runtime/runtime.hpp",
+      "SHA256": "c127b4cf91ab3b64721efe7c9a3e90a84cca9e35dc004ddb6abd9c5e067896d4",
+      "matches": [
+        {
+          "line": 3,
+          "context": "#pragma once\n\n#include <infini/rt/reusable_memory_pool.h>\n\n#include \"runtime/context.hpp\""
+        },
+        {
+          "line": 20,
+          "context": "    const uint64_t owner_generation_;\n    infini::rt::runtime::Stream stream_ = nullptr;\n    std::unique_ptr<infini::rt::ReusableMemoryPool> device_memory_allocator_;\n    std::unique_ptr<::infinilm::execution::graph::GraphManager> graph_manager_;\n"
+        },
+        {
+          "line": 48,
+          "context": "    void trimMemory();\n\n    // LM graph budgeting: unique InfiniCore allocator blocks retained by any\n    // live capture. Excludes driver-internal CUDA Graph allocations.\n    size_t graphPinnedMemoryBytes();"
+        },
+        {
+          "line": 53,
+          "context": "\n    std::shared_ptr<Memory> allocateMemory(size_t size);\n    // Initial physical Parameter storage, tracked by the same owner/graph allocator.\n    std::shared_ptr<Memory> allocateParameterMemory(size_t size);\n    std::shared_ptr<Memory> allocatePinnedHostMemory(size_t size);"
+        }
+      ]
+    },
+    {
+      "path": "candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/runtime/tensor.hpp",
+      "SHA256": "dfc787f233bef2fb5888d0954440746334386023bad3f6207164024b377eb658",
+      "matches": [
+        {
+          "line": 166,
+          "context": "\n    /**\n     * Unsafe API that returns a new tensor with the same raw memory untracked by allocator\n     * This API is used for loosely tracking a piece of memory while allowing it to be reused,\n     * typically in a compute graph scenario."
+        },
+        {
+          "line": 173,
+          "context": "\n    /**\n     * Unsafe API that returns a new tensor with the same memory and let allocator retracks the memory.\n     * Should only be used on the tensor returned by to_blob_(runtime).\n     */"
+        }
+      ]
+    },
+    {
+      "path": "candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/runtime/runtime.cc",
+      "SHA256": "a4742905290618c740bc81f4e0316b289de86819ece50d7a95da62652bb0a4e9",
+      "matches": [
+        {
+          "line": 70,
+          "context": "Runtime::Runtime(Device device) : device_(device), owner_generation_(currentOwnerGeneration()), graph_manager_(std::make_unique<::infinilm::execution::graph::GraphManager>()) {\n    try {\n        device_memory_allocator_ = std::make_unique<infini::rt::ReusableMemoryPool>(device);\n        // Borrow the RT-owned execution stream. Pin leases retain its state;\n        // Runtime never independently destroys this queue."
+        },
+        {
+          "line": 73,
+          "context": "        // Borrow the RT-owned execution stream. Pin leases retain its state;\n        // Runtime never independently destroys this queue.\n        stream_ = device_memory_allocator_->stream();\n    } catch (...) {\n        device_memory_allocator_.reset();"
+        },
+        {
+          "line": 75,
+          "context": "        stream_ = device_memory_allocator_->stream();\n    } catch (...) {\n        device_memory_allocator_.reset();\n        stream_ = nullptr;\n        throw;"
+        },
+        {
+          "line": 95,
+          "context": "\n    graph_manager_.reset();\n    device_memory_allocator_.reset();\n    stream_ = nullptr; // Pool state drains/frees/destroys after its last lease.\n}"
+        },
+        {
+          "line": 170,
+          "context": "void Runtime::trimMemory() {\n    infini::rt::DeviceGuard device_guard{device_.type(), device_.index(), true};\n    device_memory_allocator_->trim();\n}\n"
+        },
+        {
+          "line": 175,
+          "context": "size_t Runtime::graphPinnedMemoryBytes() {\n    assertOwnerThread();\n    return device_memory_allocator_->pinned_bytes();\n}\n"
+        },
+        {
+          "line": 197,
+          "context": "    if (release_is_safe) {\n        try {\n            device_memory_allocator_->deallocate(ptr);\n        } catch (const std::exception &error) {\n            warn_runtime_cleanup_failure(\"releasing device memory\", error.what());"
+        },
+        {
+          "line": 209,
+          "context": "    infini::rt::DeviceGuard device_guard{device_.type(), device_.index(), true};\n    auto runtime = shared_from_this();\n    std::byte *data_ptr = runtime->device_memory_allocator_->allocate(size);\n    try {\n        return std::make_shared<Memory>("
+        },
+        {
+          "line": 214,
+          "context": "            data_ptr, size, device_,\n            [runtime](std::byte *p) { runtime->releaseDeviceMemory(p); },\n            false, size > 0, runtime); // Zero allocations have no allocator block to pin.\n    } catch (...) {\n        runtime->device_memory_allocator_->deallocate(data_ptr);"
+        },
+        {
+          "line": 216,
+          "context": "            false, size > 0, runtime); // Zero allocations have no allocator block to pin.\n    } catch (...) {\n        runtime->device_memory_allocator_->deallocate(data_ptr);\n        throw;\n    }"
+        },
+        {
+          "line": 224,
+          "context": "    infini::rt::DeviceGuard device_guard{device_.type(), device_.index(), true};\n    auto runtime = shared_from_this();\n    std::byte *data_ptr = runtime->device_memory_allocator_->allocate_exact(size);\n    try {\n        return std::make_shared<Memory>("
+        },
+        {
+          "line": 231,
+          "context": "            false, true, runtime);\n    } catch (...) {\n        runtime->device_memory_allocator_->deallocate(data_ptr);\n        throw;\n    }"
+        },
+        {
+          "line": 279,
+          "context": "    auto runtime = shared_from_this();\n    auto ptr = blob->data();\n    // Every resumed view has its own logical span. The allocator's Block\n    // use_count is the shared physical lease, incremented once per view and\n    // decremented once by that view's Memory deleter."
+        },
+        {
+          "line": 282,
+          "context": "    // use_count is the shared physical lease, incremented once per view and\n    // decremented once by that view's Memory deleter.\n    const auto block_size = device_memory_allocator_->retain_allocation(ptr);\n    try {\n        if (blob->size() > block_size) {"
+        },
+        {
+          "line": 285,
+          "context": "    try {\n        if (blob->size() > block_size) {\n            throw std::out_of_range(\"graph blob exceeds its allocator block\");\n        }\n        return std::make_shared<Memory>("
+        },
+        {
+          "line": 303,
+          "context": "            \"graph capture cannot retain memory from a different device\");\n    }\n    return device_memory_allocator_->retain_for_capture(memory->data());\n}\n"
+        },
+        {
+          "line": 394,
+          "context": "    graph_manager_->start_recording(require_device_graph);\n    try {\n        device_memory_allocator_->begin_pin_mode();\n    } catch (...) {\n        graph_manager_->cancel_recording();"
+        },
+        {
+          "line": 416,
+          "context": "        const auto original_error = std::current_exception();\n        try {\n            device_memory_allocator_->cancel_pin_mode();\n        } catch (...) {\n        }"
+        },
+        {
+          "line": 423,
+          "context": "    }\n\n    std::shared_ptr<infini::rt::ReusableMemoryPool::PinLease> allocation_lease;\n    try {\n        allocation_lease = device_memory_allocator_->commit_pin_mode();"
+        },
+        {
+          "line": 425,
+          "context": "    std::shared_ptr<infini::rt::ReusableMemoryPool::PinLease> allocation_lease;\n    try {\n        allocation_lease = device_memory_allocator_->commit_pin_mode();\n    } catch (...) {\n        const auto original_error = std::current_exception();"
+        },
+        {
+          "line": 429,
+          "context": "        const auto original_error = std::current_exception();\n        try {\n            device_memory_allocator_->cancel_pin_mode();\n        } catch (...) {\n        }"
+        },
+        {
+          "line": 455,
+          "context": "    }\n    try {\n        device_memory_allocator_->cancel_pin_mode();\n    } catch (const std::exception &error) {\n        warn_runtime_cleanup_failure(\"rolling back graph allocations\", error.what());"
+        }
+      ]
+    },
+    {
+      "path": "candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/cache/mamba_cache.hpp",
+      "SHA256": "d28ea3ff8d0dc3eb2fc5f8293d78a98798206e91233afea98e7df82ebbd86442",
+      "matches": [
+        {
+          "line": 22,
+          "context": "class MambaCache {\npublic:\n    static infinilm::runtime::Tensor create_layer_conv_state(\n        infinilm::runtime::Runtime &runtime,\n        const engine::distributed::RankInfo &rank,"
+        },
+        {
+          "line": 33,
+          "context": "        size_t pool_size);\n\n    static infinilm::runtime::Tensor create_layer_ssm_state(\n        infinilm::runtime::Runtime &runtime,\n        const engine::distributed::RankInfo &rank,"
+        }
+      ]
+    },
+    {
+      "path": "candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/cache/kv_cache.cpp",
+      "SHA256": "1372115b57bbb8203cfaaf87454016f406b3a3f4d53439fd009fe5c37a150e52",
+      "matches": [
+        {
+          "line": 76,
+          "context": "\nStaticKVCacheConfig::StaticKVCacheConfig(\n    infinilm::runtime::Size _max_batch_size,\n    infinilm::runtime::Size _max_cache_len)\n    : max_batch_size_(_max_batch_size),"
+        },
+        {
+          "line": 78,
+          "context": "    infinilm::runtime::Size _max_batch_size,\n    infinilm::runtime::Size _max_cache_len)\n    : max_batch_size_(_max_batch_size),\n      max_cache_len_(_max_cache_len) {\n}"
+        },
+        {
+          "line": 88,
+          "context": "\ninfinilm::runtime::Size\nStaticKVCacheConfig::max_batch_size() const {\n    return max_batch_size_;\n}"
+        },
+        {
+          "line": 89,
+          "context": "infinilm::runtime::Size\nStaticKVCacheConfig::max_batch_size() const {\n    return max_batch_size_;\n}\n"
+        },
+        {
+          "line": 115,
+          "context": "    const size_t num_rank_k_heads = rank_kv_heads(k_dim, v_dim, num_k_heads, num_v_heads, static_cast<size_t>(rank.tp_size));\n\n    size_t rank_batch_size = (config.max_batch_size());\n    size_t kv_dim = k_dim;\n"
+        },
+        {
+          "line": 151,
+          "context": "// ==========================\nPagedKVCacheConfig::PagedKVCacheConfig(\n    size_t num_blocks,\n    size_t block_size,\n    size_t max_batch_size)"
+        },
+        {
+          "line": 153,
+          "context": "    size_t num_blocks,\n    size_t block_size,\n    size_t max_batch_size)\n    : num_blocks_(num_blocks),\n      block_size_(block_size),"
+        },
+        {
+          "line": 154,
+          "context": "    size_t block_size,\n    size_t max_batch_size)\n    : num_blocks_(num_blocks),\n      block_size_(block_size),\n      max_batch_size_(max_batch_size) {"
+        },
+        {
+          "line": 156,
+          "context": "    : num_blocks_(num_blocks),\n      block_size_(block_size),\n      max_batch_size_(max_batch_size) {\n}\n"
+        },
+        {
+          "line": 165,
+          "context": "\nsize_t\nPagedKVCacheConfig::num_blocks() const {\n    return num_blocks_;\n}"
+        },
+        {
+          "line": 166,
+          "context": "size_t\nPagedKVCacheConfig::num_blocks() const {\n    return num_blocks_;\n}\n"
+        },
+        {
+          "line": 175,
+          "context": "\nsize_t\nPagedKVCacheConfig::max_batch_size() const {\n    return max_batch_size_;\n}"
+        },
+        {
+          "line": 176,
+          "context": "size_t\nPagedKVCacheConfig::max_batch_size() const {\n    return max_batch_size_;\n}\n"
+        },
+        {
+          "line": 197,
+          "context": "    size_t kv_dim = k_dim;\n\n    size_t num_blocks_per_layer = config.num_blocks();\n    size_t block_size = config.block_size();\n"
+        },
+        {
+          "line": 202,
+          "context": "    // Canonical FlashAttention cache layout: [K/V, blocks, block, heads, dim].\n    infinilm::runtime::Shape kv_shape = {\n        2, num_blocks_per_layer, block_size, num_rank_k_heads, k_dim};\n\n    infinilm::runtime::Tensor kv_cache = infinilm::runtime::Tensor::empty(runtime, kv_shape, dtype);"
+        }
+      ]
+    },
+    {
+      "path": "candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/cache/mamba_cache.cpp",
+      "SHA256": "f476eeee214aa87bb71e5c8523cfaddc17b71578ce42b074a3b8b4dd990a36d1",
+      "matches": [
+        {
+          "line": 12,
+          "context": "namespace infinilm::cache {\n\ninfinilm::runtime::Tensor MambaCache::create_layer_conv_state(\n    infinilm::runtime::Runtime &runtime,\n    const engine::distributed::RankInfo &rank,"
+        },
+        {
+          "line": 24,
+          "context": "    validate_cache_runtime(runtime, rank);\n    const auto [num_rank_k_heads, num_rank_v_heads] = get_rank_head_counts(num_k_heads, num_v_heads, static_cast<size_t>(rank.tp_size));\n    const size_t conv_state_len = conv_kernel_dim > 0 ? conv_kernel_dim - 1 : 0;\n    const size_t conv_dim = 2 * num_rank_k_heads * k_dim + num_rank_v_heads * v_dim;\n"
+        },
+        {
+          "line": 27,
+          "context": "    const size_t conv_dim = 2 * num_rank_k_heads * k_dim + num_rank_v_heads * v_dim;\n\n    auto conv_state = infinilm::runtime::Tensor::empty(\n        runtime,\n        {pool_size, conv_dim, conv_state_len},"
+        },
+        {
+          "line": 29,
+          "context": "    auto conv_state = infinilm::runtime::Tensor::empty(\n        runtime,\n        {pool_size, conv_dim, conv_state_len},\n        dtype);\n    try {"
+        },
+        {
+          "line": 32,
+          "context": "        dtype);\n    try {\n        if (conv_state->nbytes() != 0) {\n            if (conv_state->is_contiguous() && !runtime.isGraphRecording()) {\n                if (!infini::ops::Fill::valid_output(infinilm::execution::detail::view(conv_state))) {"
+        },
+        {
+          "line": 33,
+          "context": "    try {\n        if (conv_state->nbytes() != 0) {\n            if (conv_state->is_contiguous() && !runtime.isGraphRecording()) {\n                if (!infini::ops::Fill::valid_output(infinilm::execution::detail::view(conv_state))) {\n                    throw std::invalid_argument(\"zero-fill output layout or storage is invalid\");"
+        },
+        {
+          "line": 34,
+          "context": "        if (conv_state->nbytes() != 0) {\n            if (conv_state->is_contiguous() && !runtime.isGraphRecording()) {\n                if (!infini::ops::Fill::valid_output(infinilm::execution::detail::view(conv_state))) {\n                    throw std::invalid_argument(\"zero-fill output layout or storage is invalid\");\n                }"
+        },
+        {
+          "line": 37,
+          "context": "                    throw std::invalid_argument(\"zero-fill output layout or storage is invalid\");\n                }\n                runtime.setDeviceMemoryAsync(conv_state->data(), 0, conv_state->nbytes(), runtime.stream());\n            } else {\n                infinilm::execution::submit<infini::ops::Fill>("
+        },
+        {
+          "line": 41,
+          "context": "                infinilm::execution::submit<infini::ops::Fill>(\n                    runtime, infini::ops::Fill::DefaultConfig(runtime.device().type()),\n                    conv_state, 0.0, conv_state);\n            }\n            INFINILM_TRACE_OP(Zeros, conv_state);"
+        },
+        {
+          "line": 43,
+          "context": "                    conv_state, 0.0, conv_state);\n            }\n            INFINILM_TRACE_OP(Zeros, conv_state);\n        }\n        runtime.syncStream();"
+        },
+        {
+          "line": 53,
+          "context": "        std::rethrow_exception(primary);\n    }\n    return conv_state;\n}\n"
+        },
+        {
+          "line": 56,
+          "context": "}\n\ninfinilm::runtime::Tensor MambaCache::create_layer_ssm_state(\n    infinilm::runtime::Runtime &runtime,\n    const engine::distributed::RankInfo &rank,"
+        },
+        {
+          "line": 69,
+          "context": "    const size_t num_rank_v_heads = rank_head_counts.second;\n\n    auto ssm_state = infinilm::runtime::Tensor::empty(\n        runtime,\n        {pool_size, num_rank_v_heads, v_dim, k_dim},"
+        },
+        {
+          "line": 74,
+          "context": "        dtype);\n    try {\n        if (ssm_state->nbytes() != 0) {\n            if (ssm_state->is_contiguous() && !runtime.isGraphRecording()) {\n                if (!infini::ops::Fill::valid_output(infinilm::execution::detail::view(ssm_state))) {"
+        },
+        {
+          "line": 75,
+          "context": "    try {\n        if (ssm_state->nbytes() != 0) {\n            if (ssm_state->is_contiguous() && !runtime.isGraphRecording()) {\n                if (!infini::ops::Fill::valid_output(infinilm::execution::detail::view(ssm_state))) {\n                    throw std::invalid_argument(\"zero-fill output layout or storage is invalid\");"
+        },
+        {
+          "line": 76,
+          "context": "        if (ssm_state->nbytes() != 0) {\n            if (ssm_state->is_contiguous() && !runtime.isGraphRecording()) {\n                if (!infini::ops::Fill::valid_output(infinilm::execution::detail::view(ssm_state))) {\n                    throw std::invalid_argument(\"zero-fill output layout or storage is invalid\");\n                }"
+        },
+        {
+          "line": 79,
+          "context": "                    throw std::invalid_argument(\"zero-fill output layout or storage is invalid\");\n                }\n                runtime.setDeviceMemoryAsync(ssm_state->data(), 0, ssm_state->nbytes(), runtime.stream());\n            } else {\n                infinilm::execution::submit<infini::ops::Fill>("
+        },
+        {
+          "line": 83,
+          "context": "                infinilm::execution::submit<infini::ops::Fill>(\n                    runtime, infini::ops::Fill::DefaultConfig(runtime.device().type()),\n                    ssm_state, 0.0, ssm_state);\n            }\n            INFINILM_TRACE_OP(Zeros, ssm_state);"
+        },
+        {
+          "line": 85,
+          "context": "                    ssm_state, 0.0, ssm_state);\n            }\n            INFINILM_TRACE_OP(Zeros, ssm_state);\n        }\n        runtime.syncStream();"
+        },
+        {
+          "line": 95,
+          "context": "        std::rethrow_exception(primary);\n    }\n    return ssm_state;\n}\n"
+        }
+      ]
+    },
+    {
+      "path": "candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/cache/kv_cache.hpp",
+      "SHA256": "12a3a4f0a22c37c8d08ca1c3270a6fcb5fc94ca0273274b7505a2358b61af6f0",
+      "matches": [
+        {
+          "line": 26,
+          "context": "public:\n    StaticKVCacheConfig(\n        infinilm::runtime::Size _max_batch_size = 1,\n        infinilm::runtime::Size _max_cache_len = std::numeric_limits<infinilm::runtime::Size>::max());\n"
+        },
+        {
+          "line": 30,
+          "context": "\n    std::unique_ptr<CacheConfig> unique_copy() const override;\n    infinilm::runtime::Size max_batch_size() const;\n    infinilm::runtime::Size max_cache_len() const;\n"
+        },
+        {
+          "line": 34,
+          "context": "\nprivate:\n    infinilm::runtime::Size max_batch_size_;\n    infinilm::runtime::Size max_cache_len_;\n};"
+        },
+        {
+          "line": 56,
+          "context": "public:\n    PagedKVCacheConfig(\n        size_t num_blocks,\n        size_t block_size = 256,\n        size_t max_batch_size = 1);"
+        },
+        {
+          "line": 58,
+          "context": "        size_t num_blocks,\n        size_t block_size = 256,\n        size_t max_batch_size = 1);\n\n    std::unique_ptr<CacheConfig> unique_copy() const override;"
+        },
+        {
+          "line": 61,
+          "context": "\n    std::unique_ptr<CacheConfig> unique_copy() const override;\n    size_t num_blocks() const;\n    size_t block_size() const;\n    size_t max_batch_size() const;"
+        },
+        {
+          "line": 63,
+          "context": "    size_t num_blocks() const;\n    size_t block_size() const;\n    size_t max_batch_size() const;\n\nprivate:"
+        },
+        {
+          "line": 66,
+          "context": "\nprivate:\n    size_t num_blocks_;\n    size_t block_size_;\n    size_t max_batch_size_;"
+        },
+        {
+          "line": 68,
+          "context": "    size_t num_blocks_;\n    size_t block_size_;\n    size_t max_batch_size_;\n};\n"
+        }
+      ]
+    }
+  ]
+}
