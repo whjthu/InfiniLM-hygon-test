@@ -1,0 +1,40 @@
+--- currentqualified_r813
++++ defaultOFF_T1to7_guard
+@@ -1,3 +1,4 @@
++#include "deep_c4_smallt_guard_r9252.hpp"
+ #include "deep_reduce_wide_r3443.hpp"
+ #include <atomic>
+ #include <array>
+@@ -13,6 +14,7 @@
+ namespace rt=infinilm::runtime;namespace ex=infinilm::execution;
+ namespace{
+ std::atomic<int>allselected_policy_r813{0};
++std::atomic<int>smallt_policy_r9252{0};std::array<std::array<std::atomic<uint64_t>,8>,8>smallt_stats_r9252{};
+ std::array<std::atomic<uint64_t>,8>allselected_calls_r813{},full_calls_r813{};
+ struct Work{rt::Runtime&r;std::vector<rt::Tensor>held;~Work(){try{r.syncStream();}catch(...){std::terminate();}}rt::Tensor alloc(rt::Shape shape,rt::DataType type){auto x=rt::Tensor::empty(r,shape,type);held.push_back(x);return x;}rt::Tensor ids(const std::vector<int64_t>&host){auto x=alloc({host.size()},rt::DataType::kInt64);r.memcpyH2D(x->data(),host.data(),host.size()*8,false);return x;}};
+ void status(rt::Runtime&r,const rt::Tensor&flag){int value=0;r.memcpyD2H(&value,flag->data(),4);r.syncStream();if(value)throw std::invalid_argument("DeepSeek C4 indexer GPU validation status="+std::to_string(value));}
+@@ -34,7 +36,7 @@
+  check_owner(r);if(!ready_||poisoned_||!hidden||hidden->device()!=r.device()||hidden->dtype()!=rt::DataType::kBFloat16||hidden->ndim()!=2||!hidden->size(0)||hidden->size(0)>4096||hidden->size(1)!=4096||!hidden->is_contiguous()||!q_lora||q_lora->device()!=r.device()||q_lora->dtype()!=hidden->dtype()||q_lora->shape()!=rt::Shape{hidden->size(0),1024}||!q_lora->is_contiguous()||!positions||positions->device()!=r.device()||positions->dtype()!=rt::DataType::kInt64||positions->shape()!=rt::Shape{hidden->size(0)}||!positions->is_contiguous()||requests.empty())throw std::invalid_argument("DeepSeek C4 indexer requires loaded hidden/q_lora and positions");
+  size_t tokens=hidden->size(0),total=0;std::set<size_t>seen;std::vector<int64_t>host_positions(tokens);r.memcpyD2H(host_positions.data(),positions->data(),tokens*8);for(auto request:requests){if(request.row>=rows_||!seen.insert(request.row).second||!request.tokens||request.past!=lengths_[request.row]||request.past>maximum_||request.tokens>maximum_-request.past||request.tokens>tokens-total||(request.past+request.tokens)/4>capacity_)throw std::invalid_argument("DeepSeek C4 indexer row/past/capacity differs");for(size_t t=0;t<request.tokens;++t)if(host_positions[total+t]!=int64_t(request.past+t))throw std::invalid_argument("DeepSeek C4 indexer logical positions differ");total+=request.tokens;}if(total!=tokens)throw std::invalid_argument("DeepSeek C4 indexer packed count differs");
+  int policy=allselected_policy_r813.fetch_or(2,std::memory_order_acq_rel);
+- bool all_selected=(policy&1)&&tokens>=8&&tokens<=64&&std::all_of(requests.begin(),requests.end(),[&](const auto&q){return q.tokens==1&&(q.past+1)/4<=topk_;});
++ bool all_selected=(policy&1)&&((tokens>=8&&tokens<=64&&std::all_of(requests.begin(),requests.end(),[&](const auto&q){return q.tokens==1&&(q.past+1)/4<=topk_;}))||small_c4_r9252::eligible(smallt_policy_r9252.load(std::memory_order_relaxed)==1,tokens,requests,topk_));
+  Work work{r};Pending pending;pending.owner=this;pending.revision=revision_;pending.requests=requests;pending.compression=compressor_->prepare_pooled(r,hidden,positions,requests);pending.projected_score=pending.compression.score;pending.pooled=pending.compression.pooled;
+  auto flag=work.alloc({1},rt::DataType::kInt32);
+  if(!all_selected){
+@@ -68,7 +70,7 @@
+   auto key=work.alloc({width,128},rt::DataType::kUInt8),scale=work.alloc({width,1},rt::DataType::kFloat32);r.setDeviceMemory(key->data(),0x7f,key->nbytes());r.setDeviceMemory(scale->data(),0xff,scale->nbytes());if(before){std::vector<int64_t>slots;for(size_t i=0;i<before;++i)slots.push_back(int64_t(request.row*capacity_+i));auto old=historical_batch.values?PagedIndexerCache::Packed{historical_batch.values->narrow({{0,historical_begin,before}}),historical_batch.scales->narrow({{0,historical_begin,before}})}:cache_->gather(r,slots);historical_begin+=before;work.held.insert(work.held.end(),{old.values,old.scales});key->narrow({{0,0,before}})->copy_from(r,old.values);scale->narrow({{0,0,before}})->copy_from(r,old.scales);}if(after>before){key->narrow({{0,before,after-before}})->copy_from(r,pending.new_keys.values->narrow({{0,new_begin,after-before}}));scale->narrow({{0,before,after-before}})->copy_from(r,pending.new_keys.scales->narrow({{0,new_begin,after-before}}));for(size_t i=before;i<after;++i)pending.slots.push_back(int64_t(request.row*capacity_+i));}new_begin+=after-before;
+   std::vector<int32_t>visible(request.tokens);for(size_t i=0;i<request.tokens;++i)visible[i]=int32_t((request.past+i+1)/4);auto counts=work.alloc({request.tokens},rt::DataType::kInt32),scores=work.alloc({request.tokens,width},rt::DataType::kFloat32);r.memcpyH2D(counts->data(),visible.data(),visible.size()*4,false);ex::submit<infini::ops::DeepseekV4IndexerScores>(r,ex::RecordingPolicy::HostOnly,infini::ops::DeepseekV4IndexerScores::DefaultConfig(r.device().type()),scores,pending.query->narrow({{0,begin,request.tokens}}),pending.merged_weights->narrow({{0,begin,request.tokens}}),key,scale,counts,flag);status(r,flag);if(tp_>1)wide_r3443::reduce(r,scores,comm_,2);size_t selected=std::min(topk_,width);auto values=work.alloc({request.tokens,selected},rt::DataType::kFloat32),indices=work.alloc({request.tokens,selected},rt::DataType::kInt64);ex::submit<infini::ops::Topk>(r,infini::ops::Topk::DefaultConfig(r.device().type()),scores,int64_t(selected),int64_t{1},true,true,values,indices);pending.scores.push_back(scores);pending.indices.push_back(indices);begin+=request.tokens;
+  }
+- r.syncStream();(all_selected?allselected_calls_r813:full_calls_r813).at(r.device().index()).fetch_add(1,std::memory_order_relaxed);return pending;
++ r.syncStream();{auto&c=smallt_stats_r9252.at(r.device().index());bool shortdecode=small_c4_r9252::decode(tokens,requests),eligible=small_c4_r9252::eligible(true,tokens,requests,topk_);c[0].fetch_add(shortdecode);c[1].fetch_add(eligible);c[2].fetch_add(shortdecode&&all_selected);c[3].fetch_add(shortdecode&&!all_selected);c[4].store(revision_);c[5].store(tokens);c[6].store(requests.size());c[7].store(eligible);}(all_selected?allselected_calls_r813:full_calls_r813).at(r.device().index()).fetch_add(1,std::memory_order_relaxed);return pending;
+ }
+ void C4Indexer::commit(rt::Runtime&r,Pending&pending){check_owner(r);if(!ready_||poisoned_||pending.owner!=this||pending.revision!=revision_)throw std::invalid_argument("DeepSeek C4 indexer stale/foreign transaction");try{if(!pending.slots.empty())cache_->store(r,pending.slots,pending.new_keys);compressor_->commit(r,pending.compression);for(auto request:pending.requests)lengths_[request.row]=request.past+request.tokens;++revision_;pending.owner=nullptr;r.syncStream();}catch(...){poisoned_=true;try{r.syncStream();}catch(...){std::terminate();}throw;}}
+ C4Indexer::Pending C4Indexer::forward(rt::Runtime&r,const rt::Tensor&x,const rt::Tensor&q,const rt::Tensor&positions,const std::vector<Request>&requests){auto pending=prepare(r,x,q,positions,requests);commit(r,pending);return pending;}
+@@ -85,3 +87,6 @@
+  if(device<0||device>=8||fast<0||fast>1)return 0;
+  return(fast?infinilm::models::deepseek_v4::allselected_calls_r813:infinilm::models::deepseek_v4::full_calls_r813).at(device).load();
+ }
++
++extern "C" int modern_deep_c4_smallt_mode_r9252(int mode){if(mode<0||mode>1)return 1;namespace m=infinilm::models::deepseek_v4;std::lock_guard<std::mutex>lock(m::wide_r3443::policy_mutex);if(m::wide_r3443::in_flight)return 2;m::smallt_policy_r9252.store(mode);return 0;}
++extern "C" int modern_deep_c4_smallt_stats_r9252(int d,uint64_t*out,size_t n){if(d<0||d>=8||!out||n!=8)return 1;for(size_t i=0;i<8;++i)out[i]=infinilm::models::deepseek_v4::smallt_stats_r9252[d][i].load();return 0;}

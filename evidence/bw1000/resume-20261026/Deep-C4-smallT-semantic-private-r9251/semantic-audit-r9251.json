@@ -1,0 +1,60 @@
+{
+  "review": "D109A_CPU_READONLY_SEMANTIC_AUDIT",
+  "no_source_modified_or_compiled": true,
+  "GPU_submitted": false,
+  "actual_indexer": {
+    "source": "/refactor/candidates/deep-c4-projection-model-r5920/incoming/deepseek_v4_c4_indexer_allselected_r813.cpp",
+    "source_SHA256": "5f67c7cdc43fabe7cd798d6feca5304f295076a6c8251a27d2429911289370b9",
+    "object": "/refactor/candidates/deep-c4-projection-model-r5920/objects/unit-19.o",
+    "object_SHA256": "3bd2528b16d98c955b7a23ddfb54f243fb3762d8986b6debdbfc196d5ceb8906"
+  },
+  "binding": "CPU413 reusedobjectunit19 SHAexactmatch; actual9330/currentcomponentallunchangedC4provider; not1086latentpacked-smallT",
+  "actual_caller": "CsaAttention::forward preparesindexer,consumesonlyindices+originalduplicate/range/causalcountguards,commitsindexerbeforeupdateownlengths;last_selection retainsactualindices",
+  "state_invariants": [
+    "prepare_pooled always executes, carriesowner/revision/requests and fullcompressorPending",
+    "Boundary newkeys feature+scale generated beforefast/fullselectionbranch for BOTH; samepooled/norm/RoPE",
+    "Fast branchcanonicalindices, still appends everybefore..after row*capacity+slot inmatchingnewkeyorder",
+    "commit validates owner/revision/ready/poison, cache.store(newkeys) then compressor.commit, updateslengths/revision andnulls pending.owner",
+    "cache.store GPUvalidation completes beforewritten_[slot]=1; fullgather refuses unwritten slots",
+    "reset clearswritten flags,lengths/poison andincrementsrevision; no metadata-onlymissing-key bypasslegal"
+  ],
+  "threshold_trace": {
+    "past2047": "new512thkeygenerated/storedwhilevisible512/allselected",
+    "past2048_to2050": "noadditionalboundary,existingall512cachedkeysremainwritten",
+    "past2051": "visible513 forcesFULL,readsall512historicalkeys plusnew513thkey; mustnotresetbetween",
+    "past2052": "fullnexttransactionprovesnewkey513committed",
+    "mixed_rows": "ifanyqueryvisible>topk wholebatchfallsfull;allrows musthavepreservedkeys"
+  },
+  "history": {
+    "r813_814": "8rowdecode oldbareC4qualified432records/all8,cachereset/abort/thresholdtopk4; no newsmallTwholeCSAclaim",
+    "r1855": {
+      "actual": "910373.556 COMPLETED0/2:03",
+      "all8_completed": true,
+      "records_per_owner": 48,
+      "scope": "B1only oldSDK bareC4,prefill128/512,topk4actualtransition,key/compressorstate/abort/replay/reset/shutdown;notcurrentwholeCSAperformance"
+    },
+    "r1851": {
+      "actual": "910373.555 FAILED1/2:07",
+      "records_per_owner_partial": 104,
+      "last_good": "B8 topk4 past24 repeat2",
+      "next_case": "B8 topk512 multi-tokenprefill128",
+      "failure": "driver55abort-vs-commitALLoutputsexactassert; unknownarm/output,notproofkeyloss",
+      "restriction": "DoNOTrevivebroadmulti-tokenprefillguard"
+    }
+  },
+  "legal_candidate": {
+    "default_OFF": true,
+    "scope": "onlynewT1..7 decode,q.tokens==1,past>0/allvisible<=topk; legacyT8..64unchanged;prefill/full/pruningunchanged",
+    "preserve": "prepare_pooled/newkeys/slots/commit/revision andoriginalfinaldrain; bankcandidatePARK/OFF/readbackOFF/hostinstrumentOFF",
+    "newstack_directabort_stale_foreign_commit": "NOTCOVERED bycurrentwholeCSAAPI; sourceunchanged andold1855onlyhistoricalevidence; no newprobe/runtimegetterframework",
+    "required_actual_qualification": "wholeCSA T1/2/4/7 realpasts,legacyT8/B32controls;continuoussame-statevisible512->513withoutreset;physicalrowsnonconsecutive;EOS/past/duplicateguards/reset/finite/canary/readonly/outputRMS;before-nextprepare revisionreadifminimalguardstatspermits",
+    "quality": "CanonicalordercanchangeFP32attentionrounding; userallowsdifferenttokens; futuretaskbenchrequired,nono-dropclaimhere"
+  },
+  "sources": {
+    "Deep-metadata-actual-sources-r9241.json": "ed52dc9b0aa620945a56018ba2e7076fb8a34dabb6e054143ada0be72eca525f",
+    "Deep-actual-latent-sources-r8932.json": "d7df3c05630dd44c59c69891ffd0450925b9851509f2e07ff346a151a54d1bb7",
+    "Deep-allselected-history-r9251.json": "ccf6efeb8ca081b7480421826d0079f6736fb7cfd6dbe8adc2cb9c4406c6df01",
+    "Deep-allselected1851-failure-r9251.json": "99db96ce7bf604da6af27d5c262dc3f2c4e86f20f9276a7f18ef5cb78b21b0da",
+    "r814-allselected-audit.json": "8c24dcf83a0c09f291e25de7aea3ca6e57c26295b9c2718bb17b5150b375ea00"
+  }
+}
