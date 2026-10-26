@@ -1,0 +1,64 @@
+{
+  "status": "SOURCE_PROPOSAL_CPU_NOT_YET_COMPILED_GPU_NOT_AUTHORIZED_BY_THIS_PACKAGE",
+  "host_TU": 1,
+  "GPU": false,
+  "Model_weights": false,
+  "no_Model_DSO_dependency_planned": true,
+  "currentSDK": "/refactor/install/hygon-kimi-5f91ad7-r3672",
+  "header_provenance": [
+    {
+      "path": "/refactor/install/hygon-kimi-5f91ad7-r3672/include/infiniccl/comm.h",
+      "SHA256": "a25554fcb3d1c20ce3720ad7df384198aaa2a83b2b86af7d063ed016d50ca40f"
+    },
+    {
+      "path": "/refactor/install/hygon-kimi-5f91ad7-r3672/include/infiniccl/data_type.h",
+      "SHA256": "ee4a266b36f45a18ae63df1aa81d623e1c4ec6efac788768ca2ff01bd70495b2"
+    },
+    {
+      "path": "/refactor/install/hygon-kimi-5f91ad7-r3672/include/infiniccl/return_status.h",
+      "SHA256": "c4185a1279176e9fcfaa6403b2440b8552f3dbd11887e7f0bc640e85d79d1b96"
+    }
+  ],
+  "pinned_libs": {
+    "libinfiniccl.so": "76eb65adacc8a6832970991ca276b32562543b7fb7e8dd09cda9f4c269f24809",
+    "libinfinirt.so": "e78b7b4aed105e5968fc598f60a2cacafcaf7c07c13dd4a971abfbdd92d47560",
+    "libinfinilm_runtime.so": "04a6a1a86c97d176e4304b9bb4c1d6fcb8550784beaa47e0f5841fb7603ffabf"
+  },
+  "C_API": {
+    "UniqueID_bytes": 136,
+    "dtype_BF16": 9,
+    "dtype_F32": 10,
+    "F64_11": "explicitly rejected",
+    "sum_op": 0,
+    "stream": "current Hygon/CUDART stream pointer, guarded per-owner thread"
+  },
+  "future_GPU_matrix": {
+    "ranks": 16,
+    "nodes": 2,
+    "devices_per_node": 8,
+    "bytes_per_rank": [
+      229376,
+      1048576,
+      16777216,
+      67108864
+    ],
+    "dtype": [
+      "BF16",
+      "F32"
+    ],
+    "warmups": 3,
+    "measured_samples": 10,
+    "input": "constant rank+1 out-of-place, expectedsum136; no exponential repeatedinplaceoverflow",
+    "max_tensor_storage_per_DCU_MiB": 128,
+    "timing": [
+      "hostenqueue",
+      "hostcall-through-streamdrain wall",
+      "same stream CUDAevent interval includesrankarrivalandwait; notpurebusy"
+    ],
+    "validation": "fulloutput136 finite and fullinputreadonly outside timedwindows; exact integerscomm test, not Modeltokenmatching",
+    "network": "same actual pinnedSHCA/UCX plugin config as Model, logs/counters verify4rails; no management Socket fallback accepted"
+  },
+  "CPU_next": "single HOST g++ compile/link + exportedCAPI/ldd/pinnedSHA checks only, noCDLL/Runtime/GPU/Model; request root CPU resource then publishsourceclaim before any16DCUGPU",
+  "existing_fixture_not_reused": "layer0_comm_probe_r9140 requires loadedDelta.ready and only229376BF16; no fake variable-size ABI via pointerreinterpretation",
+  "quality_scope": "communication baseline; cannot directly convert to Modeldecodegain or use hostRDMA ceiling"
+}

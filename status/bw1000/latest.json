@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-10-26T01:34:05.629908+00:00",
+  "updated_at_utc": "2026-10-26T01:46:56.228908+00:00",
   "owner": "bw1000-agent",
   "hardware": "BW1000",
   "goal_complete": false,
@@ -3613,12 +3613,40 @@
   "current_Kimi_vocab_shard": {
     "work_item": "kimi-tp16-shard-only-vocab",
     "owner": "/root/kimi_continue_92",
-    "state": "DESIGN_ACCEPTED_COMPONENT_IMPLEMENTATION",
-    "updated_at_utc": "2026-10-26T01:24:54.822398+00:00",
-    "design": "analysis/bw1000/reviews/astra-vocab-memory-design-101.json",
-    "implementation": "analysis/bw1000/reviews/astra-vocab-design-implementation-101.json",
+    "state": "CPU360_414_PASS_PENDING_UNIQUE_GPU_COMPONENT",
+    "updated_at_utc": "2026-10-26T01:46:56.228908+00:00",
+    "source_producer": "evidence/bw1000/head-and-raw-ccl/Kimi-vocab-TP16-component-private-r9176/producer-source-r9176.json",
+    "source_producer_SHA256": "bff8f7db9610a4fb6af670342b3b3210dd5a48b1579ccbf540ae563d6e216811",
+    "manifest_SHA256": "4935ad92fed1ab12ff49eba7fd9918ee51b77e6f672b9f42a3dcb76ec6989ff4",
+    "resource": {
+      "parent": "910380",
+      "nodes": [
+        "a14r2n08",
+        "a14r2n09"
+      ],
+      "DCU_pernode": 8,
+      "totalDCU": 16,
+      "CPU_pernode": 64,
+      "memMiB_pernode": 128000,
+      "hard_seconds": 1200,
+      "per_fresh_process_inner_seconds": 300
+    },
     "GPU_started": false,
-    "Model_memory_saving_proven": false
+    "test": "TP16 BF16 fullvsColumnParallelshard/fullgather; M1/4/8/16/32/64 ABBA; dual thenfreshfullonly/shardonly",
+    "CPU_weight_source": "actualcheckpoint lmhead, syntheticidenticalhidden, notModeltaskquality",
+    "B_H2D_bytes_per_owner": 146800640,
+    "full_H2D_bytes_per_owner": 2348810240,
+    "Model_memory_saving_proven": false,
+    "actualcomponentmemoryproof_pending": true,
+    "no_bitidentity_gate": true,
+    "Model_adoption": "Conditional actualcomponent/link/loader/nofullGPUstaging and allowner4GiBgate; do notenableunsupportedDualTP16flag1",
+    "protected": [
+      "910384",
+      "910375.727",
+      "910381.487",
+      "910371.541",
+      "910374.1065"
+    ]
   },
   "current_Deep_owner_prefill_actual": {
     "GPU": "910374.1065",
@@ -3645,5 +3673,50 @@
     "Model_next": "Same16cards C32M16 newraggedON vsC32M32 newraggedON; one load real32 EOS, no oldOFF/M8 repeat; source/CPU/component qualification beforeGPU",
     "parallel_profile": "Existing lightweight owner event API if linked; else minimal <=2HOST singlecall instrumentation; no giant activation traces/no purebusy claim fromstreamelapsed",
     "GPU_started": false
+  },
+  "current_raw_CCL_allreduce": {
+    "work_item": "raw-ccl-allreduce-baseline",
+    "owner": "/root/kimi_state_only_replay_93",
+    "state": "CPU3491_PASS_GPU_DRIVER_PENDING",
+    "updated_at_utc": "2026-10-26T01:46:56.228908+00:00",
+    "CPU_actual": "910373.3491",
+    "source_producer": "evidence/bw1000/head-and-raw-ccl/CCL-raw-AR-private-r9176/producer-CPU-r9176.json",
+    "GPU_started": false,
+    "scope": "ActualfixedInfiniCCL rawBF16/F32 AR, noLMwrapper/Model/weights/F64",
+    "sizes_bytes": [
+      229376,
+      1048576,
+      16777216,
+      67108864
+    ],
+    "measurement": "Outofplace expected16rank sum136; fulloutputfinite and inputreadonly; stream/wall/enqueue, actualnetworkcounters; noModelgainclaim",
+    "GPU_claim": "Separate exactmanifest/controller required beforelaunch"
+  },
+  "current_Kimi_draft_needed_prefix": {
+    "work_item": "kimi-draft-needed-prefix",
+    "owner": "/root/kimi_state_only_replay_93",
+    "state": "SOURCE_PREPARATION_NO_GPU",
+    "updated_at_utc": "2026-10-26T01:46:56.228908+00:00",
+    "source_findings": {
+      "file": "Kimi-modern-PP4-cap32-private-r9145b/batched_query_r9142.py",
+      "SHA256": "643a0f23182e9bf7b73a96f91db95cbbb49f9cbcd13c95b9d957ad67b6931505",
+      "Ks_currently": "Validated butunused; headall7positions andselector7 thenworkerslice",
+      "worker": "Kimi-modern-PP4-cap32-private-r9145b/batch_draft_worker_r9128.py",
+      "worker_SHA256": "09251737c30728c778711e49fa4087af3b7f973025b98aa0bf45a4622f0f1a71"
+    },
+    "single_change": "Keep8position transformer/attention/context/masks unchanged; headonly firstmaxKs candidates andprefixselectorloop; variableB×Kmax return withperrequestslice",
+    "test": "Actualdraft/head oneLoad C1..32 K1/3/7+raggedKs warmABBA; eventcontext/layers/head/selector andfullwall, semanticacceptance/qualitylater nottokenidentitygate",
+    "resource_proposal": {
+      "parent": "910371",
+      "node": "a02r3n15",
+      "cards": 1,
+      "CPU": 8,
+      "memoryMiB": 65536,
+      "max_seconds": 900
+    },
+    "GPU_started": false,
+    "wholequery7x_gain_claim": false,
+    "future_followup": "Onlyafterprefixgain, investigate appendprojectedcontextcache withrowwiseprojection/norm proof; notblindattentionKVsemantics change",
+    "protected_live_draft": "910371.541 n07, do notmodify/stop"
   }
 }
