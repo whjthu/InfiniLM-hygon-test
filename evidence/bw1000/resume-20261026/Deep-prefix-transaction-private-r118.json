@@ -1,0 +1,401 @@
+{
+  "schema": 1,
+  "card": "D115A",
+  "revision": "r118",
+  "UTC": "2026-10-26T22:46:57.398900+00:00",
+  "decision": "STOP_CURRENT_DSO_ATOMIC_PREFIX_API_MISSING; SYMBOLIC_CONTRACT_EXPRESSIBLE_ONLY",
+  "scope": "Incremental CPU accepted-prefix contract and bounded oracle only; no MTP implementation, checkpoint-key reinventory, native math, compilation, loading, or performance test.",
+  "inputs": [
+    {
+      "path": "C:\\Users\\WangHaojie\\.codex\\visualizations\\2026\\10\\12\\01a130bd-3b97-73c2-8ecf-eda5151f1ba7\\astra-review-115-current.json",
+      "SHA256": "5b5a91b011d3c28e29dca102a1e0344501bd5aed2e7ed8b70368eb8a94a2636c"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\Deep-MTP-feasibility-r9287.json",
+      "SHA256": "14e009f91f31fecb047a873a8f2b74335fb65cba348c455b19c6bbc293e5e4bc"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\Deep-MTP-audit-source-bundle-r9287.json",
+      "SHA256": "9854c9b6bb3412dd5ee6cddee9e8bf6d0607db011cbef4896ddd62549b499c13"
+    }
+  ],
+  "policies_read": [
+    "InfiniLM-hygon-test/AGENTS.md",
+    "coordination/PROTOCOL.zh-CN.md",
+    "coordination/ASTRA_REVIEW.zh-CN.md",
+    "coordination/QUALITY_POLICY.zh-CN.md"
+  ],
+  "incremental_findings": [
+    "Length truncation fails even at K1: past128 verify positions128/129 overwrites ring0/1; accepting only anchor must retain old ring1 bytes and validity. Compressor future scores, new compressed/key entries, selection and revisions also cannot be repaired by length alone.",
+    "Each HCA/CSA writes ring and commits compressor(s) inside attention before decoder FFN completes. Any later layer/FFN/head failure can leave earlier caches advanced. Existing permodule poison blocks reuse; it is fail-stop, not rollback.",
+    "C4Indexer owner/revision protects an individual pending, but revision is global and increments on full commit. It does not provide a model-wide row transaction or invalidation spanning43 layers. Current reset clears all rows; per-row cancellation/reuse needs a new generation contract.",
+    "Constant-history-size transaction is expressible with deferred overlays, accepted projected-score slices and compressed-boundary filter. It is unavailable through existing CAPI/attention/decoder methods. No native atomic43-state proof was attempted or claimed.",
+    "Two-position verification fails both original and smallT allselected guards since each request.tokens=2. Charge query projection/quantization, index score/TP reduction/topk plus normal compressors for all21 CSA layers. Also current C4 tile projection guard requires requests.size()==tokens and tokens==1 per request, so that path cannot be inherited."
+  ],
+  "two_position_contract": {
+    "entry": "Target cache past=P; current target-generated anchor is atP; draft proposal atP+1 comes from MTP(previous target residual,anchor). Never substitute normalized4096 hidden for four-stream residual.",
+    "verify": "One tentative target call [anchor,draft], logical positions[P,P+1], both target logits/greedy IDs and both [4,4096] residuals. proposal is compared with target logits after anchor; replacement/bonus drawn from the appropriate current target distribution.",
+    "accept0": "Commit m=1 input (anchor) at all43 layers; discard proposal state; emit replacement from logits(anchor), unless terminal policy stops. No additional target replay is allowed in speed-capable path.",
+    "accept1": "Commit m=2 inputs; emit accepted proposal and, if nonterminal, bonus next anchor from logits(proposal). Terminal accepted EOS emits no bonus.",
+    "zero_input_abort": "Cancellation/prepublication error commits m=0 and emits nothing; this is distinct from accept0 drafts, which commits anchor m=1.",
+    "EOS": "Known EOS anchor short circuits before draft/verify. Rejected EOS proposal is ignored. Accepted EOS proposal stops after prefix2. EOS replacement from first logit commits only anchor prefix1. Terminal row release may skip MTP catchup; it must be explicit, not silently treated as aligned live state.",
+    "cap": "Cap remaining1 emits only first permitted token. If proposal would be accepted but no budget for bonus, skip bonus and release terminal row; retain/report cap, never label it EOS."
+  },
+  "per_layer_write_set": {
+    "all43": "Physical row+generation, model epoch/revision; wrapper/decoder/attention lengths; raw ring positions(P+t)%128 for t<m and corresponding written flags. Tentative KV and ring overlay never touch published base.",
+    "SWA_layers": [
+      0,
+      1
+    ],
+    "CSA_layers": [
+      2,
+      4,
+      6,
+      8,
+      10,
+      12,
+      14,
+      16,
+      18,
+      20,
+      22,
+      24,
+      26,
+      28,
+      30,
+      32,
+      34,
+      36,
+      38,
+      40,
+      42
+    ],
+    "HCA_layers": [
+      3,
+      5,
+      7,
+      9,
+      11,
+      13,
+      15,
+      17,
+      19,
+      21,
+      23,
+      25,
+      27,
+      29,
+      31,
+      33,
+      35,
+      37,
+      39,
+      41
+    ],
+    "CSA_compressors": "For D512 and D128, persist only score rows t<m to slot(row*2+floor((P+t)/4)%2)*4+(P+t)%4. Preserve other old slots. Keep boundary outputs only when t<m and(P+t+1)%4==0. compressed/key length=floor((P+m)/4). Store packed key128+float scale4 only for accepted boundaries; discard future written flags. last_selection retains the last committed query selection, or an explicitly specified accepted-prefix vector.",
+    "HCA_compressor": "Persist D512 score rows t<m to row*128+(P+t)%128. Keep boundary outputs only when t<m and(P+t+1)%128==0. compressed length=floor((P+m)/128).",
+    "metadata": "Every pending carries model owner, owner-thread/rank identity, parent epoch, row generation, row past and exact proposal count. Seal validates all43 plans and every participating owner before publication; duplicate, foreign, stale, cross-generation or incomplete cohort is rejected before any write.",
+    "failure_atomicity": "Required future design stages validated new packed slots/row compressor states as immutable overlays, synchronizes all owner streams, then a shared coordinator publishes one epoch after all8 owners acknowledge43-layer readiness. No next forward/emit before all publish acknowledgements. In-place writes require exact undo bytes or page COW before mutation. Current tensor-only cache access cannot do this. GPU/device loss after publication remains fail-stop; oracle does not prove recovery.",
+    "reset_cancel": "Abort invalidates model epoch and pending handles; row reset increments generation before row reuse and clears all43 row state+MTP row state. Existing whole-model reset is the only available fallback and disrupts other rows; not a proposed serving solution."
+  },
+  "boundary_examples": [
+    {
+      "P": 2,
+      "positions": [
+        2,
+        3
+      ],
+      "accept0_m1": "No C4 boundary accepted; prepared boundary at position3 discarded.",
+      "accept1_m2": "C4 entry0 accepted."
+    },
+    {
+      "P": 3,
+      "positions": [
+        3,
+        4
+      ],
+      "accept0_m1": "C4 entry0 accepted; score at4 discarded.",
+      "accept1_m2": "C4 entry0 plus next partial group score at4."
+    },
+    {
+      "P": 126,
+      "positions": [
+        126,
+        127
+      ],
+      "accept0_m1": "No HCA entry0; rejected boundary at127 discarded.",
+      "accept1_m2": "HCA entry0 accepted."
+    },
+    {
+      "P": 127,
+      "positions": [
+        127,
+        128
+      ],
+      "ring_slots": [
+        127,
+        0
+      ],
+      "accept0_m1": "Keep old ring0; commit HCA entry0 and C4 entry31.",
+      "accept1_m2": "Replace ring0 and begin next partial groups."
+    },
+    {
+      "P": 128,
+      "positions": [
+        128,
+        129
+      ],
+      "ring_slots": [
+        0,
+        1
+      ],
+      "accept0_m1": "Replace ring0 only; old ring1 remains authoritative."
+    },
+    {
+      "P": 2047,
+      "positions": [
+        2047,
+        2048
+      ],
+      "indexer": "Visible compressed counts512/512; still full indexer since tokens==2. AtP2050 second query sees513 and real topk pruning matters."
+    }
+  ],
+  "bytes_per_row": {
+    "units": "bytes per active physical row per TP owner; not multiplied by8 for per-device fit",
+    "SWA_count": 2,
+    "CSA_count": 21,
+    "HCA_count": 20,
+    "per_layer_ring_two_overwritten_logical_payload": 1168,
+    "ring_all43_two_logical_payload": 50224,
+    "ring_all43_retained_BF16_KV_alternative": 88064,
+    "CSA_per_layer_score512_two": 8192,
+    "CSA_per_layer_score128_two": 2048,
+    "CSA_all21_retained_projection_scores": 215040,
+    "HCA_per_layer_projection_scores_two": 4096,
+    "HCA_all20_retained_projection_scores": 81920,
+    "CSA_per_layer_base_compressor_state512": 32768,
+    "CSA_per_layer_base_compressor_state128": 8192,
+    "HCA_per_layer_base_compressor_state512": 262144,
+    "all43_existing_compressor_state": 6103040,
+    "CSA_all21_two_selection_rows_topk512_int64_upper": 172032,
+    "all43_new_boundary_latents_BF16_upper": 41984,
+    "CSA_all21_new_boundary_index_packed_upper": 2772,
+    "target_four_stream_residual_two_positions": 65536,
+    "greedy_ids_two_positions_int64": 16,
+    "CAPI_float32_host_logits_two_positions_if_retained": 1034240,
+    "one_ring_page_block256_stride": 149760,
+    "all43_one_shadow_ring_page_each_upper": 6439680,
+    "notes": [
+      "584 is physical logical-entry payload from page layout formula, not a promise that bytes are contiguous; page padding and written flags must be preserved.",
+      "Projected-score layout comes from local compressor substrate SHA listed below, not newly rebound current DSO object. Actual live allocation and compositor ABI remain unqualified.",
+      "Existing prepare clones full all-row compressor state once per compressor. Additional full-state copies sum6103040 bytes per row; do not count old base references as new allocations.",
+      "An optimized overlay could retain two projection records and apply accepted writes only, avoiding full-state-per-position snapshots. This requires a new row-slice persist operation or preallocated COW state; current commit swaps full next_state.",
+      "Ring overlay gather is a new interface. Retaining BF16 KV alone does not restore physical packed bytes after in-place mutation. Native slot packing and COW ownership need qualification.",
+      "Upper sums exclude tensor allocator granularity, compressed-cache page COW, rank votes/fences, MTP weights/workspaces, attention banks/full index scores/topk temporaries, host vectors, and driver/CCL memory. No fit or peak bound claim."
+    ],
+    "retained_payload_upper_using_BF16_KV_and_greedy_ids": 667364
+  },
+  "catchup_and_calls": [
+    {
+      "case": "nonterminal reject accept0",
+      "target_verify_calls": 1,
+      "target_input_positions": 2,
+      "target_replay_calls": 0,
+      "mtp_proposal_calls": 1,
+      "additional_mtp_catchup_calls": 0,
+      "mtp_input_positions": 1,
+      "max_new_emitted_tokens": 1
+    },
+    {
+      "case": "nonterminal accept1",
+      "target_verify_calls": 1,
+      "target_input_positions": 2,
+      "target_replay_calls": 0,
+      "mtp_proposal_calls": 1,
+      "additional_mtp_catchup_calls": 1,
+      "mtp_input_positions": 2,
+      "max_new_emitted_tokens": 2,
+      "detail": "Before next proposal, consume accepted draft with target residual after anchor to advance MTP state; then next proposal consumes bonus anchor with target residual after accepted draft. Could pack these2 MTP inputs into one future call, but still charges2 positions and requires aligned both residuals."
+    },
+    {
+      "case": "accepted draft EOS / replacement EOS / cap release",
+      "target_verify_calls": 1,
+      "target_input_positions": 2,
+      "target_replay_calls": 0,
+      "mtp_proposal_calls": 1,
+      "additional_mtp_catchup_calls": 0,
+      "detail": "No next live cycle; terminal state released explicitly. Actual useful emitted count can be below1+acceptance."
+    },
+    {
+      "case": "known EOS anchor",
+      "target_verify_calls": 0,
+      "mtp_proposal_calls": 0,
+      "additional_mtp_catchup_calls": 0
+    },
+    {
+      "case": "diagnostic restore+accepted replay fallback",
+      "target_verify_calls": 1,
+      "additional_target_replay_calls": 1,
+      "detail": "Replays1 or2 accepted inputs after exact snapshot restoration; correctness diagnostic only, likely destroys K1 call reduction. Full history replay at each cycle is STOP."
+    }
+  ],
+  "oracle": {
+    "path": "C:\\Users\\WangHaojie\\.codex\\visualizations\\2026\\10\\12\\01a130bd-3b97-73c2-8ecf-eda5151f1ba7\\deep_prefix_oracle_result_r118.json",
+    "SHA256": "1711356de8b72c3f1c16716b4bd8ed884c5cd0661aabfabcb133596fd90f9c00",
+    "source": "C:\\Users\\WangHaojie\\.codex\\visualizations\\2026\\10\\12\\01a130bd-3b97-73c2-8ecf-eda5151f1ba7\\deep_prefix_oracle_r118.py",
+    "source_SHA256": "7ce716e3d7c80a4171e70b42bbf422d40239f6d66c72be34d33098f0d520d748",
+    "status": "PASS_SYMBOLIC_ONLY_NOT_NATIVE",
+    "prefix_cases": 54,
+    "layer_prefix_comparisons": 2322,
+    "additional": [
+      "ragged mixed accept0/1",
+      "EOS accepted/rejected/replacement",
+      "terminal anchor short circuit",
+      "cancel abort",
+      "row reset generation",
+      "foreign pending",
+      "duplicate consumed",
+      "failure before publish at layers0/1/21/42",
+      "counterexample length-only truncate"
+    ],
+    "limits": [
+      "Opaque tags do not compute attention, compressor pooling, BF16 rounding or native topk.",
+      "CPU object publication does not prove eight-owner GPU failure atomicity.",
+      "Reference prefix construction is test-only and is not proposed runtime history replay."
+    ]
+  },
+  "source_evidence": [
+    {
+      "path": "/refactor/candidates/deep-c4-projection-model-r5920/incoming/deepseek_v4_paged_latent_cache_public.cpp",
+      "SHA256": "e7ca7d495c6bed852158cf740a2ab3e846d2922e6de0043363ae7c860adf24d2",
+      "anchors": [
+        {
+          "line": 16,
+          "text": "PagedLatentCache::PagedLatentCache(rt::Runtime&r,size_t pages,size_t block):owner_(r.shared_from_this()),pages_(pages),block_(block),stride_((block*584+575)/576*576){"
+        },
+        {
+          "line": 25,
+          "text": "void PagedLatentCache::store(rt::Runtime&r,const rt::Tensor&slots,const rt::Tensor&values){"
+        },
+        {
+          "line": 33,
+          "text": "void PagedLatentCache::reset(rt::Runtime&r){r.assertOwnerThread();if(owner_.get()!=&r||r.isGraphRecording())throw std::invalid_argument(\"DeepSeek native cache reset owner differs\");r.syncStream();std::fill(written_.begin(),written_.end(),0);}"
+        }
+      ]
+    },
+    {
+      "path": "/refactor/candidates/deep-tailSUM-r7212/incoming/deepseek_v4_paged_latent_cache.hpp",
+      "SHA256": "b2962a35ead6d691f190711bae0ee63816f8fae74a6f9ea52a59a3eae19f7761",
+      "anchors": []
+    },
+    {
+      "path": "/refactor/candidates/deep-tailSUM-r7212/incoming/deepseek_v4_c4_indexer.hpp",
+      "SHA256": "b97c99c824fdb46a55fc90295c03cb7e2e588bd6d0175f55846facba10dbc2b6",
+      "anchors": []
+    },
+    {
+      "path": "/refactor/candidates/deep-c4-projection-model-r5920/incoming/deepseek_v4_c4_indexer_allselected_r813.cpp",
+      "SHA256": "5f67c7cdc43fabe7cd798d6feca5304f295076a6c8251a27d2429911289370b9",
+      "anchors": []
+    },
+    {
+      "path": "/refactor/candidates/deep-attention-inner-r9193/src/deepseek_v4_csa_attention_batch_r784.cpp",
+      "SHA256": "2611335a7d57ee12411f3d7d5f076bf138f6db17d8607fec184e8d209bff8c8c",
+      "anchors": [
+        {
+          "line": 22,
+          "text": "void CsaAttention::reset(rt::Runtime&r){r.assertOwnerThread();if(&r!=owner_||r.isGraphRecording())throw std::logic_error(\"DeepSeek CSA reset owner differs\");cache_->reset(r);compressor_->reset(r);indexer_->reset(r);last_selection_.clear();poisoned_=false;std::fill(lengths_.begin(),lengths_.end(),0);}"
+        },
+        {
+          "line": 31,
+          "text": " auto pending=compressor_->prepare(r,hidden,positions,compress_requests);"
+        },
+        {
+          "line": 32,
+          "text": " auto index_pending=indexer_->prepare(r,hidden,prep.q_lora,positions,compress_requests);"
+        },
+        {
+          "line": 82,
+          "text": " auto commit=work.alloc({commit_rows.size(),512},rt::DataType::kBFloat16);ex::submit<infini::ops::IndexSelect>(r,infini::ops::IndexSelect::DefaultConfig(r.device().type()),prep.kv,device_ids(commit_rows),int64_t{0},commit);cache_->store(r,device_ids(commit_slots),commit);compressor_->commit(r,pending);indexer_->commit(r,index_pending);last_selection_=index_pending.indices;for(auto request:requests)lengths_[request.row]=request.past+request.tokens;inner_profile.mark(6);r.syncStream();inner_profile.finish_after_original_drain();return projected.hidden;}catch(...){poisoned_=true;try{r.syncStream();}catch(...){std::terminate();}throw;}"
+        }
+      ]
+    },
+    {
+      "path": "/refactor/candidates/deep-attention-inner-r9193/src/deepseek_v4_swa_attention.cpp",
+      "SHA256": "c0717cd71dad5b60a0a06e082f29a992147a5363c0516b913a80e90982f16b14",
+      "anchors": [
+        {
+          "line": 19,
+          "text": "void SwaAttention::reset(rt::Runtime&r){r.assertOwnerThread();if(&r!=owner_||r.isGraphRecording())throw std::logic_error(\"DeepSeek SWA reset owner differs\");cache_->reset(r);std::fill(lengths_.begin(),lengths_.end(),0);}"
+        },
+        {
+          "line": 40,
+          "text": " auto commit=work.alloc({commit_rows.size(),512},rt::DataType::kBFloat16);ex::submit<infini::ops::IndexSelect>(r,infini::ops::IndexSelect::DefaultConfig(r.device().type()),prep.kv,device_ids(commit_rows),int64_t{0},commit);cache_->store(r,device_ids(commit_slots),commit);for(auto request:requests)lengths_[request.row]=request.past+request.tokens;inner_profile.mark(6);r.syncStream();inner_profile.finish_after_original_drain();return projected.hidden;"
+        }
+      ]
+    },
+    {
+      "path": "/refactor/candidates/deep-attention-inner-r9193/src/deepseek_v4_hca_attention_batch_r784.cpp",
+      "SHA256": "98c7932d23e5afd1eaed403ccdfaa81a2ce27fa69a6430b14ea4426d688e681c",
+      "anchors": [
+        {
+          "line": 21,
+          "text": "void HcaAttention::reset(rt::Runtime&r){r.assertOwnerThread();if(&r!=owner_||r.isGraphRecording())throw std::logic_error(\"DeepSeek HCA reset owner differs\");cache_->reset(r);compressor_->reset(r);poisoned_=false;std::fill(lengths_.begin(),lengths_.end(),0);}"
+        },
+        {
+          "line": 30,
+          "text": " auto pending=compressor_->prepare(r,hidden,positions,compress_requests);"
+        },
+        {
+          "line": 73,
+          "text": " auto commit=work.alloc({commit_rows.size(),512},rt::DataType::kBFloat16);ex::submit<infini::ops::IndexSelect>(r,infini::ops::IndexSelect::DefaultConfig(r.device().type()),prep.kv,device_ids(commit_rows),int64_t{0},commit);cache_->store(r,device_ids(commit_slots),commit);compressor_->commit(r,pending);for(auto request:requests)lengths_[request.row]=request.past+request.tokens;inner_profile.mark(6);r.syncStream();inner_profile.finish_after_original_drain();return projected.hidden;}catch(...){poisoned_=true;try{r.syncStream();}catch(...){std::terminate();}throw;}"
+        }
+      ]
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\Deep-C4-smallT-private-r9252\\deep_c4_smallt_r9252.cpp",
+      "SHA256": "7f2ffe0395475a98be8723bf434aa9f4944cb5336656b6d57de0f93fc6d1187e",
+      "anchors": [
+        {
+          "line": 39,
+          "text": " bool all_selected=(policy&1)&&((tokens>=8&&tokens<=64&&std::all_of(requests.begin(),requests.end(),[&](const auto&q){return q.tokens==1&&(q.past+1)/4<=topk_;}))||small_c4_r9252::eligible(smallt_policy_r9252.load(std::memory_order_relaxed)==1,tokens,requests,topk_));"
+        },
+        {
+          "line": 75,
+          "text": "void C4Indexer::commit(rt::Runtime&r,Pending&pending){check_owner(r);if(!ready_||poisoned_||pending.owner!=this||pending.revision!=revision_)throw std::invalid_argument(\"DeepSeek C4 indexer stale/foreign transaction\");try{if(!pending.slots.empty())cache_->store(r,pending.slots,pending.new_keys);compressor_->commit(r,pending.compression);for(auto request:pending.requests)lengths_[request.row]=request.past+request.tokens;++revision_;pending.owner=nullptr;r.syncStream();}catch(...){poisoned_=true;try{r.syncStream();}catch(...){std::terminate();}throw;}}"
+        }
+      ]
+    }
+  ],
+  "substrate_only_sources": [
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\deep_compressor_position_proof_r8726.cpp",
+      "SHA256": "3868a69fe0bf3b712abda229fa987de6e4223d0c943ab2e2aad8f30432e3a02c",
+      "qualification": "Local source layout/algorithm substrate only; this audit does not establish current linked object identity."
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\v4_compress_public_kernel.cu",
+      "SHA256": "a5ac614faed9f748465bf921b8d2088895f47da75e40131f208cc6d0378a2489",
+      "qualification": "Local source layout/algorithm substrate only; this audit does not establish current linked object identity."
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\deepseek_v4_native_routed_decoder_r20.cpp",
+      "SHA256": "8832c1d3f6de57d8a6b583f3f8104efb261d7968805386a80ad63b50a16cee1c",
+      "qualification": "Local source layout/algorithm substrate only; this audit does not establish current linked object identity."
+    }
+  ],
+  "STOP_gap": "No new native work authorized. Existing DSO cannot defer/restore complete host validity and private lengths/revisions, cannot gather from tentative ring overlays, cannot atomically select prefix across43 layers/8 owners, and cannot return target hidden/all-position outputs through current CAPI. CPU symbolic PASS does not close these gaps. Root should park MTP implementation/GPU pending a deliberate source-level investment decision.",
+  "performance": "UNKNOWN. Required measured cyclecost < (1+actual_acceptance)*matched_ARstepcost, counting MTP proposal+accepted-token catchup, full21-layer verify indexer, overlays/fences/commit and terminal/ragged behavior. No2x claim; no15TPS prediction; no multiplication of per-layer component gains.",
+  "execution": {
+    "GPU": 0,
+    "SSH": 0,
+    "Slurm": 0,
+    "weights": 0,
+    "compile": 0,
+    "dlopen": 0,
+    "upload": 0,
+    "Git": 0,
+    "repo_mutations": 0,
+    "oracle_local_CPU_only": true
+  }
+}

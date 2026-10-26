@@ -1,0 +1,145 @@
+{
+  "schema": 1,
+  "status": "FROZEN_INCREMENTAL_CPU_STOP_TOTAL_LIVE_BOUND_UNKNOWN",
+  "review_action": "Astra115 K115B ONE_CPU_CLOSURE_GO; TP32_MODEL_NO_GO",
+  "review_SHA256": "5b5a91b011d3c28e29dca102a1e0344501bd5aed2e7ed8b70368eb8a94a2636c",
+  "incremental_over_r117": true,
+  "decision": "STOP this closure without another remote probe. Installed generic implementation1 has retained generated-TU/dependency/object/link mapping. Current flags reach an unbound independent grouped-prefill helper at T>=512, but clearing existing grouped bit in a future private HOST batch entry can avoid that helper without new GPU math. Current r9293 does not expose this as an environment/config switch. All-generic total simultaneously-live and driver margin remain unclosed; no TP32 GPU admission.",
+  "execution": {
+    "SSH_readonly_calls": 1,
+    "remote_script_text_bytes_read": 662011,
+    "GPU": 0,
+    "Slurm": 0,
+    "weights": 0,
+    "compile": 0,
+    "dlopen": 0,
+    "Runtime_create": 0,
+    "new_stages": 0,
+    "Git": 0,
+    "repo_mutations": 0,
+    "implementation_changes": 0,
+    "second_probe": 0
+  },
+  "installed_SDK_generic_impl1": {
+    "status": "RETAINED_BUILD_DEPENDENCY_OBJECT_LINK_MAPPING_FOUND_NO_EXECUTION",
+    "installed_library": "install/hygon-kimi-5f91ad7-r3672/lib/libinfiniops.so",
+    "installed_library_bytes": 55557816,
+    "installed_library_SHA256": "6d5a6204f7eef70e84deb9cc737a36c6ae2c1fbc75a0f70645557c8441ed85ca",
+    "original_build_receipt_SHA256": "4ff09088a653ec288a405a699b02c029c7bd9bfbc6ac22454a06da0b50c186e3",
+    "generated_TU": "candidates/rebased-5f91ad7-r3668/Ops/Kimi/InfiniOps/generated/src/operator_call_instantiations_6.cc",
+    "generated_TU_SHA256": "7c053ebc70475f45516741903f59223e351978b1f1c7432f01be650746d676a9",
+    "object": "build/ops-kimi-5f91ad7-r3672/src/CMakeFiles/infiniops.dir/__/generated/src/operator_call_instantiations_6.cc.o",
+    "object_SHA256": "ef3d4cdb66c7dc9680489abd3bc04e26c2894d22cad3c7b821d4c734f98788b5",
+    "object_bytes": 933136,
+    "recorded_depfile_SHA256": "332e6340e4977326f33f1e159a7d83f0ff6b55a46dabf2edea9d74bfe4a8b508",
+    "link_command_SHA256": "5c094f7e720ef9ccd663de80f96800b617f39bca84b9751266690353ea00c04f",
+    "evidence": [
+      "Generated TU includes native/cuda/hygon/ops/fused_moe_mxfp4/kernel.h and explicitly instantiates FusedMoeMxfp4 Call/Make/CanMake/DefaultConfig and OperatorFactory methods.",
+      "Actual retained .o.d explicitly names that generated TU, base/fused_moe_mxfp4.h, base/moe_compute_common.h, handle.h, operator.h, Hygon kernel.h, generic CUDA kernel.cuh and kimi_mxfp4_dispatch_r330.cuh.",
+      "CMake link.txt includes operator_call_instantiations_6.cc.o in libinfiniops.so. Freshly hashed installed DSO exactly matches the original successful build receipt and current r9293 library pin.",
+      "Freshly read installed base header SHA bd9c2d4e matches its source; Hygon kernel SHA bd495744 and generic kernel e33d9e0a and dispatch27b726a6 also match the previously retained r8669u sources."
+    ],
+    "implementation": "Hygon implementation1 inherits implementation0 and overrides ParallelRoutes=true. DispatchR330 staticI384 guard misses I96 and invokes dynamic generic W13/W2Routes16. Base dimensions I96/H3584 and packed scale stride3 are valid. The old I192 private provider is not used.",
+    "limits": "This closes the previously absent retained TU-to-object-to-link identity using original .o.d and current stable source hashes. No fresh compiler invocation or original per-header-at-compile content manifest was created; it is not a new numerical, canary, latency or actual32rank execution qualification. Current source/object hashes and original recorded dependencies are reported separately."
+  },
+  "WORKSPACE_OFF_and_generic_transient": {
+    "private_constructor": "Existing serving_r4665::allocate_workspace returns false for unset/0. MoE ctor then owns BF16[1,16,384]=12288B perMoE, 92 layers=1130496B. I96 misses all privateI192/I384 consumers, so no source need for full19148544B private scratch on that route. This is a future immutable configuration, not a running r9293 change.",
+    "SDK_formula": "base/fused_moe_mxfp4.h declares transient activated workspace=routeCount()*localI*input.element_size()=T*16*96*2=3072*T bytes for BF16.",
+    "declared_generic_scratch_bytes": {
+      "T8": 24576,
+      "T16": 49152,
+      "T64": 196608,
+      "T512": 1572864,
+      "T1024": 3145728
+    },
+    "allocation_lifecycle": "In eager submit.hpp:152-154 RuntimeWorkspaceHandle is stack scoped; Operator::Call:481-504 obtains a workspace lease only after selected op reports required size; cached op retains submission fields rather than lease. Runtime.allocateMemory returns shared Memory whose destructor calls releaseDeviceMemory. Same-owner release returns to the stream-owned ReusableMemoryPool; foreign-owner release first synchronizes. Thus the generic declared workspace is per invocation, not92 permanent per-layer buffers.",
+    "source_SHA256": {
+      "Model_submit.hpp": "8c0bd70a372b0017bca78e54f037493fe79918f97b5fed6d885f5b5d8eb0c20d",
+      "SDK_operator.h": "db33b09670ee6e4c5d503a1d117ea6920e8020fa7bf0800c6b811c10a429a637",
+      "SDK_handle.h": "b248f1bd3304befe0a108b7b5c650e40d1523796c05969f5cbcc93145d670426",
+      "Runtime_runtime.cc": "a4742905290618c740bc81f4e0316b289de86819ece50d7a95da62652bb0a4e9",
+      "Runtime_memory.cc": "762eb19d3c0b9ec27c87fe512d53b2c2b264851144a0280b904f819e69638479"
+    },
+    "limits": "Requested bytes differ from allocator charged/retained blocks. Per-call reuse does not prove whole-Model peak: other tensors, retained batch state, other Ops workspaces, CCL and allocator caching overlap. The current Runtime source was read and SHA recorded; no new runtime object or memory measurement was produced."
+  },
+  "independent_grouped_prefill_gap": {
+    "status": "SOURCE_TO_CURRENT_DSO_NOT_CLOSED_STOP",
+    "actual_branch": "kimi_moe_batch_r9129.cpp:381-384 takes modern_grouped_mxfp4_owned for routed_input T>=512 with qualify_grouped_prefill; genericI96 scratch formula therefore does not bound this branch.",
+    "identified_provider": "r9183 actual retained link command uses -L/refactor/candidates/models-5f91ad7-r3675/Kimi/helpers -lkimi_grouped_prefill. It is an independent helper DSO, not the SDK FusedMoeMxfp4 instantiation or a host cache grouped entry.",
+    "bounded_read_result": "Named host-object-cache manifest had zero source names containing grouped. The single remote read was consumed on SDK metadata and did not obtain the separate helper DSO hash, its exact successful build receipt or helper HOST/GPU input mapping. No second probe is issued.",
+    "local_retained_source": "latest-experimental-source-r3696/candidates/models-5f91ad7-r3675/Kimi/helpers/src/kimi_grouped_fused_fp32_runtime_r21.cpp",
+    "local_source_SHA256": "596b5fe50e1c3abecc9b28ee08694f3cccf75c7b51255002d23ce05ca9f04a2c",
+    "local_build_recipe": "build_tip_models_r3675_inside.sh compiles modern_kimi_grouped_fused_fp32_kernels_r21.cu to helpers/grouped.o and links the HOST r21 source with runtime04a6 and SDK6d5a. Its final build receipt records fresh_helpers/mapped_libraries. The recipe alone does not prove the current helper DSO equals those source inputs.",
+    "conditional_retained_source_behavior": "Owned wrapper passes mode2 with supplied owner Runtime. Mode2 groups expert rows rounded to8, at most32 experts/plan; all dequant/gather/GEMM/activation/contribution arrays remain in Work.held until Work destructor sync/drain. It uses FP32 dequant operands and FP32 outputs, not the later adaptive/BF16 helper files found elsewhere. Do not substitute a newer helper source based on similar names."
+  },
+  "conditional_prefill_known_array_upper_bound_not_current_fit": {
+    "scope": "Arithmetic only for that retained r3675 F32 mode2 source if it were proven current. It excludes gemm/other Op workspace, external/caller tensors, pool charge and driver/CCL. It is an upper bound on the named arrays, not the whole call or Model.",
+    "variables": "R=16*T, H=3584,I=96, max_count<=32. For any plan, count*ceil(expert_rows/8)*8 <= total_actual_routes_in_plan+7*count <=R+224. Hence capacity C<=16*T+224; do not multiply max_count by independently maximal expert row count.",
+    "formula_bytes": "weights<=32*3*I*H*4; row/route+expert metadata<=16*C+128; gxf/go/gu/actf<=4*C*(2*H+3*I); contributions=4*R*H; sum=4*T*H. All these Work-held arrays can overlap. Sequential plans reuse the same arrays; do not multiply by plans or92MoE layers.",
+    "T512_bytes": 508034688,
+    "T512_MiB": 484.4996337890625,
+    "T1024_bytes": 877264512,
+    "T1024_MiB": 836.6246337890625,
+    "micro1_limit": "cap8 physical16/pool17/pages68 remains unchanged. Micro1 bounds number of requests per prefill, not prompt token length; the1024 total-token contract must still cover long prompts. T>=512 enters the separate helper.",
+    "persistent_source_estimate_GiB": 58.906441267579794,
+    "residual_above_4GiB_floor_before_transients_GiB": 1.093558732420206,
+    "conditional_residual_after_T1024_named_arrays_GiB": 0.2765425480902195,
+    "judgment": "Even a helper source match would leave only about0.277GiB from this conservative parameter/cache estimate at the max legal prefill size before all excluded simultaneous live items. This does not establish positive total margin. It does not prove OOM either."
+  },
+  "exact_remaining_STOP_gaps": [
+    "Independent current libkimi_grouped_prefill.so SHA and successful source/HOST/GPU-object receipt are absent from this bounded read; local recipe and r3675 source cannot substitute for current DSO identity.",
+    "Complete simultaneously-live upper bound is absent: grouped GEMM workspace, caller/model activations and tap/rollback retention, load/finalize transient allocations, allocator block charging and CCL/driver charge were not established. Driver peak remains UNKNOWN.",
+    "No H3 rollback implementation, head32 implementation or actual32rank numerical/lifecycle execution has occurred."
+  ],
+  "necessary_HOST_changes_only_no_implementation": [
+    "Future private pair_probe admission to TPnodes4/PP1 and correct H3/cache-budget reporting; leave current native305726/r9293 unchanged.",
+    "batch_state capture/replay H3/QKV1152/projection384 with verified source pool ownership, epochs and retention; rebuild its delta.cpp and worker.cpp consumers together.",
+    "head/stats32 ranks,5120 local vocabulary rows,73400320B parameter and correct CPU row0/2560/5119 digests/global row offsets.",
+    "Immutable frontend/manifest PP1 stage0, representative node0/tp_nodes4, physical16/pool17/pages68 and all5 feature taps; no Runtime/SDK/global guard redesign."
+  ],
+  "no_new_followup_card": "K115B exit condition reached. Preserve TP16PP2; no fastI96 port, projection reconstruction, constructor probe, reserve reduction, second remote probe or automatic extension is proposed. Any later investment requires a separate explicit root decision.",
+  "performance_and_quality": "No performance claim or predicted scaling. No ideal2x, no numerical qualification, no Model fit claim. Token differences permitted per QUALITY_POLICY; no GPU F64.",
+  "raw_evidence": "K115B-SDK-readonly-raw-r118.json; exact remote script read_K115B_SDK_r118.py; hashes and source paths in accompanying r118 index.",
+  "grouped_prefill_optout_local_followup": {
+    "status": "CONDITIONAL_EXISTING_GENERIC_PATH_HOST_WIRING_ONLY_NO_IMPLEMENTATION",
+    "dispatch_source": "MoE source77/87 owns TLS; branch381 requires qualify_grouped_prefill && Hygon && T>=512. worker.cpp979 resets TLS from local_args.kimi_grouped_prefill each owner forward. pair_probe.cpp70 derives that field from flags&1.",
+    "current_r9293": "modern_kimi_batch_prefill_r9122:286-287 hardcodes flags3. Its public ABI has no flags argument; no current environment-only optout. Calling setter outside owner forward does not override worker reset. INFINILM_KIMI_I192_GROUPED controls another TP16 fast branch and does not disable grouped prefill.",
+    "conditional_minimal_HOST_wiring": "In the already-required future private pair_probe TU, pass flags2 instead of3 on batch initial prefill, preserving deferred feedback bit2, full logits, PairDispatch and exact next->prefilled/commit/poison bookkeeping. Use an explicit immutable option if needed; no GPU kernel or SDK rebuild. Do not bypass batch ledger by directly calling lowlevel forward from Python.",
+    "coverage": "At TP32/I96, private TP16/I192 and TP8/I384 branches miss. Clearing grouped bit makes T<=512 choose generic implementation1, and descriptor geometry also permits larger T up to current1024 request limit conditionally. Batched verify/replayT<=64 already misses512 helper threshold even when flags3 remains. No runtime or numerical qualification implied.",
+    "helper_gap_is_not_fundamental_TP32_block": true,
+    "core_working_sets": [
+      {
+        "activated_workspace": 196608,
+        "routed_input_BF16": 458752,
+        "IDs_i32": 4096,
+        "sum_named_bytes": 1122304,
+        "T": 64,
+        "routing_weights_f32": 4096,
+        "routed_output_BF16": 458752
+      },
+      {
+        "activated_workspace": 1572864,
+        "routed_input_BF16": 3670016,
+        "IDs_i32": 32768,
+        "sum_named_bytes": 8978432,
+        "T": 512,
+        "routing_weights_f32": 32768,
+        "routed_output_BF16": 3670016
+      }
+    ],
+    "recurrence": "Each generic call lease releases after enqueue to the same-owner stream pool; do not sum196608 or1572864 across92 layers. Pool charged/retained capacity and simultaneously-live caller tensors remain UNKNOWN. Named sums exclude flattened fullhidden/router/shared/aux/attention and rollback/tap buffers, other Op workspaces and driver/CCL; they are not wholecall peak upperbounds.",
+    "decision": "Helper identity remains a current-flags gap, avoidable conditionally with HOST-only wiring. Even that route has no complete total working-set bound or observed driver peak, so retain STOP/noGPU."
+  },
+  "frozen_at_UTC": "2026-10-26 22:50:21 UTC",
+  "future_minimal_component_source_prerequisites": {
+    "scope": "Future source implementation investment only, not a GPU card or execution authorization. UNKNOWN93layerbudget does not establish physical impossibility of a bounded32owner MoE/KDA component.",
+    "positive_closure_reused": "Retain actualSDK6d5a generatedTU7c053/objectef3d/dep332e/link5c094 chain; no repeated broadUNKNOWN audit is needed before designing the minimal host adapter.",
+    "minimal_source_prerequisites": [
+      "Reuse native CommunicationGroup/Runtime lifetime with4 real nodes*8 owners and globalRankInfo TP32/ranks0..31/PP1. Adapt retained TP16 standaloneMoE host driver to actual32ranks, never fabricate32ranks on8owners.",
+      "Single real-checkpoint MoE layer only: dynamicI96 packed shapes/scales3, same router/shared/replicated projections and nativeBF16 TP allreduce; WORKSPACE_OFF, no I192/I384 fastcall, no global head/full93 construction. ExplicitT8/16/64 fixture and optionalT512 generic flags2 path with fixedshape/route metadata; do not infer fullModel or realarrival speed from component.",
+      "For KDA lifecycle coverage, separate H3 single-layer fixture with physical16/pool17, QKV1152/projection384, validated disjoint read/write pairs, uneven widths, partialaccept/EOS/reset and stale/foreign cases. The batch_state HOST shape/slice consumers delta+worker must be adapted together before replay qualification; a MoE-only pass cannot qualify rollback.",
+      "Bind any new privateHOST adapter source/dependencies/actualobjects and installedSDK before later GPU use. Preserve ownerdrain, actual32normal closes and explicit component memory bound; componentdriver peak stillUNKNOWN until an independently authorized run. No SDK/GPUmath redesign is required for initial genericI96 source plan."
+    ],
+    "separate_gate": "A small component has a separate finite parameter/cache/activation budget. The57.894GiB full93 parameter sum is not its memory requirement and must not be reused to reject it. Conversely a successful component would not close93layer loading/prefill/serving fit."
+  }
+}

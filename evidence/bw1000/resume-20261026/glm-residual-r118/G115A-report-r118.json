@@ -1,0 +1,113 @@
+{
+  "schema": 1,
+  "action": "G115A",
+  "owner": "/root/glm_residual_closure_118",
+  "decision": "CPU_CLOSURE_COMPLETE; ONE_DIAGNOSTIC_SOURCE_BINDING_PLAN; NEW_GPU_NO_GO",
+  "actual_handle": "910376.755 COMPLETED0",
+  "actual_native_SHA256": "c6506898f7d718e7257253b51bf720ff8fc84ed733d9b7306edd989308d37514",
+  "review_SHA256": "5b5a91b011d3c28e29dca102a1e0344501bd5aed2e7ed8b70368eb8a94a2636c",
+  "canonical_SHA256": "540d2616207eac39b5c7e29c6405d71ae304b65698963bfb22a9d9a745f8fd05",
+  "qualification": "Same32 naturalGSM requests repeated2epochs eacharm; syntheticburst0/4/8/12,maxlive16; not64unique,notHTTP.31/32correct eacharm/32naturalEOS/0cap/0unfinished. UsermeanON1.15995,0users>15. Existing row2 remains limited opt-in.",
+  "known_service_budget_ON_twoepochs_seconds": {
+    "service_wall": 336.1325118569657,
+    "PREFIX_HOST_CAPI": 134.60370236029848,
+    "ANCHOR_HOST_CAPI": 6.869741118047386,
+    "DECODE_HOST_CAPI": 193.3035293109715,
+    "outside_HOST_CAPI": 1.3555390676483512,
+    "fraction_PREFIX": 0.40044832800219077,
+    "fraction_DECODE": 0.5750813220746341
+  },
+  "current_workload_findings": [
+    "755 absolute task-wall improvement is6.00402s across2epochs;4.78761s lies in DECODE CAPI. PREFIX difference1.13406s is not causal prefill gain: row2 changes decode T8/T16 only and original wholeprefix scheduling/math is fixed.",
+    "Row2eligible decode99/196calls per epoch:T16=91calls1456inputs,T8=8calls64inputs; ON eligible CAPI49.2681/49.2974s per epoch, about29.3% of servicewall. This bounds the whole eligible call envelope, not the downkernel removable budget. Other97decode calls consume47.3659/47.3721s; row2 cannot accelerate them.",
+    "T15 actual fallback10calls per epoch has maxduration-owner mean865.71ms inB0, versus T16 mean511.63ms (91calls). Natural EOS causes T shrink and provider-branch changes; rawT15/T16 delta is not a matched kernel causal test and past/rows differ.",
+    "Per-request visible first-last time contains other PREFIX mean22.0873s plus ANCHOR mean1.33424s, pooledON. These contribute1498.98 of3906.67 summedrequest-seconds (38.37%). They are real user-visible serial blocking, nested inside service wall. They cannot be subtracted from userclocks or summed overusers as extra servicewall.",
+    "All16 result file SHA match retained qualified audit. B0 stage0 CAPI totals: PREFIX32.3715–32.3797s,ANCHOR1.67786–1.68737s,DECODE46.9214–47.0883s; stage1:67.2299–67.2415s,3.43465–3.45228s,96.6340–96.8282s. Stage0 andstage1 durations overlap/nest throughPP and are not additive.",
+    "Current existing_pipeline_profile reads only3HOST values. Actual source has6values, where3..5 are stream-event spans but755 frontend omitted them. Incoming recv/allgather are enqueued before layers, so dependency waits can be paid inside layers/drains; dominantlayersHOST is not nativeGPUmath. PhysicalBWpeak, pureTP/PP costs, exclusive native math and removable critical milliseconds remainUNKNOWN."
+  ],
+  "source_binding": {
+    "native_build": "GLM-down-row2-Model-private-r9284/native_CPU_build.py reuses a549 parent objects, replacing only dispatch private-0.o and vector.o; parent public symbols retained. c650 actual755 verifiedall16.",
+    "actual_model": {
+      "local": "glm-window-r5797-src/glm_moe_dsa_balanced_text_model_r126.cpp",
+      "SHA256": "d94016e3adc4ffccac58adc24aef415c7069ad2503cb21e230f12753c0b2ad98",
+      "object": "/refactor/candidates/glm-M16-r8861/private-4.o",
+      "object_SHA256": "443ea6ee529fa9ad12ccf842707a6c7b724b3476102721c64dcd85fa1ae7d69b",
+      "binding_evidence": "GLM-owner-profile-hooks-r9172.json and GLM-B32-Model-private-r9183/CPU-build.json retainedobjectmap"
+    },
+    "existing_observer": "glm_model_window_r5797.cpp matchesfixed512pool, ownerRuntime/eager guards, hardB8rows/cohort/past512+round63..65 and layer38stage1. Scope cannot be armed on current755 varlen T15/prefill without sourcechange. Layer hooks glm_layer_mark_r5670 already exist; usecurrent source/object mapping, do not relink8812 older math.",
+    "frontend": "glm_arrival_probe_r9284b.py L40–50 logsactualT,rows,pasts,nativeCAPI and3HOSTpipelinevalues. arrival_runner_r9258.py wholeprefillpriority serializes PREFIX/ANCHOR ahead ofreadydecode; WORLDcommand/tokenexchange occursoutsideCAPI.",
+    "current_runtime_helper": {
+      "local": "glm_fp8_runtime_batch_r3068.cpp",
+      "source_SHA256": "7f994d97fc3b2a50173cf318b24d08d0b714a2258e4c4e183aab1d2f237a9a44",
+      "actual_object": "/refactor/candidates/glm-transient-layer-r5681/private-15.o",
+      "object_SHA256": "8c8000737f2c2421360cdd7dedf629d42bea902540f0996b43cf3c5807db21b7",
+      "provenance": "r5681-GLM-transient-CPU-status-a.json CPU-build.json compiled record; B32 CPU-build retains matchingobject; c650 builder retainsit.",
+      "dispatch": "M8/16 cached807; admittedM32/64 via batchpolicy; otherM>=32 prefill780; M1..31 except8/16 returnsfalse. T15false is source-established for thishelper, not a measuredsharedMLP wallshare."
+    },
+    "shared_FFN": {
+      "local": "glm_moe_dsa_routed_ffn_vector_r8540.cpp",
+      "source_SHA256": "c716b37fd3fe786cece00a5b4a309d9eb13b76e4bbdb8cc8843be936c708e64b",
+      "actual_object": "/refactor/candidates/glm-vector-model-r8542/vector-0.o",
+      "object_SHA256": "4b36b711d264f8e7f28ea048d3f6176ffeec9291618ea106ba4a6ba8f3941c41",
+      "provenance": "GLM-vector-Model-handoff-r8544.json + retainedB32/currentc650objectmap",
+      "shared_down": "Fp8MlpR19::forward_local always calls ex::Fp8BlockLinear for down afterquant, at bothT15andT16. Therefore no evidenceofT15-specific807cachecliff insharedDOWN.",
+      "shared_gate_up": "Both call Fp8Projection::forward. Actualprivate-8.o source80ac6223f8fb61a9408f39172ebba773218bf936a93507b385140df96ac8d64e mapped by5681receipt, but exactsourceplaintext absent locally. OtherretainedFp8Projection implementations callr809thenfallback; cannot substitute theirhash tocloseactualprivate8. Gate/upactualbranchprovenanceUNKNOWN; noadditionalSSH authorized/used.",
+      "counts_source_implied_not_measured": "Actual755has10T15decodecalls/epoch, sparse35/40layers perstage. Therefore350/400sharedMLPinvocations and350/400sharedDOWNproviderattempts perTPowner perepoch; gate/up350/400each bycallsite, actualcachehitcountUNKNOWN. Across8TPowners:2800/3200sharedDOWNattempts. These are not timings, not255/actualFPS counters.",
+      "STOP": "Do not claimhugeallocation/dequantcliff orproposeT15sharedcachecomparator untilprivate8source/providerfallback/actualcounter binding closes. No implementation orGPU."
+    }
+  },
+  "dedup": [
+    "719 deferredfeedback alreadyqualified; notnewcandidate.",
+    "724 prefillpipeline alreadyqualified with firstmicroTTFT+51.8975%; cannot re-propose asunmeasured scheduling idea.",
+    "582 preparedweightreuse positivecomponent alreadytested; no newcache claim.",
+    "664 naive selectiveINT8 negative, bitdecodeSTOP; no scan or component re-test.",
+    "540 oldM8/layer38 and743 syntheticT16 are notcurrentModelwallshare evidence.",
+    "737 alreadyqualified routedT13/T15synthetichiddenwholeprojectionchain+5.51/+5.70%,T16-0.45%;739Modelimage CPUlink exists and755excludesitsobjects. Notnewraggedcandidate orsharedMLP proof.582preparedW testedM8o_proj, notcurrentT15sharedMLP; methoddedupstillapplies.",
+    "737 alreadyqualified routedT13/T15synthetichiddenwholeprojectionchain+5.51/+5.70%,T16-0.45%;739Modelimage CPUlink exists and755excludesitsobjects. Notnewraggedcandidate orsharedMLP proof.582preparedW testedM8o_proj, notcurrentT15sharedMLP; methoddedupstillapplies."
+  ],
+  "single_future_diagnostic_card": {
+    "status": "SOURCE_PLAN_ONLY; ROOT_SOURCE_RESOURCE_PUBLICATION_GATE_REQUIRED; NO_GPU_AUTHORIZATION",
+    "hypothesis": "The currentT15/non-row2 tail and prefill call envelopes are large, but their residual layersHOST may be native math or queuedPP/TP/CPU. Sparse owner-aligned boundaries can distinguish the largest actionable interval before any tuning.",
+    "single_minimal_change": "One defaultOFF sparseobserver extension around actualc650 reusedmath: generalize oldgeometryselector to actualdescriptor+commandsequence, addcoarse stage/CAPI+perlayer boundaries and hostthreadCPU, reuseexistingdetailhooks on selectedlayers. Readexisting6pipeline values. No algorithm, kernel, scheduling,precision ordrain change.",
+    "exact_TUs_and_binding": [
+      "Replace only actualmodel private-4.o with d940 source plus guardedcoarsemarks at existingincoming,layerloop,PPsend/outgoing,beforeoriginalsync; keep uninstrumented behavior identical whenOFF.",
+      "Replace window-3.o observer with boundedselector API validatingcurrentownerRuntime/stage/rank,commandseq,actualT/B and full(row,past,count)descriptor before arming. PreserveexistingABIexports, defaultOFF and singlependingresult; no arbitraryoldfixedgeometry relaxation.",
+      "Expose selector through actual currentbridge owner thread using retainedbridge/builddep mapping; no foreignThread TLSarm. The exactbridge source/object hash is a pre-buildUNKNOWN gate untilroot ties it to c650 receipt; do not substitute8812 bridge/model.",
+      "Reuse all qualifiedc650 GPU objects andcurrentdecoder/attention/FFN hooks; attachnewDSO/source/objectSHA manifest. No hotpatchactiveModel."
+    ],
+    "sampling": "Same75532cases/arrival0,4,8,12/naturalEOS/maxlive16/row2ON; one16cardload onlyiflaterapproved. Originalwarm; onefulluninstrumented episodebefore, one sparseprofileepisode, onefulluninstrumentedepisodeafter. Choose firstnaturalstableT16 threecalls and firstnaturalT15 threecalls, firstB8wholePREFIX and oneactualsingle-rowPREFIX. Reference755 B0 seq5/T16,124/T15,1/T772B8,55/T136B1, but neverforce/pad rows orEOS tohitseq; absentmatchingwindow=>UNKNOWN. Captureactualshape/past/requestwait timeline for controls/profile.",
+    "owner_events": "SameRuntime stream/eventpool allocatedbeforewarm, capacity<=512markersperowner. Coarseeachlayerbegin/end plusCAPI/PP boundaries; detailedexistingmarks onlyoneactualroutedfullindexer andsharedindexer layerperstage selectedfromactualconfig. No event creationpermark/newstream/addedsync; queryafteroriginalCAPIdrain, closeafteroriginaldrain. EndhostCAPIafteroriginaldrain; finaldrainstream remainsUNKNOWN. Recordall16owners sameseq, chooseonecriticalowner bymeasuredCAPI/rankclockmapping and retainitsnestedintervals.",
+    "interpretation": "Adjacentdisjoint intervals withinoneowner only; detailspansnestedwithinlayer/stage/CAPI mustnotadd. Streamelapsedincludesqueue/dependency/enqueuegaps, notGPUbusy. HOSTthreadCPU canseparateonCPUtime fromblockedHOSTduration butnotprovepureTP. PP/TP events identifytheirqueuedspan; overlapping spans areinterval-unioned, never summedacrossranks. If clocks/boundaries cannotestablishcriticalpath, preserveUNKNOWN.",
+    "quality_and_exit": "NaturalEOS/finite/parse/cap/unfinished andeveryuser(n-1)/(last-first),TTFT/ITL95/99,correctEOS>15goodput,all16carddenominator preserved. Observermustnotmodifyoutputsorrequestlifecycle; tokenidentity optionaldiagnostic. CompareprofileCAPI+taskwall tobefore/after controls byactualshape andarrival. If observerdifferential/variance masks thecandidateinterval, selectionmisses,ownerbindingfails,unboundedmarkers,orunknownpendingstate=>STOP/UNKNOWN; noadaptiveprofilinggrid.",
+    "affected_removable_milliseconds": "UNKNOWN. MeasuredON envelopes: PREFIX~67.30s/epoch, non-row2decode~47.37s/epoch,T16eligible~46.48s/epoch; none equals removablework. HostoutsideCAPI~0.678s/epoch bounds onlyoutsideCAPI overhead; submissionCPU insideCAPI isUNKNOWN.",
+    "ETA": "CPUclosure<=20min; futureload/queue/buildETAUNKNOWN untilroot reusesmeasured755loadbudget. No inventedthroughputprediction.",
+    "fallback": "Keep755row2limitedopt-in; noadditionalGPU ornewkernel untilauniqueactionableinterval andbindingclose.",
+    "source_gate_extra": "Beforefutureprofilebuild resolveprivate8source andcurrentbridge source/objectmapping fromretainedreceipt. UntilthenSOURCEPARK; noadditionalcard orblindT15sharedcache/padding implementation."
+  },
+  "execution": {
+    "local_CPU_only": true,
+    "SSH": 1,
+    "remote_read_scope": "16 exactcompleted755result JSONs; scalarop/shape/ownerstageclock+SHAonly",
+    "remote_mutation": 0,
+    "Slurm": 0,
+    "compile": 0,
+    "dlopen": 0,
+    "GPU": 0,
+    "upload": 0,
+    "Git": 0,
+    "repo_mutation": 0
+  },
+  "outputs": [
+    "residual-budget-r118.json",
+    "allowner-scalar755-r118.json",
+    "allowner-summary755-r118.json",
+    "source-hash-index-r118.json"
+  ],
+  "completed_UTC": "2026-10-26T22:54:12.336812+00:00",
+  "power2_padding_CPU_feasibility": {
+    "decision": "PARK_NO_IMPLEMENTATION_NO_SECOND_EXPERIMENT_CARD",
+    "authorized_direction": "Userallowspower2padding, but755native realrow/past/leaseledger andavailabledummyKV isolation musthold.",
+    "source_constraints": "755frontend permits<=32rows butadmitsmax16real and32totaluniquerowlifetimes. LateT15 startsafteroneEOS, yet endedrealrowstate isnot a freshdummy; reusingwithoutreset violateslengthledger/lease/KV lifetime. Reservednewdummyrow competeswith32realrowcapacity unlessnativecontexts/hostbanks/cachebounds expand, which isnotclosed. DummypastmustnotcopyrealKVorchangesampling. Needall78layerdummyreset/lease proof andnormalcleanup; actualfreebytes isnotcapacityproof.",
+    "scope": "Noassertionthatpaddingworks; noT15vs16causalclaim. Anyfuturematchedcontext testmustexcludeallpadtokens/requestsfromQA/useful/latencydenominators andretainrealarrival/firsttoken. Existingpaddingroute dedupnotexhaustivelyclosed inthisboundedtask."
+  }
+}
