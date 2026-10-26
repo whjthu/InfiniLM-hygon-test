@@ -1,0 +1,67 @@
+{
+  "schema": 1,
+  "scope": "Static arithmetic of frozen r9125 provider; not a measured roofline or fullModel profile. Join with actual E3740 branch/event/hist before ranking nextchange; historicalT16 notcurrentverifyT64.",
+  "source": "Kimi-MoE-batch-profile-private-r9125\\kimi_i192_batch_provider_r9125.cu",
+  "source_SHA256": "eb51cb12351b947ef2f2940ece880919ae0c5276a0292c8866d2e40693733095",
+  "precision": "MXFP4 decode to FP32 scalar products/reductions then BF16 output, includes activation; useful-FLOP model excludes unpack/scale/index/shuffle/activation/sync overhead. No native FP8 or BF16matrix utilization claim.",
+  "geometry": {
+    "hidden": 3584,
+    "per_TP_rank_expert_intermediate": 192,
+    "experts": 896,
+    "topk": 16,
+    "W13_route_tile": 2,
+    "W13_output_tile": 4,
+    "W13_CTA_grid": 640,
+    "threads_per_CTA": 256,
+    "W13_shared_bytes_per_CTA": 16384,
+    "W2_CTA_grid_formula": "3584*T"
+  },
+  "per_route_useful_FLOPs": {
+    "W13_gate_up": 2752512,
+    "W2_down": 1376256,
+    "sum": 4128768
+  },
+  "logical_parameter_bytes": {
+    "W13_per_expert": 731136,
+    "W2_per_expert": 365568,
+    "whole_expert": 1096704,
+    "all896_per_rank_layer": 982646784
+  },
+  "histogram_join": {
+    "routes": "sum(count[e])=16*T for valid actualinput",
+    "W13_jobs": "sum(ceil(count[e]/2))",
+    "W13_padding_useful_fraction": "routes/(2*jobs)",
+    "W13_logical_weight_fetch_bytes": "jobs*731136 (source loads; caching not included)",
+    "W2_logical_weight_fetch_bytes": "routes*365568 (source loads; caching not included)",
+    "unique_parameter_touch_bytes": "uniqueExperts*1096704; not physical HBM traffic or cold/warm residency proof",
+    "imbalance": "expert histogram shared by TP ranks doesnot imply TPcompute imbalance; pair each owner eventwall withjobs/metadata and actual TPsum wait before attribution"
+  },
+  "T_examples": [
+    {
+      "T": 8,
+      "routes": 128,
+      "useful_GFLOPs_per_rank_layer": 0.528482304,
+      "W2_CTAs": 28672
+    },
+    {
+      "T": 16,
+      "routes": 256,
+      "useful_GFLOPs_per_rank_layer": 1.056964608,
+      "W2_CTAs": 57344
+    },
+    {
+      "T": 32,
+      "routes": 512,
+      "useful_GFLOPs_per_rank_layer": 2.113929216,
+      "W2_CTAs": 114688
+    },
+    {
+      "T": 64,
+      "routes": 1024,
+      "useful_GFLOPs_per_rank_layer": 4.227858432,
+      "W2_CTAs": 229376
+    }
+  ],
+  "next_decision": "Compare actual W13/W2 segments vsrouter/dispatch/TPsum/hostwall. LowusefulFLOPrate alone isnot proof compute-limited; distinguish scalarunpack, memoryload, occupancy, padding and waits. No newGPU test just for this arithmetic.",
+  "hardware_boundary": "Exact BW1000 BF16vendorpeak UNKNOWN. Existing dense333.752TF/scalar54.51TF/1.237TB/s are measured specificcapability, not physicalpeak; cannot divide sum usefulFLOPs by denseBF16 and call it an achievable requestbound."
+}
