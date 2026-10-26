@@ -1,0 +1,74 @@
+{
+  "status": "CPU_SOURCE_FEASIBLE_FINITE_EPISODE_SEPARATE_CALL_INTERLEAVE_NOT_IMPLEMENTED_OR_GPU_QUALIFIED",
+  "scope": {
+    "GPU": false,
+    "native_compile": false,
+    "new_runtime": false,
+    "new_framework": false,
+    "current724_modified": false
+  },
+  "source_binding": {
+    "current_Model_SHA256": "a549b9b3951b51b52d3f8a96f0fe585da6a92cb88e77054970fdbef3ad483078",
+    "actual_text_source": "/refactor/candidates/glm-M16-r8861/tree/candidates/glm-PP2-B32-r8843/tree/candidates/glm-window-model-r5797/src/glm_moe_dsa_balanced_text_model_r126.cpp",
+    "actual_text_source_SHA256": "d94016e3adc4ffccac58adc24aef415c7069ad2503cb21e230f12753c0b2ad98",
+    "current_attention_caller": "GLM-B32-Model-private-r9183/resident_caller_r9183.cpp",
+    "current_attention_caller_SHA256": "7e8899d4189d9b8dfffe39f8d67efee097b70aafa780202251005674f11619cf",
+    "indexer_source": "candidates/glm-transient-layer-r5681/src/glm_moe_dsa_indexer_selection.cpp",
+    "indexer_SHA256": "e9f2fdd7daad7b56ea51039514129a2b2661b6648667957aebf7de1cfc13951b",
+    "indexer_source_proof_file_SHA256": "e104421002b7edb0a0861c535d2282fd06009666b0c96e5bbdb590e1fa87e0e3",
+    "current_forward_implementation_unchanged_in_9241": true
+  },
+  "native_contract": {
+    "geometry": "one forward packedtokens1..4096; uniquerows0..31; perrowpositivecount; absolute positionspast..past+count-1; capacity640",
+    "independent_rows": "TextModel L59 past==lengths[row]; L87 commits ONLY requestedrows. AttentioncallerL91 sameperrowguard/L249 samecommit. Existing719/724 alreadyprefills later-unused rowswhile earlierrowsnonempty.",
+    "no_phase_global_lock": "No all_sequences_empty requirement inordinaryforward; emptyguard applies policy/setters, so configureonce at emptyepoch and do not mutate policies during episode.",
+    "new_request_slot": "Assign neverused logicalrow withpast0; each chunk advances onlythatrow. Existing readyrequests keep theirpasts acrossothersprefill.",
+    "decode_ready": "Onlyafter fullprompt andonefirsttokenemitted, put rowinreadyqueue. No prefix continuation after metadata-only decode.",
+    "allowner": "Same Runtime ownerthread perrank; serial CAPI on eachowner; sameforward/worldcontrol commandorder all16ranks; no private stream/thread/newcommunicator."
+  },
+  "same_CAPI_mixed_prefill_decode": {
+    "status": "DO_NOT_USE_MINIMUM_DESIGN",
+    "actual_reason": "attentioncallerL106-112 metadata_only is ALL requests.tokens==1, capacity<=topk; mixedprefix/decode dispatches realindexer for olddecodedrows. IndexerselectionL27/L60 rejects missing_keys; metadata-onlyL83/L100 marks olddecodedrows missingkeys. This is a realstatecontract, not justpotentialslowpath.",
+    "safe_route": "Separate CAPI: NEW/PARTIAL rowschunkonly -> READY rowssingle-tokenonly -> emit -> nextchunk. No changeindexer/cache math."
+  },
+  "lifetime_blocker": {
+    "max_distinct_requests_per_epoch": 32,
+    "EOS": "Retire fromfrontend readyqueue but do not reuse native row foranotherrequest",
+    "proof": "Model/attentionpastguards rejectpast0 on usedrow. Reset(ctx) callsalllayerreset andstd::fill allrowlengths; no perrowrecycle CAPI ininspectedModelbridge. Residentpolicy setters requireallsequencesempty.",
+    "consequence": "Finite actualarrival episode<=32 totalunique requests feasible, then globaldrain/resetafterallfinish. Not yetan unboundedproductionHTTPserver.",
+    "future_only": "Perrowreset/recycle acrossModel/attention/indexer/residentKV andgeneration requiresseparateownertransaction API, outsideproposedexperiment."
+  },
+  "minimal_frontend_route": [
+    "Reuse9241 forward/emit/control andprefix_chunks metadataform; preservedefer719decodewhere>=2ready micros andno newprefillwait, no CAPI changes.",
+    "One episode: fixed actualmonotonic arrivals, e.g8requests att0,8att20s,8att40s,8att60s. Tokenized data can bepreloaded but cannotadmit/compute beforearrival. Publish emitterelapsed/operation viaexistingintegerF32worldcontrol, soallowners have identicaloperationorder.",
+    "Trackseparately rowowner/questionid, prompt_offset, prefix_end=len(prompt)-1, generated_ids, nativepast,ready/EOS,actualarrival/servicestart/firsttoken/eachvisible timestamp.",
+    "At a dispatchboundary, ifnewpendingprefill exists, submit atmost8newrows positiveprefixchunks; eachslice[prompt_offset:min(prefix_end,offset+chunkcap)] hasactualpastoffset, inputtokens<=4096. Do notemit returnedpartiallogits.",
+    "Then runone readydecode micro usingreadyrows only, tokens1 andtheiractualpast; emit realtokenswith existingworldfeedback, retireEOS independently. Do not waituntilallnewrequests finishprefill.",
+    "Rows reachingprefix_end receiveoriginalone-tokenPFanchor atpastlen(prompt)-1 usingpendingrows only; emitfirsttoken exactlyonce andjoinready. Never resume prompt afteranchor.",
+    "KeepRowassignmentmonotone0..31, noEOSrecycle. Ifno ready/pending task butfuturearrival remains, waitviaCPU atnextarrival boundary, never callforward with0tokens.",
+    "Originalnative error poisonscontext; failclosed/drain/resetall ratherthan pretendingpartialrollback. Preserve512MiBfloor/defaultM16lease/weights/SDK/sharedWORLD."
+  ],
+  "metrics_contract": {
+    "arrival_clock": "requestarrival=fixedscheduledrelativewalltimestamp, not admissiontime. TTFT includesqueuewaiting; no shiftedfirstclock.",
+    "emitter": "one perrealcommittedtoken viaexistingtail/worldfeedback; no partialprefix/pad/draft tokens in numerator; native\u4eff\u670d\u52a1, noHTTPclaim.",
+    "report": [
+      "totalprefillinputthroughput andwholecompletion/outputtok_s/card",
+      "actualarrival,admission,TTFT perrequest/min/median/p95/p99/max",
+      "decode-only firstlast and visible-firstlast separate, peruserITLp95/p99/max includingprefillinterruptions",
+      "first/latearrivalgroup breakdown, naturalEOS/caps/failures/QA withsamequestionIDs",
+      "CAPI shapes/providercounters: chunking changesgeometry andmaylose oldM16/vectorfastpaths, cannotassume linearspeed"
+    ]
+  },
+  "history_dedup": {
+    "legacy_r8871": "AlreadyCPUsourceplan chunk128+readydecode, NOactualGPUimplementation or gain; reuse itsperrowoffset/generation caution.",
+    "current_corpus": "57..150prompttokens; oldchunk128 oftennearlywholeprompt, cannotassume fixes13second stalls. Onechunkcap selection requiresparentdecision, no32/64/128grid here.",
+    "actual_segment": "724 globalvisibleITLlongstalls ~prefillhelpers, firstmicroTTFT+52%; thisjustifies scheduler question, notunmeasured kernel/communication claims."
+  },
+  "memory_budget": {
+    "native": "same32rows640fixedcache; no newweights/context; separateCAPI with originaldrain",
+    "frontend": "Atmost existing2decodeoutputs or1prefilloutput; no extendingnativeRuntimeworkspace lifetime",
+    "newCPUstate": "O(32)offset/ready/arrivalmetadata overalreadyloadedinputcorpus",
+    "physical_peak": "UNKNOWN untilnewactualtest; do not usehistorical3.275GiBobservedminimum asproof"
+  },
+  "next_gate": "Rootdecidesonesinglechunkedprefill episodeexperiment afterCPUactualdriver/arrivalstate qualification andsourceclaim; noGPU/Modelload submitted bythissourceaudit."
+}

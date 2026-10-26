@@ -1,0 +1,26 @@
+{
+  "actual_copy_from": {
+    "path": "Common/Deep/InfiniLM/csrc/runtime/tensor/copy.cc",
+    "SHA256": "1af399487c0ac46628b1bbe17cbfcdd7d6cab7641b21c860686c7e0c4a489a97",
+    "same_device_GPU": "execution::submit<ops::Copy>(src,false,dst);return;NO explicit sync",
+    "claim": "Only bypassview+Copydescriptor/submission overhead; no hidden-sync-removal claim"
+  },
+  "Runtime_D2D_async": "ActualRuntimeMemcpyAsync(stream);if(!async)StreamSynchronize; passbooltrue. Deep-Runtime-copy-impl-r9241.json",
+  "eligibility": "DefaultOFF ONLYT32/32requests eachonepast>0;sameownerRuntime/device/BF16/2D512/stride512,1/contiguous/range/nonoverlap/overflow. Unknownfallsreference.",
+  "two_banks_four_ranges": [
+    "compressed_bank historical_batch fullrowranges",
+    "compressed_bank new_compressed boundaryranges",
+    "window bank oldwindow ranges",
+    "window bank decoded newrowranges"
+  ],
+  "lifetime": "Allsources alreadyoriginalWork.held (historical_batch,new_compressed,old,decoded); destinationsoriginalWork.alloc. Noextraowner/TLS/sync; originalend/workdrainandexceptionpoison preserved.",
+  "GPU_submitted": false,
+  "readback": "alwaysOFF",
+  "HOST_instrument": "OFF inperfONandOFF",
+  "Astra108_basis": "1099 warmedcriticalownerbank2.67..3.27ms>=25pct; not43layerModelsteadyclaim",
+  "CPU_mechanical_supersedes": {
+    "failed": "910407.412",
+    "reason": "Const Tensor wrapper exposes constdata; destination passed as mutable shallowowning Tensor copy, preservingownerandlifetime; no const_cast/ABI/mathchange.",
+    "GPU_submitted": false
+  }
+}

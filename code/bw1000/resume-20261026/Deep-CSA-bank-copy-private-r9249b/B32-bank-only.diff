@@ -1,0 +1,62 @@
+--- qualified1099_CSA
++++ defaultOFF_B32bankcandidate
+@@ -1,3 +1,4 @@
++#include "deep_csa_bank_plan_r9249.hpp"
+ #include "deep_csa_host_profile_r9246.hpp"
+ #include "deep_attention_inner_r9193.hpp"
+ #include "deep_cache_batch_r784.hpp"
+@@ -10,7 +11,7 @@
+ #include <stdexcept>
+ namespace infinilm::models::deepseek_v4 {
+ namespace rt=infinilm::runtime;namespace ex=infinilm::execution;namespace hp=csa_host_r9246;
+-namespace {std::atomic<int> readback_mode_r9242{0};std::array<std::array<std::atomic<uint64_t>,8>,8>readback_counts_r9242{};}
++namespace {std::atomic<int> bank_mode_r9249{0};std::array<std::array<std::atomic<uint64_t>,8>,8>bank_counts_r9249{};std::atomic<int> readback_mode_r9242{0};std::array<std::array<std::atomic<uint64_t>,8>,8>readback_counts_r9242{};}
+ namespace{struct Work{rt::Runtime&r;hp::Frame*profile;std::vector<rt::Tensor>held;~Work(){try{profile->call(hp::EXPLICIT_DRAIN,[&]{r.syncStream();});}catch(...){std::terminate();}}rt::Tensor alloc(rt::Shape s,rt::DataType d){auto x=rt::Tensor::empty(r,s,d);held.push_back(x);return x;}};}
+ CsaAttention::CsaAttention(rt::Runtime&r,const nlohmann::json&cfg,size_t layer,const engine::distributed::RankInfo&rank,size_t rows):owner_(&r),rows_(rows),window_(cfg.at("sliding_window")),maximum_(cfg.at("max_position_embeddings")),compressed_capacity_(cfg.value("native_compressed_capacity",size_t(maximum_/4))){
+  r.assertOwnerThread();if(!rows||rows>128||window_!=128||cfg.at("compress_ratios").at(layer)!=4||!compressed_capacity_||compressed_capacity_>maximum_/4)throw std::invalid_argument("Native DeepSeek CSA qualifies noncompressed layers0/1 and window128");
+@@ -29,6 +30,22 @@
+  for(auto request:requests){if(request.row>=rows_||!seen.insert(request.row).second||!request.tokens||request.past!=lengths_[request.row]||request.past>maximum_||request.tokens>maximum_-request.past||request.tokens>tokens-total||(request.past+request.tokens)/4>compressed_capacity_)throw std::invalid_argument("DeepSeek CSA row/past/token metadata differs");for(size_t t=0;t<request.tokens;++t)if(host_positions[total+t]!=int64_t(request.past+t))throw std::invalid_argument("DeepSeek CSA positions must match each request's logical prefix");total+=request.tokens;old_total+=std::min(request.past,window_-1);}
+  if(total!=tokens)throw std::invalid_argument("DeepSeek CSA packed token count differs");
+  try{deep_attention_inner_r9193::Frame inner_profile(r,2,tokens,requests.size());Work work{r,&host_profile};host_profile.set(hp::PREPARE);auto prep=prepare_->forward(r,hidden,positions);work.held.insert(work.held.end(),{prep.query,prep.kv,prep.q_lora});inner_profile.mark(1);host_profile.set(hp::DESCRIPTORS);
++ const bool bank_eligible_r9249=tokens==32&&requests.size()==32&&std::all_of(requests.begin(),requests.end(),[](const auto&q){return q.tokens==1&&q.past>0;});
++ const bool bank_enabled_r9249=bank_eligible_r9249&&bank_mode_r9249.load(std::memory_order_relaxed)==1;
++ auto&bank_counts=bank_counts_r9249.at(r.device().index());if(bank_eligible_r9249){++bank_counts[0];bank_counts[1].fetch_add(bank_enabled_r9249);}
++ auto copy_bank_r9249=[&](rt::Tensor destination,size_t destination_row,const rt::Tensor&source,size_t source_row,size_t count,int category){
++  auto owned_dense=[&](const rt::Tensor&t){return t&&t->device()==r.device()&&t->dtype()==rt::DataType::kBFloat16&&t->ndim()==2&&t->size(1)==512&&t->is_contiguous()&&t->strides()[0]==512&&t->strides()[1]==1&&t->allocation_owner().get()==&r;};
++  if(bank_enabled_r9249&&owned_dense(destination)&&owned_dense(source)){
++   auto plan=bank_copy_r9249::plan(destination_row,source_row,destination->size(0),source->size(0),count,reinterpret_cast<uintptr_t>(destination->data()),reinterpret_cast<uintptr_t>(source->data()));
++   if(plan.valid){
++    // All four callsite sources are already in Work::held; destinations come from Work::alloc.
++    // Existing Work/final drain precedes their release, including exception unwind.
++    r.memcpyD2D(destination->data()+plan.destination_offset,source->data()+plan.source_offset,plan.bytes,true);
++    ++bank_counts[2];bank_counts[3].fetch_add(plan.bytes);bank_counts[5].fetch_add(2);++bank_counts[6+category];return true;
++   }
++  }
++  ++bank_counts[4];return false;
++ };
+  std::vector<TemporalCompressor::Request>compress_requests;size_t compressed_total=0,compressed_width=1;
+  for(auto request:requests){compress_requests.push_back({request.row,request.past,request.tokens});size_t count=(request.past+request.tokens)/4;compressed_total+=count;compressed_width=std::max(compressed_width,count);}
+  host_profile.set(hp::COMPRESSOR);auto pending=compressor_->prepare(r,hidden,positions,compress_requests);
+@@ -59,12 +76,12 @@
+  host_profile.set(hp::BANK_SUBMIT);size_t historical_begin=0;
+  size_t compressed_begin=0,new_compressed_begin=0;
+  for(auto request:requests){size_t before=request.past/4,after=(request.past+request.tokens)/4;
+-  if(before){for(size_t start=0;start<before;start+=65536){size_t n=std::min(size_t(65536),before-start);std::vector<std::pair<size_t,size_t>>entries;for(size_t i=start;i<start+n;++i)entries.push_back({request.row,i});auto old_compressed=historical_batch?historical_batch->narrow({{0,historical_begin+start,n}}):compressor_->gather(r,entries);work.held.push_back(old_compressed);compressed_bank->narrow({{0,compressed_begin+start,n}})->copy_from(r,old_compressed);}}
+-  if(after>before)compressed_bank->narrow({{0,compressed_begin+before,after-before}})->copy_from(r,new_compressed->narrow({{0,new_compressed_begin,after-before}}));
++  if(before){for(size_t start=0;start<before;start+=65536){size_t n=std::min(size_t(65536),before-start);if(copy_bank_r9249(compressed_bank,compressed_begin+start,historical_batch,historical_begin+start,n,0))continue;std::vector<std::pair<size_t,size_t>>entries;for(size_t i=start;i<start+n;++i)entries.push_back({request.row,i});auto old_compressed=historical_batch?historical_batch->narrow({{0,historical_begin+start,n}}):compressor_->gather(r,entries);work.held.push_back(old_compressed);compressed_bank->narrow({{0,compressed_begin+start,n}})->copy_from(r,old_compressed);}}
++  if(after>before&&!copy_bank_r9249(compressed_bank,compressed_begin+before,new_compressed,new_compressed_begin,after-before,0))compressed_bank->narrow({{0,compressed_begin+before,after-before}})->copy_from(r,new_compressed->narrow({{0,new_compressed_begin,after-before}}));
+   compressed_begin+=after;new_compressed_begin+=after-before;historical_begin+=before;
+  }
+ auto bank=work.alloc({old_total+tokens,512},rt::DataType::kBFloat16);host_profile.set(hp::DESCRIPTORS);std::vector<int64_t>selected(tokens*window_,-1),ci(tokens*compressed_width,-1),commit_rows,commit_slots;std::vector<int32_t>lengths(tokens*2,0);size_t query_begin=0,bank_begin=0,old_begin=0;
+- for(auto request:requests){host_profile.set(hp::BANK_SUBMIT);size_t old_count=std::min(request.past,window_-1);if(old_count)bank->narrow({{0,bank_begin,old_count}})->copy_from(r,old->narrow({{0,old_begin,old_count}}));bank->narrow({{0,bank_begin+old_count,request.tokens}})->copy_from(r,decoded->narrow({{0,query_begin,request.tokens}}));host_profile.set(hp::DESCRIPTORS);
++ for(auto request:requests){host_profile.set(hp::BANK_SUBMIT);size_t old_count=std::min(request.past,window_-1);if(old_count&&!copy_bank_r9249(bank,bank_begin,old,old_begin,old_count,1))bank->narrow({{0,bank_begin,old_count}})->copy_from(r,old->narrow({{0,old_begin,old_count}}));if(!copy_bank_r9249(bank,bank_begin+old_count,decoded,query_begin,request.tokens,1))bank->narrow({{0,bank_begin+old_count,request.tokens}})->copy_from(r,decoded->narrow({{0,query_begin,request.tokens}}));host_profile.set(hp::DESCRIPTORS);
+   for(size_t t=0;t<request.tokens;++t){size_t end=old_count+t+1,begin=end>window_?end-window_:0;lengths[(query_begin+t)*2]=int32_t(end-begin);for(size_t j=begin;j<end;++j)selected[(query_begin+t)*window_+j-begin]=int64_t(bank_begin+j);}
+   size_t first=request.tokens>window_?request.tokens-window_:0;for(size_t t=first;t<request.tokens;++t){commit_rows.push_back(int64_t(query_begin+t));commit_slots.push_back(int64_t(request.row*window_+(request.past+t)%window_));}
+   query_begin+=request.tokens;bank_begin+=old_count+request.tokens;old_begin+=old_count;
+@@ -109,3 +126,6 @@
+ 
+ extern "C" int deep_csa_host_profile_mode_r9246(int value){if(value<0||value>1)return 1;namespace m=infinilm::models::deepseek_v4;std::lock_guard<std::mutex>lock(m::wide_r3443::policy_mutex);if(m::wide_r3443::in_flight)return 2;m::csa_host_r9246::mode.store(value);return 0;}
+ extern "C" int deep_csa_host_profile_read_r9246(int d,double*w,double*c,uint64_t*meta,uint64_t*visits,size_t n){namespace h=infinilm::models::deepseek_v4::csa_host_r9246;if(d<0||d>=8||!w||!c||!meta||!visits||n!=h::N+1)return 1;std::lock_guard<std::mutex>lock(h::sample_mutex);const auto&v=h::samples.at(d);std::copy(v.wall.begin(),v.wall.end(),w);std::copy(v.cpu.begin(),v.cpu.end(),c);meta[0]=1;meta[1]=v.serial;meta[2]=v.tokens;meta[3]=v.requests;meta[4]=v.owner_thread;meta[5]=v.completed;std::copy(v.visits.begin(),v.visits.end(),visits);return 0;}
++
++extern "C" int deep_csa_bank_mode_r9249(int value){if(value<0||value>1)return 1;namespace m=infinilm::models::deepseek_v4;std::lock_guard<std::mutex>lock(m::wide_r3443::policy_mutex);if(m::wide_r3443::in_flight)return 2;m::bank_mode_r9249.store(value);return 0;}
++extern "C" int deep_csa_bank_counts_r9249(int d,uint64_t*out,size_t n){if(d<0||d>=8||!out||n!=8)return 1;for(size_t k=0;k<8;++k)out[k]=infinilm::models::deepseek_v4::bank_counts_r9249[d][k].load();return 0;}

@@ -1,0 +1,34 @@
+{
+  "status": "SOURCE_FEASIBILITY_ONLY_NO_NEW_GPU_OR_GAIN",
+  "sources": [
+    {
+      "path": "Kimi-adaptive-Model-AB-private-r9225/runtime-A/batch_native_r9128.py",
+      "SHA256": "efe4f0ca62967e2a8a2272fcffcca964c3eb2b1c29c73cc2f434382a98b9ecae"
+    },
+    {
+      "path": "Kimi-adaptive-Model-AB-private-r9225/runtime-A/batch_cohort_r9128.py",
+      "SHA256": "dce957b2db7e73bf0b8d7d201b99e3732fb3abd9561f3da795f1e7f9c0f6d7a3"
+    },
+    {
+      "path": "Kimi-adaptive-Model-AB-private-r9225/runtime-A/batch_policy_r9128.py",
+      "SHA256": "518bef657469fcb837fe6b425b770c1405c824afca454b5635529d0706d581c3"
+    }
+  ],
+  "verified_facts": [
+    "Native.call already allocates/populates host BF16 logits(nout,vocab) on flag3; tail finitechecks. Native.finish discards logits and passes selected IDs only. Cohort uses greedy exactprefix.",
+    "Initial approximate pilot can reuse paid hostlogits. Gather only2*T BF16 entries: proposed-token and selected-top1-token per causal row, convert those scalar bits toF32 and broadcast compactgaps using existing batch-call control. No newnative scalarAPI/fullvocabRPC/fullvocab F32conversion needed.",
+    "Existingfinish/commit/replay must commit actual contiguous acceptedprefix. Rejection correction uses matching conditional target row. EOS and structural specialtokens strict. OFF andepsilon0 explicitly originalgreedy, invalid/nonfinite scores fallbackstrict. Width<=8 andflatT<=64 unchanged.",
+    "A logitgap rule is a changeddistribution experimentalpolicy, not lossless/not implementedMedusa. BF16scores and actual argmax alignment need test; no targetstate/native/provider rewrite.",
+    "Measure peruserfirstlast/commondecode/totalallcards, incrementalCPUcost, quality/EOS/caps/unfinished, response lengths and length-adjusted tasklatency/goodput. Selected2question speed isnot heldoutquality evidence."
+  ],
+  "primary_research": [
+    {
+      "url": "https://arxiv.org/html/2401.10774v3",
+      "finding": "Medusa2.3.1 uses min(epsilon,delta*exp(-H(p))) for typical acceptance; secondary maxformula isdifferent. Exactvariant needs probabilities/entropy; originalspeedups notportable toBW1000."
+    },
+    {
+      "url": "https://arxiv.org/html/2607.08690v1",
+      "finding": "Relaxedmethods require capability evaluation andlength-adjusted comparisons; dedicatedMTPdrafter isnot necessarily goodstandaloneLM. Target-controlled boundedrelaxation is anempiricalquality/speedtradeoff, no blanket5-10x claim."
+    }
+  ]
+}
