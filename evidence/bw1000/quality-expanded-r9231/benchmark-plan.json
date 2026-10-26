@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "status": "DATASET_READY_NO_GPU_BENCHMARK_RESULT",
+  "suite_SHA256": "405733dac31124148fdce613780e87090667ebf1b26585d1eabcdc89bff10294",
+  "models": [
+    "Kimi-K3",
+    "GLM-5.3",
+    "DeepSeek-v4-Flash"
+  ],
+  "primary": "Paired AR versus selected candidate, same prompts/chattemplate/precision/seed/context/outputcap; actual checkpoint tokenizer applied at run time. Start32 then64/256 as resident time budget permits; preserve incomplete and report coverage.",
+  "concurrency": [
+    1,
+    2,
+    4,
+    8,
+    16,
+    32
+  ],
+  "prioritize_concurrency": [
+    16,
+    32
+  ],
+  "max_new_tokens": 512,
+  "context_capacity": 1024,
+  "admission": "Compute actual input token length including chat template before execution. No silent question truncation or dropped cases. If input+max_new exceeds native capacity, report capacity rejection/coverage and assess separately, not lower candidate cap only.",
+  "stop": "Natural EOS or cap512, all caps remain in denominator; save result/case immediately; leave cleanup150s before job deadline.",
+  "quality": "Score final task answer and numeric equivalence, not token identity; use same answer extraction as paired baseline, inspect parse failures. Record correct/EOS/cap/error/unfinished separately; Wilson interval and paired correctness discordances. 256questions alone not universal noninferiority proof.",
+  "performance": [
+    "prefill inputtokens/s and wall",
+    "common decode outputtokens/wall excludingprefill",
+    "perrequest(n-1)/(last-first)",
+    "TTFT and ITL P50/P95/P99",
+    "totaldecode/alltargetanddraftcards",
+    "correct-naturalEOS goodput",
+    "SLOgoodput at explicit TTFT/ITL thresholds"
+  ],
+  "scope": "Nativeemitter timings unless separately HTTPtested; thinking/control tokens included and visibleanswer count separate when supported. Aggregate/C not peruser speed.",
+  "no_new_GPU_launch": true
+}
