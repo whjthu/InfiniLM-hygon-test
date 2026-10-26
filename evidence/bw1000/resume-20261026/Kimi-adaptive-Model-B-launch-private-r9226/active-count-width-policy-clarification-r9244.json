@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "clarification_only_old_results_unchanged": true,
+  "recommended_name_cn": "按活跃请求数调整投机窗口",
+  "policy": "Wcap=min(8,power2floor(64/active_count)); perrequest effectiveW=min(Wcap,remainingoutput,remainingcontext); K=W-1 includesonependinganchor",
+  "C16_initial_W": 4,
+  "C32_initial_W": 2,
+  "tail": "active<=16 permitsW4; active<=8 permitsW8",
+  "C1": "active1 alwaysWcap8, not an acceptance/cost-aware W2/W4/W8 policy",
+  "does_not_use": [
+    "acceptance_rate",
+    "acceptedprefix_length",
+    "draftconfidence",
+    "verify_latency",
+    "draft_latency"
+  ],
+  "B_initial32_isolated_comparison": "same model/samecohort fixedW vsactivecountwidth; measuredgain remainsvalid with this limitedname",
+  "B_new64": "AR vsstate-onlyspec+activecountwidth; totalgain is combination, no new64fixedwidtharm so cannotattribute entiregain towidthpolicyalone",
+  "A_current_new32": "fixedW8 C1; laterC16activecount variant ifbudget; fixedW2/W4 controls authorized for1218/949 onlyafterC1/C8/C16 primary and>=600autoStop budget, NOT onlineadaptive",
+  "frozen_results_to_interpret": [
+    "producer-terminal-qualified-r9242.json",
+    "initial9-summary-r9236.json"
+  ],
+  "no_numeric_or_runtime_change": true
+}
