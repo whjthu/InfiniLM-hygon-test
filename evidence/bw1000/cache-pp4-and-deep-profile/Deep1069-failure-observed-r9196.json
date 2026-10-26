@@ -1,0 +1,165 @@
+{
+  "report": {
+    "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/deep-attention-inner-r9193-910374.1069.json",
+    "SHA256": "966cc984c061429d95b526a5e502d4fd0d6d1e2c0837c8d235ea16358258ef25",
+    "data": {
+      "completed": false,
+      "step": "910374.1069",
+      "main_layers": 43,
+      "keys": 67569,
+      "error": "AssertionError()",
+      "error_phase": "load_enter",
+      "collection_finished": null,
+      "shutdown_entered": true,
+      "engine_worker_shutdown_completed": true,
+      "shutdown_error": null,
+      "loading_seconds": 431.01095182914287,
+      "owner_prefill_profiles": null,
+      "prefill_diagnostics": null,
+      "phase_history": [
+        {
+          "phase": "load_enter",
+          "window": 0,
+          "monotonic_seconds": 3006521.234491806
+        },
+        {
+          "phase": "exception",
+          "window": 0,
+          "monotonic_seconds": 3006947.334535135
+        },
+        {
+          "phase": "shutdown_entered",
+          "window": 0,
+          "monotonic_seconds": 3006947.3430539
+        }
+      ]
+    }
+  },
+  "config": {
+    "path": "/public/home/aclsylqidf/shared/hygon_DeepSeek-V4-Flash-Channel-INT8-w8a8/config.json",
+    "SHA256": "fd2ad6f5dbd77e55a49e9b2ff29c89030fbe4b538e8870c183d194648767be09",
+    "num_hidden_layers": 43,
+    "compress_ratios": [
+      0,
+      0,
+      4,
+      128,
+      4,
+      128,
+      4,
+      128,
+      4,
+      128,
+      4,
+      128,
+      4,
+      128,
+      4,
+      128,
+      4,
+      128,
+      4,
+      128,
+      4,
+      128,
+      4,
+      128,
+      4,
+      128,
+      4,
+      128,
+      4,
+      128,
+      4,
+      128,
+      4,
+      128,
+      4,
+      128,
+      4,
+      128,
+      4,
+      128,
+      4,
+      128,
+      4,
+      0
+    ],
+    "compress_ratio_count": 44,
+    "num_nextn_predict_layers": 1,
+    "model_type": "deepseek_v4"
+  },
+  "source": {
+    "candidates/deep-c4-projection-model-r5920/incoming/deepseek_v4_routed_text_model_r20.cpp": {
+      "SHA256": "7bb82c58e7e7a72f0f06d460d5510d7fc2cf1cb36e1de877b4f590b6b1d3cc8a",
+      "text": "#include \"deep_layer_trace_r4026.hpp\"\n#include \"deep_reduce_wide_r3443.hpp\"\n#include \"deepseek_v4_routed_text_model_r20.hpp\"\n#include \"execution/submit.hpp\"\n#include <algorithm>\n#include <optional>\n#include <set>\n#include <stdexcept>\n\nnamespace infinilm::models::deepseek_v4 {\nnamespace rt=infinilm::runtime;namespace ex=infinilm::execution;\nnamespace {\nstruct Work{\n rt::Runtime&r;std::vector<rt::Tensor>held;\n ~Work(){try{r.syncStream();}catch(...){std::terminate();}}\n rt::Tensor alloc(rt::Shape shape,rt::DataType type=rt::DataType::kFloat32){auto x=rt::Tensor::empty(r,shape,type);held.push_back(x);return x;}\n rt::Tensor ids(const std::vector<int64_t>&host){auto x=alloc({host.size()},rt::DataType::kInt64);r.memcpyH2D(x->data(),host.data(),host.size()*8,false);return x;}\n rt::Tensor cast(const rt::Tensor&x,rt::DataType type){if(x->dtype()==type)return x;auto y=alloc(x->shape(),type);ex::submit<infini::ops::Cast>(r,infini::ops::Cast::DefaultConfig(r.device().type()),x,y);return y;}\n template<class Op>rt::Tensor binary(const rt::Tensor&a,const rt::Tensor&b,rt::Shape shape){auto y=alloc(shape);ex::submit<Op>(r,Op::DefaultConfig(r.device().type()),a,b,y);return y;}\n template<class Op>rt::Tensor unary(const rt::Tensor&a){auto y=alloc(a->shape());ex::submit<Op>(r,Op::DefaultConfig(r.device().type()),a,y);return y;}\n};\nvoid owner(rt::Runtime&r,rt::Runtime*expected){r.assertOwnerThread();if(&r!=expected||r.isGraphRecording())throw std::invalid_argument(\"DeepSeek text stack Runtime owner/recording differs\");}\n}\nTextHeadR20::TextHeadR20(rt::Runtime&r,const nlohmann::json&cfg,const engine::distributed::RankInfo&rank):owner_(&r),rank_(rank),vocab_(cfg.at(\"vocab_size\")){\n owner(r,owner_);\n if(r.device().type()!=rt::Device::Type::kHygon||rank.device!=r.device()||(rank.tp_size!=1&&rank.tp_size!=8)||rank.tp_rank<0||rank.tp_rank>=rank.tp_size||(rank.tp_size>1&&!rank.comm)||cfg.at(\"hidden_size\")!=4096||cfg.at(\"hc_mult\")!=4||vocab_!=129280||vocab_%rank.tp_size)throw std::invalid_argument(\"DeepSeek actual mHC text head geometry differs\");\n fn_=rt::Tensor::empty_parameter(r,{4,16384},rt::DataType::kFloat32);base_=rt::Tensor::empty_parameter(r,{4},rt::DataType::kFloat32);scale_=rt::Tensor::empty_parameter(r,{1},rt::DataType::kFloat32);\n bind_weight(\"hc_head_fn\",weights::Weight(fn_));bind_weight(\"hc_head_base\",weights::Weight(base_));bind_weight(\"hc_head_scale\",weights::Weight(scale_));\n norm_=std::make_unique<layers::RMSNorm>(r,4096,cfg.at(\"rms_norm_eps\"),rt::DataType::kBFloat16);for(auto&item:norm_->state_dict())bind_weight(\"norm.\"+item.first,item.second);\n head_=rt::Tensor::empty_parameter(r,{vocab_/size_t(rank.tp_size),4096},rt::DataType::kBFloat16);bind_weight(\"head.weight\",weights::Weight(head_,0,rank.tp_rank,rank.tp_size));\n constants_=rt::Tensor::empty(r,{2},rt::DataType::kFloat32);float values[]={float(cfg.at(\"rms_norm_eps\").get<double>()),float(cfg.at(\"hc_eps\").get<double>())};r.memcpyH2D(constants_->data(),values,sizeof(values),false);r.syncStream();\n}\nvoid TextHeadR20::process_weights_after_loading(rt::Runtime&r,bool flag){owner(r,owner_);if(ready_)throw std::logic_error(\"DeepSeek head already loaded\");norm_->process_weights_after_loading(r,flag);r.syncStream();ready_=true;}\nTextHeadR20::Output TextHeadR20::forward(rt::Runtime&r,const rt::Tensor&residual)const{\n owner(r,owner_);\n if(!ready_||!residual||residual->device()!=r.device()||residual->dtype()!=rt::DataType::kBFloat16||residual->ndim()!=3||!residual->size(0)||residual->size(0)>4096||residual->shape()!=rt::Shape{residual->size(0),4,4096}||!residual->is_contiguous())throw std::invalid_argument(\"DeepSeek head needs loaded contiguous BF16 [T,4,4096]\");\n trace_r4026::save(r,43,\"head_input\",residual); Work work{r};size_t t=residual->size(0);auto xf=work.cast(residual,rt::DataType::kFloat32),flat=xf->view({t,16384});\n auto square=work.binary<infini::ops::Mul>(flat,flat,{t,16384}),mean=work.alloc({t,1});ex::submit<infini::ops::Mean>(r,infini::ops::Mean::DefaultConfig(r.device().type()),square,std::optional<std::vector<int64_t>>{{1}},true,std::optional<infini::ops::DataType>{},mean);\n auto inv=work.unary<infini::ops::Rsqrt>(work.binary<infini::ops::Add>(mean,constants_->narrow({{0,0,1}}),{t,1}));auto mixes=work.alloc({t,4});\n // The checkpoint reference computes raw dot products, then applies RMS.\n ex::submit<infini::ops::Gemm>(r,infini::ops::Gemm::DefaultConfig(r.device().type()),flat,fn_->permute({1,0}),std::optional<rt::Tensor>{},std::optional<float>{1},std::optional<float>{0},std::optional<int>{},std::optional<int>{},mixes);\n auto scaled=work.binary<infini::ops::Mul>(work.binary<infini::ops::Mul>(mixes,inv,{t,4}),scale_,{t,4});auto logits=work.binary<infini::ops::Add>(scaled,base_,{t,4});auto pre=work.binary<infini::ops::Add>(work.unary<infini::ops::Sigmoid>(logits),constants_->narrow({{0,1,1}}),{t,4});\n auto weighted=work.binary<infini::ops::Mul>(xf,pre->view({t,4,1}),{t,4,4096}),summed=work.alloc({t,4096});ex::submit<infini::ops::Sum>(r,infini::ops::Sum::DefaultConfig(r.device().type()),weighted,std::optional<std::vector<int64_t>>{{1}},false,std::optional<infini::ops::DataType>{},summed);\n auto collapsed=work.cast(summed,rt::DataType::kBFloat16),normalized=norm_->forward(r,collapsed);work.held.push_back(normalized);size_t width=vocab_/size_t(rank_.tp_size);auto local=work.alloc({t,width},rt::DataType::kBFloat16);\n ex::submit<infini::ops::Gemm>(r,infini::ops::Gemm::DefaultConfig(r.device().type()),normalized,head_->permute({1,0}),std::optional<rt::Tensor>{},std::optional<float>{1},std::optional<float>{0},std::optional<int>{},std::optional<int>{},local);\n trace_r4026::save(r,43,\"head_collapsed\",collapsed);trace_r4026::save(r,43,\"head_normalized\",normalized);trace_r4026::save(r,43,\"head_pre\",pre);trace_r4026::save(r,43,\"head_local_logits\",local); rt::Tensor output=local;\n if(rank_.tp_size>1){auto gathered=work.alloc({size_t(rank_.tp_size),t,width},rt::DataType::kBFloat16);engine::distributed::allgather_(r,gathered,local,rank_.comm);output=gathered->permute({1,0,2})->contiguous(r)->view({t,vocab_});work.held.push_back(output);}\n trace_r4026::save(r,43,\"head_full_logits\",output); r.syncStream();return {collapsed,normalized,output,pre};\n}\nTextModelR20::TextModelR20(rt::Runtime&r,const nlohmann::json&cfg,const engine::distributed::RankInfo&rank,size_t rows,size_t capacity):owner_(&r),rows_(rows),capacity_(capacity),vocab_(cfg.at(\"vocab_size\")){\n owner(r,owner_);\n if(cfg.at(\"num_hidden_layers\")!=43||cfg.at(\"hidden_size\")!=4096||cfg.at(\"hc_mult\")!=4||rank.pp_size!=1||rank.pp_stage!=0||rank.world_size!=rank.tp_size||rank.world_rank!=rank.tp_rank||!rows||rows>128||!capacity||capacity>size_t(cfg.at(\"max_position_embeddings\")))throw std::invalid_argument(\"DeepSeek text stack requires actual43-layer main model and PP1 topology\");\n try{\n  head_=std::make_unique<TextHeadR20>(r,cfg,rank);for(auto&item:head_->state_dict())bind_weight(item.first,item.second);\n  embedding_=rt::Tensor::empty_parameter(r,{vocab_,4096},rt::DataType::kBFloat16);bind_weight(\"embed.weight\",weights::Weight(embedding_));\n  for(size_t layer=0;layer<43;++layer){auto bounded=cfg;size_t ratio=cfg.at(\"compress_ratios\").at(layer);if(ratio)bounded[\"native_compressed_capacity\"]=(capacity+ratio-1)/ratio;auto module=std::make_unique<NativeDecoderR20>(r,bounded,layer,rank,rows);for(auto&item:module->state_dict())bind_weight(\"layers.\"+std::to_string(layer)+\".\"+item.first,item.second);layers_.push_back(std::move(module));}\n  lengths_.assign(rows,0);r.syncStream();\n }catch(...){try{r.syncStream();}catch(...){std::terminate();}throw;}\n}\nvoid TextModelR20::process_weights_after_loading(rt::Runtime&r,bool flag){owner(r,owner_);if(ready_)throw std::logic_error(\"DeepSeek text model already loaded\");for(auto&layer:layers_)layer->process_weights_after_loading(r,flag);head_->process_weights_after_loading(r,flag);r.syncStream();ready_=true;}\nTextModelR20::Output TextModelR20::forward(rt::Runtime&r,const rt::Tensor&ids,const rt::Tensor&positions,const std::vector<Request>&requests,bool all_positions){\n owner(r,owner_);\n if(!ready_||poisoned_||!ids||!positions||ids->device()!=r.device()||positions->device()!=r.device()||ids->dtype()!=rt::DataType::kInt64||positions->dtype()!=rt::DataType::kInt64||ids->ndim()!=1||!ids->size(0)||ids->size(0)>4096||positions->shape()!=ids->shape()||!ids->is_contiguous()||!positions->is_contiguous()||requests.empty()||requests.size()>rows_)throw std::invalid_argument(\"DeepSeek text model requires loaded packed IDs/positions and valid state\");\n size_t tokens=ids->size(0),total=0;std::set<size_t>seen;std::vector<int64_t>hi(tokens),hp(tokens),expanded,last;r.memcpyD2H(hi.data(),ids->data(),tokens*8);r.memcpyD2H(hp.data(),positions->data(),tokens*8);\n for(auto id:hi){if(id<0||size_t(id)>=vocab_)throw std::invalid_argument(\"DeepSeek text token outside vocabulary\");for(size_t c=0;c<4;++c)expanded.push_back(id);}\n for(auto q:requests){if(q.row>=rows_||!seen.insert(q.row).second||!q.tokens||q.past!=lengths_[q.row]||q.past>capacity_||q.tokens>capacity_-q.past||q.tokens>tokens-total)throw std::invalid_argument(\"DeepSeek text packed row/past/count differs\");for(size_t i=0;i<q.tokens;++i)if(hp[total+i]!=int64_t(q.past+i))throw std::invalid_argument(\"DeepSeek text logical position differs\");total+=q.tokens;last.push_back(int64_t(total-1));}\n if(total!=tokens)throw std::invalid_argument(\"DeepSeek text packed count differs\");\n wide_r3443::Scope request_scope_r3443(r,requests.size()); Work work{r};try{\n  auto hidden=work.alloc({tokens*4,4096},rt::DataType::kBFloat16);ex::submit<infini::ops::IndexSelect>(r,infini::ops::IndexSelect::DefaultConfig(r.device().type()),embedding_,work.ids(expanded),int64_t{0},hidden);hidden=hidden->view({tokens,4,4096});\n  size_t layer_index_r4026=0;\n  for(auto&layer:layers_){\n   trace_r4026::save(r,layer_index_r4026,\"entry\",hidden);\n   auto detail=layer->forward(r,hidden,ids,positions,requests);\n   trace_r4026::save(r,layer_index_r4026,\"attn_collapsed\",detail.attention_prepared.collapsed);\n   trace_r4026::save(r,layer_index_r4026,\"attn_post\",detail.attention_prepared.post);\n   trace_r4026::save(r,layer_index_r4026,\"attn_comb\",detail.attention_prepared.comb);\n   trace_r4026::save(r,layer_index_r4026,\"attn_norm\",detail.normalized_attention);\n   trace_r4026::save(r,layer_index_r4026,\"attn_value\",detail.attention_value);\n   trace_r4026::save(r,layer_index_r4026,\"attn_residual\",detail.attention_residual);\n   trace_r4026::save(r,layer_index_r4026,\"ffn_collapsed\",detail.ffn.prepared.hc.collapsed);\n   trace_r4026::save(r,layer_index_r4026,\"ffn_post\",detail.ffn.prepared.hc.post);\n   trace_r4026::save(r,layer_index_r4026,\"ffn_comb\",detail.ffn.prepared.hc.comb);\n   trace_r4026::save(r,layer_index_r4026,\"ffn_norm\",detail.ffn.prepared.normalized);\n   trace_r4026::save(r,layer_index_r4026,\"routing_weights\",detail.ffn.moe.weights);\n   trace_r4026::save(r,layer_index_r4026,\"selected_experts\",detail.ffn.moe.indices);\n   trace_r4026::save(r,layer_index_r4026,\"moe_value\",detail.ffn.moe.value);\n   hidden=detail.hidden;trace_r4026::save(r,layer_index_r4026,\"exit\",hidden);++layer_index_r4026;\n  }\n  auto chosen=hidden;if(!all_positions){chosen=work.alloc({requests.size(),4,4096},rt::DataType::kBFloat16);ex::submit<infini::ops::IndexSelect>(r,infini::ops::IndexSelect::DefaultConfig(r.device().type()),hidden,work.ids(last),int64_t{0},chosen);}\n  auto result=head_->forward(r,chosen);for(auto q:requests)lengths_[q.row]=q.past+q.tokens;r.syncStream();return {hidden,result};\n }catch(...){poisoned_=true;try{r.syncStream();}catch(...){std::terminate();}throw;}\n}\nvoid TextModelR20::reset(rt::Runtime&r){owner(r,owner_);for(auto&layer:layers_)layer->reset(r);std::fill(lengths_.begin(),lengths_.end(),0);poisoned_=false;}\n}\n"
+    },
+    "candidates/deep-owner-device-r8918/src/deepseek_v4_native_routed_decoder_r20.cpp": {
+      "SHA256": "1886f34a86308859e521778326e3e1119d93ff8e4d85e1ff1f2a3af3b3d6dfa9",
+      "text": "#include \"deep_owner_events_r8900.hpp\"\n#include \"deep_tail_prefill_scope_r7211.hpp\"\n#include \"deep_collective_layout_r7040.hpp\"\n#include \"deepseek_v4_native_routed_decoder_r20.hpp\"\n#include <algorithm>\n#include <set>\n#include <stdexcept>\nnamespace infinilm::models::deepseek_v4 {\nnamespace rt=infinilm::runtime;\nnamespace {\nvoid finalize(rt::Runtime&r,weights::ModelWeights&module,bool transpose){\n for(auto&child:module.children())finalize(r,*child.second,transpose);\n module.process_weights_after_loading(r,transpose);\n}\ntemplate<class T>std::vector<typename T::Request>metadata(const std::vector<NativeDecoderR20::Request>&requests){\n std::vector<typename T::Request>result;for(auto q:requests)result.push_back({q.row,q.past,q.tokens});return result;\n}\n}\nvoid NativeDecoderR20::check_owner(rt::Runtime&r)const{\n r.assertOwnerThread();if(owner_!=&r||r.isGraphRecording())throw std::invalid_argument(\"DeepSeek decoder Runtime owner differs\");\n}\nNativeDecoderR20::NativeDecoderR20(rt::Runtime&r,const nlohmann::json&cfg,size_t layer,\n const engine::distributed::RankInfo&rank,size_t rows):owner_(&r),rows_(rows),maximum_(cfg.at(\"max_position_embeddings\")),vocab_(cfg.at(\"vocab_size\")),ratio_(cfg.at(\"compress_ratios\").at(layer)){\n check_owner(r);deep_owner_r8900::initialize(r,this,layer);\n if(!rows||rows>128||layer>=size_t(cfg.at(\"num_hidden_layers\"))||cfg.at(\"hidden_size\")!=4096||cfg.at(\"hc_mult\")!=4||cfg.at(\"n_routed_experts\")!=256||cfg.at(\"num_experts_per_tok\")!=6||cfg.at(\"n_shared_experts\")!=1||cfg.at(\"swiglu_limit\")!=10||cfg.at(\"scoring_func\")!=\"sqrtsoftplus\"||!cfg.at(\"norm_topk_prob\").get<bool>()||(ratio_!=0&&ratio_!=4&&ratio_!=128))throw std::invalid_argument(\"DeepSeek native decoder checkpoint geometry differs\");\n try{\n  auto bind=[&](const std::string&prefix,weights::ModelWeights&module){for(auto&item:module.state_dict())bind_weight(prefix+item.first,item.second);};\n  hc_=std::make_unique<HyperConnection>(r,cfg.at(\"rms_norm_eps\"),cfg.at(\"hc_eps\"),cfg.at(\"hc_sinkhorn_iters\"));bind(\"hc_attn_\",*hc_);\n  norm_=std::make_unique<layers::RMSNorm>(r,4096,cfg.at(\"rms_norm_eps\"),rt::DataType::kBFloat16);bind(\"attn_norm.\",*norm_);\n  if(ratio_==0){swa_=std::make_unique<SwaAttention>(r,cfg,layer,rank,rows);bind(\"attn.\",*swa_);}\n  else if(ratio_==4){csa_=std::make_unique<CsaAttention>(r,cfg,layer,rank,rows);bind(\"attn.\",*csa_);}\n  else{hca_=std::make_unique<HcaAttention>(r,cfg,layer,rank,rows);bind(\"attn.\",*hca_);}\n  size_t intermediate=cfg.at(\"moe_intermediate_size\");bool hash=layer<size_t(cfg.at(\"num_hash_layers\"));\n  ffn_=std::make_unique<DeepseekV4FFNBlockR20>(r,intermediate,intermediate,vocab_,hash,cfg.at(\"routed_scaling_factor\"),rank,cfg.at(\"rms_norm_eps\"),cfg.at(\"hc_eps\"),cfg.at(\"hc_sinkhorn_iters\"));bind(\"\",*ffn_);\n  lengths_.assign(rows,0);r.syncStream();\n }catch(...){try{r.syncStream();}catch(...){std::terminate();}throw;}\n}\nvoid NativeDecoderR20::process_weights_after_loading(rt::Runtime&r,bool flag){\n check_owner(r);if(ready_)throw std::logic_error(\"DeepSeek decoder already loaded\");\n hc_->process_weights_after_loading(r,flag);norm_->process_weights_after_loading(r,flag);\n if(swa_)swa_->process_weights_after_loading(r,flag);if(csa_)csa_->process_weights_after_loading(r,flag);if(hca_)hca_->process_weights_after_loading(r,flag);\n finalize(r,*ffn_,flag);r.syncStream();ready_=true;\n}\nNativeDecoderR20::Output NativeDecoderR20::forward(rt::Runtime&r,const rt::Tensor&residual,const rt::Tensor&ids,const rt::Tensor&positions,const std::vector<Request>&requests){\n check_owner(r);deep_owner_r8900::Context owner_context(r,this);deep_owner_r8900::Span metadata_span(r,1);\n if(!ready_||poisoned_||!residual||residual->device()!=r.device()||residual->dtype()!=rt::DataType::kBFloat16||residual->ndim()!=3||!residual->size(0)||residual->size(0)>4096||residual->shape()!=rt::Shape{residual->size(0),4,4096}||!residual->is_contiguous()||!ids||ids->device()!=r.device()||ids->dtype()!=rt::DataType::kInt64||ids->shape()!=rt::Shape{residual->size(0)}||!ids->is_contiguous()||!positions||positions->device()!=r.device()||positions->dtype()!=rt::DataType::kInt64||positions->shape()!=ids->shape()||!positions->is_contiguous()||requests.empty()||requests.size()>rows_)throw std::invalid_argument(\"DeepSeek decoder needs loaded BF16 residual, packed IDs/positions and valid state\");\n size_t tokens=residual->size(0),total=0;std::set<size_t>seen;std::vector<int64_t>host_ids(tokens),host_pos(tokens);\n r.memcpyD2H(host_ids.data(),ids->data(),tokens*8);r.memcpyD2H(host_pos.data(),positions->data(),tokens*8);\n for(auto id:host_ids)if(id<0||size_t(id)>=vocab_)throw std::invalid_argument(\"DeepSeek decoder token ID outside vocabulary\");\n for(auto q:requests){if(q.row>=rows_||!seen.insert(q.row).second||!q.tokens||q.past!=lengths_[q.row]||q.past>maximum_||q.tokens>maximum_-q.past||q.tokens>tokens-total)throw std::invalid_argument(\"DeepSeek decoder packed row/past/count differs\");for(size_t j=0;j<q.tokens;++j)if(host_pos[total+j]!=int64_t(q.past+j))throw std::invalid_argument(\"DeepSeek decoder logical position differs\");total+=q.tokens;}\n if(total!=tokens)throw std::invalid_argument(\"DeepSeek decoder packed token count differs\");\n layout_r7040::Scope layout_scope(r,requests);\n deep_tail_prefill_r7211::Scope tail_prefill_scope(r,requests);\n try{\n  metadata_span.close();Output out;{deep_owner_r8900::Span p(r,2);out.attention_prepared=hc_->pre(r,residual);}{deep_owner_r8900::Span p(r,3);out.normalized_attention=norm_->forward(r,out.attention_prepared.collapsed);}\n  {deep_owner_r8900::Span p(r,4);\n  if(swa_)out.attention_value=swa_->forward(r,out.normalized_attention,positions,metadata<SwaAttention>(requests));\n  else if(csa_)out.attention_value=csa_->forward(r,out.normalized_attention,positions,metadata<CsaAttention>(requests));\n  else out.attention_value=hca_->forward(r,out.normalized_attention,positions,metadata<HcaAttention>(requests));\n  }{deep_owner_r8900::Span p(r,5);out.attention_residual=hc_->post(r,out.attention_value,residual,out.attention_prepared);}\n  {deep_owner_r8900::Span p(r,6);out.ffn=ffn_->forward_detailed(r,out.attention_residual,ids);out.hidden=out.ffn.value;}\n  for(auto q:requests)lengths_[q.row]=q.past+q.tokens;owner_context.beforeDrain();double drain_start=deep_owner_r8900::wall();r.syncStream();owner_context.afterDrain(drain_start);return out;\n }catch(...){poisoned_=true;try{r.syncStream();}catch(...){std::terminate();}throw;}\n}\nvoid NativeDecoderR20::reset(rt::Runtime&r){check_owner(r);if(swa_)swa_->reset(r);if(csa_)csa_->reset(r);if(hca_)hca_->reset(r);std::fill(lengths_.begin(),lengths_.end(),0);poisoned_=false;}\nstd::vector<rt::Tensor>NativeDecoderR20::cache_tensors()const{\n if(swa_)return {swa_->raw_cache()};\n if(csa_)return {csa_->raw_cache(),csa_->raw_compressed_cache(),csa_->compressor_state(),csa_->raw_index_cache(),csa_->indexer_state()};\n return {hca_->raw_cache(),hca_->raw_compressed_cache(),hca_->compressor_state()};\n}\n}\n"
+    }
+  },
+  "health": {
+    "completed": true,
+    "manifest_SHA256": "46e647c1169fc6dcf10cd4d73e98c273bc9f5f68b86a6629f600934496822537",
+    "GPU_handle": "910374.1069",
+    "GPU_terminal": [
+      "910374.1069",
+      "deep-attention-inner-r9193",
+      "FAILED",
+      "1:0",
+      "a02r4n05",
+      "00:08:05"
+    ],
+    "audit_returncode": 1,
+    "audit_stdout": "",
+    "audit_stderr": "Traceback (most recent call last):\n  File \"/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/Deep-attention-inner-r9193/audit_Deep_owner_prefill_r9193.py\", line 2, in <module>\n    p=pathlib.Path(sys.argv[1]);q=json.loads(p.read_bytes());assert q['completed']and q['engine_worker_shutdown_completed']and q['collection_finished']and q['grid_complete']and q['owner_capture_complete'];assert len(q['prefill_diagnostics'])==4 and len(q['owner_prefill_profiles'])==1\n                                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
+    "post_KFD": {
+      "args": [
+        "srun",
+        "--jobid=910374",
+        "--overlap",
+        "--exact",
+        "--cpu-bind=none",
+        "-N1",
+        "-n1",
+        "-c1",
+        "-w",
+        "a02r4n05",
+        "--gres=none",
+        "--mem=512M",
+        "-t",
+        "00:04:00",
+        "--job-name=Deep-owner-prefill-post-r9193",
+        "python3",
+        "/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/Kimi_Q0_idle_r8066.py"
+      ],
+      "returncode": 0,
+      "rows": [
+        {
+          "utc": "2026-10-26T03:48:15.779678+00:00",
+          "node": "a02r4n05",
+          "step": "910374.1070",
+          "kfd_pids": [],
+          "ib0_ipv4": [
+            "12.1.2.65"
+          ],
+          "passed": true,
+          "CUDA_initialized": false,
+          "IPv4_source": "Linux SIOCGIFADDR ib0; no external binary"
+        }
+      ],
+      "stdout_tail": "{\"utc\": \"2026-10-26T03:48:15.779678+00:00\", \"node\": \"a02r4n05\", \"step\": \"910374.1070\", \"kfd_pids\": [], \"ib0_ipv4\": [\"12.1.2.65\"], \"passed\": true, \"CUDA_initialized\": false, \"IPv4_source\": \"Linux SIOCGIFADDR ib0; no external binary\"}\n",
+      "stderr_tail": "",
+      "actual_terminal": [
+        "910374.1070",
+        "Deep-owner-prefill-post-r9193",
+        "COMPLETED",
+        "0:0",
+        "a02r4n05",
+        "00:00:00"
+      ]
+    },
+    "qualified_terminal": false
+  }
+}
