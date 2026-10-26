@@ -1,0 +1,5 @@
+{
+  "file": "dflash2_strict_loader_r9007.py",
+  "SHA256": "168610216e11662d74278f33c46a9b5197c7779314ebbc3ef3ccbf24bf3c2c19",
+  "class_source": "class ExternalTargetHead:\n \"\"\"Borrowed weight reference; matching shape never certifies value compatibility.\"\"\"\n def __init__(self,weight,*,values_compatibility=None,proof=None):\n  if weight.ndim!=2 or weight.dtype!=torch.bfloat16:raise ValueError('external BF16 [vocab,H] head required')\n  self.weight=weight;self.values_compatibility=values_compatibility;self.proof=proof;self.owner=threading.get_ident();self.closed=False\n def __call__(self,x):\n  if self.closed or self.owner!=threading.get_ident():raise RuntimeError('external head closed/foreign owner')\n  return F.linear(x,self.weight)\n def close(self):self.weight=None;self.closed=True\n"
+}

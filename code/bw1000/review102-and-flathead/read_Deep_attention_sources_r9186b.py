@@ -1,0 +1,9 @@
+import pathlib,json,hashlib,datetime
+r=pathlib.Path('/public/home/aclsylqidf/hygon-inference-refactor-20261014');dirs=['/refactor/candidates/deep-c4-projection-model-r5920/incoming', '/refactor/candidates/deep-c4-projection-model-r5920/src', '/refactor/candidates/deep-combined-r7169/src', '/refactor/candidates/deep-latent-prefill-r8936/src', '/refactor/candidates/deep-owner-device-r8918/src', '/refactor/candidates/deep-packed-batch-r8996b/src', '/refactor/candidates/deep-packed-varlen-r9101b/src', '/refactor/candidates/deep-reference-scratch-r8954/src', '/refactor/candidates/deep-scalar-Cast-r9054/src', '/refactor/candidates/deep-sink-broadcast-r9040/src', '/refactor/candidates/deep-tailSUM-r7212/incoming', '/refactor/candidates/deep-values-reuse-r9083/src', '/refactor/candidates/models-5f91ad7-r3675/Deep/helpers/src', '/refactor/candidates/models-5f91ad7-r3675/Deep/src', '/refactor/candidates/rebased-5f91ad7-r3668/Common/Deep/InfiniLM/csrc/models/deepseek_v4', '/refactor/candidates/rebased-5f91ad7-r3668/Common/Deep/InfiniLM/third_party/json/include', '/refactor/candidates/rebased-5f91ad7-r3668/Common/Deep/InfiniLM/third_party/spdlog/include', '/refactor/candidates/rebased-5f91ad7-r3668/Model/Deep/InfiniLM/csrc', '/refactor/candidates/src'];q={'UTC':datetime.datetime.now(datetime.timezone.utc).isoformat(),'GPU':False,'CPU_only':True,'sources':[]}
+for directory in dirs:
+ root=pathlib.Path(directory.replace('/refactor/',str(r)+'/'))
+ if not root.is_dir():continue
+ for p in root.iterdir():
+  if p.is_file()and p.suffix in ['.cpp','.hpp','.cc','.h']and any(s in p.name.lower()for s in ['attention','attn']):
+   q['sources'].append({'path':str(p),'SHA256':hashlib.sha256(p.read_bytes()).hexdigest(),'bytes':p.stat().st_size,'text':p.read_text(errors='replace')if p.stat().st_size<160000 else None})
+print(json.dumps(q))
