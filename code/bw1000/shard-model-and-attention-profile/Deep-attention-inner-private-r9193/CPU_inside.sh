@@ -1,0 +1,9 @@
+#!/bin/bash
+set -euo pipefail
+source /opt/dtk/env.sh
+export CUDA_VISIBLE_DEVICES= HIP_VISIBLE_DEVICES= ROCR_VISIBLE_DEVICES=
+LM=/refactor/candidates/rebased-5f91ad7-r3668/Common/Deep/InfiniLM
+SDK=/refactor/install/hygon-deep-5f91ad7-r3672
+export LD_LIBRARY_PATH="$SDK/lib:$LM/python:$LM/python/infinilm/_lib:/opt/dtk/cuda/cuda/lib64:/opt/dtk/cuda/lib64:$LD_LIBRARY_PATH"
+export PYTHONPATH=/refactor/incoming/Deep-attention-inner-r9193:/refactor/incoming:/old/offline-deps:${PYTHONPATH:-}
+python -B -u /refactor/incoming/Deep-attention-inner-r9193/CPU_build.py
