@@ -1,0 +1,81 @@
+{
+  "native_DSO_SHA256": "b4f916dcf32f3bafb7451c94d6a98746a0e6c084edf73aeb6e229275579dbb8d",
+  "actual_linked_MoE_object": {
+    "/refactor/candidates/Kimi-I192-batch-Model-r9129/moe.o": "55fb31b5f4fa1510f06e8b62894d64d52926862371f43e1e2d8c5aaeb2624800",
+    "/refactor/candidates/Kimi-MoE-batch-profile-r9125/provider.o": "f6ae35e870a8730c7f8e564d566503c6c31c1d253ea10758b5a2d3959b2f0c9d"
+  },
+  "hard_guards": [
+    "pair_probe.cpp batch_forward tokens>64 / capabilities64",
+    "batch_payload_r9122c.hpp totalT<=64 including ownerBegin/Replay payload",
+    "batch_state_r9122.hpp owner BEGIN total>64; batch_transaction component preflight total>64",
+    "provider r9125 .cu T8..64 API guard",
+    "MoE caller r9129 guard <=64 and compact offsets capacity64",
+    "histogram I192_T_counts[8][65] must not index128/256",
+    "frontend Native.maxT==64 and C*W<=maxT",
+    "batch_live_taps/featurebuffers need full T128/T256 metadata/copy and finite/canary qualification, dynamic allocation alone not qualification"
+  ],
+  "workspace_plan_only": {
+    "64": {
+      "activation_bytes_conservative": 786432,
+      "counts_offset": 786432,
+      "routes_offset": 790016,
+      "job_expert_offset": 4460032,
+      "job_start_offset": 4464128,
+      "jobs_offset": 4468224,
+      "minimum_aligned_bytes": 4468480
+    },
+    "128": {
+      "activation_bytes_conservative": 1572864,
+      "counts_offset": 1572864,
+      "routes_offset": 1576448,
+      "job_expert_offset": 8916480,
+      "job_start_offset": 8924672,
+      "jobs_offset": 8932864,
+      "minimum_aligned_bytes": 8933120
+    },
+    "256": {
+      "activation_bytes_conservative": 3145728,
+      "counts_offset": 3145728,
+      "routes_offset": 3149312,
+      "job_expert_offset": 17829376,
+      "job_start_offset": 17845760,
+      "jobs_offset": 17862144,
+      "minimum_aligned_bytes": 17862400
+    }
+  },
+  "route_stride": "kernel routes[expert*T*16+slot]; T128 overlaps old job arrays, T256 also exceeds old activation reservation; raising frontend/caller guard alone unsafe",
+  "per_request_width8_native_state_limit": "C32W4T128 and C32W8T256 need totalflatten expansion, but perrequest W<=8 remains; K7 proposals maximum for current8positiondraft",
+  "unknown_kernel_support": "existing KDA/Conv/MLA/routing/mainFusedMoE shapes require actual qualified component128/256, not inferred safe from dynamic tensors",
+  "next_resident_matrix": {
+    "C": [
+      1,
+      2,
+      4,
+      8,
+      16,
+      32
+    ],
+    "W": [
+      8,
+      8,
+      8,
+      8,
+      4,
+      2
+    ],
+    "current_T": [
+      8,
+      16,
+      32,
+      64,
+      64,
+      64
+    ],
+    "official32_perarm": true,
+    "resident_control": "no shutdown until operator boundeddataqueue analysis completed/cleanupdeadline; no arbitrary code or DSO hotload",
+    "shutdown": "operator sends final stop only after completedanalysis/boundedextraJSONcases, always reserves150s cleanup; no arbitrarycode/DSOhotswap"
+  },
+  "GPU_submitted": false,
+  "taps_current_source": "batch_live_taps already accepts sumT<=8192 and dynamic vector metadata; not itself hardT64. Qualifying T128/256 copy/layout/finite remains necessary.",
+  "unchanged_metadata_capacity": "typedpayload232 words boundsC32, independent totalT; no need expand requests metadata solely forT128/256"
+}
