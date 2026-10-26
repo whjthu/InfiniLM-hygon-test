@@ -1,0 +1,144 @@
+{
+  "/refactor/candidates/glm-transient-layer-r5681/private-0.o": {
+    "source": "/refactor/candidates/glm-transient-layer-r5681/src/owner_affinity_report_r2392.cpp",
+    "SHA256": "20c5d6d8284efb293b9ebc1642f0b41baa721879f14eadc87ffd063b653dc7e7",
+    "receipt_SHA256": "20c5d6d8284efb293b9ebc1642f0b41baa721879f14eadc87ffd063b653dc7e7",
+    "communication_lines": []
+  },
+  "/refactor/candidates/glm-transient-layer-r5681/private-1.o": {
+    "source": "/refactor/candidates/glm-transient-layer-r5681/src/modern_glm_cached_model_bridge_r809.cpp",
+    "SHA256": "5fa127fc443cccea19fe17365d525e1a0b76fc326d6c46c5e41e4f5d0b8daf18",
+    "receipt_SHA256": "5fa127fc443cccea19fe17365d525e1a0b76fc326d6c46c5e41e4f5d0b8daf18",
+    "communication_lines": [
+      "32: infinilm::engine::distributed::RankInfo rank(r.device());rank.tp_size=8;rank.tp_rank=device;rank.comm=c->tp;rank.pp_size=pp;rank.pp_stage=stage;rank.world_size=8*pp;rank.world_rank=stage*8+device;rank.world_comm=c->world;",
+      "54:extern \"C\" int modern_glm_model_control(void*raw,size_t count,void*values,void*stream){auto*c=static_cast<Context*>(raw);try{producer(stream);auto&r=*c->owner;if(c->shared_control_r4279)r.syncStream();auto x=rt::Tensor::from_blob(values,{count},rt::DataType::kFloat32,r.device());infinilm::engine::distributed::allreduce_(r,x,x,infinicclSum,c->control);r.syncStream();++c->control_calls_r4279;return 0;}catch(const std::exception&e){error=e.what();drain(c);return 1;}}",
+      "61:extern \"C\" int modern_glm_model_tp_control(void*raw,size_t count,void*values,void*stream){auto*c=static_cast<Context*>(raw);try{producer(stream);auto&r=*c->owner;auto x=rt::Tensor::from_blob(values,{count},rt::DataType::kFloat32,r.device());infinilm::engine::distributed::allreduce_(r,x,x,infinicclSum,c->tp);r.syncStream();return 0;}catch(const std::exception&e){error=e.what();drain(c);return 1;}}"
+    ]
+  },
+  "/refactor/candidates/glm-transient-layer-r5681/private-2.o": {
+    "source": "/refactor/candidates/glm-transient-layer-r5681/src/glm_moe_dsa_balanced_text_model_r126.cpp",
+    "SHA256": "4bc1a1ccc550a53cbb17baa502f9bbc5670ab634e49b05049235e522cbc11d8c",
+    "receipt_SHA256": "4bc1a1ccc550a53cbb17baa502f9bbc5670ab634e49b05049235e522cbc11d8c",
+    "communication_lines": [
+      "37: if(r.device().type()!=rt::Device::Type::kHygon||rank.device!=r.device()||(rank.tp_size!=1&&rank.tp_size!=8)||rank.tp_rank<0||rank.tp_rank>=rank.tp_size||(rank.pp_size!=1&&rank.pp_size!=2&&rank.pp_size!=3&&rank.pp_size!=4)||rank.pp_stage<0||rank.pp_stage>=rank.pp_size||rank.world_size!=rank.tp_size*rank.pp_size||rank.world_rank!=rank.pp_stage*rank.tp_size+rank.tp_rank||(rank.tp_size>1&&!rank.comm)||(rank.pp_size>1&&!rank.world_comm)||cfg.at(\"num_hidden_layers\")!=78||cfg.at(\"hidden_size\")!=6144||vocab_!=154880||vocab_%rank.tp_size||!rows||rows>128||!capacity||capacity>size_t(cfg.at(\"max_position_embeddings\")))throw std::invalid_argument(\"GLM full text stack requires actual78 layers and explicit TP1/8 PP1/2/3/4 topology\");",
+      "66:   size_t shard=6144/size_t(rank_.tp_size);auto local=work.alloc({tokens,shard});engine::distributed::recv_(r,local,(rank_.pp_stage-1)*rank_.tp_size+rank_.tp_rank,rank_.world_comm);",
+      "68:   else{auto gathered=work.alloc({size_t(rank_.tp_size),tokens,shard});engine::distributed::allgather_(r,gathered,local,rank_.comm);hidden=gathered->permute({1,0,2})->contiguous(r)->view({tokens,6144});work.held.push_back(hidden);}",
+      "76:   size_t shard=6144/size_t(rank_.tp_size);auto local=work.alloc({tokens,shard});local->copy_from(r,hidden->narrow({{1,size_t(rank_.tp_rank)*shard,shard}}));engine::distributed::send(r,local,(rank_.pp_stage+1)*rank_.tp_size+rank_.tp_rank,rank_.world_comm);",
+      "83:   else{auto gathered=work.alloc({size_t(rank_.tp_size),n,width});engine::distributed::allgather_(r,gathered,local,rank_.comm);logits=gathered->permute({1,0,2})->contiguous(r)->view({n,vocab_});work.held.push_back(logits);}"
+    ]
+  },
+  "/refactor/candidates/glm-transient-layer-r5681/private-3.o": {
+    "source": "/refactor/candidates/glm-transient-layer-r5681/src/glm_moe_dsa_projected_decoder_r22.cpp",
+    "SHA256": "ceb601d453dacb53f3cdb6813141d909b6a82a376d2cd6399d26b35616e9525b",
+    "receipt_SHA256": "ceb601d453dacb53f3cdb6813141d909b6a82a376d2cd6399d26b35616e9525b",
+    "communication_lines": []
+  },
+  "/refactor/candidates/glm-transient-layer-r5681/private-4.o": {
+    "source": "/refactor/candidates/glm-transient-layer-r5681/src/glm_moe_dsa_routed_ffn_r19.cpp",
+    "SHA256": "ab6669aaa5b46927cce734ad4a3ecd1e69780dc4b34dc728052b4d1f8d0d279d",
+    "receipt_SHA256": "ab6669aaa5b46927cce734ad4a3ecd1e69780dc4b34dc728052b4d1f8d0d279d",
+    "communication_lines": [
+      "71:FeedForwardR19::FeedForwardR19(rt::Runtime&r,const nlohmann::json&cfg,size_t layer,const engine::distributed::RankInfo&rank):owner_(&r),sparse_(cfg.at(\"mlp_layer_types\").at(layer)==\"sparse\"),tp_(rank.tp_size),comm_(rank.comm){",
+      "130: glm_layer_mark_r5670(r,\"FFN.shared.end_TP.begin\");auto reduced=combined;if(tp_>1){reduced=work.alloc(combined->shape(),combined->dtype());reduced->copy_from(r,combined);engine::distributed::allreduce_(r,reduced,reduced,infinicclSum,comm_);}glm_layer_mark_r5670(r,\"FFN.TP.end_cast.begin\");auto out=work.alloc({tokens,6144},rt::DataType::kBFloat16);ex::submit<infini::ops::Cast>(r,infini::ops::Cast::DefaultConfig(r.device().type()),reduced,out);decode_leases_r1354::success_fence(r);actual_capture_field5164(r,capture.get(),\"combined_postTP_F32\",reduced,2);actual_capture_field5164(r,capture.get(),\"hidden_out_BF16\",out,2);return {out,combined,weights,indices};"
+    ]
+  },
+  "/refactor/candidates/glm-transient-layer-r5681/private-5.o": {
+    "source": "/refactor/candidates/glm-transient-layer-r5681/src/glm_moe_dsa_native_attention.cpp",
+    "SHA256": "ee4ac8c1f38b538a8fbfdea96598adcf00693e2b047501e5615bb1fb08bc9e21",
+    "receipt_SHA256": "ee4ac8c1f38b538a8fbfdea96598adcf00693e2b047501e5615bb1fb08bc9e21",
+    "communication_lines": []
+  },
+  "/refactor/candidates/glm-transient-layer-r5681/private-6.o": {
+    "source": "/refactor/candidates/glm-transient-layer-r5681/src/glm_moe_dsa_projected_cache_view_r927.cpp",
+    "SHA256": "4624f862c3b8aea556f19e155d15082fbeea5b7aaed7f45b423baa242f1d5828",
+    "receipt_SHA256": "4624f862c3b8aea556f19e155d15082fbeea5b7aaed7f45b423baa242f1d5828",
+    "communication_lines": []
+  },
+  "/refactor/candidates/glm-transient-layer-r5681/private-7.o": {
+    "source": "/refactor/candidates/glm-transient-layer-r5681/src/glm_all_selected_decode_r601.cpp",
+    "SHA256": "863a4864a63cb997ea8faf86cb4c45eea4c85c27953ea5f946cf3e8eeb512a05",
+    "receipt_SHA256": "863a4864a63cb997ea8faf86cb4c45eea4c85c27953ea5f946cf3e8eeb512a05",
+    "communication_lines": []
+  },
+  "/refactor/candidates/glm-transient-layer-r5681/private-8.o": {
+    "source": "/refactor/candidates/glm-transient-layer-r5681/src/glm_moe_dsa_attention_prepare_r809.cpp",
+    "SHA256": "80ac6223f8fb61a9408f39172ebba773218bf936a93507b385140df96ac8d64e",
+    "receipt_SHA256": "80ac6223f8fb61a9408f39172ebba773218bf936a93507b385140df96ac8d64e",
+    "communication_lines": []
+  },
+  "/refactor/candidates/glm-transient-layer-r5681/private-9.o": {
+    "source": "/refactor/candidates/glm-transient-layer-r5681/src/glm_moe_dsa_attention_output_r809.cpp",
+    "SHA256": "af5c1e899eaa4236fa79e1f54e61663a5baf26b6f60b4b1cf2229f8de6c4d9e4",
+    "receipt_SHA256": "af5c1e899eaa4236fa79e1f54e61663a5baf26b6f60b4b1cf2229f8de6c4d9e4",
+    "communication_lines": [
+      "10:AttentionOutput::AttentionOutput(rt::Runtime&r,const nlohmann::json&cfg,const engine::distributed::RankInfo&rank):owner_(&r),columns_(0),offset_(0),tp_(rank.tp_size),comm_(rank.comm){",
+      "25:glm_layer_mark_r5670(r,\"attnout.TP.begin\"); auto hidden=local;if(tp_>1){hidden=work.alloc(local->shape(),local->dtype());hidden->copy_from(r,local);engine::distributed::allreduce_(r,hidden,hidden,infinicclSum,comm_);}glm_layer_mark_r5670(r,\"attnout.TP.end\");decode_leases_r1354::success_fence(r);return {local,hidden};"
+    ]
+  },
+  "/refactor/candidates/glm-transient-layer-r5681/private-10.o": {
+    "source": "/refactor/candidates/glm-transient-layer-r5681/src/glm_moe_dsa_indexer_rotary.cpp",
+    "SHA256": "9e08792cec0fdb224201823450b9398e1eb6a474b3b90a49f386d09e2d0d594a",
+    "receipt_SHA256": "9e08792cec0fdb224201823450b9398e1eb6a474b3b90a49f386d09e2d0d594a",
+    "communication_lines": []
+  },
+  "/refactor/candidates/glm-transient-layer-r5681/private-11.o": {
+    "source": "/refactor/candidates/glm-transient-layer-r5681/src/glm_moe_dsa_indexer_selection.cpp",
+    "SHA256": "e9f2fdd7daad7b56ea51039514129a2b2661b6648667957aebf7de1cfc13951b",
+    "receipt_SHA256": "e9f2fdd7daad7b56ea51039514129a2b2661b6648667957aebf7de1cfc13951b",
+    "communication_lines": [
+      "15: :owner_(&r),missing_keys_r1406_(rows,false),device_(r.device()),rows_(rows),capacity_(capacity),heads_(heads),local_heads_(0),dim_(dim),topk_(topk),lengths_(rows,0),tp_size_(rank.tp_size),comm_(rank.comm){",
+      "44:  if(tp_size_>1)engine::distributed::allreduce_(r,scores,scores,infinicclSum,comm_);"
+    ]
+  },
+  "/refactor/candidates/glm-transient-layer-r5681/private-12.o": {
+    "source": "/refactor/candidates/glm-transient-layer-r5681/src/glm_moe_dsa_sparse_pair_r544.cpp",
+    "SHA256": "ebed2dec74227b9a5c8fc4e0f167be6feb17112582a796d3192f1750f3d66d58",
+    "receipt_SHA256": "ebed2dec74227b9a5c8fc4e0f167be6feb17112582a796d3192f1750f3d66d58",
+    "communication_lines": []
+  },
+  "/refactor/candidates/glm-transient-layer-r5681/private-13.o": {
+    "source": "/refactor/candidates/glm-transient-layer-r5681/src/glm_moe_dsa_dense_modes_r48.cpp",
+    "SHA256": "5d27978cced7d942a0f91ee8233aae30a29198cc8f494779db788e3f88f4a435",
+    "receipt_SHA256": "5d27978cced7d942a0f91ee8233aae30a29198cc8f494779db788e3f88f4a435",
+    "communication_lines": []
+  },
+  "/refactor/candidates/glm-transient-layer-r5681/private-14.o": {
+    "source": "/refactor/candidates/glm-transient-layer-r5681/src/glm_fp8_model_counts_r780.cpp",
+    "SHA256": "de75a51d85978b9d0da859bfb753e692021b0ac9c15cc4aa409ad8db55fd19fc",
+    "receipt_SHA256": "de75a51d85978b9d0da859bfb753e692021b0ac9c15cc4aa409ad8db55fd19fc",
+    "communication_lines": []
+  },
+  "/refactor/candidates/glm-transient-layer-r5681/private-15.o": {
+    "source": "/refactor/candidates/glm-transient-layer-r5681/src/glm_fp8_runtime_r809.cpp",
+    "SHA256": "7f994d97fc3b2a50173cf318b24d08d0b714a2258e4c4e183aab1d2f237a9a44",
+    "receipt_SHA256": "7f994d97fc3b2a50173cf318b24d08d0b714a2258e4c4e183aab1d2f237a9a44",
+    "communication_lines": []
+  },
+  "/refactor/candidates/glm-transient-layer-r5681/private-16.o": {
+    "source": "/refactor/candidates/glm-transient-layer-r5681/src/glm_all_selected_decode_deferred_r5096.cpp",
+    "SHA256": "2a404992e766f0e1ea8e4f327354cdc30a466bb9f34e1bc7569098a72ae48d74",
+    "receipt_SHA256": "2a404992e766f0e1ea8e4f327354cdc30a466bb9f34e1bc7569098a72ae48d74",
+    "communication_lines": []
+  },
+  "/refactor/candidates/glm-transient-layer-r5681/private-17.o": {
+    "source": "/refactor/candidates/glm-transient-layer-r5681/src/glm_model_resident_methods_r5640.cpp",
+    "SHA256": "1df4a5f125a65b464b17884ad3d2cd9df85b16ccff41275219f81e0cf946c367",
+    "receipt_SHA256": "1df4a5f125a65b464b17884ad3d2cd9df85b16ccff41275219f81e0cf946c367",
+    "communication_lines": []
+  },
+  "/refactor/candidates/glm-transient-layer-r5681/private-18.o": {
+    "source": "/refactor/candidates/glm-transient-layer-r5681/src/glm_exact_rows_attention_r5555.cpp",
+    "SHA256": "2390bf53024ea92e119aa8fdebcdeb2731d12d3f3050368aa5576c0f7c5b2a79",
+    "receipt_SHA256": "2390bf53024ea92e119aa8fdebcdeb2731d12d3f3050368aa5576c0f7c5b2a79",
+    "communication_lines": []
+  },
+  "/refactor/candidates/glm-transient-layer-r5681/private-19.o": {
+    "source": "/refactor/candidates/glm-transient-layer-r5681/src/glm_layer_bridge_r5670.cpp",
+    "SHA256": "5588b3ba4d3dce08ea639aad9acd7882ac4c9f691e98e820ae17163e31851987",
+    "receipt_SHA256": "5588b3ba4d3dce08ea639aad9acd7882ac4c9f691e98e820ae17163e31851987",
+    "communication_lines": [
+      "37: infinilm::engine::distributed::RankInfo rank(c->r->device());rank.tp_size=8;rank.tp_rank=device;rank.world_size=8;rank.world_rank=device;rank.comm=c->tp;",
+      "61:extern \"C\" int glm_layer_control_r5670(void*raw,void*values){auto*c=static_cast<Context*>(raw);bool own=false;try{owner(c);own=true;input(c,values);Work w{*c->r};w.held.push_back(rt::Tensor::from_blob(values,{1},rt::DataType::kFloat32,c->r->device()));infinilm::engine::distributed::allreduce_(*c->r,w.held[0],w.held[0],infinicclSum,c->tp);c->r->syncStream();return 0;}catch(const std::exception&e){error=e.what();if(own)drain(c);return 1;}}"
+    ]
+  }
+}

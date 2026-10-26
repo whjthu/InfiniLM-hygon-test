@@ -1,0 +1,36 @@
+{
+  "CPU_only": true,
+  "no_GPU_submitted": true,
+  "actual_parent_Model_SHA256": "a549b9b3951b51b52d3f8a96f0fe585da6a92cb88e77054970fdbef3ad483078",
+  "new_native_DSO": false,
+  "actual_pinned_text_object": "/refactor/candidates/glm-M16-r8861/private-4.o",
+  "actual_text_source_SHA256": "d94016e3adc4ffccac58adc24aef415c7069ad2503cb21e230f12753c0b2ad98",
+  "WORLD_forward_uses": [
+    [
+      67,
+      "   size_t shard=6144/size_t(rank_.tp_size);auto local=work.alloc({tokens,shard});engine::distributed::recv_(r,local,(rank_.pp_stage-1)*rank_.tp_size+rank_.tp_rank,rank_.world_comm);"
+    ],
+    [
+      77,
+      "   size_t shard=6144/size_t(rank_.tp_size);auto local=work.alloc({tokens,shard});local->copy_from(r,hidden->narrow({{1,size_t(rank_.tp_rank)*shard,shard}}));engine::distributed::send(r,local,(rank_.pp_stage+1)*rank_.tp_size+rank_.tp_rank,rank_.world_comm);"
+    ]
+  ],
+  "bridge_forward_has_no_control_or_allreduce": true,
+  "shared_control_world_alias": "ActualGPU_inside.sh requires GLM_SHARED_CONTROL_R4279=1, control aliases WORLD. Proposed orderstage0 send0,send1,reduce0,reduce1 vsstage1 recv0,recv1,reduce0,reduce1 has matchingP2P+samecollectiveorder; not proof of actualCCL progression.",
+  "FFN": "actualvectorr8542 SHA c716b37f... storescomm_=rank.comm (TP); forward allreduce usescomm_. Attentionoutput similarly TP, remainingdependency inspection recorded separately when complete.",
+  "Runtime_ownership": "All native CAPI calls remain serial on same ownerthread perrank; different PPstage processes progressindependently, no newThreadPool",
+  "lifetime": "Generator strongholds atmost2 logits, caller deletesout afteremit; exactactualfrontendAST 16CPUownersthreads passes8cases incl raggedEOS holes/lastsinglemicro",
+  "eligibility": "Primary C32M16; feweractive<=M remains serialcontrol. No M32lease change.",
+  "qualification_limit": "Native CUDA/CCL and wholeModel actualperf not qualified; no GPU GO used",
+  "resource_proposal": {
+    "status": "rootconditionalreserved_NOT_SUBMITTED",
+    "parent": "910376",
+    "nodes": [
+      "a02r4n12",
+      "a02r4n13"
+    ],
+    "GPUs": 16,
+    "purpose": "future justified same-load nativePP2 serial/deferredABBA, after root publication/CPUfullruntimeclosure/fresh KFD. No singleGPU component can qualify crossnodePPoverlap."
+  },
+  "next_minimum": "Need percohort strictboolselector/ABBA and existingruntime manifest wiring before any coldModel load. Currentcandidate envstrict0or1/defaultOFF CPU-only; reportdoesnotclaim wholeModelready."
+}
