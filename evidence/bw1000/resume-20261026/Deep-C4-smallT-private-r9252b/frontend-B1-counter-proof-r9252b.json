@@ -1,0 +1,26 @@
+{
+  "mechanical_frontend_only": true,
+  "supersedes_failed_GPU": "910374.1105",
+  "post": "910374.1106empty",
+  "native_DSO_unchanged": "ec7fd800d54c8eb245b0e5ae4c96303bbe78d26675e237ad9ee330430a693d04",
+  "actual_MD_wide_header": {
+    "path": "/refactor/candidates/deep-tailSUM-r7212/incoming/deep_reduce_wide_r3443.hpp",
+    "SHA256": "72eaf08c601297e45d5011c44ef1305fc290a7a73b6129cd919aa1ce6d61c2e7",
+    "matches_CPU416_Indexer_MD": true,
+    "line_evidence": {
+      "26": "  std::lock_guard<std::mutex>lock(policy_mutex);f_.mode=requests>1?policy.load():0;++in_flight;active=&f_;",
+      "38": " if(!mode){infinilm::engine::distributed::allreduce_(r,value,value,infinicclSum,comm);return;}",
+      "40": " const bool fp32=mode==5 && kind==0 && value->dtype()==rt::DataType::kBFloat16;"
+    }
+  },
+  "derivation": "Scope requests==1 assigns mode0, reduce mode0 still performs nativeSUM and returns before precision/fp32 counters. Hence T1counterzero does NOTmean no communication; unchanged nativeBF16attention/F32indexerscores SUMs. Botharms originalpolicy.",
+  "CPU_actual_verify_AST_execution": {
+    "actual_failed_native_counts_replayed": true,
+    "remaining_revision_metadata": "HOSTinterfacefixture values,notnewGPUstateproof",
+    "old_verifier_reproduced_failure": true,
+    "new_verifier_accepts_source_derived_T1_contract": true,
+    "no_GPU_or_CDLL": true
+  },
+  "all_T2plus_assertions_and_native_math_unchanged": true,
+  "GPU_submitted": false
+}

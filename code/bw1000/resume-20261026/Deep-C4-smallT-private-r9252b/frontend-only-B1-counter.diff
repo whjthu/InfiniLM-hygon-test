@@ -1,0 +1,26 @@
+--- failed1105_frontend
++++ B1_source_derived_counter_fix
+@@ -3,7 +3,7 @@
+ import numpy as np
+ import torch
+ from safetensors import safe_open
+-r=pathlib.Path('/refactor');inc=pathlib.Path(__file__).parent;sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest();tag=os.environ['SLURM_JOB_ID']+'.'+os.environ['SLURM_STEP_ID'];out=r/'results'/('deep-c4-smallt-r9252-'+tag+'.json');assert not out.exists();manifest=json.loads((inc/'manifest.json').read_bytes());cp=r/'candidates/deep-c4-smallt-r9252/CPU-build.json';assert sha(cp)==manifest['CPU_receipt_SHA256'];cpu=json.loads(cp.read_bytes());assert cpu['completed']and cpu['library_SHA256']==manifest['DSO_SHA256']==sha(cpu['library']);assert len(cpu['reused_objects_SHA256'])==48 and all(sha(f)==h for f,h in cpu['reused_objects_SHA256'].items());assert all(sha(f)==v['SHA256']for f,v in cpu['actual_DTK_bindings'].items());torch.set_num_threads(1);assert len(os.sched_getaffinity(0))>=32 and torch.cuda.device_count()==8;torch.cuda.set_device(0);lib=ctypes.CDLL(cpu['library']);ptr=lambda t:ctypes.c_void_p(t.data_ptr());lib.deep_csa_fixture_error_r9242.restype=ctypes.c_char_p
++r=pathlib.Path('/refactor');inc=pathlib.Path(__file__).parent;sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest();tag=os.environ['SLURM_JOB_ID']+'.'+os.environ['SLURM_STEP_ID'];out=r/'results'/('deep-c4-smallt-r9252b-'+tag+'.json');assert not out.exists();manifest=json.loads((inc/'manifest.json').read_bytes());cp=r/'candidates/deep-c4-smallt-r9252/CPU-build.json';assert sha(cp)==manifest['CPU_receipt_SHA256'];cpu=json.loads(cp.read_bytes());assert cpu['completed']and cpu['library_SHA256']==manifest['DSO_SHA256']==sha(cpu['library']);assert len(cpu['reused_objects_SHA256'])==48 and all(sha(f)==h for f,h in cpu['reused_objects_SHA256'].items());assert all(sha(f)==v['SHA256']for f,v in cpu['actual_DTK_bindings'].items());torch.set_num_threads(1);assert len(os.sched_getaffinity(0))>=32 and torch.cuda.device_count()==8;torch.cuda.set_device(0);lib=ctypes.CDLL(cpu['library']);ptr=lambda t:ctypes.c_void_p(t.data_ptr());lib.deep_csa_fixture_error_r9242.restype=ctypes.c_char_p
+ for n,args,result in [('id_size',[],ctypes.c_size_t),('id',[ctypes.c_void_p],ctypes.c_int),('create',[ctypes.c_int,ctypes.c_char_p,ctypes.c_void_p],ctypes.c_void_p),('keys',[ctypes.c_void_p],ctypes.c_char_p),('load',[ctypes.c_void_p,ctypes.c_char_p,ctypes.c_void_p,ctypes.c_size_t,ctypes.c_void_p,ctypes.c_int],ctypes.c_int),('forward',[ctypes.c_void_p]+[ctypes.c_size_t]*2+[ctypes.c_void_p]*6,ctypes.c_int),*[(v,[ctypes.c_void_p],ctypes.c_int)for v in ['finish','reset','destroy']],('shutdown',[],ctypes.c_int)]:
+  f=getattr(lib,'deep_csa_fixture_'+n+'_r9242');f.argtypes=args;f.restype=result
+ lib.modern_deep_c4_smallt_mode_r9252.argtypes=[ctypes.c_int];lib.modern_deep_c4_smallt_mode_r9252.restype=ctypes.c_int
+@@ -93,12 +93,12 @@
+     if batch:forward(si,batch)
+    barrier.wait(180)
+   def verify(m,entries,mode):
+-   T=len(entries);visible=[(past+1)//4 for row,past,count in entries];legacy=T>=8 and T<=64 and max(visible)<=512;short=T<=7 and all(past>0 for row,past,count in entries);eligible=short and max(visible)<=512;fast=legacy or bool(mode and eligible);c=m['counts'];assert m['host_profile']is None;assert c['allselected']==int(fast)and c['fullindexer']==int(not fast)and c['FP32attention']==1 and c['fused']==int(T>=8)and c['reference']==int(T<8),c
++   T=len(entries);visible=[(past+1)//4 for row,past,count in entries];legacy=T>=8 and T<=64 and max(visible)<=512;short=T<=7 and all(past>0 for row,past,count in entries);eligible=short and max(visible)<=512;fast=legacy or bool(mode and eligible);c=m['counts'];assert m['host_profile']is None;assert c['allselected']==int(fast)and c['fullindexer']==int(not fast)and c['FP32attention']==int(T>1) and c['fused']==int(T>=8)and c['reference']==int(T<8),c
+    assert c['smallt'][:4]==[int(short),int(eligible),int(short and fast),int(short and not fast)],c
+    assert m['smallt_after'][4]==m['smallt_before'][4]+1 and m['smallt_after'][5:]==[T,T,int(eligible)],m
+    if T>=2:assert c['readback'][:5]==[1,0,T,0,0],c
+    else:assert c['readback']==[0]*8,c
+-   assert c['precision'][0]==(1 if fast else T+1),c
++   assert(c['precision']==[0]*6 if T==1 else c['precision'][0]==(1 if fast else T+1)),c
+   def invalid_guard(si,entries,label):
+    xx=[];positions=[]
+    for row,past,count in entries:xx.append(source[(si,row)][past:past+count]);positions+=list(range(past,past+count))
