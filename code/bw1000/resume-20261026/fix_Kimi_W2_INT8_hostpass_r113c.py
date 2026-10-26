@@ -1,0 +1,8 @@
+import pathlib,json,hashlib
+r=pathlib.Path(__file__).resolve().parent;d=r/'Kimi-W2-INT8-private-r113';p=d/'kimi_W2_INT8_provider_r113.cu';s=p.read_text();s=s.replace('#include <du_mma.h>','#if defined(__HIP_DEVICE_COMPILE__)\n#include <du_mma.h>\n#endif');s=s.replace('namespace dm=du::dumma;','#if defined(__HIP_DEVICE_COMPILE__)\nnamespace dm=du::dumma;\n#endif')
+a=s.index('__global__ void matrix(');lb=s.index('{',a);end=s.index('\n__global__ void reduce(',lb);body=s[lb+1:end];assert body.rstrip().endswith('}');body=body.rstrip()[:-1];s=s[:lb+1]+'\n#if defined(__HIP_DEVICE_COMPILE__)\n'+body+'\n#endif\n}\n'+s[end:]
+a=s.index('__global__ void layout(');lb=s.index('{',a);end=s.index('\n}\nextern "C" size_t',lb);body=s[lb+1:end];assert body.rstrip().endswith('}');body=body.rstrip()[:-1];s=s[:lb+1]+'\n#if defined(__HIP_DEVICE_COMPILE__)\n'+body+'\n#endif\n}\n'+s[end:];p.write_text(s)
+f=d/'CPU_build_r113.py';s=f.read_text();s=s.replace("b=r/'candidates/Kimi-W2-INT8-r113'","b=r/'candidates/Kimi-W2-INT8-r113c'");f.write_text(s)
+q=json.loads((d/'CPU-source-contract-r113.json').read_text());q['new_provider_source_SHA256']=hashlib.sha256(p.read_bytes()).hexdigest();q['host_du_header_compat']='du_mma.h+fragment bodies guarded__HIP_DEVICE_COMPILE__; no changeddeviceMMACdataflow or DTKpatch';q['compat_producer_SHA256']=hashlib.sha256(pathlib.Path(__file__).read_bytes()).hexdigest();(d/'CPU-source-contract-r113.json').write_text(json.dumps(q,indent=2)+'\n')
+for f in d.glob('*.sh'):f.write_bytes(f.read_bytes().replace(b'\r\n',b'\n'));assert b'\r' not in f.read_bytes()
+print(q['new_provider_source_SHA256'])

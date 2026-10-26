@@ -1,0 +1,39 @@
+{
+  "exists": true,
+  "squeue": "910375.batch|batch|a02r4n08\n910375.extern|extern|a02r4n[08-11]\n",
+  "CPU_closure": {
+    "completed": false,
+    "CPU_only": true,
+    "GPU_execution": false,
+    "dlopen": false,
+    "actual_step": "910375.748",
+    "commands": [
+      [
+        "/opt/dtk/cuda/cuda/bin/nvcc",
+        "-I/opt/dtk/include",
+        "-std=c++17",
+        "-O3",
+        "-arch=gfx936",
+        "-Xcompiler=-fPIC",
+        "-D_GLIBCXX_USE_CXX11_ABI=1",
+        "-I/refactor/candidates/Kimi-MoE-batch-profile-r9125/src",
+        "-I/refactor/candidates/rebased-5f91ad7-r3668/Ops/Kimi/InfiniOps/src",
+        "-I/refactor/candidates/rebased-5f91ad7-r3668/Ops/Kimi/InfiniOps/generated",
+        "-I/refactor/install/hygon-kimi-5f91ad7-r3672/include",
+        "/refactor/incoming/Kimi-W2-INT8-r113/kimi_W2_INT8_provider_r113.cu",
+        "-o",
+        "/refactor/candidates/Kimi-W2-INT8-r113c/provider.s",
+        "-S"
+      ]
+    ],
+    "reused_provider_CPU": "910375.747",
+    "reused_provider_SHA256": "a8ccb5d0051ad211ff5819ed9672690ab9d37c92e4bc48543492ed67ea186dd2",
+    "original_failure_SHA256": "0bec349eddca5425ed1862101cb540c20981acfb515cd92ebc8ebd7db1e4eeed",
+    "source_contract_SHA256": "37b670a55776323b3c8c4136b0d69d3984ac44f32068aaa6b3d9f561329fd87e",
+    "error": "AssertionError('No I8 MMAC in emittedISA')",
+    "traceback": "Traceback (most recent call last):\n  File \"/refactor/incoming/Kimi-W2-INT8-r113/CPU_close_r113.py\", line 12, in <module>\n    asm=b/'provider.s';lines=asm.read_text().splitlines();i8=[x.strip() for x in lines if 'v_mmac_i32_16x16x32_i8'in x];assert i8,'No I8 MMAC in emittedISA';assert not any(re.search(r'\\b(?:v|s)_\\w*f64\\b',x)for x in lines);q.update(I8_MMAC_lines=i8,assembly_SHA256=sha(asm),assembly_resources=[x.strip()for x in lines if any(y in x for y in ['.amdhsa_group_segment_fixed_size','.amdhsa_next_free_vgpr','.amdhsa_next_free_sgpr'])])\nAssertionError: No I8 MMAC in emittedISA\n",
+    "elapsed_s": 7.526711357291788
+  },
+  "CPU_closure_SHA256": "cda533e79c00dd3bae02294d9c5372b3883194768782371f888160cd2f72116c",
+  "sacct": "910375.748|FAILED|1:0|00:00:08|a02r4n08\n"
+}

@@ -1,0 +1,29 @@
+import pathlib,json,subprocess,hashlib,time,traceback,shlex,os,re
+r=pathlib.Path('/refactor');D=pathlib.Path(__file__).resolve().parent;b=r/'candidates/Kimi-W2-INT8-r113final';b.mkdir(exist_ok=False);sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest();q={'completed':False,'CPU_only':True,'GPU_execution':False,'dlopen':False,'new_GPU_TUs':1,'new_HOST_TUs':1,'actual_step':os.environ['SLURM_JOB_ID']+'.'+os.environ['SLURM_STEP_ID'],'commands':[]};begin=time.monotonic()
+def run(cmd,label,budget):
+ q['commands'].append(cmd);z=subprocess.run(cmd,text=True,capture_output=True,timeout=budget);(b/(label+'.log')).write_text(z.stdout+z.stderr);assert z.returncode==0,(label,z.stderr[-10000:]);return z
+try:
+ p=r/'candidates/Kimi-W2-pair-r9280/CPU-build.json';parent=json.loads(p.read_bytes());assert parent['completed'] and sha(parent['native'])==parent['native_SHA256']=='3057262312679f86bcdb181ce198b9b1f1d2fccc59fc204b4adbc197132b60dd'
+ for p,h in parent['all_linked_objects'].items():assert sha(p)==h,p
+ for p,h in parent['all_new_MD']['provider.d'].items():assert sha(p)==h,('sealed_provider_MD',p)
+ for p,h in parent['all_new_MD']['adapter.d'].items():assert sha(p)==h,('sealed_adapter_MD',p)
+ contract=json.loads((D/'CPU-source-contract-r113.json').read_bytes());source=D/'kimi_W2_INT8_provider_r113.cu';runner=D/'W2_INT8_runner_r113.cpp';assert sha(source)==contract['new_provider_source_SHA256'] and sha(runner)==contract['wrapper_source_SHA256']
+ oldprovider=str(r/'candidates/Kimi-W2-pair-r9280/provider.o');provider=b/'provider.o';cmd=parent['commands'][0][:];oldsource=cmd[cmd.index('-c')+1];cmd=[str(source)if x==oldsource else str(provider)if x==oldprovider else str(b/'provider.d')if x.endswith('/provider.d')else x for x in cmd];cmd.insert(1,'-I/opt/dtk/include');run(cmd,'provider',240)
+ # Exact same TU emitted as device assembly, bounded and never loaded.
+ asm=b/'provider.s';acmd=cmd[:];acmd.remove('-c');acmd.remove('-MMD');i=acmd.index('-MF');del acmd[i:i+2];acmd[acmd.index('-o')+1]=str(asm);acmd+=['-S'];run(acmd,'assembly_nvcc',180)
+ lines=asm.read_text().splitlines();i8=[x.strip() for x in lines if 'v_mmac_i32_16x16x32_i8' in x];assert i8,'INT8 MMAC not emitted';assert not any(re.search(r'\b(?:v|s)_\w*f64\b',x) for x in lines),'F64 opcode';q['I8_MMAC_lines']=i8;q['assembly_SHA256']=sha(asm);q['assembly_resources']=[x.strip() for x in lines if any(y in x for y in ['.amdhsa_group_segment_fixed_size','.amdhsa_next_free_vgpr','.amdhsa_next_free_sgpr'])]
+ native=b/'libKimi_W2_INT8_r113.so';cmd=parent['commands'][1][:];assert cmd.count(oldprovider)==1;cmd[cmd.index(oldprovider)]=str(provider);cmd[cmd.index('-o')+1]=str(native);cmd=[('-Wl,-Map,'+str(b/'link.map')) if x.startswith('-Wl,-Map,') else x for x in cmd];run(cmd,'native',150)
+ newobj={p:sha(p) for p in cmd if p.endswith('.o')};unchanged={p:h for p,h in parent['all_linked_objects'].items()if p!=oldprovider};assert all(newobj[p]==h for p,h in unchanged.items())
+ lib=b/'libKimi_W2_INT8_runner_r113.so';cmd=parent['commands'][2][:];cmd=[str(runner)if x.endswith('/W2_pair_runner_r9280.cpp') else str(native)if x==parent['native']else str(lib)if x==parent['library']else str(b/'adapter.d')if x.endswith('/adapter.d')else x for x in cmd];run(cmd,'runner',240)
+ env=dict(os.environ,LD_LIBRARY_PATH=parent['LD_LIBRARY_PATH']);z=subprocess.run(['ldd','-r',str(lib)],env=env,text=True,capture_output=True,timeout=60);assert z.returncode==0 and 'not found'not in z.stdout+z.stderr and'undefined symbol:'not in z.stdout+z.stderr,z.stdout+z.stderr
+ defs=subprocess.check_output(['nm','-D','--defined-only',str(native)],text=True);assert all(x in defs for x in ['modern_kimi_i8_bind_r113','modern_kimi_i8_layout_r113','modern_kimi_i8_counts_r113','modern_kimi_grouped_I192_r8669y'])
+ md={}
+ for f in b.glob('*.d'):
+  pp=shlex.split(f.read_text().replace('\\\n',' ').split(':',1)[1]);md[f.name]={p:sha(p)for p in pp if pathlib.Path(p).is_file()}
+ critical='/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/models/kimi_k3/kimi_k3_moe.hpp';assert md['adapter.d'][critical]==parent['critical_MoE_header_SHA256']
+ q['integer_mapping_reference_SHA256']={str(p):sha(p)for p in [pathlib.Path('/opt/dtk/include/du_mma.hpp'),pathlib.Path('/opt/dtk/cuda/cuda/include/crt/mma.hpp')]}
+ assert q['integer_mapping_reference_SHA256']['/opt/dtk/include/du_mma.hpp']=='191265343da30927d9a02d7ad3d64ca5f52b9f41f80008f979c9ae05a03d0d47'
+ assert q['integer_mapping_reference_SHA256']['/opt/dtk/cuda/cuda/include/crt/mma.hpp']=='bada0b8317ef5426cc362abbe0a9dacdb9c1b23f8e8b5d95ae41f4ece53c86b3'
+ q.update(completed=True,native=str(native),native_SHA256=sha(native),library=str(lib),library_SHA256=sha(lib),provider_SHA256=sha(provider),baseline_native=parent['native'],baseline_native_SHA256=parent['native_SHA256'],baseline_provider_SHA256=parent['provider_SHA256'],all_linked_objects=newobj,unchanged_objects=unchanged,baseline_all_new_MD=parent['all_new_MD'],all_new_MD=md,critical_MoE_header_SHA256=md['adapter.d'][critical],LD_LIBRARY_PATH=parent['LD_LIBRARY_PATH'],ldd_relocations=z.stdout+z.stderr,source_SHA256={p.name:sha(p)for p in D.iterdir()if p.is_file()},defaultOFF=True,CPU_only_numeric_status='logical mapping/quant and existing atom proof only; newkernel GPU layout gate still pending',scratch_lifetime=contract['scratch_lifetime'],GPU_GO=False)
+except BaseException as e:q.update(error=repr(e),traceback=traceback.format_exc())
+q['elapsed_s']=time.monotonic()-begin;(b/'CPU-build.json').write_text(json.dumps(q,indent=2)+'\n');print(json.dumps({k:q.get(k)for k in ['completed','actual_step','native_SHA256','library_SHA256','provider_SHA256','elapsed_s','error']}));assert q['completed']

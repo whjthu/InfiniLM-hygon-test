@@ -1,0 +1,75 @@
+{
+  "exists": true,
+  "macros": {
+    "CPU_only": true,
+    "preprocess_only": true,
+    "GPU": false,
+    "actual_step": "910375.749",
+    "commands": [
+      [
+        "/opt/dtk/cuda/cuda/bin/nvcc",
+        "-std=c++17",
+        "-arch=gfx936",
+        "--cuda-device-only",
+        "-E",
+        "-dM",
+        "/refactor/incoming/Kimi-W2-INT8-r113/macro_probe_r113.cu"
+      ],
+      [
+        "/opt/dtk/cuda/cuda/bin/nvcc",
+        "-std=c++17",
+        "-arch=gfx936",
+        "--cuda-host-only",
+        "-E",
+        "-dM",
+        "/refactor/incoming/Kimi-W2-INT8-r113/macro_probe_r113.cu"
+      ]
+    ],
+    "passes": [
+      {
+        "kind": "device",
+        "returncode": 0,
+        "stderr": "",
+        "stdout_SHA256": "0c7e888dcea347e40e0a07d21cb9af6bb697d33dc7ee86d29812f4041313a745",
+        "macros": [
+          "#define __AMDGCN__ 1",
+          "#define __CUDACC__ 1",
+          "#define __CUDA_ARCH__ 750",
+          "#define __gfx936__ 1"
+        ]
+      },
+      {
+        "kind": "host",
+        "returncode": 0,
+        "stderr": "dcc: warning: argument unused during compilation: '-msram-ecc' [-Wunused-command-line-argument]\n",
+        "stdout_SHA256": "0b2ffa46912f6ca5ccc9917270a2915e0c630a38fddb121d73c5b05c25432acd",
+        "macros": [
+          "#define __AMDGCN__ 1",
+          "#define __CUDACC__ 1"
+        ]
+      }
+    ],
+    "help_returncode": 0,
+    "help_relevant": [
+      "  -CC                     Include comments from within macros in preprocessed output",
+      "  --cuda-device-only      Compile CUDA code for device only",
+      "  --cuda-host-only        Compile CUDA code for host only. Has no effect on non-CUDA compilations.",
+      "  -C                      Include comments in preprocessed output",
+      "  -c                      Only run preprocess, compile, and assemble steps",
+      "  -dM                     Print macro definitions in -E mode instead of normal output",
+      "  -E                      Only run the preprocessor",
+      "                          remap file source paths in debug info, predefined preprocessor macros and __builtin_FILE(). Implies -ffile-reproducible.",
+      "                          remap file source paths in predefined preprocessor macros and __builtin_FILE(). Implies -ffile-reproducible.",
+      "  -fmax-tokens=<value>    Max total number of preprocessed tokens for -Wmax-tokens.",
+      "  -fminimize-whitespace   Minimize whitespace when emitting preprocessor output",
+      "  -fno-crash-diagnostics  Disable auto-generation of preprocessed source files and a script for reproduction during a clang crash",
+      "                          Same as -fopenacc-print=<versions> except pretty-print the AST instead of printing a translated version of the input source. As a result, the output will have preprocessor expansions and reformatting.",
+      "  -fsyntax-only           Run the preprocessor, parser and semantic analysis stages",
+      "  -fuse-line-directives   Use #line in preprocessed output",
+      "  -S                      Only run preprocess and compilation steps",
+      "  -Wp,<arg>               Pass the comma separated arguments in <arg> to the preprocessor",
+      "  -Xpreprocessor <arg>    Pass <arg> to the preprocessor"
+    ]
+  },
+  "steps": "910375.batch|batch|a02r4n08\n910375.extern|extern|a02r4n[08-11]\n"
+}

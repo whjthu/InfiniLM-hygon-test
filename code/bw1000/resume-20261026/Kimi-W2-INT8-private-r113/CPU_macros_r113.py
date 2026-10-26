@@ -1,0 +1,6 @@
+import pathlib,json,subprocess,hashlib,os
+r=pathlib.Path('/refactor');d=pathlib.Path(__file__).resolve().parent;p=d/'macro_probe_r113.cu';p.write_text('// preprocessing only\n');driver='/opt/dtk/cuda/cuda/bin/nvcc';out={'CPU_only':True,'preprocess_only':True,'GPU':False,'actual_step':os.environ['SLURM_JOB_ID']+'.'+os.environ['SLURM_STEP_ID'],'commands':[],'passes':[]}
+help=subprocess.run([driver,'--help'],text=True,capture_output=True,timeout=15);hs=help.stdout+help.stderr;out['help_returncode']=help.returncode;out['help_relevant']=[s for s in hs.splitlines()if any(x in s for x in ['-E,','preprocess','cuda-device-only','cuda-host-only',' -dM','-Xcompiler'])][:40]
+for label,extra in [('device',['--cuda-device-only']),('host',['--cuda-host-only'])]:
+ cmd=[driver,'-std=c++17','-arch=gfx936',*extra,'-E','-dM',str(p)];out['commands'].append(cmd);z=subprocess.run(cmd,text=True,capture_output=True,timeout=25);out['passes'].append({'kind':label,'returncode':z.returncode,'stderr':z.stderr[-3000:],'stdout_SHA256':hashlib.sha256(z.stdout.encode()).hexdigest(),'macros':[s for s in z.stdout.splitlines()if any(x in s for x in ['__CUDA_ARCH__','__HIP_DEVICE_COMPILE__','__gfx936__','__CUDACC__','__HIPCC__','__AMDGCN__','__DCC__'])]})
+p=d/'CPU-device-macros-r113.json';p.write_text(json.dumps(out,indent=2)+'\n');print(json.dumps(out))
