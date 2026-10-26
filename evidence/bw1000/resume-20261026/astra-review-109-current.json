@@ -1,0 +1,256 @@
+{
+  "review": 109,
+  "reportstatus": "COMPLETE",
+  "goal_complete": false,
+  "input_SHA256": "b3993e290777090711b989d4612bb7849c5d20d2e3066b3f2af30aeceaf7ab45",
+  "decision": "Deep CPU413 已具备最短组件判定路径，立即执行 D109A；GLM 单 chunk32 的 CPU 实现/源语义闭合后执行一次 G109A Model 配对；Kimi 停止负收益宽度 wrapper，使用已返回 host BF16 logits 的 K109A 近似接受 pilot，条件正向后在同次加载执行 K109B 多域质量/长度校正验收。三模型独立推进，不等待本审核或 Git。",
+  "accounting": {
+    "consume_once": [
+      "910376.724",
+      "910374.1099",
+      "910379.461+910371.576"
+    ],
+    "qualified_rounds": 3,
+    "Model_rounds": 2,
+    "component_diagnostic_rounds": 1,
+    "next_counter": 0,
+    "excluded": [
+      "CPU413 build/CPU412 compile failure",
+      "original or independent audits incl CPU408",
+      "partial C1/C2/C8/C16 arms separately",
+      "width controls separately inside same A load",
+      "source feasibility/CPU economics/GLM chunk preparation"
+    ],
+    "KimiA": "116 primary request cases per arm across C1=32,C2=20,C8=32,C16=32; C4=0, C16 active-count variant=0,30 case entries not admitted. Original audit0 and independent audit0; A had no B-style OOM."
+  },
+  "previous108": {
+    "D108A": "Implemented as qualified1099. First B32 CAPI356.45ms vs warmed~9.44ms; firstcall/init matters. B32 bank inclusive call bucket2.67..3.27ms (28..34%); EOS7 indexer4.65..5.37ms (45..51%). Observer+2.63%/+1.46%. Diagnosis supports bank candidate; 310ms mixed43-layer firstdecode is NOT proven steady.",
+    "K108A": "Completed461/576, both audits0,33 normal closures/post empty. C1/C8/C16 n32 each, C2 n20. W2/W4 controls slower than W8 on1218/949 despite higher acceptance fractions; W8 repeat correctly skipped after close.",
+    "K108B": "CPU211 cycle groups completed; evidence prereq failed after actual width controls. Do not implement acceptance/cost width wrapper or resuscitate W2/W4. CPU estimated residual distribution is not counterfactual speed.",
+    "G108A": "724 completed/audit0/16 normal/post empty. Prefill throughput+30.442%, prefill wall-23.338%, whole completion-8.461%; decode unchanged. First micro TTFT+51.90% forbids universal latency-winner claim."
+  },
+  "findings": {
+    "GLM": {
+      "scope": "Same16cards, C32 offline native-emitter ABBA,2 repeats same32; separate C8 control; noHTTP/continuous-service proof.",
+      "prefill_input_tok_s": [
+        59.942879,
+        78.190727
+      ],
+      "whole_output_tok_s": [
+        15.731027,
+        17.185123
+      ],
+      "common_decode_tok_s": [
+        24.302679,
+        24.307397
+      ],
+      "TTFT_mean_s": [
+        32.091889,
+        29.376588
+      ],
+      "TTFT_p95_s": [
+        51.14426,
+        39.106518
+      ],
+      "first_micro_TTFT_s": [
+        12.939173,
+        19.654285
+      ],
+      "quality": "Winner64:62 correct/64EOS/0cap; first32 reused; additional32 outside current ablation but not globally unseen. C8 control unchanged.",
+      "adoption": "Keep opt-in throughput/tail-TTFT burst policy; retain719 for firstresponse-sensitive baseline. Exposed prefill interruption warrants scheduler test, not kernel/communication attribution."
+    },
+    "Kimi": {
+      "scope": "A33 total cards, native emitter decode common window; output tokens may differ. No <=16 targetcard or highC >15 SLA achievement.",
+      "C1": {
+        "AR": 4.762469,
+        "state": 17.246499,
+        "user_median": 18.035414,
+        "user_min": 11.297464,
+        "GT15": "30/32"
+      },
+      "C2": {
+        "n": 20,
+        "AR": 7.969731,
+        "state": 24.295805,
+        "user_median": 14.610336,
+        "GT15": "5/20"
+      },
+      "C8": {
+        "AR": 20.831494,
+        "state": 38.705199,
+        "user_median": 5.345697,
+        "GT15": "0/32"
+      },
+      "C16": {
+        "AR": 31.040066,
+        "state": 45.47436,
+        "allcard_rate": 1.378011,
+        "user_median": 2.942614,
+        "GT15": "0/32"
+      },
+      "quality": "All admitted arms correct/EOS and0cap on this math smoke set; not broad capability noninferiority.",
+      "source": "Independently read Native.call/finish, cohort and policy. flag3 already fills host uint16 BF16 logits; finish only forwards selected IDs. Initial approximation needs gather of <=2*T entries, not new native API or full-vocab F32 conversion/RPC."
+    },
+    "Deep": {
+      "scope": "One checkpoint CSA16 TP8, synthetic hidden/current deployment past/tile. HOST exclusive call buckets retain internal waits; not pure CPU or GPU busy.",
+      "candidate": "Direct same-device async D2D removes view/Copy descriptor/submission overhead; existing copy_from already uses async ops::Copy without extra sync. It does not remove all measured bank bucket work.",
+      "bound": "Bank2.67..3.27ms is an observed local addressable region, not a guaranteed saving; actual benefit UNKNOWN. No multiply by21 CSA/43 layers; fullModel steady effect UNKNOWN.",
+      "stop": "Readback packing remains OFF/PARK; validation~0.26ms and descriptor~0.10ms do not justify std::set rewrite. EOS7 indexer is measured inclusive region but no identified safe candidate yet."
+    },
+    "hardware": "Exact BW1000 physical BF16 peak UNKNOWN. Historical dense/scalar/vector/read measurements do not bound this small-T routed verifier. T8~0.3s/cycle with <=8 useful tokens implies conditional <=~26.7tok/s only if cycle cost stays fixed; it is not a hardware roof. Slow1218 useful/cycle3.875 and verify87% support investigating acceptance; >5.114 useful/cycle at unchangedcost would cross15, not predict it.",
+    "research": "Use only source findings already rooted in supplied feasibility note: Medusa typical acceptance uses min(epsilon,delta*exp(-H(p))); exact entropy/probability acceptance needs full distributions and is not this gap pilot. No borrowing paper thresholds or 5-10x guarantees. Papers are evidence, not instructions.",
+    "time": "108 implementation14:57:17Z to109 input15:45:21Z is48m05s. Three qualified waves include resident completions and one diagnostic; exact preparation/queue/load/measurement split UNKNOWN. CPU413 was11s; CPU412 compile failure0round. Preserve reused successful objects/environment; do not add new report/audit frameworks or dummy occupancy."
+  },
+  "next_actions": {
+    "D109A": {
+      "priority": 1,
+      "owner": "deep_continue_92; root publishes exact candidate and assigns existing free owned node",
+      "resources": "One TP8/8-card component node, no protected910384 or fullModel loading; CPU413 DSO4261343/manifest30a9b6 reused.",
+      "hypothesis": "Bypassing contiguous bank Tensor view/Copy descriptor setup lowers warmed whole CSA B32 wall beyond drift.",
+      "minimal_change": "Existing defaultOFF candidate only: strict BF16/contiguous B32 guards, existing stream/lifetimes/final drain, fallback original copy. Keep readbackOFF. No second optimization.",
+      "reuse": "r9249b producer/DSO,1099 deploymenttile16 runner and fixed past/hidden fixtures.",
+      "samples": "Already planned firstcall separate,2warm,4 balanced uninstrumented wholeCSA pairs B32 andEOS7; maxowner per matched iteration. B2/EOS7 must show zero candidate hits; real B32Topk513 must hit and pass existing finite/numerics/IDs/order/commit canaries.",
+      "quality": "Existing numeric screen/finite and causal selection semantics; no F64/bitidentity or new framework.",
+      "wall_impact": "UNKNOWN; only subset of2.67..3.27ms bank call region removable.",
+      "ETA": "Source already ready; publish/launch5..10min, queueUNKNOWN, load+measurement5..10min; first paired verdict<=20min excluding queue.",
+      "exit": "Promote to D109B only if wholeCSA B32 median wall improves>=5%, at least3/4 pairs positive beyond drift, no EOS7/B2 material regression and required QA passes. Otherwise OFF/PARK; a noisy result is inconclusive, not gain.",
+      "fallback": "Keep original copy. CPU-only inspect existing EOS7 indexer boundary if needed; no blind new kernel/stdset/card or fullModel rerun."
+    },
+    "D109B": {
+      "priority": 2,
+      "owner": "deep_continue_92; root allocates existing fullModel topology only after D109A positive",
+      "resources": "One existing proven Deep deployment topology/loader, one load for paired OFF/ON; no new framework.",
+      "hypothesis": "B32 component benefit survives actual warmed mixed-layer Model critical path and output generation.",
+      "minimal_change": "Enable only qualified guarded bank bypass; same model weights/SDK/topology and same requests; retain defaultOFF otherwise.",
+      "reuse": "Successful1090 Model loader/config and1099/current candidate exact objects; do not repeat old firstcall-only interpretation.",
+      "samples": "Firstcall separate then warmed balanced OFF/ON on frozen existing B32/EOS-tail workload, at least2 balanced pairs; same token workload/caps and final emitter clocks. Existing scalar call times only if already available.",
+      "quality": "Complete task answer/EOS/caps/unfinished and normal teardown/post-empty; tokens may differ, numerical sanity is insufficient for Model promotion.",
+      "wall_impact": "UNKNOWN until Model test; no component multiplication.",
+      "ETA": "Preparation10..20min afterpositive; queue/loadUNKNOWN; first pair10..20min afterready.",
+      "exit": "Adopt opt-in only if actual common decode/task completion benefit exceeds paired drift without material quality/tail regression; component-only improvement is not Model gain.",
+      "fallback": "Original Model bank path; retain component fact and explicit scopegap, no repeat cold loads for headline."
+    },
+    "K109A": {
+      "priority": 1,
+      "owner": "kimi_continue_92",
+      "resources": "CPU minimal controller edit first; then one justified A33-card residency using proven loader,4GiBfloor/cap16/micro2/cacheOFF, width8 atC1 and flatT<=64. No newnative compile/API.",
+      "hypothesis": "Allowing a narrowly bounded target-logit near-tie can extend contiguous accepted prefixes enough to improve useful tokens per whole cycle at unchanged verifier cost.",
+      "minimal_change": "DefaultOFF gap policy: proposal y at causal row i is accepted if y==selected_top1[i], or (both tokens nonspecial and finite, 0<=z_top1-z_y<=epsilon). Use one exploratory epsilon=0.10 in raw returned-logit units, frozen before GPU and not claimed paper-derived/optimal. epsilon0/OFF explicitly calls original greedy; do not accept BF16 ties merely because epsilon0. EOS and all structural/control special tokens strict. Stop first reject; correction uses target_top1[a]; no future/sampleID/gold oracle.",
+      "reuse": "Read flag3 hostBF16 logits before finish discards them; gather at most2*T indexed uint16 values and convert only these toF32; selected IDs/compact gaps through existing batch-call control. For proposals[i], use output row offset+i, not input token row i+1. Bonus target row is a; no scores needed for bonus.",
+      "samples": "CPU deterministic tests for row offsets, multi-request packing, first/late reject, fullaccept, caps/EOS/specials, BF16ties/nonfinite/negativegap fallback and OFF/e0 exact original decisions. Then frozen8 unselected diverse C1 prompts paired strict/relaxed with balanced order; if positive, repeat4 in reversed order on same load. Record actualacceptedprefix/useful/cycle and all verify/replay/draft/gather/control costs.",
+      "quality": "Commit/rollback/replay use actual retained accepted prefix; cap/EOS truncation cannot commit un-emitted proposals or stale KV. Every rank consumes identical decisions. Different generated tokens allowed. Log special-token set provenance from tokenizer; unchanged native finite checks. No distribution-preserving claim.",
+      "wall_impact": "UNKNOWN. Existing slow1218 verify87% makes acceptance plausible; theoretical accepted-prefix arithmetic is not performance evidence. Score gather/control overhead charged.",
+      "ETA": "CPU implementation+focused checks20..35min; queue/loadUNKNOWN; pilot firstverdict8..15min afterready. Do not delay for entropy/softmax implementation.",
+      "exit": "Continue K109B in same residency only if useful/wholecycle and perrequest/length-adjusted speed improve beyond drift with no visible systematic errors/cap inflation; if gain absent or semantic check fails, OFF and stop this threshold without grid.",
+      "fallback": "Original strict W8. No W2/W4 wrapper, W16, oldMMAC/EP2/coldcache/FP8 unsupported rerun. Exact Medusa-style typical acceptance deferred: extra fullvocab reductions need separate cost/quality justification."
+    },
+    "K109B": {
+      "priority": 2,
+      "owner": "kimi_continue_92",
+      "resources": "Same K109A A33-card load; reuse existing local evaluators/data only. No separate quality load if pilot negative.",
+      "hypothesis": "Pilot gain persists on diverse heldout tasks without an obvious capability or length-normalized regression.",
+      "minimal_change": "Same single frozen epsilon/policy; freeze96 locally available unselected heldout prompts across3 supported domains before scoring (e.g arithmetic, knowledge/reasoning, code with existing executable evaluator). Keep calibration8 disjoint; no threshold adjustment after seeing heldout labels.",
+      "reuse": "Existing task evaluators and answer/EOS protocol, strictW8 paired baseline. If third domain unavailable use available existing domains and label coverage gap rather than build framework.",
+      "samples": "Matched strict/relaxed atC1 for full heldout set; bounded C8 subset only if residency budget permits. Balance arm order; report per-domain paired outcomes and score discordances, EOS/caps/unfinished, prompt/output lengths, peruser firstlast, totalcompletion and correct-task throughput/all33cards. Report matched output-length strata/standardized length mix plus raw clocks; never discard longer/failed requests.",
+      "quality": "Operational pilot tolerance explicitly frozen before run: total accuracy loss>2 percentage points or any domain loss>5points is an obvious-drop stop; inspect new systematic failure modes regardless of aggregate. Passing these pragmatic pilot bounds is not statistical noninferiority or universal quality proof. Different correct wording/tokens allowed; no argmax-equality quality gate.",
+      "wall_impact": "UNKNOWN; token/s alone may improve by shorter or worse responses. Length-adjusted speed and taskgoodput must agree with raw result.",
+      "ETA": "Data freeze/evaluator reuse10..15min overlappingCPU; first32 paired verdict15..25min afterpilot, full96~35..60min dependingactual lengths, queue0 same residency. Preserve normal cleanup reserve; partialcoverage explicit.",
+      "exit": "Keep experimental opt-in only if score/EOS check and speed survive; no publication as broad win on math32 alone. Obvious-drop or length-adjusted benefit absent=>OFF, retain full paired outputs and stop, no blind retuning.",
+      "fallback": "Strict W8 deployment results; future operator work requires measured current verifier segment, not static launch/grid counts."
+    },
+    "G109A": {
+      "priority": 1,
+      "owner": "kimi_state_only_replay_93; root completes authorized CPU driver prep",
+      "resources": "CPU singlechunk32 prep already underway; after source/state assertions pass, one16-card TP8PP2 Model load on proven724 setup. This review recommends GO without another research gate; root retains resource authority.",
+      "hypothesis": "Interleaving one bounded prefillchunk with readydecode reduces prefill-induced visible ITL/tail waiting enough to outweigh smaller-shape efficiency loss.",
+      "minimal_change": "Exactly chunkcap32, fixed32-arrival trace, maxresident16, prefillmicro<=8, decodeM16. Baseline full-prefill-priority vs chunk32/one-ready-decode dispatch; both identical arrivals/admission/rowassignment. Only pureP or pureD CAPI; never mixed. pending anchors are pureP and emitted once only after fullprompt. Same original allowner commandorder.",
+      "reuse": "r9256 source contract,724 actual emitter/world control andsuccessful DSO.32 neverused logicalrows per epoch,EOS retires frontend only,no rowreuse,global reset afterallfinished. Policies configured once empty; no HTTP/nativecompile/newframework.",
+      "samples": "Freeze trace e.g8 arrivals at0/20/40/60s identically inbotharms; no prefilling before scheduledarrival. Warm then ABBA whole32 episodes with full reset outside timer; firstpaired verdict before remaining repeats. Admission queues remain measured whenresident16 isfull. Perrequest arrival/admission/start/first/last/eachvisible time,unfinished/caps retained.",
+      "quality": "CPU actual driver checks one-token/finalchunk/anchor transitions,offset/past,EOS retirement and no emptyCAPI; actual GPU fullprompt outputs/taskscore/EOS; original nativeerror failclosed. No assuming chunk shapes retainM16/vector path.",
+      "wall_impact": "UNKNOWN.724 prefill~13s initialmicro and firstmicro regression prove exposed latency opportunity, not chunk32 speed. Additional calls can reduce throughput.",
+      "ETA": "Finish bounded CPUprep20..35min total; queue/loadUNKNOWN; firstpaired episode8..15min afterready, ABBA15..30min. Reuse successful environment and source upload beforelaunch.",
+      "exit": "Keep opt-in only if observed prefill-induced ITLp95/max or tailTTFT improves beyond drift and wholecompletion/throughput tradeoff is explicitly acceptable with no score/EOS regression. Firstarrival group may worsen: report it. If CPU semantics cannot close within35min, return exact blocker; no speculative GPU launch.",
+      "fallback": "719 decode baseline plus724 offline throughput/tail-prefill opt-in; chunk32 negative stops this hypothesis, no32/64/128 grid. No unbounded-service/HTTP claim without future perrow reset contract."
+    }
+  },
+  "execution": "Root record adopt/defer/reject per card in existing implementation109 and dispatch original owners immediately. D109A independent and already ready; don't wait for Kimi/GLM CPU work. Conditional second cards stay conditional. Record actual prep/queue/load/measure/QA times in existing receipts. Source SHA checks reused; no new report framework/Git wait.",
+  "quality_contract": "Reasonable early correctness, actual complete final token/EOS and benchmark no obvious drop later; output token identity is not user requirement. Full physical peak, component/model/native-emitter/HTTP scopes remain distinct.",
+  "source_verification": [
+    {
+      "path": "astra-review-108-current.json",
+      "SHA256": "61b53a63fc0e05a295e306ab655d1c0a974b845dc6220753a063f01db17499bb",
+      "verified": true
+    },
+    {
+      "path": "InfiniLM-hygon-test/analysis/bw1000/reviews/astra-review-implementation-108-current.json",
+      "SHA256": "3afb6ad0afa0451a5e9bc225b238afc2dd6b0e4954521655bc560a0362742c47",
+      "verified": true
+    },
+    {
+      "path": "GLM-prefill-Model-private-r9241/terminal-producer-r9254.json",
+      "SHA256": "0633fdc716d4739b5ce7395aa3663f38cc94d838f76cacf7475aaff1434bd154",
+      "verified": true
+    },
+    {
+      "path": "GLM-prefill-Model-private-r9241/terminal-result-r9254.json",
+      "SHA256": "fecfcddcb4743ba8d19e6e7b0bb44c059e0571b44fd1c759206a0d1640b2d7cb",
+      "verified": true
+    },
+    {
+      "path": "Deep-CSA-host-terminal-private-r9247/canonical-Deep1099-r9247.json",
+      "SHA256": "1ef7f621a225379cf70799b748d9f7dab5fc39a3bc1d4bd6255678d58c942942",
+      "verified": true
+    },
+    {
+      "path": "Kimi-A-expanded-data-private-r9241/producer-terminal-r9249.json",
+      "SHA256": "1f23d27f8705f7269d0fb059f2c7fdf0e70dc50faa0d2d101ff8e3b74b1fdb55",
+      "verified": true
+    },
+    {
+      "path": "Kimi-A-expanded-data-private-r9241/terminal-canonical-r9249.json",
+      "SHA256": "bf625a0c327e795b1cc327abd799f2d19d1eccda969c54aa7edfb25678c0ba1d",
+      "verified": true
+    },
+    {
+      "path": "Kimi-cycle-economics-CPU-private-r9247/deployment-tradeoff-summary-r9247.json",
+      "SHA256": "31fa2be9ec2cc89864cedd1e6d6476e212656aae7e4fff602d3ae056e34c398d",
+      "verified": true
+    },
+    {
+      "path": "Kimi-A-expanded-data-private-r9241/width-controls-and-repeat-observed-r9248-a.json",
+      "SHA256": "fc4cf7a8e029bd40f784a3f667e967d1a2ccea0cd13c5542592cc1cd6e078bdb",
+      "verified": true
+    },
+    {
+      "path": "GLM-chunked-prefill-feasibility-private-r9256/contract-r9256.json",
+      "SHA256": "66926ba5e10994411d09474393c8f0fe3fe120f113afaee2b97fa68390229044",
+      "verified": true
+    },
+    {
+      "path": "Kimi-relaxed-acceptance-source-feasibility-r9255.json",
+      "SHA256": "4f18dfde3e819163e36626c13650ad9b13004e413103f1171ab6c5806ea76008",
+      "verified": true
+    },
+    {
+      "path": "Deep-CSA-bank-copy-private-r9249b/producer-index-preGPU-r9249b.json",
+      "SHA256": "a6f168db88e69f01d590c932b90ee533ffd832dcd9999fb63385125fd8d9746c",
+      "verified": true
+    },
+    {
+      "path": "Kimi-adaptive-Model-AB-private-r9225/runtime-A/batch_native_r9128.py",
+      "SHA256": "efe4f0ca62967e2a8a2272fcffcca964c3eb2b1c29c73cc2f434382a98b9ecae",
+      "verified": true
+    },
+    {
+      "path": "Kimi-adaptive-Model-AB-private-r9225/runtime-A/batch_cohort_r9128.py",
+      "SHA256": "dce957b2db7e73bf0b8d7d201b99e3732fb3abd9561f3da795f1e7f9c0f6d7a3",
+      "verified": true
+    },
+    {
+      "path": "Kimi-adaptive-Model-AB-private-r9225/runtime-A/batch_policy_r9128.py",
+      "SHA256": "518bef657469fcb837fe6b425b770c1405c824afca454b5635529d0706d581c3",
+      "verified": true
+    }
+  ],
+  "UTC": "2026-10-26T15:55:15.1163877Z"
+}
