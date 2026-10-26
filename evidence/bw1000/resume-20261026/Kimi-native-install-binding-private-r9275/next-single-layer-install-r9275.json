@@ -1,0 +1,72 @@
+{
+  "schema": 1,
+  "status": "PLAN_ONLY_NO_NEW_CODE_BUILD_OR_GPU_GO",
+  "reuse": "Kimi-current-MoE-profile-private-r9264/current_moe_runner_r9264.cpp thin wrapper bound to b4; change installation observations only in future private wrapper, preserve forward provider/GPU objects",
+  "method": [
+    "Existing mapped_layer_weights_r9125 CPU tensor contexts/descriptors remain alive through original owner drain/postload; no clone/full SHA/full checkpoint materialization",
+    "Use original real TP16 two-node communication/rank owner construction; time ctor separately, do not substitute fake rank topology",
+    "At all-owner barrier before install read process-global existing copy_stats[5] once, then each owner time unchanged module.load_parameters_no_sync(r,weights,true)",
+    "Separately time the already-existing r.syncStream immediately after no_sync, then unchanged recursive post(r,module) with its original sync points; no per-tensor or extra GPU sync instrumentation",
+    "At all-owner barrier after load/post read copy_stats once and subtract; report aggregate8owner counters, individual owner wall and max owner wall, and exact logical bytes/keys",
+    "If current HIP activity/API tooling is reused, correlate only this bounded installation window; report per-device H2D interval union and existing StreamSynchronize API elapsed; keep no_sync inclusive wall distinct from GPU DMA time and from I/O",
+    "CPU gather elapsed and full-stage state_dict construction elapsed are UNKNOWN without further scoped timers; never derive them as inclusive wall minus asynchronous spans",
+    "Only if this readout justifies and Astra/root later authorizes private Core build: add host clock accumulators around current state_dict construction, current copy_cpu_strided_r2515 call and already-existing memcpyH2D(false), without changing buffers, copy policy, stream, or sync; no new gather algorithm"
+  ],
+  "true_W2_geometry": {
+    "dtype": "uint8/MXFP4 already packed, no dequantization in copy path",
+    "packed_global_shape": [
+      3584,
+      1536
+    ],
+    "packed_local_shape": [
+      3584,
+      96
+    ],
+    "packed_source_strides": [
+      1536,
+      1
+    ],
+    "packed_destination_strides": [
+      96,
+      1
+    ],
+    "scale_global_shape": [
+      3584,
+      96
+    ],
+    "scale_local_shape": [
+      3584,
+      6
+    ],
+    "scale_source_strides": [
+      96,
+      1
+    ],
+    "scale_destination_strides": [
+      6,
+      1
+    ],
+    "experts": 896,
+    "TP": 16,
+    "source": "actual r9129 register_mxfp4_experts tp_dim1 and required checkpoint headers in r9264",
+    "suffix_helper_static_prediction_per_owner_expert_only": {
+      "copy_calls": 1792,
+      "bulk_blocks": 6422528,
+      "bulk_bytes": 327548928,
+      "scalar_leaves": 0,
+      "scalar_bytes": 0
+    },
+    "prediction_not_actual_counter_measurement": true
+  },
+  "single_layer_scope_limit": "L1 contains only its own ~5.4k bindings; its state_dict time cannot establish whole PP-stage map construction overhead of ~250k keys per flush. Keep existing r9212d cache proposal as deduplicated CPU-only candidate, no speed claim.",
+  "first_candidate_cost": "Repeated W2 dim1 fallback completed H2D and intervening LoadBatch drains, with real bulk row gather already installed. Source proves these completion points; only a bounded real layer timing can establish whether they dominate.",
+  "forbidden": [
+    "report-only31minute Model reload",
+    "full1.56TB CPU replica/export",
+    "full TensorStore catalog/hash",
+    "GPU F64 or token-bitwise gate",
+    "new scalar reference as the current baseline",
+    "editing active shared Core/739 forward job"
+  ],
+  "CPU_cache_context": "r9272c confirmed warm original mmap and memfd share identical PSS. It did not test cold storage and does not rule out cold-load gains."
+}
