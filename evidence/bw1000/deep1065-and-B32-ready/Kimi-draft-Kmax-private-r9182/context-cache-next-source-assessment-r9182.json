@@ -1,0 +1,17 @@
+{
+  "status": "SOURCE_ONLY_NEXT_EXPERIMENT_NOT_ENABLED",
+  "creator_source_SHA256": "e62831319cfb85739bd7410dd51daa8bee116a45e8784d9e639a90059ef9556d",
+  "creator": "context_proj=nn.Linear(5*h,h,bias=False); context_norm=DFlashRMSNorm(h,eps)",
+  "RMS_source_SHA256": "81489dec80b0d4075ed59ac4e48bc12382f3d50e880d1ebdd2dfbfe702a831d7",
+  "RMS_excerpt": "class DFlashRMSNorm(nn.Module):\n    def __init__(self, hidden_size: int, eps: float = 1e-6):\n        super().__init__()\n        self.weight = nn.Parameter(torch.ones(hidden_size))\n        self.variance_epsilon = eps\n\n    def forward(self, hidden_states: torch.Tensor) -> torch.Tensor:\n        input_dtype = hidden_states.dtype\n        hidden_states = hidden_states.to(torch.float32)\n        variance = hidden_states.pow(2).mean(-1, keepdim=True)\n        hidden_states = hidden_states * torch.rsqrt(variance + self.variance_epsilon)\n        return self.weight * hidden_states.to(input_dtype)\n\n",
+  "existing_store": "ContextStore holds per(epoch,request) rawfeatureTensor, past length; append_many stagedatomic updates; retire removes onlyowned key; no projectedctx/no draftKV",
+  "candidate_later": "Append-only cache of rowwisecontext_norm(context_proj(new_committed_features)) keyed(epoch,request,projectionweights/dtype/device); usecachedctx, padafterprojection withsamevalidmask. All5layerattention/x/positions stillcomputed eachquery.",
+  "required_checks": [
+    "Prove RMS reduceslastdim only and eval/no dropout; projection doesnotmix positions",
+    "Append onlytargetcommittedfeatures; past/epoch/rowlength require exactprefix, no rejected suffix caching",
+    "Preserve ContextStore atomicrollback/retire/reset semantics; no cache reuse acrossweights/device/dtype or request",
+    "Fullrecompute vsappendprojection inputprefix/RMS/numeric diagnostics onactualtrainedweights; task benchmarkquality nottokenidentity",
+    "Profile capturedcontext_proj+norm cost first; countappendload/copy/cache cost allin and memory. No unmeasured Modelgain prediction"
+  ],
+  "not_enabled_in_current_Kmax": true
+}

@@ -1,0 +1,5 @@
+{
+  "source": "r9000_torchspec_dflash.py",
+  "SHA256": "81489dec80b0d4075ed59ac4e48bc12382f3d50e880d1ebdd2dfbfe702a831d7",
+  "excerpt": "class DFlashRMSNorm(nn.Module):\n    def __init__(self, hidden_size: int, eps: float = 1e-6):\n        super().__init__()\n        self.weight = nn.Parameter(torch.ones(hidden_size))\n        self.variance_epsilon = eps\n\n    def forward(self, hidden_states: torch.Tensor) -> torch.Tensor:\n        input_dtype = hidden_states.dtype\n        hidden_states = hidden_states.to(torch.float32)\n        variance = hidden_states.pow(2).mean(-1, keepdim=True)\n        hidden_states = hidden_states * torch.rsqrt(variance + self.variance_epsilon)\n        return self.weight * hidden_states.to(input_dtype)\n\n"
+}
