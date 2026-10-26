@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "status": "FROZEN_READONLY_NATIVE_ALLOCATOR_AUDIT_TRIM_MECHANISM_EXISTS_ACTUAL_POOL_IMPLEMENTATION_BINDING_INCOMPLETE",
+  "scope": {"GPU": false, "Slurm": false, "compile": false, "dlopen": false, "Git": false, "remote_read_calls": 1, "model_payload_read": false},
+  "actual_binding": {
+    "native_DSO_SHA256": "3057262312679f86bcdb181ce198b9b1f1d2fccc59fc204b4adbc197132b60dd",
+    "receipt": "Kimi-W2-pair-Model-private-r9282/runtime/model-native-receipt-r9282.json",
+    "actual_infer_engine_object_SHA256": "12d29534d9f682342c68bd88af103a6a39fa876c1e4a45aed4a3d91aa4827e39",
+    "actual_infer_engine_MD_SHA256": "c244ddaa431ff8761599ddeb533a4fd2dc9c752d5cb15e8edc803ece15bd4340",
+    "actual_worker_object_SHA256": "42b891322186149b0018ddbf8044f2724080e41549ac95950e9bac8e6d176bb9",
+    "actual_worker_source_SHA256": "c8312e7c272e98c1760c2b5f776e3becdb95b34be326d4b28cfd9c86961d542e",
+    "runtime_library_SHA256": "04a6a1a86c97d176e4304b9bb4c1d6fcb8550784beaa47e0f5841fb7603ffabf",
+    "runtime_source_SHA256": "a4742905290618c740bc81f4e0316b289de86819ece50d7a95da62652bb0a4e9",
+    "installed_RT_library": "/refactor/install/hygon-kimi-5f91ad7-r3672/lib/libinfinirt.so",
+    "installed_RT_SHA256": "e78b7b4aed105e5968fc598f60a2cacafcaf7c07c13dd4a971abfbdd92d47560",
+    "installed_pool_header_SHA256": "9a11965d7d2c3a0414607d86897eb32ad5046cdc9b1d2357e2a329036207c67f",
+    "Core_pin": "2b4f2f20584a69b074f62a455e3de7368e3446c2",
+    "RT_pin": "cd1d48258f0a6b8d9f66111d5d6cb1664205e78d",
+    "retained_cd1_pool_source_SHA256": "499fc5fcb9a8f5a03fa0d64c482c95e61d05f368840def6234d3ecdf025f08ac",
+    "binding_gap": "r3669 historical receipt RT SHA edf6b66f differs from installed e78. Assumed r3669 CMake pool.o/.d/link paths are absent. Pinned source semantics are a candidate contract, not fully proven actual e78 object/MD semantics. No second remote read was used."
+  },
+  "allocator_architecture": {
+    "actual_Runtime": "Runtime constructs one infini::rt::ReusableMemoryPool per owner Runtime and borrows its ordinary stream. Runtime::allocateMemory and allocateParameterMemory use the same pool; Memory deleters capture shared Runtime and releaseDeviceMemory.",
+    "refs": "Normal Memory final release calls deallocate; reinstantiateBlob increments physical allocation use_count once per resumed Memory. Foreign-thread release first synchronizes original Runtime stream and retains allocation if completion cannot be proven. Graph PinLease retains shared pool state; pinned bytes are unique physical blocks with pin_count>0.",
+    "retained_pool_source_contract": "State has mutex-protected all_blocks, size-class free lists, large/exact list. Block has size, in_use, use_count, pin_count. allocate aligns to256 and uses classes32KiB..256MiB or large/exact. deallocate decrements use_count, then marks free; trim frees only free unpinned blocks. Hygon allocation_stream is null and uses runtime Malloc/Free, while NVIDIA uses async stream allocation.",
+    "lifetime": "Pool state destructor drains original stream before backing storage release and stream destruction; committed graph pin leases may outlive user-facing pool object. Do not clear live outputs/parameters/cache or reinterpret private State to force release.",
+    "not_measured": "Class sizes/formulas are source contracts only. No current-run allocator bin distribution, allocated bytes, reserved bytes, free-cache bytes or exact driver reclaim was captured."
+  },
+  "available_APIs": [
+    {"signature": "void infinilm::runtime::Runtime::trimMemory()", "location": "runtime.cc:168", "contract": "DeviceGuard then device_memory_allocator_->trim(); no owner assert or drain in this method; safe use must establish them at owner command boundary"},
+    {"signature": "size_t infinilm::runtime::Runtime::graphPinnedMemoryBytes()", "location": "runtime.cc:173", "contract": "assertOwnerThread then pinned_bytes; excludes driver graph allocation and is not allocated/reserved/free-cache telemetry"},
+    {"signature": "void infini::rt::ReusableMemoryPool::trim()", "contract": "Installed header exports method; retained source free-list blocks require pin_count0, large/exact also !in_use. No free-bytes return value; runtime Free errors propagate."},
+    {"signature": "std::size_t infini::rt::ReusableMemoryPool::pinned_bytes()", "contract": "only pool byte statistic in installed public header"},
+    {"signature": "infini::rt::runtime::Error MemGetInfo(std::size_t *free, std::size_t *total)", "location": "actual installed generated header retained in native-dispatch-extracted-r8401/generated.h:87", "contract": "driver free/total counter, not pool allocated/reserved; Hygon backend maps cudaMemGetInfo compatibility API"}
+  ],
+  "existing_owner_entry": {
+    "entry": "modern_kimi_batch_reset_r9122 -> engine reset -> RESET_CACHE on all8 owner workers per node",
+    "actual_worker_lines": "1148 RESET_CACHE;1152 original stream sync;1166 sync;1167..1171 clear forward_context cache references;1172 trimMemory;1175 cache reconstruction;1186 final sync/job_done",
+    "already_used": "r9282 batch_cohort_r9128.py calls native.reset before every cohort. Failure occurred during first MMLU cohort prefill after reset, so an extra duplicate cohort reset is not established remediation.",
+    "limitation": "RESET rebuilds model-owned caches and clears state; it is not a trim-only owner API and cannot be injected mid-prefill without semantic reset. RankWorker output_ can remain live. No existing public trim-only CAPI found in bounded actual entry/header inspection."
+  },
+  "candidate": {
+    "decision": "DIAGNOSTIC_CANDIDATE_ONLY; TRIM_ONLY_IMPLEMENTATION_STOP_PENDING_E78_POOL_OBJECT_MD_BINDING",
+    "minimum_host_diagnostic": "At a legal existing all-owner command boundary after original forward/drain and no activeFrame, sample per-owner Runtime MemGetInfo free/total and graphPinnedMemoryBytes, record labels and all32 completion. Preserve existing sampler and unchanged4GiB gate. This can distinguish driver reclaim but cannot manufacture pool allocated/reserved telemetry.",
+    "future_trim_only": "After actual e78 pool binding closure, consider a narrowly scoped owner-dispatched TRIM_FREE command: serialize Context/engine submissions; reject active speculative frame/graph capture; owner assert; prove original-stream drain; MemGetInfo before; trimMemory; completion check; MemGetInfo after; all32 collect. Keep parameters/KDA/KV and logical state untouched. No foreign-thread Runtime call or private allocator cast.",
+    "required_metrics": ["per-owner driver free_before/free_after/total and API status", "minimum all32 driver free after command", "trim wall time and next prefill/decode costs", "owner command/drain/activeFrame evidence", "unchanged logical capacity16 and cache geometry", "quality/EOS/lifecycle and all32 shutdown/postempty"],
+    "no_claim": "Whether cap16 can be preserved by trim, amount recoverable, leak versus workspace high-water, and throughput benefit all UNKNOWN. Need actual counter deltas; mere trim success is insufficient."
+  },
+  "failure_context": {"native_returned_successfully": true, "OOM_observed": false, "driver_tail_free_bytes": 4102029312, "required_free_bytes": 4294967296, "shortfall_bytes": 192937984, "native_allocated_bytes": "UNKNOWN", "native_reserved_bytes": "UNKNOWN", "Torch_peak_allocated_bytes": 1323520, "torch_empty_cache_is_native_remediation": false},
+  "evidence": ["Kimi-native-install-binding-private-r9275/actual-interfaces-r9275.json", "Kimi-native-install-binding-private-r9275/runtime.cc", "Kimi-native-install-binding-private-r9275/worker.cpp", "Kimi645-existing-owner-reset-trim-contract-r8669zb.json", "native-dispatch-extracted-r8401/reusable_memory_pool.h", "Kimi-W2-pair-Model-private-r9282/failure-canonical-r9291b.json", "native-allocator-observed-r116.json"]
+}

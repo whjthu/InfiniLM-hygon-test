@@ -1,0 +1,14 @@
+import pathlib,json,hashlib
+r=pathlib.Path(__file__).resolve().parent;s=(r/'analyze_Kimi_W2_INT8_terminal_r113b.py').read_text();s=s.replace('Kimi-W2-INT8-r113b','Kimi-W2-INT8-register-v2-r113c').replace('910375.753','910375.757').replace('910407.435','910407.436').replace('910375.754','910375.758').replace('300145fbd6f2dd1a543fcf44f8165c9e9ddbfbcf','4af2ba28b1331286fc3a268d9ea9e7f5fbc33ed8').replace('currentnative0231e499... runner341a3566...','v2native1a929d79... runner214612d3...')
+v1p=r/'Kimi-W2-INT8-private-r113/terminal-canonical-r113b.json';v1=json.loads(v1p.read_text());refs=[{'T':x['T'],'constructed_low_reuse':x['constructed_low_reuse'],'OFF_ms':x['OFF_4arm_median_criticalmax_ms'],'ON_ms':x['ON_4arm_median_criticalmax_ms'],'gain_percent':x['inversewall_rate_gain_percent'],'RMS':x['candidate_RMS_minmax']}for x in v1['scenarios']]
+extra='V1_REFERENCE='+repr(refs)+'\n'
+extra+='''out['v1_crossrun_reference']={'canonical_SHA256':'8e54295947aa18a1744df65259e651185a82c83f279550a0d8a198c6c5df1bd5','GPU':'910375.753','interpretation':'Crossrunreference only, notpairedv1-v2causalmeasurement; currentv2vsW2pairpairs aretheactualpairedcomparison','scenarios':[]}
+for x,v in zip(out['scenarios'],V1_REFERENCE):
+ assert(x['T'],x['constructed_low_reuse'])==(v['T'],v['constructed_low_reuse'])
+ out['v1_crossrun_reference']['scenarios'].append({'T':x['T'],'constructed_low_reuse':x['constructed_low_reuse'],'v1_OFF_ms':v['OFF_ms'],'v2_OFF_ms':x['OFF_4arm_median_criticalmax_ms'],'OFF_crossrun_drift_percent':100*(x['OFF_4arm_median_criticalmax_ms']/v['OFF_ms']-1),'v1_ON_ms':v['ON_ms'],'v2_ON_ms':x['ON_4arm_median_criticalmax_ms'],'ON_crossrun_inversewall_reference_percent':100*(v['ON_ms']/x['ON_4arm_median_criticalmax_ms']-1),'v1_vs_own_W2pair_gain_percent':v['gain_percent'],'v2_vs_own_W2pair_gain_percent':x['inversewall_rate_gain_percent']})
+out['consumer_entry_declared_origin']={'path':'/refactor/incoming/Kimi-W2-INT8-r113/run_GPU_r113.py','SHA256':sha(r/'incoming/Kimi-W2-INT8-r113/run_GPU_r113.py'),'note':'Sealedv2GPUinside -c imports qualifiedoriginalconsumerbyte2a15f252; passesnewv2manifest/output,newDSOactualbindingsverified byconsumer; identicalv2copyexists'}
+assert out['consumer_entry_declared_origin']['SHA256']=='2a15f252b66722bdaa7d0d7e2610e421d157d562885414de774ce49558ab1eca'
+out['Slurm_terminal']=subprocess.check_output(['sacct','-j','910375.756,910375.757,910375.758,910407.436','--format=JobID,State,ExitCode,Elapsed,NodeList','-P','-n'],text=True,timeout=25)
+out['engineering_only']='CPU755VGPR61/resourcechange is not a performance claim; useactualpairedfullMoE timings only.'
+'''
+s=s.replace('print(json.dumps(out))',extra+'print(json.dumps(out))');compile(s,'analyze_Kimi_W2_INT8_register_v2_terminal_r113c.py','exec');(r/'analyze_Kimi_W2_INT8_register_v2_terminal_r113c.py').write_text(s)
