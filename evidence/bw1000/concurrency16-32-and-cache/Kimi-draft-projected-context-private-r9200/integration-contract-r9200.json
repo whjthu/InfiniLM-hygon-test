@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "class_module": "projected_context_r9200",
+  "class": "ProjectedContextStore",
+  "query_module": "query_projected_r9200",
+  "query": "query_projected(model,head,projectedcontexts,anchors,Ks,enabled=True,return_debug=False,profile=False)",
+  "source_SHA256": {
+    "projected_context_r9200.py": "ffb84bf4c4818f3f925ff9c589fc3049037182945ec0e6fdb5a1dbb20d592fa5",
+    "query_projected_r9200.py": "98da6b4af06f87f4e935d42031941001b7b1fb9f6474ec5cba94c8d8ab418119",
+    "draft_context_r9128.py": "c043e09f8fbfe1e8f9060a5aa3cd606aa657ec69c140a0f3d013956b512fd08a"
+  },
+  "lifecycle": [
+    "construct once owner thread using same fixed trained model and explicit weight tag",
+    "begin strictly newer cohort epoch with empty cache",
+    "append_many(epoch,items,parts): all requests packed into single 2D projection+rowwise RMS; only COMMITTED targetfeature rows; peritem request ID/past/rows validated wholebatch BEFORE GPU mutation",
+    "append 1..8 rows; initialfill<=512 and total perrequest<=1024; 1..32unique nonretired IDs",
+    "get projectedcontext list in request order; pass to query_projected; full8 query positions/5layers/masks/headKmax2D unchanged",
+    "retire one request removes onlyitscache+tombstone; no further append within sameepoch",
+    "close after cohort releasescache values; begin newer epoch; no hot module or parameter replacement"
+  ],
+  "required_implementation_note": "DO NOT loop append_many per request: all newlyaccepted featureparts from this targetcycle must pass one call; original rawfeature store can remain for audit/control independently. Fill cache in already-required featureappend path, not on first query timed alone. DraftRPC includes cachework.",
+  "memory_bound_projected_only_C32_L1024_BF16_bytes": 469762048,
+  "source_contract_proved_rowwise": true,
+  "actual_GPU_scope": "C1/8/16/32 initial128/384/512 then append1/3/7 twice, sparsekeys/reverse/shrink/retire/epoch, maxactualL534; CPU reaches1024",
+  "quality_next": "Actual target acceptance/task benchmark required; random feature diagnostics show proposal changes. No bitidentity threshold. Strict target verifier/commit protocol unchanged.",
+  "no_attention_layer_KV_cache": true,
+  "default_OFF": true,
+  "live_runtime_not_modified": true
+}
