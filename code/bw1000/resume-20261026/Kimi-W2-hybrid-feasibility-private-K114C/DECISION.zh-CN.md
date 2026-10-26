@@ -1,0 +1,25 @@
+# K114C：W2 稠密 expert MMAC / 稀疏 pair 的有界可行性
+
+结论：可提出一个新的有界数据流，但尚未实现，默认 PARK。原 pair kernel 不能原样按 expert 子集复用；若必须“严格仅满16行且不新增稳定分组工作”或“GPU 决策后完全不提交空 kernel”，当前应 PARK。推荐后续若另获授权，只考虑 count>=16 的整个 expert 走 MMAC（保留它最后的 padded 尾块），count<16 的 expert 走原 pair 内积的 FP32 route-partial 适配；这是对“严格满16行”的明确放宽，不能悄悄替换原需求。
+
+K114B 已定位低复用额外8.23ms主要在 W2matrix，同 owner 配对差中位+8.131ms。历史T64 histogram为31×32、1×24、1×8：ceil16有65 jobs/1040物理行，98.46%有效。constructed为128×2、768×1：896 jobs/14336物理行，仅7.14%有效。两者job×224工作片相差13.7846倍，实际matrix event 10.19543/.76384=13.3476倍。v2只跳过invalid-row scalar scale，所有64lane仍需参与B fragment、解码/staging、barrier与6个MMAC，因此稀疏行没有消除主要工作。这支持 padding/reuse 解释；BW、cache、compute、occupancy 的具体瓶颈仍 UNKNOWN，61VGPR与“640/假定80CU=8平均波”都不是occupancy实测。
+
+|既有scene|严格满16 jobs / 剩余routes|推荐整expert>=16 MMAC jobs / routes|sparse routes|
+|---|---:|---:|---:|
+|T8历史|0 / 128|0 / 0|128|
+|T64历史|63 / 16|64 / 1016|8|
+|T64 constructed|0 / 1024|0 / 0|1024|
+
+已有 packRoutes 以 atomicAdd 决定 expert 内路线顺序。严格 floor(count/16) 前缀拆分会让24-row expert中“哪16条被A8量化”跨调用不稳定；这是精度 membership jitter，不只是调度。不新增稳定分组/逆映射时，整expert按count分类能避免这个新问题，tails列表的排列仍可变，但每条route的精度选择固定。
+
+原 pairW2I192R9280 的 CTA=一个 token 两channel，内部按原32lane点积后将全部16route加权升序归并，最后直接BF16写out。它没有expert mask或FP32 partial接口。将ids子集遮掉再加两个BF16输出会改变归并/舍入，且不能与MMAC同时写finalout。最小适配必须新建一个私有guarded pair kernel：保留其内积/解码/warp归约，mixed模式按compact sparseRoutes的16路虚拟组写 FP32 partial[原rid,n]，最后只调用一次现有ascending16route reduce；原 baseline pair 函数保持不变。新适配尚无编译/ISA/数值或性能证明。
+
+W13已经生成counts/routes，分类在W13之后同owner stream执行，可复用jobExpert/jobStart/jobs：hot expert追加ceil16 jobs，cold expert把原rid追加tailRoutes[R]与device counter。quant保持R×6 grid但按ids[r]对应count>=16早退过滤；matrix仍原640×64/六group32scale数学。若hotjobs=0，guarded pair kernel统一执行原pair完整FP32升序16route→BF16 finalstore，quant/matrix/reduce早退；若hotjobs>0，pair与matrix只写互斥FP32 routepartial，reduce是唯一finalout writer。分类kernel完成后的同stream依赖保证所有CTA读取同一只读flag，无host同步。需要新增分类/adapter及quant filter/reduce guard；全部launch/memset/no-op/partial成本收费，不能称为免费dispatch。
+
+hot jobs满足Σceil(n/16)<=Σn/8<=R/8=2floor(R/16)，T64最多128，独立于E896；历史实际64，constructed0。现matrix本就不是固定E×224的grid，而是640CTA persistent循环jobs×224；no-hot不执行任何工作片，但仍提交一次640空CTA kernel，以及必要classification/quant/reduce空launch。无host读回和未验证conditional-launch API时不能消除这些host提交。为了完全去掉空launch而融合block64 MMAC与block256 pair会改变barrier/布局契约，超出此最小方案，当前PARK，不扩框架。
+
+scratch只需追加tailRoutes[R]的int32及tail counter4B，同时让quant error仍在bytes-4：qA/scales/FP32 partial/constructedIds保持原偏移，tailRoutes接在旧error位置，tailCounter后再放error。新bytes=R×14560+8，比原增加4R+4，T64增加4100B（含canary总14909960B）。不能占用仍活着的constructedIds。GPU分类按合法expert路由分割，所有有效原rid恰好写一次partial，invalid ids仍由原reduce跳过；同owner drain后再解绑/free。CPU仅对32个实际owner histogram加constructed做符号覆盖/互斥证明，不是GPU执行资格。
+
+去重：753/757已证全MMAC低复用/T8负，v2寄存器变化未显著改善；761定位matrix，禁止继续LDS/VGPR盲调。r856 GPU453的I384 BF16 W13晚期actual s383组合0.60006×；r4966/r8425的I384 W2 INT8全成本0.43435ms vs BF16 0.06869ms；coldBF16 GPU781高复用1.139×而seed229约0.396×。这些是额外开销/复用风险证据，维度、精度或W13不同，不能直接当本W2分派已经失败。r943 FDOT2、r929 WFP4、EP2 r868/cyclic r889保持原负例，不重复。旧源码r902 hybrid是I384 BF16 W13全调用级 count16×2<=routes 二选一LDS68/Tile4，并非本perexpert W2；本地未定位其实际结果，故不冒称已执行负例，也不与后来Slurm902官方WFP4结果混淆。
+
+后续若根另行授权，应先一个私有TU/同SDK对象/原ABI证明guarded no-hot算术、互斥writer、route覆盖、error/canary和实际dispatch counters；再经sourcepub与单独GPU GO才可用原三scene证伪，全部成本计入wholeMoE。T8/allcold的附加空launch是否回退、mixed模式是否保留历史收益以及实际质量均UNKNOWN。历史teacher高复用不是16真实用户，不授权Model。本轮没有上传、SSH、compile、GPU、新作业或Git修改。

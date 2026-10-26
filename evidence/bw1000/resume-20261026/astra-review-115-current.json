@@ -1,0 +1,254 @@
+{
+  "schema": 1,
+  "review": 115,
+  "reportstatus": "COMPLETE_EARLY_CPU_REVIEW",
+  "goal_complete": false,
+  "reviewer_agent": "/root/astra_review_115",
+  "frozen_at_UTC": "2026-10-26T22:37:18Z",
+  "budget_minutes": 12,
+  "decision": "继续同一474/586/277的冻结50case；无新全模型GPU。优先当前C2/T16机制闭合与一次TP32源/预算闭合；GLM、Deep各一项有明确STOP的CPU准备，现有证据不足以批准新GPU。",
+  "input": {
+    "path": "astra-review-115-input.json",
+    "SHA256": "2f42f845dfab8741c5033cf96bc4c77f2db881522ec35cf9d04ac531b7accf0b",
+    "verified": true
+  },
+  "source_verification": {
+    "all10_manifest_sources_match": true,
+    "TP32_source_index_all37_nested_sources_match": true,
+    "policies_read": [
+      "InfiniLM-hygon-test/AGENTS.md",
+      "coordination/PROTOCOL.zh-CN.md",
+      "coordination/ASTRA_REVIEW.zh-CN.md",
+      "coordination/QUALITY_POLICY.zh-CN.md"
+    ],
+    "coordination": "Read local BW1000 status and exact task/results. BW1100 latest.json absent locally; no fetch under explicit audit-only restriction. Root must refresh other-side claims before later GPU admission; this review grants none.",
+    "additional_verified": [
+      {
+        "path": "Kimi-cap8-micro1-Model-private-r9293/first-C2-paired-summary-r9297.json",
+        "SHA256": "da7056b3f6819bcc3616ae5a514594e423577c2ef33b93d6f88ca59c39d4bb91"
+      },
+      {
+        "path": "Deep-MTP-feasibility-r9287.json",
+        "SHA256": "14e009f91f31fecb047a873a8f2b74335fb65cba348c455b19c6bbc293e5e4bc"
+      },
+      {
+        "path": "GLM-T16-chain-diagnostic-private-r9276/terminal-canonical-r9277.json",
+        "SHA256": "4cf5808bdb85c7239c59b2344de9b0c7c5d2f7f64c74501af5a8437086c9e7fb"
+      },
+      {
+        "path": "InfiniLM-hygon-test/results/bw1000/2026-10-26/glm719-deferred-feedback-qualified.json",
+        "SHA256": "d7182dc9200698e96d3174c46483627a2edf8c83ae93ad6d533533e5e61ba277"
+      },
+      {
+        "path": "InfiniLM-hygon-test/results/bw1000/2026-10-26/glm724-prefill-pipeline-qualified.json",
+        "SHA256": "6e39113af0f788ecf371d85b020c064523dda19bf7ac4fee06e94410d51c196a"
+      },
+      {
+        "path": "Kimi-cap8-C2-root-summary-r9298-a.json",
+        "SHA256": "f5c931db112805ac750861da2fd0089aba6b6751715aee80cec361c56b07c3df"
+      },
+      {
+        "path": "Kimi-cap8-root-C2-progress-r9298-a.json",
+        "SHA256": "2baca96549d977263814520633e44bb520295ca4399a60c57171b5086665b86d"
+      }
+    ]
+  },
+  "accounting": {
+    "early_trigger": "761定位新机制、TP32静态预算排除当前配置，需选择下一投资；不是三轮触发",
+    "consume_once": [
+      "910375.761"
+    ],
+    "new_qualified_waves": 1,
+    "CPU_waves": 0,
+    "partial_C2_waves": 0,
+    "do_not_reconsume": [
+      "753",
+      "755",
+      "757",
+      "Deep1118/1119/1124/1125 family"
+    ],
+    "live_handles": [
+      "910379.474",
+      "910371.586",
+      "910406.277"
+    ],
+    "live_matrix_frozen": true
+  },
+  "previous114": {
+    "K114A": "已执行cap8/micro1新load，1710.53s，继续同handles；22:32:45 UTC已18题配对，仍非终态。",
+    "K114B": "761完成36s CPU工程与58s GPU step、16正常关闭/post空；有区分力，消费一次。",
+    "GLM": "755限定opt-in保留；本次无新增Model收益。",
+    "Deep": "64QA限定opt-in保留，MTP config-only STOP落实；本次无新增Model收益。"
+  },
+  "findings": {
+    "phase761": {
+      "status": "QUALIFIED_COMPONENT_ATTRIBUTION_NOT_MODEL",
+      "T8": {
+        "pre_gap_ms": 0.083673,
+        "event_gap_ms": 0.08308375,
+        "post_gap_ms": 0.07609125,
+        "differential_observer_ms": 0.003201625,
+        "matrix_delta_owner_median_ms": 0.0514603,
+        "quant_delta_ms": 0.01436,
+        "reduce_delta_ms": 0.00682,
+        "judgement": "回退符号稳健；仪表不掩盖约0.08ms差，但各phase仍是stream跨度。"
+      },
+      "T64_highreuse": {
+        "control_gap_ms": -1.258929,
+        "event_gap_ms": -1.28099275,
+        "differential_observer_ms": -0.02206375,
+        "matrix_delta_owner_median_ms": -1.308759,
+        "judgement": "收益位于W2matrix段；teacher重复高reuse不能代替当前C2/C8请求。"
+      },
+      "T64_constructed_lowreuse": {
+        "control_gap_ms": 8.242565,
+        "event_gap_ms": 8.23474675,
+        "differential_observer_ms": -0.00781825,
+        "matrix_delta_owner_median_ms": 8.131095,
+        "quant_delta_ms": 0.03572,
+        "reduce_delta_ms": 0.0222,
+        "judgement": "约8.23ms回退主要位于W2matrix段；重写quant/reduce或降VGPR不能解释掉主预算。"
+      },
+      "limits": "critical总wall取同一最慢rank的phase，不能跨rank求最大值后相加。owner-median相加不重建critical path。event elapsed不是GPUbusy，wall减provider不是纯TP。",
+      "hybrid_preliminary": "Root转述CPU审计：历史65个ceil16 jobs，构造896jobs，tilework比13.78与matrix约13.35同方向，支持填充/复用机制；尚无独立冻结报告SHA，不把此聊天补充当新资格或带宽证明。现pair核全16routes并最终BF16输出，不能当subset残差；hybrid须新FP32partial+单一有序reduce。选择wholeexpert>=16可避免atomiclist前缀量化membership随次序抖动，但仍非已测阈值。"
+    },
+    "Kimi_live": {
+      "qualification": "PROVISIONAL_ONLY",
+      "observed_UTC": "2026-10-26T22:32:45.279197+00:00",
+      "paired_groups": 9,
+      "unique": 18,
+      "correct_each": 18,
+      "EOS_each": 18,
+      "cap_each": 0,
+      "decode_tokens_each": 3247,
+      "decode_OFF_ON": [
+        24.6965382237,
+        25.4362600605
+      ],
+      "gain_pct": 2.99524504,
+      "user_median_OFF_ON": [
+        12.9406149021,
+        13.288916068
+      ],
+      "user_min_OFF_ON": [
+        8.5680486335,
+        8.9540568501
+      ],
+      "users_GT15_OFF_ON": [
+        2,
+        3
+      ],
+      "task_wall_OFF_ON": [
+        172.8162763957,
+        168.9837317322
+      ],
+      "all_cards": 33,
+      "latest_sampled_free_bytes": 6805258240,
+      "floor_bytes": 4294967296,
+      "first8_screen": "PASS_NOT_FORMAL_NONINFERIORITY",
+      "interpretation": "首6中位数14.75不能代表最新18。首用户first-last包含后续micro1预填充，这是实际可见等待，不能移动首token时间点；首组去PF诊断也未必>15。继续固定32题C2及50case全矩阵，无新增wave/晋级。"
+    },
+    "GLM": {
+      "latest_qualified_task_gain_pct": 1.78620561,
+      "CAPI_HOST_decode_gain_pct": 2.47672947,
+      "quality": "31/32每epoch、全EOS；重复不扩N",
+      "users_GT15": 0,
+      "decision": "限定opt-in，停止重复验证微收益。",
+      "dedup": [
+        "719 deferred-feedback已完成：C32 common+17.36%，不是新候选",
+        "724 prefill pipeline已完成且首micro TTFT回退",
+        "582 prepared-weight reuse已正组件，不能称未测cache主意",
+        "664 selective INT8负；bitdecode STOP；749 row2组件已进入755"
+      ],
+      "profile_gap": "540为旧B16M8/layer38；743为synthetic-hidden T16 wholechain，normal3.626ms，Kineto11ms。743可定位该链gateup/down，不足以解释755真实arrival整服务或声称物理瓶颈。"
+    },
+    "Deep": {
+      "quality": "62/64两臂、64EOS、0cap、零discordance；未证明普遍非劣",
+      "user_ON_medians_range": [
+        2.93485,
+        2.99452
+      ],
+      "task_wall_reduction_pct": [
+        10.2168,
+        10.8361,
+        -3.1218,
+        18.0048
+      ],
+      "decision": "C4仅opt-in，n05长输出负任务收益保留；4节点速率不能求和当服务测量。",
+      "MTP": "源审计已证明非配置开关；四流residual、独立mtp head、43层前缀事务和真实catchup均必需。现allselected要求q.tokens==1，K1 two-position verify会回到完整indexer；不能继承C4加速。2x是理想化消除开销示意，非实际预测，也不足把约3变15。"
+    },
+    "resources": {
+      "reserved": 320,
+      "current_live": 33,
+      "decision": "空闲卡本身不构成试验理由。CPU源码/日志工作可与当前Model并行，GPU仅在明确机制、绑定、内存与清理闭合之后。排除910384、n20 CCL、377n18GPU6。",
+      "time": "本次load1710.53s是主要已知成本；761 GPU仅58s。准备/排队全阶段分解仍未知，不虚构利用率。"
+    }
+  },
+  "next_actions": [
+    {
+      "id": "K115A",
+      "priority": 1,
+      "owner": "int8_moe_feasibility_113 + kimi_continue_92 + root",
+      "decision": "CPU_SOURCE_GO; NEW_GPU_NO_GO",
+      "hypothesis": "当前C2实际T16/收尾T8的真实专家复用是否存在足够whole-expert高reuse区域，使hybrid可能节约W2 critical wall。",
+      "minimal_change": "等待并消费冻结hybrid CPU报告；复用已有当前C2 cycle/shape记录与保留route证据，量化eligible routes、ceil16 padding、全FP32partial/单reduce工作量与额外bytes。若缺真实T16 routing，明确UNKNOWN并准备最小采样接口；不从teacher重复生成伪真实fixture，不改活动Model。",
+      "resources": "本地CPU一名owner，10–15min；当前33卡工作持续。",
+      "affected_wall": "UNKNOWN；历史761 only explains component, target CAPI约89%不等于W2份额。",
+      "exit": "没有真实T16 eligibility/wholechain预算或subset语义未闭合则PARK。0 eligible时直接原FP4 pair且不能为hybrid增加无用quant/prepare。源证据正后才能提出单个16-owner T16 matched wholeMoE对照，真实权重/routes、2warm+4平衡pair、uninstrumented controls，finite/canary/normal drain；本报告不授予GPU。",
+      "fallback": "继续FP4 pair、保持当前冻结50case；不做第三轮盲INT8参数扫描。",
+      "ETA": "CPU首次决定10–15min；GPU排队/构建/后续结果UNKNOWN。"
+    },
+    {
+      "id": "K115B",
+      "priority": 2,
+      "owner": "TP32 source auditor + root",
+      "decision": "ONE_CPU_CLOSURE_GO; TP32_MODEL_NO_GO",
+      "hypothesis": "WORKSPACE_OFF genericI96可否为TP32PP1-cap8/H3形成有正余量且可绑定的后续组件计划。",
+      "minimal_change": "只闭合installed impl1与prefill I96源/对象映射、workspace allocation/释放与simultaneously-live bound；枚举batch admission、H3 capture/replay、head5120/ranks32必要HOST改动。",
+      "resources": "CPU10–15min，0GPU/0weights/load/compile。",
+      "affected_wall": "UNKNOWN；PP减少与4节点TP增大相抵不能预测。",
+      "budget": "当前60.5461GiB静态仅剩3.4539GiB，低于4GiB guard，NO GO。WORKSPACE_OFF静态约58.9064GiB，仅约1.0936GiB供未知项且保留4GiB；generic op/driver/CCL/prefill/load临时峰都必须列入，静态值非fit证据。",
+      "exit": "源映射或同时存活bound无法闭合即STOP，不再写第二份同结论报告、不constructor探针、不降低floor。只有正预算与完整provider/H3生命周期源计划后才提单层真实32owner qualification，不能直接93层load。",
+      "fallback": "保留TP16PP2；不启动fast-I96新kernel或replicated projection重构。",
+      "ETA": "CPU10–15min首判；后续GPUUNKNOWN。"
+    },
+    {
+      "id": "G115A",
+      "priority": 3,
+      "owner": "GLM原执行者 kimi_state_only_replay_93 + root",
+      "decision": "ONE_CURRENT_WORKLOAD_RESIDUAL_CLOSURE; CPU_GO_GPU_NO_GO",
+      "hypothesis": "755真实burst/ragged下，残余critical wall主要由native math还是prefill阻塞、PP/TP等待、CPU提交决定；row2命中高但服务只+1.79%说明必须先量化该份额。",
+      "minimal_change": "用755原日志按actual T、prefill/decode、stage、request等待分层，核对actual c650 DSO与可复用owner hooks，分同owner独占/嵌套跨度。只形成一个最小current-load诊断方案；缺数据写UNKNOWN，不拿旧M8或synthetic T16百分比补齐。",
+      "resources": "本地CPU10–20min；无Model重载。",
+      "affected_wall": "UNKNOWN；先输出可消除毫秒预算，而非provider占95.9%就是Model瓶颈。",
+      "exit": "若755既有数据已能定位，直接选唯一最大可改区间并去重；若不能，提交一次与755同arrival/自然EOS/currentnative的稀疏profile卡，16卡一个load，复用warm/正常路径+前后未instrumented control，原owner层事件只在必要window记录；控制扰动掩盖目标则UNKNOWN/STOP。须root源码与资源发布门通过才允许未来GPU，不以本评审自动开跑。",
+      "fallback": "保留row2限定opt-in，停止grid/INT8/bitdecode/cache重测；无可辨假设就0 GPU。",
+      "ETA": "CPU10–20min首判；未来16卡load使用已有实测预算，当前不编造分钟数。"
+    },
+    {
+      "id": "D115A",
+      "priority": 4,
+      "owner": "deep_mtp_feasibility_115 + Deep原执行者 + root",
+      "decision": "ONE_INCREMENTAL_CPU_PREFIX_TRANSACTION_PROOF; NO_MTP_BUILD_OR_GPU",
+      "hypothesis": "K1两位置verify能否只保留/提交accepted prefix，避免整历史replay，且不破坏SWA/HCA/CSA/compressor/indexer/row revision状态。",
+      "minimal_change": "沿r9287已定位实际源码，选最小two-position例子列出每层被覆盖ring字节、pending/valid/length/revision写集，给accepted0/1、EOS、reset/cancel、compression边界与stale/foreign pending的CPU状态oracle/接口草案。额外计算每row保留字节与catchup/回退调用次数；不要重复checkpoint键枚举。",
+      "resources": "本地CPU20min封顶，0GPU/0weights/0compile。",
+      "affected_wall": "UNKNOWN；r9252 q.tokens==1 guard意味着verify=2重新承担indexer，必须计入cycle cost。",
+      "exit": "无法原子覆盖43层state或需要每次完整历史replay则STOP；只在speed-capable事务可表达、MTP权重/四流对齐与真实catchup明确后再决定是否值得新实现。数学门为 measured_cycle_cost < (1+actual_acceptance)*matched_AR_step_cost；此刻无测量，不得假设全接受。",
+      "fallback": "保留C4 opt-in；不重跑64，不扩K以绕开不成立K1，不宣称15TPS可达。",
+      "ETA": "CPU20min首判；完整MTP成本/首GPU结果UNKNOWN，不承诺短任务。"
+    }
+  ],
+  "implementation_required": "Root逐卡记录采纳/暂缓/拒绝及理由与原owner；任何未来GPU需已有新源码/实际绑定、任务发布、fresh owned resources和原质量/清理门，复用已过检查不重造流程。",
+  "metrics_gate": "真实任务质量与自然EOS/parse/cap/未完成、实际每用户(n-1)/(last-first)、TTFT/ITL P95/P99、correct-EOS且>15的goodput、全服务卡分母总吞吐同时报告。token可不同，无GPU F64；不以全部接受、截短输出或隐藏排队制造加速。",
+  "execution": {
+    "SSH": 0,
+    "Git": 0,
+    "upload": 0,
+    "compile": 0,
+    "GPU": 0,
+    "remote_actions": 0,
+    "repo_mutations": 0,
+    "only_new_outputs_in_writable_root": true
+  }
+}

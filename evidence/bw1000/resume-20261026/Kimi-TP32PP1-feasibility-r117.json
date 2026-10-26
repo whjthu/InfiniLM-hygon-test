@@ -1,0 +1,91 @@
+{
+  "schema": 1,
+  "status": "FROZEN_CPU_SOURCE_ONLY_PARK_FULL_MODEL",
+  "purpose": "Next-round investment decision only; does not block or modify the running r9293 TP16PP2 cap8 cases.",
+  "scope": {"CPU_read_only_source_history": true, "GPU": 0, "Slurm": 0, "SSH": 0, "compile": 0, "Git": 0, "new_agents": 0, "remote_reads": 0, "live_nonce_payload_otherjob_reads": 0},
+  "decision": "Current Native305726 is not a TP32PP1 cap8 drop-in. PARK any full93 TP32 load. At most one bounded CPU-only generic-I96/H3 source closure is justified next; do not port a fast GPU kernel before that closure and a working-set budget with positive margin.",
+  "candidate": {"TP": 32, "PP": 1, "target_nodes": 4, "target_cards": 32, "draft_cards": 1, "all_serving_cards": 33, "logical_capacity": 8, "physical_rows": 16, "pool_rows": 17, "pages": 68, "page_size": 256, "max_total_tokens": 1024, "prefill_micro": 1},
+  "history_deduplication": {
+    "checked": ["InfiniLM-hygon-test/analysis/bw1000 targeted TP32/I96/pureTP", "InfiniLM-hygon-test/results/bw1000 targeted TP32/I96", "InfiniLM-hygon-test/coordination/tasks Kimi", "root top-level retained JSONs", "r1507/r1634/r3904/r8669t/r8669u/r8980"],
+    "same_Native305726_cap8_TP32PP1_completed_negative_found": false,
+    "not_exhaustive_global_archive_claim": true,
+    "r1634": "Qualified old1429 B1 TP8PP4 mean6.259685 vs TP16PP2 mean5.642403; TP16PP3 5.819764. Different runs, old provider, not current cap8/spec serving comparison. EightTP32 explicitly unqualified. Optimal machine count not established.",
+    "r3904": "TP16PP2 and TP32PP1 capacity submission-only JSON retained. It has no terminal, capacity, forward or performance evidence; cannot call it completed negative or success.",
+    "r8669t_r8669u": "TP32 I96 alignment/descriptor accepted; actual linked CommunicationGroup source closed, installed compiled SDK impl1 I96 mapping/execution remained UNKNOWN. No complete TP32 Model qualified.",
+    "r8980": "Prior PARK used conservative TP32 full parameters60.0131GiB with full head. Current shard-only head changes this static estimate, not the absence of current TP32 runtime evidence.",
+    "excluded_false_negatives": "DMA-BUF TP32 init SIGSEGV is a different transport option, not a generic TP32 Model negative. Old B1 TP16 slowdown does not reject current I96. Pure TP8/16 expert lowerbounds168.39/84.19GiB exclude many other weights and are separate memory cases.",
+    "EP": "Current MoE explicitly ignores ep_config and still shards all896 experts over TP. No configuration-only EP candidate or optimal TP/PP/EP machine count follows."
+  },
+  "actual_native_binding": {
+    "Native_SHA256": "3057262312679f86bcdb181ce198b9b1f1d2fccc59fc204b4adbc197132b60dd",
+    "receipt": "Kimi-cap8-micro1-Model-private-r9293/runtime/model-native-receipt-r9282.json",
+    "linked_objects": {
+      "pair_probe.o": "ece4a1aed418ca3eb75c699cbd00abdf5cbc94864411c56d81a84ccf95866b7c",
+      "worker.o": "42b891322186149b0018ddbf8044f2724080e41549ac95950e9bac8e6d176bb9",
+      "delta.o": "35c6f95cc4285e49f8c07254a370992ec11c8971e535d777e1f100c335e1200c",
+      "head.o": "694cbe568c520cf717489600a9d016d10cb32e530a6ad775db5f075a35ce3a6b",
+      "policy.o": "5b8e4bf7259a563fbe8f349255f9c42a618ae5725a9fdda1c2ed1cdd9ca4b4cf",
+      "moe.o": "55fb31b5f4fa1510f06e8b62894d64d52926862371f43e1e2d8c5aaeb2624800",
+      "provider.o": "4efc9262e9151adf6fb97f5e889559ec2e4b70414910d9656cd2f74941cb3ba1",
+      "CommunicationGroup_object": "3dde4a941ddabb83abe42763106e67f5cb065d0199f71d19dc1f01daf7952c6f",
+      "allocate_cache_object": "125a5a57313ec9dcf0b700379518e6014fff619a9e1bdc7707f41250cb16949d"
+    },
+    "source_bindings": "pair/worker/delta local SHA match r9122c CPU receipt; head/policy local SHA match r9183 actual freshMD receipt; MoE local SHA4e7ba093 matches r9129 object contract. Native305726 retains those exact objects. This is retained source/object closure, not a new binary inspection or runtime proof.",
+    "global_rank": "r8669u source SHA0e1a0c59 / header4ca95d88 / global-layout61271bd5, unchanged CommunicationGroup object in305726. Source constructs global tp_size=local8*tp_nodes and tp_rank=nodeTP*8+device; TP32 global ranks0..31, PP1 stage0/world32 are representable. No fake32 ranks over8 physical owners.",
+    "base_CAPI": "pair_probe.cpp:49-56 create_r2475 permits tp_nodes4,PP1; DistConfig(8), tp_node_size=tp_nodes, tp_node_rank=node%tp_nodes, pp_stage=node/tp_nodes. It creates PagedKVCache(4*physical+4,256,physical).",
+    "batch_CAPI_native_constraint": "pair_probe.cpp:246-248 create_batch_r9122c explicitly requires tp_nodes==2 and PP2/4. This HOST implementation guard must be changed and compiled in a new private DSO; changing Python does not suffice. It is not a fundamental ABI/type restriction.",
+    "head_native_constraint": "kimi_shard_head_r9183.hpp:21 ctor requires TP16. kimi_shard_stats_r9183.hpp fixed16 expected ranks and actual10240x7168/146800640B. TP32 needs5120x7168/73400320B, rank32 expected row digests, first/middle/last0/2560/5119 and correct global offsets. Current full logits allgather remains replicated output and fenced.",
+    "layers": "Actual PP2 ranges[0,46),[46,93) from r9293 manifest/CAPI contract. PP1 partition function returns[0,93), all93 layers per rank,69KDA/24MLA/92MoE. PP1 has both full replicated embedding and sharded head on every rank; the two PP2 replicated layer categories combine rather than halve.",
+    "KDA_state_native_constraint": "batch_state_r9122.hpp:37 capture and:54 replay hardcode H6, QKV2304 and local projection768; TP32 creates H3/QKV1152/local384. Header implementation is consumed by both delta.cpp and worker.cpp, so rebuild both HOST TUs. Derive shape/slices from validated captured heads, preserving row/epoch/retention/lifetimes. Do not merely suppress capture checks. Legacy state_only and optional serial policy are separately H6; keep unused policies OFF or adapt with explicit scope.",
+    "Python_constraints": "entry_contract/target_model/shard_head_contract/manifest hardcode TP16PP2. Update future immutable copies for4TPnodes/PP1, sampling node0, global ranks and head rows. Keep original running files unchanged. KIMI_TP_NODES=4 is also required for existing representative tap selection; PP1 representative0 must gather all five layer IDs."
+  },
+  "I96_provider": {
+    "global_intermediate": 3072,
+    "local_intermediate": 96,
+    "routed_hidden": 3584,
+    "experts": 896,
+    "topk": 16,
+    "alignment32": true,
+    "packed_W13": [896,192,1792], "scale_W13": [896,192,112], "packed_W2": [896,3584,48], "scale_W2": [896,3584,3],
+    "weight_loading": "MoE:169-240 derives globalI/tp_size, requires32 alignment, and uses Weight(tp_dim,tp_rank,tp_size) for W1/W3 dim0 and W2 dim1; no checkpoint conversion is indicated.",
+    "current_fast": "MoE:375 requires TP16/I192 exact shapes; W2 pair provider source uses constexprI192. TP32 cannot hit it. TP8 I384 branches also miss. Generic branch:402 selects FusedMoeMxfp4 implementation1, activation2. Prefill>=512 may enter separate generic grouped-prefill branch; its compiled I96 qualification also remains UNKNOWN.",
+    "SDK": "r8669u installed base header accepts I96 shapes and available source has dynamic genericW2Routes16. Installed libinfiniops SHA6d5a6204 unchanged in r9293. Actual compiled impl1 I96 sourceMD/execution is UNKNOWN, so metadata acceptance is not numerical or performance qualification.",
+    "minimal_GPU_source_change_for_generic": "None initially if installed generic I96 works. Do not launch old I192 provider on new pointers. A future fast-I96 port would require at least one GPU TU for W13/W2 stride, activation width and entry plus a MoE HOST dispatch change; unimplemented and not proposed as a new experiment here.",
+    "performance": "UNKNOWN. PP1 removes PP handoff but widens every TP collective across4nodes and changes GEMM/route widths, cache, head allgather and scheduling. No ideal2x assumption or component-to-Model TPS extrapolation."
+  },
+  "static_budget_bytes_per_target_card": {
+    "method": "Recombine r9293 actual-partition category bytes: keep replicated categories, halve TP16-sharded categories, remove TP16 head146800640 then add TP32 head73400320. This is source/header static arithmetic, not an exact allocator or driver peak and not an OOM proof.",
+    "parameters": 62163168060, "parameters_GiB": 57.89396172389388,
+    "replicated_including_TP32_head": 13920360960, "TP_sharded": 48242807100,
+    "expert_only": 45201752064,
+    "MLA_KV_shape_per_layer": [2,68,256,3,192], "MLA_layers": 24, "MLA_KV_BF16": 962592768,
+    "KDA_conv_shape_per_layer": [17,1152,3], "KDA_recurrent_shape_per_layer": [17,3,128,128], "KDA_layers": 69, "KDA_total_BF16": 123418368,
+    "cache_total": 1086011136, "cache_GiB": 1.0114266872406006,
+    "cache_source": "Actual allocator source1e491a03 tied to native125a5a57 by r9201 source-proof; uses96/TP heads and actual expanded paged KV. Do not use pair Geometry helper's compressed512+64 or H6 budget formulas as TP32 allocator proof.",
+    "current_workspace_ctor": "MoE:297 compact requiresTP16. With current WORKSPACE=1, TP32 receives19148544B perMoE*92. Merely setting COMPACT=1 does not change this.",
+    "current_full_workspace": 1761666048,
+    "current_static_persistent_GiB": 60.54606777057052,
+    "remaining_of_nominal64GiB_before_unbudgeted": 3.4539322294294834,
+    "current_4GiB_floor_static_plan": "FAILS the conservative plan before driver/CCL/op/activation allocations; not proof of physical hardware impossibility. Do not lower floor or issue a constructor probe from this analysis.",
+    "conditional_existing_WORKSPACE_OFF": "Generic I96 misses every branch consuming the private fast workspace, so existing WORKSPACE=0 would allocate minimal scratch12288B*92=1130496B, reducing this derived static total to approximately58.90644GiB. Generic FusedMoe op workspace remains uncounted. Verify allocation/dispatch control source and full call paths before treating this as a memory plan; not current r9293 configuration or qualified fit.",
+    "conditional_compact_H192_bytes_not_a_TP32_plan": 411100160,
+    "conditional_compact_static_GiB": 59.28825527057052,
+    "conditional_compact_limit": "Only illustrates scratch sensitivity; current exactTP16 guard and no I96 optimized path mean no source-supported compactTP32 qualification. Not a second candidate.",
+    "UNKNOWN": ["actual device usable memory at create", "driver/context/CCL allocations", "allocator charge/fragmentation", "generic I96 op workspace", "prefill micro1 activations/overlap and load/finalize temporaries", "full-logits/taps retained lifetimes", "observed constructor/finish/prefill/decode peak"]
+  },
+  "one_bounded_next_candidate_CPU_only": {
+    "name": "TP32PP1-cap8-genericI96-H3-source-closure",
+    "GPU_GO": false,
+    "purpose": "Decide whether any future single-layer qualification is worth its cost without opening weights, creating Runtime, compiling, or changing the positive TP16PP2 run.",
+    "minimum_source_plan": [
+      "Resolve installed impl1 and grouped-prefill I96 compiled source/object mapping; if unavailable STOP that exact gap.",
+      "Close existing WORKSPACE_OFF scratch allocation and generic op workspace/lifetime byte bounds; recompute conservative static+simultaneously-live peak and retain4GiB margin. Unknown driver peak stays UNKNOWN.",
+      "Enumerate future private HOST edits only: pair_probe batch admission/geometry report; head+stats and CPU row contract to32ranks; batch_state H3 capture/replay in delta and worker; immutable frontend/rank/PP1/taps/manifest. Recheck actual freshMD and ODR dependencies before estimating TU count. No Runtime/SDK/global guard rewrite.",
+      "If these sources give no positive working-set margin, STOP TP32PP1 for this backend rather than adding an expensive full93 load or beginning replicated-projection restructuring."
+    ],
+    "future_necessary_single_layer_scope_only_if_independently_authorized": "One native TP32 real32-owner layer0 KDA(H3)+layer1 fullMoE(I96) prefix/retained actual fixture, exact source and real checkpoint bindings, same fixed distinct request rows plus uneven W/partial accept/EOS commit-replay lifecycle; assert global ranks0..31, head5120 row ownership and all5 taps via separate CPU/type checks, provider fallback counters, finite/basic task reasonableness and32 normal drained closes. This is not an added GPU card or a performance/quality pass now. A MoE-only pass alone cannot qualify H3 rollback or full93 memory.",
+    "time_to_next_CPU_decision": "One bounded10-15min source closure, no sweep. Estimate only; STOP if current compiled-source mapping or conservative workspace bound is unavailable.",
+    "quality_policy": "Token differences allowed. No GPU F64, intermediate bitwise gate, lowered reserve, benchmark replacement or ideal scaling claim. Later genuine Model benchmark must use matched prompts, sampling, precision and generation budgets and count all33 serving cards."
+  },
+  "limitations": ["Local retained records do not establish complete global archive absence.", "No actual TP32 source was compiled or executed in this task.", "No claim that4nodes is best, pureTP is best, EP cannot help, or TP32 hardware cannot fit.", "Report does not consume a GPU round and does not authorize a new stage or load."]
+}
