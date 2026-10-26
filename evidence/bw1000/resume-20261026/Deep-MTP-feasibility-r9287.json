@@ -1,0 +1,146 @@
+{
+  "audit": "DeepSeek-V4-Flash official channel INT8 native MTP feasibility r9287",
+  "UTC": "2026-10-26T20:18:07.4970602Z",
+  "decision": "STOP_CURRENT_DSO_NO_CONFIG_ONLY_MTP; SOURCE_LEVEL_PATH_EXISTS_REQUIRES_NEW_IMPLEMENTATION_AND_VALIDATION",
+  "scope": "CPU/source/metadata only. One existing run_stdin_remote_r9046.py readonly invocation. No GPU, Slurm, build, model execution, tensor payload, Git, key/nonce read, or child agent. Official immutable model.py browsed only; no third-party implementation assumed.",
+  "baseline": {
+    "LM_commit": "5f91ad738583db8f5617aeae53b76523f85d1ec6",
+    "Core": "2b4 fixed per parent; not re-audited",
+    "DSO_SHA256": "ac9370c8f188bfda8555718c52690b914883fc6b02b9267cbd279be3ecdd3835",
+    "CPU_build_receipt_SHA256": "43d4478102462e26bbfb0784942ec2f8f05228f53fb42eae0b23c051d1ed6d4c",
+    "closed_model_result": "InfiniLM-hygon-test/results/bw1000/2026-10-27/deep-independent64-c4-model.json",
+    "interpretation": "64 distinct GSM8K pilot questions: OFF/ON both62/64, not noninferiority proof; C4 per-user ON approximately2.97TPS, no15TPS user; B32 raw throughput is different workload. This audit does not reopen the closed run."
+  },
+  "weight_metadata": {
+    "model_directory": "/public/home/aclsylqidf/shared/hygon_DeepSeek-V4-Flash-Channel-INT8-w8a8",
+    "config_SHA256": "fd2ad6f5dbd77e55a49e9b2ff29c89030fbe4b538e8870c183d194648767be09",
+    "index_SHA256": "7e975ba3bef8947a94e7da0abd60888375b232b4dfad883d59653e65c6ba522a",
+    "main_layers": 43,
+    "num_nextn_predict_layers": 1,
+    "compress_ratios_length": 44,
+    "MTP_ratio_at43": 0,
+    "index_keys": 69187,
+    "MTP_keys": 1575,
+    "MTP_prefix": "mtp.0.",
+    "MTP_shard": "model-00046-of-00046.safetensors",
+    "present": [
+      "e_proj.weight/scale",
+      "h_proj.weight/scale",
+      "enorm.weight",
+      "hnorm.weight",
+      "norm.weight",
+      "hc_head_fn/base/scale",
+      "hc_attn and hc_ffn parameters",
+      "attn SWA projections/sink/norms",
+      "FFN gate/shared/256 experts and INT8 scales"
+    ],
+    "shared_objects": "No independent mtp.0.embed/head weight in index. Main embed.weight and head.weight exist separately; tie_word_embeddings=false means embed/head are distinct from each other, while MTP must borrow both.",
+    "qualification_limit": "Index proves named metadata exists, not tensor shape/dtype/finiteness/content or successful native loading. No payload/header read was performed. Loader schema and native execution qualification remain required."
+  },
+  "official_contract": {
+    "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash/blob/216d76676e09d4e0aa3f73784e9ad53a6d0b2735/inference/model.py",
+    "revision": "216d76676e09d4e0aa3f73784e9ad53a6d0b2735",
+    "location": "MTPBlock and Transformer, source lines approximately739-794 (web display932-987)",
+    "summary": "MTP consumes the four-stream target residual plus shifted token embedding. It separately normalizes and projects both inputs, sums them, applies its own SWA/MoE mHC block, then its own mHC head/norm through shared vocabulary projection. Transformer explicitly shares embed/head with MTP. Official generation example remains ordinary AR and does not establish accept/reject rollback or arbitrary K recursive MTP quality.",
+    "important": "Use residual [T,4,4096] before main mHC-head collapse, not normalized [T,4096], logits, or Kimi feature tap. Exact hidden/token/RoPE offset must be frozen and tested; do not infer Kimi alignment."
+  },
+  "actual_source": {
+    "TextModel_cpp": {
+      "path": "/refactor/candidates/deep-c4-projection-model-r5920/incoming/deepseek_v4_routed_text_model_r20.cpp",
+      "SHA256": "7bb82c58e7e7a72f0f06d460d5510d7fc2cf1cb36e1de877b4f590b6b1d3cc8a",
+      "lines": "52-56 construct exactly43 primary layers;61-90 packed multiple-token forward and all_positions selector;90 returns full residual;93 only full reset"
+    },
+    "TextModel_hpp": {
+      "SHA256": "3bd41e4e307e8095cca409225d815361f1738661922636f05a2b5108a20dc787",
+      "contract": "Output residual and head; bool all_positions=false; no MTP or rollback methods"
+    },
+    "CAPI": {
+      "path": "/refactor/candidates/deep-combined-r7169/incoming/modern_native_engine_probe_r22.cpp",
+      "SHA256": "8c82b8b6d4d4b4a37d795a7d45983331775cea2b8685961c7d16cc600cd5ff23",
+      "lines": "27-31 forward accepts packed input but forces count*vocab logits and count outputs; no all_positions flag/hidden output;33 reset_cache only",
+      "linked_object_SHA256": "46cc4ce3cc47a8d651c3d95cfb964edc7f65b0ee0e269366e2b3218b99515b3f"
+    },
+    "model_input_hpp": {
+      "SHA256": "cec2cbdc9b96addba398435b9488709407b16550a28ad79b9695d870d33790cc",
+      "contract": "Generic Input has target_hidden_states/sample_all_positions and Output hidden_states. Fields alone do not expose them through actual Deep CAPI."
+    },
+    "NativeDecoder": {
+      "SHA256": "1886f34a86308859e521778326e3e1119d93ff8e4d85e1ff1f2a3af3b3d6dfa9",
+      "contract": "layer43 currently fails layer<num_hidden_layers guard when cfg says43; MTP must be an explicit separate role, not main44 configuration. Per-row length, SWA/HCA/CSA state and poison are private; cache_tensors exposes device tensors but not complete host validity/length/revision state."
+    },
+    "CSA": {
+      "SHA256": "2611335a7d57ee12411f3d7d5f076bf138f6db17d8607fec184e8d209bff8c8c",
+      "lines": "31-32 prepare compressor/indexer;82 immediately writes ring cache, commits both compressors/indexer, updates last_selection and lengths. No external accepted-prefix commit."
+    },
+    "HCA": {
+      "SHA256": "98c7932d23e5afd1eaed403ccdfaa81a2ce27fa69a6430b14ea4426d688e681c",
+      "contract": "Immediate ring/compressor commit and lengths; only full reset."
+    },
+    "current_C4Indexer": {
+      "path": "Deep-C4-smallT-private-r9252/deep_c4_smallt_r9252.cpp",
+      "SHA256": "7f2ffe0395475a98be8723bf434aa9f4944cb5336656b6d57de0f93fc6d1187e",
+      "lines": "40 Pending has owner/revision and nested compression;75 commit stores packed keys, compressor state, lengths/revision;77 full reset. Existing r9252 diff preserves original transaction behavior.",
+      "performance_caveat": "Allselected fast guard requires q.tokens==1, including originalT8..64. Two-position verification falls back to full index scoring/topk even where every visible compressed entry fits topk; current C4 gain must not be extrapolated to verify cost."
+    }
+  },
+  "API_gap": [
+    "Load/own optional mtp.0 weights and their INT8 scales; expose separate MTP step; existing engine binds only67569 primary keys.",
+    "Expose target all-position logits/greedy IDs and four-stream residuals through rank workers/CAPI on the same owner threads. Existing generic fields/internal bool are useful substrate, not a working public Deep verifier.",
+    "Add checkpoint/restore or deferred-prefix commit across wrapper/TextModel/43decoders/all attention/compressor/indexer state; changing CAPI past or truncating token list fails length guards and cannot restore overwritten ring slots.",
+    "Define accept/select/commit/emit semantics, special tokens, EOS, cap, cancellation, per-row ragged active sets and failure atomicity."
+  ],
+  "minimal_implementation_plan": [
+    {
+      "component": "MTP module",
+      "work": "Separate MTP0 NativePredictor: e/h norm + channelINT8 projection + addition/broadcast to4 streams + existing ratio0 SWA/FFN block with mtp.0 checkpoint names. Reuse main embedding and vocabulary matrix by reference, but bind MTP-specific mHC head and norm. Never reuse whole main TextHead with wrong mHC parameters. Relax layer identity only in explicit predictor role; keep primary43 checks."
+    },
+    {
+      "component": "K=1 first",
+      "work": "One MTP proposal from last committed target residual and current target-generated anchor; target verifies packed [anchor,proposal] in one forward with both logits/residuals. Compare proposal against current target distribution/argmax at preceding verification position, not historical AR output. MTP cache must catch up using accepted tokens and target residuals, including an accepted proposal skipped by the next target cycle. Do not recursively feed MTP residual as target hidden to manufacture K>1 coverage."
+    },
+    {
+      "component": "Correctness rollback first",
+      "work": "A diagnostic checkpoint/restore + accepted-input replay can establish state correctness but adds target calls and is not a speed solution. Snapshot owner-specific row rings and host validity masks, compressor active/ring states, compressed/index cache valid ranges, lengths at every level, revisions, poison and accepted selection metadata. Support independent rows. Replaying full history after every rejection is not deployable amortization."
+    },
+    {
+      "component": "Minimal speed-capable prefix transaction",
+      "work": "Retain each layer's tentative KV and compressor/indexer projected inputs until acceptance is known. Commit only anchor+accepted proposal input prefix; retain only completed compression groups floor((past+committed_inputs)/ratio), rebuild partial compressor state for accepted prefix from retained projections, and atomically set every layer/wrapper length. Discard rejected future entries and stale pending transactions. MTP state needs the same committed-prefix alignment. This requires new implementation; no existing native API expresses it."
+    },
+    {
+      "component": "Future wider K",
+      "work": "Only after K1 native correctness and positive cycle cost: explicitly evaluate recursiveMTP training/hidden semantics and acceptance for K2+. A single nextn layer does not by itself establish valid inexpensive multi-step draft generation. Kimi DFlash and KDA rollback are different architecture/state and cannot be copied as proof."
+    }
+  ],
+  "required_state_inventory": [
+    "physical row and generation/revision identity",
+    "wrapper/model/decoder/attention/compressor/indexer lengths",
+    "SWA ring raw bytes + written validity (overwrites need restoration)",
+    "HCA512 compressor running state and compressed cache/validity",
+    "CSA512 compressor state/cache plus D128 index compressor state, packed index keys/scales/written flags",
+    "C4 owner/revision/poison and last_selection accepted prefix",
+    "all-row ragged boundaries, token/RoPE positions and MTP catch-up state",
+    "pending objects invalidated on abort/restore; no foreign/stale commit"
+  ],
+  "acceptance": {
+    "stage1_CPU_contract": "State machine oracle with mixed lengths and explicit rejection at0/first/last/all; boundaries3/4/5,127/128/129 and compression/topk switch; duplicate/foreign/stale pending; row reuse/reset/cancel/error and EOS/cap handling. Zero/partial/all acceptance must produce identical committed-prefix state lifecycle, not identical historic output tokens.",
+    "stage2_native_reasonable": "First actual nextn payload schema/finiteness and native module load/forward qualification, then true2position target verification and actual rollback/continue on all8 owner threads. Cover genuine rejected proposals. Finite logits, reasonable answers, correct arithmetic/QA, no out-of-bounds/state corruption. No GPU F64. No historical full sequence identity gate.",
+    "stage3_quality": "Paired frozen GSM8K and MMLU/Chinese knowledge with same template/precision/sampling/budget;32 random only screening, expand and report paired task-score deltas/intervals, parsing/caps/EOS/coverage. Distinguish exact greedy/current-target verification, corrected distribution sampling, and explicitly approximate acceptance. No small-N nondrop claim.",
+    "stage4_speed": "Same-load AR/MTP paired ordering and same workload; actual draft/verify/accept/rollback/commit/replay/emit wall; accepted tokens per cycle and target forward calls per emitted useful token, discarded work; per-request(n-1)/(last-first), TTFT, ITL P95/P99, total/8cards and >15TPS goodput. Rejections and unfinished requests remain visible. Warmup/draft loading/memory reported."
+  },
+  "performance_judgement": {
+    "can_reduce_target_calls": "Yes algorithmically after new allposition+prefix-state implementation; current ac937 CAPI cannot do it.",
+    "condition": "For K1 one anchor plus one proposal: average emitted tokens/cycle <=1+acceptance (<=2); useful speed requires totalcyclecost < (1+acceptance)*pairedARstepcost, including MTP catchup and rollback. More FLOPs in a packed verify can reduce call/launch/weight-read overhead, but no wall gain is measured.",
+    "limit": "At the observed C4 approximately2.97TPS, even an optimistic 2x ideal gives approximately5.94TPS; that is a conceptual same-regime ceiling for K1, not a forecast. >15TPS needs >5.05x and cannot be promised by this K1 plan. Wider trained/effective speculation or other decode improvements are needed.",
+    "DO_NOT": "Do not claim existing64QA qualifies newMTP; do not force all acceptance; do not multiply component speed by43; do not convert B32 aggregate to single-user rate."
+  },
+  "history_dedup": "Targeted existing Deep CAPI/cache, currentCSA/HCA/indexer, smallT semantic diff, closedC464 and Kimi speculative objective/source reviews were consumed. No completed actual Deep native MTP implementation or rollback-qualified API was located in these records. Existing prepare/commit is full-batch internal transaction, not model-wide speculative rollback. Current smallT contract explicitly says direct abort/stale/foreign wholeCSA qualification is not covered. Kimi results do not fill these gaps.",
+  "evidence": {
+    "readonly_packet": "Deep-MTP-readonly-source-r9287.json",
+    "readonly_packet_SHA256": "c5d56021250c64e8bbd610272a927d4062fe54d05d024c62a2e99d7949e97f31",
+    "source_bundle": "Deep-MTP-audit-source-bundle-r9287.json",
+    "source_bundle_SHA256": "9854c9b6bb3412dd5ee6cddee9e8bf6d0607db011cbef4896ddd62549b499c13",
+    "historical_actual_sources_receipt": "Deep-metadata-actual-sources-r9241.json",
+    "historical_actual_sources_receipt_SHA256": "ed52dc9b0aa620945a56018ba2e7076fb8a34dabb6e054143ada0be72eca525f",
+    "source_binding_limit": "TextModel/CAPI/current config/index and CPU receipt freshly read; CSA/HCA sources use existing actual-source receipt with linked object identities matching fresh ac937 CPU receipt. Local generic native_sparse_model_r22.cpp was inspected only as substrate; missing guessed remote path was not treated as actual linked proof."
+  }
+}

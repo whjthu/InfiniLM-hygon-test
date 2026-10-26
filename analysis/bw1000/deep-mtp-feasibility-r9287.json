@@ -1,0 +1,47 @@
+{
+  "hardware": "BW1000",
+  "level": "ACTUAL_SOURCE_METADATA_FEASIBILITY_ONLY",
+  "status": "STOP_CONFIG_ONLY_ENABLE_NEW_NATIVE_IMPLEMENTATION_REQUIRED",
+  "source": "evidence/bw1000/resume-20261026/Deep-MTP-feasibility-r9287.json",
+  "source_SHA256": "14e009f91f31fecb047a873a8f2b74335fb65cba348c455b19c6bbc293e5e4bc",
+  "decision": "STOP_CURRENT_DSO_NO_CONFIG_ONLY_MTP; SOURCE_LEVEL_PATH_EXISTS_REQUIRES_NEW_IMPLEMENTATION_AND_VALIDATION",
+  "weight_metadata": {
+    "model_directory": "/public/home/aclsylqidf/shared/hygon_DeepSeek-V4-Flash-Channel-INT8-w8a8",
+    "config_SHA256": "fd2ad6f5dbd77e55a49e9b2ff29c89030fbe4b538e8870c183d194648767be09",
+    "index_SHA256": "7e975ba3bef8947a94e7da0abd60888375b232b4dfad883d59653e65c6ba522a",
+    "main_layers": 43,
+    "num_nextn_predict_layers": 1,
+    "compress_ratios_length": 44,
+    "MTP_ratio_at43": 0,
+    "index_keys": 69187,
+    "MTP_keys": 1575,
+    "MTP_prefix": "mtp.0.",
+    "MTP_shard": "model-00046-of-00046.safetensors",
+    "present": [
+      "e_proj.weight/scale",
+      "h_proj.weight/scale",
+      "enorm.weight",
+      "hnorm.weight",
+      "norm.weight",
+      "hc_head_fn/base/scale",
+      "hc_attn and hc_ffn parameters",
+      "attn SWA projections/sink/norms",
+      "FFN gate/shared/256 experts and INT8 scales"
+    ],
+    "shared_objects": "No independent mtp.0.embed/head weight in index. Main embed.weight and head.weight exist separately; tie_word_embeddings=false means embed/head are distinct from each other, while MTP must borrow both.",
+    "qualification_limit": "Index proves named metadata exists, not tensor shape/dtype/finiteness/content or successful native loading. No payload/header read was performed. Loader schema and native execution qualification remain required."
+  },
+  "API_gap": [
+    "Load/own optional mtp.0 weights and their INT8 scales; expose separate MTP step; existing engine binds only67569 primary keys.",
+    "Expose target all-position logits/greedy IDs and four-stream residuals through rank workers/CAPI on the same owner threads. Existing generic fields/internal bool are useful substrate, not a working public Deep verifier.",
+    "Add checkpoint/restore or deferred-prefix commit across wrapper/TextModel/43decoders/all attention/compressor/indexer state; changing CAPI past or truncating token list fails length guards and cannot restore overwritten ring slots.",
+    "Define accept/select/commit/emit semantics, special tokens, EOS, cap, cancellation, per-row ragged active sets and failure atomicity."
+  ],
+  "performance_judgement": {
+    "can_reduce_target_calls": "Yes algorithmically after new allposition+prefix-state implementation; current ac937 CAPI cannot do it.",
+    "condition": "For K1 one anchor plus one proposal: average emitted tokens/cycle <=1+acceptance (<=2); useful speed requires totalcyclecost < (1+acceptance)*pairedARstepcost, including MTP catchup and rollback. More FLOPs in a packed verify can reduce call/launch/weight-read overhead, but no wall gain is measured.",
+    "limit": "At the observed C4 approximately2.97TPS, even an optimistic 2x ideal gives approximately5.94TPS; that is a conceptual same-regime ceiling for K1, not a forecast. >15TPS needs >5.05x and cannot be promised by this K1 plan. Wider trained/effective speculation or other decode improvements are needed.",
+    "DO_NOT": "Do not claim existing64QA qualifies newMTP; do not force all acceptance; do not multiply component speed by43; do not convert B32 aggregate to single-user rate."
+  },
+  "next": "K1newMTP/prefixtransaction/allpositionAPI needed; noGPUauthorized; notconfigswitch/nonumberclaim"
+}
