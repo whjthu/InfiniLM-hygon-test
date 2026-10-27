@@ -1,0 +1,7 @@
+"""Offline materializer. No DSO load/compile/GPU/network. Run after actual 2k HOST build passes."""
+import pathlib,json,hashlib,sys
+D=pathlib.Path(__file__).resolve().parent;sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+def materialize(qualified_native_manifest,output):
+ path=pathlib.Path(qualified_native_manifest);q=json.loads(path.read_bytes());m=json.loads((D/'runtime/model-manifest-r9183.json').read_bytes());assert q['topology']=={'tp_nodes':2,'pp':2,'logical_capacity':8};assert isinstance(q['native_DSO_SHA256'],str)and len(q['native_DSO_SHA256'])==64 and not q['native_DSO_SHA256'].startswith('PENDING');receipt=pathlib.Path(q['native_receipt']);b=json.loads(receipt.read_bytes());assert b['completed']and b['native_SHA256']==q['native_DSO_SHA256'];assert sha(b['native'])==b['native_SHA256'];assert b['ABI_layout']=={'abi_worker':6912,'abi_input':752,'abi_output':128,'abi_alignment':8};assert b['new_GPU_TUs']==0 and b['candidate_HOST_TUs']==6
+ m['native_DSO_SHA256']=b['native_SHA256'];m['native_receipt']=str(receipt);m['resource_status']='ACTUAL_2K_HOST_BUILD_PASSED_GPU_MODEL_QUALIFICATION_PENDING';m['phase_observer']['actual_native_build_manifest_SHA256']=sha(path);out=pathlib.Path(output);assert not out.exists();out.write_bytes((json.dumps(m,indent=2)+'\n').encode());return {'manifest':str(out),'SHA256':sha(out),'native_SHA256':b['native_SHA256'],'GPU_qualified':False}
+if __name__=='__main__':print(json.dumps(materialize(sys.argv[1],sys.argv[2])))
