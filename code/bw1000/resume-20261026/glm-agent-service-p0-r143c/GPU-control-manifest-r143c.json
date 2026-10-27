@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "status": "SOURCE_READY_WAIT_STATIC_CPU_RECEIPT_PUBLISHED_COMMIT_AND_ROOT_GO",
+  "CPU_source_manifest_SHA256": "9d50ce5c00db58eeb36b66f8edf675af16e957088412537f7d205e1e23b7e91d",
+  "source_SHA256": {
+    "controller_r143c.py": "ad73337e87c6df88924c368c700b119cae59f97ea65fe187b7aa6ccbca8f8897",
+    "launch_CPU_keeper_r143c.py": "1a429d894f8a73e18f87970b432cdcf93e4121fe907f89f91e949a29dd328878",
+    "launch_CPU_prepare_r143c.py": "c5bb635463b9dcc0dd8d652c5248fffdc1473eefdf68f6ceb0e06e99b086e780"
+  },
+  "resource": {
+    "GPU_parent": "910376",
+    "GPU_nodes": [
+      "a02r4n12",
+      "a02r4n13"
+    ],
+    "cards": 16,
+    "CPU_per_GPU_node": 64,
+    "memory_MiB_per_node": 128000,
+    "GPU_seconds": 9000,
+    "CPU_keeper_parent": "910407",
+    "CPU_keeper_node": "a14r2n20",
+    "CPU_keeper_CPUs": 1,
+    "CPU_keeper_memory_MiB": 2048,
+    "CPU_keeper_seconds": 9900
+  },
+  "baseline": {
+    "model_path": "/old/models/ZhipuAI-GLM-5.3",
+    "Native_DSO_SHA256": "ce830c4d77fe193e4a6e82597aa4fb5b50019c82edce542eb6d61217a238bf68",
+    "TP": 8,
+    "PP": 2,
+    "rows": 32,
+    "context": 640
+  },
+  "qualification": {
+    "actual_CPU_static": false,
+    "actual_GPU": false,
+    "actual_HTTP": false,
+    "actual_tool_closed_loop": false
+  },
+  "P0": "Original7ceb HTTP/SSE routes plus two scoped timeout branches; common C; static private Python overlay; resident exact original Native. No prefilled output, no Native compile, no performance optimization.",
+  "ready_artifact": "results/GLM-agent-service-r143c-ready-<run>.json",
+  "client": "CPU-only Slurmstep on a02r4n13 against http://127.0.0.1:43843; shared-agent-p0-client-r143c/client_p0_r143c.py",
+  "normal_stop": "Automatic CPU client finally writes run-specific stop; controller verifies actual16 owner close and post-empty; no automatic model restart.",
+  "CPU_contract": "shared-agent-bridge-c-r145 actual HTTP route CPU contract required before root GO (GPU imports stubbed; not model qualification)",
+  "automatic_P0_client": {
+    "after_real_ready": true,
+    "CPU_subprocess_only": true,
+    "client_SHA256": "41dbe048d14ec8f023bd3448426d6e87931f094e5919db6ee72957e0cdf1d77e",
+    "timeout_seconds": 1800,
+    "finally_graceful_stop_marker": true,
+    "no_root_wakeup_dependency": true,
+    "source_client": "shared-agent-p0-client-r147/client_p0_r147.py byte-exact, kept private relative filename client_p0_r143.py"
+  }
+}
