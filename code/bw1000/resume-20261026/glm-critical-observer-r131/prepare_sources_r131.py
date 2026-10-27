@@ -1,0 +1,45 @@
+import pathlib,json,hashlib,shlex,difflib
+p=pathlib.Path(__file__).resolve().parent;sha=lambda b:hashlib.sha256(b).hexdigest()
+a=json.loads((p/'actual-current-host-binding-r131.json').read_bytes());extra=json.loads((p/'actual-text-decoder-binding-r131.json').read_bytes());files={**a['files'],**extra['files']};cpname='/refactor/candidates/GLM-M15-oproj-Model-r125/CPU-build.json'
+assert files[cpname]['SHA256']=='83bd99026decb9f7b38acd4301506854288bfe2887c3265e32b3051f3813c009'
+cp=json.loads(files[cpname]['text']);assert cp['completed']and cp['library_SHA256']=='1760cd0782deed03bee608dda9c7b62690c7f2180ca1038300760596f29a9e63'
+records=a['records']+extra['records'];prep=next(v for v in records if v['record']['object'].endswith('/private-8.o'));assert files[prep['record']['object']]['SHA256']=='d381e4ee8632de65813b9c3507ecfebe929bc1bac6890a34ea0276b2cc0a6809';textrec=next(v for v in records if 'TextModelProjectedR22::forward' in files[v['record']['source']].get('text',''))
+def change(s,old,new):
+ assert s.count(old)==1,('exact source anchor',old[:150],s.count(old));return s.replace(old,new,1)
+def emit(name,original,new):
+ assert not(p/name).exists();(p/name).write_text(new,encoding='utf8');(p/(name+'.patch')).write_text(''.join(difflib.unified_diff(original.splitlines(True),new.splitlines(True),fromfile='actual-parent',tofile=name)),encoding='utf8')
+bridge=(p.parent/'glm-m15-oproj-model-r125/modern_glm_bridge_oproj_r125.cpp').read_bytes().decode('utf8');assert sha(bridge.encode())=='05c018b6ff7c52dd1ffc671d5505aeefcc0b214201232f24bd72603802c21a1a';orig=bridge
+bridge='#include "glm_sparse_observer_r131.hpp"\n'+bridge
+bridge=change(bridge,'auto result=c->module->forward(r,ids,pos,metadata,all_positions!=0);','glm_sparse_r131::begin(&r,tokens,count,requests,static_cast<cudaStream_t>(r.stream()));auto result=c->module->forward(r,ids,pos,metadata,all_positions!=0);')
+bridge=change(bridge,'if(lease_frame.enabled)lease_frame.finish();else r.syncStream();return 0;','glm_sparse_r131::mark(static_cast<cudaStream_t>(r.stream()),"CAPI.owner.end.before_original_drain");if(lease_frame.enabled)lease_frame.finish();else r.syncStream();glm_sparse_r131::finish_after_original_drain(&r,static_cast<cudaStream_t>(r.stream()));return 0;')
+start=bridge.index('extern "C" int modern_glm_model_forward(');end=bridge.index('extern "C" int modern_glm_model_control(',start);s=bridge[start:end];s=change(s,'error=e.what();drain(c);return 1;','error=e.what();drain(c);if(c&&c->owner)glm_sparse_r131::abort_after_original_drain(c->owner.get());return 1;');bridge=bridge[:start]+s+bridge[end:]
+bridge=change(bridge,'glm_window_r5795::close_after_drain(*c->owner);','glm_window_r5795::close_after_drain(*c->owner);glm_sparse_r131::close_after_original_drain(c->owner.get());')
+bridge+='''
+// Observer lifecycle is explicitly controlled at ready/reset/EMPTY owner boundaries.
+extern "C" int modern_glm_sparse_prepare_r131(void*raw){auto*c=static_cast<Context*>(raw);try{if(!c||!c->ready)throw std::invalid_argument("r131 context");auto&r=*c->owner;r.assertOwnerThread();if(r.isGraphRecording()||model::decode_leases_r1354::active(r)||!c->module->all_sequences_empty(r))throw std::logic_error("r131 prepare reset eager idle");glm_sparse_r131::prepare(&r,c->stage,r.device().index());return 0;}catch(const std::exception&e){error=e.what();return 1;}}
+extern "C" int modern_glm_sparse_policy_r131(void*raw,int enabled){auto*c=static_cast<Context*>(raw);try{if(!c||!c->ready||(enabled!=0&&enabled!=1))throw std::invalid_argument("r131 policy");auto&r=*c->owner;r.assertOwnerThread();if(r.isGraphRecording()||model::decode_leases_r1354::active(r)||!c->module->all_sequences_empty(r))throw std::logic_error("r131 policy reset eager idle");glm_sparse_r131::policy(&r,enabled!=0);return 0;}catch(const std::exception&e){error=e.what();return 1;}}
+extern "C" const char*modern_glm_sparse_read_r131(void*raw){auto*c=static_cast<Context*>(raw);try{if(!c||!c->ready)throw std::invalid_argument("r131 read");c->owner->assertOwnerThread();serialized=glm_sparse_r131::read(c->owner.get()).dump();return serialized.c_str();}catch(const std::exception&e){error=e.what();return nullptr;}}
+'''
+bridge=bridge.replace('glm_sparse_r131::prepare(&r,c->stage,r.device().index());','glm_sparse_r131::check_current_device(r.device().index());glm_sparse_r131::prepare(&r,c->stage,r.device().index());').replace('glm_sparse_r131::policy(&r,enabled!=0);','glm_sparse_r131::check_current_device(r.device().index());glm_sparse_r131::policy(&r,enabled!=0);')
+emit('modern_glm_bridge_observer_r131.cpp',orig,bridge)
+text=files[textrec['record']['source']]['text'];assert sha(text.encode())==files[textrec['record']['source']]['SHA256'];orig=text;text='#include "glm_sparse_observer_r131.hpp"\n'+text
+text=change(text,'auto incoming_begin=GlmClock::now();','glm_sparse_r131::mark(static_cast<cudaStream_t>(r.stream()),"PP.incoming.begin");auto incoming_begin=GlmClock::now();')
+text=change(text,'gpu_windows.record(1);','glm_sparse_r131::mark(static_cast<cudaStream_t>(r.stream()),"PP.incoming.end");gpu_windows.record(1);')
+text=change(text,'auto out=layers_[i]->forward(r,hidden,positions,requests,selection,selection_proofs);','glm_sparse_r131::layer_begin(static_cast<cudaStream_t>(r.stream()),begin_+i,full);auto out=layers_[i]->forward(r,hidden,positions,requests,selection,selection_proofs);glm_sparse_r131::layer_end(static_cast<cudaStream_t>(r.stream()),begin_+i);')
+text=change(text,'gpu_windows.record(2);','glm_sparse_r131::mark(static_cast<cudaStream_t>(r.stream()),"PP.outgoing.begin");gpu_windows.record(2);')
+text=change(text,'gpu_windows.record(3);','glm_sparse_r131::mark(static_cast<cudaStream_t>(r.stream()),"PP.outgoing.end");gpu_windows.record(3);')
+emit('glm_text_observer_r131.cpp',orig,text)
+# Bind actual decoder by its defining source, never by an old filename guess.
+decs=[v for v in records if 'DecoderProjectedR22::forward' in files[v['record']['source']].get('text','')];assert len(decs)==1
+dec=decs[0];src=files[dec['record']['source']]['text'];orig=src;src='#include "glm_sparse_observer_r131.hpp"\n'+src
+for anchor,label in [('auto normalized_attention=norm(hidden,input_norm_);','RMS.attention'),('auto attention=attention_->forward(r,normalized_attention,positions,requests,shared,shared_proofs);','attention'),('auto normalized_ffn=norm(residual,post_norm_);','RMS.ffn'),('auto ffn=ffn_->forward(r,normalized_ffn);','FFN')]:
+ src=change(src,anchor,'glm_sparse_r131::detail(static_cast<cudaStream_t>(r.stream()),"'+label+'.begin");'+anchor+'glm_sparse_r131::detail(static_cast<cudaStream_t>(r.stream()),"'+label+'.end");')
+emit('glm_decoder_observer_r131.cpp',orig,src)
+src=files[prep['record']['source']]['text'];orig=src;src='#include "glm_sparse_observer_r131.hpp"\n'+src
+anchor='ex::submit<infini::ops::BlockQuantF8E4m3>(r,ex::RecordingPolicy::HostOnly,infini::ops::BlockQuantF8E4m3::DefaultConfig(device_.type()),x,packed,scale);'
+src=change(src,anchor,'std::string phase_r131;if(glm_sparse_r131::detailing()){phase_r131="prepare.projection.N"+std::to_string(rows_)+".K"+std::to_string(columns_);glm_sparse_r131::detail(static_cast<cudaStream_t>(r.stream()),(phase_r131+".quant.begin").c_str());}'+anchor+'if(glm_sparse_r131::detailing())glm_sparse_r131::detail(static_cast<cudaStream_t>(r.stream()),(phase_r131+".quant.end").c_str());')
+src=change(src,'decode_leases_r1354::success_fence(r);return out;','if(glm_sparse_r131::detailing())glm_sparse_r131::detail(static_cast<cudaStream_t>(r.stream()),(phase_r131+".projection.end.before_original_fence").c_str());decode_leases_r1354::success_fence(r);return out;')
+emit('glm_prepare_observer_r131.cpp',orig,src)
+br=next(x for x in cp['compiled']if x['source'].endswith('/modern_glm_bridge_oproj_r125.cpp'));brcmd=next(x for x in cp['commands']if '-c'in x and br['source']in x)
+build={'parent_receipt_path':cpname,'parent_receipt_SHA256':files[cpname]['SHA256'],'parent':cp,'source_binding_SHA256':sha((p/'actual-current-host-binding-r131.json').read_bytes()),'corrective_binding_SHA256':sha((p/'actual-text-decoder-binding-r131.json').read_bytes()),'compiled_plan':[{'name':'modern_glm_bridge_observer_r131.cpp','old_object':br['object'],'command':brcmd},{'name':'glm_text_observer_r131.cpp','old_object':textrec['record']['object'],'command':textrec['command']},{'name':'glm_decoder_observer_r131.cpp','old_object':dec['record']['object'],'command':dec['command']},{'name':'glm_prepare_observer_r131.cpp','old_object':prep['record']['object'],'command':prep['command']}],'actual_files_SHA256':{n:v['SHA256']for n,v in files.items()},'source_SHA256':{n:sha((p/n).read_bytes())for n in ['modern_glm_bridge_observer_r131.cpp','glm_text_observer_r131.cpp','glm_decoder_observer_r131.cpp','glm_prepare_observer_r131.cpp','glm_sparse_observer_r131.hpp']}}
+(p/'source-binding-and-build-r131.json').write_text(json.dumps(build,indent=2),encoding='utf8');print(json.dumps({'prepared':True,'compiled':build['compiled_plan'],'source_SHA256':build['source_SHA256']}))

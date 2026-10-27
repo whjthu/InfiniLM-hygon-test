@@ -1,0 +1,7 @@
+import pathlib,json,hashlib,subprocess,os,argparse,socket
+r=pathlib.Path('/public/home/aclsylqidf/hygon-inference-refactor-20261014');inc=r/'incoming/GLM-critical-observer-r131';ap=argparse.ArgumentParser();ap.add_argument('--manifest-sha',required=True);a=ap.parse_args();assert hashlib.sha256((inc/'manifest-r131.json').read_bytes()).hexdigest()==a.manifest_sha
+m=json.loads((inc/'manifest-r131.json').read_bytes());assert not(r/'candidates/GLM-critical-observer-r131').exists();receipt=r/'GLM-critical-observer-r131-CPU-launch.json';assert not receipt.exists()
+for n,h in m['CPU_source_SHA256'].items():assert hashlib.sha256((inc/n).read_bytes()).hexdigest()==h,n
+env={k:v for k,v in os.environ.items()if not k.startswith(('SLURM_','PMI_','PMIX_','OMPI_','MV2_'))and k not in ['CUDA_VISIBLE_DEVICES','HIP_VISIBLE_DEVICES','ROCR_VISIBLE_DEVICES','GPU_DEVICE_ORDINAL']}
+cmd=['srun','--jobid=910407','--overlap','--exact','--immediate=30','--cpu-bind=none','-N1','-n1','-c8','-w','a14r2n20','--gres=none','--mem=8000M','-t','00:06:00','--job-name=GLM-critical-observer-r131-CPU','env','WAVE_INSIDE_R2323=GLM-critical-observer-r131/CPU_inside_r131.sh','bash',str(r/'incoming/resource_wave_local_r3097_outer.sh'),'probe']
+q={'CPU_only':True,'GPU':False,'manifest_SHA256':a.manifest_sha,'command':cmd};receipt.write_text(json.dumps(q,indent=2));z=subprocess.run(cmd,env=env,text=True,capture_output=True,timeout=390);q.update(returncode=z.returncode,stdout=z.stdout,stderr=z.stderr);receipt.write_text(json.dumps(q,indent=2));print(json.dumps(q));assert z.returncode==0

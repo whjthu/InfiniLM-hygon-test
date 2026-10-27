@@ -1,0 +1,38 @@
+--- actual-parent
++++ glm_text_observer_r131.cpp
+@@ -1,3 +1,4 @@
++#include "glm_sparse_observer_r131.hpp"
+ #include "glm_model_window_r5797.hpp"
+ #include "glm_PP_layout_r3854.hpp"
+ #include "glm_moe_dsa_projected_text_model_r22.hpp"
+@@ -61,17 +62,17 @@
+  if(resident_any_r5640_)for(auto&layer:layers_)layer->resident_validate_r5640(r,requests);
+   resident_sample_memory_r5640();
+   Work work{r};try{
+-  GlmGpuWindows gpu_windows(static_cast<cudaStream_t>(r.stream()));gpu_windows.record(0);auto incoming_begin=GlmClock::now();rt::Tensor hidden;
++  GlmGpuWindows gpu_windows(static_cast<cudaStream_t>(r.stream()));gpu_windows.record(0);glm_sparse_r131::mark(static_cast<cudaStream_t>(r.stream()),"PP.incoming.begin");auto incoming_begin=GlmClock::now();rt::Tensor hidden;
+   if(first_stage()){hidden=work.alloc({tokens,6144});ex::submit<infini::ops::IndexSelect>(r,infini::ops::IndexSelect::DefaultConfig(r.device().type()),embedding_,ids,int64_t{0},hidden);}
+   else{
+    size_t shard=6144/size_t(rank_.tp_size);auto local=work.alloc({tokens,shard});engine::distributed::recv_(r,local,(rank_.pp_stage-1)*rank_.tp_size+rank_.tp_rank,rank_.world_comm);
+    if(rank_.tp_size==1)hidden=local;
+    else{auto gathered=work.alloc({size_t(rank_.tp_size),tokens,shard});engine::distributed::allgather_(r,gathered,local,rank_.comm);hidden=gathered->permute({1,0,2})->contiguous(r)->view({tokens,6144});work.held.push_back(hidden);}
+   }
+-  gpu_windows.record(1);glm_r16_profile[0]=std::chrono::duration<double>(GlmClock::now()-incoming_begin).count();auto layers_begin=GlmClock::now();
++  glm_sparse_r131::mark(static_cast<cudaStream_t>(r.stream()),"PP.incoming.end");gpu_windows.record(1);glm_r16_profile[0]=std::chrono::duration<double>(GlmClock::now()-incoming_begin).count();auto layers_begin=GlmClock::now();
+   std::vector<rt::Tensor>selection;PrefixProofsR1645 selection_proofs;
+-  for(size_t i=0;i<layers_.size();++i){bool full=cfg_.at("indexer_types").at(begin_+i)=="full";if(full){selection.clear();selection_proofs.clear();}bool window_valid5795=true;if(begin_+i==38&&glm_window_r5795::armed()){window_valid5795=requests.size()==8&&tokens==8;for(size_t wi=0;wi<requests.size();++wi){auto wq=requests[wi];window_valid5795=window_valid5795&&glm_window_r5795::request_matches(wi,wq.row,wq.past,wq.tokens);}}glm_window_r5795::Scope window5795(r,begin_+i,rank_.pp_stage,rank_.tp_rank,window_valid5795);auto out=layers_[i]->forward(r,hidden,positions,requests,selection,selection_proofs);window5795.done();hidden=out.hidden;resident_sample_memory_r5640();selection=std::move(out.attention.selection);selection_proofs=std::move(out.attention.selection_proofs);}
+-  gpu_windows.record(2);glm_r16_profile[1]=std::chrono::duration<double>(GlmClock::now()-layers_begin).count();auto outgoing_begin=GlmClock::now();
++  for(size_t i=0;i<layers_.size();++i){bool full=cfg_.at("indexer_types").at(begin_+i)=="full";if(full){selection.clear();selection_proofs.clear();}bool window_valid5795=true;if(begin_+i==38&&glm_window_r5795::armed()){window_valid5795=requests.size()==8&&tokens==8;for(size_t wi=0;wi<requests.size();++wi){auto wq=requests[wi];window_valid5795=window_valid5795&&glm_window_r5795::request_matches(wi,wq.row,wq.past,wq.tokens);}}glm_window_r5795::Scope window5795(r,begin_+i,rank_.pp_stage,rank_.tp_rank,window_valid5795);glm_sparse_r131::layer_begin(static_cast<cudaStream_t>(r.stream()),begin_+i,full);auto out=layers_[i]->forward(r,hidden,positions,requests,selection,selection_proofs);glm_sparse_r131::layer_end(static_cast<cudaStream_t>(r.stream()),begin_+i);window5795.done();hidden=out.hidden;resident_sample_memory_r5640();selection=std::move(out.attention.selection);selection_proofs=std::move(out.attention.selection_proofs);}
++  glm_sparse_r131::mark(static_cast<cudaStream_t>(r.stream()),"PP.outgoing.begin");gpu_windows.record(2);glm_r16_profile[1]=std::chrono::duration<double>(GlmClock::now()-layers_begin).count();auto outgoing_begin=GlmClock::now();
+   rt::Tensor logits;
+   if(!last_stage()){
+    size_t shard=6144/size_t(rank_.tp_size);auto local=work.alloc({tokens,shard});local->copy_from(r,hidden->narrow({{1,size_t(rank_.tp_rank)*shard,shard}}));engine::distributed::send(r,local,(rank_.pp_stage+1)*rank_.tp_size+rank_.tp_rank,rank_.world_comm);
+@@ -84,7 +85,7 @@
+    else{auto gathered=work.alloc({size_t(rank_.tp_size),n,width});engine::distributed::allgather_(r,gathered,local,rank_.comm);logits=gathered->permute({1,0,2})->contiguous(r)->view({n,vocab_});work.held.push_back(logits);}
+    hidden=weighted;
+   }
+-  for(auto q:requests)lengths_[q.row]=q.past+q.tokens;gpu_windows.record(3);r.syncStream();gpu_windows.finish();glm_r16_profile[2]=std::chrono::duration<double>(GlmClock::now()-outgoing_begin).count();return {hidden,logits};
++  for(auto q:requests)lengths_[q.row]=q.past+q.tokens;glm_sparse_r131::mark(static_cast<cudaStream_t>(r.stream()),"PP.outgoing.end");gpu_windows.record(3);r.syncStream();gpu_windows.finish();glm_r16_profile[2]=std::chrono::duration<double>(GlmClock::now()-outgoing_begin).count();return {hidden,logits};
+  }catch(...){poisoned_=true;try{r.syncStream();}catch(...){std::terminate();}throw;}
+ }
+ void TextModelProjectedR22::reset(rt::Runtime&r){check_owner(r);for(auto&layer:layers_)layer->reset(r);std::fill(lengths_.begin(),lengths_.end(),0);poisoned_=false;}

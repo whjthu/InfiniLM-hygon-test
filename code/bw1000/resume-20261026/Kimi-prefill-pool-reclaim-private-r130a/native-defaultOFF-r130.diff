@@ -1,0 +1,38 @@
+--- actual-r9129-normalized-LF/kimi_moe_batch_r9129.cpp
++++ r130a/kimi_moe_prefill_pool_trim_r130.cpp
+@@ -60,6 +60,27 @@
+         if(code){int current=-1;const auto device_status=cudaGetDevice(&current);try{runtime.syncStream();}catch(...){std::terminate();}throw std::runtime_error("I192launchcode="+std::to_string(code)+" expected_device="+std::to_string(runtime.device().index())+" current_device="+std::to_string(current)+" cudaGetDevice_status="+std::to_string(int(device_status)));}++i192_caller_success_r8669zf.at(runtime.device().index());
+ }
+ }
++// r130 default-OFF release of inactive native pool blocks after ORIGINAL
++// grouped helper Work drain/destruction. No Tensor/output/cache/state is cleared.
++namespace {
++std::array<std::array<std::atomic<uint64_t>,7>,8>prefill_pool_trim_stats_r130{};
++bool prefill_pool_trim_enabled_r130(){const char*p=std::getenv("INFINILM_KIMI_PREFILL_POOL_TRIM_R130");if(!p)return false;if(std::strcmp(p,"0")&&std::strcmp(p,"1"))throw std::invalid_argument("r130 strict flag0/1");return std::strcmp(p,"1")==0;}
++void trim_completed_prefill_pool_r130(infinilm::runtime::Runtime&r,size_t T){
++ if(!prefill_pool_trim_enabled_r130())return;
++ r.assertOwnerThread();if(r.isGraphRecording()||r.device().type()!=infinilm::runtime::Device::Type::kHygon||T<512||T>1024)throw std::logic_error("r130 owned eager qualified longprefill");
++ // Caller requires successful helper return. Its original Work destructor drains
++ // the same supplied Runtime BEFORE held Tensor members return blocks to pool.
++ // ReusableMemoryPool::trim must be binary/source-bound before qualification;
++ // it frees only inactive unpinned blocks, not in-use routed/output/state tensors.
++ infini::rt::DeviceGuard guard{r.device().type(),r.device().index(),true};size_t before=0,after=0,total=0;
++ if(cudaMemGetInfo(&before,&total)!=cudaSuccess)throw std::runtime_error("r130 before meminfo");
++ const auto tick=std::chrono::steady_clock::now();r.trimMemory();const auto elapsed=std::chrono::steady_clock::now()-tick;
++ if(cudaMemGetInfo(&after,&total)!=cudaSuccess)throw std::runtime_error("r130 after meminfo");
++ auto&v=prefill_pool_trim_stats_r130.at(r.device().index());v[0].fetch_add(1,std::memory_order_relaxed);v[1].fetch_add(T,std::memory_order_relaxed);v[2].store(before,std::memory_order_relaxed);v[3].store(after,std::memory_order_relaxed);v[4].store(after>=before?after-before:0,std::memory_order_relaxed);v[5].fetch_add(uint64_t(std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed).count()),std::memory_order_relaxed);v[6].fetch_add(after>=before?after-before:0,std::memory_order_relaxed);
++}
++}
++extern "C" int modern_kimi_prefill_pool_trim_stats_r130(int device,uint64_t*out,size_t n){if(device<0||device>=8||!out||n!=7)return 1;for(size_t i=0;i<7;++i)out[i]=prefill_pool_trim_stats_r130[device][i].load(std::memory_order_relaxed);return 0;}
++
+ namespace infinilm::models::kimi_k3 {
+ inline std::array<std::array<std::atomic<uint64_t>,3>,8>router_counts_r4635{};
+ extern "C" int modern_kimi_router_counts_r4635(int d,uint64_t*out,size_t n){if(d<0||d>=8||!out||n!=3)return 1;for(size_t i=0;i<3;++i)out[i]=router_counts_r4635[d][i].load();return 0;}
+@@ -382,6 +403,7 @@
+         const auto tokens = routed_input->size(0), hidden = routed_input->size(1), experts = weights.packed_w13->size(0), intermediate = weights.packed_w2->size(2) * 2, topk = selected_experts->size(1);
+         if (modern_grouped_mxfp4_owned(&runtime, tokens, experts, hidden, intermediate, topk, routed->data(), routed_input->data(), selected_experts->data(), routing_weights->data(), weights.packed_w13->data(), weights.w13_scale->data(), weights.packed_w2->data(), weights.w2_scale->data()))
+             throw std::runtime_error(modern_grouped_error());
++        trim_completed_prefill_pool_r130(runtime,tokens);
+     } else if (n4_tile_r8167::enabled() && infinilm::models::kimi_native::spec_math_mode_r3676(runtime)==0 && runtime.device().type()==infinilm::runtime::Device::Type::kHygon && routed_input->size(0)==4 && routed_input->dtype()==infinilm::runtime::DataType::kBFloat16 && routed_input->is_contiguous() && routed_input->size(1)==3584 && weights.packed_w13->size(0)==896 && weights.packed_w2->size(2)*2==384 && selected_experts->size(1)==16){
+         n4_tile_r8167::launch(runtime,tiled_scratch_r1861_,routed->data(),routed_input->data(),selected_experts->data(),routing_weights->data(),weights.packed_w13->data(),weights.w13_scale->data(),weights.packed_w2->data(),weights.w2_scale->data());
+     } else if (qualify_tiled_w13_r1861 && runtime.device().type() == infinilm::runtime::Device::Type::kHygon && routed_input->size(0) == 1 && routed_input->dtype() == infinilm::runtime::DataType::kBFloat16 && routed_input->size(1) == 3584 && weights.packed_w2->size(2) * 2 == 384 && selected_experts->size(1) == 16) {

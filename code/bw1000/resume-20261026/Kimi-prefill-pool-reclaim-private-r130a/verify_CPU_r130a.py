@@ -1,0 +1,13 @@
+import pathlib,importlib.util,json,ast,hashlib
+D=pathlib.Path(__file__).resolve().parent;p=D/'python/phase_observer_r130.py';spec=importlib.util.spec_from_file_location('r130phase',p);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+class Req:logical=1;events=[{'time':1.,'EOS':False},{'time':4.,'EOS':False}]
+def report(calls):return m.prefill_interference([Req()],calls)[0]
+a=report([{}]);assert a['prefill_host_wall_overlapping_visible_firstlast_s']is None and a['prefill_timing_coverage']['status'].startswith('UNKNOWN')
+a=report([{'micro_prefill_host_start':1.5,'micro_prefill_host_end':2.5}]);assert a['prefill_host_wall_overlapping_visible_firstlast_s']==1. and a['prefill_timing_coverage']['complete']
+a=report([{'micro_prefill_host_start':8.,'micro_prefill_host_end':9.}]);assert a['prefill_host_wall_overlapping_visible_firstlast_s']==0.
+a=report([{}, {'micro_prefill_host_start':1.5,'micro_prefill_host_end':2.5}]);assert a['prefill_host_wall_overlapping_visible_firstlast_s']is None and a['known_partial_overlap_lower_bound_s']==1.
+a=report([]);assert a['prefill_host_wall_overlapping_visible_firstlast_s']is None and a['prefill_timing_coverage']['expected_calls']==0
+s=(D/'native/kimi_moe_prefill_pool_trim_r130.cpp').read_bytes().decode();assert s.count('trim_completed_prefill_pool_r130(runtime,tokens)')==1;at=s.index('trim_completed_prefill_pool_r130(runtime,tokens)');assert s.index('modern_grouped_mxfp4_owned(&runtime',s.index('} else if (qualify_grouped_prefill'))<at<s.index('} else if (n4_tile_r8167::enabled()',at);assert 'throw std::runtime_error(modern_grouped_error());'in s[at-120:at];insert=s[s.index('// r130 default-OFF'):s.index('namespace infinilm::models::kimi_k3 {')];assert 'syncStream('not in insert and 'empty_cache'not in s and 'output_ ='not in insert
+qs=[json.loads(p.read_bytes())for p in sorted((D/'qualification-queue').glob('q*.json'))];assert len(qs)==8;assert qs[0]['cap']==8 and qs[0]['requests'][5]['id']=='mmlu-test-11704';main=[q for q in qs if q.get('cap')==1024];ids={r['id']for q in main for r in q['requests']};assert len(main)==6 and len(ids)==24;assert all(sum(r['id']==key for q in main for r in q['requests'])==2 for key in ids);assert all(q['prefill_pool_trim']and not q['phase_observer']for q in main)
+for p in D.rglob('*.py'):ast.parse(p.read_bytes());assert b'\r\n'not in p.read_bytes()
+print(json.dumps({'passed':True,'CPU_only':True,'compiled':False,'GPU':False,'tests':['UNKNOWN coverage5variants','one post-success ownedhelper insertion','no new explicit sync/math/outputclear','7case qualificationdata only24distincttwoarms'],'actual_memory_reclaimed':'UNKNOWN','actual_floor_pass':'UNKNOWN'}))
