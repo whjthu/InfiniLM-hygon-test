@@ -1,0 +1,337 @@
+--- a/deep_c4_smallt_r9252.cpp
++++ b/deep_c4_smallt_r9252.cpp
+@@ -6,6 +6,7 @@
+ #include "deep_cache_batch_r784.hpp"
+ #include "deepseek_v4_c4_indexer.hpp"
+ #include "execution/submit.hpp"
++#include "deep_prefix_native_r124.hpp"
+ #include <cmath>
+ #include <algorithm>
+ #include <set>
+@@ -20,11 +21,11 @@
+ void status(rt::Runtime&r,const rt::Tensor&flag){int value=0;r.memcpyD2H(&value,flag->data(),4);r.syncStream();if(value)throw std::invalid_argument("DeepSeek C4 indexer GPU validation status="+std::to_string(value));}
+ }
+ PagedIndexerCache::PagedIndexerCache(rt::Runtime&r,size_t pages):owner_(r.shared_from_this()),pages_(pages){r.assertOwnerThread();if(r.isGraphRecording()||r.device().type()!=rt::Device::Type::kHygon||!pages||pages>65536)throw std::invalid_argument("DeepSeek indexer cache geometry differs");try{raw_=rt::Tensor::empty(r,{pages,8448},rt::DataType::kUInt8);written_.assign(pages*64,0);r.setDeviceMemory(raw_->data(),0xa5,raw_->nbytes());r.syncStream();}catch(...){try{r.syncStream();}catch(...){std::terminate();}throw;}}
+-void PagedIndexerCache::validate(rt::Runtime&r,const std::vector<int64_t>&slots,bool write)const{r.assertOwnerThread();if(owner_.get()!=&r||r.isGraphRecording()||slots.empty()||slots.size()>262144||(write&&slots.size()>65536))throw std::invalid_argument("DeepSeek indexer cache owner/count differs");std::set<int64_t>seen;for(auto slot:slots)if(slot<0||size_t(slot)>=written_.size()||(write&&!seen.insert(slot).second)||(!write&&!written_[size_t(slot)]))throw std::invalid_argument("DeepSeek indexer cache invalid/duplicate write or unwritten read");}
+-void PagedIndexerCache::store(rt::Runtime&r,const std::vector<int64_t>&slots,const Packed&packed){validate(r,slots,true);if(!packed.values||!packed.scales||packed.values->device()!=r.device()||packed.scales->device()!=r.device()||packed.values->dtype()!=rt::DataType::kUInt8||packed.scales->dtype()!=rt::DataType::kFloat32||packed.values->shape()!=rt::Shape{slots.size(),128}||packed.scales->shape()!=rt::Shape{slots.size(),1}||!packed.values->is_contiguous()||!packed.scales->is_contiguous())throw std::invalid_argument("DeepSeek indexer packed feature geometry differs");Work work{r};auto flag=work.alloc({1},rt::DataType::kInt32);ex::submit<infini::ops::DeepseekV4IndexerCache>(r,ex::RecordingPolicy::HostOnly,infini::ops::DeepseekV4IndexerCache::DefaultConfig(r.device().type()),raw_,work.ids(slots),packed.values,packed.scales,flag,size_t{0});status(r,flag);for(auto slot:slots)written_[size_t(slot)]=1;}
+-PagedIndexerCache::Packed PagedIndexerCache::gather(rt::Runtime&r,const std::vector<int64_t>&slots)const{validate(r,slots,false);Work work{r};auto values=work.alloc({slots.size(),128},rt::DataType::kUInt8),scales=work.alloc({slots.size(),1},rt::DataType::kFloat32),flag=work.alloc({1},rt::DataType::kInt32);
++void PagedIndexerCache::validate(rt::Runtime&r,const std::vector<int64_t>&slots,bool write)const{r.assertOwnerThread();if(owner_.get()!=&r||r.isGraphRecording()||slots.empty()||slots.size()>262144||(write&&slots.size()>65536))throw std::invalid_argument("DeepSeek indexer cache owner/count differs");std::set<int64_t>seen;for(auto slot:slots)if(slot<0||size_t(slot)>=written_.size()||(write&&!seen.insert(slot).second)||(!write&&!written_[size_t(slot)]&&!prefix_overlay_.find(uint32_t(slot))))throw std::invalid_argument("DeepSeek indexer cache invalid/duplicate write or unwritten read");}
++void PagedIndexerCache::store(rt::Runtime&r,const std::vector<int64_t>&slots,const Packed&packed){if(!prefix_overlay_.empty()){auto p=PrefixNativeR124::index_store(r,*this,slots,packed);p();return;}validate(r,slots,true);if(!packed.values||!packed.scales||packed.values->device()!=r.device()||packed.scales->device()!=r.device()||packed.values->dtype()!=rt::DataType::kUInt8||packed.scales->dtype()!=rt::DataType::kFloat32||packed.values->shape()!=rt::Shape{slots.size(),128}||packed.scales->shape()!=rt::Shape{slots.size(),1}||!packed.values->is_contiguous()||!packed.scales->is_contiguous())throw std::invalid_argument("DeepSeek indexer packed feature geometry differs");Work work{r};auto flag=work.alloc({1},rt::DataType::kInt32);ex::submit<infini::ops::DeepseekV4IndexerCache>(r,ex::RecordingPolicy::HostOnly,infini::ops::DeepseekV4IndexerCache::DefaultConfig(r.device().type()),raw_,work.ids(slots),packed.values,packed.scales,flag,size_t{0});status(r,flag);for(auto slot:slots)written_[size_t(slot)]=1;}
++PagedIndexerCache::Packed PagedIndexerCache::gather(rt::Runtime&r,const std::vector<int64_t>&slots)const{if(!prefix_overlay_.empty())return PrefixNativeR124::index_gather(r,*this,slots);validate(r,slots,false);Work work{r};auto values=work.alloc({slots.size(),128},rt::DataType::kUInt8),scales=work.alloc({slots.size(),1},rt::DataType::kFloat32),flag=work.alloc({1},rt::DataType::kInt32);
+  for(size_t begin=0;begin<slots.size();begin+=65536){size_t n=std::min(size_t(65536),slots.size()-begin);std::vector<int64_t>chunk(slots.begin()+begin,slots.begin()+begin+n);ex::submit<infini::ops::DeepseekV4IndexerCache>(r,ex::RecordingPolicy::HostOnly,infini::ops::DeepseekV4IndexerCache::DefaultConfig(r.device().type()),raw_,work.ids(chunk),values->narrow({{0,begin,n}}),scales->narrow({{0,begin,n}}),flag,size_t{1});status(r,flag);}return {values,scales};}
+-void PagedIndexerCache::reset(rt::Runtime&r){r.assertOwnerThread();if(owner_.get()!=&r||r.isGraphRecording())throw std::invalid_argument("DeepSeek indexer cache reset owner differs");r.syncStream();std::fill(written_.begin(),written_.end(),0);}
++void PagedIndexerCache::reset(rt::Runtime&r){r.assertOwnerThread();if(owner_.get()!=&r||r.isGraphRecording())throw std::invalid_argument("DeepSeek indexer cache reset owner differs");r.syncStream();std::fill(written_.begin(),written_.end(),0);prefix_overlay_.clear();}
+ void C4Indexer::check_owner(rt::Runtime&r)const{r.assertOwnerThread();if(owner_!=&r||r.isGraphRecording())throw std::invalid_argument("DeepSeek C4 indexer Runtime owner differs");}
+ C4Indexer::C4Indexer(rt::Runtime&r,const nlohmann::json&cfg,size_t layer,const engine::distributed::RankInfo&rank,size_t rows,size_t capacity,size_t topk):owner_(&r),rows_(rows),capacity_(capacity),topk_(topk),heads_(0),maximum_(cfg.at("max_position_embeddings")),original_(cfg.at("rope_scaling").at("original_max_position_embeddings")),theta_(cfg.at("compress_rope_theta")),factor_(cfg.at("rope_scaling").at("factor")),beta_fast_(cfg.at("rope_scaling").at("beta_fast")),beta_slow_(cfg.at("rope_scaling").at("beta_slow")),eps_(cfg.at("rms_norm_eps")),tp_(rank.tp_size),comm_(rank.comm){
+  check_owner(r);if(r.device().type()!=rt::Device::Type::kHygon||rank.device!=r.device()||(tp_!=1&&tp_!=8)||rank.tp_rank<0||rank.tp_rank>=tp_||(tp_>1&&!comm_)||!rows||rows>128||!capacity||capacity>maximum_/4||!topk||topk>512||cfg.at("compress_ratios").at(layer)!=4||cfg.at("hidden_size")!=4096||cfg.at("q_lora_rank")!=1024||cfg.at("index_head_dim")!=128||cfg.at("index_n_heads")!=64||cfg.at("index_topk")!=512)throw std::invalid_argument("DeepSeek C4 indexer checkpoint geometry differs");heads_=64/size_t(tp_);
+--- a/deepseek_v4_c4_indexer.hpp
++++ b/deepseek_v4_c4_indexer.hpp
+@@ -1,4 +1,5 @@
+ #pragma once
++#include "deep_prefix_cache_types_r124.hpp"
+ #include "deepseek_v4_temporal_compressor.hpp"
+ #include "engine/distributed/communication_group.hpp"
+ namespace infinilm::models::deepseek_v4 {
+@@ -9,10 +10,11 @@
+  void store(runtime::Runtime&,const std::vector<int64_t>&slots,const Packed&);
+  Packed gather(runtime::Runtime&,const std::vector<int64_t>&slots)const;
+  void reset(runtime::Runtime&);
+- const runtime::Tensor&raw()const{return raw_;}
++ const runtime::Tensor&raw()const{if(!prefix_overlay_.empty())throw std::logic_error("prefix segmented cache has no contiguous raw snapshot");return raw_;}
+ private:
++ friend class PrefixNativeR124;
+  void validate(runtime::Runtime&,const std::vector<int64_t>&slots,bool write)const;
+- std::shared_ptr<runtime::Runtime>owner_;size_t pages_;runtime::Tensor raw_;std::vector<uint8_t>written_;
++ std::shared_ptr<runtime::Runtime>owner_;size_t pages_;runtime::Tensor raw_;std::vector<uint8_t>written_;prefix_r124::Slots<prefix_r124::PackedSlot>prefix_overlay_;
+ };
+ class C4Indexer final:public weights::ModelWeights {
+ public:
+@@ -23,6 +25,7 @@
+   std::vector<runtime::Tensor>scores,indices;
+   std::vector<int64_t>slots;
+  private:
++ friend class PrefixNativeR124;
+   friend class C4Indexer;
+   TemporalCompressor::Batch compression;
+   std::vector<Request>requests;
+@@ -38,6 +41,7 @@
+  const runtime::Tensor&state()const{return compressor_->state();}
+  size_t local_heads()const{return heads_;}
+ private:
++ friend class PrefixNativeR124;
+  void check_owner(runtime::Runtime&)const;
+  runtime::Tensor rope(runtime::Runtime&,const std::vector<int64_t>&)const;
+  runtime::Runtime*owner_;size_t rows_,capacity_,topk_,heads_,maximum_,original_,revision_=0;
+--- a/deepseek_v4_csa_attention.hpp
++++ b/deepseek_v4_csa_attention.hpp
+@@ -1,4 +1,5 @@
+ #pragma once
++#include "deep_prefix_cache_types_r124.hpp"
+ #include "deepseek_v4_attention_prepare.hpp"
+ #include "deepseek_v4_attention_output.hpp"
+ #include "deepseek_v4_c4_indexer.hpp"
+@@ -18,6 +19,7 @@
+  runtime::Tensor raw_index_cache()const{return indexer_->raw_cache();}
+  runtime::Tensor indexer_state()const{return indexer_->state();}
+ private:
++ friend class PrefixNativeR124;
+  runtime::Runtime*owner_;size_t rows_,window_,maximum_,compressed_capacity_;bool ready_=false,poisoned_=false;
+  std::shared_ptr<AttentionPrepare>prepare_;std::shared_ptr<AttentionOutput>output_;
+  std::unique_ptr<PagedLatentCache>cache_;std::unique_ptr<TemporalCompressor>compressor_;std::unique_ptr<C4Indexer>indexer_;
+--- a/deepseek_v4_csa_attention_batch_r784.cpp
++++ b/deepseek_v4_csa_attention_batch_r784.cpp
+@@ -3,6 +3,7 @@
+ #include "deepseek_v4_csa_attention.hpp"
+ #include "deepseek_v4_latent_attention.hpp"
+ #include "execution/submit.hpp"
++#include "deep_prefix_native_r124.hpp"
+ #include <algorithm>
+ #include <numeric>
+ #include <set>
+@@ -79,6 +80,6 @@
+  inner_profile.mark(2);auto attention=latent_attention(r,prep.query,bank,compressed_bank,sink_,si,compressed_indices,lens);work.held.push_back(attention);inner_profile.mark(3);auto inverse=prepare_->inverse_output_rope(r,attention,positions);work.held.push_back(inverse);inner_profile.mark(4);auto projected=output_->forward(r,inverse);work.held.insert(work.held.end(),{projected.grouped,projected.local,projected.hidden});inner_profile.mark(5);
+  // Commit only the last window from each request after all queries consumed
+  // the old window. A long prefill must not overwrite keys needed by its start.
+- auto commit=work.alloc({commit_rows.size(),512},rt::DataType::kBFloat16);ex::submit<infini::ops::IndexSelect>(r,infini::ops::IndexSelect::DefaultConfig(r.device().type()),prep.kv,device_ids(commit_rows),int64_t{0},commit);cache_->store(r,device_ids(commit_slots),commit);compressor_->commit(r,pending);indexer_->commit(r,index_pending);last_selection_=index_pending.indices;for(auto request:requests)lengths_[request.row]=request.past+request.tokens;inner_profile.mark(6);r.syncStream();inner_profile.finish_after_original_drain();return projected.hidden;}catch(...){poisoned_=true;try{r.syncStream();}catch(...){std::terminate();}throw;}
++ auto commit=work.alloc({commit_rows.size(),512},rt::DataType::kBFloat16);ex::submit<infini::ops::IndexSelect>(r,infini::ops::IndexSelect::DefaultConfig(r.device().type()),prep.kv,device_ids(commit_rows),int64_t{0},commit);if(prefix_r124::active){std::vector<prefix_r124::Row>prefix_rows;for(auto q:requests)prefix_rows.push_back({q.row,q.past,q.tokens});PrefixNativeR124::stage_csa(r,*this,prep.kv,std::move(pending),std::move(index_pending),prefix_rows);}else{cache_->store(r,device_ids(commit_slots),commit);compressor_->commit(r,pending);indexer_->commit(r,index_pending);last_selection_=index_pending.indices;for(auto request:requests)lengths_[request.row]=request.past+request.tokens;}inner_profile.mark(6);r.syncStream();inner_profile.finish_after_original_drain();return projected.hidden;}catch(...){poisoned_=true;try{r.syncStream();}catch(...){std::terminate();}throw;}
+ }
+ }
+--- a/deepseek_v4_hca_attention.hpp
++++ b/deepseek_v4_hca_attention.hpp
+@@ -1,4 +1,5 @@
+ #pragma once
++#include "deep_prefix_cache_types_r124.hpp"
+ #include "deepseek_v4_attention_prepare.hpp"
+ #include "deepseek_v4_attention_output.hpp"
+ #include "deepseek_v4_temporal_compressor.hpp"
+@@ -15,6 +16,7 @@
+  runtime::Tensor raw_compressed_cache()const{return compressor_->raw_cache();}
+  const runtime::Tensor&compressor_state()const{return compressor_->state();}
+ private:
++ friend class PrefixNativeR124;
+  runtime::Runtime*owner_;size_t rows_,window_,maximum_,compressed_capacity_;bool ready_=false,poisoned_=false;
+  std::shared_ptr<AttentionPrepare>prepare_;std::shared_ptr<AttentionOutput>output_;
+  std::unique_ptr<PagedLatentCache>cache_;std::unique_ptr<TemporalCompressor>compressor_;
+--- a/deepseek_v4_hca_attention_batch_r784.cpp
++++ b/deepseek_v4_hca_attention_batch_r784.cpp
+@@ -3,6 +3,7 @@
+ #include "deepseek_v4_hca_attention.hpp"
+ #include "deepseek_v4_latent_attention.hpp"
+ #include "execution/submit.hpp"
++#include "deep_prefix_native_r124.hpp"
+ #include <algorithm>
+ #include <numeric>
+ #include <set>
+@@ -70,6 +71,6 @@
+  inner_profile.mark(2);auto attention=latent_attention(r,prep.query,bank,compressed_bank,sink_,si,compressed_indices,lens);work.held.push_back(attention);inner_profile.mark(3);auto inverse=prepare_->inverse_output_rope(r,attention,positions);work.held.push_back(inverse);inner_profile.mark(4);auto projected=output_->forward(r,inverse);work.held.insert(work.held.end(),{projected.grouped,projected.local,projected.hidden});inner_profile.mark(5);
+  // Commit only the last window from each request after all queries consumed
+  // the old window. A long prefill must not overwrite keys needed by its start.
+- auto commit=work.alloc({commit_rows.size(),512},rt::DataType::kBFloat16);ex::submit<infini::ops::IndexSelect>(r,infini::ops::IndexSelect::DefaultConfig(r.device().type()),prep.kv,device_ids(commit_rows),int64_t{0},commit);cache_->store(r,device_ids(commit_slots),commit);compressor_->commit(r,pending);for(auto request:requests)lengths_[request.row]=request.past+request.tokens;inner_profile.mark(6);r.syncStream();inner_profile.finish_after_original_drain();return projected.hidden;}catch(...){poisoned_=true;try{r.syncStream();}catch(...){std::terminate();}throw;}
++ auto commit=work.alloc({commit_rows.size(),512},rt::DataType::kBFloat16);ex::submit<infini::ops::IndexSelect>(r,infini::ops::IndexSelect::DefaultConfig(r.device().type()),prep.kv,device_ids(commit_rows),int64_t{0},commit);if(prefix_r124::active){std::vector<prefix_r124::Row>prefix_rows;for(auto q:requests)prefix_rows.push_back({q.row,q.past,q.tokens});PrefixNativeR124::stage_hca(r,*this,prep.kv,std::move(pending),prefix_rows);}else{cache_->store(r,device_ids(commit_slots),commit);compressor_->commit(r,pending);for(auto request:requests)lengths_[request.row]=request.past+request.tokens;}inner_profile.mark(6);r.syncStream();inner_profile.finish_after_original_drain();return projected.hidden;}catch(...){poisoned_=true;try{r.syncStream();}catch(...){std::terminate();}throw;}
+ }
+ }
+--- a/deepseek_v4_native_routed_decoder_r20.cpp
++++ b/deepseek_v4_native_routed_decoder_r20.cpp
+@@ -20,7 +20,7 @@
+  r.assertOwnerThread();if(owner_!=&r||r.isGraphRecording())throw std::invalid_argument("DeepSeek decoder Runtime owner differs");
+ }
+ NativeDecoderR20::NativeDecoderR20(rt::Runtime&r,const nlohmann::json&cfg,size_t layer,
+- const engine::distributed::RankInfo&rank,size_t rows):owner_(&r),rows_(rows),maximum_(cfg.at("max_position_embeddings")),vocab_(cfg.at("vocab_size")),ratio_(cfg.at("compress_ratios").at(layer)){
++ const engine::distributed::RankInfo&rank,size_t rows):owner_(&r),prefix_layer_(layer),rows_(rows),maximum_(cfg.at("max_position_embeddings")),vocab_(cfg.at("vocab_size")),ratio_(cfg.at("compress_ratios").at(layer)){
+  check_owner(r);deep_owner_r8900::initialize(r,this,layer);
+  if(!rows||rows>128||layer>=size_t(cfg.at("num_hidden_layers"))||cfg.at("hidden_size")!=4096||cfg.at("hc_mult")!=4||cfg.at("n_routed_experts")!=256||cfg.at("num_experts_per_tok")!=6||cfg.at("n_shared_experts")!=1||cfg.at("swiglu_limit")!=10||cfg.at("scoring_func")!="sqrtsoftplus"||!cfg.at("norm_topk_prob").get<bool>()||(ratio_!=0&&ratio_!=4&&ratio_!=128))throw std::invalid_argument("DeepSeek native decoder checkpoint geometry differs");
+  try{
+@@ -59,7 +59,7 @@
+   else out.attention_value=hca_->forward(r,out.normalized_attention,positions,metadata<HcaAttention>(requests));
+   }{deep_owner_r8900::Span p(r,5);out.attention_residual=hc_->post(r,out.attention_value,residual,out.attention_prepared);}
+   {deep_owner_r8900::Span p(r,6);out.ffn=ffn_->forward_detailed(r,out.attention_residual,ids);out.hidden=out.ffn.value;}
+-  for(auto q:requests)lengths_[q.row]=q.past+q.tokens;owner_context.beforeDrain();double drain_start=deep_owner_r8900::wall();r.syncStream();owner_context.afterDrain(drain_start);return out;
++  prefix_r124::lengths(lengths_,requests);if(prefix_r124::active)prefix_r124::active->decoder_done(prefix_layer_);owner_context.beforeDrain();double drain_start=deep_owner_r8900::wall();r.syncStream();owner_context.afterDrain(drain_start);return out;
+  }catch(...){poisoned_=true;try{r.syncStream();}catch(...){std::terminate();}throw;}
+ }
+ void NativeDecoderR20::reset(rt::Runtime&r){check_owner(r);if(swa_)swa_->reset(r);if(csa_)csa_->reset(r);if(hca_)hca_->reset(r);std::fill(lengths_.begin(),lengths_.end(),0);poisoned_=false;}
+--- a/deepseek_v4_native_routed_decoder_r20.hpp
++++ b/deepseek_v4_native_routed_decoder_r20.hpp
+@@ -1,4 +1,5 @@
+ #pragma once
++#include "deep_prefix_transaction_r124.hpp"
+ #include "deepseek_v4_ffn_routed_block_r20.hpp"
+ #include "deepseek_v4_swa_attention.hpp"
+ #include "deepseek_v4_csa_attention.hpp"
+@@ -25,7 +26,7 @@
+  std::vector<runtime::Tensor>cache_tensors()const;
+ private:
+  void check_owner(runtime::Runtime&)const;
+- runtime::Runtime*owner_;size_t rows_,maximum_,vocab_;int ratio_;
++ runtime::Runtime*owner_;size_t prefix_layer_;size_t rows_,maximum_,vocab_;int ratio_;
+  bool ready_=false,poisoned_=false;
+  std::vector<size_t>lengths_;
+  std::unique_ptr<HyperConnection>hc_;
+--- a/deepseek_v4_paged_latent_cache.hpp
++++ b/deepseek_v4_paged_latent_cache.hpp
+@@ -1,4 +1,5 @@
+ #pragma once
++#include "deep_prefix_cache_types_r124.hpp"
+ #include "runtime/runtime.hpp"
+ #include <memory>
+ #include <vector>
+@@ -11,10 +12,11 @@
+  void store(runtime::Runtime&,const runtime::Tensor&slots,const runtime::Tensor&values);
+  runtime::Tensor gather(runtime::Runtime&,const runtime::Tensor&slots)const;
+  void reset(runtime::Runtime&);
+- const runtime::Tensor&raw()const{return data_;}
++ const runtime::Tensor&raw()const{if(!prefix_overlay_.empty())throw std::logic_error("prefix segmented cache has no contiguous raw snapshot");return data_;}
+  size_t stride()const{return stride_;}
+ private:
++ friend class PrefixNativeR124;
+  std::vector<int64_t>validate(runtime::Runtime&,const runtime::Tensor&,bool)const;
+- std::shared_ptr<runtime::Runtime>owner_;size_t pages_,block_,stride_;runtime::Tensor data_,flag_;std::vector<uint8_t>written_;
++ std::shared_ptr<runtime::Runtime>owner_;size_t pages_,block_,stride_;runtime::Tensor data_,flag_;std::vector<uint8_t>written_;prefix_r124::Slots<prefix_r124::PackedSlot>prefix_overlay_;
+ };
+ }
+--- a/deepseek_v4_paged_latent_cache_public.cpp
++++ b/deepseek_v4_paged_latent_cache_public.cpp
+@@ -1,5 +1,6 @@
+ #include "deepseek_v4_paged_latent_cache.hpp"
+ #include "execution/submit.hpp"
++#include "deep_prefix_native_r124.hpp"
+ #include <algorithm>
+ #include <set>
+ #include <stdexcept>
+@@ -20,15 +21,17 @@
+ std::vector<int64_t>PagedLatentCache::validate(rt::Runtime&r,const rt::Tensor&slots,bool write)const{
+  r.assertOwnerThread();if(owner_.get()!=&r||r.isGraphRecording()||!slots||slots->device()!=r.device()||slots->dtype()!=rt::DataType::kInt64||slots->ndim()!=1||!slots->numel()||slots->numel()>65536||!slots->is_contiguous())throw std::invalid_argument("DeepSeek native cache slots/owner differ");
+  std::vector<int64_t>host(slots->numel());r.memcpyD2H(host.data(),slots->data(),host.size()*8);std::set<int64_t>seen;
+- for(auto slot:host){if(slot<0||size_t(slot)>=written_.size()||(write&&!seen.insert(slot).second)||(!write&&!written_[size_t(slot)]))throw std::invalid_argument("DeepSeek native cache invalid/duplicate write or unwritten read slot");}return host;
++ for(auto slot:host){if(slot<0||size_t(slot)>=written_.size()||(write&&!seen.insert(slot).second)||(!write&&!written_[size_t(slot)]&&(!prefix_overlay_.find(uint32_t(slot)/256)||!prefix_overlay_.find(uint32_t(slot)/256)->valid[size_t(slot)%256])))throw std::invalid_argument("DeepSeek native cache invalid/duplicate write or unwritten read slot");}return host;
+ }
+ void PagedLatentCache::store(rt::Runtime&r,const rt::Tensor&slots,const rt::Tensor&values){
++ if(!prefix_overlay_.empty()){auto p=PrefixNativeR124::cache_store(r,*this,slots,values);p();return;}
+  auto host=validate(r,slots,true);if(!values||values->device()!=r.device()||values->dtype()!=rt::DataType::kBFloat16||values->shape()!=rt::Shape{host.size(),512}||!values->is_contiguous())throw std::invalid_argument("DeepSeek native cache requires contiguous BF16 D512 values");
+  try{invoke(r,data_,slots,values,flag_,block_,0);for(auto slot:host)written_[size_t(slot)]=1;}
+  catch(...){try{r.syncStream();}catch(...){std::terminate();}throw;}
+ }
+ rt::Tensor PagedLatentCache::gather(rt::Runtime&r,const rt::Tensor&slots)const{
++ if(!prefix_overlay_.empty())return PrefixNativeR124::cache_gather(r,*this,slots);
+  auto host=validate(r,slots,false);auto out=rt::Tensor::empty(r,{host.size(),512},rt::DataType::kBFloat16);try{invoke(r,data_,slots,out,flag_,block_,1);return out;}catch(...){try{r.syncStream();}catch(...){std::terminate();}throw;}
+ }
+-void PagedLatentCache::reset(rt::Runtime&r){r.assertOwnerThread();if(owner_.get()!=&r||r.isGraphRecording())throw std::invalid_argument("DeepSeek native cache reset owner differs");r.syncStream();std::fill(written_.begin(),written_.end(),0);}
++void PagedLatentCache::reset(rt::Runtime&r){r.assertOwnerThread();if(owner_.get()!=&r||r.isGraphRecording())throw std::invalid_argument("DeepSeek native cache reset owner differs");r.syncStream();std::fill(written_.begin(),written_.end(),0);prefix_overlay_.clear();}
+ }
+--- a/deepseek_v4_routed_text_model_r20.cpp
++++ b/deepseek_v4_routed_text_model_r20.cpp
+@@ -60,6 +60,8 @@
+ void TextModelR20::process_weights_after_loading(rt::Runtime&r,bool flag){owner(r,owner_);if(ready_)throw std::logic_error("DeepSeek text model already loaded");for(auto&layer:layers_)layer->process_weights_after_loading(r,flag);head_->process_weights_after_loading(r,flag);r.syncStream();ready_=true;}
+ TextModelR20::Output TextModelR20::forward(rt::Runtime&r,const rt::Tensor&ids,const rt::Tensor&positions,const std::vector<Request>&requests,bool all_positions){
+  owner(r,owner_);
++ if(prefix_pending_&&prefix_r124::active!=prefix_pending_.get())throw std::logic_error("prefix pending: ordinary forward forbidden");
++ prefix_r124::validate_rows(requests);
+  if(!ready_||poisoned_||!ids||!positions||ids->device()!=r.device()||positions->device()!=r.device()||ids->dtype()!=rt::DataType::kInt64||positions->dtype()!=rt::DataType::kInt64||ids->ndim()!=1||!ids->size(0)||ids->size(0)>4096||positions->shape()!=ids->shape()||!ids->is_contiguous()||!positions->is_contiguous()||requests.empty()||requests.size()>rows_)throw std::invalid_argument("DeepSeek text model requires loaded packed IDs/positions and valid state");
+  size_t tokens=ids->size(0),total=0;std::set<size_t>seen;std::vector<int64_t>hi(tokens),hp(tokens),expanded,last;r.memcpyD2H(hi.data(),ids->data(),tokens*8);r.memcpyD2H(hp.data(),positions->data(),tokens*8);
+  for(auto id:hi){if(id<0||size_t(id)>=vocab_)throw std::invalid_argument("DeepSeek text token outside vocabulary");for(size_t c=0;c<4;++c)expanded.push_back(id);}
+@@ -87,8 +89,14 @@
+    hidden=detail.hidden;trace_r4026::save(r,layer_index_r4026,"exit",hidden);++layer_index_r4026;
+   }
+   auto chosen=hidden;if(!all_positions){chosen=work.alloc({requests.size(),4,4096},rt::DataType::kBFloat16);ex::submit<infini::ops::IndexSelect>(r,infini::ops::IndexSelect::DefaultConfig(r.device().type()),hidden,work.ids(last),int64_t{0},chosen);}
+-  auto result=head_->forward(r,chosen);for(auto q:requests)lengths_[q.row]=q.past+q.tokens;r.syncStream();return {hidden,result};
++  auto result=head_->forward(r,chosen);prefix_r124::lengths(lengths_,requests);r.syncStream();return {hidden,result};
+  }catch(...){poisoned_=true;try{r.syncStream();}catch(...){std::terminate();}throw;}
+ }
+-void TextModelR20::reset(rt::Runtime&r){owner(r,owner_);for(auto&layer:layers_)layer->reset(r);std::fill(lengths_.begin(),lengths_.end(),0);poisoned_=false;}
++void TextModelR20::reset(rt::Runtime&r){owner(r,owner_);if(prefix_pending_){prefix_pending_->cancel();prefix_pending_.reset();}++prefix_epoch_->value;for(auto&layer:layers_)layer->reset(r);std::fill(lengths_.begin(),lengths_.end(),0);poisoned_=false;}
++
++TextModelR20::PrefixHandle TextModelR20::begin_prefix(rt::Runtime&r,const std::vector<Request>&q){owner(r,owner_);if(!ready_||poisoned_||prefix_pending_)throw std::logic_error("prefix begin model busy/unready");std::vector<prefix_r124::Row>rows;for(auto a:q){if(a.row>=rows_||a.past!=lengths_[a.row]||a.tokens!=2||a.past>capacity_||2>capacity_-a.past)throw std::invalid_argument("prefix begin row/past/capacity");rows.push_back({a.row,a.past,a.tokens});}prefix_pending_=std::make_shared<prefix_r124::Transaction>(this,prefix_epoch_,std::move(rows));return prefix_pending_;}
++TextModelR20::Output TextModelR20::forward_prefix(rt::Runtime&r,const rt::Tensor&ids,const rt::Tensor&pos,const std::vector<Request>&q,const PrefixHandle&h){owner(r,owner_);if(!h||h!=prefix_pending_)throw std::invalid_argument("prefix foreign handle");h->check_owner(this);prefix_r124::Scope scope(h.get());try{auto out=forward(r,ids,pos,q,true);r.syncStream();h->forward_done();return out;}catch(...){h->cancel();prefix_pending_.reset();throw;}}
++void TextModelR20::seal_prefix(rt::Runtime&r,const PrefixHandle&h,const prefix_r124::Counts&counts){owner(r,owner_);if(!h||h!=prefix_pending_)throw std::invalid_argument("prefix foreign seal");h->check_owner(this);h->seal(counts);r.syncStream();}
++void TextModelR20::publish_prefix(rt::Runtime&r,const PrefixHandle&h){owner(r,owner_);if(!h||h!=prefix_pending_)throw std::invalid_argument("prefix foreign publish");h->check_owner(this);h->publish();prefix_pending_.reset();}
++void TextModelR20::cancel_prefix(rt::Runtime&r,const PrefixHandle&h){owner(r,owner_);if(!h||h!=prefix_pending_)throw std::invalid_argument("prefix foreign cancel");h->check_owner(this);r.syncStream();h->cancel();prefix_pending_.reset();}
+ }
+--- a/deepseek_v4_routed_text_model_r20.hpp
++++ b/deepseek_v4_routed_text_model_r20.hpp
+@@ -1,4 +1,5 @@
+ #pragma once
++#include "deep_prefix_transaction_r124.hpp"
+ #include "deepseek_v4_native_routed_decoder_r20.hpp"
+ 
+ namespace infinilm::models::deepseek_v4 {
+@@ -18,13 +19,21 @@
+ // invoked by ordinary autoregressive decoding. TP1/8, PP1 only at this stage.
+ class TextModelR20 final:public weights::ModelWeights {
+ public:
++
+  using Request=NativeDecoderR20::Request;
+  struct Output{runtime::Tensor residual;TextHeadR20::Output head;};
+  TextModelR20(runtime::Runtime&,const nlohmann::json&,const engine::distributed::RankInfo&,size_t rows,size_t capacity);
+  void process_weights_after_loading(runtime::Runtime&,bool)override;
+  Output forward(runtime::Runtime&,const runtime::Tensor&,const runtime::Tensor&,const std::vector<Request>&,bool all_positions=false);
+  void reset(runtime::Runtime&);
++ using PrefixHandle=std::shared_ptr<prefix_r124::Transaction>;
++ PrefixHandle begin_prefix(runtime::Runtime&,const std::vector<Request>&);
++ Output forward_prefix(runtime::Runtime&,const runtime::Tensor&,const runtime::Tensor&,const std::vector<Request>&,const PrefixHandle&);
++ void seal_prefix(runtime::Runtime&,const PrefixHandle&,const prefix_r124::Counts&);
++ void publish_prefix(runtime::Runtime&,const PrefixHandle&);
++ void cancel_prefix(runtime::Runtime&,const PrefixHandle&);
+ private:
++ std::shared_ptr<prefix_r124::Epoch>prefix_epoch_=std::make_shared<prefix_r124::Epoch>();PrefixHandle prefix_pending_;
+  runtime::Runtime*owner_;size_t rows_,capacity_,vocab_;bool ready_=false,poisoned_=false;
+  runtime::Tensor embedding_;
+  std::vector<size_t>lengths_;
+--- a/deepseek_v4_swa_attention.cpp
++++ b/deepseek_v4_swa_attention.cpp
+@@ -2,6 +2,7 @@
+ #include "deepseek_v4_swa_attention.hpp"
+ #include "deepseek_v4_latent_attention.hpp"
+ #include "execution/submit.hpp"
++#include "deep_prefix_native_r124.hpp"
+ #include <algorithm>
+ #include <numeric>
+ #include <set>
+@@ -37,7 +38,7 @@
+  inner_profile.mark(2);auto attention=latent_attention(r,prep.query,bank,unused,sink_,si,compressed_indices,lens);work.held.push_back(attention);inner_profile.mark(3);auto inverse=prepare_->inverse_output_rope(r,attention,positions);work.held.push_back(inverse);inner_profile.mark(4);auto projected=output_->forward(r,inverse);work.held.insert(work.held.end(),{projected.grouped,projected.local,projected.hidden});inner_profile.mark(5);
+  // Commit only the last window from each request after all queries consumed
+  // the old window. A long prefill must not overwrite keys needed by its start.
+- auto commit=work.alloc({commit_rows.size(),512},rt::DataType::kBFloat16);ex::submit<infini::ops::IndexSelect>(r,infini::ops::IndexSelect::DefaultConfig(r.device().type()),prep.kv,device_ids(commit_rows),int64_t{0},commit);cache_->store(r,device_ids(commit_slots),commit);for(auto request:requests)lengths_[request.row]=request.past+request.tokens;inner_profile.mark(6);r.syncStream();inner_profile.finish_after_original_drain();return projected.hidden;
++ auto commit=work.alloc({commit_rows.size(),512},rt::DataType::kBFloat16);ex::submit<infini::ops::IndexSelect>(r,infini::ops::IndexSelect::DefaultConfig(r.device().type()),prep.kv,device_ids(commit_rows),int64_t{0},commit);if(prefix_r124::active){std::vector<prefix_r124::Row>prefix_rows;for(auto q:requests)prefix_rows.push_back({q.row,q.past,q.tokens});PrefixNativeR124::stage_swa(r,*this,prep.kv,prefix_rows);}else{cache_->store(r,device_ids(commit_slots),commit);for(auto request:requests)lengths_[request.row]=request.past+request.tokens;}inner_profile.mark(6);r.syncStream();inner_profile.finish_after_original_drain();return projected.hidden;
+ }
+ }
+ 
+--- a/deepseek_v4_swa_attention.hpp
++++ b/deepseek_v4_swa_attention.hpp
+@@ -1,4 +1,5 @@
+ #pragma once
++#include "deep_prefix_cache_types_r124.hpp"
+ #include "deepseek_v4_attention_prepare.hpp"
+ #include "deepseek_v4_attention_output.hpp"
+ #include "deepseek_v4_paged_latent_cache.hpp"
+@@ -12,6 +13,7 @@
+  void reset(runtime::Runtime&);
+  const runtime::Tensor&raw_cache()const{return cache_->raw();}
+ private:
++ friend class PrefixNativeR124;
+  runtime::Runtime*owner_;size_t rows_,window_,maximum_;bool ready_=false;
+  std::shared_ptr<AttentionPrepare>prepare_;std::shared_ptr<AttentionOutput>output_;std::unique_ptr<PagedLatentCache>cache_;runtime::Tensor sink_;std::vector<size_t>lengths_;
+ };
+--- a/deepseek_v4_temporal_compressor.hpp
++++ b/deepseek_v4_temporal_compressor.hpp
+@@ -1,4 +1,5 @@
+ #pragma once
++#include "deep_prefix_cache_types_r124.hpp"
+ #include "weights/weights.hpp"
+ #include "layers/normalization/rmsnorm.hpp"
+ #include "deepseek_v4_paged_latent_cache.hpp"
+@@ -14,6 +15,7 @@
+         runtime::Tensor score, pooled, rotated;
+         std::vector<int64_t> boundaries, slots;
+     private:
++ friend class PrefixNativeR124;
+         friend class TemporalCompressor;
+         runtime::Tensor next_state;
+         std::vector<Request> requests;
+@@ -38,6 +40,7 @@
+     size_t dim() const { return dim_; }
+     size_t ratio() const { return ratio_; }
+ private:
++ friend class PrefixNativeR124;
+     Batch prepare_impl(runtime::Runtime &, const runtime::Tensor &, const runtime::Tensor &,
+                        const std::vector<Request> &, bool postprocess) const;
+     void check_owner(runtime::Runtime &) const;

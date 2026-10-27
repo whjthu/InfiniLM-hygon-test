@@ -1,0 +1,16 @@
+--- actual-private3-1d50.cpp
++++ private3-r125.cpp
+@@ -208,3 +208,13 @@
+ extern "C" const char*modern_glm_window_read_r5795(void*raw){try{auto*c=static_cast<Context*>(raw);if(!c||!c->ready)throw std::invalid_argument("5795 read context");return glm_window_r5795::read_after_CAPI(*c->owner);}catch(const std::exception&e){error=e.what();return nullptr;}}
+ 
+ extern "C" int modern_glm_window_prepare_r5797(void*raw){try{auto*c=static_cast<Context*>(raw);if(!c||!c->ready)throw std::invalid_argument("5797 prepare context");c->owner->assertOwnerThread();if(model::decode_leases_r1354::active(*c->owner)||!c->module->all_sequences_empty(*c->owner))throw std::invalid_argument("5797 prepare EMPTY/drained only");glm_window_r5795::prepare(*c->owner);return 0;}catch(const std::exception&e){error=e.what();return 1;}}
++
++// r125 appends one reset/idle/lease-guarded policy API; Context/layout is unchanged.
++#include "glm_m15_oproj_policy_r125.hpp"
++extern "C" int modern_glm_model_m15_oproj_policy_r125(void*raw,int enabled){
++ auto*c=static_cast<Context*>(raw);bool owned=false;
++ try{if(!c||!c->ready||(enabled!=0&&enabled!=1))throw std::invalid_argument("r125 policy context/value");auto&r=*c->owner;r.assertOwnerThread();owned=true;
++  if(r.isGraphRecording()||model::decode_leases_r1354::active(r)||!c->module->all_sequences_empty(r))throw std::logic_error("r125 policy requires reset/idle/empty rows");
++  r.syncStream();model::glm_m15_oproj_policy_r125(r,enabled!=0);return 0;
++ }catch(const std::exception&e){error=e.what();if(c&&owned)drain(c);return 1;}
++}
