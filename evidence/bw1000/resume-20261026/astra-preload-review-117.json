@@ -1,0 +1,108 @@
+{
+  "schema": 1,
+  "review": "astra-preload-review-117",
+  "review_date_local": "2026-10-27",
+  "scope": "Read-only source/metadata review of GLM M15 r129/r129b and Kimi ctx2048 r127; no SSH, Git, upload, Slurm, runtime import, compilation, model load or GPU execution performed by reviewer.",
+  "disposition": "NO_NEW_PRELOAD_BLOCKER_IDENTIFIED_IN_REVIEWED_SOURCE; ROOT_LAUNCH_DECISION_REQUIRED; NOT_MODEL_PERFORMANCE_GO",
+  "GPU_Model_performance": "UNKNOWN",
+  "immediate_unresolved_blockers": [],
+  "verified_inputs": {
+    "GLM_corrected_root": "C:/Users/WangHaojie/.codex/visualizations/2026/10/12/01a130bd-3b97-73c2-8ecf-eda5151f1ba7/glm-m15-model-entry-r129b",
+    "GLM_corrected_manifest_SHA256": "b2045541a6a75a6820860d7708f387a86cee5734e4846b18f248888bd4cfaa05",
+    "GLM_staged_source_entries": 20,
+    "GLM_staged_source_hash_mismatches": [],
+    "GLM_r129_to_r129b_changed_staged_source": ["GPU_inside_r129.sh"],
+    "Kimi_root": "C:/Users/WangHaojie/Documents/ChatGPT/海光集群/Kimi-ctx2k-Model-controller-private-r127",
+    "Kimi_stage_manifest_SHA256": "e250c20b74c3eb0b9ac05dd2d4bff6e4ed3eb7072b26e5e7cd19d052c078c2cf",
+    "Kimi_runtime_manifest_SHA256": "ce2ab50fc5d37989f8131c03230eba38c00752fde33bc428480057c0ff104d45",
+    "Kimi_staged_source_entries": 71,
+    "Kimi_staged_source_hash_mismatches": [],
+    "Kimi_actual_CPU449_receipt_SHA256": "fd7b8b5bfa2c61ff1ddccb23defac844d83e8afa20711cf9b02321c9ea3b9fdf",
+    "Kimi_actual_native_SHA256": "e95570aa683c089972a846faf134f6afe525887476ea85f6c96bd0d68361cb90",
+    "Kimi_CPU449_native_source_hash_mismatches_against_r123e": [],
+    "Kimi_native_source_root": "C:/Users/WangHaojie/Documents/ChatGPT/海光集群/Kimi-ctx2048-CPU-stagefix-private-r123e/native"
+  },
+  "fixed_before_launch": [
+    {
+      "id": "R117-CRLF",
+      "priority": "P1",
+      "path": "glm-m15-model-entry-r129/GPU_inside_r129.sh",
+      "line": 2,
+      "finding": "Original Bash source had CRLF; root's stage gate blocked it before remote execution. Root produced immutable r129b with LF.",
+      "verification": "Corrected manifest and all 20 listed file hashes checked; only shell staged source changed from r129. No claim of remote execution verification."
+    }
+  ],
+  "required_before_optimization_claim": [
+    {
+      "id": "R117-M15-COVERAGE",
+      "priority": "P1",
+      "path": "glm-m15-model-entry-r129b/audit_r129.py",
+      "line": 19,
+      "related": ["glm_arrival_probe_r129.py:75", "audit_r129.py:38"],
+      "finding": "All M15 branch equalities also pass when eligible == selected == runs == 0. Natural EOS workload can in principle omit T15, yet audit qualified becomes true.",
+      "required_action": "Before claiming M15 effectiveness, require nonzero measured-arm eligible calls on all 16 owners, selected/runs > 0 in ON and off_fallback > 0 in OFF; keep qualification of lifecycle separate from optimization coverage. A read-only result gate is sufficient for this frozen run.",
+      "blocks_cold_load": false
+    },
+    {
+      "id": "R117-KIMI-COVERAGE",
+      "priority": "P2",
+      "path": "Kimi-ctx2k-Model-controller-private-r127/launcher/model_audit.py",
+      "line": 28,
+      "related": ["runtime/target_protocol.py:57", "runtime/target_protocol.py:103", "queue/q9999.json"],
+      "finding": "Missing expected cases are accepted by any truthy resident_stop, including normal q9999 stop after a command was rejected; passed is lifecycle-only and does not establish all 18 cases or complete paired quality coverage.",
+      "required_action": "Result consumer must inspect initial18_complete, unexecuted_planned_case_ids, command_rejections, screen_gate and pending_budget; do not promote keeper passed to full benchmark success. Future audit should whitelist quality/budget early-stop reasons and reject unexpected missing cases.",
+      "blocks_cold_load": false
+    }
+  ],
+  "later_improvements": [
+    {
+      "id": "R117-MANIFEST-MATRIX",
+      "priority": "P3",
+      "path": "Kimi-ctx2k-Model-controller-private-r127/runtime/model-manifest-r9183.json",
+      "line": 160,
+      "finding": "matrix.planned_case_count remains 10 while actual frozen queue and launcher correctly require 18 (2 warm + 8 C2 observer + 8 MMLU).",
+      "action": "Correct this descriptive metadata in a future immutable revision; report the queue-derived 18 in this run."
+    },
+    {
+      "id": "R117-GLM-STALE-SCOPE",
+      "priority": "P3",
+      "path": "glm-m15-model-entry-r129b/audit_r129.py",
+      "line": 4,
+      "finding": "Result scope still describes a549 parent unchanged math except row2 and omits the actual M15 treatment. Correct actual provider checks exist lower in the audit.",
+      "action": "Use explicit M15 OFF/ON/ON/OFF with row2 fixed ON in published summaries; clean stale scope strings next revision."
+    },
+    {
+      "id": "R117-GLM-HEARTBEAT",
+      "priority": "P2",
+      "path": "glm-m15-model-entry-r129b/glm_arrival_probe_r129.py",
+      "line": 67,
+      "related": ["controller_r129.py:48"],
+      "finding": "Non-warm progress is emitted only every 16 commands, but controller treats age > 61 seconds as a stalled operation. Sixteen successful slow calls could trigger a false stall cancellation.",
+      "action": "On this run distinguish stale batched heartbeat from proven native deadlock. In a future immutable revision report progress at each returned call or separate individual-call start/deadline from episode heartbeat.",
+      "trigger_observed": false
+    }
+  ],
+  "reviewed_invariants": [
+    {"path":"Kimi-ctx2k-Model-controller-private-r127/runtime/target_model.py","lines":[45,51,52,54,55,56,66,72],"result":"Manifest-bound DSO via native_binding, actual symbol providers, actual PP ranges 0:46/46:93, actual geometry and key coverage checked before weight IO; finally closes sampler and destroys native workers."},
+    {"path":"Kimi-ctx2k-Model-controller-private-r127/runtime/native_binding_r9143.py","lines":[9,12,15,16],"result":"New create_ctx2048 symbol typed as pointer return; engine/batch provider dladdr checks and exact loaded-library hashes retained."},
+    {"path":"Kimi-ctx2048-CPU-stagefix-private-r123e/native/pair_probe.cpp","lines":[55,90,282,283,300],"result":"Explicit ctx2048 env gate; TP16 PP2 logical8 only; physical16, pages8x16+4=132, max_total_tokens2048; batch reset preserves actual context instead of reverting to 1024."},
+    {"path":"Kimi-ctx2048-CPU-stagefix-private-r123e/native/kimi_compact_allocate_r4974.cpp","lines":[46,64,74,76,88],"result":"KDA pool derives request capacity+1=17 independently of eight MLA pages/request; owner assertion and sync before publication; failed allocation drains retained backing before unwind."},
+    {"path":"Kimi-ctx2048-CPU-stagefix-private-r123e/native/worker.cpp","lines":[1150,1166,1238],"result":"Owner reset and thread shutdown clear batch/state captures and synchronize before releasing cache/state vectors."},
+    {"path":"Kimi-ctx2k-Model-controller-private-r127/runtime/parameter_loader_r9143.py","lines":[19,23,27,28,32,34],"result":"CPU safe_open, original A_log trim, contiguous no-clone buffers retained through synchronous native load; bounded 2GiB flush and finish maintained."},
+    {"path":"Kimi-ctx2k-Model-controller-private-r127/runtime/target_protocol.py","lines":[46,47,55,88],"result":"Observer defaults false per command; cap<=1024 and prompt+cap<=2048 without truncation; fixed first8 matched quality screen. Queue verified as 18 cases; no tokenidentity quality requirement."},
+    {"path":"Kimi-ctx2k-Model-controller-private-r127/launcher/model_keeper.py","lines":[4,23,35,48,82,125],"result":"Nonce kept in process memory/export only; spawn does not persist raw argv. Observed timeout paths use accounting/idle/preflight commands without nonce; cleanup signals exact recorded handles. Normal draft handshake contains no nonce echo."},
+    {"path":"glm-m15-model-entry-r129b/model_entry_r129.py","lines":[210,213,214,215,217,238],"result":"17-stat ABI, initial all-zero/defaultOFF, invalid count sentinel and wrong-thread no-mutation checks; postdestroy active bytes zero and created==destroyed enforced."},
+    {"path":"glm-m15-oproj-model-r125/glm_fp8_runtime_oproj_r125.cpp","lines":[56,59,61,64,83,91,93,95,99],"result":"Only exact M15 o_proj geometry selects private path; false policy falls back; successful runs counted; owner-local handle cleared after drain before module destruction."},
+    {"path":"glm-m15-model-entry-r129b/glm_arrival_probe_r129.py","lines":[56,64,76,91,97],"result":"Same-load T16 nonselection control, row2 fixed ON in both arms, M15 branch counters, ABBA quality and final reset/OFF preserved."}
+  ],
+  "next_most_valuable_optimization": [
+    {"model":"GLM","action":"First calculate actual T15 frequency and share of native wall time from this frozen model run. Compare paired end-to-end request/quality metrics and per-owner cache hit/miss/eviction counts. If coverage is sparse or eviction dominates, prioritize frequently occurring decode shapes/cache reuse instead of projecting the 4.47-4.50x component speedup onto the model.","source":"glm_arrival_probe_r129.py:58,75,77"},
+    {"model":"Kimi","action":"Use the frozen C2 observer OFF/ON pairs to quantify observer cost, then local interval unions for native verify/replay, draft RPC and memory/control overhead. Optimize the largest measured component only after MMLU quality/EOS and cap counts are inspected; nested spans are not additive and are not GPU busy measurements.","source":"runtime/phase_observer_r126.py:47; runtime/batch_cohort_r9128.py:50"}
+  ],
+  "limitations": [
+    "Focused source review, not exhaustive proof of every inherited remote helper or linked binary. Hash-consistent source is not proof of runtime ABI/capacity/performance.",
+    "No current model throughput, quality, physical memory peak, network execution or normal GPU cleanup was measured by this review.",
+    "Inspected changes introduce no GPU F64 operation; CPU double precision timing/NumPy statistics are not GPU F64. This is not a disassembly audit of all inherited binaries.",
+    "Third model and protected 910384 are outside this review scope."
+  ]
+}
