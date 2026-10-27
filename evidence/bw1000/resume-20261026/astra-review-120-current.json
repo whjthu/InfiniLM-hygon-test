@@ -1,0 +1,276 @@
+{
+  "schema": 1,
+  "review": 120,
+  "created_UTC": "2026-10-27T05:09:05.104Z",
+  "status": "COMPLETE_READONLY_ROOT_FIXES_ADOPTED_PENDING_VALIDATION",
+  "prior_review": 119,
+  "scope": {
+    "local_read": true,
+    "report_write_only": true,
+    "Git": false,
+    "SSH": false,
+    "GPU": false,
+    "compile": false,
+    "source_edits": false
+  },
+  "priority": "Three real models HTTP/SSE/tools P0 first; small Qwen not prerequisite; original performance goals remain open",
+  "root_disposition_received": "Root assigns GLM common bridge owner deadline/abort reason/explicit HTTP504 fix synchronized to all3; Kimi pre-SSE+queue output<=512; all GPU services not started, fix beforeGPU",
+  "events": [
+    {
+      "handle": "910376.767",
+      "type": "qualified_fullmodel_diagnostic_not_speedup",
+      "state": "COMPLETED",
+      "owners": 16,
+      "natural_selectors": 128,
+      "controls_task": [
+        13.170224,
+        13.243602,
+        13.197909
+      ],
+      "controls_decode": [
+        22.716397,
+        22.710468,
+        22.606088
+      ],
+      "correct": [
+        31,
+        31,
+        31
+      ],
+      "questions_per_episode": 32,
+      "EOS": 32,
+      "cap": 0,
+      "unfinished": 0,
+      "decision": "G119A_DONE_G119B_STOP_NO_ACTIONABLE_GE10PCT_INTERVAL"
+    },
+    {
+      "handle": "910375.767",
+      "type": "constructor_GPU_qualification",
+      "state": "COMPLETED",
+      "normal_owners": 32,
+      "GPU_seconds": 46,
+      "keeper_seconds": 56,
+      "full93_weights": false,
+      "full93_forward": false,
+      "decision": "FULL93_UNKNOWN_STOP"
+    },
+    {
+      "handle": "910379.487",
+      "type": "component_reclaim_cost_diagnostic",
+      "state": "COMPLETED",
+      "normal_owners": 16,
+      "post_empty": true,
+      "native_reclaim_MiB": 814,
+      "driver_after_gain_MiB": 784,
+      "sampled_lowwater_changed": false,
+      "warm_OFF_ms": 6.3,
+      "ON_ms": [
+        18.8,
+        28.8
+      ],
+      "OFF_after_ON_ms": 19.6,
+      "carryover": true,
+      "actual478_activation": false,
+      "decision": "DEFAULT_OFF_NO_ALL93_PROMOTION_ENTRY142_UNREADY"
+    },
+    {
+      "handle": "910374.1138",
+      "type": "state_diagnostics_not_model_quality",
+      "state": "GPU_COMPLETED_KEEPER469_FAILED_AUDIT",
+      "GPU_seconds": 563,
+      "all_state_cases_passed": true,
+      "diagnostic_controls_complete": true,
+      "normal_owners": 8,
+      "post_empty": true,
+      "numerical_quality": "UNRESOLVED_REVIEW_CONTROLS",
+      "model_quality": "UNQUALIFIED",
+      "MTP_head": false,
+      "decision": "FIX_KEEPER_FIELD_AUDIT_ZERO_GPU_RETAIN_FAILURE"
+    }
+  ],
+  "new_qualified_Model_speedup_results": 0,
+  "findings": [
+    {
+      "id": "R120-1",
+      "priority": 1,
+      "status": "CONFIRMED_SOURCE_BUG_ROOT_ADOPTED_FIX",
+      "scope": "Kimi input qualification",
+      "locations": [
+        "runtime/native_engine_bridge_r143.py:validate_data/add_chat_request",
+        "runtime/target_protocol.py:cap assertion before request try/finally",
+        "runtime/native_ar_decode_r144b.py:generate"
+      ],
+      "trigger": "Short prompt max_tokens=513,total<=1024 accepted by HTTP but worker assertscap<=512 on4nodes",
+      "impact": "Invalid API request terminates resident workers instead ofHTTP400",
+      "fix": "Model-specific max_new_tokens512 in shared pre-SSE+enqueue validator; retain native assert; never truncate",
+      "validation": "CPU boundary513reject/512accept when completecontextfits; prompt512+out512; actual P0 later",
+      "cost_target_minutes": 15,
+      "Native_recompile": false
+    },
+    {
+      "id": "R120-2",
+      "priority": 1,
+      "status": "CONFIRMED_SOURCE_BUG_ROOT_ADOPTED_FIX",
+      "scope": "All3 identical commonbridge timeout",
+      "bridge_SHA256": "d3bc490474e767564d0b77ccdc5b39f4d2776c48574de4493666901b61fd0b58",
+      "locations": [
+        "native_engine_bridge_r143b.py:stream_request",
+        "overlay/python/infinilm/server/inference_server.py:_chat"
+      ],
+      "trigger": "Timeout marks abortTIMEOUT then finally overridesCANCELED; request finish_reason stillNone; nonstream _chat defaultsNone tostop",
+      "impact": "HTTP200 empty normalstop can misreport timeout; absolute requesttimeout also ignored while progresscontinuous",
+      "fix": "Absolute deadline everyloop; preservefirstTIMEOUT/ERROR; explicit HTTP504 nonstream; no premature req.finish beforeownerreset",
+      "validation": "CPU continuousprogress deadline/no-progress timeout/resetack/recovery; then actual Native P0",
+      "Native_recompile": false
+    },
+    {
+      "id": "R120-3",
+      "priority": 2,
+      "status": "NONBLOCKING_SCOPE_LIMIT",
+      "scope": "max_pending",
+      "trigger": "streamfinally removesrequests while cancelednative/pending work remains",
+      "impact": "Not strictNativequeue bound",
+      "decision": "SerialP0 only; defer overload/concurrency claim, no new schedulerwork"
+    }
+  ],
+  "static_review": {
+    "second_model_creation": "No explicit secondmodel creation found; existing_server_app injectsengine and customlifespan, never calls original_create_app",
+    "processor_duck": "Routes need add_chat_request/stream_request/is_healthy/requestprompt/usage, allpresent; no need instantiate originalprocessor",
+    "normal_lifecycle": {
+      "GLM": "originalcaller forward;finally sync/reset/worldbarrier thenfinish",
+      "Kimi": "original4node Native commands;finallyreset+collect thenfinish",
+      "Deep": "originalac937 loader/forwardAST/finallydestroy;reset thenfinish;resetfailure fatal"
+    },
+    "error_lifecycle": "No successfinish on resetfailure; final qualification requires actual reset/shutdown evidence",
+    "preweight": {
+      "Kimi": "bind->maps->realserverapp->maps->4nodebarrier->create/load",
+      "Deep": "exactac937 CDLL+dladdr7CAPI->realserverimport->requiredDSOmaps->originalloader",
+      "GLM": "realserveroverlay precreate;actualSDK/Commonmaps beforeweights but partly afterconstructor; not claimallprovidercheckedpreconstructor"
+    },
+    "Core_substitution": "Not authorized; failing binding stops with exactevidence, no stackreplacement",
+    "startup_blockers": "No further confirmed blockers beyondR120-1/R120-2 in selectedfrozen source; actualGPUimports stillrequired"
+  },
+  "P0_cards": [
+    {
+      "id": "K120-P0",
+      "owner": "Kimi service owner",
+      "resources": "parent910380 fournodes32cards no draft",
+      "Native_SHA256": "3057262312679f86bcdb181ce198b9b1f1d2fccc59fc204b4adbc197132b60dd",
+      "context": 1024,
+      "prompt_max": 512,
+      "output_max": 512,
+      "default_output": 128,
+      "logical_capacity": 8,
+      "sequence": "fixR120-1/2->preweight->one actualordinarybaseline->existingHTTP/SSEtoolsclient->reset/shutdown",
+      "queue": "UNKNOWN",
+      "load": "UNKNOWN",
+      "ready_to_baseline_budget_minutes": 3,
+      "exit": "baseline invalid/stateerror stops tools; actualcontextoverflowHTTP400 no truncation"
+    },
+    {
+      "id": "G120-P0",
+      "owner": "GLM service owner",
+      "resources": "parent910376 two nodes16cards",
+      "Native_SHA256_prefix": "ce830c4d",
+      "context": 640,
+      "rows": 32,
+      "sequence": "sharedbridgefix->existingCPU470->GPUpreweight->ordinarybaseline->existingP0client",
+      "queue": "UNKNOWN",
+      "load": "UNKNOWN",
+      "ready_to_baseline_budget_minutes": 3,
+      "exit": "completehistory>640 reject and reportworkflowcapacityfailure; no mathpatch"
+    },
+    {
+      "id": "D120-P0",
+      "owner": "Deep service owner",
+      "resources": "parent910374 one node8cards",
+      "Native_SHA256": "ac9370c8f188bfda8555718c52690b914883fc6b02b9267cbd279be3ecdd3835",
+      "context": 1024,
+      "rows": 128,
+      "sequence": "minimal143b lddenvironmentfix->sharedbridgefix->GPUpreweight->originalARbaseline->existingP0client",
+      "CPU_fix_target_minutes": 15,
+      "queue": "UNKNOWN",
+      "load": "UNKNOWN",
+      "ready_to_baseline_budget_minutes": 3,
+      "exit": "ordinarybaseline invalid/nonfinite/statefailure stop; prefix1138notP0proof"
+    }
+  ],
+  "acceptance": {
+    "requires_real_Model": true,
+    "requires_real_HTTP_SSE": true,
+    "requires_real_tool_outputs_and_ID_history": true,
+    "workflow": "read input->calculate->write result->read result->final randomnonce andsum; HTTP andSSE each; auto/required separate",
+    "invalid_schema_history_truncation": "No partialtool execution; originalnegativeclient and recovery",
+    "small_baseline_quality": "Basic plausibility only, not formalGSM/MMLU noninferiority",
+    "CPUfake_or_vocab_or83protocolcases": "Not Native/P0qualification",
+    "Kimi_simulated_counts": [
+      211,
+      301,
+      392,
+      497,
+      438
+    ],
+    "simulated_counts_limitation": "Actualgeneratedhistory canbelonger; encodecomplete and rejectoverflow",
+    "same_token_required": false,
+    "GPU_F64": false,
+    "SSE": {
+      "all3_buffered": true,
+      "first_role_packet_not_first_content": true,
+      "client_reads_full_response": true,
+      "qualification": "protocolonly",
+      "incremental_TTFT": "UNQUALIFIED",
+      "ITL": "UNQUALIFIED",
+      "per_user_decode_TPS": "UNQUALIFIED",
+      "internal_token_clock": "diagnostic only",
+      "end_to_end_wall": "May report measured full requestwall"
+    }
+  },
+  "decisions": {
+    "ADOPT": [
+      "real3modelP0 first",
+      "R120-1/2 minimalfix beforeGPU",
+      "Deep469 keeperaudit fix zeroGPU",
+      "originalNative/provider/lifecycle reuse",
+      "one realordinarybaseline then existingclient perload"
+    ],
+    "STOP": [
+      "G119B newprofile withoutcandidate",
+      "pool93layer defaulttrim or814MiB multiplication",
+      "TP32full93 claims",
+      "CPUfake/vocab83case=>realP0",
+      "bufferedSSE=>incrementalmetrics",
+      "timeoutasnormalstop",
+      "Core replacement or secondmodel"
+    ],
+    "DEFER": [
+      "Qwen139",
+      "KimiC8profile136b",
+      "dynamicW/quantization",
+      "entryshape142",
+      "Deep prefixquality/MTPperformance",
+      "incremental andconcurrentSLO"
+    ]
+  },
+  "resources": {
+    "total_cards": 56,
+    "nodes": 7,
+    "fresh_KFD_evidence": "agent-resources-root-r9376.json",
+    "snapshot_not_permanent_availability": true,
+    "services_started_at_root_update": false
+  },
+  "hardware": {
+    "physical_exactSKU_peak": "UNKNOWN",
+    "measured717TOPS_is_physical_limit": false
+  },
+  "sources": [
+    "new-wave-state-root-r9374-a.json",
+    "P0-count-Deep-root-r9378-a.json",
+    "capacity-state-root-r9368-a.json",
+    "agent-resources-root-r9376.json",
+    "glm-critical-retained-export-r137c/G119A-all16-final-r137c.md",
+    "glm-agent-service-p0-r143/producer-source-r143.json",
+    "Kimi-agent-service-Model-private-r144b/service-source-manifest-r144b.json",
+    "deep-agent-service-p0-r143/source-manifest-r143.json"
+  ],
+  "report": "astra-review-120-current.md"
+}

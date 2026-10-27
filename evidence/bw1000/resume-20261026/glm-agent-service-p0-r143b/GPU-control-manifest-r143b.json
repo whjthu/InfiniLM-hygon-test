@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "status": "SOURCE_READY_WAIT_STATIC_CPU_RECEIPT_PUBLISHED_COMMIT_AND_ROOT_GO",
+  "CPU_source_manifest_SHA256": "37ab9928231887797db4e3e774a81679fc9e02e5e2b83d05b5e7d923fd85e59b",
+  "source_SHA256": {
+    "controller_r143b.py": "e41cb32a450dc512e85168bef65020ceb997d2b0e0b1477cb3da908c54e1a1c3",
+    "launch_CPU_keeper_r143b.py": "a7e262da64d193082d00b6382f94e81e38d1e4458d32994dd7850560187c243c",
+    "launch_CPU_prepare_r143b.py": "de2b54a32cc89cddea6325d7b5ad6cc9338f662c7961462da465fa14f9be11c3"
+  },
+  "resource": {
+    "GPU_parent": "910376",
+    "GPU_nodes": [
+      "a02r4n12",
+      "a02r4n13"
+    ],
+    "cards": 16,
+    "CPU_per_GPU_node": 64,
+    "memory_MiB_per_node": 128000,
+    "GPU_seconds": 9000,
+    "CPU_keeper_parent": "910407",
+    "CPU_keeper_node": "a14r2n20",
+    "CPU_keeper_CPUs": 1,
+    "CPU_keeper_memory_MiB": 2048,
+    "CPU_keeper_seconds": 9900
+  },
+  "baseline": {
+    "model_path": "/old/models/ZhipuAI-GLM-5.3",
+    "Native_DSO_SHA256": "ce830c4d77fe193e4a6e82597aa4fb5b50019c82edce542eb6d61217a238bf68",
+    "TP": 8,
+    "PP": 2,
+    "rows": 32,
+    "context": 640
+  },
+  "qualification": {
+    "actual_CPU_static": false,
+    "actual_GPU": false,
+    "actual_HTTP": false,
+    "actual_tool_closed_loop": false
+  },
+  "P0": "Original7ceb HTTP/SSE routes plus two scoped timeout branches; common C; static private Python overlay; resident exact original Native. No prefilled output, no Native compile, no performance optimization.",
+  "ready_artifact": "results/GLM-agent-service-r143b-ready-<run>.json",
+  "client": "CPU-only Slurmstep on a02r4n13 against http://127.0.0.1:43843; shared-agent-p0-client-r143b/client_p0_r143b.py",
+  "normal_stop": "After client finishes, root writes control/GLM-agent-service-r143b-stop-<run>.json; never hot-edit worker",
+  "CPU_contract": "shared-agent-bridge-c-r145 actual HTTP route CPU contract required before root GO (GPU imports stubbed; not model qualification)"
+}

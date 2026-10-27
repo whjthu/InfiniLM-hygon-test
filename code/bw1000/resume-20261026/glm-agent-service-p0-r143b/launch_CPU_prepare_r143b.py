@@ -1,0 +1,10 @@
+"""Root invokes only after necessary source staging; no GPU is requested."""
+import pathlib,json,hashlib,subprocess,os,datetime
+R=pathlib.Path('/public/home/aclsylqidf/hygon-inference-refactor-20261014');D=R/'incoming/GLM-agent-service-r143b';sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest();assert sha(D/'source-manifest-r143b.json')=='37ab9928231887797db4e3e774a81679fc9e02e5e2b83d05b5e7d923fd85e59b';m=json.loads((D/'source-manifest-r143b.json').read_bytes())
+for n,h in m['source_SHA256'].items():assert sha(D/n)==h,n
+record=R/'results/GLM-agent-service-r143b-CPU-launch.json';assert not record.exists()and not(R/'candidates/GLM-agent-service-r143b').exists()
+env={k:v for k,v in os.environ.items()if not k.startswith(('SLURM_','PMI_','PMIX_','OMPI_','MV2_','CUDA_','HIP_','ROCR_','GPU_'))};outer=R/'incoming/resource_wave_local_r3097_outer.sh';assert sha(outer)=='d3ce6c3196d5728a5f97d459d070fb7720df76d25cadc6be8af0dbb6eca75dce'
+a=['srun','--jobid=910407','--overlap','--exact','--immediate=30','--cpu-bind=none','-N1','-n1','-c1','-w','a14r2n20','--gres=none','--mem=8192M','-t','00:10:00','--job-name=GLM-agent-service-CPU-r143b','--output='+str(R/'logs/GLM-agent-service-CPU-r143b-%J.log'),'env','WAVE_INSIDE_R2323=GLM-agent-service-r143b/CPU_inside_r143b.sh','bash',str(outer),'probe'];q={'CPU_only':True,'GPU_requested':False,'UTC':datetime.datetime.now(datetime.timezone.utc).isoformat(),'source_manifest_SHA256':sha(D/'source-manifest-r143b.json'),'args':a}
+with record.open('x')as f:json.dump(q,f,indent=2)
+with(R/'logs/GLM-agent-service-CPU-r143b-client.log').open('x')as f:p=subprocess.Popen(a,env=env,stdin=subprocess.DEVNULL,stdout=f,stderr=subprocess.STDOUT,start_new_session=True)
+q['client_PID']=p.pid;record.write_text(json.dumps(q,indent=2));print(json.dumps(q))
