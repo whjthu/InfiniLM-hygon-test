@@ -1,0 +1,244 @@
+{
+  "schema": 1,
+  "review": 118,
+  "UTC": "2026-10-27T01:52:33.4217930Z",
+  "status": "COMPLETE_LOCAL_SOURCE_AND_RESULTS_REVIEW",
+  "report": "astra-review-118-current.md",
+  "report_SHA256": "21630bcec730d699e32384fb382ceb2210039f4abcca6355008440149123d45f",
+  "reviewed_rounds": [
+    "910376.761",
+    "910375.764",
+    "910376.764"
+  ],
+  "review117": "ADVISORY_SOURCE_ONLY_ZERO_ROUNDS",
+  "additional_failed_diagnostic": [
+    "910379.478",
+    "910371.589"
+  ],
+  "new_qualified_Kimi_waves": 0,
+  "decision": "GLM_M15_DEFAULT_OFF_STOP_REPEAT;KIMI_CAPACITY_FAILURE_FIRST_THEN_VERIFY_CRITICAL_PATH;TP32_FULL93_STOP;DEEP_NATIVE_QUALIFICATION_ONLY",
+  "Kimi_terminal": {
+    "target": "910379.478 FAILED1",
+    "draft": "910371.589 COMPLETED0",
+    "keeper": "910406.278 FAILED1",
+    "post_KFD_passed": true,
+    "completed_cases": 12,
+    "cause": "4GiB allowner reserve unchanged assertion after next MMLU prefill",
+    "quality_screen_stop": false,
+    "first8_MMLU_each_arm": {
+      "cap": 1,
+      "EOS": 7,
+      "correct": 6
+    },
+    "remaining24_quality": "UNKNOWN",
+    "no_automatic_relaunch": true
+  },
+  "Kimi_C2_phases": [
+    {
+      "label": "r126-C2-g0-observer1",
+      "recorded_cycle_wall_s": 12.655985936988145,
+      "verify_CAPI_s": 11.085969202686101,
+      "verify_fraction": 0.8759467067900619,
+      "recorded_cycles": 32,
+      "actual_T16_cycles": 24,
+      "emitter_replay_s": 0.6193266450427473,
+      "guard_s": 0.07046104222536087,
+      "prefill_overlap_s": [
+        2.1121258083730936,
+        0.012264873832464218
+      ],
+      "scope": "FAILED_RUN_RETAINED_LOCAL_DIAGNOSTIC_NOT_MODEL_QUALIFICATION"
+    },
+    {
+      "label": "r126-C2-g1-observer1",
+      "recorded_cycle_wall_s": 9.320653214119375,
+      "verify_CAPI_s": 8.315473344177008,
+      "verify_fraction": 0.8921556411497349,
+      "recorded_cycles": 23,
+      "actual_T16_cycles": 23,
+      "emitter_replay_s": 0.31223841942846775,
+      "guard_s": 0.052548912819474936,
+      "prefill_overlap_s": [
+        2.1239388305693865,
+        0.010730820707976818
+      ],
+      "scope": "FAILED_RUN_RETAINED_LOCAL_DIAGNOSTIC_NOT_MODEL_QUALIFICATION"
+    },
+    {
+      "label": "r126-C2-g2-observer1",
+      "recorded_cycle_wall_s": 11.349872505292296,
+      "verify_CAPI_s": 10.137189865577966,
+      "verify_fraction": 0.8931545143657894,
+      "recorded_cycles": 31,
+      "actual_T16_cycles": 16,
+      "emitter_replay_s": 0.3066641567274928,
+      "guard_s": 0.06671900535002351,
+      "prefill_overlap_s": [
+        1.9958177311345935,
+        0.008864616975188255
+      ],
+      "scope": "FAILED_RUN_RETAINED_LOCAL_DIAGNOSTIC_NOT_MODEL_QUALIFICATION"
+    },
+    {
+      "label": "r126-C2-g3-observer1",
+      "recorded_cycle_wall_s": 6.672796378377825,
+      "verify_CAPI_s": 5.962079822551459,
+      "verify_fraction": 0.8934904475536921,
+      "recorded_cycles": 17,
+      "actual_T16_cycles": 14,
+      "emitter_replay_s": 0.20824057701975107,
+      "guard_s": 0.04118288727477193,
+      "prefill_overlap_s": [
+        2.196768583729863,
+        0.01078815059736371
+      ],
+      "scope": "FAILED_RUN_RETAINED_LOCAL_DIAGNOSTIC_NOT_MODEL_QUALIFICATION"
+    }
+  ],
+  "confirmed_reporting_bug": {
+    "issue": "Observer OFF lacks timestamps but reports overlap=0.0; missing coverage is not measured zero",
+    "function": "prefill_interference",
+    "minimal_fix": "Return null and explicit unavailable coverage, or derive from existing same-clock events; no GPU rerun",
+    "file": "Kimi-C2-phase-observer-private-r126/runtime/phase_observer_r126.py",
+    "root_notified": true
+  },
+  "GLM": {
+    "component_to_Model_extrapolation": false,
+    "unique_questions": 32,
+    "decode_CAPI_gain_percent": 0.8368132110253335,
+    "default_OFF": true,
+    "task_gain_percent": 0.9255882111720126,
+    "users_GT15": 0,
+    "PP": 2,
+    "task_wall_reduction_percent": 0.7829015858018318,
+    "quality_each_epoch": "31/32 correct,32EOS,0cap",
+    "cards": 16,
+    "TP": 8
+  },
+  "cards": [
+    {
+      "id": "K118A",
+      "owner": "Kimi ctx owner",
+      "next_cases": "Exact failed original case first, then unfinished24 MMLU OFF/ON; no C2/18case restart",
+      "future_measurement_minutes": 20,
+      "stop": "Unexplained peak, unchanged failure, quality/lifecycle issue; no floor reduction",
+      "minimal_change": "Consume32owner failed guard minimum/latest and reset/case history; fix one proven retention/transient cause plus null overlap report",
+      "first_result_budget_minutes": 20,
+      "resources_now": "CPU/local existing diagnostics, zero new GPU",
+      "hypothesis": "Long-prefill live or retained memory violates unchanged4GiB floor",
+      "future_resource": "Only after capacity fix:32target+1draft original topology",
+      "priority": 1
+    },
+    {
+      "id": "G118A",
+      "owner": "GLM owner",
+      "CPU_budget_minutes": 20,
+      "measurement_budget_minutes": 15,
+      "resources": "16cards TP8PP2 one load",
+      "stop": "Binding/coverage/perturbation failure or no actionable >=about10percent criticalwall interval",
+      "minimal_change": "Bind exact current bridge/private8;read6pipelinevalues;bounded ownerstream layer/PP events<=512owner;no addedsync",
+      "reuse": "G115A-r118 sparseobserver plan/current764 native",
+      "samples": "before/profile/after same32 arrivals;natural3T16+3T15+B8PREFIX+B1PREFIX",
+      "gain": "UNKNOWN; diagnostic only",
+      "hypothesis": "T16 andprefill contain a dominant actionable interval",
+      "priority": 2
+    },
+    {
+      "id": "K118B",
+      "owner": "Kimi verify owner",
+      "resources": "Reuse repaired32target+1draft qualityload, no additional matrix/load",
+      "measurement_budget_minutes": 10,
+      "stop": "No currentT16coverage,no capacityclosure,observer distortion,no measurable candidate; no hardwarepeak/layer multiplication",
+      "minimal_change": "Sparse originalstream events on actual C2W8T16 across MLA/KDA/MoE/sharedMLP/collective;no PROFILE_R9125 persegment sync",
+      "samples": "2warm4representativeverifywindows + OFFON envelope controls",
+      "next_implementation": "Only one measured dominant phase usingcurrentFP4/W2pair or actual attention/communication boundary",
+      "hypothesis": "Measuredverify87.6–89.4percent contains dominant operator or dependency boundary",
+      "requires": "K118A actual capacity repair",
+      "priority": 3
+    },
+    {
+      "id": "D118A",
+      "owner": "Deep native owner",
+      "CPU_budget_minutes": 30,
+      "measurement_budget_minutes": 20,
+      "resources": "8cards TP8PP1 one load only after CPUclosure",
+      "scope": "Native state qualification,no MTPhead,no user QA or speedup",
+      "minimal_change": "Compile actual13HOST inspection/ticket/fault DSO thenexisting16case native43layer harness",
+      "reuse": "r129 existing qualification plan",
+      "stop": "Owner/state/lifecycle/floor mismatch",
+      "priority": 4
+    }
+  ],
+  "upstream": {
+    "Kimi_W4A8": "Sourceonly fallback;FP4group32 conversion andproviderunverified;I192fits,I96fails64",
+    "reason": "ActualTP8PP2customDSA conflictsPP1ordinaryKV requirement",
+    "main_dependency_upgrade_needed": false,
+    "GLM_paged_graph_directly_applicable": false,
+    "TP32_full93": "NO_GO58.906441GiBstatic+4GiBfloor leaves1.093559GiB beforeunknowns",
+    "DeepEP": "stub"
+  },
+  "execution": {
+    "SSH": 0,
+    "GPU": 0,
+    "Git": 0,
+    "Slurm": 0,
+    "upload": 0,
+    "local_reads": true,
+    "compile": 0
+  },
+  "required_root_followthrough": "Record adopt/reject/defer withreason and dispatch tooriginalowner; nextreview verifiesactual implementation",
+  "evidence": [
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\GLM764-canonical-root-r9336.json",
+      "SHA256": "af338b2995196e9d7170c59c7540b4cfc03b5229a80c537d6823c797c1d88734"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\GLM764-shapes-root-r9335.json",
+      "SHA256": "86f95d43aa11321bfbe3c254fcbe29dbfbf7283daef45ea33bc8b1780f76b592"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\Kimi478-progress-safe-root-r9338-a.json",
+      "SHA256": "ad69d1811ac195e768fb3821d27621512f3326f56b100c07338367a58622dcd8"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\Kimi478-error-scrubbed-root-r9339.json",
+      "SHA256": "102e8fa983541b10ae5f9848210b054d2bb98f122eef1f9892e6d26d6d6f229b"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\InfiniLM-hygon-test\\results\\bw1000\\2026-10-27\\glm761-m15-all-eight-offsets.json",
+      "SHA256": "b489f95363633c81446e761cd6556dcb81028bbda8eb433ac206a0ca7edfb905"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\InfiniLM-hygon-test\\results\\bw1000\\2026-10-27\\kimi764-tp32-i96-moe-component.json",
+      "SHA256": "c25d798be26adbb2c74dfd45d71641427841dd97623209604f03899f9856be8b"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\glm-residual-r118\\G115A-report-r118.json",
+      "SHA256": "3e08cf0105b3a4668d084c3102b7b0e2216e0ab639418d19a32e3b966708d913"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\Kimi-C2-phase-observer-private-r126\\runtime\\phase_observer_r126.py",
+      "SHA256": "6d6949afcf4b5073d0e2353fb2a9da0f47a86f37f3b14496bfe1c21d3f2f2877"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\Kimi-C2-phase-observer-private-r126\\runtime\\batch_cohort_r9128.py",
+      "SHA256": "987c111e26d607bf9f136345a6212390b569f6c3978be421de87d2af63186d5c"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\Kimi-C2-phase-observer-private-r126\\runtime\\batch_native_r9128.py",
+      "SHA256": "9c51d43aa6e46ac3f67a04592b52a3d854063c0f94985c9c2b8125693705c2ab"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\Kimi-C2-phase-observer-private-r126\\runtime\\target_model.py",
+      "SHA256": "a1447c60cdfce680b36776c4641fb19ad6bc812f5dba75d0743704651ea7c2c1"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\glm-m15-model-entry-r129b\\glm_arrival_probe_r129.py",
+      "SHA256": "daa2c2672baecdaa303fc1c42006f7fe6f026afc1d870d4cdaa04d80f6492a67"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\glm-window-r5797-src\\glm_moe_dsa_balanced_text_model_r126.cpp",
+      "SHA256": "d94016e3adc4ffccac58adc24aef415c7069ad2503cb21e230f12753c0b2ad98"
+    }
+  ]
+}
