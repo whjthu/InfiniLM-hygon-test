@@ -1,0 +1,78 @@
+{
+  "revision": "r142",
+  "status": "SOURCE_UNREADY_FROZEN_FOR_P0_TOOL_INTERFACE_PRIORITY",
+  "GPU": false,
+  "CPU_compile": false,
+  "SSH": false,
+  "Git": false,
+  "decision": "Do not propagate after-only trimming to all93layers. Prepare a one-fixture-HOST cross-shape experiment after interface P0.",
+  "actual_evidence": {
+    "local": "new-wave-state-root-r9374-a.json.KimiPool",
+    "GPU_handle": "910379.487",
+    "status": "COMPLETED0_16NORMAL_POSTEMPTY",
+    "native_SHA256": "f94007e1585086ccd18487682743d004c25ddaf8401bd99dc1bf1146122bf99a",
+    "fixture_CPU_handle": "910407.466",
+    "fixture_SHA256": "66a79d0055c193a0ed9192d9136afd8ffda33daae9838eb36207cbf9a2f4cb78",
+    "helper_SHA256": "85a54291b8aedd1e59556013ab38d15cc077940e70dd8dfd70acbe50b78c25e4",
+    "inactive_reclaimed_each_owner_bytes": 853540864,
+    "driver_afterfree_gain_bytes": 822083584,
+    "OFF_steady_full_MoE_seconds_approx": 0.0063,
+    "ON_steady_full_MoE_seconds": [0.018758977, 0.02879099, 0.018788687, 0.028922921],
+    "first_live_sampled_min_improvement": false,
+    "qualification": "Single actual-weight L1 component only; not actual478 activation or wholeModel fit/performance"
+  },
+  "new_source_findings": [
+    {
+      "source": "Kimi-prefill-pool-reclaim-private-r130a/native/kimi_moe_prefill_pool_trim_r130.cpp",
+      "finding": "trim_completed_prefill_pool_r130 rejects T<512 or T>1024; after-only cannot be enabled on historical172/142/241/199/159 shapes without changing the Native guard.",
+      "action": "Keep guard unchanged; after-only arm enables trim only for final T576."
+    },
+    {
+      "source": "Kimi-prefill-pool-fixture-fix-private-r134b/src/prefill_pool_component_r134.cpp",
+      "finding": "The fixture retains module weights and max input storage; each original forward completes with its original sync. A new entry trim can run only after the previous output Tensor has left scope and original completion is proven.",
+      "action": "Reuse original owner-thread identity/subset checks and post-first-SDK width4/disjoint/stability checks. No rank*4 physical-CPU assumption, manual pin, or added GPU synchronization."
+    },
+    {
+      "source": "latest-experimental-source-r3696/candidates/upstream-5f91ad7-r3667/InfiniTensor-InfiniRT-cd1d48258f0a/src/reusable_memory_pool.cc:390",
+      "finding": "Reference trim implementation frees inactive unpinned size-class blocks and large blocks satisfying !in_use and pin_count==0.",
+      "qualification": "Reference source only; exact active Runtime/pool binary-source provenance must remain bound by parent CPU466/458 receipts before qualification. Do not infer active-buffer safety solely from this reference copy."
+    }
+  ],
+  "proposed_minimal_implementation": {
+    "production_Native_changes": 0,
+    "new_GPU_math_TUs": 0,
+    "new_fixture_HOST_TUs": 1,
+    "reuse": "Exact CPU466 wrapper argv + parent Native f940/helper85a/object/MD bindings; change only fixture source/output/MD paths; strict ldd-r/exports/freshMD.",
+    "CAPI": "Use distinct run/result_r142 names; do not overwrite r132/r134b artifacts.",
+    "resources_intent": "Parent910379 a14r1n11+a14r2n05,16cards; root fresh-idle/source-publication/GO required.",
+    "source_ready": false,
+    "not_yet_implemented": ["C++ multi-shape wrapper", "CPU build producer", "GPU driver/controller", "executed CPU/source contracts"]
+  },
+  "experiment_plan": {
+    "shape_history": [172, 142, 241, 199, 159, 576],
+    "input": "Existing historical16x7168 BF16 fixture repeated to persistent576 rows; take firstT rows. Actual L1 weights. Recompute routing. Not saved478 activations.",
+    "strategies": [
+      {"name": "OFF", "entry_trim": "never", "native_after_trim": "never"},
+      {"name": "AFTER_T576", "entry_trim": "never", "native_after_trim": "onlyT576"},
+      {"name": "ENTRY_T576", "entry_trim": "only beforeT576 at previous-original-completion boundary", "native_after_trim": "never"},
+      {"name": "ENTRY_EACH", "entry_trim": "before each shape at original-completion boundary", "native_after_trim": "never"}
+    ],
+    "normalization": [
+      "Warm every tested shape outside measurements and destroy each old output before continuing.",
+      "Keep module, exact weights, persistent maxT input storage and graph mode unchanged across trajectories.",
+      "Before each complete trajectory use the same original completion boundary and Runtime.trimMemory recipe for every strategy; this is normalization, not candidate benefit.",
+      "Record normalized driver free, graph-pinned bytes, actual helper plan5 and reference-input identity. Require predeclared baseline comparability; missing hidden pool totals remain UNKNOWN.",
+      "Balance trajectory order, for example four Latin-square rotations, instead of running all OFF then all candidate.",
+      "Do not add a global barrier/sync beyond original per-forward path merely to normalize. Existing completed prior forward and CPU owner barriers delimit private-pool trim."
+    ],
+    "measurement": [
+      "Report entry-trim wall, forward-plus-original-sync wall, and total strategy wall including trim; never hide trim cost outside the headline timing.",
+      "Record driver before entry, after entry, forward sampled minimum, after forward, graph-pinned before/after, native7stats, sampled counts and exact T.",
+      "Forward sampler starts after entry trim; boundary scalars remain separate. Also retain per-trajectory minimum across explicit boundaries and forward windows.",
+      "2ms sampled lowwater is not an exact or continuous peak. Compare T576 forward live minimum separately from released-after bytes.",
+      "Keep finite/read-only/canary, same-input numeric diagnostic, expected Native helper branch, owner lifecycle and network/post cleanup gates."
+    ],
+    "promotion": "Even favorable single-layer peak data cannot prove93layer/PP/KDA/KV/head fullModel fit. Only proceed to original failedcase after explaining wholeModel capacity and retained-vs-live behavior; no floor reduction, question removal or full18case rerun.",
+    "stop": "Any state/owner/pinned/input/finite/cleanup failure stops qualification. Unequal normalized baselines or missing measurements prevent causal attribution rather than becoming a claimed gain."
+  }
+}

@@ -1,0 +1,310 @@
+{
+  "status": "SOURCE_GUARANTEE_FOR_SUCCESSFUL_COMPLETE_T576_FORWARD_NO_NEW_GPU",
+  "native_SHA256": "f94007e1585086ccd18487682743d004c25ddaf8401bd99dc1bf1146122bf99a",
+  "fixture_SHA256": "66a79d0055c193a0ed9192d9136afd8ffda33daae9838eb36207cbf9a2f4cb78",
+  "actual_CPU": "910407.466 COMPLETED0",
+  "caller_SHA256": "e63d66308b539e0025f2fa45c9df8d30de4367fd5fd4c0a3d5247d2a994fb347",
+  "submit_header_SHA256": "8c0bd70a372b0017bca78e54f037493fe79918f97b5fed6d885f5b5d8eb0c20d",
+  "affinity_header_SHA256": "de2ffe645329558634740ed6b8a9ac7c70030160786eab38d065ce513afce71d",
+  "caller": [
+    {
+      "line": 164,
+      "text": "infinilm::runtime::Tensor KimiK3MLP::forward(infinilm::runtime::Runtime &runtime, const infinilm::runtime::Tensor &hidden_states) const {"
+    },
+    {
+      "line": 165,
+      "text": "    auto input = hidden_states;"
+    },
+    {
+      "line": 166,
+      "text": "    auto [gate, up] = gate_up_proj_->forward_split(runtime, input);"
+    },
+    {
+      "line": 167,
+      "text": "    auto activated = infinilm::runtime::Tensor::empty(runtime, gate->shape(), gate->dtype());"
+    },
+    {
+      "line": 168,
+      "text": "    infinilm::execution::submit<infini::ops::SituAndMul>("
+    },
+    {
+      "line": 169,
+      "text": "        runtime, infinilm::execution::RecordingPolicy::AllowHostReplay,"
+    },
+    {
+      "line": 170,
+      "text": "        infini::ops::SituAndMul::DefaultConfig(runtime.device().type()),"
+    },
+    {
+      "line": 171,
+      "text": "        activated, gate, up, situ_beta_, situ_linear_beta_);"
+    },
+    {
+      "line": 172,
+      "text": "    return down_proj_->forward(runtime, activated);"
+    },
+    {
+      "line": 450,
+      "text": "    routed = routed_expert_norm_->forward(runtime, routed);mark(\"routed_norm\");"
+    },
+    {
+      "line": 451,
+      "text": "    const char*aux_flag_r4430=std::getenv(\"INFINILM_KIMI_MOE_AUX_M1_R4430\");"
+    },
+    {
+      "line": 452,
+      "text": "    if(aux_flag_r4430&&std::string(aux_flag_r4430)!=\"0\"&&std::string(aux_flag_r4430)!=\"1\")throw std::invalid_argument(\"4430 auxflag0or1\");"
+    },
+    {
+      "line": 453,
+      "text": "    const bool aux_selected_r4430=aux_flag_r4430&&std::string(aux_flag_r4430)==\"1\"&&infinilm::models::kimi_native::spec_math_mode_r3676(runtime)==11&&flattened->size(0)<=16;"
+    },
+    {
+      "line": 454,
+      "text": "    if(aux_selected_r4430&&(runtime.isGraphRecording()||tp_size_!=8||runtime.device().type()!=infinilm::runtime::Device::Type::kHygon||shape.size()!=3||shape[0]!=1||!flattened->size(0)||flattened->dtype()!=infinilm::runtime::DataType::kBFloat16))throw std::invalid_argument(\"4430 boundedTP8 eagerBF16 auxM1contract\");"
+    },
+    {
+      "line": 455,
+      "text": "    if(aux_selected_r4430){auto&count=aux_counts_r4430.at(runtime.device().index());count[3].fetch_add(1);count[4].fetch_add(flattened->size(0));if(flattened->size(0)>1)count[5].fetch_add(1);}"
+    },
+    {
+      "line": 456,
+      "text": "    if(aux_selected_r4430&&flattened->size(0)>1){auto output=infinilm::runtime::Tensor::empty(runtime,{flattened->size(0),shape[2]},routed->dtype());for(size_t i=0;i<flattened->size(0);++i){auto row=routed->narrow({{0,i,1}});auto z=routed_expert_up_proj_->forward(runtime,row);output->narrow({{0,i,1}})->copy_from(runtime,z);}routed=output->view(shape);}"
+    },
+    {
+      "line": 457,
+      "text": "    else routed=routed_expert_up_proj_->forward(runtime,routed)->view(shape);"
+    },
+    {
+      "line": 458,
+      "text": "    if(aux_selected_r4430){auto&count=aux_counts_r4430.at(runtime.device().index());count[0].fetch_add(1);count[1].fetch_add(flattened->size(0));if(flattened->size(0)>1)count[2].fetch_add(1);}"
+    },
+    {
+      "line": 459,
+      "text": "    mark(\"replicated_up_projection\");"
+    },
+    {
+      "line": 460,
+      "text": "    auto shared=[&](){"
+    },
+    {
+      "line": 461,
+      "text": "        if(!aux_selected_r4430||flattened->size(0)==1)return shared_experts_->forward(runtime,hidden_states);"
+    },
+    {
+      "line": 462,
+      "text": "        auto output=infinilm::runtime::Tensor::empty(runtime,shape,hidden_states->dtype());auto flatout=output->view({flattened->size(0),shape[2]});"
+    },
+    {
+      "line": 463,
+      "text": "        for(size_t i=0;i<flattened->size(0);++i){auto row=flattened->narrow({{0,i,1}})->view({1,1,shape[2]});auto z=shared_experts_->forward(runtime,row);flatout->narrow({{0,i,1}})->copy_from(runtime,z->view({1,shape[2]}));}return output;"
+    },
+    {
+      "line": 464,
+      "text": "    }();"
+    },
+    {
+      "line": 465,
+      "text": "    mark(\"shared_compute_including_its_TP_reduce\");"
+    },
+    {
+      "line": 466,
+      "text": "    auto ops_output = infinilm::runtime::Tensor::empty(runtime, routed->shape(), routed->dtype());"
+    },
+    {
+      "line": 467,
+      "text": "    infinilm::execution::submit<infini::ops::Add>("
+    },
+    {
+      "line": 468,
+      "text": "        runtime, infini::ops::Add::DefaultConfig(runtime.device().type()), routed, shared, ops_output);"
+    },
+    {
+      "line": 469,
+      "text": "    INFINILM_TRACE_OP(Add, ops_output);mark(\"add\");"
+    },
+    {
+      "line": 470,
+      "text": "    if(profile){std::vector<int32_t> ids(selected_experts->numel());runtime.memcpyD2H(ids.data(),selected_experts->data(),ids.size()*4);std::vector<int>counts(896);for(auto e:ids){if(e<0||e>=896)throw std::runtime_error(\"9125 route out of range\");++counts[e];}size_t U=0,mx=0;for(auto n:counts){U+=n>0;mx=std::max(mx,size_t(n));}prof[\"T\"]=flattened->size(0);prof[\"route_counts\"]=counts;prof[\"unique_experts\"]=U;prof[\"max_expert_rows\"]=mx;prof[\"route_count\"]=ids.size();prof[\"routed_allreduce_tensor_bytes\"]=flattened->size(0)*3584*2;prof[\"shared_allreduce_tensor_bytes\"]=flattened->size(0)*7168*2;prof[\"weight_bytes_unique_expert_lowerbound_per_rank\"]=U*(384*1792+384*112+3584*96+3584*6);prof[\"profile_perturbs_stream_overlap\"]=true;prof[\"not_HBM_measured_bytes\"]=true;profile_r9125[runtime.device().index()]=prof;}"
+    }
+  ],
+  "submit": [
+    {
+      "line": 24,
+      "text": ""
+    },
+    {
+      "line": 25,
+      "text": "// Ops owns instance caching and the required size. Submission supplies storage"
+    },
+    {
+      "line": 26,
+      "text": "// whose Runtime lease releases it in stream order."
+    },
+    {
+      "line": 27,
+      "text": "class RuntimeWorkspaceHandle final : public infini::ops::Handle {"
+    },
+    {
+      "line": 28,
+      "text": "public:"
+    },
+    {
+      "line": 29,
+      "text": "    explicit RuntimeWorkspaceHandle(infinilm::runtime::Runtime &runtime) : runtime_(runtime) {"
+    },
+    {
+      "line": 30,
+      "text": "        runtime_.assertOwnerThread();"
+    },
+    {
+      "line": 31,
+      "text": "        if (runtime_.device().type() == infinilm::runtime::Device::Type::kHygon)"
+    },
+    {
+      "line": 32,
+      "text": "            affinity_r2392::apply_once(runtime_.device().index());"
+    },
+    {
+      "line": 33,
+      "text": "        set_stream(runtime_.stream());"
+    },
+    {
+      "line": 34,
+      "text": "    }"
+    },
+    {
+      "line": 141,
+      "text": "// This boundary owns submission resources only. Callers allocate outputs and"
+    },
+    {
+      "line": 142,
+      "text": "// supply the exact public Ops arguments/configuration; Ops owns computation."
+    },
+    {
+      "line": 143,
+      "text": "template <class OpsKey, class... Args>"
+    },
+    {
+      "line": 144,
+      "text": "void submit(infinilm::runtime::Runtime &runtime, RecordingPolicy policy,"
+    },
+    {
+      "line": 145,
+      "text": "            const infini::ops::Config &config,"
+    },
+    {
+      "line": 146,
+      "text": "            const Args &...args) {"
+    },
+    {
+      "line": 147,
+      "text": "    runtime.assertOwnerThread();"
+    },
+    {
+      "line": 148,
+      "text": "    (detail::check_owner(runtime, args), ...);"
+    },
+    {
+      "line": 149,
+      "text": "    infini::rt::DeviceGuard guard{runtime.device().type(), runtime.device().index(), true};"
+    },
+    {
+      "line": 150,
+      "text": "    const auto views = std::make_tuple(detail::view(args)...);"
+    },
+    {
+      "line": 151,
+      "text": "    if (!runtime.isGraphRecording()) {"
+    },
+    {
+      "line": 152,
+      "text": "        detail::RuntimeWorkspaceHandle handle{runtime};"
+    },
+    {
+      "line": 153,
+      "text": "        std::apply([&](const auto &...values) { OpsKey::Call(handle, config, values...); }, views);"
+    },
+    {
+      "line": 154,
+      "text": "        return;"
+    },
+    {
+      "line": 155,
+      "text": "    }"
+    },
+    {
+      "line": 156,
+      "text": ""
+    },
+    {
+      "line": 157,
+      "text": "    auto instance = std::shared_ptr<infini::ops::Operator<OpsKey>>{"
+    }
+  ],
+  "affinity": [
+    {
+      "line": 13,
+      "text": "namespace infinilm::execution::affinity_r2392 {"
+    },
+    {
+      "line": 14,
+      "text": "inline std::array<std::atomic<unsigned>,8> changes{};"
+    },
+    {
+      "line": 15,
+      "text": "inline std::array<std::string,8> masks{};"
+    },
+    {
+      "line": 16,
+      "text": "inline std::mutex mutex;"
+    },
+    {
+      "line": 17,
+      "text": "inline void apply_once(int device){"
+    },
+    {
+      "line": 18,
+      "text": " static thread_local const int width=[](){const char*p=std::getenv(\"INFINILM_OWNER_CPU_WIDTH_R2392\");if(!p)return 0;const std::string s=p;if(s==\"0\")return 0;if(s==\"1\")return 1;if(s==\"4\")return 4;if(s==\"8\")return 8;throw std::invalid_argument(\"2392 CPU width must be explicitly 0,1,4,8\");}();"
+    },
+    {
+      "line": 19,
+      "text": " if(!width)return;"
+    },
+    {
+      "line": 20,
+      "text": " static thread_local int applied_device=-1;"
+    },
+    {
+      "line": 21,
+      "text": " if(applied_device!=-1){if(applied_device!=device)throw std::logic_error(\"2392 submitting thread changed Runtime device\");return;}"
+    },
+    {
+      "line": 22,
+      "text": " if(device<0||device>=8)throw std::invalid_argument(\"2392 only eight-device model Runtime owners allowed\");"
+    },
+    {
+      "line": 23,
+      "text": " cpu_set_t original{},desired{},observed{};if(pthread_getaffinity_np(pthread_self(),sizeof(original),&original))throw std::runtime_error(\"2392 cannot query owner affinity\");"
+    },
+    {
+      "line": 24,
+      "text": " std::vector<int> allowed;for(int cpu=0;cpu<CPU_SETSIZE;++cpu)if(CPU_ISSET(cpu,&original))allowed.push_back(cpu);"
+    },
+    {
+      "line": 25,
+      "text": " if(allowed.size()<static_cast<size_t>(8*width))throw std::invalid_argument(\"2392 owner mask too narrow for eight disjoint requested subsets\");"
+    }
+  ],
+  "guarantee": [
+    "T576 makes aux_selected=false (requiresT<=16); shared_experts forward is therefore unconditional on normal fullforward path",
+    "same actual callerTU defines shared KimiK3MLP forward with unconditional SituAndMul submit; final MoE Add submit is a second unconditional guarantee",
+    "component never records graph; eager submit constructs RuntimeWorkspaceHandle which applies CPU width4 on Hygon",
+    "shell sets width4 before process/Runtime and never changes it; no extra prep op or pin required",
+    "post-forward+original-sync width4 expectation is therefore valid after SUCCESSFUL forward; earlier execution failure remains real failure, not a reason to assert missingpin"
+  ],
+  "first_exact_sdk_child_op": "UNKNOWN: router/linear anonymous child objects may submit earlier. Earliest unconditional SDK point proved directly in actual changed callerTU is shared SituAndMul, with final Add independently guaranteed. No claim that helper itself invokesSDK.",
+  "r140_source_changed": false,
+  "extra_GPU_math_or_sync": false,
+  "Model_fit": "PARK; this proves affinity timing only, not trimming benefit or capacity"
+}

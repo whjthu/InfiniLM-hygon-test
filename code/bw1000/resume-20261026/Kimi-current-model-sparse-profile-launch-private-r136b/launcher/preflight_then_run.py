@@ -1,0 +1,11 @@
+import pathlib,os,json,hashlib,subprocess,datetime,sys
+R=pathlib.Path.home()/'hygon-inference-refactor-20261014';D=R/'incoming/Kimi-sparse-profile-Model-r136b/launcher';sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest();pin=json.loads((D/'model-source-pins.json').read_bytes());go=json.loads((D/'GPU-GO-after-source-publication.json').read_bytes());assert go['authorized_by']=='parent-root'and go['manifest_SHA256']==pin['manifest_SHA256']and len(go['Git_publication_SHA'])==40
+for p,h in pin['files'].items():assert sha(p.replace('/refactor',str(R),1))==h,p
+for name in ['Kimi-sparse-profile-r136b-intent.json','Kimi-sparse-profile-r136b-launch.json']:assert not(R/'results'/name).exists(),'unknown prior invocation: observe originalhandle, never reinvoke'
+env={k:v for k,v in os.environ.items()if not k.startswith(('SLURM_','PMI_','PMIX_','OMPI_','MV2_'))or k in ['SLURM_CONF','SLURM_CONF_SERVER']}
+for k in ['CUDA_VISIBLE_DEVICES','HIP_VISIBLE_DEVICES','ROCR_VISIBLE_DEVICES']:env.pop(k,None)
+rows=subprocess.check_output(['squeue','--steps','-j','910407','-h','-o','%i|%j|%N'],text=True,env=env,timeout=25).splitlines();assert len([x for x in rows if x.split('|')[0].split('.')[-1].isdigit()])<4
+label='Kimi-sparse-profile-r136b-keeper';prior=subprocess.check_output(['sacct','-S','2026-10-27','-j','910407','-n','-P','-o','JobIDRaw,JobName%110,State'],text=True,env=env,timeout=25);assert label not in prior
+q={'CPU_label':label,'manifest_SHA256':pin['manifest_SHA256'],'Git_publication_SHA':go['Git_publication_SHA'],'GPU_submitted_by_invoker':False,'UTC':datetime.datetime.now(datetime.timezone.utc).isoformat()}
+with(R/'results/Kimi-sparse-profile-r136b-intent.json').open('xb')as f:f.write((json.dumps(q)+'\n').encode())
+a=['srun','--jobid=910407','--overlap','--exact','--cpu-bind=none','-N1','-n1','-c1','--gres=none','--mem=4096M','-w','a14r2n20','-t','02:15:00','--job-name='+label,'--output='+str(R/'logs'/(label+'-%J.log')),'python3',str(D/'model_keeper.py')];fo=(R/'logs'/(label+'-client.log')).open('x');p=subprocess.Popen(a,env=env,stdin=subprocess.DEVNULL,stdout=fo,stderr=subprocess.STDOUT,start_new_session=True);q['CPU_client_PID']=p.pid;(R/'results/Kimi-sparse-profile-r136b-launch.json').write_bytes((json.dumps(q,indent=2)+'\n').encode());print(json.dumps(q))
