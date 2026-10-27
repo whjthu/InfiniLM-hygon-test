@@ -1,0 +1,71 @@
+--- qualified755entry
++++ r129actualentry
+@@ -3,11 +3,11 @@
+ import os as _cache_os,sys as _cache_sys
+ _cache_base=_cache_os.environ['PYTHONPYCACHEPREFIX'];assert _cache_base.startswith('/local/infini-pycache-')
+ _cache_sys.pycache_prefix=_cache_base+'/'+str(_cache_os.getpid());assert len(_cache_os.sched_getaffinity(0))>=32, 'CPU_BIND_before_Torch_and_weights'
+-from preflight_r9284b import validate as _continuous_validate
++from preflight_r129 import validate as _continuous_validate
+ _continuous_preflight = _continuous_validate()
+-from preengine_r9284b import validate as _preengine_validate
++from preengine_r129 import validate as _preengine_validate
+ _preengine = _preengine_validate()
+-from glm_arrival_probe_r9284b import run as _preloaded_probe_r3091
++from glm_arrival_probe_r129 import run as _preloaded_probe_r3091
+ from model_affinity_check_r2628 import verify as verify_owner_affinity
+ import base64
+ import ctypes
+@@ -195,7 +195,7 @@
+     report['fp8_helper_sha256']=hashlib.sha256((r/'candidates/glm-grouped-native-model-r5117/helpers/libglm_fp8_batched_r776.so').read_bytes()).hexdigest()
+     assert report['fp8_helper_sha256']==_preengine['receipts']['results/model-latest-r3675-GLM-build.json']['fresh_helpers']['helpers/libglm_fp8_batched_r776.so']
+     report['lowbatch_manifest_SHA256_r8219'] = _continuous_preflight['manifest_SHA256']
+-    report_path = r / 'results' / f'glm-arrival-r9284b-{tag}-stage{stage}-rank{rank}.json'
++    report_path = r / 'results' / f'glm-arrival-r129-{tag}-stage{stage}-rank{rank}.json'
+ 
+     def control(x):
+         check(lib.modern_glm_model_control(ctx, x.numel(), ptr(x), stream()))
+@@ -207,6 +207,15 @@
+     lib.modern_glm_model_batch_cache_stats_r3068.argtypes=[ctypes.c_void_p,ctypes.POINTER(ctypes.c_uint64),ctypes.c_size_t]
+     def batch_stats3075():
+         a=(ctypes.c_uint64*5)();check(lib.modern_glm_model_batch_cache_stats_r3068(ctx,a,5));return list(a)
++    lib.modern_glm_model_m15_oproj_policy_r125.argtypes=[ctypes.c_void_p,ctypes.c_int];lib.modern_glm_m15_oproj_stats_r125.argtypes=[ctypes.c_int,ctypes.POINTER(ctypes.c_uint64),ctypes.c_size_t]
++    def m15_stats129():
++        a=(ctypes.c_uint64*17)();check(lib.modern_glm_m15_oproj_stats_r125(rank,a,17));return list(a)
++    initial15=m15_stats129();assert initial15==[0]*17,'M15 defaultOFF/newcacheempty'
++    assert lib.modern_glm_model_m15_oproj_policy_r125(ctx,2)!=0 and m15_stats129()==initial15
++    sentinel15=(ctypes.c_uint64*17)(*[77]*17);assert lib.modern_glm_m15_oproj_stats_r125(rank,sentinel15,16)!=0 and list(sentinel15)==[77]*17
++    import threading
++    foreign15=[];thread15=threading.Thread(target=lambda:foreign15.append(lib.modern_glm_model_m15_oproj_policy_r125(ctx,1)));thread15.start();thread15.join(20);assert not thread15.is_alive()and foreign15==[1]and m15_stats129()==initial15
++    report.update(M15_default_OFF_verified=True,M15_invalid_wrongthread_untouched=True)
+     initial=batch_stats3075();assert initial==[0]*5,('not defaultOFF',initial)
+     assert lib.modern_glm_model_batch_cache_policy_r3068(ctx,2)!=0 and batch_stats3075()==initial
+     sentinel=(ctypes.c_uint64*5)(77,77,77,77,77)
+@@ -226,6 +235,7 @@
+     report['BLAS_policy']=json.loads(policy.modern_blas_policy_r243_json());assert report['BLAS_policy']['failures']==0 and all(v['created']==v['verified']for v in report['BLAS_policy']['owners'])
+     report['actual_producer']=os.environ['SLURM_JOB_ID']+'.'+os.environ['SLURM_STEP_ID'];report['host_bank_before_destroy_r4504']=host_stats()
+     report['cache_before_destroy']=cache_stats809(rank);report['service_memory_before_destroy_r4279']=service_stats();check(lib.modern_glm_model_destroy(ctx));report['cache_after_destroy']=cache_stats809(rank);assert report['cache_after_destroy']['created']==report['cache_after_destroy']['destroyed']and report['cache_after_destroy']['active']==report['cache_after_destroy']['active_bytes']==0
++    report['M15_after_destroy']=m15_stats129();released15=report['M15_after_destroy'];assert released15[0]==0 and released15[7]==released15[8]and released15[12]==released15[13]==0 and released15[5]==released15[16]==0
+     report['host_bank_after_destroy_r4504']=host_stats()
+     # Preserve lifecycle evidence even when a later check fails. Activity may be zero on resident-K/V paths.
+     report_path.write_text(json.dumps(report,indent=2))
+@@ -239,12 +249,12 @@
+         worker(rank, payload)
+     except BaseException:
+         traceback.print_exc()
+-        pp=r/'results'/('GLM-arrival-error-r9284b-'+tag+'-s'+str(stage)+'-r'+str(rank)+'.json');pp.write_text(json.dumps({'error':traceback.format_exc(),'run':tag,'stage':stage,'rank':rank}))
++        pp=r/'results'/('GLM-arrival-error-r129-'+tag+'-s'+str(stage)+'-r'+str(rank)+'.json');pp.write_text(json.dumps({'error':traceback.format_exc(),'run':tag,'stage':stage,'rank':rank}))
+         os._exit(2)
+ 
+ 
+ if __name__ == '__main__':
+-    p=r/'control'/f'glm-arrival-r9284b-control-{tag}-ids.json'
++    p=r/'control'/f'glm-arrival-r129-control-{tag}-ids.json'
+     if stage==0:
+         program_path=r/'incoming/GLM-prefill-Model-r9241/program-r9241.json';raw=program_path.read_bytes();program=json.loads(raw);assert len(program['service_cases'])==64 and program['max_context']==640;expected=json.loads((pathlib.Path(__file__).parent/'CPU-result.json').read_text());assert hashlib.sha256(raw).hexdigest()==expected['program_SHA256']
+         payload={'world':unique(),'tp':[unique()for _ in range(PP)],'control':unique(),'benchmark':program,'benchmark_SHA256':hashlib.sha256(raw).hexdigest()};assert not p.exists();tmp=p.with_suffix('.tmp');tmp.write_text(json.dumps(payload));tmp.replace(p)
+@@ -252,4 +262,4 @@
+     while not p.exists():
+         if time.monotonic()-begin>1200:raise TimeoutError('GLM benchmark identities missing')
+         time.sleep(.1)
+-    mp.spawn(guarded,args=(json.loads(p.read_bytes()),),nprocs=8,join=True);print('GLM_ARRIVAL_NODE_R9284B_NORMAL',stage,flush=True)
++    mp.spawn(guarded,args=(json.loads(p.read_bytes()),),nprocs=8,join=True);print('GLM_ARRIVAL_NODE_R129_NORMAL',stage,flush=True)
