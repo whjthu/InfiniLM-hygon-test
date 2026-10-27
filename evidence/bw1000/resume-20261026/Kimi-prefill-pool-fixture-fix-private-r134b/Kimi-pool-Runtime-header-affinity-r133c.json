@@ -1,0 +1,154 @@
+{
+  "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/csrc/runtime/runtime.hpp",
+  "SHA256": "c127b4cf91ab3b64721efe7c9a3e90a84cca9e35dc004ddb6abd9c5e067896d4",
+  "lines": [
+    [
+      1,
+      "#pragma once"
+    ],
+    [
+      2,
+      ""
+    ],
+    [
+      3,
+      "#include <infini/rt/reusable_memory_pool.h>"
+    ],
+    [
+      4,
+      ""
+    ],
+    [
+      5,
+      "#include \"runtime/context.hpp\""
+    ],
+    [
+      6,
+      ""
+    ],
+    [
+      7,
+      "#include \"execution/graph/graph_manager.hpp\""
+    ],
+    [
+      8,
+      ""
+    ],
+    [
+      9,
+      "#include <cstdint>"
+    ],
+    [
+      10,
+      "#include <infini/rt.h>"
+    ],
+    [
+      11,
+      ""
+    ],
+    [
+      12,
+      "namespace infinilm::runtime {"
+    ],
+    [
+      13,
+      "class Runtime : public std::enable_shared_from_this<Runtime> {"
+    ],
+    [
+      14,
+      "private:"
+    ],
+    [
+      15,
+      "    Device device_;"
+    ],
+    [
+      16,
+      "    bool owner_drain_fail_stop_{false};"
+    ],
+    [
+      17,
+      "    void drainBeforeHostCopyUnwind() noexcept;"
+    ],
+    [
+      18,
+      "    const uint64_t owner_generation_;"
+    ],
+    [
+      19,
+      "    infini::rt::runtime::Stream stream_ = nullptr;"
+    ],
+    [
+      20,
+      "    std::unique_ptr<infini::rt::ReusableMemoryPool> device_memory_allocator_;"
+    ],
+    [
+      21,
+      "    std::unique_ptr<::infinilm::execution::graph::GraphManager> graph_manager_;"
+    ],
+    [
+      25,
+      ""
+    ],
+    [
+      26,
+      "    Runtime(Device device);"
+    ],
+    [
+      27,
+      ""
+    ],
+    [
+      28,
+      "public:"
+    ],
+    [
+      29,
+      "    static std::shared_ptr<Runtime> create(Device device);"
+    ],
+    [
+      30,
+      "    ~Runtime() noexcept;"
+    ],
+    [
+      31,
+      ""
+    ],
+    [
+      32,
+      "    Runtime *activate();"
+    ],
+    [
+      33,
+      "    void assertOwnerThread() const;"
+    ],
+    [
+      34,
+      "    // Owner-thread, monotonic opt-in before dedicated job-host allocations."
+    ],
+    [
+      35,
+      "    // Existing host-copy/sync failures require proven completion or fail-stop;"
+    ],
+    [
+      36,
+      "    // CCL submission failure terminates the entire host process, all engines included."
+    ],
+    [
+      37,
+      "    void enableOwnerDrainFailStop();"
+    ],
+    [
+      38,
+      "    // Read only after assertOwnerThread(); not a cross-thread/provider capability."
+    ],
+    [
+      39,
+      "    bool ownerDrainFailStopEnabled() const noexcept { return owner_drain_fail_stop_; }"
+    ],
+    [
+      40,
+      ""
+    ]
+  ]
+}

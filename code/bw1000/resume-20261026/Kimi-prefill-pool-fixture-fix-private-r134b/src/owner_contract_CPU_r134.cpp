@@ -1,0 +1,3 @@
+#include "owner_affinity_contract_r134.hpp"
+#include <iostream>
+int main(){std::vector<int>a;for(int i=0;i<32;++i)a.push_back(100+i*2);std::array<std::vector<int>,8>m;for(int i=0;i<8;++i)for(int j=0;j<4;++j)m[i].push_back(a[((i*3)%8)*4+j]);owner_contract_r134::all(m,a);auto bad=m;bad[1]=bad[0];bool overlap=false,width=false,outside=false;try{owner_contract_r134::all(bad,a);}catch(...){overlap=true;}bad=m;bad[1].pop_back();try{owner_contract_r134::all(bad,a);}catch(...){width=true;}bad=m;bad[1][0]=999;try{owner_contract_r134::all(bad,a);}catch(...){outside=true;}if(!overlap||!width||!outside)return 1;std::cout<<"r134_CPU_contract_PASS permutation noncontiguous overlap width outside"<<std::endl;}
