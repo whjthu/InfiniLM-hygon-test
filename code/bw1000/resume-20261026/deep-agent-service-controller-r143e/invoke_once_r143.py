@@ -1,0 +1,10 @@
+"""Root invokes only after source publication and actual static CPU receipt."""
+import pathlib,json,hashlib,subprocess,os,datetime,re
+R=pathlib.Path('/public/home/aclsylqidf/hygon-inference-refactor-20261014');D=R/'incoming/Deep-agent-P0-control-r143e';sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest();m=json.loads((D/'controller-manifest-r143.json').read_bytes());g=json.loads((D/'root-GO-after-CPU.json').read_bytes());assert g['GPU_authorized']is True and g['source_published']is True and g['controller_manifest_SHA256']==sha(D/'controller-manifest-r143.json')and re.fullmatch('[0-9a-f]{40}',g['publication_commit'])and g['publication_branch']=='bw1000-experiments'
+for name,h in m['source_SHA256'].items():assert sha(D/name)==h,name
+cp=R/'candidates/Deep-agent-p0-r143e/CPU-preflight.json';assert sha(cp)==g['CPU_receipt_SHA256'];c=json.loads(cp.read_bytes());assert c['completed']and c['CPU_only']and c['static_only']
+record=R/'results/Deep-agent-P0-r143e-keeper-launch.json';assert not record.exists()and not(R/'Deep-agent-P0-r143e-watch.json').exists()
+env={k:v for k,v in os.environ.items()if not k.startswith(('SLURM_','PMI_','PMIX_','OMPI_','MV2_','CUDA_','HIP_','ROCR_','GPU_'))};a=['srun','--jobid=910407','--overlap','--exact','--immediate=30','--cpu-bind=none','-N1','-n1','-c1','-w','a14r2n20','--gres=none','--mem=2048M','-t','02:15:00','--job-name=Deep-agent-P0-r143e-keeper','--output='+str(R/'logs/Deep-agent-P0-r143e-keeper-%J.log'),'python3',str(D/'controller_r143.py')];q={'UTC':datetime.datetime.now(datetime.timezone.utc).isoformat(),'CPU_keeper_only':True,'GPU_submitter':'Pinned controller after CPU/publication/GO/fresh idle','controller_manifest_SHA256':sha(D/'controller-manifest-r143.json'),'CPU_receipt_SHA256':sha(cp),'publication_commit':g['publication_commit'],'args':a,'restarts':0}
+with record.open('x')as f:json.dump(q,f,indent=2)
+with(R/'logs/Deep-agent-P0-r143e-keeper-client.log').open('x')as f:p=subprocess.Popen(a,env=env,stdin=subprocess.DEVNULL,stdout=f,stderr=subprocess.STDOUT,start_new_session=True)
+q['client_PID']=p.pid;record.write_text(json.dumps(q,indent=2));print(json.dumps(q))
