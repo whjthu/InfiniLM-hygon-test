@@ -1,0 +1,81 @@
+{
+  "status": "CPU_EVIDENCE_DECISION_NO_NEW_GPU",
+  "physical_SKU": "UNKNOWN; BW1000 is cluster label, no physical peak inferred",
+  "physical_peak_BW_FLOPs_or_max_tok_s": null,
+  "achieved_reference_scope": {
+    "BF16_effective_TFLOPS": 333.752,
+    "FP32_effective_TFLOPS": 54.51,
+    "scope": "4096cubed reference GEMM,30nodes239cards; achieved rates are capability lowerbounds, not physical peaks.",
+    "read_TB_s": 1.23711,
+    "write_TB_s": 0.57279,
+    "copy_logical_read_plus_write_TB_s": 1.34956,
+    "memory_scope": "Existing1GiB kernels/fullCPUguards,7repetitions. Logical read+write copybytes differ from read-only HBM traffic; do not substitute or sum. Not inference/hostPCIe/interconnect bandwidth."
+  },
+  "logical_inventory_not_mandatory_HBM_or_measured_compute": true,
+  "geometry": {
+    "hidden": 6144,
+    "TP": 8,
+    "PP": 2,
+    "T": 16,
+    "routed_experts": 256,
+    "topk": 8,
+    "expert_intermediate": 2048,
+    "attention_projection_weight_bytes_per_card_per_layer": 34734080,
+    "shared_expert_weight_bytes_per_card_per_layer": 4718592,
+    "one_routed_expert_weight_bytes_per_card_per_layer": 4718592,
+    "router_BF16_weight_bytes_per_layer": 3145728,
+    "stage1_layers_sparse": 40,
+    "U_real_767": "UNKNOWN; only range8..min(8*T,256) follows topk8"
+  },
+  "logical_cold_weight_and_dense_MMAC_reference_scenarios": [
+    {
+      "U": 8,
+      "stage1_card_logical_unique_checkpoint_weight_bytes_per_step": 3213885440,
+      "logical_weight_bytes_per_output_token": 200867840.0,
+      "projection_FLOPs_lower_inventory_per_step": 100831068160,
+      "read_reference_equivalent_ms": 2.5978978748858226,
+      "BF16_reference_equivalent_ms": 0.3021137496104892
+    },
+    {
+      "U": 128,
+      "stage1_card_logical_unique_checkpoint_weight_bytes_per_step": 25863127040,
+      "logical_weight_bytes_per_output_token": 1616445440.0,
+      "projection_FLOPs_lower_inventory_per_step": 100831068160,
+      "read_reference_equivalent_ms": 20.90608518240092,
+      "BF16_reference_equivalent_ms": 0.3021137496104892
+    }
+  ],
+  "bound_warning": "Achieved BW/TFLOPs are capability lower bounds, so bytes/achieved or FLOPs/achieved are reference times, NOT rigorous latency lower bounds. Cache/reread/softwareFP8/activation/communication/launch may differ. U unknown prevents a unique roofline.",
+  "activation": {
+    "BF16_hidden_bytes_T16": 196608,
+    "F32_hidden_bytes_T16": 393216,
+    "PP_hidden_shard_bytes_per_rank": 24576,
+    "TP8_ring_allreduce_reference_bytes_per_rank_per_layer_for_attentionBF16_and_FFNF32": 1032192.0,
+    "TP_collective_latency_model": ">= alpha terms + bytes/physical_link_BW only when topology/collective algorithm and physical BW known; these are UNKNOWN here. Small payload can be latency limited; high-speed network route alone does not bound latency."
+  },
+  "profile": {
+    "s0_local_ms": 243.49019180238247,
+    "s1_local_ms": 266.0637664794923,
+    "stage1_incoming_ms": 244.47238710522652,
+    "interhost_clock_subtraction": false,
+    "GPU_events_include_dependency_and_enqueue_idle": true,
+    "two_independent_micro_serial_reference_s": 1.0191079165637495,
+    "two_micro_overlap_reference_s": 0.7756177247613671,
+    "conditional_two_micro_reference_speedup": 1.3139306697475184,
+    "not_performance_prediction": true
+  },
+  "actual_decisions": {
+    "M15": "764 fullmodel task+0.926%,decode+0.837%; stop grid/defaultOFF",
+    "current767": "13.17..13.24 task;22.61..22.72 decode CAPI; no single removable>=10% interval proved",
+    "candidate": "Port EXISTING719 bounded two-independent-M16 decode forward-before-feedback scheduler into CURRENTce830 arrival runner only when two cohorts exist. Keep normal row/past/EOS matching and current math/owner drains; compare same arrivaltrace/maxlive32 serial vs deferred. This is a scheduler adaptation, not a new kernel or rerun unchanged719.",
+    "existing719": "20.76445->24.36940 tok/s +17.36%, C16 control no gain. Olda549 result cannot be advertised as ce830 or HTTP result.",
+    "prefill724": "Qualified optin +30.44% input rate, firstmicroTTFT+51.90%; not default and not a decode gain.",
+    "spare_GPU": "No new operator kernel/grid justified by767 alone. Do not occupy n14/n15 merely to reprofile unchanged model; release/assign another qualified task until exact current719 adapter exists."
+  },
+  "sources_SHA256": {
+    "C:\\Users\\WangHaojie\\.codex\\visualizations\\2026\\10\\12\\01a130bd-3b97-73c2-8ecf-eda5151f1ba7\\glm-critical-retained-export-r137c\\G119A-all16-final-r137c.json": "bd3b1fc2115d001820cef9ecd74df0ad82b3dad9072cd215c3a9f5d4695ed6c0",
+    "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\InfiniLM-hygon-test\\results\\bw1000\\2026-10-24\\achieved-hardware-references.json": "1595ef841f4818d81aaa43727f2e0f1ace3991b0f0976715d41037a0c730063e",
+    "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\InfiniLM-hygon-test\\results\\bw1000\\2026-10-26\\glm719-deferred-feedback-qualified.json": "d7182dc9200698e96d3174c46483627a2edf8c83ae93ad6d533533e5e61ba277",
+    "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\InfiniLM-hygon-test\\results\\bw1000\\2026-10-26\\glm724-prefill-pipeline-qualified.json": "6e39113af0f788ecf371d85b020c064523dda19bf7ac4fee06e94410d51c196a"
+  }
+}
