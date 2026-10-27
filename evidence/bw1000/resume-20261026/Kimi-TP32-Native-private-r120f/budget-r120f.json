@@ -1,0 +1,73 @@
+{
+  "schema": 1,
+  "UTC": "2026-10-27T01:16:15.931588+00:00",
+  "GPU_GO": false,
+  "full93_model_fit": "UNKNOWN",
+  "method": "TP16PP2 per-stage static categories recombined at TP32, sharded categories divided2; replicated categories retained, TP16 head replaced by TP32 head. Exact integer static geometry, not allocator/device peak.",
+  "parameters": {
+    "total_bytes": 62163168060,
+    "GiB": 57.89396172389388,
+    "parts": {
+      "replicated_or_conservative_excluding_head": 13846960640,
+      "TP32_sharded_attention": 2235945276,
+      "TP32_shared_or_dense_MLP": 805109760,
+      "TP32_MXFP4_experts": 45201752064,
+      "TP32_shard_head": 73400320
+    },
+    "MoE_one_layer_observed_logical_bytes_per_owner": 615197184,
+    "MoE_all92_derived_same_geometry_bytes": 56598140928,
+    "non_MoE_derived_parameter_bytes": 5565027132,
+    "observed_logical_is_not_cuda_allocator_peak": true
+  },
+  "cache": {
+    "MLA_BF16_bytes": 962592768,
+    "KDA_conv_BF16_bytes": 8107776,
+    "KDA_recurrent_BF16_bytes": 115310592,
+    "total_bytes": 1086011136,
+    "MLA_shape_per_layer": [
+      2,
+      68,
+      256,
+      3,
+      192
+    ],
+    "KDA_conv_shape_per_layer": [
+      17,
+      1152,
+      3
+    ],
+    "KDA_recurrent_shape_per_layer": [
+      17,
+      3,
+      128,
+      128
+    ],
+    "allocator_object_SHA256": "125a5a57313ec9dcf0b700379518e6014fff619a9e1bdc7707f41250cb16949d"
+  },
+  "private_MoE_scratch": {
+    "WORKSPACE_OFF": true,
+    "per_layer_bytes": 12288,
+    "all92_bytes": 1130496,
+    "WORKSPACE_ON_rejected_bytes": 1761666048,
+    "ON_static_GiB": 60.54606777057052
+  },
+  "static_persistent_bytes": 63250309692,
+  "static_persistent_GiB": 58.906441267579794,
+  "nominal64GiB_less_static_and_unchanged4GiB_floor_bytes": 1174199748,
+  "known_live_terms_NOT_a_complete_peak": {
+    "genericI96_scratch_T64": 196608,
+    "genericI96_scratch_T512": 1572864,
+    "head_T64_BF16_local_plus_fullgather_plus_contiguous_result_bytes": 42598400,
+    "KDA_capture_all69_T64_BF16_pre_silu_gate_beta_bytes": 23766912,
+    "KDA_capture_all69_T64_if_gate_beta_F32_upper_bytes": 27184896
+  },
+  "UNKNOWN": [
+    "exact SKU cudaMemGetInfo total/usable on all32 owners",
+    "driver/context/CCL transport setup and op first-call peaks",
+    "allocator reservation/fragmentation/duplicate cached blocks across93 layers",
+    "MLA/KDA/GEMM/router/shared-MLP and simultaneously-live whole-layer scratch bounds at prefillT512/verifyT64",
+    "load/finalize transients and model-level retained taps/logits lifetimes"
+  ],
+  "evidence_limit": "Provided memory-safe r9320 contains logical state_dict tensor bytes/shapes, not cuda free/total/peak fields. Existing764 proves genericI96 execution and normal32 only. No scalar timing multiplied93.",
+  "decision": "Proceed to CPU five-HOST compile and optional bounded no-weight subset constructor after review/publication; full93 constructor/load remains STOP until actual SKU and complete peak bounds leave strictly>4GiB."
+}
