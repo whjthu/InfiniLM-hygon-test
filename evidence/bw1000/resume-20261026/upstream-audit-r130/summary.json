@@ -1,0 +1,61 @@
+{
+  "audit_date": "2026-10-27",
+  "source_execution_performed": false,
+  "cluster_access_performed": false,
+  "remote_method": "ordinary SSH Git; isolated bare refs fetch and four explicit blob OIDs",
+  "baseline": "5f91ad738583db8f5617aeae53b76523f85d1ec6",
+  "main": {
+    "sha": "1b005e15ad3a0f965935a645d46f3b69abe12314",
+    "baseline_is_ancestor": true,
+    "baseline_only_commits": 0,
+    "main_only_commits": 3,
+    "same_dependency_gitlinks": true,
+    "changes": "Qwen3.5 norm/TP and loader handling; four files"
+  },
+  "dependencies": {
+    "core": "2b4f2f20584a69b074f62a455e3de7368e3446c2",
+    "rt": "cd1d48258f0a6b8d9f66111d5d6cb1664205e78d",
+    "ops": "1ca4777610d77e9063fffdb975ab35da8466104d",
+    "ccl": "51cc9db31d58aac21643d72f0f77cf5c9ecfaee5"
+  },
+  "adopt_modern": {
+    "sha": "f94d83d729cc24d1c87523e9746f62c28566db6f",
+    "merge_base": "270feb3e14976ca14c3b012df1d1740f939a941e",
+    "baseline_only_commits": 25,
+    "branch_only_commits": 58,
+    "core_gitlink_removed": true,
+    "external_core_sha_pinned_by_lm": false,
+    "static_graph_compiler_enabled": false
+  },
+  "candidates": [
+    {
+      "branch": "feat/hygon-w4a8",
+      "sha": "7ab405849b086be7722eb5ef5458192f79f73e38",
+      "target": "Kimi expert compute and weight bandwidth",
+      "reuse": "packed I8 per-output F32 scales; one-time AITer weight shuffle; fused_moe_w4a8 Situglu",
+      "constraints": ["hidden_size and local_intermediate_size divisible by 64", "not MXFP4 block32 scales", "old Core operator ABI", "Hygon provider must be confirmed"],
+      "bw1000_validated": false
+    },
+    {
+      "branch": "dpv4-ep",
+      "sha": "ef203f929a438c8d1124d3c96af53af63eabe7b7",
+      "target": "Deep local expert allocation and router fusion",
+      "reuse": "expert placement with full local intermediate; fused hash topk with fallback",
+      "deepep_dispatcher_implemented": false,
+      "deepep_stub_lines": [30, 34, 40, 44],
+      "communication_backend_verified": false,
+      "bw1000_validated": false
+    },
+    {
+      "branch": "perf/paged-graph-execution",
+      "sha": "50ff7ce209ec9191dd5cf2b03a1d9668aec2cd89",
+      "baseline_is_ancestor": true,
+      "target": "GLM PP1 ordinary paged decode metadata preparation and upload",
+      "reuse": "bounded capture profiles; pinned slab single H2D; serial async source lease",
+      "constraints": ["PP1", "ordinary KV", "unquantized KV", "paged/flash attention", "page_size=256", "at least two pages", "prefill and all-position remain eager"],
+      "documented_device_evidence": "dual A100 Qwen3-14B TP2 BF16 KV/page256/544pages only",
+      "bw1000_validated": false
+    }
+  ],
+  "report": "report.md"
+}
