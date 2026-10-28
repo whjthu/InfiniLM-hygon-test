@@ -1,0 +1,125 @@
+{
+  "status": "ONE_SOURCE_HYPOTHESIS_ONLY_NO_GPU_OR_IMPLEMENTATION",
+  "candidate": "W2 four adjacent output channels perCTA instead of currenttwo, keep256threads/32laneperroute/originaldecode/originalascending16route accumulation/BF16 finalstore",
+  "why_after1181": "Directdecode isstable14.8..17.7pct fullMoEnegative; preserveolddecode. Existingpair2alreadyONandnotanewbenefit. Moving2to4cutsCTAcountandactivationlogicalreloadsbyhalf without quantization/classification/FP32partialbuffers/newatomics. Itisnewtestablehypothesis,notscalingclaim.",
+  "de_duplication_checked": [
+    "taskkimi-w2-pair-model original1to2 alreadyqualified",
+    "kimi-int8-group32-w2 753/757 andK114B/K114C lowreuseMMACpaddingmixed/negative;no repeat",
+    "W13invalidrow796negative",
+    "W13A8957/961negative",
+    "W13directdecode1181negative",
+    "No quad4 W2 implementation/result found inrepository source/tasks/results or localKimiW2sourcefolders"
+  ],
+  "true_geometry": {
+    "model_H": 7168,
+    "routed_H": 3584,
+    "routed_H_explanation": "Actual HOST downprojection compresses7168to3584 before FP4experts; do not use7168forroutedW13/W2FLOPs",
+    "TP": 16,
+    "I_local": 192,
+    "I_global": 3072,
+    "experts": 896,
+    "topk": 16,
+    "T_singleuser_W8_verify": 8,
+    "T_current_C8W8_verify": 64
+  },
+  "existing_source_facts": [
+    "W13TT2 already sharesdecodedweights across2sameexpertrows; Tile4 sharesactivation across4outputchannels",
+    "W13packed lanesareconsecutive, scalegroup16 possiblebroadcast; no evidenceuncoalescedglobalaccess",
+    "W2pairalreadyloadsactivation oncefortwooutputchannels; newquadonlyraisesoutputreuse2to4",
+    "pack/build atomics measuredclear+pack+build~.03ms vsW13~3.0..3.36+W2~2.08ms onselectedcurrentT64layers; notprioritycurrently",
+    "No actualcurrentT8 U/J histogram orW2eventphase; do not infer C1latencyfromC8T64"
+  ],
+  "current_profile": {
+    "scope": "449 actualL1/L47 only,T64,owneroriginalstreamintervals",
+    "W13_ms_L1_L47": [
+      3.3607,
+      3.0095
+    ],
+    "W2pair_ms_L1_L47": [
+      2.0821,
+      2.073
+    ],
+    "W13_useful_FLOPs_per_rank": 2818572288,
+    "W2_useful_FLOPs_per_rank": 1409286144,
+    "W13_effective_useful_TF_s": [
+      0.8386860737346387,
+      0.9365583279614554
+    ],
+    "W2_effective_useful_TF_s": [
+      0.6768580490850583,
+      0.6798293024602026
+    ],
+    "these_are_fusedinclusive_normalizations_not_utilization": true,
+    "controlled_U_J_L1_not_currentModel": [
+      {
+        "U": 33,
+        "J": 512
+      },
+      {
+        "U": 472,
+        "J": 657
+      }
+    ],
+    "weight_storage_lower_bytes_per_activeexpert_per_rank": {
+      "W13": 731136,
+      "W2": 365568
+    },
+    "U_times_storage_is_not_observed_HBMtraffic": true
+  },
+  "FLOP_and_logical_byte_cases": [
+    {
+      "T": 8,
+      "useful_W2_dot_FLOPs_per_rank": 176160768,
+      "current_pair2_CTA_count": 14336,
+      "one_candidate_quad4_CTA_count": 7168,
+      "logical_packedW_plus_scaleunique_perroute_bytes": 46792704,
+      "logical_activation_bytes_pair2": 88080384,
+      "logical_activation_bytes_quad4": 44040192,
+      "read_achieved_reference_what_if_pair2_ms": 0.10902271261245969,
+      "read_achieved_reference_what_if_quad4_ms": 0.07342345951451366,
+      "packedFP32_FMA_achieved_reference_what_if_ms": 0.0076671643454039,
+      "not_runtime_bound_or_peak_utilization": true
+    },
+    {
+      "T": 64,
+      "useful_W2_dot_FLOPs_per_rank": 1409286144,
+      "current_pair2_CTA_count": 114688,
+      "one_candidate_quad4_CTA_count": 57344,
+      "logical_packedW_plus_scaleunique_perroute_bytes": 374341632,
+      "logical_activation_bytes_pair2": 704643072,
+      "logical_activation_bytes_quad4": 352321536,
+      "read_achieved_reference_what_if_pair2_ms": 0.8721817008996775,
+      "read_achieved_reference_what_if_quad4_ms": 0.5873876761161093,
+      "packedFP32_FMA_achieved_reference_what_if_ms": 0.0613373147632312,
+      "not_runtime_bound_or_peak_utilization": true
+    }
+  ],
+  "hardware_reference": {
+    "actual910374_838_v_pk_fma_f32_achieved_TF_s": 22.976,
+    "read_achieved_TB_s": 1.23711,
+    "FP32dense54_51_and_BF16dense333_752_not_scalarFP4peaks": true,
+    "all_are_achieved_lowerbounds_not_physicalpeak": true,
+    "what_if_ms_not_physical_time_lowerbound": true,
+    "source": "analysis/bw1000/hardware-and-cycle-reference-r8256.json",
+    "source_SHA256": "965f5a33b2dac7c363d9a4ccb149ac0df51e1895a8ca009a59f38a59013b40a0"
+  },
+  "minimum_source_change": {
+    "file": "Kimi-W2-pair-private-r9280/kimi_W2_pair_provider_r9280.cu pairW2I192R9280",
+    "change": [
+      "addseparatequadW2kernel defaultOFF,outputchannelbase4*(blockIdx.x%(3584/4)),token=blockIdx.x/(3584/4)",
+      "reusex0/x1over4constunrolledchannels,sums4x16shared=256B,current2x16=128B",
+      "preserveeachchannelFP32 dotreduction andascending16route finalsum; grid896*T vs1792*T; no newbuffers/sync/atomics",
+      "newexplicitquadflag/counteractualdispatch plus originalpairbaseline; no W13/reducer/mathprecision change"
+    ]
+  },
+  "risks": [
+    "4accumulators/addressstatecanraiseVGPR pressure and loweroccupancy orcodegenquality",
+    "activationreloadsmayhitcache,sologicalhalvingmaynotreduceHBMtraffic",
+    "duplicateFP4decode/weightsperoutputunchanged,so1181doesnotjustifydecoderchange",
+    "currentT8singleusercriticalfractionunknown; ARsingleuserT1originalfallbacknotaccelerated",
+    "atomicbuildstubreusepinnedpacked.o toavoidknowncompilerbug; no compilerflagsweep"
+  ],
+  "next_minimum_observation": "Ifrootchoosesonerealcomponent: sameL1loadedonce,T8first plusT64control, pair2vsquad4 only, existingphaseeventafteroriginaldrain; fullMoEcounter/finite/NRMSE/read-only/normal16/post. NeedactualT8W2phase+VGPR/ISA/codepath beforeModelclaim. No dedicatedL47 orModelload.",
+  "predicted_Model_wall": "UNKNOWN: profilecovers2layers/T64only,notC1T8/draft/replay/all93layers. Even ifW2latencyreduced20pct, selectedT64MoEwouldimprove~6.6pct becauseW2~33pct, not20pct wholeModel; illustrationonly.",
+  "resources_used": "localread+JSONwriteonly; no SSH/Git/HIPcompile/GPU/launch"
+}
