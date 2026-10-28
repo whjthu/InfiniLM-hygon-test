@@ -1,0 +1,170 @@
+{
+  "review": 129,
+  "state": "COMPLETE_RECOMMENDATIONS_ONLY",
+  "reviewer": "astra_review_129",
+  "date": "2026-10-29",
+  "repository_snapshot": "273e8c35883c1bad8aee115ca6f91f1652b55da2",
+  "trigger": "Repeated avoidable CPU audit/loader failures; not a performance round",
+  "scope": "Local read-only source/evidence review; no SSH, Slurm, GPU, Git mutation or execution of reviewed code",
+  "previous_review": {
+    "id": 128,
+    "implementation": "COMPLETE_IMPLEMENTED_SCHEDULING",
+    "completed_performance_rounds_since": 0,
+    "assessment": "All three cards retained as source/CPU preparation; GPU deferral follows explicit human normal-agent priority. No unimplemented performance GPU card should be rescheduled ahead of that priority."
+  },
+  "unchanged_acceptance": {
+    "context": 32768,
+    "ordinary_output_budget": 4096,
+    "thinking_output_budget": 8192,
+    "HTTP_actual_input_min": 8192,
+    "SSE_actual_input_min": 16384,
+    "actual_tool_steps_min": 8,
+    "long_tool_argument_actual_tokens_min": 1024,
+    "C2_HTTP_SSE_isolation": true,
+    "full_history_and_reasoning": true,
+    "truncation_rejection_and_recovery": true,
+    "extension_64K": "nonblocking; not an acceptance substitute"
+  },
+  "questions": {
+    "q1": "新增可证明整模型/真实服务速度收益=0；128后性能轮次=0。Kimi542六HOST构建、GLM543一HOST registry修复、Deep1200 metadata35边界/200chunk均属工程证据。GLM792在32个owner create因TP8PP2 identity拒绝，未证明OOM、权重fit或forward。无同硬件同负载同口径新性能配对，因此无可声称超过波动的收益。",
+    "q2": "当前瓶颈是准备/审计/加载器闭合而非已测GPU算子。可见构建耗时Kimi542 97.506s、GLM543 13.639s；Deep1199 15.306s、1200 30.403s均失败且0 HOST编译。GLM537/538/539为15/2/10秒CPU审计。端到端准备、排队、加载、测量时长未全覆盖，UNKNOWN，不能把审计运行秒数当总成本。资源曾可用却仍无正常长输入验收任务，r188已独立推进是正确纠偏。",
+    "q3": "旧GLM787是TP8PP2短负载T1，Deep1195是短C1 decode；都不能用于32K、长工具多轮或GLM PP4预测。当前已证实的是GLM registry拓扑拒绝、Deep嵌套quoted include旧新guard混用；Kimi width8长输入造成960/1984次额外调用是源级事实。长上下文GPU计算/通信/空泡/CPU调度各份额仍UNKNOWN。Kimi调用次数风险与长past成本值得同一首次加载观测，不能把64倍RPC减少说成64倍wall收益。",
+    "q4": "保留GLM最小registry修复并消费正在执行的r186/r188；Deep一次完成r180d私有依赖镜像HOST闭合；Kimi复用542产物立即完善真实容量+常驻服务一次加载路径。停止重复CPU证明、纯smoke reload、新profile框架和把旧短上下文当验收。128性能候选保留到接口验收后；Deep smallT STOP不变。"
+  },
+  "evidence": [
+    "results/bw1000/2026-10-29/native-current-root-r9552-a.json",
+    "results/bw1000/2026-10-29/constructor-ELF-evidence-root-r9553-a.json",
+    "results/bw1000/2026-10-29/repair-builds-root-r9557-a.json",
+    "results/bw1000/2026-10-29/GLM-long-CPU-results-root-r9545-a.json",
+    "analysis/bw1000/reviews/astra-review-implementation-128-current.json",
+    "analysis/bw1000/reviews/optimization-review-ledger-after-128-round0.json",
+    "coordination/tasks/native-agent-32k-capacity-and-acceptance-r181.json"
+  ],
+  "findings": [
+    {
+      "id": "G129F1",
+      "severity": "ADOPT",
+      "source": "GLM-PP4-registry-repair-private-r184b/caller-only.diff",
+      "finding": "内部Identity5775新增pp，成员和完整集合使用原PP_layout，PP4边界0/18/38/58/78；PP2专用selected/shadow/geometry/record在PP4关闭。public Context/NativeAttention布局、forward数学和cache布局不改；543证实1 HOST/24对象复用/ABI1/ldd-r和exports闭合。最小且必要，不建议重编或再建geometry门禁。",
+      "limit": "CPU不证明实际constructor、CUDA线程所有权、通信或destroy。Registration5775仍要求同线程析构；runtime owner/stream同步与registry erase应从实际退出结果判断。"
+    },
+    {
+      "id": "G129F2",
+      "severity": "NEXT_LAUNCH_EFFICIENCY_RISK_NOT_CURRENT_STOP",
+      "source": "GLM-PP4-capacity-private-r186/allocation_entry_r186.py:19; preengine_r133.py:8",
+      "finding": "pv/ev在模块顶层，spawn 8 worker会重入同一递归preflight/preengine；preengine先set_device(0)，worker之后才set_device(rank)。因此每节点父进程+8子进程重复历史审计并可能保有多份GPU0 context，影响启动与memory_before_create。属于静态可见风险，未证实本轮失败；不打断在途r188。",
+      "recommendation": "当前已发布固定r186只跑一次，不先改包。随后正式service前最小修复：把preengine.validate增加device参数且使用rank；把worker的Native/DSO初始化放到worker开头torch.cuda.set_device(rank)之后，禁止spawn重入模块顶层GPU初始化；父端全量preengine放已存在controller的一次短命子进程，退出后再spawn。保留每进程必需symbol-owner绑定，纯静态祖先hash/旧fixture只在父端一次。若父端生成communicator IDs也需要Native dlopen，则同短命初始化过程生成并返回IDs，退出后workers再启动。无需Native重编、另一个constructor探针或新框架。"
+    },
+    {
+      "id": "G129F3",
+      "severity": "SCOPE_LIMIT",
+      "source": "GLM-PP4-capacity-private-r186/allocation_entry_r186.py",
+      "finding": "constructor实际也分配参数storage；32owner census/trim/free/整数SUM/destroy/shutdown与postKFD是有区分力的首次判定，792未完成它。512MiB floor仅是本探针的constructor判据，不是weights load/finish/prefill峰值余量。audit-r186仍写base ce830，运行链固定038；避免把旧审计顶层SHA当当前产物。"
+    },
+    {
+      "id": "D129F1",
+      "severity": "ADOPT",
+      "source": "Deep-native-context-guard-r180d/dependency_mirror_r180d.py; CPU_build_r180.py:144",
+      "finding": "复制全部实际项目依赖至私有同结构树，普通source/header字节不变，仅guard替换；symlink别名指向镜像内部以保pragma-once身份；改写项目include路径，归一化依赖集合相等且不得逃回原树。该修复对准1200嵌套quoted include根因，比只复制TU或加-I有效。",
+      "limit": "源码尚不等于实际r180d编译通过。保留现有fresh-M=MD、全部guard/RTTI/vtable消费者替换、最终DSO无旧message和动态链接检查；不再扩展fixtures。清晰区分当前deps闭合与旧object编译时header SHA UNKNOWN。"
+    },
+    {
+      "id": "D129F2",
+      "severity": "SCOPE_LIMIT",
+      "source": "Deep-native-context-guard-r180d/header-guard-only.diff; closure-contract-r180.json",
+      "finding": "guard放宽至65536而正式只用32768，类24B布局不变；T4096上限仍保留，实际prefill1024连续commit。200chunk metadata不是HCA/CSA/index/compressor数学和长位置输出证明。32K rows1列举persistent约140313344B不含weights、临时attention/CCL/allocator峰值。不得为了64K扩展推迟正式32K。"
+    },
+    {
+      "id": "K129F1",
+      "severity": "ADOPT_WITH_ACTUAL_DEVICE_SCOPE",
+      "source": "Kimi-long-agent32K-private-r179/native/long_agent_geometry_r179.hpp; runtime/long_ar_r179.py",
+      "finding": "显式long create逻辑1/物理2/pool3/128pages/260blocks，public worker/engine头未改，542六HOST替换127旧exports保留，0新HIP。真实prompt先512再width<=8全commit，逐token输入不按预测过滤，完整history+输出预算边界仍检查。不能将flatten64当单请求64。",
+      "limit": "pool3 KDA state/conv复制与重置、128pages MLA absolute slot/RoPE长位置、owner线程/lifecycle和C2串行隔离尚需实际证明；无新HIP不代表这些新shape已获数学资格。"
+    },
+    {
+      "id": "K129F2",
+      "severity": "COST_RISK_NO_NEW_GATE",
+      "source": "Kimi-long-agent32K-private-r179/long-prefill-cost-and-next-source-card-r179.json",
+      "finding": "8K/16K有960/1984次额外verify/fullcommit；27请求保守35136次，若总界8500秒，忽略load/decode后平均调用仍需<=0.242秒。已有long_prefill_observations足够先测8K与16K实际wall，拒绝新增profile框架。append512只是预备替补，其64倍调用减少不是速度收益。"
+    }
+  ],
+  "cards": [
+    {
+      "id": "G129A",
+      "rank": 1,
+      "model": "GLM-5.3",
+      "hypothesis": "038 registry修复后原TP8PP4/32K rows1能真正构造并正常释放；若成立，可用同配置进入正式服务而不是继续CPU审计。",
+      "minimal_change": "不改在途r186/r188；消费新actual handle。通过后只完成PP4长服务驱动差异：tail=PP-1、原bounds、512连续prefill、4K/8K预算、C2队列隔离及32owner清理。",
+      "owner_resources": "原GLM agent；parent910376，a02r4n12..15，32卡TP8PP4，按fresh actual资源证据执行。",
+      "reuse": "r184b/CPU543/Native038d4ff2...；r186/r188；冻结r178/r181客户端。",
+      "necessary_checks": "constructor32owner身份/分区/SUM/余量/正常退出；之后实际load/finish/prefill峰值、完整最终token/EOS和任务结果、≥8真实工具、≥1K实际参数、C2隔离。无bitwise新增门。",
+      "samples": "容量只需这一个32owner完整尝试，无warmup性能样本；服务同一次load沿既有暖机，完整HTTP8K/SSE16K/thinking8K工作流和长输出/C2矩阵各一次即可判断验收，不宣称统计性能收益。",
+      "wall_interval": "constructor及准备；服务性能影响UNKNOWN",
+      "first_result_estimate": "已启动容量实际判定预计2–12分钟加排队，若已完成直接消费；服务首结果历史加载25–35分钟量级但PP4新配置UNKNOWN，再加首完整请求时间。",
+      "stop_upgrade": "失败保留精确phase，不自动重放；constructor通过不宣称loaded fit，按实际峰值安全停止；完整服务通过后才恢复G128A性能计划。",
+      "fallback": "若真实容量不足，依据census最大项修一项；不缩context/input/tool标准，也不盲改PP边界。",
+      "timing_record": "结束复用现有result分别填准备/排队/加载/测量/质量/清理；当前缺失UNKNOWN。"
+    },
+    {
+      "id": "D129A",
+      "rank": 2,
+      "model": "DeepSeek-v4",
+      "hypothesis": "180d项目镜像消除旧新guard双绑定，现有数学在32K metadata范围可完成真实长agent流程。",
+      "minimal_change": "一次r180d受影响HOST完整重编/链接，复用35边界和200chunk已证明内容；成功立即绑定新Native到现有service worker，去除旧512输出clamp，保持1024prefill/T4096。",
+      "owner_resources": "原Deep agent；CPU原keeper，后parent910374/a02r4n01/8卡；不新增agent。",
+      "reuse": "1200已完成映射与fixtures，r180d镜像，ac937父48对象，原r173/r177与冻结客户端。",
+      "necessary_checks": "只保留现有镜像字节/归一化依赖/guard消费者/ldd检查；设备检查连续prefill压缩边界、reset后第二请求、完整EOS/任务/工具/C2隔离和正常退出。",
+      "samples": "CPU一次有效闭合；首正式load中沿原暖机完成实际8K、16K、thinking及工具/C2矩阵，压缩边界由真实连续输入自然覆盖，无额外短smoke load。",
+      "wall_interval": "修复admission可用性；速度增益UNKNOWN",
+      "first_result_estimate": "CPU闭合2–15分钟（现有900秒上限）；之后历史load约7.5分钟，首长请求额外UNKNOWN，排队另计。",
+      "stop_upgrade": "如镜像再次失败只定位首个未镜像项目依赖/路径，不回到盲加-I；编译通过后不等新审核。实际数学/生命周期失败停止定位，不自动重播；64K不阻塞32K。",
+      "fallback": "若仍未闭合，复用同父完整项目快照路径和原构建上下文进行同一guard替换；不混旧inline对象、不重写算子。",
+      "timing_record": "准备/排队/构建/加载/测量/质量/清理分列。"
+    },
+    {
+      "id": "K129A",
+      "rank": 3,
+      "model": "Kimi-K3",
+      "hypothesis": "已编译r179能在真实32K geometry安全构造，并在不丢prompt的width8路径内完成用户工作流；首8K/16K可判定时间是否可承受。",
+      "minimal_change": "复用CPU542 Nativeba6f9a...，直接完成已有loader/resident adapter与bounded controller；一次必要的新geometry容量判定，随后一次load内先记录实际长prefill再完整验收。拒绝重编相同六HOST和纯smoke reload。",
+      "owner_resources": "原Kimi agent；parent910380/a14r2n08,n09,n10,n12，32卡TP16PP2。",
+      "reuse": "r179构建/ABI证据与long_prefill_observations，既有305726父数学、r178/r181冻结客户端。",
+      "necessary_checks": "实际pool3/128pages储存和owner生命周期；正常fullcommit与取消后reset/drain；完整token/EOS、工具正确结果、实际输入与长参数token计数、C2独立ID/历史。正式C2可FIFO串行backend，不伪称Native并行。",
+      "samples": "新geometry容量一次足够，不能将旧I96 subset再跑一遍当32K验证；同一次模型load既有暖机后实际8K与16K前缀各一个先判wall/peak，其结果保留进正式工作流，其余冻结验收全量继续。",
+      "wall_interval": "长prefill调用/CPU dispatch与GPU执行混合；具体贡献UNKNOWN",
+      "first_result_estimate": "adapter/controller准备应限定30分钟内形成可运行提交；容量2–5分钟级估计，历史加载20–27分钟，首8K长prefill UNKNOWN且可能显著大于load，排队另计。",
+      "stop_upgrade": "若实际首长prefill估计无法在既定8500秒内完成，保留输入已commit数量和分段wall，在安全fullcommit边界取消清理；不降标准/掩盖timeout。通过完整验收才恢复K128生命周期性能路线。",
+      "fallback": "只在实际width8时间证明不可承受后推进已写明的scoped append<=512；须沿原KDA非零state+conv历史、MLA past-aware页表做必要source/数值核对，保持原算子数学。不要提前并行实现第二套大方案。",
+      "timing_record": "现有observation记录actual prompt/input committed/CAPI wall；结束补准备/排队/load/measurement/quality/cleanup。"
+    }
+  ],
+  "root_decisions_recommended": [
+    {
+      "decision": "ADOPT",
+      "item": "G129A；不等待本审核、不暂停在途r188。"
+    },
+    {
+      "decision": "ADOPT",
+      "item": "D129A；已知include修复给原agent一次有边界继续授权，CPU成功后转实际验收。"
+    },
+    {
+      "decision": "ADOPT",
+      "item": "K129A；首实际判定优先于追加审计，30分钟内交可运行loader/controller或报告唯一具体阻塞。"
+    },
+    {
+      "decision": "DEFER",
+      "item": "Kimi append512到真实width8成本失败才启用；64K与review128性能GPU均待正常agent验收。"
+    },
+    {
+      "decision": "REJECT",
+      "item": "重复同源码CPU/geometry证明、第二轮无权重同配置探针、短输入替验收、把constructor fit当loaded fit、把CPU或接口通过写成速度收益。"
+    },
+    {
+      "decision": "ADOPT_AFTER_CURRENT_HANDLE",
+      "item": "GLM下一启动消除spawn顶层重复祖先审计与不必要GPU0初始化；无需为本修改重跑已通过构建/geometry。"
+    }
+  ],
+  "why_interface_priority_remains_reasonable": "直接遵循用户r181已核实的优先级；32K真实工具/长输出/C2隔离是未来有效服务性能基线。短上下文烟雾虽快不能代表目标。当前0新速度收益不是停止正常接口任务的理由，但必须将接口可用性与性能账分开，原三模型优化目标保持active。",
+  "limitations": "未查看远端实时状态；bw1100/latest本地不存在，未fetch（只读范围）。r180d为读到的在改源码，未声称已构建。r188新结果由root消费，不从旧RUNNING推断。此报告不是GPU GO/发布/实施记录。",
+  "root_increment": "Root latest d82769a2ce6544363e9c493642bdf3299177bd54 published; r186/r188 upload preparation, not yet GPU submitted at review completion. Run one fixed published constructor as planned; no new audit gating. If rank0 floor fails, separate harness extra contexts from Native32K fit. If success, qualify constructor including this harness overhead only."
+}
