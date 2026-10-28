@@ -1,0 +1,247 @@
+{
+  "review": 130,
+  "state": "COMPLETE_RECOMMENDATIONS_ONLY",
+  "reviewer": "astra_review_130",
+  "date": "2026-10-29",
+  "repository_snapshot": "e738812 (root-reported published)",
+  "trigger": "Repeated avoidable startup/packaging/audit failures; not performance rounds",
+  "scope": "Read-only local review; no SSH, Slurm, Git, Native execution, model load or new agents; only these review artifacts written",
+  "unchanged_acceptance": {
+    "context": 32768,
+    "ordinary_output_budget": 4096,
+    "thinking_output_budget": 8192,
+    "HTTP_actual_input_min": 8192,
+    "SSE_actual_input_min": 16384,
+    "actual_tools_per_workflow_min": 8,
+    "long_argument_actual_tokens_min": 1024,
+    "long_argument_ordinary_content_tokens_min": 1024,
+    "full_history_and_thinking": true,
+    "C2_entry_isolation": true,
+    "complete_final_token_EOS_and_normal_cleanup": true
+  },
+  "questions": {
+    "q1": "新增已证明整模型/真实服务速度收益=0；无同硬件同负载同计时口径的新配对，不能判断超过波动。Deep1203真实8669/16857输入全commit、9/17个1024上限chunk并EOS，属于长上下文执行证据；regular三个workflow全部失败，不能列正常agent质量通过。CPU551/466/467、GLM798导入修复只是工程进展。原三模型硬件峰值/算子系统优化目标仍active，暂按真人接口优先，不能把接口进展变成速度收益。",
+    "q2": "主要损耗仍在准备与实际启动边界不一致。GLM798 48秒权重前失败，Kimi471 41秒失败；CPU静态/导入证明不能覆盖实际同进程历史模块污染、包路径与运行契约。Deep1203截至20:27:32Z运行25:17，GLM801运行1:40；这是累计运行时间，不能冒充加载或测量耗时。CPU550 3秒、551 2秒、466 2秒、467 1秒也不是全准备成本。完整准备/排队/加载/测量/质量各项缺失均UNKNOWN。 增量已明确Kimi471为StageControl超时8500超出helper允许≤7200，发生在通信/Native构造/权重前；是实际调用常量未覆盖的可避免集成错误。",
+    "q3": "当前已证实Deep长输入执行到EOS，无所列Native错误或非有限；协议错误在工具解析/验证层。public prepare_agent_request对Deep named choice已过滤tools到指定schema，因此不能声称完全忽略named choice；是否充分表达必须调用和单call约束仍需既有token/text因果定位。GLM798是导入顺序，Kimi471是StageControl常量越界，都不是OOM证据。32K负载计算/通信/CPU调度占比UNKNOWN。",
+    "q4": "保留Deep1203、GLM801现有句柄与自动验收，不重启、不热改、不为审核等待。Kimi先消费471既有异常和post证据，未知失败禁止重放。停止同配置Native构造/缓存probe/重复权重加载、增加审计框架、缩小验收标准、重复记录冒充实验。最多每模型两卡，以下5张以首判时间排序；性能潜力均UNKNOWN，当前优先修接口可判定性。"
+  },
+  "previous_review": {
+    "id": 129,
+    "assessment": "PARTIAL_IMPLEMENTED_WITH_EXPLICIT_DEFER",
+    "D129A": "已落地：1201完成3HOST0HIP修复并产出232fb7...；1203一次加载server_ready且完整长输入EOS。regular失败说明工程闭合不等于任务质量闭合。",
+    "G129A": "已落地到795实际constructor复用及正式798/801；798私有protocol导入顺序失败，r192b+551修复，801在途。未获完整模型PASS。",
+    "K129A": "复用542 Native、462实际cache及465清理，466/467准备通过；471失败在target_model.py:26→stage_control_r2386.py:4，8500传入仅接受1..7200的helper。CPU准备未覆盖实际构造调用常量。",
+    "G129F2": "有意暂缓，不应写成已实现。r191明确DEFER_AFTER_FIRST_FORMAL_RESULT，沿用795已验证启动以免延迟首次完整结果；root补充余量>33GiB。r192b顶层仍preweight_protocol/set_device(0)、preengine/set_device(0)，spawn8仍重入。更新implementation129为PARTIAL并引用r191；不因本审核打断801。",
+    "repeat_failure_reason": "CPU静态闭合/独立进程import成功与实际入口同进程依赖顺序不是同一证据。祖先审计和private overlay叠加，加上CRLF/POSIX路径封包边界，令已有构建正确仍在启动失败。修复应对准首个实际栈和最终入口顺序，复用成功Native；不能再靠新门禁层掩盖集成边界。Kimi本次是另一个明确集成边界：整体8500秒预算误用于单collective最大7200秒helper；不是导入顺序，但同属CPU静态准备未覆盖实际调用。复用现有CPU合同校正实际signature即可，禁止新增门禁框架。"
+  },
+  "evidence": [
+    "coordination/ASTRA_REVIEW.zh-CN.md",
+    "coordination/tasks/formal-agent-startup-repair-r193.json",
+    "coordination/tasks/full-context-once-load-services-r191.json",
+    "analysis/bw1000/reviews/astra-review-129-current.json",
+    "analysis/bw1000/reviews/astra-review-implementation-129-current.json",
+    "../live-formal-root-r9578-a.json",
+    "../Kimi471-failure-root-r9579-a.json (root-provided increment; first-frame and same-SHA helper verified by root)"
+  ],
+  "findings": [
+    {
+      "id": "D130F1",
+      "status": "PARTIAL_CONSTRAINT_SOURCE_FACT_CAUSALITY_PENDING",
+      "source": "Deep-agent-regular32K-r182/overlay/python/infinilm/server/agent_protocol.py:93-123; chat_prepare_r173.py:6-16; encoding/encoding_dsv4.py:70-99",
+      "finding": "public prepare_agent_request已按Deep named choice过滤tools/schema到指定工具，none清空工具；chat_prepare接收处理后的kwargs.tools，因此named choice并未被完全忽略。尚未见显式must-call/parallel=false自然语言约束，官方模板示例有两个invoke；过滤schema是否足够、模型真违约或parser问题仍待原输出判因，禁止先认定编码为唯一根因。"
+    },
+    {
+      "id": "D130F2",
+      "status": "REUSE_EXISTING_CAUSAL_EVIDENCE",
+      "source": "Deep-agent-regular32K-r182/worker_r182.py:77; overlay/python/infinilm/server/tool_parsers/__init__.py:180,241",
+      "finding": "worker已存generated_token_ids；实际bridge progress不输出文本，done排EOS1后用HF整段decode(skip_special_tokens=False, clean_up_tokenization_spaces=False)一次。HTTP strip后feed(text,final=True)；SSE feed(text)再feed('',final=True)。先按这两条真实路径重放并关联wire；逐token分片仅为离线诊断对照，不能称1203实际分片。错误计数不等于失败请求数，EOS/finite不证明任务正确。"
+    },
+    {
+      "id": "G130F1",
+      "status": "DEFER_ACCEPTED",
+      "source": "GLM-regular-service-private-r192b/model_entry_r192.py:6-11,104,267; preweight_protocol_r192.py:10; preengine_r133.py:8",
+      "finding": "private protocol先于legacy导入的修复对准798。129重复GPU0初始化效率建议未落地且有明确延期依据。下次必要启动若修改应同时覆盖新preweight路径和旧preengine，不只修其中一处。801现有结果优先，未经实际不能把这项当失败根因。"
+    },
+    {
+      "id": "K130F1",
+      "status": "CONFIRMED_STARTUP_CONSTANT_MISMATCH",
+      "source": "Kimi471-failure-root-r9579-a.json; r189b/runtime/target_model.py:26; stage_control_r2386.py:4",
+      "finding": "root增量：各node首栈一致；同SHA helper要求1<=timeout_seconds<=7200，而r189传8500。失败发生在通信/Native构造/权重前。r194最小修复采用单collective7200、整体8500，验收1800/3600与32K/4K8K不变；原owner已获有界执行授权。"
+    }
+  ],
+  "cards": [
+    {
+      "id": "D130A",
+      "rank": 1,
+      "model": "DeepSeek-v4",
+      "hypothesis": "当前拒绝由可定位的编码/真实输出/解析分片之一主导，而不是已证实Native长输入失败。",
+      "minimal_change": "不改运行服务；用1203已有generated_token_ids及原wire，按同tokenizer/EOS排除规则恢复文本；重放HTTP strip+feed(final=True)与SSE feed(text)+feed('',final=True)真实路径。可加同一输出的逐token离线对照，但明确它不是实际1203分片。检查prepare_agent_request已过滤schema及剩余必须调用/单call约束。",
+      "owner_resources": "原Deep agent/root；CPU本地既有证据；保留910374.1203和自动regular→long-output生命周期。",
+      "reuse": "r182 worker已有token字段、官方encoding、原parser、regular失败三workflow；无需新GPU观测。",
+      "necessary_checks": "请求id/原token计数/EOS一致；保留完整reasoning和tools；解析结果不丢第二call、不伪造缺失call。",
+      "samples": "每个不同失败类别各一个已有请求；HTTP/SSE两条真实feed路径各一次，离线逐token仅诊断，无性能暖机。",
+      "wall_interval": "生成后协议路径；速度影响UNKNOWN",
+      "first_result_estimate": "既有原始字段到本地后5–15分钟CPU；取证等待另计",
+      "stop_upgrade": "若两条实际feed路径结果不同则定位parser/strip边界；若原文本真违约，再区分schema已过滤但call数量/必须调用约束不足与模型行为失败，只有证据支持才进入D130B；不降验收。",
+      "fallback": "缺失字段先读取现有原结果；不要重载模型获取本已保存token。",
+      "timing_record": "准备/取证等待/CPU解码/质量判定分别记录；新增排队和加载=0。"
+    },
+    {
+      "id": "K130A",
+      "rank": 2,
+      "model": "Kimi-K3",
+      "hypothesis": "471的唯一首因是StageControl调用常量越界；修正单collective7200可越过该确定阻塞且不改变整体验收预算。",
+      "minimal_change": "原owner r194独立namespace：只将StageControl单collective8500改合法7200；保持整体8500与验收1800/3600不变，pin同SHA helper并在现有CPU合同核对实际signature边界、LF/POSIX。禁止新门禁、Native重编/构造/cache probe。",
+      "owner_resources": "原Kimi agent/root；CPU先判；parent910380原32卡TP16PP2仅后续已知修复正式一次加载使用。",
+      "reuse": "471各node首栈和同SHA StageControl；472/473 cleanup；CPU466/467、462/465及Nativeba6f9a。",
+      "necessary_checks": "现有CPU合同使用实际helper signature及实际常量；同SHA绑定和封包路径保持一致；本次失败在通信/Native/权重前，不宣称模型失败。",
+      "samples": "一次现有CPU合同对实际helper/call验证，复用既有通过项；无需GPU分类重跑。",
+      "wall_interval": "startup；模型速度UNKNOWN",
+      "first_result_estimate": "已定位；r194准备/CPU验证预计5–15分钟，正式load成本见K130B",
+      "stop_upgrade": "有界r194修复通过现有CPU合同后直接K130B一次必要正式load，不等待新审核；若再遇不同未知错误，保留首栈停止自动重播。",
+      "fallback": "沿用129 Kimi卡及现有prefill observations；append512仍等实际width8成本证据，不提前做大方案。",
+      "timing_record": "471实际41秒/keeper64秒单列；准备排队加载未能分解写UNKNOWN。"
+    },
+    {
+      "id": "G130A",
+      "rank": 3,
+      "model": "GLM-5.3",
+      "hypothesis": "r192b导入顺序修复使801越过798失败点并获得首个完整32K服务判定。",
+      "minimal_change": "0；持续消费同801阶段/最终结果，复用795，不改变运行文件。",
+      "owner_resources": "原GLM agent/root；910376.801，32卡TP8PP4原nodes。",
+      "reuse": "Native038d4ff2、795、551、r192b已提交实际。",
+      "necessary_checks": "实际private protocol路径；32owner load/finish与完整输出/EOS；HTTP8K/SSE16K/8工具/长参数双1024/C2；正常退出清理。",
+      "samples": "当前一次加载沿冻结矩阵和既有暖机完成即可判验收，无新增短smoke或性能样本。",
+      "wall_interval": "启动及服务可用性；速度UNKNOWN",
+      "first_result_estimate": "首阶段结果按当前801观察即得；历史load25–35分钟仅参考，PP4完整首请求UNKNOWN",
+      "stop_upgrade": "若新首异常，保留准确phase不自动重播；若rank0余量失败先区分重复GPU0上下文；完整结果后再处理明确延期G129F2，无需另做Native容量证明。",
+      "fallback": "以当前正式结果决定最小启动修复或保留128性能路线；不缩context/输出/工具标准。",
+      "timing_record": "准备/排队/load/measurement/quality/cleanup分列；20:27:32Z累计1:40不是load耗时。"
+    },
+    {
+      "id": "D130B",
+      "rank": 4,
+      "model": "DeepSeek-v4",
+      "hypothesis": "仅当D130A证明现有named schema过滤仍缺必要调用或单call约束时，补全表达可消除相应协议拒绝。",
+      "minimal_change": "仅在D130A支持后补request-to-prompt必要约束，保留现有named schema过滤、官方格式和全部历史；parser仍严格，禁止截掉多call或强改结果。",
+      "owner_resources": "原Deep agent/root；CPU先准备。1203会自动销毁，无hold钩子；不承诺可追加同加载请求。",
+      "reuse": "D130A证据、r182 encoder/parser及现有客户端。",
+      "necessary_checks": "精确请求约束与prompt一致；工具名/参数/实际工具结果和最终nonce等仍由原验收判断；普通长内容和实际tokens双≥1024。",
+      "samples": "CPU同一已有请求编码对照一个；仅若1203仍可用且不干扰自动验收、也无需热改运行依赖时才考虑最小实际判定。否则等本次完整退出后将已明确修复并入下一次必要正式load，一次完成冻结全矩阵。",
+      "wall_interval": "prompt/protocol可用性；速度UNKNOWN",
+      "first_result_estimate": "CPU5–15分钟；实际判定依当前生命周期，若需必要新正式load历史约7.5分钟+完整请求UNKNOWN",
+      "stop_upgrade": "现有1203结束前不为微改重载；约束完整仍错时保留模型行为失败，不删严格检查、不缩8步；正确性通过后才恢复128性能计划。",
+      "fallback": "若D130A证明parser分片bug，则只修已定位parser而取消本编码卡。",
+      "timing_record": "编码准备、等待当前完成、必要load、实际验收各自记录；不得称CPU对照为性能轮次。"
+    },
+    {
+      "id": "K130B",
+      "rank": 5,
+      "model": "Kimi-K3",
+      "hypothesis": "仅在471首因已明确修复后，复用既有geometry的正式加载能给出真实长prefill成本与正常agent质量结论。",
+      "minimal_change": "复用129 K129A剩余部分，无新框架；一次正式load先保留8K/16K actual commit/wall，后完整regular/long-output。",
+      "owner_resources": "原Kimi agent spec_draft_longblock_research_162；原910380资源32卡TP16PP2；root已授权r194有界启动修复，执行条件为其现有CPU合同成功。",
+      "reuse": "r189b及必要入口修复、CPU466/467、462/465、原long_prefill_observations。",
+      "necessary_checks": "完整input commit/normal reset、工具8步/C2、长参数actual与ordinary≥1024、完整EOS及清理；不新增bitwise/F64。",
+      "samples": "原暖机后8K与16K各一，直接成为正式矩阵一部分；同load完成剩余矩阵。",
+      "wall_interval": "width8长prefill/CPU dispatch/GPU混合UNKNOWN",
+      "first_result_estimate": "历史load20–27分钟；首8K/16K长prefillUNKNOWN，排队另计",
+      "stop_upgrade": "既定8500秒成本边界若不可承受按已有安全commit边界停止并保留观测；只有此类实测才启用129 append512替补；任何未知执行错误禁止自动重播。",
+      "fallback": "复用129已有append512预备卡，不降完整输入和工作流标准。",
+      "timing_record": "准备/排队/load/首8K16K/质量/cleanup分别记录，未知填UNKNOWN。"
+    }
+  ],
+  "root_decisions_recommended": [
+    {
+      "decision": "ADOPT",
+      "item": "先D130A/K130A；G130A不受审核阻塞，保留现有句柄。"
+    },
+    {
+      "decision": "ADOPT_CONDITIONALLY",
+      "item": "D130B只在离线证据支持后；K130B只在471唯一首因明确修复后。"
+    },
+    {
+      "decision": "DEFER_ACCEPTED",
+      "item": "G129F2到首次正式结果；修正implementation129状态为PARTIAL并引用r191显式延期，保留801。"
+    },
+    {
+      "decision": "REJECT",
+      "item": "新门禁/框架、重复Native构造/cache probe/纯smoke load、关闭严格tool验证、缩短输入/输出/8工具门槛、从EOS/finite推断质量PASS。"
+    }
+  ],
+  "r206b_race_fix_review": {
+  "decision": "APPROVE",
+  "manifest_SHA256": "af263be58fd84bc407d8984392770a4b876bc559922355ddcd98b81fe365a2f5",
+  "scope": "Only r206 admission publication race fix; other scope reuses prior approval and CPU568 evidence",
+  "finding": "Private RLock covers super enqueue and all metadata/hash/assert assembly; ready becomes true last. Owner takes outside lock, then same-lock snapshot checks ready before deepcopy; no reset/Native until snapshot returns. Post-enqueue assembly failure marks request ERROR/fatal and ready remains false, so owner rejects before Native. No lock held during queue wait or Native execution. The r206 blocking race is resolved in source.",
+  "CPU_contract": "Inspected actual Bridge/snapshot AST test with real stdlib queue, controlled post-enqueue hash pause and failure case; directly targets the identified ordering issue without a new HTTP/Native framework. New actual CPU receipt still pending at review time; no GPU qualification claimed.",
+  "execution": "Proceed with already planned single r206b CPU preparation, then existing authorized formal-service path upon successful receipt. No added fixture/probe/reload gate."
+},
+  "r206_final_source_review": {
+  "decision": "BLOCKED_ON_ONE_ADMISSION_PUBLICATION_RACE",
+  "manifest_SHA256": "54a285759c2a3e662c8699cdd4d7fef9737791b61395f21419c4b0cbd8365aaf",
+  "blocking": {
+    "source": "worker_r206.py:32-35,78; native_engine_bridge_r143c.py:159",
+    "finding": "super.add_chat_request enqueues request before subclass attaches history_render_audit and other required admission metadata. Independent owner takes request then deep-copies metadata immediately. Hashing long prompt/ids may release GIL, permitting a snapshot without history_render_audit; final summary or history client can KeyError despite correct Model output. This is source-visible scheduling risk, not observed actual GPU failure.",
+    "minimal_fix": "Publish full metadata before enqueue, or use one private admission lock covering super+metadata assembly and owner metadata snapshot after take; release before Native work. Fail closed on metadata assembly failure rather than allow an enqueued unaudited request to execute. No new framework/fixture/Nativeprobe needed."
+  },
+  "otherwise_approved": "Existing r205 renderer/CPU567 reused. New audit identifies dedicated ordered RC/content contributions including duplicate values, not global substring uniqueness. Same-run real thinking request009 and response plus real tool-result history feed two continuations; current mode,4096/8192 budget,full commit,EOS/reset and final cleanup remain checked. Frozen clients/math need no further review.",
+  "proof_limits": "Actual-role/request scoped. Audit reuses normalizer/renderer and independently checks contributions against supplied fields; not arbitrary-history proof, tokenizer/Model semantic correctness or response RC non-disclosure theorem. Recall nonce/total is supplementary, not proof all history used by Model. Seven synthetic cases and saved008009 contracts are CPU/source evidence.",
+  "lifecycle": "Third phase runs in same load after frozen phases. CPU preparation may continue independently. No changes to existing live GPU jobs. Conditional approval after sole publication race repaired; no additional gate."
+},
+  "r205_final_source_review": {
+  "decision": "APPROVE_SCOPED_SOURCE_CANDIDATE",
+  "manifest_SHA256": "7f84915ea0db9142846018bcccc11e80752a36c58510974f52e1f584b143c60f",
+  "scope": "Normal agent role sequences, closed tool histories including final none, multiple users/developers and current mode/effort switching. Candidate only, no GPU entry or actual Model qualification.",
+  "reason": "Optional preserve_history_reasoning defaultFalse leaves old branch behavior; private prepare explicitly disables dropping and enables retention. Historical assistant RC and preceding user/developer transition are changed together; pending generation still uses current mode/effort. Existing tool grammar/merge/sort and parser unchanged.",
+  "CPU_evidence": "20 saved synthetic cases PASS, source inspected but not rerun here. Tests verify presence and matching RC wrappers; all(x in prompt) does not prove exact-once or global order for arbitrary histories. Unchanged merge/sort/render loop supplies limited source evidence; do not overstate tests.",
+  "limits": "Internal task-tag has prev_has_task suppression, custom consecutive-assistant/prefill and explicit context edge cases are not newly qualified. Policy correctly limits scope. Empty/no-RC normal chat paths and thinking+tools examples retain expected bytes; legacy flagFalse equivalence is stronger source-level algebra but supplied tests cover only their20 cases.",
+  "next": "Proceed with planned single saved1206 thinking/request009 CPU actual-tokenizer comparison plus current-chat hypothetical. It verifies encoding/token budget, not new Model output. No additional fixtures/framework/Nativeprobe/load required by this review; live GPU packages/results unchanged."
+},
+  "history_retention_increment": {
+  "status": "CONFIRMED_SOURCE_HISTORY_RETENTION_FAILURE",
+  "evidence": "Deep-r196-history-renderer-review.json SHA25659b9c4d97e1e86fe27661a59b9688f144dac3df1e7adce9e2bb584e1cb341252, 11 synthetic CPU cases; no Model or real tokenizer",
+  "qualification": "1206 frozen30HTTP regular PASS remains valid in its measured scope; it does not qualify full-history/reasoning retention or whole-agent. Long-output/lifecycle still pending at root update. Do not alter original results or live196/204/205/1206.",
+  "cause": "prepare does not forward drop_thinking; default true drops older RC/developer in thinking/no-tools, including final none after tool-result merging. chat mode suppresses RC even with drop=false. Caller deep-copy and prompt length are not evidence of rendered preservation.",
+  "decision": "ADOPT_DROP_FALSE_AND_PRIVATE_MINIMAL_HISTORY_RENDER_CONTROL",
+  "official_parameter_boundary": "No exposed official parameter combination found that retains historical RC with current generation mode chat. clear_thinking is not in encoder signature. Do not blindly forward unsupported kwargs.",
+  "implementation_boundary": "Explicit drop_thinking=false always for required full-history route; use a private minimal renderer control for historical assistant RC, independent of current generation thinking. Retain all original messages/role order/developer content/tool results. Match opening historical Assistant/<think> transition and closing </think> around RC, preserve normal content outside RC. Global chat currently emits Assistant+</think> before history: changing only RC rendering would leak RC into content. Final pending-generation prefix remains exactly original chat </think> or thinking <think>; add_generation_prompt=false must remove only actual final generation prefix. Do not force all turns thinking or blindly substitute suffixes. Preserve official task/no-RC/wo_eos semantics where supported, or explicitly reject unsupported inputs rather than silently dropping history.",
+  "shortest_CPU_validation": "Reuse the existing11 CPU source cases and add assertions, not a new framework: unique RC/developer/content/tool sentinels each retained exactly once in correct order and correct reasoning/content boundaries; cover tools→final none, multiple human turns, chat↔thinking switch, existing assistant after latest user, empty/no-RC. Assert current generation prefix and add_generation_prompt=false independently; caller bytes unchanged; constraints/schema remain unchanged. In existing real tokenizer preparation path count the full repaired prompt+4096/8192 and reject overflow rather than crop. Stub tokenizer/source cases remain labelled non-Model.",
+  "necessary_actual_validation": "After CPU fix, integrate into next necessary full-service run; no Native probe, constructor requalification or load-only run. Retain frozen full acceptance matrix unchanged. Add only a minimal targeted history-retention request pair (current chat/current thinking) in that same load, using real prior assistant reasoning/history where available, and bind actual admitted prompt/hash/token count to the CPU-verified serializer. Verify HTTP/SSE reasoning/content separation, original task/tool outputs, complete EOS and existing cleanup. Do not demand verbatim RC generation or fabricate reasoning/answers; correct task answer alone does not prove history preservation. Existing in-flight1206 continues untouched.",
+  "reject": "Reject accepting30HTTP PASS as whole-agent, dropping history to fit32768, relaxing clients, moving RC into ordinary content, forcing new-response thinking, or calling synthetic renderer tests Model evidence."
+},
+  "limitations": "初始审核限制保留为历史；增量结论覆盖已有更新。此报告不代替实际GPU/CPU验收证据。",
+  "implementation_increment": {
+  "date": "2026-10-29",
+  "scope": "Same review130 implementation increment; supersedes earlier status/next-step statements where changed; no new review or gates",
+  "evidence": [
+    "Kimi-moe-binding-root-r9611-a.json",
+    "failure-causes-root-r9607-a.json",
+    "GLM801-final-root-r9613-a.json",
+    "GLM203-CPU-root-r9616-a.json"
+  ],
+  "new_proven_performance_gain": 0,
+  "Kimi": {
+    "decision": "ADOPT_EXACT_SCALE_ALLOCATION_BEFORE_APPEND",
+    "actual": "477 FAILED1: agent-end minimum/latest4003463168B<4GiB; shortfall291504128B≈278MiB, not throughput timeout;479/480 empty per root",
+    "binding": "Local repository raw source SHA4e7ba0931773476d1c8e88c2649e9a0b238b8a2142062fff310ed47e13d641ad verified; actual inherited moe.o55fb31b5 matches evidence",
+    "candidate": "Original owner162 preparing only two scale-bank exact allocation for scoped32K/cap1. Claimed1.8–1.9GiB/card is uncompiled design estimate, not measured saving or speed gain.",
+    "bounds": "Preserve logical shape/dtype/stride/views, loader TP slicing, consumer read bounds/alignment, allocation lifetime/owner release and old default. Review these in existing source/build work; no new gate. Unknown pool growth cause may remain UNKNOWN; stable full-run reserve still required.",
+    "execution": "Reuse successful Native/cache baseline; affected HOST build and existing numerical/source checks only, then integrate into next necessary full-service load. No repeated constructor/cache probe or load-only run.",
+    "reject": "Do not lower4GiB reserve, silently reset away recorded minima, change global allocator/math/cache, or prioritize append512 on this non-timeout evidence.",
+    "card_resolution": "Updates K130B next necessary formal run with memory candidate first; append512 remains conditional performance fallback, not a new card."
+  },
+  "GLM": {
+    "decision": "ADOPT_GENERIC_CONSTRAINTS_WITH_FULL_EXISTING_SEMANTICS",
+    "actual": "801 COMPLETE0, all32 normal lifecycle; long output2656/arguments2426/160-record readback PASS per root; regular HTTP/SSE/thinking request2 still multi-call rejection, so normal_agent_PASS=false.",
+    "CPU559": "2-second BlockBackend ImportError before Torch/Native/weights. Fix blocker/import handling in existing CPU test only; do not treat as model/constraint failure, do not remove backend-import blocking or repeated successful checks.",
+    "bounds": "Reuse generic request constraints while preserving full GLM tools/schema/parser and complete history. No selecting away required schemas, dropping extra calls, forcing a fake tool result or weakening parallel=false validation.",
+    "timeout": "ADOPT measured-cost total budget in future private package. Seven observed long prefills already sum>14500s per root, so8500s is insufficient. Budget full multi-step matrix, increasing-context costs, load/decode/queue/cleanup separately; do not treat14500s as sufficient total or multiply simultaneous owner totals into wall time. Keep bounded liveness deadlines and verified helper API limits; longer total is not reduced acceptance or performance gain.",
+    "deferred_129": "G129F2 may be reconsidered at next necessary startup after801 complete, but it is not a prerequisite for minimal constraints repair; no extra reload to measure it."
+  },
+  "Deep": {
+    "decision": "FOLLOW_SAME_LIVE1206",
+    "bounds": "No interruption or hot edits. Existing same-load result takes priority; do not create a new load for this review."
+  }
+}
+}

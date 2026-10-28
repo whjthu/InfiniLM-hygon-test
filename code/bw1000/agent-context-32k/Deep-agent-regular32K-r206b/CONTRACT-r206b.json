@@ -1,0 +1,29 @@
+{
+  "namespace": "Deep-agent-regular32K-r206b",
+  "scope": "Only private admission metadata atomicity and failure rejection over approved r206. No renderer/parser/Native/math/client changes.",
+  "parent_r206_manifest_SHA256": "54a285759c2a3e662c8699cdd4d7fef9737791b61395f21419c4b0cbd8365aaf",
+  "actual_CPU568": {
+    "step": "910407.568",
+    "path": "/refactor/candidates/Deep-agent-regular32K-r206/CPU-preflight.json",
+    "SHA256": "ee34e72b6ad407d909e0bd5ba3d169acb056a40aed6391ed78899b7a290de271",
+    "reuse": "7 renderer/audit cases, 4 actual saved008/009 mode comparisons,12 saved prompt/budget/loader checks; no repeated constructor/tokenizer tests"
+  },
+  "changes": [
+    "Bridge owns one admission RLock across base enqueue and all metadata/hash assembly.",
+    "Owner take is outside lock; snapshot waits for assembly and copies metadata inside same lock.",
+    "Post-enqueue metadata failure finishes request ERROR, marks existing engine fatal and keeps ready false; snapshot rejects it before Native reset/forward.",
+    "No admission lock around queue wait, inference, reset or cleanup.",
+    "Namespace relocated to independent r206b; immutable CPU568 input files reused with exact byte SHA; new client working directories."
+  ],
+  "unchanged": [
+    "Native232/CPU1201 binding",
+    "rows1/cap32768/prefill1024",
+    "4K ordinary/8K thinking raw integer budgets",
+    "approved history encoder/r205 strategy and per-actual-Native history audit",
+    "frozen178 regular plus frozen181 long output plus2 genuine same-run chat/thinking history continuations",
+    "strict protocol/parser/schema and normal lifecycle"
+  ],
+  "GPU_started": false,
+  "actual_b_CPU": "NOT_RUN",
+  "qualification": "Local CPU source fixture only; not real HTTP or Model PASS"
+}
