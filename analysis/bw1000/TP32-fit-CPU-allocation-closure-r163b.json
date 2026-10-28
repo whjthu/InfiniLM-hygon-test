@@ -1,0 +1,52 @@
+{
+  "decision": "UNKNOWN_STOP: 58.906441GiB is a logical ledger, not a physical allocation upper bound; no full93 constructor/load authorized by this audit",
+  "scope": "CPU read-only source/evidence; no SSH/Git/GPU/constructor rerun; I96 component452 is performance evidence only",
+  "budget_bytes_per_owner": {"actual_visible": 68702699520, "unchanged_floor": 4294967296, "old_static_persistent": 63250309692, "old_unaccounted_allowance": 1157422532},
+  "already_counted_once": {
+    "parameter_bytes": 62163168060,
+    "parts": {"replicated_or_conservative_excluding_head": 13846960640, "sharded_attention": 2235945276, "shared_dense_MLP": 805109760, "packed_experts": 45201752064, "TP32_shard_head": 73400320},
+    "cache_bytes": 1086011136,
+    "old_OFF_scratch_bytes": 1130496,
+    "double_count_warning": "Do not add router, replicated routed-down/up, embedding, head weights, cache or expert view leaves again. Router/down/up are actual replicated constructor children. 5376 expert leaf keys per layer alias four packed storages, not 5376 independent allocations. Existing conservative TP16-stage recombination subtracts the old head and inserts one TP32 head; no demonstrated duplicate head saving remains. Exact all93 unique-storage reconciliation is still missing."
+  },
+  "new_r163_persistent_scratch": {"logical_per_MoE": 3878656, "all92": 356836352, "net_above_old_OFF": 355705856, "lifetime": "each model-owned layer until teardown, even when WORKSPACE_OFF; no implemented cross-layer sharing", "if_regular_pool_4MiB_class_all92": 385875968},
+  "allocator_padding_NOT_zero": {
+    "observed_RT_DSO_SHA256": "e78b7b4aed105e5968fc598f60a2cacafcaf7c07c13dd4a971abfbdd92d47560",
+    "source_behavior": "SOURCE CLOSED by allocator-sources-root-r9497-a.json: tensor.hpp45-46 defaults bool pin_memory=false, not an exact flag. Tensor::empty(runtime,...false)->strided_empty->allocate_tensor_storage->Runtime::allocateMemory->pool.allocate. NonCPU nonzero empty_parameter->allocateParameterMemory->pool.allocate_exact. Regular pool rounds256B then first class32KiB/256KiB/1/2/4/8/16/32/64/128/256MiB; exact bypasses classes. Runtime-bound DSO disassembly remains to close; no padding measurement claimed.",
+    "conditional_packed_storage_padding": {"per_layer_requested_w13_s13_w2_s2": [308281344,19267584,154140672,9633792], "regular_pool_allocation_bytes": [308281344,33554432,268435456,16777216], "extra_per_layer": 135725056, "extra_all92": 12486705152, "implication": "If these Tensor::empty calls use regular allocate, old static alone plus this padding exceeds actual total before driver/cache padding. This is a conditional source bound, not a measured fullModel fit failure. Weight default empty_parameter cannot be assumed to cover manually allocated packed storages."},
+    "conditional_MLA_cache_padding_all24": {"requested_each":40108032,"regular_class_each":67108864,"extra_total":648019968},
+    "lifetime": "persistent parameters/cache coexist; padding cannot be counted as transient reuse while storages remain live"
+  },
+  "live_terms_outside_old_ledger": [
+    {"term":"head full-logit forward", "bytes_T64_logical":42598400, "lifetime":"local logits + allgather backing + permute-contiguous result coexist to fence; 73400320B head weight already counted; allocator class padding additional"},
+    {"term":"KDA retained replay capture", "bytes_T64_all69_BF16":23766912,"bytes_if_gate_beta_F32":27184896,"lifetime":"per-layer capture retained to transaction clear; metadata/state-pool backing must not be counted twice; full forward/replay scratch high-water UNKNOWN"},
+    {"term":"five draft tap records", "host_bytes_T512":36700160,"device_persistent_bytes":"not a new five-tensor GPU bank in current batch-live source; D2H into vectors; contiguous device temporary/allocator lease UNKNOWN"},
+    {"term":"load flush/H2D", "host_threshold_bytes":2147483648,"device_extra_bytes":"UNKNOWN, not automatically2GiB", "lifetime":"pending CPU tensors survive synchronous native load fence then clear. Threshold checked after append, so host batch may overshoot. CPU strided source gather is host staging; contiguous GPU destination receives direct H2D. Do not add full pending CPU bytes to GPU residency."},
+    {"term":"driver/Torch/CCL/allocator/other operators", "bytes":"UNKNOWN upper bound", "constructor767_samples":"before-components used880803840..889192448; post-components-close+trim960495616..968884224; max sampled used2896166912, not continuous peak", "lifetime":"baseline comm/context may coexist with all weights; samples include allocated/cached effects, so do not add the entire constructor residual or treat it as zero; MLA/KDA/GEMM/router/AttnRes/transpose/T512 scratch and first-call transport high-water unclosed"}
+  ],
+  "shortest_missing_work": [
+    "SOURCE mapping closed; next CPU-only confirm Common Runtime DSO definition/call chain and RT pool binding, reconcile all93 requested allocations by unique storage alias identity and pool class. Minimal fix: change only packed w13/w13_scale/w2/w2_scale creation from Tensor::empty to Tensor::empty_parameter, leaving shapes/strides/aliases/Weight tpdim/loader/math untouched. Never pass bool=true as an exact switch: that requests pinned host storage. Do not change global allocator or scratch semantics. Recompile isolated candidate only after root chooses this design; this audit modifies no component.",
+    "Obtain exact all93 base text/decoder/AttnRes allocation and finish/pretranspose lifetime ledger plus SDK workspace size-query bounds for T512/T64. Source/hash and alias/lifetime accounting must precede any fit claim.",
+    "If opaque driver/CCL/operator upper bounds remain unavailable, retain STOP. Minimal runtime missing observation is per-owner allocator live/reserved/cached high-water plus device-free phase endpoints for init/load/finish/first forward and retained replay, gathered during a separately justified necessary run with guard-reserved4GiB. Existing constructor767 must not be repeated. Current TP16PP2 Model162a may inform opaque overhead and loading lifetime, but cannot prove TP32 fit."
+  ],
+  "binary_closure_to_read_only_check": {
+    "source_tensor_cc_SHA256": "b14418b342f8520e5d43c7aec7a0676a8dccf1d0133cd334d75571555f339392",
+    "Common_Runtime_DSO": "/refactor/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/python/infinilm/_lib/libinfinilm_runtime.so",
+    "Common_Runtime_DSO_pinned_SHA256": "04a6a1a86c97d176e4304b9bb4c1d6fcb8550784beaa47e0f5841fb7603ffabf",
+    "nm_D_defined_C_and_objdump_drwC_functions": ["infinilm::runtime::Tensor::empty(Runtime&, Shape const&, DataType const&, bool)","infinilm::runtime::Tensor::strided_empty", "infinilm::runtime::Tensor::empty_parameter", "infinilm::runtime::Runtime::allocateMemory(unsigned long)", "infinilm::runtime::Runtime::allocateParameterMemory(unsigned long)"],
+    "RT_DSO": "/refactor/install/hygon-kimi-5f91ad7-r3672/lib/libinfinirt.so",
+    "RT_functions": ["infini::rt::ReusableMemoryPool::allocate", "infini::rt::ReusableMemoryPool::allocate_exact"],
+    "Native_evidence": "r163Native U Tensor::empty(Runtime&,...bool) and U Runtime::allocateMemory establish external binding dependency, not implementation proof; preserve pinned actual dependency/dynamic symbol scope. Source padding remains a conditional capacity bound until binary chain closes.",
+    "TP16_sanity": "I192 W2=308281344 exceeds256MiB and stays large; I96 W2=154140672 maps256MiB regular class. Corresponding three padding terms I192 total42860544B/layer versus I96 135725056B/layer. TP16PP2 ~46MoEs versus TP32PP1 92, so observed TP16 fit does not alone refute this source bound."
+  },
+  "source_refs": [
+    "C:/Users/WangHaojie/Documents/ChatGPT/海光集群/allocator-sources-root-r9497-a.json: tensor/tensor.cc:28-30,61-103 SHA b14418b3; tensor.hpp45-46 SHA dfc787f2; runtime.cc206-224 SHA a4742905; pool SHA499fc5fc",
+    "code/bw1000/resume-20261026/TP32-actual-constructor-qualified-r120k.md; evidence/bw1000/resume-20261026/TP32-actual-constructor-qualified-r120k.json",
+    "v/Kimi-TP32-Native-private-r120f/budget-r120f.json SHA c2cbea9e13ee567926c455adfec932184e882959372d0cbeddd5304fc0a5aef5",
+    "code/bw1000/resume-20261026/Kimi-TP32-I96-template-component-r163/kimi_moe_I96_r163.cpp:200-244 packed empty+alias registration;270-321 replicated children+scratch;contract_I96_r163.hpp",
+    "evidence/bw1000/resume-20261026/native-allocator-observed-r116.json: reusable_memory_pool.cc SHA499fc5fcb9a8f5a03fa0d64c482c95e61d05f368840def6234d3ecdf025f08ac lines66-71,130-178,390-406",
+    "evidence/bw1000/concurrency-expanded/Kimi-full-loader-sources-r9130.json:weights.cpp:61-64,109-125;Kimi-loader-copy-sources-r9130.json:copy.cc:299-347",
+    "code/bw1000/resume-20261026/Kimi-TP32-Native-private-r120f/kimi_shard_head_r9183.hpp:89-106;batch_live_taps_r9122.hpp:14-22;batch_state_r9122.hpp;state_only_r9113.hpp;delta.cpp",
+    "code/bw1000/resume-20261026/Kimi-loader-Model-r162a/model/runtime/parameter_loader_r9143.py:34-55;memory_guard_r9144.py:18 (sampled minimum, not exact transient peak)"
+  ]
+}

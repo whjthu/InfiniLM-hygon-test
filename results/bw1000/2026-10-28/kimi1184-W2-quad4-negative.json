@@ -1,0 +1,276 @@
+{
+  "revision": "r167-actual1184-W2quad4",
+  "status": "PARK_NO_SINGLEUSER_GAIN_NO_MODEL_PROMOTION",
+  "actual_GPU_step": "910374.1184",
+  "CPU_keeper": "910407.521",
+  "hardware": "BW1000",
+  "cards": 16,
+  "topology": "TP16 two8cardnodes",
+  "scope": {
+    "layer": 1,
+    "workloads": [
+      "T8historicalfirst8_W8geometry_notC1traffic",
+      "T64historical16repeat4",
+      "T64GaussianSameRMS_seed155"
+    ],
+    "L47_tested": false,
+    "Model_tested": false,
+    "not_tok_s": true,
+    "not_current449_activations": true,
+    "schedule": "4warmOFFOFFONON then2ABBA eachworkload;3uninstrumentedwholeMoEforward+1separateeventforwardeacharm"
+  },
+  "candidate": "W2outputchannelsperCTA2to4;originaldecode/W13/reducer/FP32routeorder fixed;pair2baseline",
+  "measurement": {
+    "gain_formula": "100*(meanOFF_ms/meanON_ms-1);inverse latency rate gain",
+    "fullMoE": "perarmmedian3alignedrep maximum16owners completecallwall including originaldrain",
+    "W2": "perarmmedian16owners sameoriginalstream begin/end eventspan from separateobserverforward;includeslaunch gaps,notpureGPUbusy",
+    "endpoint_drift": "100*abs(lastOFF_ms/firstOFF_ms-1)",
+    "no_candidate_output_token_identity_gate": true,
+    "GPU_F64": false
+  },
+  "gate": {
+    "minimum_eachblock_fullMoE_and_W2_rate_gain_percent": 5,
+    "maximum_OFF_drift_percent": 3,
+    "all3controlled_cases_passed": false,
+    "automatic_Model_GO": false
+  },
+  "experiments": [
+    {
+      "workload_index": 0,
+      "T": 8,
+      "blocks": [
+        {
+          "arms": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "fullMoE_ABBA_criticalmax_ms": [
+            1.378284,
+            1.292774,
+            1.290374,
+            1.303494
+          ],
+          "fullMoE_rate_gain_percent": 3.8182094096040897,
+          "OFF_drift_percent": 5.426312719294435,
+          "W2_ABBA_medianowner_stream_ms": [
+            0.2861599922180176,
+            0.28703999519348145,
+            0.2874394953250885,
+            0.26823998987674713
+          ],
+          "W2_rate_gain_percent": -3.4952524424640363,
+          "NRMSE_max": 0.0,
+          "passed_predeclared_component_gate": false,
+          "fullMoE_latency_change_percent": -3.6777839179827687,
+          "W2_latency_change_percent": 3.6218450707621086,
+          "W2_OFFmean_ms": 0.27719999104738235,
+          "W2_ONmean_ms": 0.287239745259285,
+          "baseline_drift_gate_passed": false
+        },
+        {
+          "arms": [
+            8,
+            9,
+            10,
+            11
+          ],
+          "fullMoE_ABBA_criticalmax_ms": [
+            1.296064,
+            1.310885,
+            1.308234,
+            1.287775
+          ],
+          "fullMoE_rate_gain_percent": -1.347017833095776,
+          "OFF_drift_percent": 0.6395517505308534,
+          "W2_ABBA_medianowner_stream_ms": [
+            0.26815998554229736,
+            0.28751999139785767,
+            0.27463799715042114,
+            0.2680795043706894
+          ],
+          "W2_rate_gain_percent": -4.610536390708275,
+          "NRMSE_max": 0.0,
+          "passed_predeclared_component_gate": false,
+          "fullMoE_latency_change_percent": 1.3654101513290717,
+          "W2_latency_change_percent": 4.833381189344665,
+          "W2_OFFmean_ms": 0.2681197449564934,
+          "W2_ONmean_ms": 0.2810789942741394,
+          "baseline_drift_gate_passed": true
+        }
+      ],
+      "both_blocks_passed": false
+    },
+    {
+      "workload_index": 1,
+      "T": 64,
+      "blocks": [
+        {
+          "arms": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "fullMoE_ABBA_criticalmax_ms": [
+            5.621977,
+            5.566137,
+            5.671587,
+            5.640428
+          ],
+          "fullMoE_rate_gain_percent": 0.21962632291023798,
+          "OFF_drift_percent": 0.32819415661073936,
+          "W2_ABBA_medianowner_stream_ms": [
+            2.065759062767029,
+            2.030079483985901,
+            2.0305590629577637,
+            2.062638998031616
+          ],
+          "W2_rate_gain_percent": 1.6686910955416412,
+          "NRMSE_max": 0.0,
+          "passed_predeclared_component_gate": false,
+          "fullMoE_latency_change_percent": -0.21914502275491854,
+          "W2_latency_change_percent": -1.6413028215082615,
+          "W2_OFFmean_ms": 2.0641990303993225,
+          "W2_ONmean_ms": 2.0303192734718323,
+          "baseline_drift_gate_passed": true
+        },
+        {
+          "arms": [
+            8,
+            9,
+            10,
+            11
+          ],
+          "fullMoE_ABBA_criticalmax_ms": [
+            5.639617,
+            5.578387,
+            5.574587,
+            5.730079
+          ],
+          "fullMoE_rate_gain_percent": 1.9431767706084457,
+          "OFF_drift_percent": 1.6040450973886955,
+          "W2_ABBA_medianowner_stream_ms": [
+            2.0639989376068115,
+            2.0310380458831787,
+            2.0299190282821655,
+            2.0797585248947144
+          ],
+          "W2_rate_gain_percent": 2.038937787915418,
+          "NRMSE_max": 0.0,
+          "passed_predeclared_component_gate": false,
+          "fullMoE_latency_change_percent": -1.9061371561737483,
+          "W2_latency_change_percent": -1.998195818299564,
+          "W2_OFFmean_ms": 2.071878731250763,
+          "W2_ONmean_ms": 2.030478537082672,
+          "baseline_drift_gate_passed": true
+        }
+      ],
+      "both_blocks_passed": false
+    },
+    {
+      "workload_index": 2,
+      "T": 64,
+      "blocks": [
+        {
+          "arms": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "fullMoE_ABBA_criticalmax_ms": [
+            6.318819,
+            6.318489,
+            6.259889,
+            6.330541
+          ],
+          "fullMoE_rate_gain_percent": 0.5643175932540823,
+          "OFF_drift_percent": 0.18550934913628137,
+          "W2_ABBA_medianowner_stream_ms": [
+            2.081038475036621,
+            2.0352795124053955,
+            2.034878969192505,
+            2.098718523979187
+          ],
+          "W2_rate_gain_percent": 2.6927334135372627,
+          "NRMSE_max": 0.0,
+          "passed_predeclared_component_gate": false,
+          "fullMoE_latency_change_percent": -0.5611509198884423,
+          "W2_latency_change_percent": -2.6221265361530466,
+          "W2_OFFmean_ms": 2.089878499507904,
+          "W2_ONmean_ms": 2.03507924079895,
+          "baseline_drift_gate_passed": true
+        },
+        {
+          "arms": [
+            8,
+            9,
+            10,
+            11
+          ],
+          "fullMoE_ABBA_criticalmax_ms": [
+            6.32621,
+            6.266721,
+            6.240309,
+            6.397699
+          ],
+          "fullMoE_rate_gain_percent": 1.7340567664745343,
+          "OFF_drift_percent": 1.1300446871033376,
+          "W2_ABBA_medianowner_stream_ms": [
+            2.098718523979187,
+            2.0362385511398315,
+            2.0349584817886353,
+            2.063119053840637
+          ],
+          "W2_rate_gain_percent": 2.2263856098892587,
+          "NRMSE_max": 0.0,
+          "passed_predeclared_component_gate": false,
+          "fullMoE_latency_change_percent": -1.7044997728292377,
+          "W2_latency_change_percent": -2.177897219594027,
+          "W2_OFFmean_ms": 2.080918788909912,
+          "W2_ONmean_ms": 2.0355985164642334,
+          "baseline_drift_gate_passed": true
+        }
+      ],
+      "both_blocks_passed": false
+    }
+  ],
+  "lifecycle": {
+    "controller_passed": true,
+    "post_KFD_empty": true,
+    "normal_layer_owner_closes": 16,
+    "actual_IBext_noSocket": true,
+    "passed_scope": "component lifecycle/finite correctness only"
+  },
+  "evidence": {
+    "node_originals": [
+      {
+        "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Kimi-W2-quad4-r166-910374.1184-node0.json",
+        "SHA256": "f6525e54459a3a9b469bee69ef53a74392e14e23ef5a0520bdbc5f581f1d6c9f"
+      },
+      {
+        "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Kimi-W2-quad4-r166-910374.1184-node1.json",
+        "SHA256": "4d7cb2278d3691272b27a2da244890be6bbe09f024efd24f3aab1652a1543161"
+      }
+    ],
+    "control_original": {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Kimi-W2-quad4-r166-910407.521-control.json",
+      "SHA256": "19dc3f2e6d54800a1d133b74a844763b08a44f7cf9725b3a4b2bfaf4b68b45f5"
+    },
+    "root_collection_SHA256": "ff8771cbce69fed675b5d132036f6fd330092fa1a6cf93569dd393bb5d205f07",
+    "CPU_build_SHA256": "0904d6997c3924a98a1eacee9e0d97f9f3cbdffea587a838d545977a95f2d524",
+    "Native_SHA256": "e7f08120df27a6c76bd7342b52aafaa66044e455b089578d34baeebab03a1be0",
+    "adapter_SHA256": "6e75aad401ed6108b878a52f70b768164045adfcc0241efa47712af0d49b1fd6",
+    "CPU_source_manifest_SHA256": "d3267ed652802b4982bb097f1da86a1591c5482e09688d65443322a03a341d65",
+    "runtime_source_manifest_SHA256": "ff50c0bb03e3e5be2eb9faca04a3234e6d060872a044e87e9bb81473745e4dc3",
+    "controller_source_manifest_SHA256": "d1e4fe37436053f1d89548f2ecca4fdf39a9631627a225cd176bf586281a95a7",
+    "publication_commit": "4fbcfc195f92b296e4731c6fd7c6e40ae4041c12",
+    "analyzer_repo_path": "code/bw1000/resume-20261026/Kimi-W2-quad4-runtime-r166b/analyze_r166b.py",
+    "analyzer_SHA256": "a86118f291ee260c44f19a247643cf27fcfad339e7eb779c4acf45b52baef23a"
+  },
+  "decision": "PARKquad4/defaultpair2; no newL47/Model/parameter sweep. All6blocksgatefail. T8secondstableblockisnegativeincompleteMoEandW2;firstpositivecompleteblockhas5.426pctOFFdriftandcannotcountasgain. T64minorlocalpositivebelowpredeclared5pctthresholddoesnotjustifyC1claim.",
+  "interpretation": "HalvinglogicalactivationreloadsandCTAcountdidnotproducesubstantialgain. ItdoesnotproveactualHBMtraffic/occupancy/compute bottleneck;cacheandregister/codegen effectsremainunmeasured. Do notinferphysicalpeak/utilizationfrompreviouslogicalbytewhat-if.",
+  "publish_policy": "Publishcompactsummaryonly;privateextractedfullnodeJSONsandanalyzerinputsarenotneededinGit."
+}

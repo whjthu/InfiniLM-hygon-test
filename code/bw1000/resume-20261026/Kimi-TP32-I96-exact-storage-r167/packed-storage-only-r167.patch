@@ -1,0 +1,23 @@
+--- r163/kimi_moe_I96_r163.cpp
++++ r167/kimi_moe_I96_exact_r167.cpp
+@@ -197,16 +197,16 @@
+     if (hidden_size_ % 32 != 0 || local_intermediate_size_ % 32 != 0) {
+         throw std::runtime_error("KimiK3Experts: MXFP4 dimensions must be divisible by 32");
+     }
+-    auto w13 = infinilm::runtime::Tensor::empty(
++    auto w13 = infinilm::runtime::Tensor::empty_parameter(
+         runtime, {num_experts_, 2 * local_intermediate_size_, hidden_size_ / 2},
+         infinilm::runtime::DataType::kUInt8);
+-    auto w13_scale = infinilm::runtime::Tensor::empty(
++    auto w13_scale = infinilm::runtime::Tensor::empty_parameter(
+         runtime, {num_experts_, 2 * local_intermediate_size_, hidden_size_ / 32},
+         infinilm::runtime::DataType::kUInt8);
+-    auto w2 = infinilm::runtime::Tensor::empty(
++    auto w2 = infinilm::runtime::Tensor::empty_parameter(
+         runtime, {num_experts_, hidden_size_, local_intermediate_size_ / 2},
+         infinilm::runtime::DataType::kUInt8);
+-    auto w2_scale = infinilm::runtime::Tensor::empty(
++    auto w2_scale = infinilm::runtime::Tensor::empty_parameter(
+         runtime, {num_experts_, hidden_size_, local_intermediate_size_ / 32},
+         infinilm::runtime::DataType::kUInt8);
+ 
