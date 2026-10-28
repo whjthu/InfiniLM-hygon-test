@@ -1,0 +1,113 @@
+{
+  "UTC": "2026-10-28T22:45:23.085639+00:00",
+  "observation_UTC": "2026-10-28T22:28:58.603539+00:00",
+  "hypothesis": "Scoped parameter-scale storage avoids power-of-two pool padding without changing logical shape, alias or math",
+  "baseline": {
+    "actual_step": "910380.477",
+    "Native_SHA256": "ba6f9a01e459c5b57839677160cd916cba29312ee8355c939b898bc591ac7d81",
+    "evidence": "results/bw1000/2026-10-29/Kimi-memory-scope-root-r9610-a.json",
+    "evidence_SHA256": "ee2148df22703559770ea79a97b1e8631b00343b4a173b7bc1fae7bac8b2a7ba"
+  },
+  "candidate": {
+    "actual_step": "910380.484",
+    "Native_SHA256": "7615e837cf94f6e74f4b493bc2c1e6c86c9ca818a21d37f3f78bab397a55391f",
+    "CPU_build": "910407.560",
+    "changed_HOST_TUs": 1,
+    "changed_HIP_TUs": 0,
+    "unchanged_other_objects": 32,
+    "source": "code/bw1000/agent-context-32k/Kimi-long-scale-exact-private-r201",
+    "service_source": "code/bw1000/agent-context-32k/Kimi-regular-agent32K-private-r205"
+  },
+  "same_workload_scope": {
+    "hardware": "BW1000",
+    "nodes": [
+      "a14r2n08",
+      "a14r2n09",
+      "a14r2n10",
+      "a14r2n12"
+    ],
+    "cards": 32,
+    "TP": 16,
+    "PP": 2,
+    "context": 32768,
+    "logical_physical_pool": [
+      1,
+      2,
+      3
+    ],
+    "timing_phase": "After normal Native constructor before weight loading; sampled driver free snapshots, not peak forward memory or throughput",
+    "all32_before_create_free_and_total_memory_identical": true,
+    "no_standalone_GPU_probe": true
+  },
+  "observations": [
+    {
+      "node": 0,
+      "PP_stage": 0,
+      "cards": 8,
+      "before_create_identical": true,
+      "observed_per_card_driver_allocation_reduction_bytes": 1793064960,
+      "observed_per_card_GiB": 1.669921875,
+      "design_MoE_layers": 45,
+      "derived_observed_per_MoE_bytes": 39845888,
+      "logical_design_per_MoE_bytes": 42860544,
+      "old_minimum_after_create_free_bytes": 5999951872,
+      "new_minimum_after_create_free_bytes": 7793016832,
+      "new_receipt_SHA256": "d6132e1b8ff97156d6db52d89b55077308a7b09eff57db4326448702f2916f4b"
+    },
+    {
+      "node": 1,
+      "PP_stage": 0,
+      "cards": 8,
+      "before_create_identical": true,
+      "observed_per_card_driver_allocation_reduction_bytes": 1793064960,
+      "observed_per_card_GiB": 1.669921875,
+      "design_MoE_layers": 45,
+      "derived_observed_per_MoE_bytes": 39845888,
+      "logical_design_per_MoE_bytes": 42860544,
+      "old_minimum_after_create_free_bytes": 5999951872,
+      "new_minimum_after_create_free_bytes": 7793016832,
+      "new_receipt_SHA256": "987a77cc4cc211af57e8c917f0ae4ada9d514993e2ba5fceb892afd44ad25201"
+    },
+    {
+      "node": 2,
+      "PP_stage": 1,
+      "cards": 8,
+      "before_create_identical": true,
+      "observed_per_card_driver_allocation_reduction_bytes": 1872756736,
+      "observed_per_card_GiB": 1.744140625,
+      "design_MoE_layers": 47,
+      "derived_observed_per_MoE_bytes": 39845888,
+      "logical_design_per_MoE_bytes": 42860544,
+      "old_minimum_after_create_free_bytes": 5270142976,
+      "new_minimum_after_create_free_bytes": 7142899712,
+      "new_receipt_SHA256": "e886e1772f2f1c2c80885098badcfd3eff2890762a3ed030a2a9fc2b694241a8"
+    },
+    {
+      "node": 3,
+      "PP_stage": 1,
+      "cards": 8,
+      "before_create_identical": true,
+      "observed_per_card_driver_allocation_reduction_bytes": 1872756736,
+      "observed_per_card_GiB": 1.744140625,
+      "design_MoE_layers": 47,
+      "derived_observed_per_MoE_bytes": 39845888,
+      "logical_design_per_MoE_bytes": 42860544,
+      "old_minimum_after_create_free_bytes": 5270142976,
+      "new_minimum_after_create_free_bytes": 7142899712,
+      "new_receipt_SHA256": "ec1421cab47695435ae9073757211c79ca944a319fae87c31959090a600d6355"
+    }
+  ],
+  "total_constructor_driver_bytes_reduced": 58653147136,
+  "preload_global_free_bytes": 7142899712,
+  "required_4GiB_floor_bytes": 4294967296,
+  "correction_to_design_estimate": "Observed38MiB/MoE, lower than logical design padding40.875MiB/MoE. Keep design records as estimates, use1.6699/1.7441GiB per card as measured constructor observations.",
+  "mechanism_limit": "Difference is consistent with additional physical allocation granularity; exact driver/allocator granularity has not been directly measured, so do not assert that mechanism as proven.",
+  "qualification": "Constructor memory-footprint observation only. Current full service still loading; after-finish,8K/16K/32K runtime peaks, new-model QA/EOS/shutdown and speed remain unproven.",
+  "new_speedup_claim": false,
+  "GPU_run_round_complete": false,
+  "evidence": [
+    "results/bw1000/2026-10-29/Kimi205-launch-root-r9636-a.json",
+    "results/bw1000/2026-10-29/current-services-root-r9638-a.json",
+    "results/bw1000/2026-10-29/Deep1206-regular-pass-root-r9639-a.json"
+  ]
+}
