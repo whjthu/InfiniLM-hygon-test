@@ -1,0 +1,28 @@
+{
+  "scope": "TP16 two nodes 16DCU, sequential real MoE L1/L47 only; no whole model; no self Slurm launch",
+  "parent_native_SHA256": "3057262312679f86bcdb181ce198b9b1f1d2fccc59fc204b4adbc197132b60dd",
+  "candidate": "W13 TT2 Tile4 256thread grid640 original all except wave-first FP32 reduction, 16KiB LDS to256B; no claimed occupancy/ISA before measurement",
+  "not_repeated": [
+    "796 invalid row guard negative",
+    "957/961 A8 W13 negative",
+    "TT1/padding speculation",
+    "official WFP4 matrix rewrite"
+  ],
+  "correctness": "Actual input bytes hashed, read-only tail canary; finite per profiled forward; full MoE NRMSE<=0.005 against first baseline warm as component screen; changed bits diagnostic only, no token identity gate/no GPU F64",
+  "measurement": "4warm then3 OFFONOFF triples each3 uninstrumented complete forwards+separate observer/hist forward; W2pairON throughout; exactbranch counters, dladdr bindings, original owner affinity and runtime teardown",
+  "routing": "After original drain counts from async pinned ids snapshot; U/J/partial counts; controlled input only not actual449 route",
+  "input_scope": [
+    "Historical16 BF16 rows repeated64 identical across layers",
+    "Fixedseed155 Gaussian64 scaled to historical RMS; identical across layers"
+  ],
+  "CPU_local_contract": {
+    "event_tape_cases": 8,
+    "reduction_random_trials": 10000,
+    "NRMSE": 1.07954e-07,
+    "GPU": false,
+    "Native": false
+  },
+  "compilation": "1 HOST MoE TU+1 HIP provider TU+1 HOST componentadapter TU; reuse original305 allother objects; also2tiny CPUcontracts",
+  "promotion": "All four layer/workload cases and3triples each >=5% fullMoE and W13, OFF drift<=3%; otherwise STOP/PARK; any later Model needs separate GO; not selfpromotion",
+  "launch": "Root publication/GO+CPU receipt and explicit two expectednodes/parentjob/manifest SHA required; GPU runner refuses unqualified manifest; original CPU/GPU shells bounded900/600s"
+}

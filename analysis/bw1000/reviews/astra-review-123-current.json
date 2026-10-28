@@ -1,0 +1,355 @@
+{
+  "schema": 1,
+  "review": 123,
+  "prior_review": 122,
+  "created_UTC": "2026-10-28T02:20:58.810Z",
+  "status": "COMPLETE_READONLY_RECOMMENDATIONS",
+  "goal_complete": false,
+  "scope": {
+    "SSH": false,
+    "Git": false,
+    "GPU": false,
+    "launch": false,
+    "source_edits": false,
+    "report_only": true,
+    "web": false
+  },
+  "decision": "继续性能优先。采纳GLM781受测收益；Kimi449已完成，立即消费真实MoE子阶段结果，采纳Deep158一次8卡frontier。GLM128专门重载暂缓；loader157先Linux CPU复测且只搭载下一次必要Model加载。",
+  "global_GPU_rounds": {
+    "qualified_count_reported_by_root": 2,
+    "new_round_added_by_this_review": 0,
+    "reason": "提前复核不是第三轮；CPU合同、组件负结论、profiling归因均不自动成为新的整模型收益轮。"
+  },
+  "prior_followthrough": [
+    {
+      "id": "G122A",
+      "status": "DONE_QUALIFIED_TESTED_WORKLOAD",
+      "evidence": "GLM781 all16 normal/postempty;每臂68个two-micro DECODE commands；ABBA task +10.9757%, decode HOST CAPI +17.3399%。"
+    },
+    {
+      "id": "K122A",
+      "status": "DONE_EXECUTION_AND_AUDIT_SUBPHASE_ANALYSIS_NEXT",
+      "evidence": "9450投影：target449/draft595/keeper496均COMPLETED0:0；passed true、audit0、postKFD通过、四node completed。a640 Native真实MoE profile全matrix已完成；子段解释尚待root投影，不另加载。"
+    },
+    {
+      "id": "K122B",
+      "status": "STOP_CORRECTLY_IMPLEMENTED",
+      "evidence": "taps epoch、Runtime Cached、Context requests三个单slot；六CPU合同不证明可直接overlap。仅保留T32/T64 shape方案。"
+    },
+    {
+      "id": "Deep122",
+      "status": "BOUNDED_COMPONENT_NEGATIVE_COMPLETE",
+      "evidence": "1165 registered C128/PagedCache body8.323s、10cases、providerpass/normal；负结论限固定synthetic score/KV，不能清除F100模型链，更不影响productionac937。"
+    }
+  ],
+  "verified": {
+    "GLM": {
+      "actual": "910376.781",
+      "cards": 16,
+      "task_baseline": 14.262024791878984,
+      "task_candidate": 15.827375635572992,
+      "task_gain_pct": 10.975656448061578,
+      "task_per_card_baseline": 0.8913765494924365,
+      "task_per_card_candidate": 0.989210977223312,
+      "decode_HOST_CAPI_baseline": 21.669789966943025,
+      "decode_HOST_CAPI_candidate": 25.427303640199227,
+      "user_p50_baseline_range": [
+        0.7432169846,
+        0.7446995505
+      ],
+      "user_p50_candidate_range": [
+        0.8607766076,
+        0.8612245633
+      ],
+      "users_gt15": 0,
+      "quality": "同32题四臂各31正确/32EOS/0cap；不是128独立题，未证明广泛质量不降。保留现有基本正确与后续benchmark要求，不新增tokenidentity门。",
+      "prefill": "PREFIX3025token/4calls约50.2s，ANCHOR32token/4calls约1.4s。阶段HOST CAPI不是用户first-to-last；prefill几乎未变。"
+    },
+    "Kimi": {
+      "actual": "910380.445",
+      "draft": "910371.592",
+      "cards": 33,
+      "decode": 38.91465345679625,
+      "per_card": 1.1792319229332198,
+      "user_p50": 5.209642111126935,
+      "new_gain": false,
+      "quality": "32独立GSM题各臂全正确/EOS；归因已qualified，非新收益。",
+      "stage0_local_ms": 429.7981023788452,
+      "stage1_local_ms": 448.01178789138794,
+      "stage1_whole_ms": 877.4795608520508,
+      "MoE_local_service_ms": 552.7425663918257,
+      "MoE_local_fraction": 0.6296836849510368,
+      "note": "stage1 whole包含stage0 incoming wait，禁止把两whole相加。MoE含routed/shared/TPwait，非纯GPUkernel。",
+      "latest_profile": {
+        "target": "910380.449",
+        "draft": "910371.595",
+        "keeper": "910407.496",
+        "completed": true,
+        "passed": true,
+        "audit_returncode": 0,
+        "post_KFD_passed": true,
+        "new_speedup_claim": false,
+        "load_seconds": [
+          1635.1371950549074,
+          1513.3236731570214,
+          1630.7684896481223,
+          1709.5673512020148
+        ],
+        "note": "9451已完成细分增补，见addendum_9451；profiling不是算法收益。",
+        "subphase_attribution_qualified": true
+      }
+    },
+    "Deep": {
+      "production": "ac9370c8f188bfda8555718c52690b914883fc6b02b9267cbd279be3ecdd3835",
+      "experimental": "F100",
+      "component": "910374.1165",
+      "component_report_SHA256": "2d151c2f7192ac0d4c40cf4d20354d4c05d4e2364317e3116d4e4af51f0c4c0e",
+      "finding": "repeat/background/future/rowperm RMS0；slot外0且旧snapshot保持。1152 ordinary6%RMS且argmax稳定未证明rollbackbug；1159/1162 provider未进入body不计性能。"
+    },
+    "loader": {
+      "measured_load_s_range": [
+        1483.8611607267521,
+        1783.119540873915
+      ],
+      "native_inclusive_s_range": [
+        1180.0504865450785,
+        1408.446181523148
+      ],
+      "native_fraction_approx": 0.79,
+      "W2_bulk_blocks_explained_fraction_approx": 0.9977,
+      "atomic": "每顶层copy五次，共约323–337万/节点，非23亿。",
+      "component_speedup": "Windows warm synthetic8线程0.171536/0.095418≈1.80x；不是Hygon/Native/整体加载收益。",
+      "memory": "parent380每节点240000MiB=234.375GiB reservation；当前step128000M；物理510000M不等于已分配内存。",
+      "non_candidates": "scalar0；descriptor≈1.1s、contiguous≈0.2s、23次fullsave非主项；已有PP过滤/mmap，不假设每TP重复读全shard。"
+    },
+    "CPU_receipts": {
+      "GLM": {
+        "actual": "910407.499",
+        "completed": true,
+        "SHA256": "41d706d5b4a99625901eca00de90518d1057244934c9b5a8498c40ce5eea4a8e"
+      },
+      "Deep": {
+        "actual": "910407.500",
+        "completed": true,
+        "SHA256": "a911a84303a53607076f85eb09b61194b9236985bc7c7740fe6a7d62153db4ae",
+        "note": "AST/source资格，无Torch/Native/model load，不计Model收益。"
+      }
+    }
+  },
+  "priority": [
+    {
+      "rank": 1,
+      "id": "K123A",
+      "rationale": "约63%本地service在MoE大桶，潜在整模收益最大；现有151已支付加载，首个子阶段结果不需要新加载。"
+    },
+    {
+      "rank": 2,
+      "id": "D123A",
+      "rationale": "一套production Native、一节点8卡、一次加载可直接回答总/每卡/用户的batch折衷；比继续固定组件逐位追踪更接近目标。"
+    },
+    {
+      "rank": 3,
+      "id": "K123B",
+      "rationale": "CPU先判定最快；优化加载可减少后续实验成本，但与steady decode收益分列，当前整体节省未知。可与前两项独立推进。"
+    },
+    {
+      "rank": 4,
+      "id": "G123A",
+      "rationale": "已得实证收益先保留；chunk128策略包整模潜力弱于已在途MoE和batch frontier，额外16卡加载暂不支付。"
+    },
+    {
+      "rank": 5,
+      "id": "D123B",
+      "rationale": "仅frontier出现清楚候选后才做一个winner确认；不预先扩展矩阵。"
+    }
+  ],
+  "cards": [
+    {
+      "id": "K123A",
+      "model": "Kimi",
+      "decision": "ADOPT_W13_FIRST_COMPONENT_THEN_REAL_COUNTS_AT_NECESSARY_MODEL",
+      "source": "r151 Native a640b0cb0d384df3f7c5b0cb56e17cb8e043afcdc502411238e4e9754f400b1c；L1/L47/T64、15markers、既有eventpool<=640。",
+      "hypothesis": "真实MoE子阶段中存在可减少的packing、routed/shared计算或TP依赖。",
+      "first_discriminating_result": "9451现有实际子阶段已明确W13第一、W2pair第二；先一个有界W13两token/expert复用组件候选。真实U/J未知时不单独重载采counts，在下一次必要模型原drain读取。",
+      "conditions": "沿用observer<=3%；缺层/缺rank/未完成窗口标UNKNOWN，不补零。L1/L47仅稀疏样本，不直接乘92层当真实全层归因；HOST/stream区段含依赖，保留与445整链差额。",
+      "next": [
+        "先W13 source/CPU launch-index+tail合同，核当前访问式与tile是否真正新增复用；不新建框架。",
+        "随后一个W13组件baseline/candidate配对，沿用当前T64/H/I/TP16/FP4/scales/provider，覆盖固定总assignment下m_e=1/2/4的小占用分布；已有真实retained route/tensor可用则优先使用。没有真实route时明确component-only，不能称当前模型输入或模型收益；不扩大成网格。",
+        "449已完成并退出，无法追溯读取已销毁route counts。无需为了histogram再加载；在下一次本来必要的真实模型窗口，将counts/非空U/job数J和尾tile利用率在原drain后取回，沿用不新增计时区sync/D2H约束。",
+        "有真实counts后判断两token可复用比例和padding税，决定是否值得唯一整模配对；若大部分expert单token、预测复用有限或组件无稳健净收益，STOP此tile，W2pair仅作为第二候选，不因低TF率自动GO。"
+      ],
+      "expert_load": "U/J、m_e分布、真实HBMbytes仍UNKNOWN；组件可先筛kernel机制，真实counts是选择/推广routing-sensitive tile的必要归因，不是新增质量门。若已保留histogram无需新GPU应先离线读，但不能假定存在。",
+      "stop": "无有效子段/observer超预算则只保留失败归因；不直接两micro overlap、不W16/容量扩展、不历史synthetic替代真实输入、不GPU F64。"
+    },
+    {
+      "id": "K123B",
+      "model": "Kimi",
+      "decision": "ADOPT_LINUX_CPU_FIRST_DEFER_DEDICATED_MODEL_LOAD",
+      "source": "r157 exact-shape fastpath；r9212d binding-cache独立归因。",
+      "hypothesis": "W2小span逐行递归/连续性判断有CPU成本，shape预判一次可降低gather；是否主导1180–1408s Native安装尚未知。",
+      "experiment": "在Hygon Linux独立TU、同编译参数、共享global-source的8owner、实际TP16两几何上配对generic/fastpath，复用字节/guard/counter与9606合同；记录CPUtime、wall、并发和NUMA/affinity条件，正反顺序，不能用八份私有warmbuffer冒充共享source。原5atomic及fallback保留。",
+      "first_discriminating_result": "Linux CPU成对结果即可决定是否继续；失败/无稳定改善停止fastpath，不另开Model。",
+      "necessary_load_only": "下一次本来就必要的模型加载，记录每进程/节点CPUtime、major/minorfault、实读IO及每flush native/get_tensor时间；在既有sync边界给gather、state_dict和同步H2D有界HOST计时。计数逻辑bytes不当磁盘实读bytes。确认gather关键链份额后才上一个候选；r9212d在另一个配对中测试，避免两者同时修改。",
+      "attribution": "若gather占总load份额f且实际加速s，则S_load=1/((1-f)+f/s)仅条件估算；f未知时不填秒数。即使把整个79% Native都假定1.8x也仅是假设上限，不是预测。",
+      "memory": "不新增全checkpoint驻留，不使用未分配RAM。单shard memfd33b176保持组件资格，不能推全1.56TB模型常驻。"
+    },
+    {
+      "id": "G123A",
+      "model": "GLM",
+      "decision": "ADOPT_DEFERRED_BASELINE_DEFER_CHUNK128_DEDICATED_LOAD",
+      "source": "781 ce830、r158 manifest aef76218a7f2c85ad08385021f8fbec64bb44d41ee1aead6b6888a3b510e6e98；23 producer entries已重hash无差异。",
+      "hypothesis": "r158是chunk128+PREFIX/ANCHOR后decode优先策略包，可能改善早到请求ITL；不是只改chunk长度。",
+      "finding": "只有5题prefix实际切分；PREFIX4→7(+75%)，原单次主要prefill仍约13s。早decode只能重排已有工作而非消掉50s；改变decode batch形状可能增加服务成本。不能以5题直接算收益上界，因为调度抢占影响其他ready行；也不能把全部50s视为可消除。旧chunk32 task-18.84%/TTFT+47.35%已STOP。",
+      "next": "此刻不为158单独付16卡Model加载。下一次必要GLM加载若sealed包可搭载才做现有full/chunk128 ABBA，两臂deferON、不改arrival32/自然EOS；称策略包比较，分别报PREFIX税、early-decode、TTFT/ITL、task/每卡/用户。无需为了拆分两个因素新增矩阵。",
+      "first_discriminating_result": "现有CPU trace已足以做此次资源优先级判断；实际收益UNKNOWN。若搭载后只改善早到ITL但task退化，明确Pareto取舍，不能宣布通用收益或替换总吞吐基线。",
+      "stop": "保留chunk32停止结论；P0 GPU重载继续DEFER，CPU155/156协议修复不单独触发新加载；不重复767无actionable桶的扫描。"
+    },
+    {
+      "id": "D123A",
+      "model": "Deep",
+      "decision": "ADOPT_ONE_LOAD_FRONTIER_CPU500_PASSED",
+      "source": "r158 production ac937；manifest复核11源条目无差异；root报告publish232dedf；CPU500已COMPLETED且回执a911a84303a53607076f85eb09b61194b9236985bc7c7740fe6a7d62153db4ae。",
+      "resources": "一次n05/8卡、manifest3600s硬界，保持现有清理；不编译Native、不多节点扩张。config里旧90min/四副本字段是复用残留，执行资源以已封存manifest/launch的单节点60min为准，CPU回执确认实际入口。",
+      "experiment": "同64真实QA，B32→8→16→4；prefillmicro4、input<=512/cap512/context1024自然EOS，ordinary smallT OFF、EOS退休保留。沿用实际入口9278和已有基础正确/自然EOS检查。",
+      "first_discriminating_result": "完成一个B32全64臂即可见总/每卡/用户及cap/正确情况；完成B8后可初看折衷，完整排序须含B4。budget不足保留已完成臂，不把partial称全64对照。",
+      "interpretation": "一次序列是frontier筛选，不是优化收益证明。warmup只有B4 cap2，未温热B32/B16 shape；首B32冷态、缓存/频率与32→8→16→4顺序混杂。按同题请求配对报告，勿删除首组后只留有利样本。prefill统一micro4仍不保证TTFT相同：B32有8次prefill，早出首token后还等其余prefill，用户first-to-last包含此等待；common decode从最后prefill返回起，二者不得混用。",
+      "metrics": "总task/useful decode、每8卡、用户p50/尾部/严格>15比例、prefill吞吐、TTFT/ITL、correct/EOS/caps与拒绝/未完成分列。旧62/64两臂EOS64仅参考，不换数据宣称提升。",
+      "stop": "不继续以F100逐位中间值追rollback；1165负结论封存但不宣称F100安全。bankcopy3.58% PARK，不抢占frontier。"
+    },
+    {
+      "id": "D123B",
+      "model": "Deep",
+      "decision": "CONDITIONAL_ONE_SHORTLIST_CONFIRMATION",
+      "hypothesis": "D123A中一个batch在用户>15与总/每卡吞吐间有稳定可用优势。",
+      "next": "若有明确候选，仅复用候选与B4（或实际现用batch）做反序/配对复测，优先同必要load且事先封存可运行；运行中不热改。若现有sealed158不能追加则留到下一次必要加载，勿单为补齐表格重载。最多一对，不再全矩阵。",
+      "first_discriminating_result": "候选/基线热态且相反顺序同64题对比，确认差异不靠首臂冷态/预算删失。",
+      "promotion": "沿用原整模>3%且超过观测漂移和基本正确、自然EOS/后续benchmark无明显掉点标准；不要求输出逐token一致。多目标tradeoff按指标报告，不能以aggregate>15替代单用户>15。",
+      "stop": "无明显Pareto改善或差异在顺序噪声内则STOP batch调参；不因一轮无收益宣称硬件到顶。"
+    }
+  ],
+  "shape_accounting": {
+    "decision": "ADOPT_OFFLINE_FROM_PINNED_SOURCE_AND_ACTUAL_DESCRIPTOR_AFTER151",
+    "units": "每layer/rank/实际T窗口列算术FLOPs与逻辑bytes，然后除匹配子段秒。FMA按2FLOPs；FP4 unpack、scale转换、activation单独计操作/bytes，不把它们冒充tensorcore FLOPs。",
+    "routed_FLOPs": "一般形式 F=2*sum_e m_e*(K13_e*N13_e+K2_e*N2_e)。若核实fusedW13为H→2I_local、W2为I_local→H，则F=6*H*I_local*sum_e m_e。m_e为真实分配给expert的token数，tile/padded执行量另列。shared路径用真实T和自己的H/I另算，不套896全专家dense工作量。",
+    "shape_caution": "r157安装W2 U8[3584,96]提示packed192维，但执行kernel方向、TP分片、fusedW13布局必须由source/descriptor核定；不能仅根据loader形状填执行TF/s。若无histogram但每token恰topk固定且未丢token，sum_e m_e=T*topk可算routed有效FLOPs；active-expert weight bytes未知则报告区间，不编造直方图。",
+    "bytes": "分别列FP4实际packed weight bytes=ceil(elements/2)、实际scale tensor bytes、读写activation与dispatch index、materialized临时量、collective payload。最低逻辑流量按每个非空expert权重至少一次；真实kernel逐token重复加载、tile重读与cache复用由访问式给上下界。不能将logical bytes称实测HBM流量，需实际counter才能给physical bandwidth。",
+    "rates": "effective_TF/s=F/(matched_seconds*1e12)；logical_TB/s=B/(matched_seconds*1e12)。stream/HOST包含空隙、依赖和TPwait时命名inclusive-effective，禁止叫pure-kernel吞吐。每rank先算，PP service用相应关键链；不要把32卡F总和除单卡时间后当单卡效率。",
+    "roofline": "gfx936 80CU、63+GiB只定平台。333.752TF BF16与1.23711TB/s是achieved reference，非physicalpeak；FP4 unpack+scalarFP32融合核不能套dense BF16峰值求利用率。只有同dtype/路径/shape可比的实测kernel ceiling才可给条件差距。exact SKU peak与真实饱和度仍UNKNOWN。"
+  },
+  "limits": {
+    "overall": "NOT_AT_DEMONSTRATED_LIMIT；UNKNOWN是否达到硬件上限。不能由已有候选停止推到所有空间耗尽。",
+    "Kimi": "MoE占本地service约62.97%。若可完全删除该桶且cycle占比q=.89仍成立，条件cycle上限约2.2749x、用户p50约11.875<15；q未在151重证，故仅提示单靠此桶可能不足，不是系统不可能>15。",
+    "GLM": "受测用户p50约0.861距15约17.4x；task15.827是32并发总吞吐，目标未达。PREFILL≈50s若假设完全消除也只是固定工作量条件上限，chunk不等于消除。",
+    "Deep": "batch latency/throughput前沿尚待实际结果；组件RMS0不构成性能上限或质量上限。",
+    "loader": "Windows component1.8x不决定实际Native load f，也不决定steady inference；PARK弱候选不等于loader已到顶。"
+  },
+  "stop": [
+    "GPU F64",
+    "将CPU合同/组件资格计整模性能收益或凑第三轮",
+    "直接Kimi两micro overlap或W16/容量扩张",
+    "为GLM128或loader157单独重载",
+    "删atomic/标量进度微调当23亿blocks主因",
+    "未分配RAM/full1.56TB驻留计划",
+    "F100逐位中间值循环与把1165阴性外推整个模型链"
+  ],
+  "evidence_files": [
+    "V/astra-review-122-current.json",
+    "repo/analysis/bw1000/reviews/astra-review-implementation-122-current.json",
+    "repo/results/bw1000/2026-10-28/glm781-qualified-deferred-feedback-ABBA.json",
+    "repo/results/bw1000/2026-10-28/glm781-prefill-and-decode-CAPI-phase-breakdown.json",
+    "repo/results/bw1000/2026-10-28/kimi445-qualified-c8-real-verify-profile.json",
+    "V/GLM-arrival-chunk128-r158",
+    "V/Deep-real-batch-frontier-r158",
+    "V/Kimi-loader-smallspan-CPU-private-r157",
+    "R/live-read-root-r9446-a.json",
+    "R/memory-and-phase-root-r9447-a.json",
+    "R/loader-profile-root-r9448-a.json",
+    "repo/code/bw1000/resume-20261026/Kimi-sparse-profile-Model-r151/launcher/model-source-pins.json",
+    "R/candidate-and-Kimi-root-r9450-a.json",
+    "R/Kimi-MoE-details-root-r9451-a.json"
+  ],
+  "updated_UTC": "2026-10-28T02:27:02.534Z",
+  "addendum_9451": {
+    "same_review": true,
+    "new_review": false,
+    "source": "R/Kimi-MoE-details-root-r9451-a.json.Kimi",
+    "source_report_SHA256": "eda22d139549fe5f2c5aef2fc065e849c7f829a6cc44f75aa3f6261a754d0857",
+    "qualified": true,
+    "owner_window_records": 128,
+    "windows": 4,
+    "owners_per_window": 32,
+    "observer_max_positive_pct": 0.653667797471691,
+    "observer_remaining_pct": [
+      -0.195396858530938,
+      -0.0654851432394188,
+      -0.311601816694296
+    ],
+    "pooled": {
+      "OFFbefore": {
+        "tokens": 6383,
+        "seconds": 162.96894176816568,
+        "tok_s": 39.16697212822458
+      },
+      "ON": {
+        "tokens": 6287,
+        "seconds": 159.43225708510727,
+        "tok_s": 39.43367618915354
+      },
+      "OFFafter": {
+        "tokens": 6383,
+        "seconds": 162.81371320225298,
+        "tok_s": 39.20431439378089
+      },
+      "new_algorithm_gain": false,
+      "note": "ON输出token数不同；不要求tokenidentity，也不把不同长度/随机微扰造成的pooled微升当优化收益。"
+    },
+    "layers": [
+      {
+        "layer": 1,
+        "stage": 0,
+        "owner_windows": 64,
+        "W13_ms": 3.360712919384241,
+        "W2_ms": 2.0820586681365967,
+        "captured15interval_sum_ms": 6.326748478284571,
+        "W13_W2_captured_share": 0.8602794320340337,
+        "W13_useful_GF_per_rank": 2.8186,
+        "W2_useful_GF_per_rank": 1.4093,
+        "W13_inclusive_effective_TF_s": 0.8386910954942356,
+        "W2_inclusive_effective_TF_s": 0.6768781406439891,
+        "router_ms": 0.1866624066606164,
+        "routed_TP_ms": 0.19764989032410085,
+        "shared_including_TP_ms": 0.2787248119711876,
+        "clear_pack_build_ms": 0.02991996851778822
+      },
+      {
+        "layer": 47,
+        "stage": 1,
+        "owner_windows": 64,
+        "W13_ms": 3.009488008916378,
+        "W2_ms": 2.072998620569706,
+        "captured15interval_sum_ms": 5.942976193255163,
+        "W13_W2_captured_share": 0.8552089835483995,
+        "W13_useful_GF_per_rank": 2.8186,
+        "W2_useful_GF_per_rank": 1.4093,
+        "W13_inclusive_effective_TF_s": 0.9365712678200333,
+        "W2_inclusive_effective_TF_s": 0.6798364388745677,
+        "router_ms": 0.1866099378094077,
+        "routed_TP_ms": 0.17955992207862437,
+        "shared_including_TP_ms": 0.27421479811891913,
+        "clear_pack_build_ms": 0.029497499992430676
+      }
+    ],
+    "scope": "按moe_subphases的from/to和stream_span_ms计算；15个可见相邻区间遗漏FFN.begin→MoE.router.begin初段，不能称完整MoE子阶段全和。全模型MoE大分区仍有效。两层W13+W2可见占比约85.5–86.0%，不是88%，不直接外推全部MoE层。",
+    "first_operator": "W13 fused dequant+scalarFP32 Situ优先；W2pair第二，不同时改两者。",
+    "candidate": "一个有界W13两token/expert小tile候选：在同expert内复用packed FP4解包与scale，保持现有scalarFP32累加、Situ和原输出布局；奇数/单token走原fallback，不改路由/quant/全模型精度。先核源码是否已有此复用；若已有则不重写同一优化，仅保留可证明消除重复加载/解包的局部改动。禁止未经shape证明改dense GEMM/quant矩阵。",
+    "candidate_reason": "W13占实际样本约3.0–3.36ms，比W2约2.07–2.08ms更大；有效算术2.8186GF/rank但仅0.84–0.94TF/s。低effective率只支持查具体访存/解包/launch/复用，不证明compute-bound，也不借333.752BF16 reference造倍数上限。",
+    "next_order": [
+      "先W13 source/CPU launch-index+tail合同，核当前访问式与tile是否真正新增复用；不新建框架。",
+      "随后一个W13组件baseline/candidate配对，沿用当前T64/H/I/TP16/FP4/scales/provider，覆盖固定总assignment下m_e=1/2/4的小占用分布；已有真实retained route/tensor可用则优先使用。没有真实route时明确component-only，不能称当前模型输入或模型收益；不扩大成网格。",
+      "449已完成并退出，无法追溯读取已销毁route counts。无需为了histogram再加载；在下一次本来必要的真实模型窗口，将counts/非空U/job数J和尾tile利用率在原drain后取回，沿用不新增计时区sync/D2H约束。",
+      "有真实counts后判断两token可复用比例和padding税，决定是否值得唯一整模配对；若大部分expert单token、预测复用有限或组件无稳健净收益，STOP此tile，W2pair仅作为第二候选，不因低TF率自动GO。"
+    ],
+    "histogram_unknown": "U/J、m_e分布、真实HBMbytes仍UNKNOWN；组件可先筛kernel机制，真实counts是选择/推广routing-sensitive tile的必要归因，不是新增质量门。若已保留histogram无需新GPU应先离线读，但不能假定存在。",
+    "promotion": "保持前述整模成对阈值与质量范围；两层/W13组件加速不外推整模，不新增输出tokenidentity门。"
+  }
+}

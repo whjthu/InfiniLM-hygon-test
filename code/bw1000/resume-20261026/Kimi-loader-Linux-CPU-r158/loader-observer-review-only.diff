@@ -1,0 +1,19 @@
+--- a/runtime/parameter_loader_r9143.py
++++ b/runtime/parameter_loader_r9143.py
+@@ -1,6 +1,7 @@
+ """Same old safe_open/get_tensor/contiguous/A_log trim/2GiB synchronous flush. No clone."""
+ import json,time,collections,ctypes
+ from shard_head_contract_r9183 import expected_from_CPU
++from loader_work_observer_r158 import snapshot as work_snapshot, delta as work_delta
+ 
+ def load_parameters(lib,ctx,model,text,keys,safe_open,torch,check,progress):
+  mapping=json.loads((model/'model.safetensors.index.json').read_text())['weight_map'];assert keys<=set(mapping);groups=collections.defaultdict(list)
+@@ -16,7 +17,7 @@
+   nonlocal pending_bytes,loaded,flushes
+   if not pending:return
+   begin=time.perf_counter()
+-  descriptors=[{'name':name,'pointer':w.data_ptr(),'shape':list(w.shape),'dtype':{torch.float32:0,torch.bfloat16:1,torch.uint8:2}[w.dtype]}for name,w in pending];payload=json.dumps(descriptors).encode();record('descriptor_json',begin);before=copy_snapshot();begin=time.perf_counter();check(lib.modern_kimi_engine_load_r2475(ctx,payload));native_wall=time.perf_counter()-begin;record('native_load_inclusive',begin);after=copy_snapshot();assert all(b>=a for a,b in zip(before,after));flush_profiles.append({'flush':flushes,'keys':len(pending),'CPU_logical_source_bytes':pending_bytes,'native_load_host_inclusive_s':native_wall,'r2515_before':before,'r2515_after':after,'r2515_delta':[b-a for a,b in zip(before,after)],'scope':'one nodeprocess aggregate per original native_load; includes pagefault/prepare/8ownerload+originalsync, not DMA time'});loaded+=len(pending);pending.clear();pending_bytes=0;flushes+=1
++  descriptors=[{'name':name,'pointer':w.data_ptr(),'shape':list(w.shape),'dtype':{torch.float32:0,torch.bfloat16:1,torch.uint8:2}[w.dtype]}for name,w in pending];payload=json.dumps(descriptors).encode();record('descriptor_json',begin);before=copy_snapshot();work_before=work_snapshot();begin=time.perf_counter();check(lib.modern_kimi_engine_load_r2475(ctx,payload));native_wall=time.perf_counter()-begin;record('native_load_inclusive',begin);work_after=work_snapshot();after=copy_snapshot();assert all(b>=a for a,b in zip(before,after));flush_profiles.append({'flush':flushes,'keys':len(pending),'CPU_logical_source_bytes':pending_bytes,'native_load_host_inclusive_s':native_wall,'native_process_work_r158':work_delta(work_before,work_after),'r2515_before':before,'r2515_after':after,'r2515_delta':[b-a for a,b in zip(before,after)],'scope':'one nodeprocess aggregate per original native_load; includes pagefault/prepare/8ownerload+originalsync, not DMA time'});loaded+=len(pending);pending.clear();pending_bytes=0;flushes+=1
+   if flushes%16==0:progress({'loaded_keys':loaded,'loading_elapsed_seconds':time.perf_counter()-start})
+  for filename,names in sorted(groups.items()):
+   begin=time.perf_counter()
