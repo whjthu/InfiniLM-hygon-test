@@ -1,0 +1,42 @@
+{
+  "evidence_file_SHA256": "29a6f9f57f2dc83b6d30b71af1d6f66af1f5c9433125a476de6c3621385efd43",
+  "actual_model_step": "910374.1203",
+  "actual_offline_CPU_step": "910407.556",
+  "actual_r195b_lf_manifest_SHA256": "413c48a95a2780e6966fd210d5b28f0d4d23bad8e0fbf47545a779d5c3c854e0",
+  "final1203_input_SHA256": "341efba6013186615cc139b8320841fa69b17c08f7f0b01a5895496eafc52571",
+  "requests_uniquely_mapped": 11,
+  "failed_long_history_requests": [
+    {
+      "ordinal": 4,
+      "prompt_tokens": 8669,
+      "real_calculate_calls": 2,
+      "identical_payload_duplicates": 0,
+      "both_actual_routes_strict_error": "Multiple calls with parallel_tool_calls=false",
+      "token_delta_vs_actual_SSE_equivalent": false
+    },
+    {
+      "ordinal": 5,
+      "prompt_tokens": 16857,
+      "real_calculate_calls": 2,
+      "identical_payload_duplicates": 0,
+      "both_actual_routes_strict_error": "Multiple calls with parallel_tool_calls=false",
+      "token_delta_vs_actual_SSE_equivalent": false
+    },
+    {
+      "ordinal": 7,
+      "prompt_tokens": 8676,
+      "real_calculate_calls": 2,
+      "identical_payload_duplicates": 0,
+      "both_actual_routes_strict_error": "Multiple calls with parallel_tool_calls=false",
+      "token_delta_vs_actual_SSE_equivalent": false
+    }
+  ],
+  "cause": "Original model token sequence contains two different calculate invokes. Strict cardinality rejection is correct. This is not parser chunk duplication. The request parallel flag did not change the official prompt, while named choice already filtered the visible schema to one tool.",
+  "read_requests_1_2_6": "single actual call each; wire matches replay",
+  "long_output_requests_9_10_11": "single write/read calls then valid final text; actual long-output PASS reported by root",
+  "no_call_interpretation": "Request3 is the deliberate one-token truncated negative. Do not attribute its missing-call error to the three normal long-history cases.",
+  "HTTP_SSE_message_SHA_boundary": "Some message hashes differ because HTTP strips text and SSE retains whitespace/empty content boundaries. Both actual paths reject the same two real calls; this is not the primary failure cause.",
+  "token_partition_scope": "Per-token/character partition diagnostics are comparisons; actual bridge emits one buffered visible-text frame.",
+  "lifecycle": "1203 COMPLETED0, normal Native marker1; post1204 KFDempty per root actual evidence",
+  "new_Model_claim": false
+}
