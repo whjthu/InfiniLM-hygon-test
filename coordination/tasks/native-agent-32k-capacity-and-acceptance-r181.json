@@ -1,0 +1,110 @@
+{
+  "owner": "bw1000-agent",
+  "UTC": "2026-10-28T19:00:08.824179+00:00",
+  "supersedes_scope": "coordination/tasks/agent-interface-priority-revalidation-r174.json",
+  "human_authorization": {
+    "source_thread": "01a163e4-3823-7180-94f3-cce41366da5c",
+    "title": "智能体支持",
+    "verified_user_text": "按这个标准继续推进，优先把三个模型的正常智能体验收跑通；如果有上下文或缓存的硬限制，就做最小必要修复，不要再降低测试标准。"
+  },
+  "target": {
+    "context": 32768,
+    "regular_output_budget": 4096,
+    "thinking_output_budget": 8192,
+    "HTTP_actual_input_min": 8192,
+    "SSE_actual_input_min": 16384,
+    "actual_tool_steps_per_workflow_min": 8,
+    "full_history_and_reasoning_retained": true,
+    "C2_HTTP_SSE_isolation": true,
+    "invalid_truncation_recovery": true,
+    "long_tool_argument_min_actual_tokens": 1024,
+    "extension_context_nonblocking": 65536
+  },
+  "sources": [
+    {
+      "source": "code/bw1000/agent-context-32k/GLM-longcontext-audit-private-r177b",
+      "manifest_SHA256": "e26ae70bb9a6a5de4e90744b2dc1cb45a7392e34127fcb7a6eedf6b6672a51fc",
+      "GPU_qualified": false
+    },
+    {
+      "source": "code/bw1000/agent-context-32k/GLM-PP4-capacity-private-r178",
+      "manifest_SHA256": "6c551df7b2ba3985243240cba0d4f99d9e2776823001beddfbce3d79fe6c0d6a",
+      "GPU_qualified": false
+    },
+    {
+      "source": "code/bw1000/agent-context-32k/GLM-regular-fixture-private-r178a",
+      "manifest_SHA256": "4193836b51fbcba5077119ff6124f05d281b7a1483dc4fd106bf20da45ee8a57",
+      "GPU_qualified": false
+    },
+    {
+      "source": "code/bw1000/agent-context-32k/GLM-regular-service-private-r180c",
+      "manifest_SHA256": "acd6113f48c488c20be64e9e4a1c3a6a13eb8edb804832c565df88105c79d730",
+      "GPU_qualified": false
+    }
+  ],
+  "frozen_regular_client_SHA256": "51218ed03190ea87b63cb06cf6c5883aae5d327a7db878109fd34c5ce4bde194",
+  "frozen_long_output_client_SHA256": "20b9bbbc506072890df78d591fc0f22e654173f3ce4744ebf09d35ec8ce3daa9",
+  "evidence": [
+    {
+      "path": "results/bw1000/2026-10-29/long-context-metadata-root-r9538b-b.json",
+      "SHA256": "85577b5729c232352ee4d2af2e5826207df3407384ff66bda5cbd675493d57bc"
+    },
+    {
+      "path": "results/bw1000/2026-10-29/GLM-long-CPU-results-root-r9545-a.json",
+      "SHA256": "a46e5f1e294278fd97e74e5aea694b4fa2127e2ef19c476e7176a3c33cf1d9c2"
+    }
+  ],
+  "claims": [
+    {
+      "model": "DeepSeek-v4",
+      "kind": "minimal Native guard repair and affected HOST rebuild",
+      "actual_source_guard": 4096,
+      "actual_header_SHA256": "22eb4ed03524e8680fe0ca0489ba91db0de3bd1a371e97ed5e6f9c23bb3f10d6",
+      "scope": "rows1,32768; continuous1024prefill; preserve existing math/T4096",
+      "parent": "910374",
+      "nodes": [
+        "a02r4n01"
+      ],
+      "cards": 8,
+      "GPU_started": false
+    },
+    {
+      "model": "Kimi-K3",
+      "kind": "minimal private Native storage and admission scope",
+      "actual_old_limit": 1024,
+      "scope": "logical1/physical2/pool3/context32768; dynamic MLA pages; original math; first512prefill then existing width<=8 fullcommit for real remaining prompt tokens",
+      "parent": "910380",
+      "nodes": [
+        "a14r2n08",
+        "a14r2n09",
+        "a14r2n10",
+        "a14r2n12"
+      ],
+      "cards": 32,
+      "GPU_started": false
+    },
+    {
+      "model": "GLM-5.3",
+      "kind": "existing Native TP8PP4 configuration and long-context service",
+      "scope": "original bounds0/18/38/58/78; hostOFF; no cap640-only APIs; continuous512prefill",
+      "parent": "910376",
+      "nodes": [
+        "a02r4n12",
+        "a02r4n13",
+        "a02r4n14",
+        "a02r4n15"
+      ],
+      "cards": 32,
+      "constructor_and_loaded_peak": "UNKNOWN_PENDING_ACTUAL_DEVICE",
+      "GPU_started": false
+    }
+  ],
+  "older_small_context_results": "SMOKE_ONLY; no normal-agent acceptance",
+  "CPU_fixture_tool_history": "synthetic history and real tokenizer counts, never model-generated tools",
+  "GPU_launch_preconditions": "fresh exact current resource/KFD/CPU source identity; publish claim before costly run; normal shutdown and post-cleanup evidence",
+  "peer_last_consumed_commit": {
+    "origin/main": "9dd02e2a4cefc6065e77ccdf98c2e3f523f4e3b4"
+  },
+  "normal_agent_PASS": false,
+  "performance_objective": "Original full objective remains active; performance GPU routes resume after user-priority agent acceptance"
+}

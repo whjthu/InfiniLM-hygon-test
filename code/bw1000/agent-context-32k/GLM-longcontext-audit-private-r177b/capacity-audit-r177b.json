@@ -1,0 +1,92 @@
+{
+  "revision": "r177b",
+  "target": {
+    "total_context": 32768,
+    "output": 4096,
+    "thinking_output": 8192,
+    "tool_steps_minimum": 8,
+    "first_actual_input_floor": 8192,
+    "second_actual_input_floor": 16384,
+    "extension_context": 65536
+  },
+  "status": "SOURCE_AUDIT_AND_CPU_LONGTOKEN_ENTRY_NOT_MODEL_OR_NORMAL_AGENT_PASS",
+  "short_r176d": "preserved smoke only; do not launch for2048/512",
+  "proven_limits": [
+    {
+      "component": "driver",
+      "limit": "r176d hardcoded2048, WIRE2056, one-shot prefill; notbackend32K support",
+      "minimal_change": "context-driven wire and output budget admission; full promptchunk512<=4096; only final chunk emitsfirsttoken"
+    },
+    {
+      "component": "actual_host_bank_header020e651",
+      "limit": "Bank ctor rejects capacity>2048; pinnedhostbank eagerly allocated and memset",
+      "consequence": "GLM_PROJECTED_HOST=1 cannot even construct32K withoutbackendchange; no hiding this withPython limit changes",
+      "minimal_nonmath_alternative": "serialrows1, GLM_PROJECTED_HOST_R4504=0 uses original existingGPU projectedKV path"
+    },
+    {
+      "component": "actual_RoPE_headerde7d99",
+      "limit": "bounded Scope and position validator cap<=1048576, bound<=cfgoriginal max",
+      "config_max": "must read real config in CPUpreflight, no inference fromsoftware cap"
+    },
+    {
+      "component": "feature_bypass_r1406",
+      "limit": "enabled rejects cap>2048; OFF permitted only drainedreset and ownedprefix alreadyOFF",
+      "source": "actualce830CAPI2dd4fe... matched local"
+    },
+    {
+      "component": "owned_prefix_r1669",
+      "limit": "enabled rejects cap>2048; OFF allowed afterreset; no all-visibleproofshortcut onlongcontext"
+    },
+    {
+      "component": "resident/transient setters",
+      "limit": "both requirecap640 evenOFF; do not call at32K"
+    },
+    {
+      "component": "NativeText/Attention/FFN",
+      "limit": "singleforward tokens<=4096; constructorrows1..128 andcapacity<=cfgmax; target512chunk preservesfullprompt"
+    },
+    {
+      "component": "actualIndexerSelection implementation",
+      "limit": "topk<=2048 is number ofselectedkeys, not totalcontext; longcontext must run actualindexer cache+score+TopK, notmetadata-only path",
+      "closure": "locale9f2f... implementation needsactualobject/sourceSHA metadata confirmation"
+    }
+  ],
+  "memory": {
+    "job_step_mem_MiB": 128000,
+    "job_step_mem_GiB": 125,
+    "hostKV_formula": "2*rows*capacity*8localheads*256channels*2BF16bytes*local_layers*8ranks_per_node",
+    "hostKV_rows2_32K_stage1_GiB_per_rank": 20,
+    "hostKV_rows2_32K_stage1_GiB_per_node": 160,
+    "hostKV_rows1_32K_stage1_GiB_per_rank": 10,
+    "hostKV_rows1_32K_stage1_GiB_per_node": 80,
+    "hostKV_rows1_32K_node_left_for_all_else_GiB": 45,
+    "hostKV_rows1_64K_stage1_GiB_per_node": 160,
+    "hostKV64K_flat_PP2_fullprefix_fits125GiB_job": false,
+    "GPU_only_rows1_32K_stage1_projectedKV_GiB": 10,
+    "GPU_only_rows1_32K_stage1_compressed_latent_rotary_GiB": 1.40625,
+    "GPU_only_rows1_64K_stage1_projectedKV_GiB": 20,
+    "GPU_only_rows1_64K_stage1_compressed_latent_rotary_GiB": 2.8125,
+    "indexer_cache_BF16_bytes_per_full_layer_at32K": 8388608,
+    "additional_unknown": [
+      "Nativeparameters andpostloadFP8/BF16 helpercache",
+      "GPUfinish highwater +prefill scoring/attention workspace",
+      "source-mapped CPUparams/contiguousbuffers/pinning/cgrouppeak",
+      "actual memTotal/parent memory allocation andcurrentfree"
+    ],
+    "fit_claim": "UNKNOWN until actual metadata/constructor/finish and workload. No physical peak or logical-only fit claim",
+    "stage1_routed_parameters_logical_lower_bound_GiB": 45,
+    "derivation": "40sparse layers *3UInt8 banks[256,256,6144] perTP8rank =45GiB; verify currentvectorFFN object/source pin",
+    "32K_stage1_routed_plus_projected_plus_compressed_lower_bound_GiB": 56.40625,
+    "64K_stage1_routed_plus_projected_plus_compressed_lower_bound_GiB": 67.8125,
+    "64K_PP2_GPU_fit_if_physical64GiB": false,
+    "64K_minimum_configuration_direction": "SmallerPPstage layer count (existingPP4), or substantivecache/parameterlayout fix; not just drivercapacity increase",
+    "GPU_only_32K_fit": "UNKNOWN. Addattention/shared/scales/indexcache/workingalloc/finish/provider cache to56.40625GiB, check actualdevice total/free."
+  },
+  "next_minimum": [
+    "Metadata-only SHA/size match localactualhost/RoPE/header/currentcaller/indexerimplementation; no remote source content export",
+    "Run genuine official tokenizer32K4K/8Kthinking,8toolhistory,8K/16K+ input CPUpreflight",
+    "Read pastModel memory/finish metadata only; no traces exported",
+    "Prefer existing GPU-only rows1 path ifactual HBMbudget supports it; otherwise minimalcache/PP memory layout fix afterevidence",
+    "No short P0load and no normalagentPASS from CPUfixture"
+  ]
+}
