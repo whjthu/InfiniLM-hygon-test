@@ -1,0 +1,188 @@
+{
+  "schema": 1,
+  "review": 124,
+  "prior_review": 123,
+  "created_UTC": "2026-10-28T13:54:26.3394409Z",
+  "status": "COMPLETE_READONLY_RECOMMENDATIONS",
+  "goal_complete": false,
+  "report": "astra-review-124-current.md",
+  "scope": {
+    "GPU": false,
+    "web": false,
+    "launch": false,
+    "Git": false,
+    "source_edits": false,
+    "SSH": false
+  },
+  "decision": "立即W13 wave-first组件；成功后一次Kimi加载验证C1+C8；Deep优先因果调度试验；保留GLM781收益，chunk128为次优替补；不再以心跳和报告代替GPU结果",
+  "priority": [
+    "K124A",
+    "D124A",
+    "K124B_CONDITIONAL",
+    "G124B_FALLBACK",
+    "D124B_PIGGYBACK"
+  ],
+  "prior_followthrough": [
+    {
+      "note": "现候选仅改wave-first FP32 reduction，非新增TT2复用",
+      "state": "CPU503_PASS_GPU_PENDING",
+      "card": "K123A"
+    },
+    {
+      "handle": "910374.1168",
+      "state": "DONE_QUALIFIED_FRONTIER_NOT_OPTIMIZATION",
+      "card": "D123A",
+      "post_empty": true
+    },
+    {
+      "state": "LINUX_CPU502_PASS_MODEL_BENEFIT_UNKNOWN",
+      "card": "K123B"
+    },
+    {
+      "state": "781_ADOPT_158_DEFER",
+      "card": "G123A"
+    }
+  ],
+  "new_GPU_evidence_rounds": [
+    "910374.1168"
+  ],
+  "evidence": {
+    "Kimi": "results/bw1000/2026-10-28/kimi449-qualified-real-MoE-subphase.json",
+    "Deep": "completed-frontier-root-r9457-a.json",
+    "Deep_SHA256": "092fe3ff57e12846374e92840c7d092f33a125bc33ecb00fd84aa4d4fd207390",
+    "lifecycle_CPU": "resource-read-root-r9456-resume-b.json"
+  },
+  "coordination": {
+    "collection_UTC": "2026-10-28T13:44:39Z",
+    "qualification": "结果消费滞后；不能单凭快照证明全部GPU全时段空闲",
+    "terminal_UTC": "2026-10-28T03:37:10Z",
+    "lag_hours_approx": 10.125
+  },
+  "Deep": {
+    "no_algorithm_speedup_claim": true,
+    "not_HTTP_service": true,
+    "all_arms": {
+      "same_QA": 64,
+      "correct": 62,
+      "cap": 0,
+      "EOS": 64,
+      "good_user15": 0
+    },
+    "by_batch": [
+      {
+        "first_gap_p50_s": 27.669325558,
+        "B": 32,
+        "user_p50": 1.19695456,
+        "first_gap_max_s": 56.457291674,
+        "decode": 36.815216485
+      },
+      {
+        "first_gap_p50_s": 13.126204658,
+        "B": 16,
+        "user_p50": 1.74656257,
+        "first_gap_max_s": 25.871167494,
+        "decode": 20.565535412
+      },
+      {
+        "first_gap_p50_s": 4.485402657,
+        "B": 8,
+        "user_p50": 2.392929931,
+        "first_gap_max_s": 8.853477007,
+        "decode": 11.989173632
+      },
+      {
+        "first_gap_p50_s": 0.934758972,
+        "B": 4,
+        "user_p50": 2.371993661,
+        "first_gap_max_s": 1.050144816,
+        "decode": 6.712039594
+      }
+    ],
+    "batch_order": [
+      32,
+      8,
+      16,
+      4
+    ]
+  },
+  "Amdahl": {
+    "loader_wall_f": "UNKNOWN",
+    "W13_f033_conditional": {
+      "infinite": 1.492537,
+      "s1_2": 1.058201,
+      "s2": 1.197605
+    },
+    "W13_W2_f054_conditional": {
+      "s2": 1.369863,
+      "infinite": 2.173913
+    },
+    "all_MoE_f063_conditional_limit": 2.702703,
+    "physical_peak": "UNKNOWN",
+    "loader_block_fraction_is_wall_fraction": false,
+    "qualification": "稀疏层与445份额可代表同负载时的敏感性，不是全层实测，不直接乘用户p50，不是物理峰值",
+    "formula": "1/(1-f+f/s)"
+  },
+  "cards": [
+    {
+      "owner": "Kimi原owner/root",
+      "id": "K124A",
+      "fallback": "已有W2pair候选",
+      "first_result": "数分钟；GPU界600s，排队UNKNOWN",
+      "resource": "n01+n04 TP16 16DCU component",
+      "source": "CPU503+r155",
+      "exit": "现有fullMoE/W13>=5%且OFF drift<=3%；否则STOP/PARK",
+      "decision": "IMMEDIATE"
+    },
+    {
+      "experiment": "一次加载C1小组及C8同32QA，各OFF/ON/ON/OFF；真实U/J原drain",
+      "owner": "Kimi原owner",
+      "decision": "CONDITIONAL_ON_COMPONENT_GAIN",
+      "id": "K124B",
+      "fallback": "C1/C8形状分派或停止推广",
+      "first_result": "加载25–30min+测量，整体约40–60min估计，队列UNKNOWN",
+      "resource": "原33卡TP16PP2+draft"
+    },
+    {
+      "owner": "Deep原owner",
+      "id": "D124A",
+      "fallback": "B8延迟候选、B32吞吐候选",
+      "experiment": "B32每micro4后1次ready decode，最多7次插入，对原schedule ABBA",
+      "first_result": "准备10–20min+加载8min+测量18min估计",
+      "resource": "n05 TP8 8DCU",
+      "exit": "不得用后移first clock伪造用户收益；长ITL/TTFT/task明确取舍",
+      "decision": "INDEPENDENT_PREPARE_AND_TEST"
+    },
+    {
+      "experiment": "C1自然EOS小组+同形状已有轻量profile",
+      "owner": "Deep原owner",
+      "decision": "PIGGYBACK_ONLY",
+      "id": "D124B",
+      "gain": "UNKNOWN",
+      "first_result": "必要加载后数分钟"
+    },
+    {
+      "task_gain_pct": 10.975656,
+      "new_GPU": false,
+      "owner": "GLM原owner",
+      "decision": "KEEP_781_DEFER_ON",
+      "id": "G124A",
+      "decode_CAPI_gain_pct": 17.339871
+    },
+    {
+      "experiment": "full/chunk128+preferdecode ABBA，两臂deferON",
+      "owner": "GLM原owner",
+      "decision": "PIGGYBACK_OR_IDLE_FALLBACK",
+      "exit": "仅ITL改善但task退化不能宣称通用收益",
+      "id": "G124B",
+      "first_result": "UNKNOWN由实际GLM加载决定",
+      "resource": "n12–15 16DCU"
+    }
+  ],
+  "boundaries": [
+    "GPU状态未知不重播",
+    "不触910384/n17/n18",
+    "不读nonce/rawargs",
+    "不引入GPU F64",
+    "不新增框架或门禁"
+  ]
+}

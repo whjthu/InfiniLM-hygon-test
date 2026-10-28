@@ -1,0 +1,85 @@
+{
+  "CPU_only": true,
+  "GPU": false,
+  "actual_model_run": "NOT_RUN",
+  "parent_actual_step": "910374.1168",
+  "parent_result_SHA256": "092fe3ff57e12846374e92840c7d092f33a125bc33ecb00fd84aa4d4fd207390",
+  "Native_SHA256": "ac9370c8f188bfda8555718c52690b914883fc6b02b9267cbd279be3ecdd3835",
+  "Native_math_changed": false,
+  "original_loader_forward_finally_reused": true,
+  "questions_unique": 64,
+  "ABBA_arms": [
+    "A",
+    "B",
+    "B",
+    "A"
+  ],
+  "B": 32,
+  "prefill_microbatch": 4,
+  "early_decode_max_calls_per_cohort": 7,
+  "first_token_source": "prefill",
+  "candidate_changes": [
+    "One ready decode after each nonfinal prefill micro4",
+    "Per-row past tracks each row generation length; baseline equivalent",
+    "Align post-final-prefill decode numerator with its denominator"
+  ],
+  "quality_checks": "Actual natural EOS, score, cap and complete event clocks retained; no historical token equality gate",
+  "source_AST_passed": true,
+  "local_static_and_actual_schedule_AST_execution_passed": true,
+  "CPU_fake_owner_only": true,
+  "actual_GPU_executed": false,
+  "Native_dlopen": false,
+  "Torch_imported": false,
+  "scheduling_cases": [
+    {
+      "name": "baseline",
+      "candidate": false,
+      "prefill_calls": 8,
+      "early_decode_calls": 0,
+      "no_unready_or_stopped_row": true,
+      "all_per_row_native_lengths_match": true,
+      "completed_fake_rows": 32,
+      "passed": true
+    },
+    {
+      "name": "candidate_no_early_stop",
+      "candidate": true,
+      "prefill_calls": 8,
+      "early_decode_calls": 7,
+      "no_unready_or_stopped_row": true,
+      "all_per_row_native_lengths_match": true,
+      "completed_fake_rows": 32,
+      "passed": true
+    },
+    {
+      "name": "candidate_varied_caps_and_EOS",
+      "candidate": true,
+      "prefill_calls": 8,
+      "early_decode_calls": 7,
+      "no_unready_or_stopped_row": true,
+      "all_per_row_native_lengths_match": true,
+      "completed_fake_rows": 32,
+      "passed": true
+    },
+    {
+      "name": "candidate_all_EOS_from_prefill",
+      "candidate": true,
+      "prefill_calls": 8,
+      "early_decode_calls": 0,
+      "no_unready_or_stopped_row": true,
+      "all_per_row_native_lengths_match": true,
+      "completed_fake_rows": 32,
+      "passed": true
+    }
+  ],
+  "baseline_past_formula_equivalent": true,
+  "clock_contract": {
+    "total_early_plus_late_decode_tokens": 144,
+    "post_admission_tokens": 32,
+    "post_admission_seconds": 1,
+    "excluded_early_tokens": 112,
+    "passed": true
+  },
+  "ABBA_cases_per_arm": 128,
+  "ABBA_independent_question_ids": 64
+}
