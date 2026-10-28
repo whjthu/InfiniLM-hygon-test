@@ -1,0 +1,6 @@
+{
+  "actual_source_path": "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/cache/kv_cache.cpp",
+  "actual_source_SHA256": "1372115b57bbb8203cfaaf87454016f406b3a3f4d53439fd009fe5c37a150e52",
+  "function": "void validate_cache_runtime(infinilm::runtime::Runtime &runtime,\n                            const engine::distributed::RankInfo &rank) {\n    runtime.assertOwnerThread();\n    if (runtime.device() != rank.device) {\n        throw std::invalid_argument(\"KV cache Runtime and rank devices must agree\");\n    }\n    if (rank.tp_size <= 0) {\n        throw std::invalid_argument(\"cache TP size must be positive\");\n    }\n    const parallel::Topology topology(static_cast<size_t>(rank.tp_size), rank.pp_size, rank.pp_stage);\n    (void)topology.world_rank(rank.tp_rank);\n    if (runtime.isGraphRecording()\n        || runtime.graphCaptureState() != infinilm::execution::graph::GraphManager::CaptureState::kInactive) {\n        throw std::logic_error(\"KV cache allocation/reset requires inactive graph state\");\n    }\n}\n\n",
+  "scope": "active source SHA must match at actual CPU build; null communicator allowed for allocation-only rank geometry; no TP execution proof"
+}

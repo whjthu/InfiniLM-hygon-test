@@ -1,0 +1,94 @@
+--- ac937/deepseek_v4_compressor_fp32_c128_r19.cpp
++++ r172/deepseek_v4_compressor_fp32_c128_r19.cpp
+@@ -10,6 +10,13 @@
+ #include <stdexcept>
+ 
+ namespace infinilm::models::deepseek_v4 {
++namespace c128_weight_cache_r172 {
++// Default OFF. Both comparison arms have the same resident cache allocation.
++// Change policy only at a quiescent controller boundary, never in a forward.
++std::atomic<int> policy{0};
++// load Casts, cached projection uses, original uncached projection uses.
++std::array<std::array<std::atomic<uint64_t>,3>,8> calls{};
++}
+ namespace c4_tile_r5920 {
+ std::atomic<int> policy{0};
+ std::array<std::array<std::atomic<uint64_t>,2>,8> calls{};
+@@ -82,6 +89,24 @@
+         auto layout=ape_->view({4,2,dim_})->permute({1,0,2});
+         packed_ape_->view({2,4,dim_})->copy_from(r,layout);
+     } else packed_ape_->copy_from(r,ape_);
++    // Publish both complete conversions as one successful load generation.
++    // Local tensors release normally on failure; ready remains false.
++    if(ratio_==128) {
++        auto kv32=rt::Tensor::empty(r,wkv_->shape(),rt::DataType::kFloat32);
++        auto gate32=rt::Tensor::empty(r,wgate_->shape(),rt::DataType::kFloat32);
++        try {
++            ex::submit<infini::ops::Cast>(r,infini::ops::Cast::DefaultConfig(r.device().type()),wkv_,kv32);
++            ex::submit<infini::ops::Cast>(r,infini::ops::Cast::DefaultConfig(r.device().type()),wgate_,gate32);
++            r.syncStream();
++        } catch(...) {
++            // Drain before local GPU tensors can be destroyed on a failed finish.
++            try {r.syncStream();} catch(...) {std::terminate();}
++            throw;
++        }
++        wkv32_r172_=std::move(kv32);wgate32_r172_=std::move(gate32);
++        cached_generation_r172_=++weight_generation_r172_;
++        c128_weight_cache_r172::calls.at(r.device().index()).at(0).fetch_add(2,std::memory_order_relaxed);
++    }
+     r.syncStream(); ready_=true;
+ }
+ void TemporalCompressor::rotate(rt::Runtime&r,rt::Tensor x,const std::vector<int64_t>&positions) const {
+@@ -156,7 +181,14 @@
+     if(total!=tokens)throw std::invalid_argument("DeepSeek compressor packed token count differs");
+     Work work{r};batch.owner=this;batch.revision=revision_;batch.requests=requests;
+     batch.score=work.alloc({tokens,channels_*dim_},rt::DataType::kBFloat16);
+-    auto projection=[&](const rt::Tensor&weight,size_t start) {
++    const bool cache_on_r172=ratio_==128&&c128_weight_cache_r172::policy.load(std::memory_order_acquire)==1;
++    if(cache_on_r172 && (!weight_generation_r172_ || cached_generation_r172_!=weight_generation_r172_ ||
++        !wkv32_r172_ || !wgate32_r172_ || wkv32_r172_->device()!=r.device() ||
++        wgate32_r172_->device()!=r.device() || wkv32_r172_->dtype()!=rt::DataType::kFloat32 ||
++        wgate32_r172_->dtype()!=rt::DataType::kFloat32 || wkv32_r172_->shape()!=wkv_->shape() ||
++        wgate32_r172_->shape()!=wgate_->shape()))
++        throw std::logic_error("C128 r172 cache identity/generation/owner differs");
++    auto projection=[&](const rt::Tensor&weight,size_t start,const rt::Tensor&cached32) {
+         auto out=work.alloc({tokens,weight->size(0)},rt::DataType::kBFloat16);
+         if(ratio_==128){
+         // Diagnostic candidate: explicitly convert BF16 operands to exact F32
+@@ -164,10 +196,12 @@
+         // This changes accumulation/backend selection; it is not a bit-equivalent
+         // replacement until independently qualified at operator and model scope.
+         auto hidden32=work.alloc(hidden->shape(),rt::DataType::kFloat32);
+-        auto weight32=work.alloc(weight->shape(),rt::DataType::kFloat32);
++        auto weight32=cache_on_r172?cached32:work.alloc(weight->shape(),rt::DataType::kFloat32);
+         auto out32=work.alloc(out->shape(),rt::DataType::kFloat32);
+         ex::submit<infini::ops::Cast>(r,infini::ops::Cast::DefaultConfig(r.device().type()),hidden,hidden32);
+-        ex::submit<infini::ops::Cast>(r,infini::ops::Cast::DefaultConfig(r.device().type()),weight,weight32);
++        if(!cache_on_r172)
++            ex::submit<infini::ops::Cast>(r,infini::ops::Cast::DefaultConfig(r.device().type()),weight,weight32);
++        c128_weight_cache_r172::calls.at(r.device().index()).at(cache_on_r172?1:2).fetch_add(1,std::memory_order_relaxed);
+         ex::submit<infini::ops::Gemm>(r,infini::ops::Gemm::DefaultConfig(r.device().type()),
+             hidden32,weight32->permute({1,0}),std::optional<rt::Tensor>{},std::optional<float>{1},
+             std::optional<float>{0},std::optional<int>{},std::optional<int>{},out32);
+@@ -193,7 +227,7 @@
+         }
+         batch.score->narrow({{1,start,weight->size(0)}})->copy_from(r,out);
+     };
+-    projection(wkv_,0);projection(wgate_,channels_/2*dim_);
++    projection(wkv_,0,wkv32_r172_);projection(wgate_,channels_/2*dim_,wgate32_r172_);
+     batch.next_state=work.alloc(state_->shape(),state_->dtype());batch.next_state->copy_from(r,state_);
+     batch.pooled=work.alloc({tokens,dim_},rt::DataType::kBFloat16);
+     auto status=work.alloc({1},rt::DataType::kInt32);
+@@ -258,3 +292,12 @@
+  if(device<0||device>=8||kind<0||kind>1)return ~uint64_t{};
+  return infinilm::models::deepseek_v4::c4_tile_r5920::calls[size_t(device)][size_t(kind)].load();
+ }
++
++extern "C" int modern_deep_c128_weight_cache_mode_r172(int mode) {
++    if(mode<0||mode>1)return -1;
++    infinilm::models::deepseek_v4::c128_weight_cache_r172::policy.store(mode,std::memory_order_release);return mode;
++}
++extern "C" uint64_t modern_deep_c128_weight_cache_stats_r172(int owner,int field) {
++    if(owner<0||owner>=8||field<0||field>=3)return uint64_t(-1);
++    return infinilm::models::deepseek_v4::c128_weight_cache_r172::calls.at(owner).at(field).load(std::memory_order_relaxed);
++}

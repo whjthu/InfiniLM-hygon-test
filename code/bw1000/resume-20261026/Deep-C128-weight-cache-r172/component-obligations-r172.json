@@ -1,0 +1,66 @@
+{
+  "status": "CPU_SOURCE_ONLY_NO_GPU_AUTHORIZATION",
+  "tokens": 1,
+  "requests": 1,
+  "actual_C1_pasts": [
+    385,
+    395,
+    437,
+    407
+  ],
+  "boundary_neighbors": [
+    126,
+    127,
+    128,
+    254,
+    255,
+    256,
+    382,
+    383,
+    384,
+    510,
+    511,
+    512
+  ],
+  "smallT_mode": 0,
+  "native_parent_SHA256": "ac9370c8f188bfda8555718c52690b914883fc6b02b9267cbd279be3ecdd3835",
+  "histories": "Actual C1 pasts385/395/437/407 plus ratio128 boundary neighbors; preserve real checkpoint C128 compressor KV/gate512x4096,rows128,dim512,ratio128. CPU cannot exercise Native GPU state.",
+  "required_future_component": [
+    "Same initial real weights/state and C1 requests with original weight Cast OFF versus cached ON; record CAPI wall, cache counters, status/finite/reference tolerance, cache/state/reset/commit validity and memory.",
+    "Preserve same F32 Gemm and BF16 boundaries; no GPUF64, exact token identity gate, prompt crop, EOS forcing, B32 substitute or blind Model load.",
+    "Before future component, require actual CPU build PASS. Later root chooses bounded component authorization; no launch code or automation is in this package."
+  ],
+  "cache_contract": {
+    "identity": "TemporalCompressor object + immutable original wkv_/wgate_ Tensor members + successful finish generation",
+    "original_bindings": "No original checkpoint Tensor or binding is reassigned; cache tensors are direct owned members.",
+    "generation": "Publish after both original registered Cast operations and successful sync; verify both generation equality and owner/device/type/shape before reuse; ready guard rejects before-finish and duplicate finish.",
+    "mutation": "Existing production finish freezes weights; arbitrary external mutation through escaped Tensor storage is outside this immutable contract. A future reload API must invalidate/recast via a new load generation; this package adds no reload API.",
+    "reset": "Sequence reset preserves converted immutable weights; object destruction owns cache release. Exception path drains before local tensors destruct.",
+    "controller": "mode0 original per-forward Cast, mode1 cached projection; switch only at quiescent boundaries. Cache allocated at finish in both arms. Default mode0.",
+    "counters": "Each owner field0 accumulates load Casts(2 per HCA=40 at finish), field1 cached projection uses(40 per full C1 decode), field2 uncached projection uses(40 per full C1 decode). No counter resets; use deltas.",
+    "memory_bytes_per_HCA": 16777216,
+    "HCA_per_owner": 20,
+    "new_resident_bytes_per_owner": 335544320,
+    "all8_new_resident_bytes": 2684354560,
+    "allocator_overhead": "excluded"
+  },
+  "ABI": {
+    "layout_changed": true,
+    "HOST_TUs_recompiled": 9,
+    "known_true_complete_type_consumers": [
+      "native_sparse_model_r22.cpp",
+      "deepseek_v4_routed_text_model_r20.cpp",
+      "deepseek_v4_compressor_fp32_c128_r19.cpp",
+      "deepseek_v4_native_routed_decoder_r20.cpp",
+      "deepseek_v4_hca_attention_batch_r784.cpp",
+      "deepseek_v4_csa_attention_batch_r784.cpp",
+      "deep_c4_smallt_r9252.cpp"
+    ],
+    "conservative_extra": [
+      "deepseek_v4_paged_latent_cache_public.cpp",
+      "deepseek_v4_swa_attention.cpp"
+    ],
+    "failure_gate": "Scan all48 original objects with nm-C; any TemporalCompressor reference in reused object aborts. Fresh -M equals generated -MD; every copied private header shadow checked. This is bounded source ABI evidence, not an unconstrained C++ whole-program proof."
+  },
+  "CPU_entry": "python -B -X utf8 CPU_static_r172.py then bounded CPU_build_r172.py; CPU_build creates a fresh /refactor/candidates/Deep-C128-weight-cache-r172, 900s hard deadline, no dlopen/Torch/weights/GPU/HIP/no retry."
+}

@@ -1,0 +1,127 @@
+{
+  "review": 128,
+  "date": "2026-10-29",
+  "state": "COMPLETE",
+  "trigger": "127后3轮有区分力诊断：GLM787原端离线恢复、Deep1195真实C1、GLM789/790计算节点原目录写文件CPUprobe。",
+  "scope": "复用本地仓库及V证据；无SSH/Git/GPU/新agent；报告仅写V。",
+  "source_commit_reported_by_root": "cfd2e013b2ca5b70f496e32420f3f9a24b14c435",
+  "verdict": "近期新增可证明Model/真实服务收益为0。技术上GLM足以支持一次同加载clean C1 ABBA；Kimi先实际单卡组合持久子集/生命周期probe；Deep先正确生命周期与完整HOST ABI后的实际C1组件。按最新用户优先级，这三张卡的GPU全部排在接口验收后，当前只保留源码/CPU准备。没有任何候选因CPU通过而晋级Model收益或TP32 fullfit。",
+  "latest_user_priority": {
+    "evidence": "root在本次审核中通过read_thread核实“智能体支持”最新人类指令并转达。",
+    "first": "Deep SSE修复、GLM实际权重P0重验、Kimi身份审计及三模型C2 HTTP/SSE隔离验收。",
+    "performance_cards": "G128A/K128A/D128A源与CPU准备可继续；GPU均在用户接口验收后再安排，本报告不触发新的性能GPU提交。",
+    "goal": "性能目标保留；本次仅调整资源优先级，不标paused，不丢弃已有结果。"
+  },
+  "previous_review_followup": [
+    {"card":"G127A","result":"已跟同一787终态；原审计失败保留，532仅修读入/内存重解析，未重跑GPU；恢复16owner各3实际T1窗口、原overhead/quality条件。完成。"},
+    {"card":"D127A","result":"同入口数据修复后1195 COMPLETED0/postempty，4/4正确自然EOS、0cap，真实C1诊断完成；1187失败未抹除。"},
+    {"card":"K127A","result":"533完成32.31s CPU构建与源码合同，Native06db；实际GPU生命周期尚未证明，下一步薄验证仍待执行。"},
+    {"card":"K127B","result":"保留456 C1/C8基线，未以registry/state_dict追加整模加载；继续采纳。"}
+  ],
+  "evidence": {
+    "GLM": {
+      "actual_steps": ["910376.787","910407.532","910376.789","910376.790"],
+      "clean_C1_user_p50_tok_s": [4.958081475404795,4.956248537014828],
+      "clean_C1_ITL_p50_ms": [201.49132190272212,201.46734593436122],
+      "quality_each_episode": "4/4correct,4EOS,0cap；同4QA，不是12独立质量题或HTTP服务",
+      "profile": "16owner×3actualT1；stage0rank0首层attention1.269ms，其它rank约14.665ms。rank0在forward前同步写progress是可检验解释，不是已证实因果。",
+      "CPU_filesystem_probe": {"per_node_samples":64,"median_ms":[11.396285379305482,11.486575240269303],"p95_ms":[12.287075445055962,12.878546211868525],"nodes":["a02r4n14","a02r4n15"],"own_cleanup":true,"synthetic_payload_only":true},
+      "interpretation": "时序位置、rank差与写耗时量级一致，足够让最小干预进入一次A/B；不能认定网络瓶颈、attention GPUbusy或用CPU写耗时直接报Model收益。"
+    },
+    "Deep": {
+      "actual_step":"910374.1195",
+      "loaded_once_s":447.7187887132168,
+      "total_job_s":652,
+      "quality":"4/4correct,4naturalEOS,0cap,normal/postempty",
+      "OFF_CAPI_median_ms":[320.74700901284814,321.75410399213433,323.5244583338499,326.5897259116173],
+      "observer_penalty_percent_range":[5.023,12.879],
+      "attention_owner_stream_ms_range":[173.86,200.63],
+      "nested_cache_compression_index_metadata_ms_range":[100.31,119.89],
+      "routed_experts_ms_range":[19.62,20.06],
+      "C1_path":"每owner43次reference attention；SWA/HCA/CSA=2/20/21；batchedFP32 attention调用0；pasts385/395/437/407。",
+      "interpretation":"attention/cache复合包络是优先方向；内部weight cast份额未知。stream跨度包含提交/等待，threadCPU含驱动spin可能性；不等于GPUbusy、Python占比或纯网络。",
+      "dedup":"smallT1112已有8/8→7/8；原smallT/all-selected继续STOP/defaultOFF，不能重复包装为新候选。"
+    },
+    "Kimi": {
+      "CPU_step":"910407.533",
+      "CPU_build_s":32.313536586239934,
+      "Native_SHA256":"06db1d3ad90751e552b9a3c4f62638de8f78465aafeef5b3b528c6c2f8373b20",
+      "actual_packed_bank_saving_MiB":126,
+      "Runtime_destroy_residual_MiB":146,
+      "residual_attribution":"UNKNOWN；不能称全回收或leak",
+      "actual_new_GPU_lifecycle":"NOT_RUN",
+      "per_I96_added_sync":"性能UNKNOWN，新增同步可能抵消容量收益带来的可用性价值",
+      "full_Model_fit":"UNKNOWN_STOP"
+    }
+  },
+  "efficiency": {
+    "new_Model_speedup_proven":0,
+    "new_online_service_speedup_proven":0,
+    "costs":"Deep1195作业10m52，其中加载7m27.72；余204.28s混合暖机/测量/质量/退出，不能全部记GPU测量。GLM532离线恢复1s，789/790每节点CPU64写总0.731/0.741s（不含排队/启动），避免一次GPU复跑。Kimi533构建32.31s，无Model运行。",
+    "unknowns":"当前证据未完整分离准备、排队、GLM787加载及各质量审计耗时；填UNKNOWN，不编造累计GPU卡时。当前无新GPU作业不是资源空闲/可占用证明。",
+    "priority":"直接Model因果优先GLM；按最短首判优先Kimi薄设备probe与Deep C1组件，三者独立推进。不要让报告/发布窗口阻塞已具备边界的工作；不再围绕相同observer或registry循环。",
+    "record_at_end":["prepare_seconds","queue_seconds","load_seconds","measurement_seconds","quality_seconds","cleanup_seconds"]
+  },
+  "cards": [
+    {
+      "id":"G128A","model":"GLM","priority":1,
+      "decision":"TECHNICALLY_SUPPORTED; GPU_DEFER_UNTIL_USER_INTERFACE_ACCEPTANCE",
+      "hypothesis":"每decode前rank0共享文件原子写使其它rank等待；同线程限频routine写可降低clean用户ITL。",
+      "minimal_change":"复用r171b，只把routine progress写频率限制为最多每秒一次；first/BEGIN/DONE/ERROR强制，原路径/payload/60s watchdog不变，默认OFF，无后台线程。沿787完整runtime补齐四arm A/B/B/A plan及按四arm汇总；删除该对照对三arm observer_overhead/固定三索引paired_quality的依赖，所有observer=false。复用同入口数据/CPU合同，只校验新增四arm分派及汇总，不重做框架。",
+      "owner_resource":"原GLM owner；root沿既有独占资源边界一次16卡TP8PP2 Model加载，启动前核实际句柄与空闲归属。",
+      "reuse":"787合格Native与4QA；r171b MF1a0ff5d77e92641c8e4b0d01678bb2beaf35fd602657b7da0b1d6e4c2778a50f；789/790 CPU证据；不再跑observer。",
+      "numeric":"每arm相同4QA/模板/预算，4correct+4EOS/0cap与完整token时间线、正常退出。文本/token exact不作门。保存写attempt/skip/success与force计数；限频不是后台心跳，长forward仍受原60s stall语义约束。",
+      "warm_samples":"沿原暖机；同次加载固定A0/B0/B1/A1，每arm4完整QA，共16执行4unique；每请求(n-1)/(last-first)、ITL P95/P99、TTFT、task/全部16卡、clean Native wall分别报。两个B必须相对两A一致改善并超过本次A端漂移及请求离散。",
+      "wall_fraction":"UNKNOWN；单个约11.4ms写若在约202ms关键路径上约为5.6%量级，仅假设尺度。两个stage是否串行贡献未知，不乘16rank、不直接相加13ms owner差。",
+      "exit_upgrade":"四arm完成即判定；无收益/仅约1%或混合结果则park默认OFF，不新增加载追微小差异。明显改善且质量/退出合格仅升级为该C1 pilot收益，后续必要运行再做更广质量/服务；任何watchdog/生命周期错误停止定位，未知状态不自动重放。",
+      "fallback":"保留787 clean baseline；从已有profile选另一有实测wall目标的最小改动，不再重复当前observer。",
+      "eta":"runtime补齐/CPU约10–20min；首Model判定约25–35min历史加载量级加约3.5–6min四arm（排队另列UNKNOWN），已有加载不能凭空复用。"
+    },
+    {
+      "id":"K128A","model":"Kimi","priority":2,
+      "decision":"KEEP_BOUNDED_SUBSET_CARD; GPU_DEFER_UNTIL_USER_INTERFACE_ACCEPTANCE",
+      "hypothesis":"实际同时持有92packedbank+93cache+1owner共享I96workspace时，容量子集及正常/host异常drain、owner隔离、zero-fill契约成立。",
+      "minimal_change":"采纳现有Kimi-r170-next-device-card-r171.md；生产helper与probe在同MoE TU，共用真实registry与r170 cache factory；不新增另一DSO registry。真实92组全部并存，不以1组乘92。固定逻辑子集46291641856B≈43.112GiB，非完整模型。",
+      "owner_resource":"原Kimi容量owner；单卡单进程、原授权隔离资源，inner180s/Slurm4min/CPUkeeper约8min；无weights/forward/comm。",
+      "reuse":"533 Native06db对象/来源与既有1189/1191 helper、原r171单arm控制；不重测regular/exact差值或constructor767。",
+      "numeric":"24MLA+69KDA零初始化readback，FP4未初始化bank不得读；92workspace字段同storage，A/B owner不同storage/control-block/generation，正常及host异常lease退出后event完成和pattern正确；重入/跨owner拒绝，A释放后weak引用expired，C新generation。保留4GiB实际free floor及既定cache/诊断预留。",
+      "warm_samples":"这是分配/生命周期判定，不造性能暖机样本；一次实际全子集，正常/host异常各一次及隔离/重入负例足够。记录构造/释放各端点和采样最低free，非连续峰值。",
+      "wall_fraction":"UNKNOWN；无decode，不报加速。每I96新增sync开销仍UNKNOWN。",
+      "exit_upgrade":"全目标及生命周期通过只更新实证持久子集账；不fullModelGO。中途floor不足记录完成数量安全退出，不缩水样本称通过。任何异常停止；不注入设备drain失败。Runtime残差单列UNKNOWN。",
+      "fallback":"共享scratch不合格则停共享，保留cache exact独立实现；TP32始终UNKNOWN_STOP，保留456 TP16PP2 C1/C8实测配置。",
+      "eta":"共享helper/薄probe准备及一次HOST构建约15–30min估计；首设备结果2–5min，排队另列。后续fullfit还缺完整参数/load staging、算子临时空间与CCL高水位，本卡不补造。"
+    },
+    {
+      "id":"D128A","model":"Deep","priority":3,
+      "decision":"KEEP_CPU; COMPONENT_GPU_DEFER_UNTIL_USER_INTERFACE_ACCEPTANCE; MODEL_PARK_UNTIL_POSITIVE",
+      "hypothesis":"C128 HCA不可变两BF16权重仅加载后转F32一次，可减少实际C1重复weight Cast/临时分配；原F32 GEMM和hidden/output精度边界不变。",
+      "minimal_change":"采纳r172直接成员cache、owner/checkpoint/成功load generation身份；两cast与drain成功后publish，ready前拒绝使用/重复load拒绝，sequence reset保留immutable cache，析构释放，异常先drain。策略只在quiescent边界改；A/B均驻留同样cache，承认defaultOFF仍有新增容量。所有complete-type HOST消费者完整重编，禁止单TU混旧ABI；复用现有9TU清单/对象绑定检查，不新增全仓构建门。",
+      "owner_resource":"原Deep owner；CPU构建后，原授权8owner资源做一次matched C1组件；此阶段不加载完整Model。",
+      "reuse":"1195/ac937源对象与Deep-C1-1195-diagnosis-r172.json；r172 component-obligations；历史r8697是rows32/past575..639，不可替代当前C1。",
+      "numeric":"C1 tokens=requests=1、production rows128、真实512x4096 checkpoint权重；pasts385/395/437/407及现有ratio128边界邻居；smallT=0。同初始state复用/重置，检查finite、既定误差容限、score/pooled/state/cache/commit/reset；不用GPU F64或exacttoken淘汰。若全20HCA/owner，每decode应40次相应投影，load cast40次；单层probe按实际层数计，不伪造全层counter。",
+      "warm_samples":"每case O/N预热；原状态重置在timer外，2个ABBA周期，CAPI enclosing wall含原必要copy/sync/drain，8owner慢者为主并保留各owner。既定四pasts与边界一次覆盖，不扫B32/prefill或smallT。",
+      "wall_fraction":"UNKNOWN；100–120ms复合cache包络不是weight Cast份额。新增resident每owner335544320B=320MiB，8owner2.5GiB，allocator/峰值另测。",
+      "exit_upgrade":"CPU源ABI未闭不得GPU；组件质量/寿命失败或配对无稳定收益则park，无整模加载。只有实际C1包络有价值、memory可接受才下一次同加载observerOFF Model配对；不得从Cast倍率直接给Model收益。",
+      "fallback":"维持ac937/defaultOFF；利用现有复合包络与源码定位另一个最小候选，smallT1112负结果不重播。",
+      "eta":"现有源码收尾/CPU预计15–30min，完整HOST构建实际未知（既有900s截止）；组件首判约5–10min不含排队。通过后Model加载历史约7.5min另加配对，当前不支付。"
+    }
+  ],
+  "stop_keep": {
+    "keep":"GLM clean baseline；Deep原精度/smallTOFF；Kimi456 C1/C8与cacheexact设计。",
+    "stop":"重复GLM observer；把CPU写probe当性能；Deep纯smallT/allselected重复；Kimi registry/state_dict专用整模reload；账面余量直接full93。",
+    "hardware_boundary":"不据大GEMM峰值推小T；stream包络非busy，owner/nested区间不可相加；component收益需真实Model份额，不跨TP32与TP16PP2直接换算。"
+  },
+  "root_required_followthrough":"逐卡登记GPU暂缓（最新用户接口验收优先）及源/CPU采纳，绑定实际owner/文件/退出条件；接口验收后再分配性能GPU。完成后填实际时间分项。性能goal保留且不标paused；review128不授权未知共享资源占用。",
+  "sources":[
+    "analysis/bw1000/reviews/astra-review-127-current.json",
+    "analysis/bw1000/reviews/astra-review-implementation-127-current.json",
+    "results/bw1000/2026-10-28/glm787-C1-profile-offline-recovered.json",
+    "results/bw1000/2026-10-28/deep1195-C1-profile-qualified-diagnostic.json",
+    "results/bw1000/2026-10-28/kimi533-cache-exact-shared-scratch-CPU-qualified.json",
+    "GLM-progress-write-CPU-root-r9525-a.json",
+    "GLM-progress-throttle-private-r171b/progress-r171b.diff",
+    "Deep-C1-1195-diagnosis-r172.json",
+    "Deep-C128-weight-cache-private-r172/component-obligations-r172.json",
+    "Kimi-r170-next-device-card-r171.md"
+  ]
+}
