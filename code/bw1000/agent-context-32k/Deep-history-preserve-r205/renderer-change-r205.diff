@@ -1,0 +1,74 @@
+--- qualified196/chat_prepare_r173.py
++++ candidate205/chat_prepare_r173.py
+@@ -34,7 +34,7 @@
+   if not isinstance(content,str):raise ValueError('System content must be text after normal preparation')
+   messages[0]['content']=content+'\n\n'+constraints
+  mode=kwargs.get('thinking_mode','thinking'if kwargs.get('enable_thinking',True)else'chat')
+- prompt=encoder.encode_messages(messages,thinking_mode=mode,reasoning_effort=kwargs.get('reasoning_effort'))
++ prompt=encoder.encode_messages(messages,thinking_mode=mode,reasoning_effort=kwargs.get('reasoning_effort'),drop_thinking=False,preserve_history_reasoning=True)
+  if not add_generation_prompt:prompt=prompt.removesuffix('<｜Assistant｜>'+('<think>'if mode=='thinking'else'</think>'))
+  ids=list(tokenizer.encode(prompt,add_special_tokens=False));assert ids and all(type(x)is int and x>=0 for x in ids)
+  assert caller==original # Encoding copies; caller history is never changed.
+--- qualified196/encoding/encoding_dsv4.py
++++ candidate205/encoding/encoding_dsv4.py
+@@ -220,7 +220,7 @@
+ # Message Rendering
+ # ============================================================
+ 
+-def render_message(index: int, messages: List[Dict[str, Any]], thinking_mode: str, drop_thinking: bool = True, reasoning_effort: Optional[str] = None) -> str:
++def render_message(index: int, messages: List[Dict[str, Any]], thinking_mode: str, drop_thinking: bool = True, reasoning_effort: Optional[str] = None, preserve_history_reasoning: bool = False) -> str:
+     """
+     Render a single message at the given index into its encoded string form.
+ 
+@@ -341,8 +341,8 @@
+         # Check if previous message has a task - if so, this is a task output (no thinking)
+         prev_has_task = index - 1 >= 0 and messages[index - 1].get("task") is not None
+ 
+-        if thinking_mode == "thinking" and not prev_has_task:
+-            if not drop_thinking or index > last_user_idx:
++        if (thinking_mode == "thinking" or (preserve_history_reasoning and bool(rc))) and not prev_has_task:
++            if preserve_history_reasoning or not drop_thinking or index > last_user_idx:
+                 thinking_part = thinking_template.format(reasoning_content=rc) + thinking_end_token
+             else:
+                 thinking_part = ""
+@@ -384,7 +384,14 @@
+     elif messages[index].get("role") in ["user", "developer"]:
+         # Normal generation: append Assistant + thinking token
+         prompt += ASSISTANT_SP_TOKEN
+-        if not drop_thinking and thinking_mode == "thinking":
++        # Only an already supplied historical assistant can select this branch.
++        # A pending new response still follows the current thinking_mode below.
++        history_rc = (preserve_history_reasoning and index + 1 < len(messages)
++                      and messages[index + 1].get("role") == "assistant"
++                      and bool(messages[index + 1].get("reasoning_content")))
++        if history_rc:
++            prompt += thinking_start_token
++        elif not drop_thinking and thinking_mode == "thinking":
+             prompt += thinking_start_token
+         elif drop_thinking and thinking_mode == "thinking" and index >= last_user_idx:
+             prompt += thinking_start_token
+@@ -510,6 +517,7 @@
+     drop_thinking: bool = True,
+     add_default_bos_token: bool = True,
+     reasoning_effort: Optional[str] = None,
++    preserve_history_reasoning: bool = False,
+ ) -> str:
+     """
+     Encode a list of messages into the DeepSeek-V4 prompt format.
+@@ -546,7 +554,7 @@
+     prompt = bos_token if add_default_bos_token and len(context) == 0 else ""
+ 
+     # Resolve drop_thinking: if any message has tools defined, don't drop thinking
+-    effective_drop_thinking = drop_thinking
++    effective_drop_thinking = False if preserve_history_reasoning else drop_thinking
+     if any(m.get("tools") for m in full_messages):
+         effective_drop_thinking = False
+ 
+@@ -567,6 +575,7 @@
+             thinking_mode=thinking_mode,
+             drop_thinking=effective_drop_thinking,
+             reasoning_effort=reasoning_effort,
++            preserve_history_reasoning=preserve_history_reasoning,
+         )
+ 
+     return prompt
