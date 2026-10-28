@@ -1,0 +1,73 @@
+{
+  "scope": "Same routed expert geometry at L1/L47; per-rank useful arithmetic and storage-footprint bounds, NOT measured HBM traffic or physical peak",
+  "parameters": {
+    "T": 64,
+    "routed_hidden": 3584,
+    "I_local": 192,
+    "topk": 16,
+    "experts": 896,
+    "TP": 16,
+    "routes_R": 1024,
+    "active_experts_U": "UNKNOWN until genuine current routing capture",
+    "tile2_jobs_J": "sum_e ceil(n_e/2), UNKNOWN"
+  },
+  "routed_W13": {
+    "shape_per_expert": "[n_e,3584] x [3584,384] (two gate/up192 outputs)",
+    "useful_FLOPs_formula": "4*R*H*I",
+    "useful_FLOPs_per_rank": 2818572288,
+    "issued_TT2_logical_FLOPs_formula": "8*J*H*I including padded second row; excludes dequant/activation/reduction operations",
+    "packed_weight_bytes_per_expert": 688128,
+    "scale_storage_bytes_per_expert": 43008,
+    "unique_weight_storage_lowerbound_formula": "U*(2*I*H/2 + 2*I*H/32)",
+    "per_job_weight_storage_reference_formula": "J*(2*I*H/2 + 2*I*H/32), NOT HBM; repeated scale load instructions/cache unknown",
+    "input_footprint_bytes": 458752,
+    "activation_output_bytes": 393216,
+    "fusion": "FP4 unpack/scale + scalar FP32 products/reduction + Situ + BF16 store, not separate measured phases"
+  },
+  "routed_W2": {
+    "shape_per_expert": "[n_e,192] x [192,3584], weighted sum16 routes per token",
+    "useful_FLOPs_formula": "2*R*I*H",
+    "useful_FLOPs_per_rank": 1409286144,
+    "packed_weight_bytes_per_expert": 344064,
+    "scale_storage_bytes_per_expert": 21504,
+    "unique_weight_storage_lowerbound_formula": "U*(H*I/2 + H*I/32)",
+    "per_route_weight_storage_reference_formula": "R*(H*I/2 + H*I/32), NOT HBM; same-expert caching/reloads unknown",
+    "activation_input_footprint_bytes": 393216,
+    "routed_output_bytes": 458752,
+    "route_id_footprint_bytes": 4096,
+    "route_weight_footprint_bytes": 4096,
+    "fusion": "Original136b uses W2pair ON: adjacent2outputchannels share activation loads; FP4 dequant + dotproducts + top16weighted sum + BF16 store, not separate measured phases",
+    "actual_T64_pair_ON_CTA_count": 114688,
+    "old_OFF_note_corrected": true
+  },
+  "aggregate": {
+    "routed_useful_FLOPs_per_rank": 4227858432,
+    "routed_useful_FLOPs_all_TP16": 67645734912,
+    "unique_weight_storage_bytes_per_active_expert_per_rank": 1096704,
+    "routed_TP_collective_payload_bytes_per_rank": 458752,
+    "collective_wire_bytes": "UNMEASURED; depends on topology/algorithm/channels, payload is not actual wire volume"
+  },
+  "replicated_down_up": {
+    "down_shape": "[64,7168]x[7168,3584]",
+    "up_shape": "[64,3584]x[3584,7168]",
+    "FLOPs_each_per_rank": 3288334336,
+    "weights_BF16_bytes_each_if_dtypeBF16": 51380224,
+    "replication": "Same dense work occurs on each TP rank; do not call TP sum unique model FLOPs"
+  },
+  "shared_MLP": {
+    "I_shared_local_formula": "3072*num_shared_experts/16; read actual normalized config before numeric denominator",
+    "useful_FLOPs_per_rank_formula": "6*T*7168*I_shared_local",
+    "shared_TP_payload_bytes": 917504
+  },
+  "router": {
+    "linear_shape": "[64,7168] x [7168,896] if normalized gate is direct linear",
+    "linear_FLOPs_per_rank_if_direct": 822083584,
+    "topk_sigmoid_and_bias": "Additional operations not included; checkpoint gate dtype must come from actual normalized module/metadata"
+  },
+  "reporting_rules": {
+    "effective_TF_per_s": "useful_FLOPs / (phase_stream_ms*1e9), stream span includes launch/dependency wait",
+    "physical_HBM_bandwidth": "Cannot infer without measured traffic; storage lowerbound/ms is a bound, not physical bandwidth",
+    "hardware_reference": "333.752 BF16 TF/s and 1.23711 TB/s read are achieved lowerbounds; neither is physical peak nor a scalar-FP4-kernel ceiling",
+    "current_U_and_load_imbalance": "DEFERRED in151; never substitute repeated16/Gaussian routes for445 current routes"
+  }
+}

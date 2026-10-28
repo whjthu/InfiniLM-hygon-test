@@ -1,0 +1,100 @@
+{
+  "passed": true,
+  "CPU_source_only": true,
+  "actual_remote_preflight_pending": true,
+  "previous_failure": {
+    "old_source_producer_SHA256": "30db6b7c83e1979c6774c935532bd10c64f08abc58770cb239ba6fa7dc241107",
+    "old_manifest_SHA256": "428861bae6a2c83ac13cbc35fc3b4249c213223ec1674f50d495d783e24df6dd",
+    "actual_CPUkeeper": "910407.467 FAILED1/10s",
+    "actual_CPU_imports": "910380.427 FAILED1/9s",
+    "GPU_started": false,
+    "exact_error": "preflight_inside.sh set-u GLOBAL_MODEL_MODE_R2354 unbound at line25",
+    "numeric_or_runtime_profile_executed": false,
+    "old_artifacts_mutated": false
+  },
+  "fix_scope": [
+    "preflight srun explicitly exports GLOBAL_MODEL_MODE_R2354=shca",
+    "all network launch shells provide same shca default before set-u access",
+    "LD_LIBRARY_PATH empty-safe expansion",
+    "preflight finds Torch libpath without importing Torch"
+  ],
+  "shell_contracts": [
+    {
+      "shell": "preflight_inside.sh",
+      "passed": true,
+      "set_u_test": true,
+      "inherited_global_model_mode_absent": true,
+      "LD_LIBRARY_PATH_absent_at_start": true,
+      "external_variable_references": [
+        "GLOBAL_MODEL_MODE_R2354",
+        "LD_LIBRARY_PATH",
+        "PATH",
+        "PLUGIN",
+        "PYTHONPATH",
+        "ROCBLAS_TENSILE_LIBPATH",
+        "SDK",
+        "SLURM_JOB_ID",
+        "SLURM_PROCID",
+        "SLURM_STEP_ID",
+        "SOURCE",
+        "TORCH_LIB_DIR"
+      ],
+      "real_DTK_Torch_Slurm_GPU": false
+    },
+    {
+      "shell": "target_inside.sh",
+      "passed": true,
+      "set_u_test": true,
+      "inherited_global_model_mode_absent": true,
+      "LD_LIBRARY_PATH_absent_at_start": true,
+      "external_variable_references": [
+        "GLOBAL_MODEL_MODE_R2354",
+        "LD_LIBRARY_PATH",
+        "PATH",
+        "PLUGIN",
+        "PYTHONPATH",
+        "ROCBLAS_TENSILE_LIBPATH",
+        "SDK",
+        "SLURM_JOB_ID",
+        "SLURM_PROCID",
+        "SLURM_STEP_ID",
+        "SOURCE",
+        "TORCH_LIB_DIR"
+      ],
+      "real_DTK_Torch_Slurm_GPU": false
+    },
+    {
+      "shell": "draft_inside.sh",
+      "passed": true,
+      "set_u_test": true,
+      "inherited_global_model_mode_absent": true,
+      "LD_LIBRARY_PATH_absent_at_start": true,
+      "external_variable_references": [],
+      "real_DTK_Torch_Slurm_GPU": false
+    }
+  ],
+  "original_profile_native_data_unchanged": true,
+  "observer_contract": {
+    "passed": true,
+    "CPU_mock_only": true,
+    "GPU_qualified": false,
+    "cases": [
+      "no early read",
+      "warm2 then actual T64 epoch0",
+      "4node schedule equality",
+      "originalreset flush8owners",
+      "OFF no configure",
+      "earlyEOS honestUNKNOWN",
+      "3pct perturbationgate"
+    ]
+  },
+  "literal_package_read_paths_checked": [
+    "fixed-data-r151.json",
+    "launcher\\model-source-pins.json",
+    "launcher\\model_audit.py",
+    "launcher\\model_keeper.py",
+    "launcher\\run-context-public.json"
+  ],
+  "actual_entry_static_runtime_paths_exist": true,
+  "nonexecuted_legacy_aux_scripts": "reference-only CPU helpers not invoked by this controller; original qualified package preserved"
+}
