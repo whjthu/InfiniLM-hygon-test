@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-10-28T20:25:02.262671+00:00",
+  "updated_at_utc": "2026-10-28T20:34:48.450334+00:00",
   "owner": "bw1000-agent",
   "hardware": "BW1000",
   "goal_complete": false,
@@ -23,19 +23,25 @@
       "actual_handle": "910374.1203",
       "CPU_keeper": "910407.548",
       "state": "RUNNING",
-      "observed_UTC": "2026-10-28T20:22:03.208387+00:00",
-      "server_ready": true,
-      "context": 32768,
+      "observed_UTC": "2026-10-28T20:31:47.299342+00:00",
+      "formal_agent_PASS": false
+    },
+    {
+      "model": "GLM-5.3",
+      "actual_handle": "910376.801",
+      "CPU_keeper": "910407.553",
+      "state": "RUNNING",
+      "observed_UTC": "2026-10-28T20:31:47.299342+00:00",
       "formal_agent_PASS": false
     }
   ],
   "latest_review": {
-    "id": 129,
+    "id": 130,
     "model": "gpt-6-astra",
-    "state": "COMPLETE_IMPLEMENTED_SCHEDULING",
-    "report": "analysis/bw1000/reviews/astra-review-129-current.json",
-    "implementation": "analysis/bw1000/reviews/astra-review-implementation-129-current.json",
-    "ledger": "analysis/bw1000/reviews/optimization-review-ledger-after-129-round0.json",
+    "state": "IMPLEMENTING_BOUNDED_REPAIRS_AND_REUSING_LIVE_HANDLES",
+    "report": "analysis/bw1000/reviews/astra-review-130-current.json",
+    "implementation": "analysis/bw1000/reviews/astra-review-implementation-130-current.json",
+    "ledger": "analysis/bw1000/reviews/optimization-review-ledger-after-130-round0.json",
     "completed_rounds_since_review": 0,
     "inflight_review": null
   },
@@ -293,7 +299,7 @@
   },
   "current_priority": {
     "task": "coordination/tasks/native-agent-32k-capacity-and-acceptance-r181.json",
-    "state": "DEEP_FORMAL_RUNNING_GLM_KIMI_REPAIRS_CPU_READY",
+    "state": "DEEP_LONG_OUTPUT_RUNNING_REGULAR_FAILED_GLM801_RUNNING_KIMI471_KNOWN_STARTUP_FIX",
     "context": 32768,
     "regular_output_budget": 4096,
     "thinking_output_budget": 8192,
@@ -484,24 +490,47 @@
       "manifest_SHA256": "6f1dc599102ea993f028999a345fe18c7b654569a38f3578eecc1f3be895424c",
       "CPU_prepare_step": "910407.551 COMPLETED0",
       "CPU_receipt_SHA256": "c46dfbbc78f54d854ad2fe55f5f9ccead56ee5ee6b845a9a37d06138023fcb7a",
-      "state": "READY_FOR_ONE_FULL_LOAD",
-      "GPU_submitted": false
+      "state": "RUNNING",
+      "GPU_submitted": true,
+      "actual_handle": "910376.801",
+      "CPU_keeper": "910407.553",
+      "observed_UTC": "2026-10-28T20:31:47.299342+00:00",
+      "evidence": "results/bw1000/2026-10-29/live-formal-root-r9578-b.json"
     },
     "Kimi_formal189": {
       "source": "code/bw1000/agent-context-32k/Kimi-regular-agent32K-private-r189b",
       "manifest_SHA256": "1bc0bd3a4fd9fdb11dc1fd0a286a82fce91080172a760530b5444b1309fe27f1",
       "CPU_prepare": "910407.550 / 910380.466 / 910380.467 COMPLETED0",
       "CPU_prepare_SHA256": "ebf1f92acda7739e422313fa3858aa38d8707bf355dbcb553b2e7efe7ed797f6",
-      "state": "READY_FOR_ONE_FULL_LOAD",
-      "GPU_submitted": false
+      "state": "FAILED1_BEFORE_COMM_NATIVE_WEIGHTS",
+      "GPU_submitted": true,
+      "actual_handle": "910380.471",
+      "failure": "StageControl8500 exceeds existing constructor maximum7200",
+      "actual_elapsed_s": 41,
+      "post_steps": [
+        "910380.472 COMPLETED0",
+        "910380.473 COMPLETED0"
+      ],
+      "post_KFD_empty": true,
+      "evidence": "results/bw1000/2026-10-29/Kimi471-failure-root-r9579-a.json",
+      "next": "r194 minimum known constant repair, original standards unchanged"
     },
     "Deep_formal182": {
       "actual_handle": "910374.1203",
       "CPU_keeper": "910407.548",
-      "state": "RUNNING_SERVER_READY",
-      "observed_UTC": "2026-10-28T20:22:03.208387+00:00",
-      "evidence": "results/bw1000/2026-10-29/CPU-and-Deep-phase-root-r9575-a.json",
-      "normal_agent_PASS": false
+      "state": "RUNNING_LONG_OUTPUT_REGULAR_FAILED",
+      "observed_UTC": "2026-10-28T20:31:47.299342+00:00",
+      "evidence": "results/bw1000/2026-10-29/live-formal-root-r9578-b.json",
+      "normal_agent_PASS": false,
+      "regular_result": "FAIL_THREE_TOOL_WORKFLOWS",
+      "actual_full_prompt_tokens": [
+        8669,
+        16857,
+        8676
+      ],
+      "normal_reset_and_EOS_long_inputs": true,
+      "protocol_cause": "UNKNOWN_PENDING_EXISTING_TOKEN_REPLAY; named schema filtering already present",
+      "negative_and_recovery_pass": true
     }
   },
   "performance_GPU_scheduling": "Deferred until interface acceptance; sources archived and original goal active",
