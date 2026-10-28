@@ -1,0 +1,116 @@
+{
+  "status": "477_MEMORY_FLOOR_FAILURE_CONFIRMED_CAUSE_OF_ADDITIONAL_ALLOCATIONS_UNKNOWN",
+  "continues": "Kimi-K130B-long-input-source-review-r198.json; append512 remains unimplemented",
+  "evidence": [
+    "failure-causes-root-r9607-a.json",
+    "Kimi477-failure-root-r9605-a.json",
+    "Kimi-memory-scope-root-r9610-a.json",
+    "Kimi-moe-binding-root-r9611-a.json",
+    "Kimi-CPU-context-pins-root-r9614-a.json"
+  ],
+  "actual": {
+    "step": "910380.477 FAILED1",
+    "input_committed": 8506,
+    "seed_then_width8_commits": [
+      512,
+      1000
+    ],
+    "long_prefill_wall_s": 319.3378443141,
+    "generated_tokens": 59,
+    "failed_gate": "agent-end fixed4GiB; no OOM/NaN/throughput-timeout evidence",
+    "after_finish_free_stage01": 5989466112,
+    "after_finish_free_stage23": 5259657216,
+    "agent_end_free_stage01": 4800380928,
+    "agent_end_free_stage23": 4003463168,
+    "stage01_delta_bytes": 1189085184,
+    "stage23_delta_bytes": 1256194048,
+    "minimum_equals_latest": true,
+    "required_floor_bytes": 4294967296,
+    "stage23_deficit_bytes": 291504128,
+    "last_successful_agent_end_global_min": 4706009088,
+    "Torch_lifetime_peak_bytes_each_card": 1194496,
+    "Torch_after_finish_peak_bytes": 0,
+    "Torch_reserved_bytes": "NOT_RECORDED_UNKNOWN",
+    "Native_pool_live_free_reserved_bytes": "NOT_RECORDED_UNKNOWN"
+  },
+  "source_findings": [
+    "Native ba6f9 exact expanded MLA260pages and KDA3rows are fixed at reset; source has no per-token cache-vector growth. Persistent I192 scratch is allocated by MoE constructor before loading. These facts do not identify which post-forward allocator blocks remained live/free.",
+    "long_native_r179.py creates NumPy host logits/metadata and a host calls ledger; batch capture=false and taps off.1148 calls do not mean1148 GPU cache allocations. Torch peak1.14MiB does not support a1.26GB Torch live-tensor explanation; it is not a Native/pool-reserved measurement.",
+    "Actual Runtime::allocateMemory uses pool.allocate; Tensor::empty_parameter uses allocateParameterMemory then pool.allocate_exact. Releasing a Tensor returns its block to the same pool. Pool trim only frees unused unpinned blocks; no current occupancy counters were saved.",
+    "worker.cpp RESET_CACHE drains, clears metadata/KV/conv/SSM vectors, trims and reconstructs cache. Ordinary forward does not call trimMemory. Unused size classes, still-referenced workspace, backend lazy allocations or descriptor storage remain possible; minimum==latest proves memory still unavailable at that sample, not which category owns it.",
+    "The fatal gate executes before request-finally reset. Moving the gate after reset/trim or resetting sampler minima would erase the original floor violation and is not a repair. A later trim cannot prove the historical peak stayed above4GiB."
+  ],
+  "shortest_layout_candidate": {
+    "scope": "only existing authorized long179 context32768/logical1/physical2/pool3, TP16PP2 eager Hygon, E896/H3584/I192",
+    "change": "two persistent packed scale banks regular empty -> exact empty_parameter; packed weight banks remain regular",
+    "s13_shape_bytes_regular_class": [
+      [
+        896,
+        384,
+        112
+      ],
+      38535168,
+      67108864
+    ],
+    "s2_shape_bytes_regular_class": [
+      [
+        896,
+        3584,
+        6
+      ],
+      19267584,
+      33554432
+    ],
+    "design_padding_removed_per_MoE_bytes": 42860544,
+    "PP_MoE_layers": [
+      45,
+      47
+    ],
+    "design_padding_removed_stage01_bytes": 1928724480,
+    "design_padding_removed_stage23_bytes": 2014445568,
+    "actual_device_saving": "UNKNOWN; HIP malloc granularity can differ",
+    "full16K_32K_workspace_peak": "UNKNOWN;477 only reached8506+59",
+    "Model_GO": false,
+    "unchanged": [
+      "four unique backing banks",
+      "all5376 actual narrow/squeeze aliases",
+      "shape/stride/dtype/tp_dim",
+      "owner Runtime and shared storage lifetime",
+      "weight load/finish",
+      "all numerical forward bytes",
+      "cache geometry",
+      "4GiB gate",
+      "complete32K and4096/8192 budgets"
+    ]
+  },
+  "ownership_and_sync_proof": {
+    "Tensor_source_SHA256": "b14418b342f8520e5d43c7aec7a0676a8dccf1d0133cd334d75571555f339392",
+    "Runtime_source_SHA256": "a4742905290618c740bc81f4e0316b289de86819ece50d7a95da62652bb0a4e9",
+    "pool_source_SHA256": "499fc5fcb9a8f5a03fa0d64c482c95e61d05f368840def6234d3ecdf025f08ac",
+    "mapping": "empty_parameter -> allocateParameterMemory -> allocate_exact; bool pin_memory is not used or changed",
+    "lifetime": "exact Memory has the same Runtime-capturing deleter and pool return path as regular; alias Weight views retain backing storage. No new memset/copy/stream/async policy. Existing constructor exception drain, synchronous load flush and normal teardown are unchanged.",
+    "admission": "constructor-stack RAII ticket holds only temporary this/Runtime addresses on the existing owner thread, no strong owner/Tensor, registry or pointer reuse cache. It clears on normal return and throw. It cannot outlive constructor or be reused by another generation.",
+    "scope_authority": "pair_probe.cpp:54 rejects raw long flag unless authorized_long_create_r179, rows2,TP16PP2; actual factory fixes logical1/pool3/context32768. make_kimi_k3_subconfig copies this flag. No environment opt-in or new global allocator behavior."
+  },
+  "needed_scalar_evidence_and_limits": [
+    "Existing root metadata already supplies source/object/context SHAs and Torch peak; do not reload477 to obtain absent pool counters.",
+    "For the next root-authorized actual model only: preserve per-stage baseline and first seed/long-input/last-decode sampled mem_get_info, actual caps and new Native/source pins, complete input/output/EOS and normal lifecycle. Distinguishing pool free vs live would require an owner-safe existing counter or separately reviewed instrumentation; it cannot be recovered from the dead process or Torch reserved.",
+    "Inspect scale consumers' vector/tail bounds using existing source or scalar-only sourcechecker before promotion: no consumer may rely on storage beyond logical nbytes. CPU alias offsets and byte-identical forward are necessary but not a GPU numerical qualification. No intermediate F64 comparison or new pre-probe is proposed."
+  ],
+  "shutdown": {
+    "node123": "request finally reset and all8 worker destroy fields completed; final normal marker absent because request fatal",
+    "node0": "final report/reset/destroy incomplete; exact shutdown cause UNKNOWN",
+    "478": "Kimi-agent-P0-client-r194 FAILED1; acceptance client, not resource probe",
+    "479_480": "both completed, all4 KFDempty/portsfree; independent process cleanup evidence, not all32 normal shutdown proof"
+  },
+  "prohibited_shortcuts": [
+    "lowering4GiB",
+    "cropping history or output budget",
+    "calling Torch empty_cache a Native release proof",
+    "calling design scale saving the cause of477 memory rise",
+    "promoting because3.73+1.88 exceeds4",
+    "unreviewed append512",
+    "new GPU/cache constructor probe"
+  ],
+  "binding_correction": "remote reader matches_local_moe_LF=false used raw SHA as LF expectation; independently raw4e7ba093 and LFa70701b1 are exact matches, not a source discrepancy"
+}

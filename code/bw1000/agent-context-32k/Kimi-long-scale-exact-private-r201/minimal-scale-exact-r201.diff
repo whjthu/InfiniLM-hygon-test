@@ -1,0 +1,48 @@
+--- qualified9129/kimi_moe_batch_r9129.cpp
++++ candidate201/kimi_moe_scale_exact_r201.cpp
+@@ -9,6 +9,7 @@
+ #include <cstring>
+ #include "kimi_n4_tile_r8171.hpp"
+ #include "kimi_serving_workspace_r4665.hpp"
++#include "scale_exact_scope_r201.hpp"
+ #include <vector>
+ #include <tuple>
+ #include "kimi_spec_math_r3676.hpp"
+@@ -173,6 +174,11 @@
+             throw std::runtime_error("KimiK3Experts: moe_intermediate_size must be divisible by tp_size");
+         }
+         local_intermediate_size_ = intermediate_size / tp_size_;
++        kimi_scale_exact_r201::Scope scale_scope_r201(
++            {model_config->get_config_json().value("infinilm_kimi_long_agent_r179",false),
++             tp_size_,static_cast<size_t>(rank_info.pp_size),num_experts_,hidden_size_,local_intermediate_size_,
++             runtime.device().type()==infinilm::runtime::Device::Type::kHygon,!runtime.isGraphRecording()},
++            &runtime,this);
+         register_mxfp4_experts(runtime);
+     } catch (...) {
+         try {
+@@ -188,18 +194,19 @@
+     if (hidden_size_ % 32 != 0 || local_intermediate_size_ % 32 != 0) {
+         throw std::runtime_error("KimiK3Experts: MXFP4 dimensions must be divisible by 32");
+     }
++    auto allocate_scale_r201 = [&](const infinilm::runtime::Shape &shape) {
++        if(kimi_scale_exact_r201::selected(&runtime,this))
++            return infinilm::runtime::Tensor::empty_parameter(runtime,shape,infinilm::runtime::DataType::kUInt8);
++        return infinilm::runtime::Tensor::empty(runtime,shape,infinilm::runtime::DataType::kUInt8);
++    };
+     auto w13 = infinilm::runtime::Tensor::empty(
+         runtime, {num_experts_, 2 * local_intermediate_size_, hidden_size_ / 2},
+         infinilm::runtime::DataType::kUInt8);
+-    auto w13_scale = infinilm::runtime::Tensor::empty(
+-        runtime, {num_experts_, 2 * local_intermediate_size_, hidden_size_ / 32},
+-        infinilm::runtime::DataType::kUInt8);
++    auto w13_scale = allocate_scale_r201({num_experts_, 2 * local_intermediate_size_, hidden_size_ / 32});
+     auto w2 = infinilm::runtime::Tensor::empty(
+         runtime, {num_experts_, hidden_size_, local_intermediate_size_ / 2},
+         infinilm::runtime::DataType::kUInt8);
+-    auto w2_scale = infinilm::runtime::Tensor::empty(
+-        runtime, {num_experts_, hidden_size_, local_intermediate_size_ / 32},
+-        infinilm::runtime::DataType::kUInt8);
++    auto w2_scale = allocate_scale_r201({num_experts_, hidden_size_, local_intermediate_size_ / 32});
+ 
+     auto register_packed = [&](const std::string &name,
+                                const infinilm::runtime::Tensor &storage,
