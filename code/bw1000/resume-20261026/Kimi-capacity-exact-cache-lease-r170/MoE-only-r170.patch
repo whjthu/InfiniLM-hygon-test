@@ -1,0 +1,27 @@
+--- r167/exact.cpp
++++ r170/capacity.cpp
+@@ -25,6 +25,7 @@
+ #include "runtime/runtime.hpp"
+ #include "phase_bridge_r155.hpp"
+ #include "contract_I96_r163.hpp"
++#include "I96_scratch_lease_r170.hpp"
+ 
+ #include "engine/distributed/communication_group.hpp"
+ #include "../../engine/distributed/communication_group.hpp"
+@@ -301,7 +302,7 @@
+         // ordering permits reuse across single-token forwards without malloc.
+         if (runtime.device().type() == infinilm::runtime::Device::Type::kHygon) {
+             if(i96_component_r163()&&rank_info.tp_size==32&&hidden_size==7168&&routed_hidden_size==3584&&expert_intermediate_size==3072&&dtype==infinilm::runtime::DataType::kBFloat16){
+-                tiled_scratch_r1861_=infinilm::runtime::Tensor::empty(runtime,{r163::bytes/2},infinilm::runtime::DataType::kBFloat16);
++                tiled_scratch_r1861_=r170_scratch::shared_workspace(runtime);
+             }else if(serving_r4665::allocate_workspace()) {
+                 // Only the exact eager TP16/I192 geometry has no partial-tail consumer.
+                 // Preserve all original offsets; the last reachable byte is 4468227.
+@@ -390,6 +391,7 @@
+     if(i96_mode_r163){
+         runtime.assertOwnerThread();
+         if(!i96_component_r163()||tp_size_!=32||runtime.isGraphRecording()||runtime.device().type()!=infinilm::runtime::Device::Type::kHygon||routed_input->ndim()!=2||routed_input->size(1)!=3584||routed_input->size(0)<8||routed_input->size(0)>64||routed_input->dtype()!=infinilm::runtime::DataType::kBFloat16||!routed_input->is_contiguous()||selected_experts->shape()!=infinilm::runtime::Shape{routed_input->size(0),16}||selected_experts->dtype()!=infinilm::runtime::DataType::kInt32||routing_weights->dtype()!=infinilm::runtime::DataType::kFloat32||weights.packed_w13->shape()!=infinilm::runtime::Shape{896,192,1792}||weights.w13_scale->shape()!=infinilm::runtime::Shape{896,192,112}||weights.packed_w2->shape()!=infinilm::runtime::Shape{896,3584,48}||weights.w2_scale->shape()!=infinilm::runtime::Shape{896,3584,3}||!tiled_scratch_r1861_||tiled_scratch_r1861_->nbytes()!=r163::bytes||tiled_scratch_r1861_->device()!=runtime.device())throw std::logic_error("r163 actualTP32 I96 owned geometry");
++        r170_scratch::Lease workspace_lease_r170(runtime,tiled_scratch_r1861_);
+         auto*p=reinterpret_cast<unsigned char*>(tiled_scratch_r1861_->data());auto&c=i96_counts_r163.at(runtime.device().index());c[0].fetch_add(1,std::memory_order_relaxed);
+         int code=modern_kimi_grouped_I96_r163(runtime.device().index(),routed->data(),p,routed_input->data(),selected_experts->data(),routing_weights->data(),weights.packed_w13->data(),weights.w13_scale->data(),weights.packed_w2->data(),weights.w2_scale->data(),p+r163::counts_offset,p+r163::routes_offset,p+r163::expert_offset,p+r163::start_offset,p+r163::jobs_offset,896,routed_input->size(0),runtime.stream());
+         if(code){try{runtime.syncStream();}catch(...){std::terminate();}throw std::runtime_error("r163 I96 provider launch failed");}c[1].fetch_add(1,std::memory_order_relaxed);

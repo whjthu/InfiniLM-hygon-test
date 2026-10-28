@@ -1,0 +1,101 @@
+--- r4974/cache.cpp
++++ r170/cache-exact.cpp
+@@ -5,6 +5,8 @@
+ 
+ #include "global_state/global_state.hpp"
+ #include "runtime/runtime.hpp"
++#include "execution/submit.hpp"
++#include "utils.hpp"
+ 
+ #include <algorithm>
+ #include <exception>
+@@ -12,6 +14,77 @@
+ #include <vector>
+ 
+ namespace infinilm::models::kimi_k3 {
++
++namespace r170_cache {
++size_t rank_kv_heads(infinilm::runtime::Size k_dim, infinilm::runtime::Size v_dim,
++                     infinilm::runtime::Size k_heads, infinilm::runtime::Size v_heads,
++                     size_t tp_size) {
++    if (k_dim == 0 || v_dim == 0 || k_heads == 0 || v_heads == 0
++        || k_dim != v_dim || k_heads != v_heads) {
++        throw std::invalid_argument("KV cache requires positive equal K/V dimensions and head counts");
++    }
++    if (k_heads < tp_size) {
++        if (tp_size % k_heads != 0) {
++            throw std::invalid_argument("KV cache replication requires TP divisible by KV heads");
++        }
++        return 1;
++    }
++    if (k_heads % tp_size != 0) {
++        throw std::invalid_argument("KV cache head count must be divisible by TP");
++    }
++    return k_heads / tp_size;
++}
++infinilm::runtime::Tensor create_exact_mla_cache(
++    infinilm::runtime::Runtime &runtime,
++    const engine::distributed::RankInfo &rank,
++    infinilm::runtime::Size k_dim,
++    infinilm::runtime::Size v_dim,
++    infinilm::runtime::Size num_k_heads,
++    infinilm::runtime::Size num_v_heads,
++    infinilm::runtime::DataType dtype,
++    const cache::PagedKVCacheConfig &config) {
++    cache::validate_cache_runtime(runtime, rank);
++    const size_t num_rank_k_heads = rank_kv_heads(k_dim, v_dim, num_k_heads, num_v_heads, static_cast<size_t>(rank.tp_size));
++
++    size_t kv_dim = k_dim;
++
++    size_t num_blocks_per_layer = config.num_blocks();
++    size_t block_size = config.block_size();
++
++    // Canonical FlashAttention cache layout: [K/V, blocks, block, heads, dim].
++    infinilm::runtime::Shape kv_shape = {
++        2, num_blocks_per_layer, block_size, num_rank_k_heads, k_dim};
++
++    infinilm::runtime::Tensor kv_cache = infinilm::runtime::Tensor::empty_parameter(runtime, kv_shape, dtype);
++    try {
++        if (kv_cache->nbytes() != 0) {
++            if (kv_cache->is_contiguous() && !runtime.isGraphRecording()) {
++                if (!infini::ops::Fill::valid_output(infinilm::execution::detail::view(kv_cache))) {
++                    throw std::invalid_argument("zero-fill output layout or storage is invalid");
++                }
++                runtime.setDeviceMemoryAsync(kv_cache->data(), 0, kv_cache->nbytes(), runtime.stream());
++            } else {
++                infinilm::execution::submit<infini::ops::Fill>(
++                    runtime, infini::ops::Fill::DefaultConfig(runtime.device().type()),
++                    kv_cache, 0.0, kv_cache);
++            }
++            INFINILM_TRACE_OP(Zeros, kv_cache);
++        }
++    } catch (...) {
++        // The factory's destination remains alive until the owner drain proves safety.
++        try {
++            runtime.syncStream();
++        } catch (...) {
++            std::terminate();
++        }
++        throw;
++    }
++    // The caller retains its existing completion boundary; no per-layer sync.
++    return kv_cache;
++}
++} // namespace r170_cache
++
++
+ 
+ qwen3_next::AllocatedHybridCache kimi_k3_allocate_cache_tensors(
+     infinilm::runtime::Runtime &runtime,
+@@ -77,7 +150,10 @@
+             if (is_kda[i]) {
+                 allocate_kda(i, state_pool_size);
+             } else {
+-                kv[i] = cache::PagedKVCache::create_layer_kv_cache(
++                kv[i] = (tp_size==32 && rank_info.pp_size==1 && num_layers==93 && num_heads==96 && head_dim==192 && config->num_blocks()==68 && config->block_size()==256 && model_config->get_kv_cache_dtype()==infinilm::runtime::DataType::kBFloat16)
++                    ? r170_cache::create_exact_mla_cache(
++                    runtime, rank_info, head_dim, head_dim, num_heads, num_heads, model_config->get_kv_cache_dtype(), *config)
++                    : cache::PagedKVCache::create_layer_kv_cache(
+                     runtime, rank_info,
+                     head_dim, head_dim, num_heads, num_heads,
+                     model_config->get_kv_cache_dtype(), *config);

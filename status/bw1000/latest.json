@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-10-28T17:03:10.597207+00:00",
+  "updated_at_utc": "2026-10-28T17:28:10.338796+00:00",
   "owner": "bw1000-agent",
   "hardware": "BW1000",
   "goal_complete": false,
@@ -17,25 +17,15 @@
     "InfiniOps": "1ca4777610d77e9063fffdb975ab35da8466104d",
     "InfiniCCL": "51cc9db31d58aac21643d72f0f77cf5c9ecfaee5"
   },
-  "current_actual_GPU_jobs": [
-    {
-      "model": "GLM-5.3",
-      "handle": "910376.787",
-      "CPU_keeper": "910407.529",
-      "state": "RUNNING",
-      "observed_UTC": "2026-10-28T16:53:08.040815+00:00",
-      "resources": "910376/n14+n15/16cards",
-      "scope": "C1OFF/ON/OFFdiagnostic,noalgorithmgainclaim"
-    }
-  ],
+  "current_actual_GPU_jobs": [],
   "latest_review": {
     "id": 127,
     "model": "gpt-6-astra",
     "state": "COMPLETE_IMPLEMENTED",
     "report": "analysis/bw1000/reviews/astra-review-127-current.json",
     "implementation": "analysis/bw1000/reviews/astra-review-implementation-127-current.json",
-    "ledger": "analysis/bw1000/reviews/optimization-review-ledger-after-127-round0.json",
-    "completed_rounds_since_review": 0,
+    "ledger": "analysis/bw1000/reviews/optimization-review-ledger-after-127-round2.json",
+    "completed_rounds_since_review": 2,
     "inflight_review": null
   },
   "Kimi": {
@@ -70,12 +60,24 @@
       "source": "code/bw1000/resume-20261026/Kimi-I96-shared-storage-probe-r168",
       "controller": "code/bw1000/resume-20261026/Kimi-I96-storage-launch-r168a",
       "CPU": "results/bw1000/2026-10-28/kimi523-shared-helper-probe-CPU-qualified.json",
-      "actual_GPU_memory_savings": "UNKNOWN",
+      "actual_GPU_memory_savings": "126MiB in actual1189/1191 shared production helper; see allocation_actual",
       "fullModel_fit": "UNKNOWN_STOP",
-      "scope": "TwofreshsingleGPUlocalI96productionhelperarms;noTP32world/forward/fakecomm"
+      "scope": "TwofreshsingleGPUlocalI96productionhelperarms;noTP32world/forward/fakecomm",
+      "state": "COMPLETE;fullfitUNKNOWN_STOP"
     },
     "allocation_actual": "results/bw1000/2026-10-28/kimi1189-1191-exact-packed-allocation.json",
-    "next_capacity_design": "coordination/tasks/kimi-capacity-cache-scratch-combination.json"
+    "next_capacity_design": "coordination/tasks/kimi-capacity-cache-scratch-combination.json",
+    "capacity_combination": {
+      "source": "code/bw1000/resume-20261026/Kimi-capacity-exact-cache-lease-r170",
+      "CPU_result": "results/bw1000/2026-10-28/kimi533-cache-exact-shared-scratch-CPU-qualified.json",
+      "actual_CPU": "910407.533 COMPLETED0",
+      "Native_SHA256": "06db1d3ad90751e552b9a3c4f62638de8f78465aafeef5b3b528c6c2f8373b20",
+      "scope": "Private MLA exact cache + weak owner/generation sharedI96 scratch, twoHOSTTUs/32objectsreused",
+      "GPU_lifetime": "NOT_RUN",
+      "fullModel_fit": "UNKNOWN_STOP",
+      "performance": "UNKNOWN;additionalperI96streamsync",
+      "next": "Bounded actual allocation/lifecycle probe before any fullModel attempt"
+    }
   },
   "GLM": {
     "retained_native_math": "ce830c4d77fe193e4a6e82597aa4fb5b50019c82edce542eb6d61217a238bf68",
@@ -83,14 +85,17 @@
     "retained_gain_result": "results/bw1000/2026-10-28/glm781-qualified-deferred-feedback-ABBA.json",
     "C1_C8_chunk_result": "results/bw1000/2026-10-28/glm784-C1-C8-and-chunk-ABBA-qualified.json",
     "chunk_default": "STOP",
-    "next": "coordination/tasks/glm-C1-decode-critical-profile.json",
+    "next": "Use compact C1 attribution to select bounded candidate; no observer rerun",
     "CPU_observer": "results/bw1000/2026-10-28/glm524-C1-observer-CPU-qualified.json",
     "runtime_source": "code/bw1000/resume-20261026/GLM-C1-decode-Model-r169b",
-    "phase": "787_RUNNING_FOLLOW_SAME_HANDLE",
+    "phase": "787_COMPLETED_OFFLINE_REANALYSIS_QUALIFIED",
     "probe_limits": "T1actualDECODEonly,ONnotcleanTPS,nestedstreamnotGPUbusy,TPonlyUNKNOWN",
     "actual_GPU": "910376.787",
     "CPU_keeper": "910407.529",
-    "observed_UTC": "2026-10-28T16:53:08.040815+00:00"
+    "observed_UTC": "2026-10-28T17:26:07.512899+00:00",
+    "result": "results/bw1000/2026-10-28/glm787-C1-profile-offline-recovered.json",
+    "offline_CPU": "910407.532 COMPLETED0",
+    "quality": "All3arms4/4correct4EOS0cap;16owner3actualT1windows;noalgorithmgain"
   },
   "Deep": {
     "Native_SHA256": "ac9370c8f188bfda8555718c52690b914883fc6b02b9267cbd279be3ecdd3835",
@@ -98,13 +103,16 @@
     "ready_decode_default": "STOP",
     "batch_frontier": "results/bw1000/2026-10-28/deep1168-real-batch-frontier.json",
     "current_C1_task": "coordination/tasks/deep-C1-decode-critical-profile.json",
-    "CPU": "results/bw1000/2026-10-28/deep525-C1-profile-CPU-qualified.json",
-    "actual_GPU": null,
-    "observed_UTC": "2026-10-28T16:38:14.844971+00:00",
+    "CPU": "results/bw1000/2026-10-28/deep530-fixed-data-preflight-CPU-qualified.json",
+    "actual_GPU": "910374.1195 COMPLETED0",
+    "observed_UTC": "2026-10-28T17:26:07.512899+00:00",
     "network": "SingleNode localcollectives originalenv;noIBextrapolation",
-    "current_state": "1187_FAILED_GOLD_CONTRACT_168A_REPAIRED_CPU_NEXT",
-    "result": "results/bw1000/2026-10-28/deep1187-C1-data-contract-failure.json",
-    "source": "code/bw1000/resume-20261026/Deep-C1-decode-profile-r168a"
+    "current_state": "1195_COMPLETED_C1_DIAGNOSTIC",
+    "result": "results/bw1000/2026-10-28/deep1195-C1-profile-qualified-diagnostic.json",
+    "source": "code/bw1000/resume-20261026/Deep-C1-decode-profile-r168a",
+    "CPU_keeper": "910407.531",
+    "quality": "4/4correct4EOS0cap;observer5..12.9percentoverhead;notcleanTPS",
+    "next": "Use current C1 cache/compression/metadata attribution to choose smallest real-wall candidate"
   },
   "qualified_historical_performance": {
     "Kimi_highest_retained_aggregate": {
