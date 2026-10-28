@@ -1,0 +1,71 @@
+{
+  "T": 64,
+  "routes": 1024,
+  "H": 3584,
+  "I_local": 192,
+  "TT": 2,
+  "Tile": 4,
+  "CTA_threads": 256,
+  "grid": 640,
+  "CTAs_per_job": 48,
+  "per_CTA": {
+    "packed_W13_bytes": 14336,
+    "unique_scale_bytes": 896,
+    "logical_scale_byte_load_expressions": 14336,
+    "activation_bytes_two_valid_rows": 14336,
+    "useful_dot_FLOPs_two_valid_rows": 114688,
+    "DecodePair_calls": 14336,
+    "source_ldexp_calls_before_lowering": 28672,
+    "source_magnitude_lookup_calls_before_lowering": 28672,
+    "output_BF16_bytes_two_valid_rows": 16,
+    "LDS_bytes_unchanged": 16384
+  },
+  "per_TT2_job": {
+    "W13_packed_plus_unique_scales_bytes": 731136,
+    "DecodePair_calls": 688128,
+    "source_ldexp_calls_before_lowering": 1376256,
+    "FLOPs_two_valid_rows": 5505024
+  },
+  "global_useful_W13_FLOPs_per_rank": 2818572288,
+  "global_issued_W13_FLOPs_formula": "8*J*H*I (includes padded second row; J=sum ceil(n_e/2))",
+  "distinct_W13_weight_storage_formula": "U*731136 bytes/rank; not actualHBMtraffic",
+  "observed_L1_controlled": {
+    "historical_repeat": {
+      "U": 33,
+      "J": 512,
+      "baseline_W13_ms_about": 2.612
+    },
+    "Gaussian": {
+      "U": 472,
+      "J": 657,
+      "baseline_W13_ms_about": 3.304
+    },
+    "J_ratio": 1.283203125,
+    "time_ratio_about": 1.2649310872894333
+  },
+  "already_present": [
+    "FP4 decode shared across TT2 rows",
+    "activation load shared across4outputchannels",
+    "consecutive packed addresses across adjacent p lanes",
+    "scale code shared by16adjacentlanes, possiblehardwarebroadcast"
+  ],
+  "not_claimed": [
+    "physicalpeak utilization",
+    "uncoalescedglobal accesses",
+    "memory-bandwidth bottleneck",
+    "expert imbalance",
+    "compiler currently emitsliteralldexp/table",
+    "cache hitrate or occupancy"
+  ],
+  "W2_context": {
+    "pair_ON_already": true,
+    "per_token_channelpair_CTA": {
+      "activated_load_bytes": 6144,
+      "packed_W2_bytes": 3072,
+      "logical_scale_load_bytes": 3072,
+      "unique_scale_bytes": 192,
+      "useful_dot_FLOPs": 12288
+    },
+    "explanation": "W2pair already reuses activation across2channels; TT2 W13 decode still scalar path, W2 unchanged in161"
+  }
+}

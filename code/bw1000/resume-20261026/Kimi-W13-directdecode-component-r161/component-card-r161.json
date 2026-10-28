@@ -1,0 +1,17 @@
+{
+  "hypothesis": "Normal E2M1 dequantization uses a tiny exact representable set; direct IEEE FP32 field construction can remove magnitude-table/ldexp lowering cost from original scalar BF16xFP4 W13 while preserving products/reduction/SiTU",
+  "falsify_CPU": [
+    "original/current compiler already emits equivalent normalbit construction or normalpath no expensive ldexp/LUT to remove",
+    "candidate retained ISA cannot be unambiguously associated with exact two template symbols",
+    "CPU exhaustive packed/scale oracle mismatch",
+    "actual CPU/HIP compile or ldd-r dependency failure"
+  ],
+  "resource": "RootGO only, TP16 two nodes16DCU, one single_layer L1 first; then independentprocessL47 only if useful, no fullModel",
+  "first_result_estimate": "CPUprep~15min,CPUbuild~2min ifcompilerretentionworks,GPUoneLayer~2min plus original mapping/load; hard12min, freshKFD/post required",
+  "measurement": "same original1171/1175 historical16repeat64 and seed155Gaussian64,byteSHA;4warmOFF/OFF/ON/ON;3OFFONOFF triples,3uninstrumented fullMoE calls+one separatephase/hist perarm; candidatebranchcounter+dladdr; original16KiB reducer/W2pairON fixed",
+  "correctness": "CPU65536packed/scale pairs bitexactincluding signedzero/subnormal/overflow. ActualGPUfinite/read-onlyinput/canary/fullMoE NRMSE<=.005 component screen; bitsdiagnosticonly/nofulltokenidentity/noGPUF64",
+  "decision": "Source CPU ISA review required beforeRootGPU GO; no blind promotion. Preserveoriginalblockwise>=5pct fullMoE/W13 and<=3pctOFFdrift decision, reportpartialpositive honestly ifbelowthreshold; subsequentModelonlypiggybackindependentreason",
+  "distinct_from_negative961": "961bitfield altered A8 quantized integerFP4 GEMM code_i8;161doesnotquantizeactivations/useintegerGEMM, changes directoriginalBF16xFP4 dequantization only",
+  "distinct_from_r155": "No wave-first reduction; baseline/original16KiB tree in both161arms",
+  "source_scale_semantics": "normal scale2..252 bitconstruct; scale0,1,253,254,255 fallbackoriginal helper; this isnotFP8hardware"
+}
