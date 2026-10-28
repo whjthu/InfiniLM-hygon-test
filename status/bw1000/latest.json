@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-10-28T17:28:10.338796+00:00",
+  "updated_at_utc": "2026-10-28T17:38:43.321279+00:00",
   "owner": "bw1000-agent",
   "hardware": "BW1000",
   "goal_complete": false,
@@ -19,14 +19,13 @@
   },
   "current_actual_GPU_jobs": [],
   "latest_review": {
-    "id": 127,
+    "id": 128,
     "model": "gpt-6-astra",
-    "state": "COMPLETE_IMPLEMENTED",
-    "report": "analysis/bw1000/reviews/astra-review-127-current.json",
-    "implementation": "analysis/bw1000/reviews/astra-review-implementation-127-current.json",
-    "ledger": "analysis/bw1000/reviews/optimization-review-ledger-after-127-round2.json",
-    "completed_rounds_since_review": 2,
-    "inflight_review": null
+    "state": "RUNNING",
+    "last_complete_review": 127,
+    "completed_rounds_since_previous_review": 3,
+    "ledger": "analysis/bw1000/reviews/optimization-review-ledger-after-127-round3.json",
+    "inflight_review": "/root/astra_review_128"
   },
   "Kimi": {
     "current_Model_result": "results/bw1000/2026-10-28/kimi456-registry-loading-C1-C8-pilot.json",
@@ -76,7 +75,7 @@
       "GPU_lifetime": "NOT_RUN",
       "fullModel_fit": "UNKNOWN_STOP",
       "performance": "UNKNOWN;additionalperI96streamsync",
-      "next": "Bounded actual allocation/lifecycle probe before any fullModel attempt"
+      "next": "coordination/tasks/kimi-capacity-persistent-subset-lifecycle.json"
     }
   },
   "GLM": {
@@ -85,7 +84,7 @@
     "retained_gain_result": "results/bw1000/2026-10-28/glm781-qualified-deferred-feedback-ABBA.json",
     "C1_C8_chunk_result": "results/bw1000/2026-10-28/glm784-C1-C8-and-chunk-ABBA-qualified.json",
     "chunk_default": "STOP",
-    "next": "Use compact C1 attribution to select bounded candidate; no observer rerun",
+    "next": "coordination/tasks/glm-progress-write-throttle.json",
     "CPU_observer": "results/bw1000/2026-10-28/glm524-C1-observer-CPU-qualified.json",
     "runtime_source": "code/bw1000/resume-20261026/GLM-C1-decode-Model-r169b",
     "phase": "787_COMPLETED_OFFLINE_REANALYSIS_QUALIFIED",
@@ -95,7 +94,10 @@
     "observed_UTC": "2026-10-28T17:26:07.512899+00:00",
     "result": "results/bw1000/2026-10-28/glm787-C1-profile-offline-recovered.json",
     "offline_CPU": "910407.532 COMPLETED0",
-    "quality": "All3arms4/4correct4EOS0cap;16owner3actualT1windows;noalgorithmgain"
+    "quality": "All3arms4/4correct4EOS0cap;16owner3actualT1windows;noalgorithmgain",
+    "diagnosis": "analysis/bw1000/GLM-C1-787-diagnosis-r170.json",
+    "CPU_filesystem_probe": "results/bw1000/2026-10-28/glm789-790-progress-file-CPU-latency.json",
+    "candidate_status": "DEFAULT_OFF_SOURCE_CONTRACT_ONLY; complete runtime not ready; Model gain UNKNOWN"
   },
   "Deep": {
     "Native_SHA256": "ac9370c8f188bfda8555718c52690b914883fc6b02b9267cbd279be3ecdd3835",
@@ -112,7 +114,9 @@
     "source": "code/bw1000/resume-20261026/Deep-C1-decode-profile-r168a",
     "CPU_keeper": "910407.531",
     "quality": "4/4correct4EOS0cap;observer5..12.9percentoverhead;notcleanTPS",
-    "next": "Use current C1 cache/compression/metadata attribution to choose smallest real-wall candidate"
+    "next": "coordination/tasks/deep-C128-immutable-projection-cache.json",
+    "diagnosis": "analysis/bw1000/Deep-C1-1195-diagnosis-r172.json",
+    "smallT_C1": "STOP already1112 quality8/8to7/8; no repeat"
   },
   "qualified_historical_performance": {
     "Kimi_highest_retained_aggregate": {

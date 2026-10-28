@@ -1,0 +1,97 @@
+--- qualified787/glm_arrival_probe_r169b.py
++++ candidate/glm_arrival_probe_r171b.py
+@@ -5,6 +5,7 @@
+ from quality_metrics_r9132b import paired_quality,serving_metrics,score_case
+ from arrival_runner_r9258 import run_episode,torch_world_callbacks
+ from case_plan_r169b import load as load_plan
++from progress_write_policy_r171 import ProgressWritePolicy
+ from profile_consumer_r169 import consume as strict_consume_profile, overhead as observer_overhead
+ 
+ def consume_profile(*args):
+@@ -18,9 +19,11 @@
+   a=lib.modern_glm_sparse_read_r131(ctx);assert a;return json.loads(a)
+  def save():
+   tmp=report_path.with_suffix('.tmp');tmp.write_text(json.dumps(report,ensure_ascii=False,indent=2));tmp.replace(report_path)
+- def progress(label,seq,op,active,warm):
++ progress_policy=ProgressWritePolicy()
++ def progress(label,seq,op,active,warm,force=False):
+   if rank!=0:return
+-  q={'run':os.environ['GLM_RUN_R5040'],'stage':stage,'rank':rank,'phase':label,'seq':seq,'op':op,'warm_active':warm and active,'stall_guard_active':active,'UTC_epoch':time.time(),'stall_limit_seconds':60,'actual_step':os.environ['SLURM_JOB_ID']+'.'+os.environ['SLURM_STEP_ID'],'native_calls':len(native_events)};pp=r/'results'/('GLM-arrival-progress-r169b-'+q['run']+'-s'+str(stage)+'-r0.json');tmp=pp.with_suffix('.tmp');tmp.write_text(json.dumps(q));tmp.replace(pp)
++  if not progress_policy.ready(op,active,force):return
++  q={'run':os.environ['GLM_RUN_R5040'],'stage':stage,'rank':rank,'phase':label,'seq':seq,'op':op,'warm_active':warm and active,'stall_guard_active':active,'UTC_epoch':time.time(),'stall_limit_seconds':60,'actual_step':os.environ['SLURM_JOB_ID']+'.'+os.environ['SLURM_STEP_ID'],'native_calls':len(native_events)};pp=r/'results'/('GLM-arrival-progress-r169b-'+q['run']+'-s'+str(stage)+'-r0.json');tmp=pp.with_suffix('.tmp');tmp.write_text(json.dumps(q));tmp.replace(pp);progress_policy.commit()
+  lib.glm_attention_cohort_policy_r9054.argtypes=[ctypes.c_int,ctypes.c_int];lib.glm_attention_cohort_counts_r9054.argtypes=[ctypes.c_int,ctypes.POINTER(ctypes.c_uint64),ctypes.c_size_t];lib.glm_reduced_output_policy_r9032.argtypes=[ctypes.c_int,ctypes.c_int]
+  def stats():v=(ctypes.c_uint64*4)();check(lib.glm_attention_cohort_counts_r9054(rank,v,4));return list(v)
+  lib.glm_ragged_policy_r9136.argtypes=[ctypes.c_int,ctypes.c_int];lib.glm_ragged_enabled_r9136.argtypes=[ctypes.c_int];lib.glm_ragged_counts_r9136.argtypes=[ctypes.c_int,ctypes.POINTER(ctypes.c_uint64),ctypes.c_size_t];lib.glm_ragged_Bcounts_r9136.argtypes=[ctypes.c_int,ctypes.POINTER(ctypes.c_uint64),ctypes.c_size_t]
+@@ -68,39 +71,44 @@
+  if is_emitter:
+   from transformers import PreTrainedTokenizerFast
+   tokenizer=PreTrainedTokenizerFast.from_pretrained('/old/models/ZhipuAI-GLM-5.3',local_files_only=True)
+- def episode(label,mode,case_requests,case_arrivals,warm=False,down_row2=True,m15_oproj=False,deferred_feedback=False,max_live=32,observer=False):
+-  assert type(down_row2)is bool and type(mode)is bool;torch.cuda.synchronize();check(lib.modern_glm_down_row2_policy_r9284(rank,int(down_row2)));assert lib.modern_glm_down_row2_get_r9284(rank)==int(down_row2);barrier();reset(1);check(lib.modern_glm_sparse_policy_r131(ctx,int(observer)));check(lib.modern_glm_model_m15_oproj_policy_r125(ctx,int(m15_oproj)));barrier();m15_before=m15stats();assert m15_before[0]==int(m15_oproj);vector_before=vectorstats();phase_marker(label+'.begin');start_index=len(native_events);last={};local_calls=[];cm,tm=torch_world_callbacks(torch,control,is_emitter);progress(label,0,'BEGIN',True,warm)
+-  def command_exchange(cmd,seq):
+-   decoded=cm(cmd,seq);last.clear();last.update(decoded)
+-   progress(label,seq,decoded['op'],decoded['op']!='DONE',warm)
+-   return decoded
+-  def bound_forward(rows,tokens,pasts,kind,prefill):
+-   selected=[x for x in last['items']if x[0]in rows];assert rows==[x[0]for x in selected]and pasts==[x[1]for x in selected]and list(map(len,tokens))==[x[2]for x in selected];assert len(rows)<=(16 if last['op']=='DECODE'else 8)
+-   index=len(native_events);result=forward(rows,tokens,pasts,label+'.'+kind,1,prefill);local_calls.append({'seq':last['seq'],'event_index':index,'op':last['op'],'rows':rows,'pasts':pasts,'counts':list(map(len,tokens))});return result
+-  seconds=min(180. if warm else 1200.,max(1.,deadline-time.monotonic()-150))
+-  data,commands=run_episode(case_requests,case_arrivals,mode,eos,is_emitter,command_exchange,tm,bound_forward,budget_seconds=seconds,deferred_feedback=deferred_feedback,max_live=max_live)
+-  complete=last.get('op')=='DONE'and last.get('reason')=='complete';receipt={'label':label,'deferred_feedback':deferred_feedback,'chunked':mode,'down_row2':down_row2,'vector_counters':vectorreceipt(vector_before,vectorstats(),native_events[start_index:],down_row2),'warm':warm,'complete':complete,'command_trace':commands,'command_SHA256':hashlib.sha256(json.dumps(commands,sort_keys=True,separators=(',',':')).encode()).hexdigest(),'native_calls':local_calls,'native_event_start':start_index,'native_event_end':len(native_events),'cap_seconds':seconds,'fixed32':len(case_requests)==32,'n_requests':len(case_requests),'max_admitted_live':max_live,'expected_arrivals':case_arrivals,'native_ordinary_checks_kept':True}
+-  m15_after=m15stats();m15_delta=[b-a for a,b in zip(m15_before,m15_after)];eligible=sum(e['input_tokens']==15 for e in native_events[start_index:])*[38,40][stage]
+-  assert m15_delta[1]==eligible and m15_delta[2]==(eligible if m15_oproj else 0) and m15_delta[3]==(0 if m15_oproj else eligible) and m15_delta[5]==m15_delta[16]==0 and m15_delta[15]==m15_delta[2],('M15 actualownerbranch',stage,rank,m15_delta,eligible)
+-  receipt['sparse_observer']=sparse_read();receipt['observer_enabled']=observer;receipt['observer_coverage_status']='OFF'if not observer else'COMPLETE'if receipt['sparse_observer']['coverage']==[0,0,0,0,3]else'UNKNOWN';receipt['sparse_profile']=consume_profile(receipt['sparse_observer'],local_calls,native_events)if observer else None;receipt['m15_oproj']=m15_oproj;receipt['m15_provider']={'before':m15_before,'after':m15_after,'delta':m15_delta,'expected_eligible_projection_calls':eligible,'actual_owner_verified':True};receipt['private_cache_added_logical_bytes']=m15_after[13]
+-  if is_emitter:
+-   assert data is not None;receipt['serving']=data
+-   arrived=[z for z in data['requests']if z['arrival']<=data['elapsed_seconds']]
+-   if arrived and data['elapsed_seconds']>0:receipt['metrics']=serving_metrics(arrived,0.,data['elapsed_seconds'],16)
+-   if not warm:
+-    scores=[]
+-    for req,rec in zip(case_requests,data['requests']):
+-     text=tokenizer.decode(rec['generated_ids'],skip_special_tokens=True,clean_up_tokenization_spaces=False);score=score_case(req,text,rec.get('stop_reason','unfinished'));rec.update(text=text,score=score,input_tokens=len(req['input_ids']));scores.append(score)
+-    receipt['task_scores']=scores
+-  report.setdefault('warmups'if warm else'episodes',[]).append(receipt);save();progress(label,last.get('seq',0),'DONE',False,warm);assert complete,('episodeincomplete_saved_no_live_reset',label,last.get('reason'))
+-  if is_emitter:assert data['all_requests_completed']and data['global_reset_allowed']
+-  barrier();phase_marker(label+'.returned');return receipt
++ def episode(label,mode,case_requests,case_arrivals,warm=False,down_row2=True,m15_oproj=False,deferred_feedback=False,max_live=32,observer=False,progress_throttle=False):
++  try:
++   progress_policy.configure(progress_throttle)
++   assert type(down_row2)is bool and type(mode)is bool;torch.cuda.synchronize();check(lib.modern_glm_down_row2_policy_r9284(rank,int(down_row2)));assert lib.modern_glm_down_row2_get_r9284(rank)==int(down_row2);barrier();reset(1);check(lib.modern_glm_sparse_policy_r131(ctx,int(observer)));check(lib.modern_glm_model_m15_oproj_policy_r125(ctx,int(m15_oproj)));barrier();m15_before=m15stats();assert m15_before[0]==int(m15_oproj);vector_before=vectorstats();phase_marker(label+'.begin');start_index=len(native_events);last={};local_calls=[];cm,tm=torch_world_callbacks(torch,control,is_emitter);progress(label,0,'BEGIN',True,warm)
++   def command_exchange(cmd,seq):
++    decoded=cm(cmd,seq);last.clear();last.update(decoded)
++    progress(label,seq,decoded['op'],decoded['op']!='DONE',warm)
++    return decoded
++   def bound_forward(rows,tokens,pasts,kind,prefill):
++    selected=[x for x in last['items']if x[0]in rows];assert rows==[x[0]for x in selected]and pasts==[x[1]for x in selected]and list(map(len,tokens))==[x[2]for x in selected];assert len(rows)<=(16 if last['op']=='DECODE'else 8)
++    index=len(native_events);result=forward(rows,tokens,pasts,label+'.'+kind,1,prefill);local_calls.append({'seq':last['seq'],'event_index':index,'op':last['op'],'rows':rows,'pasts':pasts,'counts':list(map(len,tokens))});return result
++   seconds=min(180. if warm else 1200.,max(1.,deadline-time.monotonic()-150))
++   data,commands=run_episode(case_requests,case_arrivals,mode,eos,is_emitter,command_exchange,tm,bound_forward,budget_seconds=seconds,deferred_feedback=deferred_feedback,max_live=max_live)
++   complete=last.get('op')=='DONE'and last.get('reason')=='complete';receipt={'label':label,'deferred_feedback':deferred_feedback,'chunked':mode,'down_row2':down_row2,'vector_counters':vectorreceipt(vector_before,vectorstats(),native_events[start_index:],down_row2),'warm':warm,'complete':complete,'command_trace':commands,'command_SHA256':hashlib.sha256(json.dumps(commands,sort_keys=True,separators=(',',':')).encode()).hexdigest(),'native_calls':local_calls,'native_event_start':start_index,'native_event_end':len(native_events),'cap_seconds':seconds,'fixed32':len(case_requests)==32,'n_requests':len(case_requests),'max_admitted_live':max_live,'expected_arrivals':case_arrivals,'native_ordinary_checks_kept':True}
++   m15_after=m15stats();m15_delta=[b-a for a,b in zip(m15_before,m15_after)];eligible=sum(e['input_tokens']==15 for e in native_events[start_index:])*[38,40][stage]
++   assert m15_delta[1]==eligible and m15_delta[2]==(eligible if m15_oproj else 0) and m15_delta[3]==(0 if m15_oproj else eligible) and m15_delta[5]==m15_delta[16]==0 and m15_delta[15]==m15_delta[2],('M15 actualownerbranch',stage,rank,m15_delta,eligible)
++   receipt['sparse_observer']=sparse_read();receipt['observer_enabled']=observer;receipt['observer_coverage_status']='OFF'if not observer else'COMPLETE'if receipt['sparse_observer']['coverage']==[0,0,0,0,3]else'UNKNOWN';receipt['sparse_profile']=consume_profile(receipt['sparse_observer'],local_calls,native_events)if observer else None;receipt['m15_oproj']=m15_oproj;receipt['m15_provider']={'before':m15_before,'after':m15_after,'delta':m15_delta,'expected_eligible_projection_calls':eligible,'actual_owner_verified':True};receipt['private_cache_added_logical_bytes']=m15_after[13]
++   if is_emitter:
++    assert data is not None;receipt['serving']=data
++    arrived=[z for z in data['requests']if z['arrival']<=data['elapsed_seconds']]
++    if arrived and data['elapsed_seconds']>0:receipt['metrics']=serving_metrics(arrived,0.,data['elapsed_seconds'],16)
++    if not warm:
++     scores=[]
++     for req,rec in zip(case_requests,data['requests']):
++      text=tokenizer.decode(rec['generated_ids'],skip_special_tokens=True,clean_up_tokenization_spaces=False);score=score_case(req,text,rec.get('stop_reason','unfinished'));rec.update(text=text,score=score,input_tokens=len(req['input_ids']));scores.append(score)
++     receipt['task_scores']=scores
++   report.setdefault('warmups'if warm else'episodes',[]).append(receipt);save();progress(label,last.get('seq',0),'DONE',False,warm);assert complete,('episodeincomplete_saved_no_live_reset',label,last.get('reason'))
++   if is_emitter:assert data['all_requests_completed']and data['global_reset_allowed']
++   barrier();phase_marker(label+'.returned');receipt['progress_write_policy']=progress_policy.snapshot();return receipt
++  except BaseException:
++   progress(label,locals().get('last',{}).get('seq',0),'ERROR',False,warm,force=True)
++   raise
+  warm_requests=[dict(c,input_ids=c['input_ids'][:40],input_tokens=40,max_new_tokens=2)for c in requests[:4]]
+  episode('warm-C1-deferred',False,warm_requests,[0.]*4,True,True,False,True,1,False);report['warm_CCL_progress_passed']=True;save()
+  report['measurement_start_monotonic']=time.monotonic();deadline=min(deadline,time.monotonic()+3600);report['measurement_budget_seconds']=3600
+  for arm in plan['episodes']:
+   if not budget(150):report['budget_insufficient_before_episode']=arm['label'];save();raise RuntimeError('reserveinsufficient_saved_noextraepisode')
+-  episode(arm['label'],False,requests[:4],[0.]*4,False,True,False,True,1,arm['observer'])
++  episode(arm['label'],False,requests[:4],[0.]*4,False,True,False,True,1,arm['observer'],arm.get('progress_throttle',False))
+  report['observer_overhead']=observer_overhead(report['episodes'],native_events)
+  if is_emitter:
+   report['paired_quality']=[paired_quality(report['episodes'][0]['task_scores'],report['episodes'][1]['task_scores']),paired_quality(report['episodes'][2]['task_scores'],report['episodes'][1]['task_scores'])];report['small_concurrency_quality']=paired_quality(report['episodes'][0]['task_scores'],report['episodes'][2]['task_scores'])
