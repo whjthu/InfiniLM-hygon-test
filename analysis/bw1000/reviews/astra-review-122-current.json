@@ -1,0 +1,159 @@
+{
+  "schema": 1,
+  "review": 122,
+  "prior_review": 121,
+  "status": "COMPLETE_READONLY_RECOMMENDATIONS",
+  "created_UTC": "2026-10-28T00:33:32.265Z",
+  "goal_complete": false,
+  "trigger": "Qualified current Kimi profile, Deep diagnostic wave, repeated avoidable GLM harness failure",
+  "scope": {
+    "SSH": false,
+    "Git": false,
+    "GPU": false,
+    "launch": false,
+    "source_edits": false,
+    "report_only": true
+  },
+  "decision": "ADOPT performance-first now. Human P0 priority received one bounded opportunity per model; defer additional Model reloads for protocol repairs until CPU/source fixes and a discriminating acceptance case are ready.",
+  "new_whole_model_performance_gain": 0,
+  "evidence": [
+    "R/profile-details-root-r9423-a.json",
+    "V/astra-review-121-current.json",
+    "V/Kimi-current-model-sparse-profile-launch-private-r136b/runtime/batch_native_r9128.py",
+    "V/Kimi-current-model-sparse-profile-launch-private-r136b/runtime/batch_cohort_r9128.py",
+    "V/GLM-arrival-defer-r153",
+    "V/GLM-watchdog-progress-r153"
+  ],
+  "prior_followthrough": [
+    {
+      "id": "K121A",
+      "status": "DONE",
+      "result": "Root reports actual Kimi438 10/10 P0, recovery442 Native32 normal. Original postbind failure preserved. Protocol qualification, no throughput claim; buffered SSE remains no incremental TTFT/ITL."
+    },
+    {
+      "id": "K121B",
+      "status": "DONE_CAUSAL",
+      "result": "445/592 true current C8W8 12 OFF/ON/OFF cases, 4 actual T64 windows x32 owners; perturb <=3%; unique GSM32 correct/EOS each repeat. Attribution qualified, no speedup."
+    },
+    {
+      "id": "GLM148",
+      "status": "HARNESS_FAILURE_NOT_PERFORMANCE_WAVE",
+      "result": "778 warm serial/deferred 20 calls complete, A1 only begin/seq1 PREFIX recorded; controller cancelled after stale60s. Actual A1 progress unknown."
+    },
+    {
+      "id": "Deep",
+      "status": "DIAGNOSTIC_ONLY",
+      "result": "1152 ordinary-repeat F100 experimental variation at ~128; partial/full comparison shape-confounded. Root reports productionac937 P01156 9/10, secondtool cap96 truncation. Neither Modelgain nor proven rollback bug."
+    }
+  ],
+  "kimi_metrics": {
+    "scope": "native emitter common window; all serving cards33; not HTTP; not pureGPU; means across64 owner-window rows per PP stage",
+    "off_before": {
+      "useful_decode_tokens": 6383,
+      "sum_decode_window_s": 164.02561587980017,
+      "pooled_decode_tok_s": 38.91465345679625,
+      "per_card": 1.1792319229332198,
+      "user_p50": 5.209642111126935,
+      "users_gt15": 0
+    },
+    "off_after": {
+      "useful_decode_tokens": 6383,
+      "sum_decode_window_s": 164.1556534669362,
+      "pooled_decode_tok_s": 38.883826814320756,
+      "per_card": 1.178297782252144,
+      "user_p50": 5.222865065168628,
+      "users_gt15": 0
+    },
+    "observer": {
+      "max_perturb_pct": 2.89477509419,
+      "all_within_3pct": true,
+      "coverage": "4T64windows x32owners",
+      "not_gain": true
+    },
+    "quality": "32 unique requests, 3 repeated arms; each32 correct/EOS, no cap. Not96 independent questions.",
+    "prefill_caveat": "OFFbefore first cohort48.10s vsON17.29s/after17.25s indicates cold/warm difference; no observer-prefill speedup. Group decode33.36..44.17 are different cohorts, not new cluster record.",
+    "stage0_whole_ms": 429.7981023788452,
+    "stage1_whole_ms": 877.4795608520508,
+    "stage1_incoming_model_begin_to_decoder_entry_ms": 429.46777296066284,
+    "stage1_local_ms": 448.01178789138794,
+    "local_service_sum_ms": 877.8098902702332,
+    "moe_routed_shared_TPwait_sum_ms": 552.7425663918257,
+    "moe_fraction_of_local_service": 0.6296836849510368,
+    "KDA_local_sum_ms": 198.50207117944956,
+    "MLA_local_sum_ms": 67.6053290143609,
+    "interpretation": "Stage1 whole includes incoming stage0 wait; never add the two whole values. Buckets include stream dependencies/TP waits, not pure kernel busy. Router/GEMM/packing/CCL/expert imbalance unresolved."
+  },
+  "conditional_bounds": {
+    "type": "Amdahl scheduling algebra, NOT hardware physical peak or measured candidate gain",
+    "assumptions": "unchanged useful acceptance/quality/workload, representative critical-chain service fractions; q=.89 is prior cycle attribution and must be rechecked, not established by128 sparse decoder rows",
+    "required_user_p50_multiplier_to15": 2.873563218390805,
+    "moe_2x_verify_speedup": 1.4595170312400005,
+    "moe_2x_cycle_speedup_if_q89": 1.3892926323847268,
+    "moe_zero_cost_cycle_speedup_if_q89": 2.2748908987453675,
+    "projected_user_p50_moe_zero_cost_if_q89": 11.874930491450819,
+    "two_stage_steady_verify_capacity_ratio": 1.9593455216920357,
+    "caveat": "PP steady throughput bound does not halve single-request latency. For two T32 micros fill/drain time is t0(32)+t1(32)+max(t0(32),t1(32))+feedback, and T32 costs must be measured. No linear T scaling assumption.",
+    "exact_SKU_physical_peak": "UNKNOWN"
+  },
+  "cards": [
+    {
+      "id": "K122A",
+      "decision": "ADOPT_FIRST_SOURCE_BOUNDED",
+      "owner": "original Kimi Native/performance owner",
+      "resources": "same qualified32 target+1draft with fresh reservation; spare component GPU only after current-input capture, not synthetic/history fixture",
+      "hypothesis": "MoE routed/shared+TPwait dominates; one subphase or skewed expert distribution explains a reducible part of ~553ms serial local service demand",
+      "minimal_change": "Sparse preallocated same-stream events around router/dispatch-pack, routed matmuls/activation, shared path, TP collective on current real T64; histogram tokens per expert and each rank, no host sync in measured interval. Original math and deps unchanged.",
+      "source": "136b current Native305726 and actual445/592 input plan; no full old matrix",
+      "samples": "One warm OFF/ON/OFF bracket covering one real fullT64 window percohort on all32owners; <=3% observer perturb. Reuse original GSM32 and EOS/quality, no truncation. If captured tensors are replayed, bind exact source/layer/T/rank/expert counts/dtype/DSO and mark component-only.",
+      "decision_tree": "GEMM dominates: choose one layout/launch/fusion supported by actual shapes. Pack/router dominates: combine repeated dispatch/copies. TPwait dominates across balanced ranks: one collective scheduling candidate. Large rank/expert skew: test one grouping/load remedy before changing GEMM. No bucket >=10% of serial critical chain -> STOP broad MoE optimization.",
+      "cost": "Source feasibility <=20min recommended; queue/load UNKNOWN and separately recorded. One current-model load for diagnosis, then one winner only; no promises of first GPU time.",
+      "exit": "Instrument budget>3%, current object/input mismatch or no useful subphase source in20min -> STOP. Candidate upgrade only >3% whole-model paired gain and above observed bracket variation, no quality/floor/lifecycle regression; otherwise retain attribution and stop candidate.",
+      "fallback": "K122B feasibility or GLM153; do not launch historical fixture to look busy."
+    },
+    {
+      "id": "K122B",
+      "decision": "ADOPT_15MIN_SOURCE_AUDIT_THEN_CONDITIONAL_EXPERIMENT",
+      "owner": "original Kimi stateful Native/scheduler owner",
+      "resources": "cap8/32target+1draft; two C4W8 T32 micros, no cap16/32 growth",
+      "hypothesis": "Balanced PP stages leave reducible serial interstage idle time; two independent row sets can overlap stage work before ordered feedback",
+      "minimal_change": "Defer selected-result feedback for two disjoint microbatches only after each micro has independently owned taps/row transaction data. Preserve caller thread, collective order, row IDs, per-micro epoch/capture, commit/replay dependency and ordered output.",
+      "confirmed_source_obstacle": "batch_native call arms single taps epoch; finish does control.collect then harvest; batch_cohort commits/replays only after call. Two existing calls remain serial; deferring finish without protecting taps/transaction can overwrite state. GLM helper cannot be copied as-is.",
+      "samples": "First actual same-load serial C8W8 T64 versus serial C4W8x2 T32 controls establishes shape tax; then only if safe source exists compare serial/deferred T32 ABBA on original32 requests. This extra arm is a new shape control, not recomputing old wholemodels.",
+      "cost": "15min feasibility cap; otherwise DEFER actual overlap. Queue/load UNKNOWN. Same load as K122A if instrumentation and scheduler toggles sealed together, never hot edit.",
+      "exit": "No independent taps/transaction guarantee -> STOP launch. Two-micro fill/drain predicted from measured T32 must beat T64 including feedback/draft/commit before expanded benchmark. Promote only paired whole-model improvement>3% above drift, all requests EOS/basic quality and normal cleanup; later full benchmark no material loss.",
+      "fallback": "Return measured T32 service demand, not speedup; prioritize K122A supported operator."
+    },
+    {
+      "id": "G122A",
+      "decision": "ADOPT_ONE_CORRECTED_RUN_AFTER_ACTUAL_CPU_PREPARE",
+      "owner": "original GLM148/153 owner",
+      "resources": "n14/n15 16cards isolated",
+      "hypothesis": "Two disjoint M16 decode micros ahead of ordered WORLD feedback reduce PP bubble under arrival32/maxlive32",
+      "source": "r153 producerb334fa62efb8110fc9af73468bc63bbe08e96acef162686a03ffecbb6ce0dd2a; manifestd48fe0829ac57bb81dc7ec83597c76d4426c7def0ddf1afb2e325f7c11bb4edc; ce830 math; helper20482dc unchanged",
+      "minimal_change": "Relative148 normalized namespace, probe only removes warm/seq%16 condition: atomic progress after every successful WORLD command exchange, before Native. Keep60s stall guard, no periodic fake heartbeat.",
+      "verification": "Reviewer rehashed all23 producer file entries no mismatch. Distinct logits owned percall; max2pending; original micro order; all16 audit commandhash/nativecoverage/cache-row-ledger checks. No new definite launch blocker found.",
+      "samples": "existing2warm+ABBA full32 natural request plan, prefix8/M15OFF/observerOFF/row2ON; no shortened warm timings as performance.",
+      "cost": "No Native/deps compile; actual CPU prepare still required by owner. Queue/load UNKNOWN; existing2400s measurement budget retained.",
+      "exit": "If single completedcommand gap still>60s, record current seq/op/Native entry and stop; do not repeatedly relax timer or replay. Complete all16 audit and pairedquality, then compare useful aggregate/peruser/TTFT/ITL. Gain threshold>3% above paired drift; no new proposal for767 intervals with no>=10% actionable bucket.",
+      "fallback": "STOP route if no paired benefit; retain767 no-action conclusion."
+    }
+  ],
+  "stop": [
+    "Further P0 Model reload loops before specific protocol/CPU fix ready",
+    "Treating778 as proven pure watchdog false positive or counting its warm timings as gain",
+    "Direct Kimi deferred finish with shared taps epoch",
+    "Blind W16, cap growth, quantization grids, TP32 full93, dummy busy",
+    "Interpreting Deep1152 shape-confounded error as rollback diagnosis or relaxing arbitrary threshold"
+  ],
+  "defer": [
+    {
+      "item": "Kimi W16",
+      "reason": "implemented maxflat64 and perrowwidth<=8 explicitly asserted. C8W16 requiresT128,new transaction/taps/cache qualification. C4W16 keepsT64 but still unsupportedwidth16 and changes concurrency. Need acceptance-per-cycle vs measured verify+draft+replay cost evidence; longerwidth not automatically useful."
+    },
+    {
+      "item": "Deep GPU",
+      "reason": "CPU/local retained-wire diagnosis of truncated secondtool96 and matched-shape ordinary-repeat analysis first. No extra reload for header/protocol alone; no MTPhead means no spec-TPS claim."
+    }
+  ],
+  "root_actions": "Record ADOPT/STOP/DEFER against each card, dispatch source-bounded tasks now, run independent GLM153 once CPU receipt ready. Keep actual prep/queue/load/measure/quality times; do not wait for report publication. Main hardware performance goal remains active."
+}
