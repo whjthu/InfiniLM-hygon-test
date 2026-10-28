@@ -1,0 +1,245 @@
+{
+  "source_recovery_SHA256": "358f193abd9b1cfdfa25fcb75532976da3cbe7e2e434237187f4332b7183b809",
+  "actual_GPU": "910376.775",
+  "cases": [
+    {
+      "case": "request-001.request.json",
+      "original_request_SHA256": "37f90cd35046c30cb6249c7c6c14013a8ca1e4e5008f51ef5ce53461e41f07fe",
+      "request": {
+        "model": "GLM-5.3",
+        "messages": [
+          {
+            "role": "user",
+            "content": "What is 1+1? Give a short answer."
+          }
+        ],
+        "temperature": 0,
+        "max_tokens": 24,
+        "stream": false,
+        "tool_choice": "none",
+        "parallel_tool_calls": false,
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        }
+      }
+    },
+    {
+      "case": "request-002.request.json",
+      "original_request_SHA256": "2623fcbc41ff574037306dacfdac4f866bd6496947a340c326e7a0272eefa00e",
+      "request": {
+        "model": "GLM-5.3",
+        "messages": [
+          {
+            "role": "system",
+            "content": "Use tools; never invent their results."
+          },
+          {
+            "role": "user",
+            "content": "Read input.json, calculate a+b, write result.json with nonce and sum, read result.json, then report nonce and sum."
+          }
+        ],
+        "temperature": 0,
+        "max_tokens": 96,
+        "stream": false,
+        "tool_choice": {
+          "type": "function",
+          "function": {
+            "name": "read_file"
+          }
+        },
+        "parallel_tool_calls": false,
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        },
+        "tools": [
+          {
+            "type": "function",
+            "function": {
+              "name": "read_file",
+              "description": "Read file.",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "path"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          {
+            "type": "function",
+            "function": {
+              "name": "calculate",
+              "description": "Add integers.",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "a": {
+                    "type": "integer"
+                  },
+                  "b": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "a",
+                  "b"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          {
+            "type": "function",
+            "function": {
+              "name": "write_file",
+              "description": "Write file.",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "path",
+                  "content"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "case": "request-003.request.json",
+      "original_request_SHA256": "cc134ff21d1590df8904a1dc964a87a1b0be774d8ccdb0df550b950f9c6d5a30",
+      "request": {
+        "model": "GLM-5.3",
+        "messages": [
+          {
+            "role": "system",
+            "content": "Use tools; never invent their results."
+          },
+          {
+            "role": "user",
+            "content": "Read input.json, calculate a+b, write result.json with nonce and sum, read result.json, then report nonce and sum."
+          }
+        ],
+        "temperature": 0,
+        "max_tokens": 96,
+        "stream": true,
+        "tool_choice": {
+          "type": "function",
+          "function": {
+            "name": "read_file"
+          }
+        },
+        "parallel_tool_calls": false,
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        },
+        "tools": [
+          {
+            "type": "function",
+            "function": {
+              "name": "read_file",
+              "description": "Read file.",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "path"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          {
+            "type": "function",
+            "function": {
+              "name": "calculate",
+              "description": "Add integers.",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "a": {
+                    "type": "integer"
+                  },
+                  "b": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "a",
+                  "b"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          {
+            "type": "function",
+            "function": {
+              "name": "write_file",
+              "description": "Write file.",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "path",
+                  "content"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        ],
+        "stream_options": {
+          "include_usage": true
+        }
+      }
+    },
+    {
+      "case": "request-009.request.json",
+      "original_request_SHA256": "37f90cd35046c30cb6249c7c6c14013a8ca1e4e5008f51ef5ce53461e41f07fe",
+      "request": {
+        "model": "GLM-5.3",
+        "messages": [
+          {
+            "role": "user",
+            "content": "What is 1+1? Give a short answer."
+          }
+        ],
+        "temperature": 0,
+        "max_tokens": 24,
+        "stream": false,
+        "tool_choice": "none",
+        "parallel_tool_calls": false,
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        }
+      }
+    }
+  ]
+}

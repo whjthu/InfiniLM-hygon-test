@@ -1,0 +1,201 @@
+{
+  "actual_GPU": "910376.775",
+  "classification": "length_truncation_and_named_tool_visibility_conflict_not_a_proven_Native_or_parser_defect",
+  "main_pass": 5,
+  "main_total": 9,
+  "conditional_true_two_call_reverse_results_pass": true,
+  "requests": [
+    {
+      "file": "results/GLM-agent-P0-r143c-GLM-agent-service-r143c-544524d9d19b43df/request-001.request.json",
+      "max_tokens": 24,
+      "chat_template_kwargs": {
+        "enable_thinking": false
+      },
+      "tool_choice": "none",
+      "declared_tool_names": [],
+      "messages": [
+        {
+          "role": "user",
+          "content": "What is 1+1? Give a short answer."
+        }
+      ]
+    },
+    {
+      "file": "results/GLM-agent-P0-r143c-GLM-agent-service-r143c-544524d9d19b43df/request-002.request.json",
+      "max_tokens": 96,
+      "chat_template_kwargs": {
+        "enable_thinking": false
+      },
+      "tool_choice": {
+        "type": "function",
+        "function": {
+          "name": "read_file"
+        }
+      },
+      "declared_tool_names": [
+        "read_file",
+        "calculate",
+        "write_file"
+      ],
+      "messages": [
+        {
+          "role": "system",
+          "content": "Use tools; never invent their results."
+        },
+        {
+          "role": "user",
+          "content": "Read input.json, calculate a+b, write result.json with nonce and sum, read result.json, then report nonce and sum."
+        }
+      ]
+    },
+    {
+      "file": "results/GLM-agent-P0-r143c-GLM-agent-service-r143c-544524d9d19b43df/request-003.request.json",
+      "max_tokens": 96,
+      "chat_template_kwargs": {
+        "enable_thinking": false
+      },
+      "tool_choice": {
+        "type": "function",
+        "function": {
+          "name": "read_file"
+        }
+      },
+      "declared_tool_names": [
+        "read_file",
+        "calculate",
+        "write_file"
+      ],
+      "messages": [
+        {
+          "role": "system",
+          "content": "Use tools; never invent their results."
+        },
+        {
+          "role": "user",
+          "content": "Read input.json, calculate a+b, write result.json with nonce and sum, read result.json, then report nonce and sum."
+        }
+      ]
+    },
+    {
+      "file": "results/GLM-agent-P0-r143c-GLM-agent-service-r143c-544524d9d19b43df/request-009.request.json",
+      "max_tokens": 24,
+      "chat_template_kwargs": {
+        "enable_thinking": false
+      },
+      "tool_choice": "none",
+      "declared_tool_names": [],
+      "messages": [
+        {
+          "role": "user",
+          "content": "What is 1+1? Give a short answer."
+        }
+      ]
+    }
+  ],
+  "failed_case_raw_wires": {
+    "results/GLM-agent-P0-r143c-GLM-agent-service-r143c-544524d9d19b43df/request-001.wire": "{\"id\":\"cmpl-36bb1ca032484715aaa7239c1765554f\",\"object\":\"chat.completion\",\"created\":1793098123,\"model\":\"ZhipuAI-GLM-5.3\",\"system_fingerprint\":null,\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"\",\"reasoning_content\":\"The user is asking a simple arithmetic question: 1+1. They want a short answer. The answer is\"},\"logprobs\":null,\"finish_reason\":\"length\"}],\"usage\":{\"prompt_tokens\":24,\"completion_tokens\":24,\"total_tokens\":48}}",
+    "results/GLM-agent-P0-r143c-GLM-agent-service-r143c-544524d9d19b43df/request-002.wire": "{\"error\":{\"message\":\"Model did not satisfy tool_choice\",\"type\":\"invalid_model_output\"}}",
+    "results/GLM-agent-P0-r143c-GLM-agent-service-r143c-544524d9d19b43df/request-003.wire": "data: {\"id\": \"cmpl-52ab37a58c29451aa2106778637bf7e8\", \"object\": \"chat.completion.chunk\", \"created\": 1793098146, \"model\": \"ZhipuAI-GLM-5.3\", \"system_fingerprint\": null, \"choices\": [{\"index\": 0, \"text\": null, \"delta\": {\"role\": \"assistant\"}, \"logprobs\": null, \"finish_reason\": null}]}\n\ndata: {\"id\": \"cmpl-52ab37a58c29451aa2106778637bf7e8\", \"object\": \"chat.completion.chunk\", \"created\": 1793098169, \"model\": \"ZhipuAI-GLM-5.3\", \"system_fingerprint\": null, \"choices\": [{\"index\": 0, \"text\": null, \"delta\": {\"reasoning_content\": \"The user wants me to read input.json, calculate a+b, write result.json with nonce and sum, read result.json, then report nonce and sum.\\n\\nHowever, I only have access to a `read_file` tool. I cannot write files. Let me first read input.json to see what's there.\\n\\nWait, I need to check what tools I have. I only have `read_file`. There's no write_file tool. So I can read input.json, but I\"}, \"logprobs\": null, \"finish_reason\": null}]}\n\ndata: {\"error\": {\"message\": \"Model did not satisfy tool_choice\", \"type\": \"invalid_model_output\"}}\n\ndata: [DONE]\n\n",
+    "results/GLM-agent-P0-r143c-GLM-agent-service-r143c-544524d9d19b43df/request-009.wire": "{\"id\":\"cmpl-a67b9f93479346a38cc8a53ec745eccc\",\"object\":\"chat.completion\",\"created\":1793098201,\"model\":\"ZhipuAI-GLM-5.3\",\"system_fingerprint\":null,\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"\",\"reasoning_content\":\"The user is asking a simple arithmetic question: 1+1. They want a short answer. The answer is\"},\"logprobs\":null,\"finish_reason\":\"length\"}],\"usage\":{\"prompt_tokens\":24,\"completion_tokens\":24,\"total_tokens\":48}}"
+  },
+  "Native_requests": [
+    {
+      "sequence": 1,
+      "prompt_tokens": 24,
+      "generated_tokens": 24,
+      "reason": "length",
+      "wall_s": 22.396146562881768,
+      "original_reset_all16_completed": true
+    },
+    {
+      "sequence": 2,
+      "prompt_tokens": 191,
+      "generated_tokens": 96,
+      "reason": "length",
+      "wall_s": 22.924892974086106,
+      "original_reset_all16_completed": true
+    },
+    {
+      "sequence": 3,
+      "prompt_tokens": 191,
+      "generated_tokens": 96,
+      "reason": "length",
+      "wall_s": 22.766976348124444,
+      "original_reset_all16_completed": true
+    },
+    {
+      "sequence": 4,
+      "prompt_tokens": 177,
+      "generated_tokens": 33,
+      "reason": "eos_token",
+      "wall_s": 10.65440695406869,
+      "original_reset_all16_completed": true
+    },
+    {
+      "sequence": 5,
+      "prompt_tokens": 177,
+      "generated_tokens": 33,
+      "reason": "eos_token",
+      "wall_s": 10.59142439905554,
+      "original_reset_all16_completed": true
+    },
+    {
+      "sequence": 6,
+      "prompt_tokens": 177,
+      "generated_tokens": 1,
+      "reason": "length",
+      "wall_s": 4.577267516870052,
+      "original_reset_all16_completed": true
+    },
+    {
+      "sequence": 7,
+      "prompt_tokens": 24,
+      "generated_tokens": 24,
+      "reason": "length",
+      "wall_s": 5.677309631835669,
+      "original_reset_all16_completed": true
+    },
+    {
+      "sequence": 8,
+      "prompt_tokens": 186,
+      "generated_tokens": 67,
+      "reason": "eos_token",
+      "wall_s": 17.25730005465448,
+      "original_reset_all16_completed": true
+    },
+    {
+      "sequence": 9,
+      "prompt_tokens": 114,
+      "generated_tokens": 39,
+      "reason": "eos_token",
+      "wall_s": 10.344467772636563,
+      "original_reset_all16_completed": true
+    }
+  ],
+  "raw_source_SHA256": "358f193abd9b1cfdfa25fcb75532976da3cbe7e2e434237187f4332b7183b809",
+  "file_SHA256": {
+    "results/GLM-agent-P0-r143c-GLM-agent-service-r143c-544524d9d19b43df/request-001.request.json": "37f90cd35046c30cb6249c7c6c14013a8ca1e4e5008f51ef5ce53461e41f07fe",
+    "results/GLM-agent-P0-r143c-GLM-agent-service-r143c-544524d9d19b43df/request-001.decoded.json": "bdcf3571a6a41f27b5b554abb7fba20f94a44cd628bc0c93f5044cfc3a8e5e75",
+    "results/GLM-agent-P0-r143c-GLM-agent-service-r143c-544524d9d19b43df/request-001.wire": "f9b99ae48e5806b5d3686c9814513297647a948fc5e90aa33b473c5443768295",
+    "results/GLM-agent-P0-r143c-GLM-agent-service-r143c-544524d9d19b43df/request-002.request.json": "2623fcbc41ff574037306dacfdac4f866bd6496947a340c326e7a0272eefa00e",
+    "results/GLM-agent-P0-r143c-GLM-agent-service-r143c-544524d9d19b43df/request-002.wire": "0ab9b2b507f6805e1dfdadf3fa477f428aece3eb93fd6166144188704cca7923",
+    "results/GLM-agent-P0-r143c-GLM-agent-service-r143c-544524d9d19b43df/request-003.request.json": "cc134ff21d1590df8904a1dc964a87a1b0be774d8ccdb0df550b950f9c6d5a30",
+    "results/GLM-agent-P0-r143c-GLM-agent-service-r143c-544524d9d19b43df/request-003.wire": "28d588a069eb0ebc95a0a7d0251bc5c2c5ef072a2fc4e47bcca26612e7ebde0c",
+    "results/GLM-agent-P0-r143c-GLM-agent-service-r143c-544524d9d19b43df/request-009.request.json": "37f90cd35046c30cb6249c7c6c14013a8ca1e4e5008f51ef5ce53461e41f07fe",
+    "results/GLM-agent-P0-r143c-GLM-agent-service-r143c-544524d9d19b43df/request-009.decoded.json": "bdcf3571a6a41f27b5b554abb7fba20f94a44cd628bc0c93f5044cfc3a8e5e75",
+    "results/GLM-agent-P0-r143c-GLM-agent-service-r143c-544524d9d19b43df/request-009.wire": "07ff81792260dafe2286de909115c72834a0ab93699f9d7d92283b7974201cb8"
+  },
+  "unchanged_existing_result": true,
+  "proposed_budget_only_not_executed": {
+    "ordinary": 128,
+    "tool": 256,
+    "synthetic_9392_total_budgets": [
+      447,
+      491,
+      518,
+      545,
+      430
+    ]
+  },
+  "no_quality_or_repair_pass_claim": true
+}
