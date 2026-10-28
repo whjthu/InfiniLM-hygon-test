@@ -1,0 +1,169 @@
+{
+  "review": 127,
+  "date": "2026-10-29",
+  "trigger": "提前审核：Deep1187在昂贵加载后触发复制的旧数据全量guard，重复515类可在CPU发现的错误。",
+  "scope": "仅本地只读审阅与V报告；无SSH/Git/Slurm/GPU，无repo/status/ledger修改。",
+  "verdict": "保留Kimi真实C1 pilot成果；停止registry继续加载。TP32容量仍UNKNOWN_STOP。CPU优先cache exact+同owner共享I96scratch设计；Deep同入口数据修复后一次C1，GLM既有唯一keeper独立继续。",
+  "evidence": {
+    "Kimi456": {
+      "quality": "20/20正确，20EOS，0cap，16unique；4C1+2C8",
+      "C1_user_tok_s": [
+        16.26433423218,
+        19.452347948,
+        18.852050658,
+        20.36799345
+      ],
+      "C8_user_p50_tok_s": [
+        5.740432058,
+        5.006089354
+      ],
+      "C8_aggregate_decode_tok_s": [
+        37.196120128,
+        33.801871159
+      ],
+      "new_causal_Model_speedup": false,
+      "scope": "TP16PP2固定cacheON/W13OFF/pair2；非服务、非完整heldout质量结论",
+      "load_seconds": [
+        1213.4547,
+        1580.51167
+      ],
+      "Native_seconds": [
+        908.7681,
+        1235.4746
+      ],
+      "get_tensor_seconds": [
+        286.1966,
+        361.3935
+      ],
+      "state_dict_two_builds_per_owner_seconds": [
+        0.35,
+        1.48
+      ],
+      "loading_conclusion": "state_dict已不是值得追加整模加载的目标；Native/get_tensor与分页/读取相关，不能归为纯IO/H2D。"
+    },
+    "allocation": {
+      "steps": [
+        "910374.1189",
+        "910374.1191"
+      ],
+      "regular_construct_bytes": 780140544,
+      "exact_construct_bytes": 648019968,
+      "observed_difference_bytes": 132120576,
+      "design_difference_bytes": 135725056,
+      "deviation_bytes": -3604480,
+      "aliases": 5376,
+      "unique_storages": 4,
+      "post_Runtime_destroy_residual_both_bytes": 153092096,
+      "Runtime_creation_delta_both_bytes": 0,
+      "residual_attribution": "UNKNOWN；不能称Runtime全回收，也不能称leak。KFD进程退出为空不是mem_get_info恢复测量。",
+      "scope": "fresh单owner实际共享4bank helper分配；无forward/权重payload/TP32通信/Model。"
+    },
+    "capacity": {
+      "actual_visible": 68702699520,
+      "free_floor": 4294967296,
+      "old_logical_static": 63250309692,
+      "old_logical_GiB": 58.906441267579794,
+      "packed_padding_outside_old_logical": 12486705152,
+      "MLA_cache_class_extra": 648019968,
+      "I96_scratch_logical_net_extra": 355705856,
+      "I96_scratch_class_extra": 29039616,
+      "remaining_before_opaque": 124657092,
+      "remaining_after_cache_exact": 772677060,
+      "conditional_shared_owner_scratch_saving": 381681664,
+      "remaining_after_cache_exact_and_shared4MiB_scratch_design_only": 1154358724,
+      "fit": "UNKNOWN_STOP",
+      "warning": "58.906GiB不能减11.629GiB；共享scratch预算仅在真实顺序/非重入/异步完成寿命成立时适用。767 baseline848MiB与168 residual146MiB不可无辨别叠加；operator/load高水位未闭。"
+    },
+    "Deep1187": {
+      "terminal": "FAILED1/8m29",
+      "trials": 0,
+      "engine_worker_shutdown_completed": true,
+      "post1193": "empty",
+      "cause": "旧9234 fresh64全量guard复制到9278/159实际数据；CPU_static只检查4ID存在，未执行run完整数据契约。",
+      "classification": "工程失败，不是性能negative，不自动重提。"
+    },
+    "GLM": {
+      "CPU": [
+        "524 PASS",
+        "528 PASS"
+      ],
+      "source": "31a3 / published d078",
+      "GPU": "唯一keeper已授权；实际状态由root核实，本审阅不推定已启动或完成。"
+    }
+  },
+  "cards": [
+    {
+      "id": "K127A",
+      "model": "Kimi",
+      "priority": 1,
+      "hypothesis": "删除persistent MLA cache的sizeclass浪费并消除92层独占I96scratch，可扩大TP32实际容量余量；不承诺速度收益或Model fit。",
+      "minimal_change": "先CPU设计：Kimi专用24个MLA persistent KV bank exact分配，保留zero-fill/shape/stride/dtype/Runtime及cache寿命；同owner/generation共享一个真实I96scratch lease，仅在所有生产调用、异步依赖、重入/并发/replay寿命证明不重叠时复用。不同owner/stream并发不能共用；不能改全局allocator或用bool=true冒充exact。",
+      "owner_resource": "Kimi容量源码owner；CPU先行，无全模加载。",
+      "evidence": "同一生产helper、alias/绑定/清零；逐项logical/class/physical未知分开。CPU确认后才决定一个薄的组合分配+生命周期验证是否有价值；不重跑1189/1191或无关constructor767。",
+      "numeric": "cache设计节省648019968B；91×4MiB共享scratch设计节省381681664B；组合后仅约1100.88MiB供opaque项，仍非fit上界。",
+      "warm_samples": "当前阶段CPU，不设伪造暖机性能样本；若进组件性能，沿用已有有效case与预声明重复，不重新扫已停路线。",
+      "wall_fraction": "UNKNOWN；分配字节不等于decode wall份额。",
+      "stop": "共享寿命不成立则不共享；保留cache exact独立安全改动但保持Model UNKNOWN_STOP。所有physical高水位未闭前不以账面剩余启动full93。",
+      "eta": "CPU首结论约15–30min；后续薄验证若必要约2–5min GPU执行，不含资源等待。"
+    },
+    {
+      "id": "K127B",
+      "model": "Kimi",
+      "priority": 4,
+      "hypothesis": "目前C1速度有价值，C8仍是主要实际使用缺口；下一次必要Model运行应直接验证用户收益。",
+      "minimal_change": "保留456固定cacheON/W13OFF/pair2作为当前实测基线；不为registry/重复state_dict单独reload。容量闭合或出现有足够wall份额的候选后，同题同预算记录C1+C8/基础正确性、TTFT、ITL、task与aggregate/user分别报；现有加载计时随必要运行附带采集。",
+      "owner_resource": "Kimi Model owner；当前PARK新增加载。",
+      "evidence": "C1四题16.26–20.37；C8两组p50 5.74/5.01；20执行16unique；无匹配旧C1 A/B。",
+      "numeric": "不降低原候选门槛或把20执行算20独立质量题；component倍率需乘实际f再评估。",
+      "warm_samples": "下一必要Model预声明暖机后固定case复测；不把加载时间计作decode。",
+      "wall_fraction": "state_dict≤1.48s/1213–1581s，约≤0.13%；再优化此项无实质加载空间。其他Native壁钟归因UNKNOWN。",
+      "stop": "候选仅追约1%且需额外20–26min load则不独立投Model；FP4direct/W2quad4/W13专用Model继续停。",
+      "eta": "当前零GPU；必要新Model首结果至少现有20–26min加载加试验，不承诺更快。"
+    },
+    {
+      "id": "D127A",
+      "model": "Deep",
+      "priority": 2,
+      "hypothesis": "同入口CPU契约可消除昂贵加载后的纯数据失败；其后真实C1 trace才识别优化方向。",
+      "minimal_change": "run与CPU调用同一纯数据函数，并在Runtime/Model之前执行：锁prepared/dataset/tokenizer SHA；accepted+skipped完整分区；selected4唯一、未拒绝、ID/原题/label/tokenizer模板一致、cap/no_crop。以实际9278/159命名空间为准，不盲删所有guard，不复制fresh64全量条件。",
+      "owner_resource": "Deep源码owner先CPU；root确认终态/postempty和修复同入口PASS后，唯一新C1作业。",
+      "evidence": "保留1187失败证据；CPU在实际数据上完整运行同函数，并给错误namespace/缺selectedID一次拒绝测试。",
+      "numeric": "修复后4/4有效C1记录，EOS/cap/基本正确性；owner/event来源完整；无需输出token逐字一致。",
+      "warm_samples": "沿原C1卡固定暖机及4ID，不重扫已负Deep调度。",
+      "wall_fraction": "C1现无trial，优化份额UNKNOWN；不能以失败8m29推decode结论。",
+      "stop": "CPU未通过不load；已知退出与修复到位才启动一次；未知GPU状态不重放。",
+      "eta": "同入口CPU约5–15min；真实C1约8–15min起，取决实际加载/输出，非保证。"
+    },
+    {
+      "id": "G127A",
+      "model": "GLM",
+      "priority": 2,
+      "hypothesis": "T1真实decode observer补足767前缀/较大T证据，定位C1 wall后再选算子。",
+      "minimal_change": "继续524/528已合格31a3/d078的既有唯一keeper；root一次核实际状态，若运行则等完成，不另起重复作业。",
+      "owner_resource": "GLM现有owner/已授权资源；独立于Deep与KimiCPU继续。",
+      "evidence": "真实C1 event/owner、decode子区间与用户指标；质量只要求基础正确/EOS/cap，无exacttoken门。",
+      "numeric": "不把767 T16/T15或B1prefix当C1decode；不把aggregate/C称user速度。",
+      "warm_samples": "沿已发布C1卡，不另加参数扫描；已有full/chunk负结果不再重复。",
+      "wall_fraction": "待本次T1结果，UNKNOWN；用实测算子份额决定下一候选。",
+      "stop": "按既有退出协议；未知状态不重启。没有显著wall目标则保留baseline并结束该路线。",
+      "eta": "已启动则按现有keeper；若尚未开始，首结果估25–35min含历史加载量级，实际由root核实。"
+    }
+  ],
+  "efficiency": [
+    "126落实产生了真实C1/C8和有区分力的126MiB分配结果；两个工作有价值。",
+    "Kimi一次加载1213–1581s，Native909–1235s占主导；state_dict已小，不应再围绕registry消耗整模加载。",
+    "Deep1187至少8m29作业壁钟无trial，属于可避免的预检漏覆盖；不估计未经证实的累计GPU卡时。",
+    "本轮不重跑已闭合分配probe纠正文案；从已保存bytes修正语义。GLM独立推进，不因报告阻塞。"
+  ],
+  "hardware_boundary": "无新物理峰值推断；W13 scalarF32FP4不套BF16dense峰值。component加速s与原Model可优化份额f给出理想上界1/((1-f)+f/s)，f未知不得报整模收益；TP32与TP16PP2通信、owner数、cache与batch都不同，不能直接映射。逻辑少读/少分配不证明HBM带宽或cache因果。",
+  "sources": [
+    "InfiniLM-hygon-test/results/bw1000/2026-10-28/kimi456-registry-loading-C1-C8-pilot.json",
+    "runtime-results-root-r9512-a.json",
+    "Deep-failure-root-r9513-a.json",
+    "Kimi-I96-storage-1189-1191-compact-r168b.json SHA724c8c2b5c2a537794912f20779eadbe96f12ac6d45b29982b6fc385f19f299a",
+    "InfiniLM-hygon-test/analysis/bw1000/TP32-fit-CPU-allocation-closure-r163b.json",
+    "InfiniLM-hygon-test/code/bw1000/resume-20261026/Deep-C1-decode-profile-r168/Deep_C1_decode_r168.py",
+    "InfiniLM-hygon-test/code/bw1000/resume-20261026/Deep-C1-decode-profile-r168/CPU_static_r168.py",
+    "astra-review-126-current.json"
+  ]
+}
