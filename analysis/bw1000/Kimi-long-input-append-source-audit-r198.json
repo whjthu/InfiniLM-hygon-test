@@ -1,0 +1,113 @@
+{
+  "status": "LOCAL_SOURCE_REVIEW_ONLY_NO_IMPLEMENTATION_NO_EXECUTION",
+  "inflight_477": "UNCHANGED; wait for complete actual8K+16K cost before root selects any fallback",
+  "pins": {
+    "Native179_SHA256": "ba6f9a01e459c5b57839677160cd916cba29312ee8355c939b898bc591ac7d81",
+    "CPU542_receipt": "/refactor/candidates/Kimi-long-agent32K-r179/CPU-build.json",
+    "CPU542_receipt_SHA256": "37ac44052ffb3b0e43cf7e440178aad4096f09dcd97a8b12d6eca6fc65cd827d",
+    "source_root": "Kimi-long-agent32K-private-r179/native",
+    "source_manifest_SHA256": "b8f25ad91a3fb75a379e3269b02aadd40382bb4210dd05b7ba9a98172120e3a6",
+    "service194_manifest_SHA256": "4ab447d8a2552df471d0bf5b6fc6bac4ceb74a3101b091f004281e6f8d24b2b0",
+    "cost_receipt": "long-input-cost-root-r9602-a.json",
+    "cost_receipt_SHA256": "46fc2e8c96ecf1c3c12388e3fc79dc513647fd7c4fb671d0d9dab0f028281f17"
+  },
+  "actual_observation_root_supplied_not_new_measurement": {
+    "request": 4,
+    "input_tokens": 8506,
+    "committed": 5632,
+    "width8_fullcommits": 640,
+    "elapsed_s": 203.56,
+    "post_seed_tokens_per_elapsed_s": 25.1522892513,
+    "elapsed_divided_by_verify_count_s": 0.3180625,
+    "timing_limit": "Both quotients include initial-seed/host/commit effects; neither is isolated GPU verify time or complete-request throughput. Full8K/16K, growing-past cost, generation and matrix completion remain UNKNOWN. No predicted cancellation."
+  },
+  "unchanged_scope": {
+    "logical_physical_pool_context": [1, 2, 3, 32768],
+    "MLA_pages_per_row": 128,
+    "ordinary_thinking_output": [4096, 8192],
+    "real_tool_steps_per_workflow": 8,
+    "full_history_and_thought": true,
+    "old_CAPI_defaults_and_width8": "preserve",
+    "weights_math_precision_HIP_CCL_policy": "preserve",
+    "full_input_acceptance": "Every actual input ID is consumed; no drafted-token acceptance test. Intermediate sampled IDs/EOS are discarded until the complete input is consumed. Only subsequent model generation counts as output."
+  },
+  "candidates": [
+    {
+      "id": "scoped_nonSpec_append512",
+      "priority": 1,
+      "feasibility": "HOST metadata path is source-supported; nonzero-state512 device math and memory are NOT qualified",
+      "existing_blocks": [
+        "pair_probe.cpp:67 restricts normal CAPI on paired contexts to past0; PairDispatch only authorizes lifecycle dispatch and does not relax that guard.",
+        "kimi_pair_state_r9006.hpp:28-29 and pair_probe.cpp:288-289 enforce once-prefill/phase0, zero-based positions and long seed<=512.",
+        "ordinary_epoch/switch_mode reset cache/history: toggling either is not an append solution."
+      ],
+      "reuse_proof": [
+        "kimi_engine_input_r145.hpp:35-63 nonSpec freeze already permits matching-ledger past>0, read==write, absolute positions and count=total-past; no512 or past0 guard. long geometry validates logical KV row1/pages1..128 and total<=32768.",
+        "kimi_compact_engine_r4974.cpp:418-420 derives query length from input offsets and KV total from cu_seqlens; :511-522 freezes metadata, waits all workers, then commits engine lengths.",
+        "delta.cpp:472-484,542,603-610 passes explicit offsets/read/write to the existing CausalConv1d and IndexedKimiDeltaAttention with initial-state flag true; in-place row1 is already used for initial512. This does not prove correct nonzero carry across512 chunks."
+      ],
+      "minimum_source_design_not_implemented": [
+        "Add one private long-only append CAPI in pair_probe.cpp. Require Ready via original engine, exact1/2/3/32768 geometry, batch_enabled, capture=false, ordinary=false, request1, phase1, active1/shadow2, width=retained=0, empty batch_requests (no prior verify this request), supplied past==pair past, 1<=actual width<=512, total<=32768. Hold existing pair/context locks in original order; never call a public locking wrapper while holding its mutex.",
+        "Reuse/factor the original nonSpec Input construction and original engine.forward, flags3, sample_all_positions=false, row1 init=final, logical KV row1, absolute positions and full actual IDs. Do not relax the old public guard, create SpecScope, reset, or switch modes.",
+        "After all original workers/output copies complete, publish copied pair Row.past=total, leaving phase1, active1/shadow2, width0 and IDs empty. The engine's own ledger has already committed row1. First ordinary AR verify implicitly closes append eligibility because it populates batch_requests/width; later append must reject.",
+        "Perform complete metadata/output-pointer validation before submission. Any post-submission failure poisons this request/context and requires original reset/drain, never rollback or retry on mutated state. Request reset clears append eligibility through original pair/request reset."
+      ],
+      "state_semantics": "KDA/conv extend row1 in place; MLA appends genuine KV slots in logical row1. No speculative reject/rollback/accepted-prefix mechanism is needed for input. First later width1 verify reads row1 and writes shadow2, and the original fullcommit swaps banks. No append after a bank swap.",
+      "build_ABI_closure": {
+        "minimum_HOST_TUs": ["pair_probe.cpp"],
+        "condition": "Keep new eligibility and Row update inside this anonymous Context TU; do not change State/Input/public class headers or object layouts. Row is already publicly returned by State::row. If implementation changes a shared header, rebuild every fresh-MD consumer instead of retaining this one-TU claim.",
+        "new_HIP_TUs": 0,
+        "reuse": "CPU542 remaining linked objects and exact runtime DSOs, including existing512 projection/MoE/CCL/head kernels. New CAPI only; all127 old exports/signatures and original entry behavior unchanged. New private DSO/process, no hot replacement of477."
+      },
+      "unknowns": [
+        "SDK IndexedKDA nonzero in-place carry/conv history at512 and paged MLA query512 with long past need math qualification. SDK implementation-specific limits are not proven by the available local HOST source.",
+        "512 query x long KV may require more transient attention/workspace memory than initial512; first512 fit and462 cache fit do not prove this peak.4GiB floor unchanged; sampled min is not exact peak.",
+        "About31 append calls after seed for16K versus1984 width8 calls is an RPC-count ratio, not64x wall speedup."
+      ]
+    },
+    {
+      "id": "scoped_true_input_verify64_fullcommit_only",
+      "priority": 2,
+      "feasibility": "Possible HOST-only scoped extension, but existing Native cannot execute it safely unchanged; larger admission/ODR surface than append512",
+      "existing_blocks": [
+        "Python long_native.call asserts each width<=8; Native capabilities report width8.",
+        "kimi_pair_state_r9006.hpp:31 checks ids.size<=8; completed calls the same check. freeze_input in kimi_engine_input_r145.hpp:54 separately caps a spec request at16.",
+        "Capture/partial-replay path additionally limits8 in pair_probe batch_control, batch_payload_r9122c.hpp, worker.cpp:788, batch_state_r9122.hpp:34. totalT64 is not single-request64 qualification."
+      ],
+      "minimum_source_design_not_implemented": [
+        "Expose a new long-input-only capability/API, count1, capture=false, prompt-ingest before generation, phase1 and correct owner/past/bank pair. Scope only its State check/completed and freeze_input spec admission to width<=64 and total<=32768. Keep every old CAPI/general speculation width8/16 guard unchanged.",
+        "Use the existing SpecScope, true input IDs, absolute positions, logical KV row1 and active/shadow recurrent rows. Full commit consumes width actual input tokens (existing accepted=width-1, continuation=true), swaps state banks and advances past. Restrict to fullcommit; reject partial/terminal/capture/replay for this new input operation. Do not expand the general typed replay path as a shortcut.",
+        "Require fullcommit before any next operation and poison/drain on a failed submission. Array<Tensor,9> in Cached is nine tensor fields, not proof of an8-token storage limit; vectors are dynamic, but existing guards and kernel math still need explicit closure."
+      ],
+      "build_ABI_closure": {
+        "modified_HOST_sources_or_headers": ["pair_probe.cpp", "kimi_pair_state_r9006.hpp", "kimi_engine_input_r145.hpp", "new owner-bound narrow input scope if required"],
+        "known_transitive_HOST_TUs": ["pair_probe.cpp", "worker.cpp", "delta.cpp", "kimi_compact_engine_r4974.cpp", "kimi_compact_allocate_r4974.cpp"],
+        "reason": "State header flows through batch_transaction/batch_state into worker/delta; Input header is included by pair/worker/infer_engine/allocate. Fresh MD must confirm final union. Existing trace TU can be reused only if its actual MD excludes every changed header. Public Input/worker layouts must remain unchanged.",
+        "new_HIP_TUs": 0,
+        "reuse": "Existing totalT64 projection/MoE/head/CCL objects are shape candidates. C1 sequence64 recurrence/causal attention is a different state chain from8 requests x8; no existingT64 receipt proves it."
+      },
+      "unknowns": ["SDK/MLA single-query64 limits and causal offsets, KDA64-step carry and numerical drift", "Transient state/logit/workspace memory and actual wall benefit; flatten64 reuse proves neither", "General partial/replay semantics remain width8 and are explicitly outside this candidate"]
+    }
+  ],
+  "minimum_validation_after_root_selects_not_performed_here": {
+    "CPU": "Extend existing contract only: complete real input ledger at width1/8/64 or512; page boundaries255/256/511/512,8K,16K and32768-output boundary; malformed tables/positions/owners/modes/past/caps reject before forward; failure poison/reset, no stale append after verify;127 old exports/defaults unchanged; exact fresh-MD object/DSO/source binding. No new profile framework or repeated cache constructor.",
+    "device_math": "Use same weights and actual token prefixes, compare selected candidate against width8 baseline at supported boundaries: final conv/SSM carry and committed MLA slots, finite logits and end-prefix error metrics/argmax margin. Verify in-place nonzero carry for append512 or both active/shadow parities for64. Exact output token equality is not a qualification gate, and changed chunking is not automatically numerically equivalent.",
+    "full_model_quality": "Preserve the existing formal HTTP8K/SSE16K/thinking workflows with8 genuine tools each, full thought/history,4096/8192 budgets, isolation/recovery, complete generated tokens and EOS; then frozen long-output160 records with actual>=1024 output/content tokens and real file readback in the same load. Full budget does not require using all tokens. Partial timeout or finite logits alone cannot pass.",
+    "lifecycle_memory": "Original per-request reset/drain/final destroy32normal and independent post-KFD;4GiB floor remains. Full Ready/long-query transient peak UNKNOWN until observed, and observed minimum is not exact peak.",
+    "decision": "Prefer append512 as the smaller source candidate only if completed4778K/16K observations justify a fallback. No authorization to compile, construct, load, test, alter or cancel477 is supplied by this review."
+  },
+  "source_SHA256": {
+    "native/pair_probe.cpp": "1006f0c301819f4de4e1afdbeea9a07844ffb6aa1b1f893f95df00462dadf502",
+    "native/kimi_pair_state_r9006.hpp": "e60dbf05205fc143833c68de4d865da185e6839e8bb28bcd75df42c338091065",
+    "native/kimi_engine_input_r145.hpp": "8efaddde3995d25b6ef0a0985338b4bd8f7a247ca2e47a62f51d15c160c11168",
+    "native/kimi_spec_proof_r3632.hpp": "e046ad85dbf2a2cddcd9289561478a9cd31ce29b9a601055338e4a2c6afff935",
+    "native/batch_payload_r9122c.hpp": "e0dd201779acbad0fb595312432baf590103fb56624de564cdf5f83a2627e7a2",
+    "native/batch_state_r9122.hpp": "61ed9cd211b3e9085a8ecfaa53dc93370d559682f06bad3d30db5c1a646d20b2",
+    "native/worker.cpp": "f24d68110788cd1d4b907f7d983ebafc1806193b00b501b8af847a507df61f89",
+    "native/delta.cpp": "cc3d6b8dd19021d758560938e46808871d3cfcc9af50868227ef43f98555b588",
+    "native/kimi_compact_engine_r4974.cpp": "792d6dad1ee20a41022e32cd4bc87a66758c45ac352f49dcb7bc4541fffceafb",
+    "native/long_agent_geometry_r179.hpp": "95e0a34ca88ee575afce2a7bfcf010dfcfbd72aee426251ced1fed8c21fbb17a"
+  },
+  "actions_performed": ["local read-only source review", "write this JSON"],
+  "implementation_compile_GPU_GO": false
+}
