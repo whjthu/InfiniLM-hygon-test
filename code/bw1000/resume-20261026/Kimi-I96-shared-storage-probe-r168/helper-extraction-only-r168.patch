@@ -1,0 +1,138 @@
+--- r163/kimi_moe_I96_r163.cpp
++++ r168/shared-helper-regular.cpp
+@@ -1,3 +1,6 @@
++#include <cuda_runtime_api.h>
++#include <infini/rt/device_guard.h>
++#include <set>
+ #include <nlohmann/json.hpp>
+ #include <chrono>
+ #include <array>
+@@ -193,21 +196,25 @@
+     }
+ }
+ 
+-void KimiK3Experts::register_mxfp4_experts(infinilm::runtime::Runtime &runtime) {
+-    if (hidden_size_ % 32 != 0 || local_intermediate_size_ % 32 != 0) {
++template<class Binder>
++KimiK3Mxfp4MoeWeights make_packed_banks_r168(infinilm::runtime::Runtime &runtime,
++    size_t experts,size_t hidden,size_t intermediate,size_t tp_rank,size_t tp_size,Binder binder) {
++    KimiK3Mxfp4MoeWeights output;
++
++    if (hidden % 32 != 0 || intermediate % 32 != 0) {
+         throw std::runtime_error("KimiK3Experts: MXFP4 dimensions must be divisible by 32");
+     }
+     auto w13 = infinilm::runtime::Tensor::empty(
+-        runtime, {num_experts_, 2 * local_intermediate_size_, hidden_size_ / 2},
++        runtime, {experts, 2 * intermediate, hidden / 2},
+         infinilm::runtime::DataType::kUInt8);
+     auto w13_scale = infinilm::runtime::Tensor::empty(
+-        runtime, {num_experts_, 2 * local_intermediate_size_, hidden_size_ / 32},
++        runtime, {experts, 2 * intermediate, hidden / 32},
+         infinilm::runtime::DataType::kUInt8);
+     auto w2 = infinilm::runtime::Tensor::empty(
+-        runtime, {num_experts_, hidden_size_, local_intermediate_size_ / 2},
++        runtime, {experts, hidden, intermediate / 2},
+         infinilm::runtime::DataType::kUInt8);
+     auto w2_scale = infinilm::runtime::Tensor::empty(
+-        runtime, {num_experts_, hidden_size_, local_intermediate_size_ / 32},
++        runtime, {experts, hidden, intermediate / 32},
+         infinilm::runtime::DataType::kUInt8);
+ 
+     auto register_packed = [&](const std::string &name,
+@@ -219,30 +226,36 @@
+         auto expert_view = storage
+                                ->narrow({{0, expert, 1}, {1, row_start, row_count}})
+                                ->squeeze(0);
+-        this->bind_weight(
++        binder(
+             name,
+-            infinilm::weights::Weight(expert_view, tp_dim, tp_rank_, tp_size_));
++            infinilm::weights::Weight(expert_view, tp_dim, tp_rank, tp_size));
+     };
+-    for (size_t expert = 0; expert < num_experts_; ++expert) {
++    for (size_t expert = 0; expert < experts; ++expert) {
+         const std::string prefix = std::to_string(expert) + ".";
+         register_packed(prefix + "w1.weight_packed", w13, expert,
+-                        0, local_intermediate_size_, 0);
++                        0, intermediate, 0);
+         register_packed(prefix + "w1.weight_scale", w13_scale, expert,
+-                        0, local_intermediate_size_, 0);
++                        0, intermediate, 0);
+         register_packed(prefix + "w3.weight_packed", w13, expert,
+-                        local_intermediate_size_, local_intermediate_size_, 0);
++                        intermediate, intermediate, 0);
+         register_packed(prefix + "w3.weight_scale", w13_scale, expert,
+-                        local_intermediate_size_, local_intermediate_size_, 0);
++                        intermediate, intermediate, 0);
+         register_packed(prefix + "w2.weight_packed", w2, expert,
+-                        0, hidden_size_, 1);
++                        0, hidden, 1);
+         register_packed(prefix + "w2.weight_scale", w2_scale, expert,
+-                        0, hidden_size_, 1);
+-    }
+-
+-    mxfp4_weights_.packed_w13 = std::move(w13);
+-    mxfp4_weights_.w13_scale = std::move(w13_scale);
+-    mxfp4_weights_.packed_w2 = std::move(w2);
+-    mxfp4_weights_.w2_scale = std::move(w2_scale);
++                        0, hidden, 1);
++    }
++
++    output.packed_w13 = std::move(w13);
++    output.w13_scale = std::move(w13_scale);
++    output.packed_w2 = std::move(w2);
++    output.w2_scale = std::move(w2_scale);
++    return output;
++}
++
++void KimiK3Experts::register_mxfp4_experts(infinilm::runtime::Runtime &runtime) {
++    mxfp4_weights_=make_packed_banks_r168(runtime,num_experts_,hidden_size_,local_intermediate_size_,tp_rank_,tp_size_,
++        [this](const std::string&name,infinilm::weights::Weight parameter){this->bind_weight(name,std::move(parameter));});
+ }
+ 
+ const KimiK3Mxfp4MoeWeights &KimiK3Experts::mxfp4_weights() const {
+@@ -524,3 +537,44 @@
+     } catch(const std::exception&e) {result["error"]=e.what();}
+     serialized=result.dump();return serialized.c_str();
+ }
++
++namespace infinilm::models::kimi_k3 {
++// Probe is the same helper used by the unchanged real Experts constructor.
++// No RankInfo, communicator, model checkpoint, forward, cache, or MoE scratch.
++namespace {
++using ProbeJ168=nlohmann::json;
++thread_local std::string probe_result_r168;
++class ProbeBindingsR168 final:public infinilm::weights::ModelWeights {
++public:
++ void store(const std::string&name,infinilm::weights::Weight weight){this->bind_weight(name,std::move(weight));}
++};
++ProbeJ168 memory_r168(){size_t free=0,total=0;if(cudaMemGetInfo(&free,&total)!=cudaSuccess)throw std::runtime_error("r168 mem_get_info");if(free<=4ULL*1024*1024*1024)throw std::runtime_error("r168 unchanged4GiB floor");return{{"free_bytes",free},{"total_bytes",total},{"device_used_bytes",total-free},{"pool_reserved_bytes","UNKNOWN_NO_PUBLIC_POOL_STATS_API"}};}
++ProbeJ168 inspect_r168(ProbeBindingsR168&owner,const KimiK3Mxfp4MoeWeights&banks){
++ namespace rt=infinilm::runtime;
++ const std::array<rt::Tensor,4>bank{{banks.packed_w13,banks.w13_scale,banks.packed_w2,banks.w2_scale}};
++ const std::array<rt::Shape,4>shape{{{896,192,1792},{896,192,112},{896,3584,48},{896,3584,3}}};
++ const std::array<std::string,4>names{{"w13","s13","w2","s2"}};std::set<const void*>unique;ProbeJ168 info=ProbeJ168::array();size_t total=0;
++ for(size_t k=0;k<4;++k){const auto&t=bank[k];if(!t||t->shape()!=shape[k]||t->dtype()!=rt::DataType::kUInt8||!t->is_contiguous())throw std::runtime_error("r168 bank geometry");if(!unique.insert(t->data()).second)throw std::runtime_error("r168 bank alias");total+=t->nbytes();info.push_back({{"name",names[k]},{"shape",t->shape()},{"strides",t->strides()},{"logical_bytes",t->nbytes()},{"last_storage_byte_offset",t->nbytes()-1}});}
++ auto leaves=owner.state_dict();if(leaves.size()!=5376||total!=491323392)throw std::runtime_error("r168 original bank/leafcount");size_t checked=0;
++ for(size_t e=0;e<896;++e){
++  struct Leaf{const char*name;size_t bank,rowstart,rows,width,tpdim;};
++  const std::array<Leaf,6>spec{{{"w1.weight_packed",0,0,96,1792,0},{"w1.weight_scale",1,0,96,112,0},{"w3.weight_packed",0,96,96,1792,0},{"w3.weight_scale",1,96,96,112,0},{"w2.weight_packed",2,0,3584,48,1},{"w2.weight_scale",3,0,3584,3,1}}};
++  for(const auto&s:spec){auto key=std::to_string(e)+"."+s.name;auto t=leaves.at(key).tensor();size_t offset=(e*shape[s.bank][1]+s.rowstart)*s.width;const auto expected=bank[s.bank]->narrow({{0,e,1},{1,s.rowstart,s.rows}})->squeeze(0);
++   if(t->shape()!=rt::Shape{s.rows,s.width}||t->strides()!=expected->strides()||t->data()!=expected->data()||t->data()!=bank[s.bank]->data()+offset||!t->is_contiguous()||offset+t->nbytes()>bank[s.bank]->nbytes())throw std::runtime_error("r168 original narrow/squeeze alias");++checked;
++  }
++ }
++ return{{"unique_storages",unique.size()},{"leaf_aliases_checked",checked},{"banks",info},{"no_payload_read_or_forward",true},{"binding_path","same Binder->ModelWeights::bind_weight as Experts register"}};
++}
++}
++extern "C" const char*modern_kimi_I96_storage_probe_result_r168(){return probe_result_r168.c_str();}
++extern "C" int modern_kimi_I96_storage_probe_r168(){
++ using namespace infinilm;ProbeJ168 report={{"completed",false},{"scope","actual shared production packed-bank helper; not fullMoE/TP32world or Model"},{"weight_payload_loaded",false},{"forward_calls",0},{"communicator_created",false}};
++ try{int count=0;if(cudaGetDeviceCount(&count)!=cudaSuccess||count!=1)throw std::runtime_error("r168 exactlyone visible GPU required");
++  infini::rt::DeviceGuard guard{runtime::Device::Type::kHygon,0,true};report["before_Runtime"]=memory_r168();
++  {auto owner=runtime::Runtime::create({runtime::Device::Type::kHygon,0});auto&r=*owner;r.enableOwnerDrainFailStop();report["after_Runtime"]=memory_r168();if(report["after_Runtime"]["free_bytes"].get<uint64_t>()<=5ULL*1024*1024*1024)throw std::runtime_error("r168 1GiB bank reservation plus4GiB floor");
++   {ProbeBindingsR168 binding;auto banks=make_packed_banks_r168(r,896,3584,96,0,32,[&](const std::string&n,weights::Weight w){binding.store(n,std::move(w));});r.syncStream();report["after_shared_banks_construct"]=memory_r168();report["actual_alias_geometry"]=inspect_r168(binding,banks);report["graph_pinned_bytes_after_construct"]=r.graphPinnedMemoryBytes();}
++   r.syncStream();report["after_shared_banks_destroy"]=memory_r168();owner.reset();
++  }report["after_Runtime_destroy"]=memory_r168();report["completed"]=true;report["normal_Runtime_close"]=true;probe_result_r168=report.dump();return 0;
++ }catch(const std::exception&e){report["error"]=e.what();probe_result_r168=report.dump();return 1;}
++}
++} // namespace infinilm::models::kimi_k3
