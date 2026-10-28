@@ -1,0 +1,60 @@
+--- actual-parent/resident_caller_r9183.cpp
++++ private/resident_caller_registry_r184b.cpp
+@@ -1,3 +1,4 @@
++#include "glm_registry_geometry_r184b.hpp"
+ #include "glm_slots_proposal_r9183.hpp"
+ extern "C" int glm_ragged_enabled_r9136(int);
+ #include "glm_prefill_prefix_proof_r8703.hpp"
+@@ -31,7 +32,7 @@
+ 
+ // No class layout changes. Registry contains no shared Runtime/storage owners.
+ namespace {
+-struct Identity5775 {rt::Runtime*owner;size_t layer;int stage,rank,device;};
++struct Identity5775 {rt::Runtime*owner;size_t layer;int stage,rank,device,pp;};
+ thread_local std::map<const NativeAttentionProjectedR22*,Identity5775> identities5775;
+ struct Registration5775 final:weights::ModelWeights {const NativeAttentionProjectedR22*key;std::thread::id owner;explicit Registration5775(const NativeAttentionProjectedR22*k):key(k),owner(std::this_thread::get_id()){}~Registration5775()override{if(owner!=std::this_thread::get_id())std::terminate();identities5775.erase(key);}};
+ thread_local int mode5775=0,diag5775=0,shadow5775=-1;
+@@ -48,8 +49,8 @@
+ }
+ extern "C" int modern_glm_cross_control_r5775(int device,int mode,int diagnostic,int shadow){try{
+  int d=-1;if(cudaGetDevice(&d)!=cudaSuccess||d!=device||mode<0||mode>2||(diagnostic!=0&&diagnostic!=1)||shadow< -1||shadow>=78||(mode==1&&!diagnostic)||(shadow>=0&&(mode!=0||!diagnostic)))throw std::invalid_argument("5775 phase policy");
+- size_t count=0;std::set<size_t>layers;int stage=-1;for(auto&v:identities5775)if(v.second.device==device){v.second.owner->assertOwnerThread();if(v.second.owner->isGraphRecording())throw std::invalid_argument("5775 graph");cudaStreamCaptureStatus capture;if(cudaStreamIsCapturing(static_cast<cudaStream_t>(v.second.owner->stream()),&capture)!=cudaSuccess||capture!=cudaStreamCaptureStatusNone)throw std::invalid_argument("5775 external capture");v.second.owner->syncStream();if(stage<0)stage=v.second.stage;if(stage!=v.second.stage||!layers.insert(v.second.layer).second)throw std::logic_error("5775 identity conflict");++count;}
+- if(count!=size_t(stage==0?38:stage==1?40:0)||!count)throw std::logic_error("5775 incomplete stage identity");
++ size_t count=0;std::set<size_t>layers;int stage=-1,pp=-1;for(auto&v:identities5775)if(v.second.device==device){v.second.owner->assertOwnerThread();if(v.second.owner->isGraphRecording())throw std::invalid_argument("5775 graph");cudaStreamCaptureStatus capture;if(cudaStreamIsCapturing(static_cast<cudaStream_t>(v.second.owner->stream()),&capture)!=cudaSuccess||capture!=cudaStreamCaptureStatusNone)throw std::invalid_argument("5775 external capture");v.second.owner->syncStream();if(stage<0){stage=v.second.stage;pp=v.second.pp;}if(stage!=v.second.stage||pp!=v.second.pp||!layers.insert(v.second.layer).second)throw std::logic_error("5775 identity conflict");++count;}
++ if(!count)throw std::logic_error("5775 incomplete stage identity");registry_geometry_r184b::complete(pp,stage,layers);registry_geometry_r184b::policy(pp,mode,diagnostic,shadow);
+  mode5775=mode;diag5775=diagnostic;shadow5775=shadow;return 0;
+  }catch(const std::exception&e){error5775=e.what();return 1;}}
+ extern "C" const char*modern_glm_cross_journal_r5775(int device,int clear){try{int d=-1;if(cudaGetDevice(&d)!=cudaSuccess||d!=device||(clear!=0&&clear!=1))throw std::invalid_argument("5775 journal");nlohmann::json ids=nlohmann::json::array();for(auto&v:identities5775)if(v.second.device==device)ids.push_back({{"layer",v.second.layer},{"stage",v.second.stage},{"rank",v.second.rank}});serialized5775=nlohmann::json({{"mode",mode5775},{"diagnostic",diag5775},{"shadow",shadow5775},{"identities",ids},{"events",journal5775}}).dump();if(clear)journal5775=nlohmann::json::array();return serialized5775.c_str();}catch(const std::exception&e){error5775=e.what();return nullptr;}}
+@@ -74,9 +75,9 @@
+   r.setDeviceMemory(projected_key_->data(),0xff,projected_key_->nbytes());
+   r.setDeviceMemory(projected_value_->data(),0xff,projected_value_->nbytes());
+   lengths_.assign(rows,0);r.syncStream();
+-  if(cfg.at("num_hidden_layers")!=78||rank.tp_size!=8||rank.pp_size!=2||rank.pp_stage<0||rank.pp_stage>1||layer<size_t(rank.pp_stage==0?0:38)||layer>=size_t(rank.pp_stage==0?38:78))throw std::invalid_argument("5775 exact78layer TP8PP2 identity");
++  if(cfg.at("num_hidden_layers")!=78)throw std::invalid_argument("5775 requires actual78layer config");registry_geometry_r184b::member(rank.tp_size,rank.pp_size,rank.pp_stage,layer);
+   bind_child("_cross_registry_r5775",std::make_shared<Registration5775>(this));
+-  identities5775[this]={&r,layer,rank.pp_stage,rank.tp_rank,r.device().index()};
++  identities5775[this]={&r,layer,rank.pp_stage,rank.tp_rank,r.device().index(),rank.pp_size};
+  }catch(...){try{r.syncStream();}catch(...){std::terminate();}throw;}
+ }
+ void NativeAttentionProjectedR22::process_weights_after_loading(rt::Runtime&r,bool flag){r.assertOwnerThread();if(&r!=owner_||ready_||r.isGraphRecording())throw std::invalid_argument("GLM persistent attention postload differs");prepare_->process_weights_after_loading(r,flag);output_->process_weights_after_loading(r,flag);if(indexer_)indexer_->process_weights_after_loading(r,flag);ready_=true;}
+@@ -119,16 +120,16 @@
+ glm_layer_mark_r5670(r,"attn.projectedKV.begin");  auto fresh_all=prepare_->expand_cached(r,prepared.kv_latent,prepared.k_rot);
+   work.held.insert(work.held.end(),{fresh_all.first,fresh_all.second});
+   const auto identity5775=identities5775.at(this);if(identity5775.owner!=&r)throw std::logic_error("5775 Runtime identity");
+-  bool selected5775=mode5775==1||(mode5775==2&&identity5775.layer==77);
+-  bool shadow_here5775=shadow5775==int(identity5775.layer);
+-  bool geometry5775=tokens==4096&&requests.size()==8&&prepare_->local_heads()==8&&topk_>=512;
++  bool selected5775=identity5775.pp==2&&(mode5775==1||(mode5775==2&&identity5775.layer==77));
++  bool shadow_here5775=identity5775.pp==2&&shadow5775==int(identity5775.layer);
++  bool geometry5775=identity5775.pp==2&&tokens==4096&&requests.size()==8&&prepare_->local_heads()==8&&topk_>=512;
+   for(auto request:requests)geometry5775=geometry5775&&request.past==0&&request.tokens==512;
+   bool inspect5775=geometry5775&&(selected5775||diag5775||shadow_here5775);
+   bool fullprefix5775=inspect5775&&glm_crossrequest_fullprefix_r7328(r,selection,positions);
+   bool cross7328=selected5775&&geometry5775&&fullprefix5775;
+   nlohmann::json event5775;
+   bool prefill5775=std::any_of(requests.begin(),requests.end(),[](const Request&q){return q.tokens>1;});
+-  bool record5775=prefill5775&&diag5775;
++  bool record5775=identity5775.pp==2&&prefill5775&&diag5775;
+   if(record5775){nlohmann::json req=nlohmann::json::array();for(auto v:requests)req.push_back({v.row,v.past,v.tokens});event5775={{"global_layer",identity5775.layer},{"PP",identity5775.stage},{"TP",identity5775.rank},{"rows_past_tokens",req},{"full_indexer",full_},{"mode",mode5775},{"selected",selected5775},{"geometry",geometry5775},{"positions_validated_allrows",true},{"fullprefix_checked",inspect5775},{"fullprefix",fullprefix5775},{"hit",false},{"reason",!selected5775?"allowlist_OFF":!geometry5775?"geometry":!fullprefix5775?"fullprefix_reject":"eligible"}};}
+ glm_layer_mark_r5670(r,"attn.cache.begin");  const char*group_flag=std::getenv("GLM_GROUP_PROJECTED_HOST_R5030");
+   if(group_flag&&std::string(group_flag)!="0"&&std::string(group_flag)!="1")throw std::invalid_argument("5026 group flag 0/1");
