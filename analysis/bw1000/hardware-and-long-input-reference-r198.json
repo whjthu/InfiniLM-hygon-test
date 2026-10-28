@@ -1,0 +1,123 @@
+{
+  "UTC": "2026-10-28T21:15:33.013129+00:00",
+  "scope": "Hardware reference clarification plus existing actual long-input timing; no new GPU/profile/Model speedup or agent qualification",
+  "input": {
+    "path": "actual-model-progress-root-r9600-a.json",
+    "SHA256": "183489a0075ad3da923ffd79a6efe6b669c2f3fafe9d9200a546b2a6608820c9",
+    "observed_UTC": "2026-10-28T21:11:03.458173+00:00",
+    "retained_hardware_reference": "analysis/bw1000/hardware-and-cycle-reference-r8256.json",
+    "retained_hardware_reference_SHA256": "965f5a33b2dac7c363d9a4ccb149ac0df51e1895a8ca009a59f38a59013b40a0"
+  },
+  "operator_primary_spec": {
+    "URL": "https://ai.gitee.com/docs/compute/clusters_gpu/hygon_gpu/",
+    "title": "海光 BW1000 | 模力方舟",
+    "status": "Direct primary operator documentation fetched 2026-10-29 local; this is not a Hygon manufacturer datasheet or a matching-clock certificate for deployed cards",
+    "FP16_TFLOPS": 480,
+    "BF16_TFLOPS": null,
+    "FP32_TFLOPS": 60,
+    "memory_capacity_GB": 64,
+    "HBM_bandwidth_TB_s": 1.6,
+    "BF16_note": "Document lists a dash for BF16 performance; do not substitute FP16 480 for BF16 or packed/dequantized FP4/FP8 kernels.",
+    "native_FP8_note": "Operator says direct FP8 models are unsupported; this does not negate our explicit software conversion of stored checkpoint encodings."
+  },
+  "primary_sources_not_admitted_to_deployed_peak": [
+    {
+      "URL": "https://www.hygon.cn/product/accelerator",
+      "reason": "Direct fetch timed out; no numeric manufacturer peak verified"
+    },
+    {
+      "URL": "https://indico.cern.ch/event/1598655/contributions/7028377/attachments/3259850/5820311/IHEP%20%28China%29%20Facility%20Evolution%20Plans.pdf",
+      "reason": "DirectPDF403; search snippets do not resolve table sparsity/precision scope"
+    },
+    {
+      "URL": "https://www.scnet.cn/help/docs/mainsite/ai/introduction/index.html",
+      "reason": "The readable AI-card table is unnamed GDDR6/896GBs, not a BW1000 identity; do not transfer its metrics"
+    }
+  ],
+  "retained_achieved_references": {
+    "BF16_effective_TFLOPS": 333.752,
+    "FP32_effective_TFLOPS": 54.51,
+    "FP32_effective_scope_correction": "54.51 is the retained dense GEMM reference, not a demonstrated scalar or packed-vector MoE arithmetic ceiling.",
+    "packed_vector_FP32_TFLOPS": 22.976228865898197,
+    "packed_vector_FP32_reference": {
+      "evidence": "Hardware838-packed-vector-FP32-reference-r8806.json",
+      "SHA256": "769bdefff8df0fa1fb7afc688835d257be184c55b1fdd57ea9cc62a88e08590c",
+      "actual_handle": "910374.838",
+      "qualification": "8normal/CPUaudit0/post839empty; allfinite/guards/512selectedCPUoracle/device; 3warm+5samples",
+      "method": "4 v_pk_fma_f32 instructions per loop, 8 independent FP32 chains, 16FLOPs/thread/loop; fixed1280x256x65536, 343597383680FLOPs/kernel",
+      "event_device_medians_min_max_TFLOPS": [
+        22.974882391816745,
+        22.977097783387908
+      ],
+      "scope": "Achieved packed-vector arithmetic reference only. Native MoE packed ISA coverage, instruction throughput ceiling, physical card peak and Model maximum remain unproved; no kernel or Model utilization percent inferred. Original208 erroneous scalar regex failure preserved; qualification used same ELF without rebuilding."
+    },
+    "scope": "4096cubed reference GEMM,30nodes239cards; achieved rates are capability lowerbounds, not physical peaks.",
+    "read_TB_s": 1.23711,
+    "write_TB_s": 0.57279,
+    "copy_logical_read_plus_write_TB_s": 1.34956,
+    "memory_scope": "Existing1GiB kernels/fullCPUguards,7repetitions. Logical read+write copybytes differ from read-only HBM traffic; do not substitute or sum. Not inference/hostPCIe/interconnect bandwidth."
+  },
+  "conditional_HBM_read_reference_ratio": {
+    "value": 0.7731937499999999,
+    "meaning": "Only numerical comparison to operator-published1.6TBs with matching units; exactSKU/clock/read-vs-total traffic not certified, not Model or certified physical-peak utilization"
+  },
+  "GLM_current": {
+    "actual_handle": "910376.801",
+    "scope": "32cards TP8PP4, rows1, 32K, 512chunk, real8K16K tool histories; task correctness still pending",
+    "observed_tail_requests": [
+      {
+        "sequence": 4,
+        "actual_prompt_tokens": 16964,
+        "actual_generated_tokens": 330,
+        "wall_s": 1141.5291149793193,
+        "tail_CAPI_s": 1140.9928883472458,
+        "tail_prefill_CAPI_s": 1067.944217893295,
+        "tail_decode_CAPI_s": 73.04867045395076,
+        "nominal_input_tokens_per_prefill_CAPI_s": 15.884724797203761,
+        "outside_tail_CAPI_wall_s": 0.5362266320735216,
+        "outside_tail_CAPI_fraction": 0.00046974415723355096,
+        "perfect_removal_of_only_outside_tail_CAPI_whatif_factor": 1.000469964920509,
+        "reset_all32": true
+      },
+      {
+        "sequence": 5,
+        "actual_prompt_tokens": 8752,
+        "actual_generated_tokens": 329,
+        "wall_s": 582.7622988549992,
+        "tail_CAPI_s": 582.2397336084396,
+        "tail_prefill_CAPI_s": 510.5281325709075,
+        "tail_decode_CAPI_s": 71.71160103753209,
+        "nominal_input_tokens_per_prefill_CAPI_s": 17.143031777557198,
+        "outside_tail_CAPI_wall_s": 0.5225652465596795,
+        "outside_tail_CAPI_fraction": 0.0008967039350115926,
+        "perfect_removal_of_only_outside_tail_CAPI_whatif_factor": 1.0008975087346257,
+        "reset_all32": true
+      }
+    ],
+    "conclusion": "For these2 requests, almost all wall lies inside tail Native CAPI spans. These include upstream PP dependencies, host work and waits; not pure GPUbusy or network. Holding observed CAPI costs fixed, removing only the measured outside interval changes the arithmetic what-if by less than0.1percent. This does not bound all host/scheduling optimizations, which can change waits inside CAPI. Do not sum stage0 and stage3 CAPI or call their difference network cost.",
+    "old_C1_profile_scope": "787 TP8PP2/16cards/shortQA remains separate; its13ms host skew cannot be copied into current PP4 long-input claims.",
+    "next_after_acceptance": "Reuse existing percall T/past durations and source operation geometry to choose one prefill/dataflow or pipeline causal candidate; no new profiler framework while current run active"
+  },
+  "Kimi_current": {
+    "actual_handle": "910380.477",
+    "all4_weights_ready_and_resident": true,
+    "pernode_loading_s": [
+      1821.3266887948848,
+      1497.8131861602888,
+      1638.5187549008988,
+      1635.202987153083
+    ],
+    "critical_loader_max_s": 1821.3266887948848,
+    "loading_times_are_parallel_not_summed": true,
+    "full_longinput_and_agent_quality": "UNKNOWN until actual request completion/client/cleanup; Loadingcache probe and resident status are not qualification"
+  },
+  "roofline_boundary": {
+    "compute_formula": "Executed FLOPs / matching-precision certified peak, only if precision and deployed clocks are known",
+    "bandwidth_formula": "Actual traffic bytes / matching-path certified bandwidth; include quantization/depack and cache reads, not checkpoint size alone",
+    "PP1request_formula": "Sum genuinely serial per-stage costs; total cardTFLOPS cannot be divided into one request without a pipeline-overlap model",
+    "achieved_reference_formula": "Use retained measured C/B for what-if costs, not a physical lower time bound, because achieved C/B are lower bounds on capability",
+    "overall_Model_maximum_tok_s": "UNKNOWN",
+    "new_proven_performance_gain": 0
+  },
+  "goal_active": true
+}
