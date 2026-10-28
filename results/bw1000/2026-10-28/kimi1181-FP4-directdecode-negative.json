@@ -1,0 +1,268 @@
+{
+  "revision": "r164-actual1181-directdecode-negative",
+  "status": "STOP_NEGATIVE_NO_L47_NO_MODEL",
+  "actual_GPU_step": "910374.1181",
+  "hardware": "BW1000",
+  "cards": 16,
+  "topology": "TP16 2nodes8card/node, one real MoE L1; controlled T64",
+  "scope": {
+    "layer": 1,
+    "workloads": [
+      "historical16_repeated64",
+      "controlledGaussian64sameRMS_seed15520261028"
+    ],
+    "not_current449_activations": true,
+    "L47_tested": false,
+    "Model_tested": false,
+    "not_user_tok_s": true,
+    "pair_schedule": "4warm OFF/OFF/ON/ON +3 OFF/ON/OFF triples perworkload; eacharm3uninstrumentedcompleteforwards+1separatephase/hist"
+  },
+  "math": {
+    "candidate": "W13directIEEEFP32 E2M1 normalbitconstruction scale2..252, originaledgefallback",
+    "original_FP32_products_reduction_and_Situ": true,
+    "W2pair_fixed_ON": true,
+    "r155_wavefirst_reducer": false,
+    "GPU_F64": false
+  },
+  "gate": {
+    "required_each_triple_fullMoE_and_W13_rate_gain_percent": 5,
+    "maximum_OFF_drift_percent": 3,
+    "passed": false
+  },
+  "measurement_definitions": {
+    "rate_gain_percent": "100*((OFFbefore_ms+OFFafter_ms)/2/ON_ms -1)",
+    "latency_increase_percent": "100*(ON_ms/((OFFbefore_ms+OFFafter_ms)/2)-1)",
+    "fullMoE": "median of3unobservedrep alignedcall maximum across16owners; originaltaildrain includesTP/host",
+    "W13": "median across16owners of observerstreamsegment; includeslaunch/dependency, notpureGPUbusy",
+    "quality": "finite/readonly/canary andfullMoE NRMSE only; noModelquality/greedytokenidentityclaim"
+  },
+  "experiments": [
+    {
+      "layer": 1,
+      "workload_index": 0,
+      "blocks": [
+        {
+          "arms": [
+            4,
+            5,
+            6
+          ],
+          "fullMoE_OFFbefore_ON_OFFafter_ms": [
+            5.696887,
+            6.670792,
+            5.667467
+          ],
+          "fullMoE_rate_gain_percent": -14.820054350367984,
+          "fullMoE_latency_increase_percent": 17.398525248333495,
+          "OFF_drift_percent": 0.5164223899824627,
+          "W13_median_owner_OFFbefore_ON_OFFafter_ms": [
+            2.6267985105514526,
+            3.6125580072402954,
+            2.6119989156723022
+          ],
+          "W13_rate_gain_percent": -27.49185735254427,
+          "W13_latency_increase_percent": 37.91554485985576,
+          "candidate_fullMoE_NRMSE_max": 0.0,
+          "all_finite_readonly_canary": true,
+          "controlled_route_U_J_partial_rank0": {
+            "global_rank": 0,
+            "U": 33,
+            "J": 512,
+            "partial": 0
+          }
+        },
+        {
+          "arms": [
+            7,
+            8,
+            9
+          ],
+          "fullMoE_OFFbefore_ON_OFFafter_ms": [
+            5.627247,
+            6.722342,
+            5.598837
+          ],
+          "fullMoE_rate_gain_percent": -16.50168944097161,
+          "fullMoE_latency_increase_percent": 19.762902183878197,
+          "OFF_drift_percent": 0.504864989932019,
+          "W13_median_owner_OFFbefore_ON_OFFafter_ms": [
+            2.6122385263442993,
+            3.614157557487488,
+            2.6127195358276367
+          ],
+          "W13_rate_gain_percent": -27.715408375772988,
+          "W13_latency_increase_percent": 38.342069524100154,
+          "candidate_fullMoE_NRMSE_max": 0.0,
+          "all_finite_readonly_canary": true,
+          "controlled_route_U_J_partial_rank0": {
+            "global_rank": 0,
+            "U": 33,
+            "J": 512,
+            "partial": 0
+          }
+        },
+        {
+          "arms": [
+            10,
+            11,
+            12
+          ],
+          "fullMoE_OFFbefore_ON_OFFafter_ms": [
+            5.600967,
+            6.652861,
+            5.656689
+          ],
+          "fullMoE_rate_gain_percent": -15.392370290015068,
+          "fullMoE_latency_increase_percent": 18.192650406088084,
+          "OFF_drift_percent": 0.994863922604794,
+          "W13_median_owner_OFFbefore_ON_OFFafter_ms": [
+            2.6143970489501953,
+            3.621836543083191,
+            2.6107990741729736
+          ],
+          "W13_rate_gain_percent": -27.865379056075888,
+          "W13_latency_increase_percent": 38.62968806301461,
+          "candidate_fullMoE_NRMSE_max": 0.0,
+          "all_finite_readonly_canary": true,
+          "controlled_route_U_J_partial_rank0": {
+            "global_rank": 0,
+            "U": 33,
+            "J": 512,
+            "partial": 0
+          }
+        }
+      ],
+      "original_gate_passed": false
+    },
+    {
+      "layer": 1,
+      "workload_index": 1,
+      "blocks": [
+        {
+          "arms": [
+            4,
+            5,
+            6
+          ],
+          "fullMoE_OFFbefore_ON_OFFafter_ms": [
+            6.366851,
+            7.693405,
+            6.291201
+          ],
+          "fullMoE_rate_gain_percent": -17.734397188241104,
+          "fullMoE_latency_increase_percent": 21.557487676618802,
+          "OFF_drift_percent": 1.188185493896421,
+          "W13_median_owner_OFFbefore_ON_OFFafter_ms": [
+            3.3003979921340942,
+            4.6941564083099365,
+            3.300716996192932
+          ],
+          "W13_rate_gain_percent": -29.687952273583672,
+          "W13_latency_increase_percent": 42.22313704914309,
+          "candidate_fullMoE_NRMSE_max": 0.0,
+          "all_finite_readonly_canary": true,
+          "controlled_route_U_J_partial_rank0": {
+            "global_rank": 0,
+            "U": 472,
+            "J": 657,
+            "partial": 290
+          }
+        },
+        {
+          "arms": [
+            7,
+            8,
+            9
+          ],
+          "fullMoE_OFFbefore_ON_OFFafter_ms": [
+            6.392969,
+            7.713666,
+            6.393421
+          ],
+          "fullMoE_rate_gain_percent": -17.11859186021276,
+          "fullMoE_latency_increase_percent": 20.65432072696045,
+          "OFF_drift_percent": 0.0070702673515166126,
+          "W13_median_owner_OFFbefore_ON_OFFafter_ms": [
+            3.3082364797592163,
+            4.692878723144531,
+            3.304716944694519
+          ],
+          "W13_rate_gain_percent": -29.542677164874288,
+          "W13_latency_increase_percent": 41.92988886904758,
+          "candidate_fullMoE_NRMSE_max": 0.0,
+          "all_finite_readonly_canary": true,
+          "controlled_route_U_J_partial_rank0": {
+            "global_rank": 0,
+            "U": 472,
+            "J": 657,
+            "partial": 290
+          }
+        },
+        {
+          "arms": [
+            10,
+            11,
+            12
+          ],
+          "fullMoE_OFFbefore_ON_OFFafter_ms": [
+            6.350221,
+            7.697025,
+            6.318851
+          ],
+          "fullMoE_rate_gain_percent": -17.701501554171905,
+          "fullMoE_latency_increase_percent": 21.508899783662127,
+          "OFF_drift_percent": 0.49399855532586967,
+          "W13_median_owner_OFFbefore_ON_OFFafter_ms": [
+            3.3033576011657715,
+            4.690557479858398,
+            3.30215847492218
+          ],
+          "W13_rate_gain_percent": -29.587089546897914,
+          "W13_latency_increase_percent": 42.01941001516214,
+          "candidate_fullMoE_NRMSE_max": 0.0,
+          "all_finite_readonly_canary": true,
+          "controlled_route_U_J_partial_rank0": {
+            "global_rank": 0,
+            "U": 472,
+            "J": 657,
+            "partial": 290
+          }
+        }
+      ],
+      "original_gate_passed": false
+    }
+  ],
+  "lifecycle": {
+    "controller_passed": true,
+    "post_KFD_empty": true,
+    "normal_layer_owner_closes": 16,
+    "owners_in_data_normal": 16,
+    "network_IBext_noSocket": true
+  },
+  "evidence": {
+    "source_container_native_SHA256": "57c6bed3b22f3aa1b05b87fc370cf70737b5c22c62ecd5ebe3a5634a42e9e6b7",
+    "adapter_SHA256": "c9ebb920591f1effde0239b9742051d04e052d7d3e4e94c9c7d35cdcb7a8e539",
+    "source_manifest_SHA256": "5f21f7f45e9cb6209bf81116cbe96cc6fe20829a63e5e045f820ba874dabde5f",
+    "publication_commit": "adc32bba4d59d4a0a0cc5b6bcdafbcde948c5e94",
+    "original_node_results": [
+      {
+        "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Kimi-MoE-phase-r161-910374.1181-node1.json",
+        "SHA256": "9cb4f1cd19f7fe73b6b0eae5c8779db6d7ae5c8fbf4daeced89cd5227903d5ee"
+      },
+      {
+        "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Kimi-MoE-phase-r161-910374.1181-node0.json",
+        "SHA256": "b75131074e37caee2ca26e16a2c7a4d46418bcd6e7a2a1ddd82db1ba5816ff9b"
+      }
+    ],
+    "original_control": {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Kimi-W13-directdecode-r161L1-910407.516-control.json",
+      "SHA256": "32c93d74fe3ef623540af1d93b104466c44e3d348a649d9bba5a09a21d713f28"
+    },
+    "root_bounded_collection_SHA256": "5d64de26237f180d21925020651e3eeaab9fbac0fd405aff62bdefa25ebe4868",
+    "analyzer_path": "code/bw1000/resume-20261026/Kimi-W13-directdecode-resume-r161a/analyze_r161.py",
+    "analyzer_SHA256": "7932859fa457f44864b329cafbd9ccf40161b20574c4a5f2d9d81dd430721d71",
+    "local_extracted_nodes_not_for_Git": "node0.json/node1.json onlyprivateanalysisinputs;originalrawpaths+SHAabove"
+  },
+  "decision": "Stopthisdirectdecodecandidate. All6triples regress W13andcompleteMoE with<1.2pctOFFdrift andzeroNRMSE. Do notspendnewL47GPUorModelload. Preserveoriginalbaseline/defaultOFF. No broadFP4/INT8techniqueelimination.",
+  "interpretation": "Integerbitconstruction withnormal/edgeconditionals isnotautomaticallyfasterthan originalcompilerdecode. Candidatepredication/address/registerchanges areplausiblecorrelates, notprovenhardwarebottleneckcauses. Staticinstructioncounts retainfallbackpaths andcannotstandfordynamiccycles."
+}
