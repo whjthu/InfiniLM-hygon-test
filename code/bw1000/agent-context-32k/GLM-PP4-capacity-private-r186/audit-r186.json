@@ -1,0 +1,65 @@
+{
+  "Native_SHA256": "ce830c4d77fe193e4a6e82597aa4fb5b50019c82edce542eb6d61217a238bf68",
+  "source_supported_topology": "TP8 PP4 actual CAPI/TextModel; deployment-only",
+  "bounds": [
+    0,
+    18,
+    38,
+    58,
+    78
+  ],
+  "world_rank": "stage*8+device,world32",
+  "communication": "BF16 hidden shard tokens*768 between corresponding TP rank adjacent stages; TP8 allgather restore tokens*6144; stage0 embedding only,stage3 norm/head only",
+  "GLM_AttnRes_carry": false,
+  "why": "Exact source decoder ordinary residual attention/FFN. No Kimi AttnRes protocol applies. All stage starts require cfg indexer_types full; selection resets at every full layer.",
+  "policies": "hostOFF; constructor selection/bypass/owned defaultfalse; no setters before ready; formal loaded service must ownedOFF then featureOFF,indexerOFF; no cap640 resident/transient API",
+  "driver_changes_required": [
+    "PP4 bounds and cards32 throughout; all stage==1 emitter/logits =>stage==PP-1",
+    "Wire context+8 and real total<=32768, prefill512 contiguous chunks <=4096",
+    "four-node32owner cleanup,normalmarkers,CCL IBext/noSocket; no cached PP2 stage-overlay",
+    "4K native-default reasoning;8K native-default or explicit high recorded; no fixed low inherited from smoke"
+  ],
+  "cache_scope": "constructor exact CAPI census available; no logical estimate claimed fit; allocation-only creates parameter storage too",
+  "qualification": {
+    "GPU_probe_launched": false,
+    "constructor_fit": null,
+    "weights_finish_peak": null,
+    "long_prefill_workspace": null,
+    "real_agent": false
+  },
+  "sources": [
+    {
+      "component": "modern_glm_bridge_observer_r131.cpp",
+      "remote": "/refactor/incoming/GLM-critical-observer-r131/modern_glm_bridge_observer_r131.cpp",
+      "SHA256": "2dd4fe50c3476e6bf0d4dbd78ff9885f1f9862ed5174e64a20580f89c2d19fd2",
+      "object": "/refactor/candidates/GLM-critical-observer-r131/modern_glm_bridge_observer_r131.cpp.o",
+      "object_SHA256": "14a50f975e9c237aa921ce78776dd264f3c58b52cec88e92e83aa9b820a39c40",
+      "MD_SHA256": "2de233be9a1bc2ab274fb689bb3a9ebfe6c8cd19aa85973deb2cb308eed2caef",
+      "bytes": 30223
+    },
+    {
+      "component": "glm_text_observer_r131.cpp",
+      "remote": "/refactor/incoming/GLM-critical-observer-r131/glm_text_observer_r131.cpp",
+      "SHA256": "9a2e09e6d9dcd6da9587c95fdff0bb2a77b9d9a2250a173e3af2e129af683426",
+      "object": "/refactor/candidates/GLM-critical-observer-r131/glm_text_observer_r131.cpp.o",
+      "object_SHA256": "43560b571760c6ae80e3099b659ae21d768721232ce4965dd6a2e1f803262309",
+      "MD_SHA256": "22777fa67dfbb7dffafb4bff86004e7df238fae2c70ac85fb19a60db925c41ff",
+      "bytes": 12824
+    },
+    {
+      "component": "glm_decoder_observer_r131.cpp",
+      "remote": "/refactor/incoming/GLM-critical-observer-r131/glm_decoder_observer_r131.cpp",
+      "SHA256": "ab8ba917ca6489c34008f31ba5e9edbbb4a99a123a1c31ca0e1f099d6cbd435e",
+      "object": "/refactor/candidates/GLM-critical-observer-r131/glm_decoder_observer_r131.cpp.o",
+      "object_SHA256": "b54293f2c4ecddfac82b1b1e7860494122b5976a82f0edb8d33609196cb2611e",
+      "MD_SHA256": "f87e3614deab57a44720e0d3dd0743526542e3d7330b26cae556755bc26b8550",
+      "bytes": 5322
+    },
+    {
+      "component": "PP_layout",
+      "remote": "/refactor/candidates/glm-M16-r8861/tree/candidates/glm-PP2-B32-r8843/tree/candidates/glm-deferred-attention-model-5f91ad7-r5096/src/glm_PP_layout_r3854.hpp",
+      "SHA256": "5d460f9c5e6116b64d4b15247e6e4d1db06afca2c6d085db6242dc8703f8d903",
+      "bytes": 394
+    }
+  ]
+}
