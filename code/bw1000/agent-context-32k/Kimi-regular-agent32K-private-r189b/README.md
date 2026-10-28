@@ -1,0 +1,9 @@
+r189 is a private formal32K once-load service source package. Native CPU542 and official tokenizer are pinned. Context32768, logical1/physical2/KDApool3/MLApages260, ordinary4096 and thinking8192 are preserved. Full real eight-step histories, overlapping HTTP/SSE and an independent long-output case run against the same resident load. No crop, history drop, synthetic tool calls or output cap reduction.
+
+CPU-only prepare: runtime/CPU_prepare_inside_r189.sh through the existing outer container, --gres=none and empty three GPU masks. It creates the private Python overlay and verifies the already-built CPU542 profiles. runtime/preflight_inside.sh verifies Native/object/DSO closure with ldd/nm only, without dlopen/Runtime/model construction. CPU_contract_r189.py is local pure Python source/fixture validation.
+
+launcher/launch_CPU_keeper_r189.py is NOT a CPU-only prepare command: its CPU keeper can submit exactly one32card Model job. It requires root-published GO with exact source manifest and reviewed462/465 evidence. No GPU is authorized by this package.
+
+The bounded service serializes Native requests. HTTP/SSE overlap does not imply GPU batching. True long prefill uses initial<=512 then genuine-input width<=8 full commits, preserving history. Actual prefill wall and committed counts are persisted. Feasibility within8500s remains UNKNOWN. Timeout/error retains partial evidence and cannot pass qualification. SSE output is buffered; no streaming token latency claim. Every owner keeps4GiB free-memory floor. Actual full-model Ready/reset peaks and long numeric quality remain to be measured.
+
+Original r183 keeper545 post-port failure remains historical failure, cause UNKNOWN. New idle uses SO_REUSEADDR and records LISTEN and TIME_WAIT independently, with KFD separately checked. Root must bind actual462/465 evidence before one-load GO.
