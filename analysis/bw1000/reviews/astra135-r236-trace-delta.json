@@ -1,0 +1,18 @@
+{
+ "review":135,
+ "decision":"RETAIN_FREEZE_R236_NO_REQUIRED_CORRECTION",
+ "evidence":"local-only/GLM-prefill-execute-source-r236/trace-comparison-r236.json",
+ "scope":"Read existing184-case local fake-callback trace receipt; no rerun",
+ "finding":"Six fatal cases leave outer past at0 because execute_plan raises before tuple assignment returns,where229 had already incremented outerpast to512/1024. This is a Python local bookkeeping difference,not a rollback of Native state or executed calls",
+ "reason_nonblocking":"In current236 source exception propagates,request_completed_normally stays false,normal reset/barrier is bypassed,and control never reaches normal request row construction or another step/request. Outer error reporting uses exception/report fields,not outerpast to resume,reset,sample or advertise a successful request. Thus no current behavioral consumer depends on this stale scalar",
+ "limits":[
+  "Do not describe fatal local state as identical or use outerpast as authoritative Native progress in future failure diagnostics",
+  "If later adding recovery,retry,partial-success reporting or resume,this reasoning no longer applies; no such feature is approved",
+  "W1normal80 cases and W2normal80/cancel15/exception9 event equivalence support only tested local control paths. W1exception equivalence is not claimed; defaultW1 remains original bytes",
+  "Removing nonexistent W1normal_reset field assertion does not weaken exact actual reset/barrier event comparison recorded in receipt",
+  "No real CCL/Native/Model execution,liveness,cleanup or speedup proven; GPU_GO remains false"
+ ],
+ "action":"Freeze existing source and trace with this precise difference disclosed. No scalar synchronization patch,extra fixture or new review round warranted",
+ "new_performance_gain":0,
+ "performance_rounds":0
+}
