@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "UTC": "2026-10-29T20:01:13.520420+00:00",
+  "model": "Kimi-K3",
+  "actual_current_GPU": "910380.491",
+  "frozen_payload_manifest_SHA256": "6cf59841685c2c3f8247188454a08f6a1c323b634a535f4c4d1e76d39d9e6280",
+  "scope": "Source-derived scheduling/qualification boundary; not a timed cancellation experiment",
+  "source_identity": "manifests/bw1000/Kimi-multicall-witness-source-identity-r238.json",
+  "source_evidence": [
+    {
+      "private_source_relative_path": "overlay/python/infinilm/server/inference_server.py",
+      "SHA256": "3eacb7683143f8eaa5fcdd366122c78b835b560214125278bf4d99968a29553d",
+      "relevant_lines": [
+        547,
+        567,
+        573,
+        631
+      ]
+    },
+    {
+      "private_source_relative_path": "runtime/native_engine_bridge_r143.py",
+      "SHA256": "ee019b3053e209661877f84d1a721f95303cf09652e19fdda845e234d1dde77d",
+      "relevant_lines": [
+        123,
+        173,
+        196,
+        219,
+        237
+      ]
+    },
+    {
+      "private_source_relative_path": "runtime/target_protocol.py",
+      "SHA256": "9e2583a97de76bc8435a4f5e96c270eb8597edcc92b52870e92867d7b88238dc",
+      "relevant_lines": [
+        116,
+        124,
+        165,
+        176,
+        193
+      ]
+    },
+    {
+      "private_source_relative_path": "runtime/long_ar_r179.py",
+      "SHA256": "b9bd2f23a4e10fe7c809164eb993b0f4ed06358198998b053390606db49226cd",
+      "relevant_lines": [
+        10,
+        14,
+        18,
+        20,
+        39,
+        41
+      ]
+    }
+  ],
+  "findings": [
+    "The pinned nonstreaming _chat checks is_disconnected after a yielded engine event; the bridge consumes normal progress events internally and normally yields only on done or transport timeout. Killing the HTTP client is not a proven timely Native cancellation mechanism.",
+    "The pending Queue is not removed by add_aborted_req; a queued cancelled request is consumed later, reset, and skips generate only when its cancelled flag is observed.",
+    "An active request checks cancellation between Native input-width8 transactions or decode steps. In-flight CAPI/commit/reset/control work has no proved wall upper bound in this evidence.",
+    "The CPU wrapper absolute timeout bounds its own child lifetime, not the remaining Native queue occupancy. Original fixed Slurm/resource deadlines still apply.",
+    "Additional actual requests can be separately associated by actual HTTP response ID and Native request_id; the frozen original client count need not equal total Native count. They still compete for the same serial queue."
+  ],
+  "decision": {
+    "same_residency_append": "PARK_FOR_THIS_FROZEN_MATRIX",
+    "reason": "No demonstrated bound for extra Native occupancy; do not guarantee original-matrix reserve from a CPU timeout. Original491/492/578, stop rules, deadlines, sources and client remain unchanged.",
+    "independent_supplement": "SOURCE_REVIEWED_AND_PREPARED_ONLY; AFTER_ORIGINAL_COMPLETE_PASS_AND_ALL32_CLEANUP",
+    "authorization_statement": "The earlier separation of a second load from the one-run grant was coordinator scope interpretation, not a new AGENTS/SKILL prohibition or auto-review rejection. No separate second-load authorization or execution was created by this record.",
+    "no_uploads_or_submissions": true
+  },
+  "checker_and_review": {
+    "client_tests_passed": 10,
+    "supervisor_tests_passed": 6,
+    "actual_Model_calls": 0,
+    "reviewer": "/root/astra_review_130",
+    "source_review_complete": true,
+    "review_recommendations_adopted": true,
+    "new_performance_rounds": 0,
+    "performance_gain": null
+  },
+  "qualification": {
+    "real_multicall": "NOT_QUALIFIED",
+    "full_normal_agent": "CURRENT491_STILL_PENDING",
+    "CPU_or_template_checks_do_not_imply_GPU_PASS": true,
+    "no_physical_peak_or_Model_maximum_claim": true
+  }
+}
