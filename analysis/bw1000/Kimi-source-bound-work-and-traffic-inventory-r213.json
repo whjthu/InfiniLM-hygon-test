@@ -1,0 +1,148 @@
+{
+  "UTC": "2026-10-29T00:06:12.634293+00:00",
+  "owner": "bw1000-agent",
+  "scope": "Source-derived mathematical work/address-set inventory for current Kimi config and documented T1/T8 route; no new execution, physical maximum or speedup measurement",
+  "actual_running_handle": "910380.484",
+  "Native_SHA256": "7615e837cf94f6e74f4b493bc2c1e6c86c9ca818a21d37f3f78bab397a55391f",
+  "CPU201_receipt_SHA256": "e04ddad0f5b9bc23ad4ef5ac24353dce20ac4726bb737fcf11553311d7738336",
+  "actual_config_SHA256": "9710e121a58d03ac92c8d6da287a19541994319afbbe6d6202af001ffd379213",
+  "geometry": {
+    "global_hidden": 7168,
+    "routed_hidden": 3584,
+    "global_MoE_intermediate": 3072,
+    "TP": 16,
+    "PP": 2,
+    "local_MoE_intermediate": 192,
+    "configured_topk": 16,
+    "routed_experts": 896,
+    "shared_experts_excluded": 2,
+    "logical_capacity": 1,
+    "physical_pool": [
+      2,
+      3
+    ]
+  },
+  "routed_expert": {
+    "effective_dot_FLOPs_formula": "2*T*K*(2*H*I + H*I) = 6*T*K*H*I; MAC counted as2",
+    "logical_parameters_per_local_expert": 2064384,
+    "packed_W4_UInt8_bytes": 1032192,
+    "UInt8_scale_bytes_one_per32_weights": 64512,
+    "logical_payload_bytes_per_expert": 1096704,
+    "rows": [
+      {
+        "T": 1,
+        "configured_routes": 16,
+        "effective_dot_product_FLOPs": 66060288,
+        "distinct_expert_U_conditional_range": [
+          16,
+          16
+        ],
+        "unique_logical_weight_payload_bytes_range": [
+          17547264,
+          17547264
+        ],
+        "useful_FLOPs_per_unique_payload_byte_range": [
+          3.764705882352941,
+          3.764705882352941
+        ],
+        "logical_BF16_route_workspace_bytes": 6144,
+        "cold_one_read_nominal1_6TBs_reference_us_range": [
+          10.967039999999999,
+          10.967039999999999
+        ],
+        "routed_allreduce_API_tensor_payload_bytes": 7168
+      },
+      {
+        "T": 8,
+        "configured_routes": 128,
+        "effective_dot_product_FLOPs": 528482304,
+        "distinct_expert_U_conditional_range": [
+          16,
+          128
+        ],
+        "unique_logical_weight_payload_bytes_range": [
+          17547264,
+          140378112
+        ],
+        "useful_FLOPs_per_unique_payload_byte_range": [
+          3.764705882352941,
+          30.11764705882353
+        ],
+        "logical_BF16_route_workspace_bytes": 49152,
+        "cold_one_read_nominal1_6TBs_reference_us_range": [
+          10.967039999999999,
+          87.73631999999999
+        ],
+        "routed_allreduce_API_tensor_payload_bytes": 57344
+      }
+    ],
+    "U_scope": "U is distinct selected experts across the T-token block. Range assumes16 distinct routes per token. Actual route/U traces were not stored.",
+    "math_scope": "Useful dense-dot inventory, excluding activation, routing, reduction, shared experts, down/up projections, attention, CCL and unpack/dequant. Not actual executed ISA instructions or a whole-layer FLOP count.",
+    "traffic_scope": "U*payload is a unique logical address-set size, not measured HBM bytes. It is a cold-cache one-read lower-bound scenario only if every needed address must be fetched once from HBM. Cache hits, repeated loads, zero-route pruning, allocation padding and transaction amplification remain unknown."
+  },
+  "KDA_QKV": {
+    "source": "code/bw1000/agent-context-32k/Kimi-long-agent32K-private-r179/native/delta.cpp",
+    "input": 7168,
+    "local_heads": 6,
+    "head_dim": 128,
+    "output": 2304,
+    "weight_elements": 16515072,
+    "dtype_from_current_config": "bfloat16",
+    "source_quantization": null,
+    "effective_FLOPs_per_token_per_layer_per_rank": 33030144,
+    "logical_weight_bytes": 33030144,
+    "logical_work_formula": "2*T*7168*2304; source QKVParallelLinear with nullptr quantization",
+    "limits": "Geometry/dtype inventory only; convolution, gates, norms, output projection, cache and collectives excluded. BF16 storage does not prove selected GEMM kernel or peak."
+  },
+  "current_dispatch": {
+    "source": "code/bw1000/agent-context-32k/Kimi-long-scale-exact-private-r201/kimi_moe_scale_exact_r201.cpp",
+    "source_SHA256": "1959878b051f9ad25d60a3f17bb776a9f74623cacccf9fd7d216949addea70eb",
+    "source_lines": [
+      197,
+      410,
+      432
+    ],
+    "T1_T8_configured_path": "FusedMoeMxfp4 implementation_index1; I192_GROUPED/MOE_EXECUTION/W2_PAIR disabled in this regular service",
+    "MD_header": "code/bw1000/agent-context-32k/Kimi-operator-cost-source-r213/fused_moe_mxfp4.h",
+    "MD_header_SHA256": "bd9c2d4e99521e423abccbc37f4662c0320fedb4f94c4c5c9f375c644c091384",
+    "SDK_SHA256": "6d5a6204f7eef70e84deb9cc737a36c6ae2c1fbc75a0f70645557c8441ed85ca",
+    "ELF_matching_symbols": [
+      "_ZN6infini3ops12mxfp4_detail22fusedMoeMxfp4W13KernelI13__nv_bfloat16EEvPT_PKS4_PKiPKhSB_mmmmmmm",
+      "_ZN6infini3ops12mxfp4_detail22fusedMoeMxfp4W13KernelI6__halfEEvPT_PKS4_PKiPKhSB_mmmmmmm",
+      "_ZN6infini3ops12mxfp4_detail22fusedMoeMxfp4W13KernelIfEEvPT_PKS3_PKiPKhSA_mmmmmmm",
+      "_ZN6infini3ops12mxfp4_detail23launchFusedMoeMxfp4R330I13__nv_bfloat16P11CUstream_stEEvPT_S7_PKS6_PKiPKfPKhSF_SF_SF_RKNS0_16Mxfp4MoeGeometryET0_b",
+      "_ZN6infini3ops12mxfp4_detail29fusedMoeMxfp4W2Routes16KernelI13__nv_bfloat16EEvPT_PKS4_PKiPKfPKhSD_mmmmmm",
+      "_ZN6infini3ops12mxfp4_detail29fusedMoeMxfp4W2Routes16KernelI6__halfEEvPT_PKS4_PKiPKfPKhSD_mmmmmm",
+      "_ZN6infini3ops12mxfp4_detail29fusedMoeMxfp4W2Routes16KernelIfEEvPT_PKS3_PKiPKfPKhSC_mmmmmm",
+      "_ZN6infini3ops12mxfp4_detail37__device_stub__fusedMoeMxfp4W13KernelI13__nv_bfloat16EEvPT_PKS4_PKiPKhSB_mmmmmmm",
+      "_ZN6infini3ops12mxfp4_detail37__device_stub__fusedMoeMxfp4W13KernelI6__halfEEvPT_PKS4_PKiPKhSB_mmmmmmm",
+      "_ZN6infini3ops12mxfp4_detail37__device_stub__fusedMoeMxfp4W13KernelIfEEvPT_PKS3_PKiPKhSA_mmmmmmm",
+      "_ZN6infini3ops12mxfp4_detail44__device_stub__fusedMoeMxfp4W2Routes16KernelI13__nv_bfloat16EEvPT_PKS4_PKiPKfPKhSD_mmmmmm",
+      "_ZN6infini3ops12mxfp4_detail44__device_stub__fusedMoeMxfp4W2Routes16KernelI6__halfEEvPT_PKS4_PKiPKfPKhSD_mmmmmm",
+      "_ZN6infini3ops12mxfp4_detail44__device_stub__fusedMoeMxfp4W2Routes16KernelIfEEvPT_PKS3_PKiPKfPKhSC_mmmmmm",
+      "_ZN6infini3ops8OperatorINS0_13FusedMoeMxfp4ELNS_2rt6Device4TypeE7ELm1EED0Ev"
+    ],
+    "ELF_meaning": "W13/W2Routes16/R330 symbols exist in the same locked SDK; symbol presence alone does not establish T1/T8 runtime-selected kernel/ISA or FP32-pair coverage.",
+    "known_binding": "CPU201 all_new_MD.moe binds current MoE source, submit.hpp and installed FusedMoeMxfp4 base header. Base header validates geometry/storage/workspace but does not contain implementation1 GPU body.",
+    "remaining_identity_gap": "SDK producer source/object/code-object or equivalent deterministic implementation1 dispatch mapping is still missing; no compile/dlopen/GPU trace was added."
+  },
+  "hardware_reference": "analysis/bw1000/hardware-and-long-input-reference-r198.json",
+  "roof_boundary": {
+    "nominal_HBM_TB_s": 1.6,
+    "matching_deployed_clock_SKU_certification": false,
+    "cold_reference_interpretation": "Nominal BW divisions are explicitly conditional reference microseconds, not certified deployed latency bounds, achieved rates or Model maximum tok/s.",
+    "compute_peak_applied": null,
+    "reason": "Implementation1 executed arithmetic/ISA not closed; BF16 numeric peak absent in operator spec. W4 checkpoint/storage and disabled FP32-pair helper cannot select a valid peak.",
+    "whole_Model_maximum_tok_s": "UNKNOWN",
+    "no_GEMM_or_memory_reference_utilization_claim": true
+  },
+  "next": "Read-only SDK producer/dispatch/code-object binding when available; do not block or reload current full acceptance. Current full normal-agent acceptance remains first priority.",
+  "source_evidence": [
+    "results/bw1000/2026-10-29/Kimi-actual-config-scalars-root-r9660-a.json",
+    "results/bw1000/2026-10-29/Kimi-MoE-MD-and-ELF-compact-root-r9662-a.json",
+    "results/bw1000/2026-10-29/three-and-dtype-root-r9664-a.json",
+    "results/bw1000/2026-10-29/workflow-files-root-r9665-b.json"
+  ],
+  "new_performance_gain": 0,
+  "goal_complete": false
+}
