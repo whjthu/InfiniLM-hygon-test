@@ -1,0 +1,32 @@
+{
+  "UTC": "2026-10-29T14:10:18.934032+00:00",
+  "state": "LOCAL_SOURCE_ONLY_DEFAULT_OFF_NOT_LAUNCH_INTEGRATED",
+  "baseline": "code/bw1000/agent-context-32k/GLM-regular-service-private-r204",
+  "baseline_manifest_SHA256": "ecd82ecf22e8575a08102b8f58e4ef860e97d7119d69d1f5c9249a4819073902",
+  "Native_SHA256_unchanged": "038d4ff2e7aee2e6db80f691dd885222f3e3160e25ae9d0e269296daf9596c00",
+  "files": {
+    "check_glm_window2_r229.py": "4b93250f939f72915866b0a1133fc1da5a0ba5a454325c40f34f3dbcffa561e0",
+    "glm_agent_service_baseline_r204.py": "a95d08167c9f30be1d9f1fc75522a6bcc63364b079d9aa96c2289a00de5e480b",
+    "glm_agent_service_window2_r229.py": "5b7b38b6df8ec1c189aa8e2885585dbc05587b042e8032619a42f25fb3ee0307",
+    "glm_prefill_window_r229.py": "fa3fcf7815c966a29cf7262a2bc11644ac1a24caf366234b21cb237a7f73968c"
+  },
+  "default_window": 1,
+  "opt_in_flag": "GLM_PREFILL_CONTROL_WINDOW_R229=2",
+  "future_integration_requires": [
+    "All32owners use identical fixed flag and source closure before CCL initialization",
+    "Existing r204 dependencies/clients are not bundled or modified by this snapshot",
+    "Separate source-bound execution decision after three-model normal-agent acceptance"
+  ],
+  "rank_order_contract": [
+    "One owner/context, sequential original blocking forwards; max two existing same-request prefill chunks",
+    "Entry vote and group-end vote shared with next group entry; no local cancel or collective inside a committed group",
+    "Only final prompt logits sampled after group-end cancellation decision; decode stays one-token original control sequence",
+    "Cooperative cancellation drains committed forwards then normal sync/reset/WORLD barrier; exception bypasses normal drain and propagates existing fail-stop",
+    "Native internal drain may block; original absolute deadline/job kill unchanged. No communication liveness proof",
+    "Only one logits set retained per owner; original512MiB floor and all Native math unchanged"
+  ],
+  "GPU_tasks": 0,
+  "remote_CPU_tasks": 0,
+  "new_performance_gain": 0,
+  "Model_or_CCL_qualification": false
+}

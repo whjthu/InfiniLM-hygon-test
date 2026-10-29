@@ -1,0 +1,111 @@
+{
+  "review": 133,
+  "status": "COMPLETE",
+  "scope": "Existing local source/evidence review only; no SSH, Git, CPU/GPU execution, fixtures or new agents",
+  "decision": "CONDITIONAL_LOCAL_SOURCE_PREPARATION_ONLY_NO_PERFORMANCE_GPU_GO",
+  "review132_implementation": {
+    "verified": "coordination/reviews/bw1000/latest.json records132 COMPLETE_IMPLEMENTED and rounds0; root reports implementation commit530eaa66d14cd38e425993f8f117dc10a1c2a1d6",
+    "retain": "C128 r172/r216 PARK, defaultOFF, C1 UNKNOWN_NOT_MEASURED,571/572 CPU qualification retained; no new bridge/runtime/repeated timing/load",
+    "result": "Adopted; no grounds to reopen"
+  },
+  "question1_actual_progress": {
+    "new_whole_service_speed_gain": 0,
+    "performance_rounds": 0,
+    "Deep": "1209 complete fixed normal-agent/history/lifecycle PASS retained",
+    "GLM": "804 now complete fixed32K normal-agent PASS:30HTTP plus3long-output HTTP requests; generated2530/argument2428 tokens,32Native requests31EOS plus1intentional length,32owners normal reset/exit,804 and keeper564 COMPLETED0,post805 cleanupPASS",
+    "Kimi": "484 HTTP/SSE/long-output PASS but thinking parallelfalse multiple-call failure remains.223 frozen candidate has source-only CPUprepare approval, not actual CPU or Model qualification",
+    "limits": "Qualification and source/build repairs are engineering/quality progress. No matched performance comparison or hardware physical maximum was established; deployed certified BF16 peak and whole-model maximumTPS remain UNKNOWN"
+  },
+  "question2_cost_and_priority": {
+    "GLM_actual_job_elapsed": "05:35:04; keeper05:35:14. These are job envelopes, not pureGPU compute; queue/load/measurement split not established by terminal record",
+    "observation_and_approval": "Long intervals between observations or approval requests must not be added to actual compute time. Kimi source transfer is pending human authorization; current local filename/SHA authorization for GLM does not authorize Kimi transfer",
+    "avoid_repetition": "No repeated223 source review/fixtures, C128 preparation, constructorprobe, pureload or new profiler/report framework",
+    "priority": "All three normal-agent acceptance remains ahead of performanceGPU; Deep andGLM passed, Kimi outstanding. Idle GPUs do not override this ordering or transfer restrictions"
+  },
+  "question3_current_profiles": {
+    "GLM": "r225b/r226b describe currentPP4 row1 workload.25completed requests,504fullT512 calls per observed owner; stage3 past2K..4K median33.7546s versus12K..16K34.1597s. Post2K block latency approximately plateaus; longer input primarily adds blocks in observed range. This does not isolate compute, network or an attention complexity cause",
+    "GLM_clock": "TailNative includes upstream waits, synchronization and communication. Stage clocks overlap and cannot be summed or subtracted for pureGPU/communication attribution. NoGPUbusy or32cardGEMM-peak inference",
+    "Deep": "r227 owner first-token fraction80.6716% for24standard long-input requests includes reset, allprefix chunks and waits, not removable overhead. r228 only1/24 passes necessary adjacent-policy/length conditions for immediately previous fullcache; exact rendered-token prefix not measured",
+    "Deep_prefix": "Oldr128/r129 is two-positionMTP transaction, not long-session cache;1134 row2 cap256 numeric failure remains. Do not delete dynamic tool/system constraints to manufacture cache hits",
+    "Kimi": "Protocol failure and pending repair are current causal bottleneck to acceptance; no new speed attribution"
+  },
+  "GLM_window2_source_review": {
+    "reviewed_sources": [
+      "code/bw1000/agent-context-32k/GLM-regular-service-private-r204/glm_agent_service_probe_r204.py",
+      "code/bw1000/resume-20261026/glm-critical-observer-r131/modern_glm_bridge_observer_r131.cpp",
+      "code/bw1000/resume-20261026/glm-critical-observer-r131/glm_text_observer_r131.cpp"
+    ],
+    "private_identity": "Root reports authorized local actual-source hash matching. No private query contents reproduced or authorized for publication here",
+    "established": [
+      "Driver performs WORLD cancellation control before each512chunk; control synchronizes stream,allreduces,and synchronizes again",
+      "Actualshared_control=1 makes control communicator identical to world used by PPsend/recv",
+      "Each stage owner executes blocking forward sequentially. Text checks q.past==local rowlength,updates lengths at successful forward end,and syncs stream; temporaries drain before destruction",
+      "Nonfirst stages recv previous-stage shard and TPalIgather; nonlast stages send next-stage shard. Laststage computes head/logits even for intermediate prefill chunks, but driver samples only finalchunk",
+      "The next perchunk WORLD vote is a global completion boundary, preventing a stage from entering nextchunk before all stages reach that vote"
+    ],
+    "hypothesis": "Grouping two consecutive same-request chunks between cancellation boundaries could overlap different stages working on different chunks. It is not concurrent use of one stage/context and not merely saving allreduce CPU overhead",
+    "not_established": "Shared-communicator P2P/collective progress under altered crosschunk scheduling, cancellation/drain liveness and speedup. Existing719/724 PP2 independentmicro results do not qualify thisPP4 same-row schedule. Static per-rank order is necessary, not a CCL progress proof",
+    "minimal_local_candidate_allowed": {
+      "default": "Keepwindow1 behavior unchanged; optionalwindow2 only forprefill, max2 existing chunks including a possible partialfinalchunk; decoded tokens remainwindow1",
+      "execution": "Oneowner thread and existingcontext, oneblockingNativeforward at a time perstage. PreserveT512,positions,past,allmath,eachNative/Work drain,and memoryfloor; no asyncNative,secondcontext,threadpool,communicator split or Native ABI change",
+      "schedule": "Allranks derive same group boundaries from same admitted plan. Group-entry cancellation/expiry agreement commits allranks to identical chunkcount/order; no WORLD control/sample/reset within group. Normal groupcompletion reaches one agreed cancellation/expiry boundary before any finalchunk sampling or nextgroup. Avoid redundant boundary votes where a single agreed boundary suffices",
+      "cache": "A stage may advance its localrowpast ahead of downstream stage, but nextforward only follows its own prior successful drain. Never share mutable caches across stages orrequests, rewind,reset or reenter a context while its group is outstanding",
+      "sampling": "No intermediatechunk token emission or selection; use only finalpromptchunk logits after groupcompletion and cancellation decision. Keep existingheadmath and selectedtoken collective unchanged",
+      "cancel_timeout": "Cancelled group must finish already committed forwards and collectively suppress output before reset. Window2 can delay cancellation by at most one additional committedchunk relative towindow1 in count, not a proven seconds bound. Keep original absolute deadlines; do not extend them or call a partially drained request complete",
+      "failure": "Do not skip the second committedchunk on one rank after localcancel. Rank exception/Nativefailure is not ordinary cancellation. W1 keeps original path byte-for-byte; W2 normalcompletion/cooperativecancel retains normal sync/reset/WORLD barrier, but W2 exceptions must bypass that normal finally drain, mark normal_reset/normal_shutdown false and propagate original exception directly to existing guarded os._exit(2),mp.spawn and kill-on-bad-exit job fail-stop. No nextrequest,unilateral reset or healthy-recovery claim. This W2-only exceptional-finally branch is within allowed localdelta,not a new recoveryAPI. Native internal drain can itself block before Python regains control; existing absolute jobdeadline/kill remains necessary and source/CPU traces cannot prove CCL liveness or hardware faultcleanup",
+      "memory": "Only onecurrentcall buffer set perowner; do not retain twohidden/logit sets, addresident caches or weaken512MiBfloor. Crossstage temporaloverlap may still change allocator/CCL peaks; existingmemoryresult does not qualify candidate peak"
+    },
+    "approval": "GO only for one bounded LOCAL source delta and explicit in-source rank-order/cancellation contract, using existing driver. No CPU task or GPU run authorized by this review",
+    "stop_boundary": "If existingNative/CCL ordering or failurecontract cannot support the schedule without communicator/runtime redesign, PARKwindow2 now. Do not grow a new simulator,componentruntime,profiler or gate suite to rescue it",
+    "future_runtime": "NO-GO now. Local source preparation cannot establish communication liveness or Model correctness. Any later execution requires separate source-bound decision afterKimi normal-agent acceptance and applicable authorization"
+  },
+  "question4_next_cards": {
+    "GLM": [
+      {
+        "priority": 1,
+        "hypothesis": "PerchunkWORLD boundary suppresses useful PP4 crosschunk overlap",
+        "minimum_change": "Optionalprefillwindow2 group in currentdriver, subject to contract above; defaultwindow1 and Native unchanged",
+        "owner_resources": "OriginalGLM owner/root; LOCAL sourcepreparation only,0GPU/0CPUtask in this review",
+        "reuse": "804 fullPASS,r225b/r226b,current131Native source andr204 driver; no replay of oldPP2 tests",
+        "necessary_checks_and_samples": "One source review of actualdelta for communicatororder/localpast/finalsampling/groupcancel/failstop/memory. No new numeric samples now. Future numerical and warmed matched same-load measurement scope is not authorized or replaced by source reasoning",
+        "wall_potential": "Prefill dominates current requestwall; recoverable fraction and speedupUNKNOWN. Do not use stage3-minusstage0 or summedstage times as prediction",
+        "first_result_estimate": "Source feasibility decision within one bounded local pass, target<=30minutes; actualperformance ETAUNKNOWN and deferred",
+        "exit": "Any required Native/communicator/lifecycle redesign or unresolved rankprogress =>PARK, no expanded harness",
+        "fallback": "Existing perblock operator/source cost evidence, only source-local causal selection afteracceptance; no automatic newGPU or invented speedcandidate"
+      }
+    ],
+    "Deep": [
+      {
+        "priority": 1,
+        "hypothesis": "Immediate previous-fullcache reuse cannot cover most current frozenlonginput work under existing constraints",
+        "minimum_change": "PARK quicklongsessioncache/MTP reuse; retainqualified1209 andC128PARK. No cachecode or extra tokenreplay commissioned",
+        "owner_resources": "Root/originalDeep owner; existing evidence only",
+        "reuse": "r227,r228,1134numericnegative,132implementation",
+        "necessary_checks_and_samples": "None new;1/24 necessarycondition result is sufficient to deprioritize,not claim an exacthit rate",
+        "wall_potential": "UNKNOWN;80.67%firsttoken fraction is not removable",
+        "first_result_estimate": "Immediatedecision; noqueue/load/measurement",
+        "exit_fallback": "Reopen only for a materially different source-bound longinput/operator hypothesis,not deletingconstraints or relabeling two-positionMTP. No newperformanceGPU before allthree acceptance"
+      }
+    ],
+    "Kimi": [
+      {
+        "priority": 1,
+        "hypothesis": "Frozen223 requestconstraints/historyrepair may address484thinking protocolfailure",
+        "minimum_change": "No newsourcechange; wait for explicit human transferauthorization, then existing singleCPUprepare scope",
+        "owner_resources": "Root/originalKimi owner; no transfer orGPU authorization inferred here",
+        "reuse": "223 MF6cf59841685c2c3f8247188454a08f6a1c323b634a535f4c4d1e76d39d9e6280,131sourceapproval,484terminalnegative",
+        "necessary_checks_and_samples": "Previously approvedCPUprepare only afterauthorization; no repeatedfixture orsourceaudit. Actualnormal-agent qualification stillrequired later",
+        "wall_potential": "Quality/protocol correction,not speedgain",
+        "first_result_estimate": "AuthorizationwaitUNKNOWN; existingCPUouterbound180s oncepermitted. ModeltimeUNKNOWN",
+        "exit_fallback": "Authorizationabsent =>pending withoutworkaround. ConcreteCPUfailure =>stopatcause; noautomaticretry/GPU"
+      }
+    ]
+  },
+  "adoption_conditions": {
+    "adopt": "GLM804 qualification;132PARK retained; Deepquickprefixdeprioritized; Kimi223pending unchanged",
+    "conditional_adopt": "GLMwindow2 local-sourcefeasibility only with originalNative and explicit schedule/failure limits",
+    "defer": "AllperformanceGPU and actualwindow2validation until three-model acceptance and separateauthorization",
+    "reject": "Blindremoval of perchunkcontrols,communicatorsplit/asyncNative expansion,oldPP2 result ascurrentproof,shortenedinputs/output/toolhistory,additionalC128work,private-querypublication",
+    "root_action": "Record adopt/defer/reject with reasons in existing records and send only bounded source task to originalowner; no newframework"
+  }
+}

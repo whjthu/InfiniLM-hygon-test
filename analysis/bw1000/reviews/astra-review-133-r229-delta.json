@@ -1,0 +1,27 @@
+{
+  "review": 133,
+  "candidate": "GLM-prefill-window2-source-r229",
+  "decision": "APPROVE_LOCAL_SOURCE_DELTA_ONLY",
+  "blocking_findings": [],
+  "required_source_corrections": [],
+  "verified_SHA256": {
+    "baseline": "a95d08167c9f30be1d9f1fc75522a6bcc63364b079d9aa96c2289a00de5e480b",
+    "window2": "5b7b38b6df8ec1c189aa8e2885585dbc05587b042e8032619a42f25fb3ee0307"
+  },
+  "findings": [
+    "Default/explicit W1 dispatches byte-identical baseline; invalid flags rejected. W2 is an independent candidate with no launch integration.",
+    "Prefill groups contain at most two original chunks, with one blocking forward at a time per owner; past/positions, context, chunk limit and memory floor remain checked.",
+    "Initial entry vote and each prefill group exit vote agree cancellation before final-chunk sampling; exit vote serves next group entry. Intermediate logits are discarded; only final prompt chunk can emit a token. Decode retains one-block original entry control and sampling.",
+    "Cooperative cancellation finishes committed group and takes normal sync/reset/barrier; exception leaves request_completed_normally false and bypasses that normal finally drain. Outer best-effort reporting catches its own failures and bare-raises original exception.",
+    "Exceptions during normal cleanup also propagate through outer failure reporting; successful cleanup cannot be claimed after them. Native internal blocking drains remain outside this Python control-flow guarantee."
+  ],
+  "existing_checks": "Read existing17-case AST/fake-forward PASS receipt; not rerun. It supports local branch/order coverage only, not real distributed scheduling, CCL liveness, numerical correctness, Model quality or performance.",
+  "remaining_runtime_boundaries": [
+    "Future launch must bind exactly one fixed flag on every rank. Dispatcher alone does not establish this.",
+    "Shared WORLD communicator cross-chunk P2P/collective progress remains unqualified; source approval does not authorize execution.",
+    "Existing guarded fail-stop/job kill and absolute deadlines remain required. Python bypass cannot guarantee recovery from a blocked Native call; no normal shutdown or next-request recovery claim on failure.",
+    "No CPU task, Slurm, GPU, Native/communicator change, additional fixtures or private source transfer authorized. Kimi normal-agent acceptance remains ahead of performanceGPU."
+  ],
+  "review_actions": "Local text comparison, hash reads and existing receipt review only; no candidate or checker execution, SSH, Git or new agents",
+  "performance_gain": 0
+}
