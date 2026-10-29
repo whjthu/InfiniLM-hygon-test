@@ -1,0 +1,470 @@
+diff --git a/docs/tool-calling.md b/docs/tool-calling.md
+--- a/docs/tool-calling.md
++++ b/docs/tool-calling.md
+@@ -94,6 +94,22 @@
+ the installed encoder. DSML's explicit string flag and K3's argument type are
+ honored before shared schema validation.
+ 
++Historical reasoning is retained independently of the next response's thinking
++mode. DeepSeek disables history pruning; its original message renderer and K3's
++original segment renderer retain the historical thinking channel while the new
++generation prefix follows the requested mode. Hooks use per-processor function
++globals, without modifying checkpoint files or shared module state. These paths
++require the checkpoint's Python encoders (`render_message` for DeepSeek and
++`build_chat_segments` for K3); custom tokenizer replacements need separate tests.
++Text-only K3 chat inputs use that tokenizer's segment-aware encoding directly,
++so literal special-token-looking user/tool text is not reinterpreted as a
++structural marker. Raw text prompts and multimodal encoding retain their
++existing paths and are separate validation scopes.
++
++DeepSeek V4, GLM5 and K3 receive per-turn prompt instructions for required/named
++tools, disabled tools and `parallel_tool_calls=false`. Output validation remains
++mandatory: these instructions are not constrained decoding guarantees.
++
+ ## Scope and layout
+ 
+ The first step is model-side tool protocol support, kept in the InfiniLM
+diff --git a/python/infinilm/llm/llm.py b/python/infinilm/llm/llm.py
+--- a/python/infinilm/llm/llm.py
++++ b/python/infinilm/llm/llm.py
+@@ -453,8 +453,31 @@
+         """Detokenize token IDs to text."""
+         return self.tokenizer.decode(token_ids)
+ 
+-    def process(self, prompt, images, videos, audios, **kwargs) -> dict:
++    def process(
++        self,
++        prompt,
++        images,
++        videos,
++        audios,
++        *,
++        chat_messages=None,
++        chat_template_kwargs=None,
++        add_generation_prompt=True,
++        **kwargs,
++    ) -> dict:
+         """Process the input prompt and media into final model inputs."""
++        encode_chat = getattr(self.processor, "encode_chat_inputs", None)
++        if (
++            chat_messages is not None
++            and not (images or videos or audios)
++            and encode_chat
++        ):
++            return encode_chat(
++                chat_messages,
++                add_generation_prompt=add_generation_prompt,
++                **(chat_template_kwargs or {}),
++                **kwargs,
++            )
+         return self.processor(
+             prompt, images=images, videos=videos, audios=audios, **kwargs
+         )
+@@ -620,6 +643,7 @@
+                     mm_inputs["images"],
+                     mm_inputs["videos"],
+                     mm_inputs["audios"],
++                    chat_messages=content,
+                     return_tensors=_chat_tensor_mode(
+                         self.engine.processor, has_multimodal_inputs
+                     ),
+@@ -1110,6 +1134,9 @@
+                 mm_inputs["images"],
+                 mm_inputs["videos"],
+                 mm_inputs["audios"],
++                chat_messages=messages,
++                chat_template_kwargs=chat_template_kwargs,
++                add_generation_prompt=add_generation_prompt,
+                 return_tensors=_chat_tensor_mode(
+                     self.engine.processor, has_multimodal_inputs
+                 ),
+diff --git a/python/infinilm/processors/deepseek_v4_processor.py b/python/infinilm/processors/deepseek_v4_processor.py
+--- a/python/infinilm/processors/deepseek_v4_processor.py
++++ b/python/infinilm/processors/deepseek_v4_processor.py
+@@ -6,6 +6,7 @@
+ from pathlib import Path
+ 
+ from .basic_llm_processor import BasicLLMProcessor
++from .history_encoding import deepseek_history_encoder
+ 
+ 
+ class DeepSeekV4Processor(BasicLLMProcessor):
+@@ -15,7 +16,7 @@
+         spec = importlib.util.spec_from_file_location("deepseek_v4_encoding", source)
+         module = importlib.util.module_from_spec(spec)
+         spec.loader.exec_module(module)
+-        self.encode_messages = module.encode_messages
++        self.encode_messages = deepseek_history_encoder(module.encode_messages)
+ 
+     def apply_chat_template(
+         self, conversation, add_generation_prompt=False, tokenize=True, **kwargs
+@@ -45,6 +46,7 @@
+             messages,
+             thinking_mode=mode,
+             reasoning_effort=kwargs.get("reasoning_effort"),
++            drop_thinking=False,
+         )
+         if not add_generation_prompt:
+             prompt = prompt.removesuffix(
+diff --git a/python/infinilm/processors/kimi_k3_processor.py b/python/infinilm/processors/kimi_k3_processor.py
+--- a/python/infinilm/processors/kimi_k3_processor.py
++++ b/python/infinilm/processors/kimi_k3_processor.py
+@@ -9,6 +9,7 @@
+ from ..llm.scheduler import SchedulerOutput
+ from ..llm.static_scheduler import StaticSchedulerOutput
+ from .basic_llm_processor import BasicLLMProcessor
++from .history_encoding import kimi_history_template
+ 
+ 
+ class KimiK3Processor(BasicLLMProcessor):
+@@ -25,6 +26,9 @@
+             self.processor,
+             "tokenizer",
+             AutoTokenizer.from_pretrained(model_dir_path, trust_remote_code=True),
++        )
++        self._history_template = kimi_history_template(
++            self.tokenizer.apply_chat_template
+         )
+ 
+     @override
+@@ -84,7 +88,15 @@
+ 
+     @override
+     def apply_chat_template(self, conversation, **kwargs):
+-        return self.processor.apply_chat_template(conversation, **kwargs)
++        return self._history_template(conversation, **kwargs)
++
++    def encode_chat_inputs(self, conversation, **kwargs):
++        # Preserve the checkpoint's structural/ordinary BPE segment distinction.
++        # Re-tokenizing the rendered string would treat literal control-looking
++        # user or tool text as structural tokens.
++        return self._history_template(
++            conversation, tokenize=True, return_dict=True, **kwargs
++        )
+ 
+     @override
+     def build_model_inputs(
+diff --git a/python/infinilm/processors/history_encoding.py b/python/infinilm/processors/history_encoding.py
+new file mode 100644
+--- /dev/null
++++ b/python/infinilm/processors/history_encoding.py
+@@ -0,0 +1,57 @@
++"""Keep historical reasoning independent of the next response's mode."""
++
++from types import FunctionType, MethodType
++
++
++def _with_globals(function, **overrides):
++    # Isolate hooks per processor: never mutate checkpoint module globals shared
++    # by other processors or concurrent chat/thinking requests.
++    clone = FunctionType(
++        function.__code__,
++        dict(function.__globals__, **overrides),
++        function.__name__,
++        function.__defaults__,
++        function.__closure__,
++    )
++    clone.__kwdefaults__ = function.__kwdefaults__
++    return clone
++
++
++def deepseek_history_encoder(encode):
++    render = encode.__globals__["render_message"]
++
++    def render_history(index, messages, thinking_mode, **kwargs):
++        message = messages[index]
++        next_message = messages[index + 1] if index + 1 < len(messages) else {}
++        historical_reasoning = (
++            message.get("role") == "assistant" and message.get("reasoning_content")
++        ) or (
++            message.get("role") in {"user", "developer"}
++            and message.get("task") is None
++            and next_message.get("role") == "assistant"
++            and next_message.get("reasoning_content")
++        )
++        if historical_reasoning and thinking_mode != "thinking":
++            thinking_mode = "thinking"
++            # Effort belongs to the pending response, not a historical prefix.
++            kwargs["reasoning_effort"] = None
++        return render(index, messages, thinking_mode=thinking_mode, **kwargs)
++
++    return _with_globals(encode, render_message=render_history)
++
++
++def kimi_history_template(template):
++    build = template.__func__.__globals__["build_chat_segments"]
++    render = build.__globals__["_render_assistant_segments"]
++
++    def render_history(message, image_state, thinking=True):
++        reasoning = message.get("reasoning_content") or message.get("reasoning")
++        return render(
++            message,
++            image_state,
++            thinking=thinking or (reasoning is not None and str(reasoning) != ""),
++        )
++
++    build = _with_globals(build, _render_assistant_segments=render_history)
++    function = _with_globals(template.__func__, build_chat_segments=build)
++    return MethodType(function, template.__self__)
+diff --git a/python/infinilm/server/agent_protocol.py b/python/infinilm/server/agent_protocol.py
+--- a/python/infinilm/server/agent_protocol.py
++++ b/python/infinilm/server/agent_protocol.py
+@@ -128,6 +128,13 @@
+                 kwargs["thinking"] = kwargs.pop("enable_thinking")
+             if "reasoning_effort" in kwargs:
+                 kwargs["thinking_effort"] = kwargs.pop("reasoning_effort")
++            kwargs.pop("tool_choice", None)
++            if choice == "none":
++                kwargs["tool_choice"] = "none"
++            elif selected or choice == "required":
++                kwargs["tool_choice"] = "required"
++            if kwargs.get("thinking", True):
++                kwargs.setdefault("thinking_effort", "high")
+         seen, pending = set(), {}
+         for message in data.get("messages", []):
+             if not isinstance(message, dict):
+@@ -174,6 +181,71 @@
+                 pending[call_id] = name
+         if pending:
+             raise AgentProtocolError("Missing tool results")
++        if parser == "kimi_k3":
++            rules = []
++            if selected:
++                rules.append(
++                    "This assistant turn requires a real call to function "
++                    + json.dumps(selected, ensure_ascii=False)
++                    + " following its provided schema. Do not replace the required call with a text answer."
++                )
++            if choice != "none" and tools and not data.get("parallel_tool_calls", True):
++                rules.append(
++                    "In this assistant turn, issue at most one real tool call. After that call, end this assistant turn and wait for its tool result before deciding or calling any next tool. Do not combine later steps or additional invocations in this turn."
++                )
++            if rules:
++                data.setdefault("messages", []).insert(
++                    0,
++                    {
++                        "role": "system",
++                        "content": "[Request tool-call constraints]\n"
++                        + "\n".join(rules),
++                    },
++                )
++        if parser in {"deepseek_v4", "glm5"}:
++            rules = []
++            if choice == "none":
++                rules.append(
++                    "Tools are disabled for this assistant turn. Do not invoke any tool. Respond without a tool call."
++                )
++            elif tools:
++                if not data.get("parallel_tool_calls", True):
++                    rules.append(
++                        "In this assistant turn, issue at most one real tool call. After issuing that call, end this assistant turn and wait for its tool result before deciding or calling any next tool. Do not combine later steps or additional invocations in this turn."
++                    )
++                if choice == "required":
++                    rules.append(
++                        "This request requires at least one real tool call in this assistant turn. Do not substitute a text answer for the required tool call."
++                    )
++                elif selected:
++                    rules.append(
++                        "This request requires a real call to the function "
++                        + json.dumps(selected, ensure_ascii=False)
++                        + " in this assistant turn, following its provided schema. Do not substitute a text answer for the required call."
++                    )
++            if rules:
++                messages = data.setdefault("messages", [])
++                if not messages or messages[0].get("role") != "system":
++                    messages.insert(0, {"role": "system", "content": ""})
++                content = messages[0].get("content") or ""
++                if isinstance(content, list):
++                    if any(
++                        not isinstance(part, dict)
++                        or part.get("type") != "text"
++                        or not isinstance(part.get("text"), str)
++                        for part in content
++                    ):
++                        raise AgentProtocolError(
++                            "System tool constraints require text content"
++                        )
++                    content = "".join(part["text"] for part in content)
++                if not isinstance(content, str):
++                    raise AgentProtocolError(
++                        "System tool constraints require text content"
++                    )
++                messages[0]["content"] = (
++                    content + "\n\n[Request tool-call constraints]\n" + "\n".join(rules)
++                )
+     data["chat_template_kwargs"] = kwargs
+     return data, schemas, selected or choice
+ 
+diff --git a/test/service/test_agent_protocol.py b/test/service/test_agent_protocol.py
+--- a/test/service/test_agent_protocol.py
++++ b/test/service/test_agent_protocol.py
+@@ -1,5 +1,6 @@
+ """Protocol and real HTTP-route tests; fake inference is explicitly scoped here."""
+ 
++import ast
+ import copy
+ import importlib.util
+ import json
+@@ -14,6 +15,11 @@
+ from fastapi.testclient import TestClient
+ 
+ SERVER = Path(__file__).resolve().parents[2] / "python/infinilm/server"
++spec = importlib.util.spec_from_file_location(
++    "history_encoding_under_test", SERVER.parent / "processors/history_encoding.py"
++)
++history_encoding = importlib.util.module_from_spec(spec)
++spec.loader.exec_module(history_encoding)
+ spec = importlib.util.spec_from_file_location(
+     "agent_protocol_under_test", SERVER / "agent_protocol.py"
+ )
+@@ -670,6 +676,7 @@
+             "infinilm": types.ModuleType("infinilm"),
+             "infinilm.processors": types.ModuleType("infinilm.processors"),
+             "infinilm.processors.basic_llm_processor": base,
++            "infinilm.processors.history_encoding": history_encoding,
+         },
+     ):
+         spec = importlib.util.spec_from_file_location(
+@@ -703,3 +710,142 @@
+         captured["messages"][2]["tool_calls"][0]["function"]["arguments"], str
+     )
+     assert messages == original
++    assert captured["kwargs"]["drop_thinking"] is False
++
++
++def test_history_hooks_keep_current_mode_and_leave_checkpoint_globals_unchanged():
++    # A checkpoint-style function must resolve the hook through its own globals.
++    namespace = {}
++    exec(
++        "def render_message(index, messages, thinking_mode, **kwargs):\n"
++        " return (index, thinking_mode, kwargs.get('reasoning_effort'))\n"
++        "def encode(messages, thinking_mode, **kwargs):\n"
++        " return [render_message(i, messages, thinking_mode, **kwargs) for i in range(len(messages))]\n",
++        namespace,
++    )
++    messages = [
++        {"role": "user", "content": "first"},
++        {"role": "assistant", "reasoning_content": "saved", "content": "answer"},
++        {"role": "user", "content": "next"},
++    ]
++    original = namespace["encode"]
++    adapted = history_encoding.deepseek_history_encoder(original)
++    assert adapted(messages, "chat", reasoning_effort="max") == [
++        (0, "thinking", None),
++        (1, "thinking", None),
++        (2, "chat", "max"),
++    ]
++    assert original(messages, "chat") == [(i, "chat", None) for i in range(3)]
++    assert adapted(messages, "thinking") == [(i, "thinking", None) for i in range(3)]
++
++    namespace = {}
++    exec(
++        "def _render_assistant_segments(message, image_state, thinking=True):\n"
++        " return (message.get('reasoning_content'), thinking)\n"
++        "def build_chat_segments(messages, *, thinking=True):\n"
++        " return [_render_assistant_segments(m, None, thinking) for m in messages], thinking\n"
++        "def template(self, messages, *, thinking=True):\n"
++        " return build_chat_segments(messages, thinking=thinking)\n",
++        namespace,
++    )
++    template = types.MethodType(namespace["template"], object())
++    adapted = history_encoding.kimi_history_template(template)
++    assert adapted(messages, thinking=False) == (
++        [(None, False), ("saved", True), (None, False)],
++        False,
++    )
++    assert template(messages, thinking=False) == (
++        [(None, False), ("saved", False), (None, False)],
++        False,
++    )
++
++
++def test_chat_inputs_use_segment_encoder_only_for_supported_text_processors():
++    tree = ast.parse((SERVER.parent / "llm/llm.py").read_text())
++    method = next(
++        node
++        for node in ast.walk(tree)
++        if isinstance(node, ast.FunctionDef) and node.name == "process"
++    )
++    namespace = {}
++    exec(
++        compile(ast.Module(body=[method], type_ignores=[]), "llm.process", "exec"),
++        namespace,
++    )
++    calls = []
++
++    class Processor:
++        def encode_chat_inputs(self, messages, **kwargs):
++            calls.append((messages, kwargs))
++            return {"input_ids": [17, 18]}
++
++        def __call__(self, prompt, **kwargs):
++            return {"legacy_prompt": prompt, **kwargs}
++
++    engine = types.SimpleNamespace(processor=Processor())
++    messages = [{"role": "user", "content": "literal <|open|>"}]
++    process = namespace["process"]
++    assert process(
++        engine,
++        "rendered",
++        [],
++        [],
++        [],
++        chat_messages=messages,
++        chat_template_kwargs={"thinking": False},
++        return_tensors="pt",
++    ) == {"input_ids": [17, 18]}
++    assert calls == [
++        (
++            messages,
++            {"thinking": False, "return_tensors": "pt", "add_generation_prompt": True},
++        )
++    ]
++    assert process(engine, "raw", [], [], [])["legacy_prompt"] == "raw"
++    assert (
++        process(engine, "image", ["image"], [], [], chat_messages=messages)[
++            "legacy_prompt"
++        ]
++        == "image"
++    )
++    engine.processor = lambda prompt, **kwargs: {"legacy_prompt": prompt, **kwargs}
++    assert (
++        process(engine, "other model", [], [], [], chat_messages=messages)[
++            "legacy_prompt"
++        ]
++        == "other model"
++    )
++
++
++@pytest.mark.parametrize("parser", ["deepseek_v4", "glm5", "kimi_k3"])
++def test_turn_constraints_reach_model_without_changing_caller_history(parser):
++    request = dict(
++        messages=[{"role": "user", "content": "compute"}],
++        tools=TOOLS,
++        tool_choice={"type": "function", "function": {"name": "compute"}},
++        parallel_tool_calls=False,
++    )
++    original = copy.deepcopy(request)
++    data, schemas, choice = protocol.prepare_agent_request(request, parser)
++    assert request == original
++    assert data["messages"][1:] == original["messages"]
++    system = data["messages"][0]["content"]
++    assert 'function "compute"' in system
++    assert "at most one real tool call" in system
++    assert choice == "compute" and set(schemas) == {"compute"}
++    disabled, _, _ = protocol.prepare_agent_request(
++        dict(request, tool_choice="none"), parser
++    )
++    required, _, _ = protocol.prepare_agent_request(
++        dict(request, tool_choice="required"), parser
++    )
++    if parser == "kimi_k3":
++        assert data["chat_template_kwargs"]["tool_choice"] == "required"
++        assert disabled["chat_template_kwargs"]["tool_choice"] == "none"
++        assert required["chat_template_kwargs"]["tool_choice"] == "required"
++        assert required["chat_template_kwargs"]["thinking_effort"] == "high"
++    else:
++        assert "Tools are disabled" in disabled["messages"][0]["content"]
++        assert (
++            "requires at least one real tool call" in required["messages"][0]["content"]
++        )
