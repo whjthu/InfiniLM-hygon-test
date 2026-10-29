@@ -1,0 +1,74 @@
+{
+  "candidate": "Kimi-history-preserve-private-r217",
+  "status": "SCOPED_CPU_CANDIDATE_ONLY",
+  "CPU_only": true,
+  "GPU_GO": false,
+  "Model_qualified": false,
+  "base_running_service_immutable": "r205 / 910380.484 / Native201",
+  "baseline_renderer_SHA256": "49ff03305fdc4be26867972788d36150b67f8a9e852e62bb7959d87482223676",
+  "changes": [
+    "build_chat_segments adds keyword-only preserve_history_reasoning=False",
+    "Only historical assistant rendering uses current thinking OR explicit preservation plus existing effective nonempty reasoning_content/reasoning",
+    "Existing _render_assistant_segments/_open_tag/_close_tag/_append_text and all other helpers unchanged",
+    "Long codec explicitly sets preserve_history_reasoning=True before unchanged base encode_chat",
+    "Generic codec bytes unchanged; generation prefix and effort remain solely current-thinking controlled"
+  ],
+  "CPU_fixture": {
+    "entry": "python3 -B CPU_prepare_r217.py --output UNIQUE-CPU-renderer-fixtures-r217.json",
+    "local_result": "CPU-renderer-fixtures-r217.json",
+    "passed_checks": 91,
+    "actual_renderer_executed": true,
+    "BPE_executed": false,
+    "segment_recorder": "Only codec routing exercise uses a stdlib encoding recorder; no token counts/IDs or BPE qualification claimed",
+    "coverage": [
+      "8 actual historical reasoning fields across reasoning_content/reasoning, preserved exactly once in think channel",
+      "chat/thinking switch with generation prefix and effort checks",
+      "prior assistant tool calls and matched tool results",
+      "default and explicit false segment/text-byte equivalence with baseline",
+      "no-RC opt-in equivalence across both generation modes/options",
+      "structural-looking ordinary text retains allow_special=False",
+      "empty/whitespace semantics match original helper",
+      "caller history/options unchanged; generic codec default unchanged"
+    ],
+    "developer": "Actual renderer rejects developer in baseline and candidate; no new conversion. Existing legal transform was not found and is not claimed."
+  },
+  "limits": [
+    "No actual tokenizer/BPE or saved private history executed",
+    "No Model/Native/GPU/remote compile or job executed",
+    "No service full-matrix or quality qualification; in-flight frozen r205 result unaffected"
+  ],
+  "files": {
+    "CPU-renderer-fixtures-r217.json": {
+      "SHA256": "23beed7c43486861f0c381da76b538f731ccf0ea47cfb18fc049ab9d06416577",
+      "bytes": 5686
+    },
+    "CPU_prepare_r217.py": {
+      "SHA256": "3c918614645933dd38fc29a058de08938d38a739a543b3bb79fa881733ba3b6e",
+      "bytes": 10710
+    },
+    "source-change-r217.patch": {
+      "SHA256": "db4c8b5c9662390f07a0aa7c8e24518efc52e24218197f4af7c45d53d2e54827",
+      "bytes": 1731
+    },
+    "baseline/frozen_encoding_k3_r143.py": {
+      "SHA256": "49ff03305fdc4be26867972788d36150b67f8a9e852e62bb7959d87482223676",
+      "bytes": 26304
+    },
+    "baseline/long_codec_r179.py": {
+      "SHA256": "de60995581933d121b5b9beb16291f066d10d2eca4ba6cbbd13ed75aabb746cb",
+      "bytes": 1721
+    },
+    "runtime/frozen_encoding_k3_r143.py": {
+      "SHA256": "5baf623402041af20ea074186134eef2db4f5f1ef4708133805a2566a734149f",
+      "bytes": 26810
+    },
+    "runtime/long_codec_r179.py": {
+      "SHA256": "01a4a921ab27f1ce78514b0ab4994060c9c95b2bdf362e354b877b8fd06c4143",
+      "bytes": 1747
+    },
+    "runtime/xtml_codec_r143.py": {
+      "SHA256": "7618b171dd40d58548d6707e40fdb88c1666fda8bd23d7107d6e8f7ad070a4d7",
+      "bytes": 4225
+    }
+  }
+}

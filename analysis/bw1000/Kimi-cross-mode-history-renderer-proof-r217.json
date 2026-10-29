@@ -1,0 +1,37 @@
+{
+  "UTC": "2026-10-29T00:29:02.217954+00:00",
+  "CPU_only": true,
+  "source_SHA256": "49ff03305fdc4be26867972788d36150b67f8a9e852e62bb7959d87482223676",
+  "source": "code/bw1000/agent-context-32k/Kimi-regular-agent32K-private-r205/runtime/frozen_encoding_k3_r143.py",
+  "scope": "Executed actual pinned K3 segment renderer on one synthetic ordinary-text history, with two generation modes; not tokenization or Model execution",
+  "rows": [
+    {
+      "current_generation_thinking": false,
+      "historical_reasoning_occurrences": 0,
+      "historical_answer_occurrences": 1,
+      "caller_messages_unchanged": true,
+      "rendered_prompt_SHA256": "e19f16ee7c3376f0aa7c3cb16c5b8e0d4616496ed206e4e11575287bc5ec4a7a",
+      "rendered_prompt_chars": 435
+    },
+    {
+      "current_generation_thinking": true,
+      "historical_reasoning_occurrences": 1,
+      "historical_answer_occurrences": 1,
+      "caller_messages_unchanged": true,
+      "rendered_prompt_SHA256": "b719390fdbcf579a9c680a23c6c0c7829b6fccf8ab91cff9ba6f3330d0139fb9",
+      "rendered_prompt_chars": 826
+    }
+  ],
+  "finding": "Current nonthinking generation also removes historical reasoning_content. An unchanged caller message list does not prove rendered history retention. Same-mode thinking retains the fixture exactly once.",
+  "existing_CPU_runtime_contract_limit": "r205 test patches KimiXTMLCodec.encode_chat and tests enable_thinking=True only; its full_history_and_thought_honored boolean does not cover cross-mode serialized history.",
+  "actual_running_service": "910380.484",
+  "actual_service_failure_observed": false,
+  "current_matrix_limit": "Frozen workflows keep each profile in a single generation mode; no thinking-to-chat continuation is proved by this fixture or current in-flight matrix.",
+  "next": "Astra130 scoped review: reconcile preserve-all-history requirement; if adopted, separate history reasoning rendering from current generation mode in a new opt-in service candidate, retain default official codec behavior and current in-flight service. No hot changes or rerun.",
+  "GPU_or_Model_executed": false,
+  "tokenizer_executed": false,
+  "source_exported": false,
+  "running_source_modified": false,
+  "whole_agent_qualification": "UNPROVEN",
+  "goal_complete": false
+}

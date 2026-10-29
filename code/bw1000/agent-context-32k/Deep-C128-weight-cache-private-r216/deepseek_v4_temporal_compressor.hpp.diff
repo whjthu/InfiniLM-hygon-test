@@ -1,0 +1,19 @@
+--- ac937/deepseek_v4_temporal_compressor.hpp
++++ r172/deepseek_v4_temporal_compressor.hpp
+@@ -1,4 +1,5 @@
+ #pragma once
++#include <cstdint>
+ #include "weights/weights.hpp"
+ #include "layers/normalization/rmsnorm.hpp"
+ #include "deepseek_v4_paged_latent_cache.hpp"
+@@ -48,6 +49,10 @@
+     size_t original_;
+     bool ready_ = false;
+     runtime::Tensor wkv_, wgate_, ape_, packed_ape_, state_;
++    // Original checkpoint tensors stay bound and immutable after finish.
++    // This object is the cache identity; reload requires a new compressor.
++    runtime::Tensor wkv32_r172_, wgate32_r172_;
++    uint64_t weight_generation_r172_ = 0, cached_generation_r172_ = 0;
+     std::shared_ptr<layers::RMSNorm> norm_;
+     std::unique_ptr<PagedLatentCache> cache_;
+     std::vector<size_t> lengths_;

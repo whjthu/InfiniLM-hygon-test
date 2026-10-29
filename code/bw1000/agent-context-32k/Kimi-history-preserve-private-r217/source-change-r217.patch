@@ -1,0 +1,35 @@
+--- r205/runtime/frozen_encoding_k3_r143.py
++++ r217/runtime/frozen_encoding_k3_r143.py
+@@ -587,6 +587,7 @@
+     *,
+     add_generation_prompt: bool = True,
+     thinking: bool = True,
++    preserve_history_reasoning: bool = False,
+     image_prompts: Optional[list[str]] = None,
+     **kwargs: Any,
+ ) -> list[EncodeSegment]:
+@@ -692,7 +693,15 @@
+             if message.get("name"):
+                 attrs.append(("name", message["name"]))
+             segments.extend(_open_tag("message", attrs))
+-            segments.extend(_render_assistant_segments(message, image_state, thinking))
++            # Historical channels are independent of this generation's mode.
++            # Keep the original renderer and its structural/text segment policy.
++            history_reasoning = message.get("reasoning_content") or message.get("reasoning")
++            history_thinking = thinking or (
++                preserve_history_reasoning
++                and history_reasoning is not None
++                and str(history_reasoning) != ""
++            )
++            segments.extend(_render_assistant_segments(message, image_state, history_thinking))
+             segments.extend(_close_tag("message"))
+             segments.extend(_end_of_msg())
+         else:
+--- r205/runtime/long_codec_r179.py
++++ r217/runtime/long_codec_r179.py
+@@ -15,4 +15,5 @@
+   effort=kwargs.get('thinking_effort',kwargs.get('reasoning_effort'))
+   if effort is not None and effort not in ['low','high','max']:raise ValueError('Kimi supports thinking effort low/high/max only')
+   if thinking and effort is None:kwargs['thinking_effort']='high'
++  kwargs['preserve_history_reasoning']=True
+   return super().encode_chat(messages,kwargs,add_generation_prompt)
