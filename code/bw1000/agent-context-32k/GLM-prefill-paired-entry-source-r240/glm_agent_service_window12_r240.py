@@ -28,7 +28,7 @@ def run(lib,ctx,stage,rank,payload,control,check,ptr,stream,vocab,report,report_
         paired_measured_requests=16,normal_reset=False,normal_shutdown=False,
         measured_pairing_qualified=False)
 
-    report.update(scope='UNQUALIFIED fixed W1/W2 same-load candidate; repeats one real named read_file request; not eight-tool closed-loop acceptance, full Model or performance qualification',service_requests=[],cohort_phases_completed=False,normal_reset_close=False,tool_protocol_commit='7ceb60d656074376b911c2a232196a9457dfa6a6 + scoped-timeout-correction + GLM namedtools preserve-all patch; agent_protocol_SHA256=c91ab84a5ddc800602dcae0319ad5c02ad3b01c1936a2bd57bce90c2ad15abc3',model_context=CONTEXT,validation_stream_timeout_s=3600,validation_request_timeout_s=7200,served_model='GLM-5.3',HTTP_qualified=False,tool_closed_loop_qualified=False)
+    report.update(scope='UNQUALIFIED fixed W1/W2 same-load candidate; repeats one real >=8K history/data named calculate request; not eight-tool closed-loop acceptance, full Model or performance qualification',service_requests=[],cohort_phases_completed=False,normal_reset_close=False,tool_protocol_commit='7ceb60d656074376b911c2a232196a9457dfa6a6 + scoped-timeout-correction + GLM namedtools preserve-all patch; agent_protocol_SHA256=c91ab84a5ddc800602dcae0319ad5c02ad3b01c1936a2bd57bce90c2ad15abc3',model_context=CONTEXT,validation_stream_timeout_s=3600,validation_request_timeout_s=7200,served_model='GLM-5.3',HTTP_qualified=False,tool_closed_loop_qualified=False)
     def save():
         temp=report_path.with_suffix('.tmp');temp.write_text(json.dumps(report,indent=2));temp.replace(report_path)
     def barrier():

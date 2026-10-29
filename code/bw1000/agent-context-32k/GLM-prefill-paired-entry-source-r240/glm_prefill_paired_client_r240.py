@@ -4,22 +4,31 @@ This records emitter observations; root must audit all32 owners and cleanup.
 """
 import argparse,hashlib,json,pathlib,time,urllib.request,urllib.error,subprocess,sys
 PLAN=(1,2)+(1,2,2,1)*4
+FROZEN_REQUEST_SHA256='5ee8ea9cc99e12969d4b0505d4dd70f50e6436079206e8de5a6e908c5854c9dd'
 
 def validate_request(body):
     assert body['model']=='GLM-5.3' and body['stream'] is False
-    assert body['max_tokens']==4096 and body['chat_template_kwargs']['enable_thinking'] is False
-    assert body['tool_choice']=={'type':'function','function':{'name':'read_file'}}
+    assert body['max_tokens']==4096 and body['chat_template_kwargs']=={'clear_thinking':False}
+    assert 'reasoning_effort' not in body, 'Retain actual GLM native-default reasoning policy'
+    assert body['tool_choice']=={'type':'function','function':{'name':'calculate'}}
     assert body['parallel_tool_calls'] is False and body['messages'] and body['tools']
     assert body['temperature']==0
+    result=body['messages'][-1];assert result['role']=='tool'
+    data=json.loads(result['content']);values={row['id']:row['value'] for row in data['records']}
+    query=data['query_ids'];assert len(query)==4
+    expected={'a':values[query[0]],'b':values[query[1]]}
+    assert all(type(value)is int and abs(value)<10**9 for value in expected.values())
+    return expected
 
-def validate_reply(wire):
+def validate_reply(wire,expected):
     assert isinstance(wire['id'],str) and wire['id'] and 'error' not in wire
     assert len(wire['choices'])==1
     choice=wire['choices'][0];message=choice['message'];calls=message.get('tool_calls',[])
     assert choice['finish_reason']=='tool_calls' and len(calls)==1
     call=calls[0];assert call['type']=='function' and isinstance(call['id'],str) and call['id']
-    assert call['function']['name']=='read_file'
-    assert json.loads(call['function']['arguments'])=={'path':'input.json'}
+    assert call['function']['name']=='calculate'
+    arguments=json.loads(call['function']['arguments'])
+    assert arguments==expected and all(type(arguments[key])is int for key in ('a','b'))
     usage=wire['usage'];assert all(type(usage[k]) is int and usage[k]>0 for k in ['prompt_tokens','completion_tokens','total_tokens'])
     assert usage['total_tokens']==usage['prompt_tokens']+usage['completion_tokens']
     assert usage['prompt_tokens']>=8192 and usage['prompt_tokens']+4096<=32768
@@ -34,8 +43,8 @@ def main():
     R=pathlib.Path('/refactor');root=pathlib.Path(a.output_root)
     assert root.is_absolute() and root.is_relative_to(R/'results')
     source=pathlib.Path(a.request_file);raw=source.read_bytes()
-    assert hashlib.sha256(raw).hexdigest()==a.request_sha256
-    body=json.loads(raw);validate_request(body)
+    assert hashlib.sha256(raw).hexdigest()==a.request_sha256==FROZEN_REQUEST_SHA256
+    body=json.loads(raw);expected=validate_request(body)
     ready_path=R/'results'/('GLM-regular-service-r204-ready-'+a.run+'.json')
     ready=json.loads(ready_path.read_bytes())
     assert ready['ready'] and ready['run']==a.run and ready['actual_step']==a.handle
@@ -81,7 +90,7 @@ def main():
             wall=time.monotonic()-start
             (root/('response-%02d.wire'%index)).write_bytes(wire_raw)
             assert status==200;result['completed_HTTP_200']+=1
-            wire=json.loads(wire_raw);usage=validate_reply(wire)
+            wire=json.loads(wire_raw);usage=validate_reply(wire,expected)
             assert wire['id'] not in request_ids;request_ids.add(wire['id'])
             if usage_reference is None:usage_reference=usage['prompt_tokens']
             assert usage['prompt_tokens']==usage_reference
