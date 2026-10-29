@@ -1,0 +1,55 @@
+{
+  "status": "PREPARED_NOT_EXECUTED",
+  "CPU_only": true,
+  "GPU_GO": false,
+  "entry": "python3 -B CPU_BPE_r219.py --output UNIQUE-CPU-BPE-r219.json",
+  "baseline": "/refactor/incoming/Kimi-agent-service-Model-r205",
+  "tokenizer": "/shared/Kimi-K3; exact two official tokenizer file SHA256 in helper",
+  "isolation": "Two sequential independent Python child processes; baseline/candidate imports cannot mix. Each child bounded240s; no Slurm/job submitter. Parent output x-mode unique path.",
+  "saved_evidence": "Only replay pins saved_request request-002.request.json is read. No node report/generated IDs/output parsing. Fourth-node-request ordinal is not used to derive a filename.",
+  "A": "Original prepare_agent_request applied to exact pinned saved HTTP messages/schema. Require nonemptyRC=false, 8506 input, unchanged4096 budget, total<=32768, parent compares baseline/candidate prompt and full-ID digests.",
+  "B": "Eight synthetic reasoning/tool closed steps via original prepare_agent_request and true tiktoken; modes chat/thinking; RC contribution counts, segment allow_special and ordinary special-looking text base-only IDs, current prefix/effort, unchanged4096/8192 budgets. Synthetic evidence is not Model evidence.",
+  "C": "Actual legacy generic codec used without opt-in in each isolated process; parent requires matching prompt/ID digests/counts across baseline/candidate both modes.",
+  "output_contract": {
+    "only_compact": "status, booleans, source/tokenizer SHA256, token counts/budgets, prompt/ID digests; on failure error class and error SHA only",
+    "actual_history_RC_qualification": "NOT_COVERED because pinned real saved request has no nonempty historical RC",
+    "arms": "baseline/candidate each source_SHA256 + tokenizer_SHA256 + A_saved_request + B_synthetic_eight_RC{chat,thinking}",
+    "success_required": [
+      "A_full8506_prompt_and_IDs_equal",
+      "B_candidate_preserves_eight_RC_both_modes",
+      "C_legacy_default_equivalent"
+    ]
+  },
+  "local_validation": {
+    "stdlib_syntax_compile": true,
+    "static_no_node_report_or_generated_IDs_access": true,
+    "real_BPE_executed": false,
+    "renderer91_not_repeated": true,
+    "Native_Model_GPU_executed": false
+  },
+  "r205_and_Native201_modified": false,
+  "files": {
+    "CPU_BPE_r219.py": {
+      "SHA256": "8c9192d9e7633a412b70786d54a405b5e86f5ce335fbd12023da81725e49864c",
+      "bytes": 12399
+    },
+    "replay_saved477_pins-r205.json": {
+      "SHA256": "c26eba93283b63749c8a946d882e4368c9da2a7a3c3d73cd691a91b0f143abb6",
+      "bytes": 1663
+    },
+    "candidate_runtime/frozen_encoding_k3_r143.py": {
+      "SHA256": "5baf623402041af20ea074186134eef2db4f5f1ef4708133805a2566a734149f",
+      "bytes": 26810
+    },
+    "candidate_runtime/long_codec_r179.py": {
+      "SHA256": "01a4a921ab27f1ce78514b0ab4994060c9c95b2bdf362e354b877b8fd06c4143",
+      "bytes": 1747
+    },
+    "candidate_runtime/xtml_codec_r143.py": {
+      "SHA256": "7618b171dd40d58548d6707e40fdb88c1666fda8bd23d7107d6e8f7ad070a4d7",
+      "bytes": 4225
+    }
+  },
+  "candidate_runtime": "bundled candidate_runtime; byte-pinned r217 files from root-reported public commit 4170bca",
+  "package": "Kimi-history-BPE-private-r219"
+}
