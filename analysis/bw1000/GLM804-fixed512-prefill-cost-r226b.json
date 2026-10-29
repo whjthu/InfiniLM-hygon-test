@@ -1,0 +1,72 @@
+{
+  "UTC": "2026-10-29T03:23:28.241096+00:00",
+  "observed_UTC": "2026-10-29T03:10:27.757260+00:00",
+  "owner": "bw1000-agent",
+  "model": "GLM-5.3",
+  "hardware": "BW1000",
+  "actual_GPU": "910376.804",
+  "TP": 8,
+  "PP": 4,
+  "cards": 32,
+  "rows": 1,
+  "context": 32768,
+  "Native_SHA256": "038d4ff2e7aee2e6db80f691dd885222f3e3160e25ae9d0e269296daf9596c00",
+  "source_manifest_SHA256": "ecd82ecf22e8575a08102b8f58e4ef860e97d7119d69d1f5c9249a4819073902",
+  "state": "CURRENT_SAVED_PREFILL_COST_EVIDENCE_NOT_SPEEDUP",
+  "completed_requests": 25,
+  "full_T512_calls_per_observed_owner": 504,
+  "stage_rank0_summaries": [
+    {
+      "stage": 0,
+      "fixed_chunk_T": 512,
+      "past2048_4096_median_s": 7.799870005343109,
+      "past12288_16384_median_s": 7.884059120668098,
+      "pooled_late_over_2048_4096": 1.0107936562105928,
+      "same_request_12K_16K_over_4K_8K": {
+        "requests": 8,
+        "median_ratio": 1.0051684183865017,
+        "min_ratio": 0.999713256597051,
+        "max_ratio": 1.008779973695952
+      }
+    },
+    {
+      "stage": 3,
+      "fixed_chunk_T": 512,
+      "past2048_4096_median_s": 33.754628121852875,
+      "past12288_16384_median_s": 34.15974018117413,
+      "pooled_late_over_2048_4096": 1.0120016744921263,
+      "same_request_12K_16K_over_4K_8K": {
+        "requests": 8,
+        "median_ratio": 1.0082691027216493,
+        "min_ratio": 1.0054202599598774,
+        "max_ratio": 1.0101696260195179
+      }
+    }
+  ],
+  "observation": "In the observed range, fixed512 chunk latency rises below/around2K then largely plateaus over2K..16K past. Longer prompts incur more near-constant-cost blocks; not evidence of rapidly growing per-block latency throughout this range.",
+  "decision": {
+    "retain": "Prioritize current post2K per-block work and serial PP dependency after complete acceptance.",
+    "do_not_assume": "Do not select a quadratic-with-past bottleneck or accumulating slowdown as established by long TTFT alone.",
+    "no_runtime_change": "No hot edit, new instrumentation, GPU experiment or Native change. Existing PP2 two-independent-microbatch results do not qualify same-request PP4 chunk pipelining."
+  },
+  "measurement_limits": [
+    "Same run and fixed chunk T512; no baseline/candidate experiment or speedup.",
+    "Past also tracks execution order; ratios are descriptive, not causal.",
+    "Later-stage Native intervals include upstream dependencies and collectives, not pure GPU compute.",
+    "Stage intervals overlap; do not add stages or subtract them to identify pure compute/network.",
+    "Final partial chunks and decode excluded; no physical peak TPS inferred.",
+    "Pooled bins contain different request subsets; same-request ratios are also reported.",
+    "Only stage0 and stage3 rank0 observed; no all-rank utilization or all32K-past coverage.",
+    "No exact operator attribution at the2K transition; source identity followup remains pending authorization.",
+    "No physical certified BF16 roof, achieved speedup or whole-agent qualification inferred."
+  ],
+  "raw_evidence": "results/bw1000/2026-10-29/GLM804-fixed512-prefill-scaling-r9712.json",
+  "raw_evidence_SHA256": "f3047487aced3ff8e21901bf70d24f5380a712764929434bdcd7fcf96172b4cb",
+  "previous_cost_analysis": "analysis/bw1000/GLM804-current-PP4-critical-cost-r225b.json",
+  "new_performance_gain": 0,
+  "goal_complete": false,
+  "supersedes": "analysis/bw1000/GLM804-fixed512-prefill-cost-r226.json",
+  "raw_evidence_SHA256_scope": "Exact published Git blob bytes: UTF8 LF; not original local CRLF capture",
+  "original_local_capture_SHA256": "8969e3dd0dffb00c3c12d40c387611970f6cb02f2be01696b36ee122d7f83472",
+  "correction": "Only evidence-byte hash scope corrected after CRLF-to-LF publication; all recorded numeric values, qualification and decisions retained."
+}
