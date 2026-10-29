@@ -1,0 +1,105 @@
+{
+  "UTC": "2026-10-29T17:25:24.192667+00:00",
+  "model": "GLM-5.3",
+  "hardware": "BW1000",
+  "scope": "Analytical scheduling what-if for existing defaultOFF window2 candidate; no real-stage-cost fit, new runtime, Model speed measurement or physical peak claim",
+  "candidate": "code/bw1000/agent-context-32k/GLM-prefill-window2-source-r229",
+  "unchanged_Native_SHA256": "038d4ff2e7aee2e6db80f691dd885222f3e3160e25ae9d0e269296daf9596c00",
+  "bound_baseline_source_manifest_SHA256": "ecd82ecf22e8575a08102b8f58e4ef860e97d7119d69d1f5c9249a4819073902",
+  "baseline_cost": {
+    "path": "analysis/bw1000/GLM804-current-PP4-critical-cost-r225b.json",
+    "SHA256": "b0c0e44635e27ac6cd9bab93b972b359251c54389e8983f68830846f3275b97e",
+    "SHA256_scope": "Exact existing Git blob bytes",
+    "actual_GPU": "910376.804",
+    "request_subset": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19
+    ],
+    "tail_request_wall_s": 13576.573669139761,
+    "tail_prefill_CAPI_s": 12981.106243868358,
+    "prefill_enclosure_fraction": 0.956140080716762
+  },
+  "idealized_model": {
+    "assumptions": [
+      "Two consecutive chunks have identical, positive, independent per-stage service costs p_i",
+      "Each stage runs at most one chunk; stages can overlap without extra contention or changed service cost",
+      "Neglect boundary-control, sampling, allocator and communication interactions beyond their assumed fixed per-stage costs",
+      "Four stages; one committed group contains at most two same-request prefill chunks"
+    ],
+    "recurrence": "C[j,s]=p_s+max(C[j-1,s],C[j,s-1]); missing predecessors=0",
+    "serial_two_chunk_cost": "2*sum(p_i)",
+    "window2_two_chunk_cost": "sum(p_i)+max(p_i)",
+    "proof": "For chunk1 C[1,s]=sum_{i<=s}p_i. Induction gives C[2,s]=sum_{i<=s}p_i+max_{i<=s}p_i.",
+    "speedup": "S2=2/(1+b), b=max(p_i)/sum(p_i)>=1/4; in this ideal model S2<=1.6",
+    "finite_arithmetic_crosschecks": 81,
+    "balanced_pair_speedup": 1.6
+  },
+  "examples": [
+    {
+      "abstract_stage_costs": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "largest_stage_fraction": 0.25,
+      "pair_only_ideal_speedup": 1.6,
+      "conditional18request_wall_factor": 1.5589741127500745
+    },
+    {
+      "abstract_stage_costs": [
+        4,
+        4,
+        4,
+        8
+      ],
+      "largest_stage_fraction": 0.4,
+      "pair_only_ideal_speedup": 1.4285714285714286,
+      "conditional18request_wall_factor": 1.4022138627830703
+    },
+    {
+      "abstract_stage_costs": [
+        1,
+        1,
+        1,
+        9
+      ],
+      "largest_stage_fraction": 0.75,
+      "pair_only_ideal_speedup": 1.1428571428571428,
+      "conditional18request_wall_factor": 1.1357409277971637
+    }
+  ],
+  "conditional_wall_formula": "1 / ((1-f)+f/S2), ONLY IF the entire measured prefill enclosure scales byS2 and other18request wall stays fixed",
+  "limits": [
+    "1.6 is the bound of this stated identical-cost idealized two-chunk flow-shop model, not a certified BW1000 or Native implementation bound",
+    "Existing per-stage Native CAPI spans include upstream waits/CCL/host work and overlap. Do not add/subtract them to estimate p_i or b",
+    "Changing overlap can change communication/allocator/control costs; partial/tail chunks and past-dependent work violate identical-cost assumptions. Real speedup may differ from this model",
+    "f=0.95614 describes only the18 aligned saved804 requests (including deliberate1token length), not all32 requests or the entire qualified normal-agent run",
+    "A prefill enclosure fraction is not a removable fraction. The conditional wall arithmetic is not a measured forecast or maximumTPS",
+    "Shared-WORLD P2P/collective liveness, Model quality, memory peak and full-token/EOS cleanup remain unqualified for window2",
+    "No FP16-to-BF16 peak substitution, summed32cardFLOPS division or new hardware peak number"
+  ],
+  "decision": "Retain the bounded window2 causal candidate after all-three normal-agent acceptance. Set expectations using finite pipeline fill/drain and stage balance, not a4x total-card peak claim. Do not widen window or start newGPU from this calculation.",
+  "new_GPU_submitted": false,
+  "new_remote_CPU_task": false,
+  "new_performance_rounds": 0,
+  "new_measured_gain": 0,
+  "physical_Model_maximum_TPS": null,
+  "goal_complete": false
+}

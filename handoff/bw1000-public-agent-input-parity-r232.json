@@ -1,0 +1,454 @@
+{
+  "UTC": "2026-10-29T17:37:58.189604+00:00",
+  "owner": "bw1000-agent",
+  "scope": "Read-only local public hook versus actual pinned encoders; finite CPU-only comparison. No public checkout edits, remote submissions, weights, Torch or Native imports.",
+  "current_Kimi_GPU": "910380.491; frozen and untouched",
+  "input_source_SHA256": {
+    "python\\infinilm\\processors\\history_encoding.py": "4b614ec00071cfe08a471a05c41281e73edf349248b0eed1d2325c8ae80d2d0f",
+    "python\\infinilm\\processors\\kimi_k3_processor.py": "a690d92feac27fa5a1ec3238772c6ae5994d429b3efc17cba9eca12f2f0f33bd",
+    "python\\infinilm\\processors\\deepseek_v4_processor.py": "7100588fac242372f9b58eb8ad05b9e01124e07a82231d9205138fbe6eb41e6b",
+    "python\\infinilm\\llm\\llm.py": "5681a1fb577a28f669a8669fe713ab6edbbe76f42bf3695529105f4204e2d513",
+    "python\\infinilm\\server\\agent_protocol.py": "c91ab84a5ddc800602dcae0319ad5c02ad3b01c1936a2bd57bce90c2ad15abc3",
+    "C:\\Users\\WangHaojie\\Documents\\GPU-1\\audit\\agent-protocol-pr-20261027\\current-families-r4\\sources\\moonshotai__Kimi-K3\\tokenization_kimi.py": "f28ea66e2d862a2a5814970b2ce40c2f7d8296ff09aed90a7e7def689b906944",
+    "C:\\Users\\WangHaojie\\.codex\\visualizations\\2026\\10\\12\\01a130bd-3b97-73c2-8ecf-eda5151f1ba7\\Kimi-request-constraints-private-r223\\runtime\\frozen_encoding_k3_r143.py": "5baf623402041af20ea074186134eef2db4f5f1ef4708133805a2566a734149f",
+    "C:\\Users\\WangHaojie\\.codex\\visualizations\\2026\\10\\12\\01a130bd-3b97-73c2-8ecf-eda5151f1ba7\\Kimi-request-constraints-private-r223\\runtime\\xtml_codec_r143.py": "7618b171dd40d58548d6707e40fdb88c1666fda8bd23d7107d6e8f7ad070a4d7",
+    "C:\\Users\\WangHaojie\\.codex\\visualizations\\2026\\10\\12\\01a130bd-3b97-73c2-8ecf-eda5151f1ba7\\Kimi-request-constraints-private-r223\\runtime\\chat_prepare_r223.py": "21e04cff2f4d8dfc894d838b44e06a7c65b68d4130efb6b982724d43b6bceed9",
+    "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\InfiniLM-hygon-test\\code\\bw1000\\agent-context-32k\\Deep-agent-regular32K-r206b\\chat_prepare_r173.py": "819df37ced69ad4f38bcb3b73a706432740cf2a0a79c14a3d301d519773c5f99",
+    "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\InfiniLM-hygon-test\\code\\bw1000\\agent-context-32k\\GLM-regular-service-private-r204\\api_request_constraints_r203.py": "7e8b3476b1e89c2c5e57b491ee3c0027466451981377f5ab89cf97a30c5e263e",
+    "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\InfiniLM-hygon-test\\code\\bw1000\\agent-context-32k\\Deep-agent-regular32K-r206b\\encoding\\encoding_dsv4.py": "838447d0e81fe8e106899aa56b2584607c4c3e63202a4ec8d6d333248866f798"
+  },
+  "finite_encoding_checks": {
+    "cases": 48,
+    "Kimi_actual223_all_text_allow_special_segments_equal": true,
+    "Deep_actual1209_all_full_prompt_bytes_equal": true,
+    "literal_marker_history_cases": 2,
+    "actual_BPE_ID_comparison": false
+  },
+  "remaining_public_integration_differences": [
+    {
+      "model": "Kimi",
+      "issue": "Public LLM.apply_chat_template uses tokenize=False; official tokenizer joins segment text then KimiK3Processor.__call__ calls tokenizer(prompt). The allow_special boundary is lost on this path; actual223 codec directly encodes each segment with allowed_special=all versus disallowed_special=().",
+      "effect": "Literal structural spellings in user/tool/history content must remain ordinary BPE while actual structure stays special. Equal rendered text alone does not qualify input-ID equivalence.",
+      "required": "Preserve segment-aware input IDs through public text request preparation and test literal control-token spellings and concurrent chat/thinking; do not rely on mutable last-render cache.",
+      "state": "SOURCE_PATH_GAP_CONFIRMED; actual flattened BPE counterexample not run here"
+    },
+    {
+      "model": "DeepSeek and GLM",
+      "issue": "Validated request adapters add per-turn none/required/named/max-one-call rules; matching public agent_protocol.py only validates/filters tools and returns normalized choice. Current public Deep processor history hook does not inject these rules. GLM uses BasicLLMProcessor.",
+      "effect": "Strict output parser rejects a violation but does not provide equivalent instruction to generation. Full public input path is not identical to the cluster-qualified path.",
+      "required": "Bind normalized top-level choice and parallel_tool_calls to exact per-model prompt preparation without history mutation; retain parser checks and full-history copies.",
+      "state": "PUBLIC_ENTRYPOINT_PARITY_NOT_ESTABLISHED"
+    }
+  ],
+  "qualification": {
+    "new_Model_PASS": false,
+    "new_online_PASS": false,
+    "performance_rounds": 0,
+    "all_three_complete": false,
+    "prior_Deep1209_and_GLM804_scoped_full_agent_PASS_unchanged": true
+  },
+  "rows": [
+    {
+      "mode": "chat",
+      "effort": null,
+      "history_case": 0,
+      "tools": false,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "chat",
+      "effort": null,
+      "history_case": 0,
+      "tools": true,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "chat",
+      "effort": null,
+      "history_case": 1,
+      "tools": false,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "chat",
+      "effort": null,
+      "history_case": 1,
+      "tools": true,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "chat",
+      "effort": null,
+      "history_case": 2,
+      "tools": false,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "chat",
+      "effort": null,
+      "history_case": 2,
+      "tools": true,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "chat",
+      "effort": null,
+      "history_case": 3,
+      "tools": false,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "chat",
+      "effort": null,
+      "history_case": 3,
+      "tools": true,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "chat",
+      "effort": "high",
+      "history_case": 0,
+      "tools": false,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "chat",
+      "effort": "high",
+      "history_case": 0,
+      "tools": true,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "chat",
+      "effort": "high",
+      "history_case": 1,
+      "tools": false,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "chat",
+      "effort": "high",
+      "history_case": 1,
+      "tools": true,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "chat",
+      "effort": "high",
+      "history_case": 2,
+      "tools": false,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "chat",
+      "effort": "high",
+      "history_case": 2,
+      "tools": true,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "chat",
+      "effort": "high",
+      "history_case": 3,
+      "tools": false,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "chat",
+      "effort": "high",
+      "history_case": 3,
+      "tools": true,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "chat",
+      "effort": "max",
+      "history_case": 0,
+      "tools": false,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "chat",
+      "effort": "max",
+      "history_case": 0,
+      "tools": true,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "chat",
+      "effort": "max",
+      "history_case": 1,
+      "tools": false,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "chat",
+      "effort": "max",
+      "history_case": 1,
+      "tools": true,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "chat",
+      "effort": "max",
+      "history_case": 2,
+      "tools": false,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "chat",
+      "effort": "max",
+      "history_case": 2,
+      "tools": true,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "chat",
+      "effort": "max",
+      "history_case": 3,
+      "tools": false,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "chat",
+      "effort": "max",
+      "history_case": 3,
+      "tools": true,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "thinking",
+      "effort": null,
+      "history_case": 0,
+      "tools": false,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "thinking",
+      "effort": null,
+      "history_case": 0,
+      "tools": true,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "thinking",
+      "effort": null,
+      "history_case": 1,
+      "tools": false,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "thinking",
+      "effort": null,
+      "history_case": 1,
+      "tools": true,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "thinking",
+      "effort": null,
+      "history_case": 2,
+      "tools": false,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "thinking",
+      "effort": null,
+      "history_case": 2,
+      "tools": true,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "thinking",
+      "effort": null,
+      "history_case": 3,
+      "tools": false,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "thinking",
+      "effort": null,
+      "history_case": 3,
+      "tools": true,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "thinking",
+      "effort": "high",
+      "history_case": 0,
+      "tools": false,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "thinking",
+      "effort": "high",
+      "history_case": 0,
+      "tools": true,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "thinking",
+      "effort": "high",
+      "history_case": 1,
+      "tools": false,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "thinking",
+      "effort": "high",
+      "history_case": 1,
+      "tools": true,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "thinking",
+      "effort": "high",
+      "history_case": 2,
+      "tools": false,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "thinking",
+      "effort": "high",
+      "history_case": 2,
+      "tools": true,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "thinking",
+      "effort": "high",
+      "history_case": 3,
+      "tools": false,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "thinking",
+      "effort": "high",
+      "history_case": 3,
+      "tools": true,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "thinking",
+      "effort": "max",
+      "history_case": 0,
+      "tools": false,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "thinking",
+      "effort": "max",
+      "history_case": 0,
+      "tools": true,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "thinking",
+      "effort": "max",
+      "history_case": 1,
+      "tools": false,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "thinking",
+      "effort": "max",
+      "history_case": 1,
+      "tools": true,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "thinking",
+      "effort": "max",
+      "history_case": 2,
+      "tools": false,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "thinking",
+      "effort": "max",
+      "history_case": 2,
+      "tools": true,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "thinking",
+      "effort": "max",
+      "history_case": 3,
+      "tools": false,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    },
+    {
+      "mode": "thinking",
+      "effort": "max",
+      "history_case": 3,
+      "tools": true,
+      "Kimi_actual223_segment_equality": true,
+      "Deep_actual1209_prompt_equality": true
+    }
+  ],
+  "comparison_source_SHA256": {
+    "C:\\Users\\WangHaojie\\Documents\\GPU-1\\audit\\agent-protocol-pr-20261027\\current-families-r4\\sources\\deepseek-ai__DeepSeek-V4-Flash\\encoding\\encoding_dsv4.py": "bdbd57c132a1b3725042323d02b98b9d1df28e5f388f134399555d041f5055e0",
+    "C:\\Users\\WangHaojie\\Documents\\GPU-1\\audit\\agent-protocol-pr-20261027\\current-families-r4\\sources\\moonshotai__Kimi-K3\\encoding_k3.py": "49ff03305fdc4be26867972788d36150b67f8a9e852e62bb7959d87482223676"
+  },
+  "public_candidate_state": {
+    "frozen": false,
+    "changed_after_capture": [
+      "python\\infinilm\\processors\\kimi_k3_processor.py",
+      "python\\infinilm\\llm\\llm.py"
+    ],
+    "qualification": "Renderer helper checks bind the captured hook; input-path findings describe the captured source snapshot, not a rejection of a later candidate. Public owner is adding segment-aware encode_chat_inputs. Wait for a frozen whole-path candidate before integration qualification.",
+    "current_or_future_public_Model_PASS": false
+  },
+  "related_results": {
+    "Deep1209": "results/bw1000/2026-10-29/Deep1209-full-normal-agent-history-and-cleanup-PASS.json",
+    "GLM804": "results/bw1000/2026-10-29/GLM804-full-normal-agent-and-cleanup-PASS.json",
+    "Kimi223_claim": "coordination/tasks/Kimi223-full-agent-validation-with-private-identity-r230.json"
+  }
+}
