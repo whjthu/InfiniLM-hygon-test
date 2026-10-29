@@ -1,0 +1,81 @@
+{
+  "UTC": "2026-10-29T00:23:03.712509+00:00",
+  "owner": "bw1000-agent",
+  "scope": "Read-only source inspection of four previously retrieved SDK files; no new source export, build, Native or GPU execution",
+  "actual_config_SHA256": "9710e121a58d03ac92c8d6da287a19541994319afbbe6d6202af001ffd379213",
+  "actual_service_handle": "910380.484",
+  "actual_Native_SHA256": "7615e837cf94f6e74f4b493bc2c1e6c86c9ca818a21d37f3f78bab397a55391f",
+  "SDK_SHA256": "6d5a6204f7eef70e84deb9cc737a36c6ae2c1fbc75a0f70645557c8441ed85ca",
+  "producer_source_root": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Kimi/InfiniOps",
+  "migration_manifest_SHA256": "26550f7aef09d255ae80d088a29123583c6b9bc5c01a14c5e442cb6be5693478",
+  "migration_pins": {
+    "InfiniLM": "5f91ad738583db8f5617aeae53b76523f85d1ec6",
+    "InfiniCore": "2b4f2f20584a69b074f62a455e3de7368e3446c2",
+    "InfiniOps": "1ca4777610d77e9063fffdb975ab35da8466104d",
+    "InfiniRT": "cd1d48258f0a6b8d9f66111d5d6cb1664205e78d",
+    "InfiniCCL": "51cc9db31d58aac21643d72f0f77cf5c9ecfaee5"
+  },
+  "source_retrieval_UTC": "2026-10-29T00:13:33.243518+00:00",
+  "retrieval_record_SHA256": "e2096d219642b357fb0b1d5f4f60a8041fd0ef1f1d4208678b0afeed53e6a4f1",
+  "file_fingerprints": [
+    {
+      "relative": "src/base/fused_moe_mxfp4.h",
+      "bytes": 3325,
+      "SHA256": "bd9c2d4e99521e423abccbc37f4662c0320fedb4f94c4c5c9f375c644c091384"
+    },
+    {
+      "relative": "src/native/cuda/ops/fused_moe_mxfp4/mxfp4_math.cuh",
+      "bytes": 2417,
+      "SHA256": "27dc470d4d8056aff8f2b71a5b64b7924ebc489cbf8e72064e55cfed385641f1"
+    },
+    {
+      "relative": "src/native/cuda/hygon/ops/fused_moe_mxfp4/kimi_mxfp4_dispatch_r330.cuh",
+      "bytes": 2282,
+      "SHA256": "27b726a61fcf12c1481f6b998908d460570bdee81b2945bd8bade8d4fa04b45f"
+    },
+    {
+      "relative": "src/native/cuda/hygon/ops/fused_moe_mxfp4/kimi_mxfp4_static_r326.cuh",
+      "bytes": 9200,
+      "SHA256": "c28ce7a5e5f5546ea4966e72c421f958d3b2c2681d669649677eab72b8c5696d"
+    }
+  ],
+  "findings": {
+    "geometry": {
+      "TP": 16,
+      "routed_hidden": 3584,
+      "global_intermediate": 3072,
+      "local_intermediate": 192,
+      "topk": 16,
+      "storage_dtype": "W4 packed plus UInt8 scale; BF16 activation"
+    },
+    "R330_source_branch": {
+      "conditions": {
+        "parallel": true,
+        "tokens_min": 1,
+        "tokens_max": 64,
+        "hidden": 3584,
+        "intermediate": 384,
+        "topk": 16,
+        "activation": 2
+      },
+      "guard_satisfiable_for_current_I192": false,
+      "conditional_conclusion": "If these exact source bytes produced the installed R330 wrapper, its explicit I384 specialization cannot handle current I192. This excludes that branch only.",
+      "earlier_dispatch": "try_tile_tp_r2559 may return before the I384 guard. Its body was not retrieved.",
+      "later_dispatch": "launchFusedMoeMxfp4 generic body was not retrieved.",
+      "binary_build_identity_closed": false
+    },
+    "retrieved_math_helper": "W4 decode pair uses float outputs and ldexpf; BF16 load converts to float; block reduction is float. This describes retrieved source functions, not current selected kernel or ISA.",
+    "retrieved_static_kernels": "Both W13 and W2 source specializations hard-code I384 and contain float dot accumulation/reduction. Their source presence is not current I192 coverage.",
+    "header_identity": "Retrieved producer base/fused_moe_mxfp4.h hash equals actual Native201 MD-installed SDK header hash. This proves this header byte identity, not the entire SDK source-to-binary closure."
+  },
+  "decision": {
+    "whole_Model_maximum_tok_s": "UNKNOWN",
+    "compute_peak_applied": null,
+    "no_FP16_480TFLOPs_or_disabled_pair_helper_substitution": true,
+    "next_required_identity": "Deterministic implementation1 operator body/try_tile/generic source-to-installed-binary mapping and current T1/T8 branch/ISA. Do not load/trace/recompile current acceptance to gather it.",
+    "speedup_claim": false,
+    "current_acceptance_untouched": true
+  },
+  "prior_inventory": "analysis/bw1000/Kimi-source-bound-work-and-traffic-inventory-r213.json",
+  "goal_complete": false
+}
