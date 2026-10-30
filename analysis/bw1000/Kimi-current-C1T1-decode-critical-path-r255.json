@@ -1,0 +1,166 @@
+{
+  "UTC": "2026-10-30T23:04:49.545983+00:00",
+  "owner": "bw1000-root",
+  "state": "ACTUAL_C1T1_NATIVE_HOST_TIMING_PRIORITY_IDENTIFIED_DEVICE_COMPONENT_SPLIT_UNKNOWN",
+  "evidence": "evidence/bw1000/Kimi252508-C1T1-existing-host-sample-audit.json",
+  "model": "Kimi-K3",
+  "actual_GPU": "910380.508",
+  "Native_SHA256": "8df87f0741b13c90f658174a793f0068efb4eb8097eddf1d5f44edb4d208e1a2",
+  "topology": {
+    "TP": 16,
+    "PP": 2,
+    "cards": 32,
+    "requests": 1,
+    "actual_decode_tokens_per_forward": 1,
+    "context": 32768,
+    "draft": false
+  },
+  "workload": {
+    "full_input_tokens": 8635,
+    "output_budget": 4096,
+    "observed_output_tokens_with_EOS": 59,
+    "prompt_IDs_SHA256": "66090df28f4a0b8024a03f769dd9d1f76c91a0348ea7141a31c48ae96f373934",
+    "samples_per_arm": 16,
+    "fixed_measured_arm_indices": [
+      3,
+      4,
+      7,
+      8
+    ],
+    "warmup1_excluded": true
+  },
+  "node0_measured_summaries": [
+    {
+      "admitted_index": 3,
+      "input_tokens": 8635,
+      "output_budget": 4096,
+      "output_tokens": 59,
+      "natural_EOS": true,
+      "prefill_mode": "W512",
+      "profile_requested": false,
+      "decoder_events_armed": false,
+      "C": 1,
+      "T": 1,
+      "first_decode_forwards": 16,
+      "local_backend_emit_interval_s": 3.2479045102372766,
+      "sum_per_forward_max_four_host_CAPI_s": 3.226914592087269,
+      "descriptive_CAPI_max_sum_over_emit_interval": 0.9935373967788005,
+      "CAPI_maxhost_median_s": 0.20164342923089862,
+      "first16_emitted_increments_tok_s": 4.926253204048513
+    },
+    {
+      "admitted_index": 4,
+      "input_tokens": 8635,
+      "output_budget": 4096,
+      "output_tokens": 59,
+      "natural_EOS": true,
+      "prefill_mode": "W512",
+      "profile_requested": false,
+      "decoder_events_armed": false,
+      "C": 1,
+      "T": 1,
+      "first_decode_forwards": 16,
+      "local_backend_emit_interval_s": 3.2568853618577123,
+      "sum_per_forward_max_four_host_CAPI_s": 3.232225948944688,
+      "descriptive_CAPI_max_sum_over_emit_interval": 0.9924285290474705,
+      "CAPI_maxhost_median_s": 0.20204945746809244,
+      "first16_emitted_increments_tok_s": 4.912669075608383
+    },
+    {
+      "admitted_index": 7,
+      "input_tokens": 8635,
+      "output_budget": 4096,
+      "output_tokens": 59,
+      "natural_EOS": true,
+      "prefill_mode": "W512",
+      "profile_requested": false,
+      "decoder_events_armed": false,
+      "C": 1,
+      "T": 1,
+      "first_decode_forwards": 16,
+      "local_backend_emit_interval_s": 3.2648766050115228,
+      "sum_per_forward_max_four_host_CAPI_s": 3.240156261716038,
+      "descriptive_CAPI_max_sum_over_emit_interval": 0.9924283988995053,
+      "CAPI_maxhost_median_s": 0.20149997482076287,
+      "first16_emitted_increments_tok_s": 4.900644629398951
+    },
+    {
+      "admitted_index": 8,
+      "input_tokens": 8635,
+      "output_budget": 4096,
+      "output_tokens": 59,
+      "natural_EOS": true,
+      "prefill_mode": "W512",
+      "profile_requested": false,
+      "decoder_events_armed": false,
+      "C": 1,
+      "T": 1,
+      "first_decode_forwards": 16,
+      "local_backend_emit_interval_s": 3.2468393719755113,
+      "sum_per_forward_max_four_host_CAPI_s": 3.228468218818307,
+      "descriptive_CAPI_max_sum_over_emit_interval": 0.9943418349192844,
+      "CAPI_maxhost_median_s": 0.2016497366130352,
+      "first16_emitted_increments_tok_s": 4.9278692805381805
+    }
+  ],
+  "clock_interpretation": "CAPI max is a per-forward maximum of four independent host duration measurements; sums are descriptive, not a disjoint CPU/GPU/network decomposition or pure kernel busy. Backend token arrival is before buffered HTTP delivery. No C8/T64 phase fraction transferred to this C1/T1 path.",
+  "finding": "Per-forward CAPI max durations track ~99% of the corresponding backend emit intervals. Prioritize Native internal model/operator/launch/TP/PP waits over outer HTTP serialization or generic Python control. This is not a proven exact removable-overhead fraction.",
+  "source_findings": [
+    "Existing StageControl and binary data sockets already set TCP_NODELAY. A missing-Nagle-setting hypothesis is not supported by current source.",
+    "Current Python selector arms only sum(widths)==64 and target_protocol explicitly requests profile=False. Current508 was started without event-pool optin; it cannot acquire a C1T1 device profile through a safe in-place file change.",
+    "Existing C++ event implementation has finite640events/3calls, TP8/16 and PP1..4, no T64 predicate. Actual worker event hooks surround RUN/model/drain. Source supports investigating a selected T1 RUN, while successful actual event publication/perturbation still requires device validation.",
+    "Old445/449 component fractions were measured C8/T64. Do not use their MoE fraction as current C1/T1 attribution."
+  ],
+  "source_SHA256": [
+    {
+      "path": "local-only/Kimi-append512-service-r252/runtime/long_native_r179.py",
+      "SHA256": "505749af0ebf837fdf95282d087554ba50f9c3bd52d8bc1efa9832b21e45af0e"
+    },
+    {
+      "path": "local-only/Kimi-append512-service-r252/runtime/target_protocol.py",
+      "SHA256": "b962086c09b5ca5ef733710cafffbdf8fa925839ceddc54bc59d28e387334926"
+    },
+    {
+      "path": "local-only/Kimi-append512-service-r252/runtime/model_event_observer_r135.py",
+      "SHA256": "7d6b0b4485d800e7ac451958d20c0e1c9056806057cb25fd257e4189910449c1"
+    },
+    {
+      "path": "local-only/Kimi-append512-service-r252/runtime/stage_control_r2386.py",
+      "SHA256": "269cc1a5097e0264052d1c929a18ac0bbfe20ade0b44947455dd21bf9e6b804d"
+    },
+    {
+      "path": "local-only/Kimi-append512-service-r252/runtime/batch_wire_r9128.py",
+      "SHA256": "545add43e15fae959422189a616aa9177dd9a18f3693040277e3711561b286fb"
+    },
+    {
+      "path": "code/bw1000/kimi-model-events/kimi_model_events_impl_r8669zq.hpp",
+      "SHA256": "da687e2628bbc2463c19a9976e83fa79235359475c7d809848ec90135a9faf3a"
+    },
+    {
+      "path": "local-only/Kimi-append512-host-candidate-r247/native/worker.cpp",
+      "SHA256": "f24d68110788cd1d4b907f7d983ebafc1806193b00b501b8af847a507df61f89"
+    }
+  ],
+  "candidate": "code/bw1000/kimi-c1-decode-observer/model_event_observer_r255.py",
+  "CPU_result": "results/bw1000/2026-10-31/Kimi255-C1T1-observer-scheduling-CPU-PASS.json",
+  "current508_modified": false,
+  "new_HTTP": 0,
+  "new_jobs": 0,
+  "pure_GPU_or_collective_breakdown": "UNKNOWN",
+  "user_decode_target_tok_s": ">15",
+  "buffered_client_SLO_qualified": false,
+  "new_decode_speedup_claim": false,
+  "next_experiment_card": {
+    "hypothesis": "Current C1T1 decode bottleneck lies within Native critical path; actual layer/edge spans will distinguish attention, FFN and model-edge/PP waits.",
+    "minimal_change": "Use the finite C1/T1 observer candidate with startup event optin and explicit per-request profile ON only in a separately frozen next necessary latest-runtime load. Select third actual decode RUN after two warm calls. Never add an imagined future ordinal.",
+    "owner": "bw1000-root",
+    "resources": "Future existing Kimi32card parent after508terminal+independent cleanup; no launch authorized by this record alone",
+    "reuse": "Native247 existing event hooks/pools; prepared source99 integration; current real prompt,32K/full output budgets",
+    "measurement": "Same real request OFF/ON/OFF; all32owner publication, same actual C1T1 map, natural EOS/correct answer/reset. Keep device event read after original drain; report event perturbation and local durations without cross-host clock subtraction.",
+    "expected_affected_wall_fraction": "UNKNOWN until actual C1T1 event profile; host CAPI timing motivates priority only",
+    "first_result_ETA": "UNKNOWN; coordinate with already necessary latest-source runtime/quality residency rather than a standalone diagnostic reload",
+    "exit": "Do not use fractions if incomplete publication, wrong shape/serial, changed source, quality/lifecycle failure, or material profiler perturbation. Preserve raw failures and no automatic retry.",
+    "fallback": "Use current C1T1 host timing as coarse evidence; retain qualified defaults and finish508fullquality/cleanup."
+  },
+  "goal_complete": false
+}
