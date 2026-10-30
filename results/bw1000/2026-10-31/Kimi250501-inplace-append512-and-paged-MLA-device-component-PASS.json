@@ -1,0 +1,240 @@
+{
+  "UTC": "2026-10-30T20:54:27.789598+00:00",
+  "terminal_audit_UTC": "2026-10-30T20:52:19.491631+00:00",
+  "state": "CURRENT_OPS_PRIMITIVE_APPEND512_NUMERIC_AND_CLEANUP_PASS_NOT_NATIVE247_MODEL_OR_SPEED",
+  "owner": "bw1000-root",
+  "hardware": {
+    "reported_cluster": "BW1000",
+    "Runtime_device_type": "Hygon",
+    "node": "a14r2n08",
+    "DCUs": 1,
+    "device_index_inside_Slurm": 0,
+    "CPU": 8,
+    "host_memory_GiB": 48,
+    "fresh_clock_or_certified_SKU": "UNKNOWN_NOT_SAMPLED_THIS_DIAGNOSTIC",
+    "topology": "Single local primitive owner with H6 derived from actual96heads/TP16 geometry; no TP/PP/CCL Model executed"
+  },
+  "actual_steps": [
+    [
+      "910380.500",
+      "Kimi-append-pre-r250",
+      "COMPLETED",
+      "0:0",
+      "00:00:02",
+      "2026-10-30T20:46:29",
+      "2026-10-30T20:46:31",
+      "cpu=1,mem=512M,node=1",
+      "a14r2n08"
+    ],
+    [
+      "910380.501",
+      "Kimi-append-device-r250",
+      "COMPLETED",
+      "0:0",
+      "00:00:47",
+      "2026-10-30T20:46:31",
+      "2026-10-30T20:47:18",
+      "cpu=8,gres/dcu=1,mem=48G,node=1",
+      "a14r2n08"
+    ],
+    [
+      "910380.502",
+      "Kimi-append-post-r250",
+      "COMPLETED",
+      "0:0",
+      "00:00:00",
+      "2026-10-30T20:47:20",
+      "2026-10-30T20:47:20",
+      "cpu=1,mem=512M,node=1",
+      "a14r2n08"
+    ],
+    [
+      "910407.585",
+      "Kimi-append-component-CPU-r250",
+      "COMPLETED",
+      "0:0",
+      "00:00:07",
+      "2026-10-30T20:33:52",
+      "2026-10-30T20:33:59",
+      "cpu=4,mem=8G,node=1",
+      "a14r2n20"
+    ]
+  ],
+  "source_publication_commit": "c144a2a0c06bba6bb89c75d4e40ac4c7779c0406",
+  "source_manifest_SHA256": "3d9678472fcd70d77d17d06490877be5b9bea5bf55e86f2d83dddacd467ea491",
+  "execution_manifest_SHA256": "43a57750b45f53d96b23a2e76aed8a72743f3a476e50128d4c825b4c3db6ebb0",
+  "component_DSO_SHA256": "a8d5a3056f453cb3b75f2cd81b4021f8690e80dc6d974f09bf61e3d6bafc50bf",
+  "CPU_receipt_SHA256": "4fa4a7636cf5519e2a345f31a0c3abcd6766f8699a0c4878399207a5c228d65c",
+  "source_pins": {
+    "InfiniLM": "5f91ad738583db8f5617aeae53b76523f85d1ec6",
+    "InfiniCore": "2b4f2f20584a69b074f62a455e3de7368e3446c2",
+    "InfiniRT": "cd1d48258f0a6b8d9f66111d5d6cb1664205e78d",
+    "InfiniOps": "1ca4777610d77e9063fffdb975ab35da8466104d",
+    "InfiniCCL": "51cc9db31d58aac21643d72f0f77cf5c9ecfaee5"
+  },
+  "source_driver_SHA256": "0405c66bdf50e568890eb338f0966be2bed93f084cffb5f29c11b2a97fbe1201",
+  "input": "Seed250 synthetic projectedQKV/gates, not checkpoint activations or user traffic; MLA analytic/nonzeroQK fixtures, no weights",
+  "precision": "BF16 q/k/v/state; originalF32convweights/gate constants and FP32 arithmetic/reference; CPU float64 only error reporting, no GPU F64",
+  "coverage": {
+    "KDA_conv_cases": 30,
+    "KDA_complete_nonzero_pasts": [
+      3,
+      255,
+      256
+    ],
+    "KDA_append_widths": [
+      1,
+      2,
+      7,
+      8,
+      63,
+      64,
+      255,
+      256,
+      511,
+      512
+    ],
+    "H": 6,
+    "KDA_D": 128,
+    "KDA_inplace_vs_separate_snapshot": "Exact output/final state match on same GPU; nonwrite slot0/2 and separate read slot1 preserved; final conv history matches reference",
+    "KDA_future_and_history_controls": "Future input preserves prior outputs and changes last; zero-history negative distinguished;512 then1 continuation checked",
+    "MLA_cases": 13,
+    "MLA_QK_dim": 192,
+    "MLA_realV_dim": 128,
+    "MLA_padding_dim": 64,
+    "MLA_cache_pages": 260,
+    "MLA_page_size": 256,
+    "MLA_logical_page_table_width": 128,
+    "MLA_pasts": [
+      0,
+      3,
+      255,
+      256,
+      511,
+      512,
+      8191,
+      16383,
+      32256,
+      32766
+    ],
+    "MLA_right_aligned_uniform": "Actual Automatic device output matches causal uniform attention with pastV2/newV1024",
+    "MLA_indexed_and_nonzeroQK": "Token/head/channel-codedV at8191/512 plus crosspage255/7 nonzeroBF16QK CPU FP32 softmax reference",
+    "MLA_negative_controls": [
+      "wrong physical page",
+      "duplicate physical page",
+      "wrong top-left causal mask sensitivity",
+      "future suffix must preserve prefix/change last and match analytic last"
+    ],
+    "MLA_all28_invocations": "Exact write slots and restore-only-permitted-slots full-cache canary; padding64 remains exactly zero"
+  },
+  "numeric_diagnostics": {
+    "KDA_output_max_relative_L2": 4.0854910300288164e-05,
+    "KDA_state_max_relative_L2": 0.0001176356401854438,
+    "KDA_output_max_abs": 1.9073486328125e-06,
+    "KDA_state_max_abs": 6.103515625e-05,
+    "KDA_continuation_max_relative_L2": 1.5923839428109446e-07,
+    "MLA_real128_max_abs_by_pattern": {
+      "uniform": 2.0,
+      "indexed": 0.249969482421875,
+      "softmax": 0.06482505798339844
+    },
+    "MLA_padded64_exact_zero": true
+  },
+  "predeclared_numeric_limits": {
+    "KDA_component_relative_L2": 0.02,
+    "MLA_real128": "Per-query max abs error <=0.008*max(abs(reference),1)",
+    "MLA_pad64": "Exactly zero, independent of real128 tolerance",
+    "limits_not_Model_quality_gate": true
+  },
+  "actual_operation_counts": {
+    "CausalConv1d": 158,
+    "Silu": 158,
+    "IndexedKimiDeltaAttention": 158,
+    "ReshapeAndCacheFlash": 28,
+    "FlashAttnVarlenFunc": 28
+  },
+  "actual_KDA_tokens": 17161,
+  "seven_CAPI_dladdr_same_component_DSO": true,
+  "actual_mapped_libraries": {
+    "libinfiniops.so": {
+      "path": "/refactor/install/hygon-kimi-5f91ad7-r3672/lib/libinfiniops.so",
+      "SHA256": "6d5a6204f7eef70e84deb9cc737a36c6ae2c1fbc75a0f70645557c8441ed85ca"
+    },
+    "libinfinirt.so": {
+      "path": "/refactor/install/hygon-kimi-5f91ad7-r3672/lib/libinfinirt.so",
+      "SHA256": "e78b7b4aed105e5968fc598f60a2cacafcaf7c07c13dd4a971abfbdd92d47560"
+    },
+    "libinfinilm_runtime.so": {
+      "path": "/refactor/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/python/infinilm/_lib/libinfinilm_runtime.so",
+      "SHA256": "04a6a1a86c97d176e4304b9bb4c1d6fcb8550784beaa47e0f5841fb7603ffabf"
+    },
+    "flash_attn_2_cuda.cpython-310-x86_64-linux-gnu.so": {
+      "path": "/usr/local/lib/python3.10/dist-packages/flash_attn_2_cuda.cpython-310-x86_64-linux-gnu.so",
+      "SHA256": "8db44f244a5d3d57ba6021ef3f531995da78cb9841c8269abea0f801a7fecd51"
+    },
+    "libflash_attention.so": {
+      "path": "/usr/local/lib/python3.10/dist-packages/flash_attn/lib/libflash_attention.so",
+      "SHA256": "8852ec9de971d806547be33296da18145844426cfd2a46ea91a05ba8cb7843bc"
+    }
+  },
+  "Automatic_selected_index": null,
+  "Automatic_limit": "Auto maxuint64 trace is requested config, not a resolved provider index; actual Automatic output is numerically checked",
+  "lifecycle": {
+    "normal_Runtime_close": true,
+    "child_reaped": true,
+    "GPU_COMPLETED0": true,
+    "independent_post_step": "910380.502",
+    "post_COMPLETED0": true,
+    "post_KFD_empty": true,
+    "numeric_attempts": 1,
+    "post_attempts": 1,
+    "automatic_retries": 0,
+    "existing_parent_allocations_preserved": true
+  },
+  "timing": {
+    "CPU_compile_step_elapsed_s": 7,
+    "CPU_compile_process_s": 6.351509857922792,
+    "GPU_step_elapsed_s": 47,
+    "GPU_child_including_numeric_fixture_and_IO_s": 44.429390117991716,
+    "controller_start_UTC": "2026-10-30T20:46:30.982722+00:00",
+    "goal_turn_preparation_clock_witness_UTC": "2026-10-30T20:05:13Z",
+    "preparation_scope": "Orientation/source/provider/config/CPU fixture/review/build/publish/transfer before controller submission; not GPU computation",
+    "GPU_queue_time_s": "UNKNOWN_NOT_SEPARATELY_MEASURED",
+    "model_load_s": 0,
+    "pure_component_kernel_or_bridge_timing_s": null,
+    "warning": "47s includes CPU reference, H2D/D2H, tracing and library hash checks; not a throughput or W8/W512 speed comparison"
+  },
+  "level": "ACTUAL_CURRENT_OPS_PRIMITIVE_COMPONENT",
+  "qualified": {
+    "current_ops_inplace_carry_and_paged_causal_primitives": true,
+    "new_Native247_entry_end_to_end_GPU_invoked": false,
+    "new_Kimi239_append_service_Model": false,
+    "complete_final_tokens_EOS_or_Model_benchmark": false,
+    "online_or_performance": false
+  },
+  "retained_current_Native201_unchanged": true,
+  "new_Native247_Model_GPU_GO": false,
+  "next": "Use a separately source-bound staged device-resident W8/W512 pairing, excluding per-call fixture H2D/D2H and trace overhead while including real operation snapshots/metadata. Only after measurable component value consider actual247/249 TP16PP2 Model quality/lifecycle/timing. Retain width8 until then.",
+  "evidence": [
+    {
+      "path": "evidence/bw1000/Kimi250501-primitive-numeric-metadata.json",
+      "SHA256": "c2236d2a2d6767033bb109791d423140e879b636dee88953a8508c011b3760be"
+    },
+    {
+      "path": "evidence/bw1000/Kimi250501-root-terminal-resource-audit-r9785.json",
+      "SHA256": "6ca0b894b4ccf5ce1c3154069e2b82265e1a57c40dc3a91afc8053aa69bb2e91"
+    },
+    {
+      "path": "evidence/bw1000/Kimi250501-wrapper-and-cleanup.json",
+      "SHA256": "e24548b00b28743be8cbb7ab92d674b92194b678794a54023bb873aaf8614cb1"
+    }
+  ],
+  "remote_numeric_SHA256": "c2236d2a2d6767033bb109791d423140e879b636dee88953a8508c011b3760be",
+  "remote_wrapper_SHA256": "cf2866428947608c1178611367aed9c7448cf46f53ba4dc66e2ad3199ee0e2e3",
+  "remote_final_log_SHA256": "45305754847021e34e80337888b13b1b0926d572d90912daf93d1ccafb616f9b",
+  "new_diagnostic_rounds": 1,
+  "new_measured_Model_gain": null,
+  "physical_Model_maximum_TPS": null,
+  "raw_activation_or_private_source_in_Git": false,
+  "goal_complete": false
+}
