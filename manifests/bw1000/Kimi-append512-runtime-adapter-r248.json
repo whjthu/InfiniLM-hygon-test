@@ -1,0 +1,56 @@
+{
+  "UTC": "2026-10-30T19:54:17.349875+00:00",
+  "owner": "bw1000-root",
+  "state": "ISOLATED_RUNTIME_ADAPTER_CPU_PASS_NOT_DEVICE_OR_MODEL_QUALIFIED",
+  "private_candidate": "local-only/Kimi-append512-runtime-candidate-r248",
+  "files": {
+    "native_append_r248.py": {
+      "bytes": 1807,
+      "SHA256": "ef3f57b5ed5a9563288d606b2846e4a8b216a8278b2175b53711150ceeed5cea"
+    },
+    "long_ar_append_r248.py": {
+      "bytes": 3475,
+      "SHA256": "9b2d175ca1561faa98f86fe058c32ae048aa634eac1dacca330f092bb9abb780"
+    },
+    "CPU_test_runtime_r248.py": {
+      "bytes": 5867,
+      "SHA256": "38e79dcb90258885104d218d186987db554b4aece8923d931dd9642494dd6a12"
+    },
+    "CPU-runtime-result-r248.json": {
+      "bytes": 487,
+      "SHA256": "d24f3f8cbae4b289d0194e8bad50857d6e04e36ddaab712f597a2791a26af8fb"
+    }
+  },
+  "Native_source_manifest": "manifests/bw1000/Kimi-append512-host-source-candidate-r247.json",
+  "Native_DSO_SHA256": "8df87f0741b13c90f658174a793f0068efb4eb8097eddf1d5f44edb4d208e1a2",
+  "qualified_current_Native201_unchanged": true,
+  "baseline_runtime_source_SHA256": {
+    "long_ar_r179.py": "b9bd2f23a4e10fe7c809164eb993b0f4ed06358198998b053390606db49226cd",
+    "long_native_r179.py": "505749af0ebf837fdf95282d087554ba50f9c3bd52d8bc1efa9832b21e45af0e",
+    "model_event_observer_r135.py": "7d6b0b4485d800e7ac451958d20c0e1c9056806057cb25fd257e4189910449c1",
+    "host_observer_r9183.py": "1bef492ae9c73e7e94956622b5c87228f24d94c1a6e646fb970e183a2b0b328d"
+  },
+  "ABI": "9args int(ctx,logical,past,size_t width,ids,positions,last_logits,last_selected,flags)",
+  "runtime_contract": [
+    "Initial seed<=512 via old prefill; consume every subsequent true input in chunks<=512 via new247 CAPI",
+    "Exactly one final-position logits/output row, not width rows",
+    "Discard intermediate selected IDs and EOS; emit only after full prompt consumed",
+    "Append model-event classified prefill; no speculative commit, replay or bank swap",
+    "Original generate/generate_scoped_request AST identical; retain32K and4K/8K budgets, width1decode/greedy/EOS/cancel/deadline/reset rules"
+  ],
+  "generation_functions_AST_identical": true,
+  "CPU_result": "results/bw1000/2026-10-31/Kimi248-local-CPU-binding-and-input-consumption-PASS.json",
+  "CPU_qualification_scope": "Local fake caller plus seven real CPU ctypes trampolines through exact9arg binding; no Native/GPU/model math",
+  "protocol_integration": "NOT_COMPLETE; current239 target_protocol differs from old205, must bind current exact source before integration. Existing protocol owns collective reset/drain; call generate directly",
+  "external_provider_metadata": "Installed package declares FlashAttention2.8.3; Python docs mention bottom-right causal mask; documentation is not device numerical proof",
+  "pending": [
+    "Source-bound current239 caller and existing full normal-agent suite integration in isolated namespace",
+    "Actual nonzero-history KDA/conv carry, page-boundary MLA/FlashVarlen numerical qualification",
+    "Full final-token/EOS, all32 lifecycle, memory and same-load timing before enabling"
+  ],
+  "GPU_GO": false,
+  "new_GPU_jobs": 0,
+  "private_source_bodies_published": false,
+  "new_performance_rounds": 0,
+  "goal_complete": false
+}
