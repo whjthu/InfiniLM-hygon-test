@@ -1,0 +1,64 @@
+{
+  "UTC": "2026-10-30T23:27:19.088258+00:00",
+  "source_commit": "99f5c90a40f9b2546bd0202cba3397ed1d55c5a0",
+  "scope": "Static explicit source callsites, not linked-binary reachability or GPU validation",
+  "activation_change": {
+    "public_source": "csrc/engine/rank_worker.cpp",
+    "public_SHA256": "734c65675547d9415778eb75877489024a10c278650c25c7da153afa56fea06a",
+    "new_call": "runtime_->activate() immediately after Runtime::create",
+    "current_private_Kimi_worker_SHA256": "f24d68110788cd1d4b907f7d983ebafc1806193b00b501b8af847a507df61f89",
+    "present_in_current_private_worker": false,
+    "Runtime_create_semantics": "Creates under a temporary DeviceGuard, then returns; activate explicitly sets backend and current device",
+    "Runtime_source_SHA256": "a4742905290618c740bc81f4e0316b289de86819ece50d7a95da62652bb0a4e9",
+    "decision": "Carry the upstream activation into the next isolated latest-source worker. Do not hot-change508. No new Native compilation yet."
+  },
+  "packed_sigmoid_gate_change": {
+    "new_helper_callers": [
+      {
+        "path": "csrc/layers/attention/attention.cpp",
+        "line": 14,
+        "SHA256": "6ce31a72d38809ab0e7d37f635f121cbb331f873e49d1196aa47e5ba796d2622",
+        "kind": "declaration_or_definition"
+      },
+      {
+        "path": "csrc/layers/attention/attention.hpp",
+        "line": 78,
+        "SHA256": "5133ef4aa96539df2633a28ddbea11fb303504f314d4e6d036051305b0bfb17b",
+        "kind": "declaration_or_definition"
+      },
+      {
+        "path": "csrc/models/qwen3_5/qwen3_5_attention.cpp",
+        "line": 202,
+        "SHA256": "f9218d3053403dc45f80ae24c966f7c0093bb93ec6ee260f52c53dbddc65e440",
+        "kind": "call"
+      },
+      {
+        "path": "csrc/models/qwen3_5/qwen3_5_attention.cpp",
+        "line": 225,
+        "SHA256": "f9218d3053403dc45f80ae24c966f7c0093bb93ec6ee260f52c53dbddc65e440",
+        "kind": "call"
+      },
+      {
+        "path": "csrc/models/qwen3_next/qwen3_next_attention.cpp",
+        "line": 145,
+        "SHA256": "0e6d5351cf2214c10f96866425b609d9509cf890b9af6096f65f802c1fd4b020",
+        "kind": "call"
+      },
+      {
+        "path": "csrc/models/qwen3_next/qwen3_next_attention.cpp",
+        "line": 193,
+        "SHA256": "0e6d5351cf2214c10f96866425b609d9509cf890b9af6096f65f802c1fd4b020",
+        "kind": "call"
+      }
+    ],
+    "explicit_callers_only_Qwen_families": true,
+    "Kimi_custom_MLA_source_SHA256": "788c905159b7cba1f5db194e4f6817e452ce5fc8887f8e0516827de7bf2f4b80",
+    "Kimi_delta_source_SHA256": "cc3d6b8dd19021d758560938e46808871d3cfcc9af50868227ef43f98555b588",
+    "Kimi_custom_source_calls_this_helper": false,
+    "decision": "Do not treat Qwen helper packing as an established current3model active-path correctness or speed fix. Complete latest-source build still retains the public fix."
+  },
+  "Qwen3_5_last_position_sampling_change": "Outside the three target families",
+  "binary_reachability_or_latest_full_Native_qualified": false,
+  "new_GPU_jobs": 0,
+  "new_CPU_builds": 0
+}
