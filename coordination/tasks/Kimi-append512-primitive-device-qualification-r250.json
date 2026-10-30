@@ -1,21 +1,21 @@
 {
-  "UTC": "2026-10-30T20:19:57.637937+00:00",
+  "UTC": "2026-10-30T20:32:27.332573+00:00",
   "owner": "bw1000-root",
-  "state": "SOURCE_AND_CPU_REFERENCE_READY_NO_REMOTE_BUILD_OR_GPU",
+  "state": "REVIEW137_FIXES_AND_CPU_REFERENCE_PASS_REMOTE_COMPILE_NEXT",
   "private_source": "local-only/Kimi-append512-component-r250",
-  "private_manifest_SHA256": "157da95607c0f211c551eb9dc0068cd773a101b252fe1626dd3e4c2930d86d02",
+  "private_manifest_SHA256": "3d9678472fcd70d77d17d06490877be5b9bea5bf55e86f2d83dddacd467ea491",
   "source_files_SHA256": {
     "append_component_r250.cpp": "29dcc56597acd02c82df6647e570d30a9558f41359ac14f85efcbcc930c0a2fa",
     "lifecycle_base_r250.py": "91cbb713f8e8805d8275da6e1a7ebb06a7292579e81cb1b131ad5ec49f3960e7",
-    "check_append_component_r250.py": "e8d036fbdb9283684cc64d982634a2808c4487b435f192d6f7747ed1e5cefa21",
+    "check_append_component_r250.py": "0405c66bdf50e568890eb338f0966be2bed93f084cffb5f29c11b2a97fbe1201",
     "CPU_build_r250.py": "54f7c97a1f2d1cf13aad45798a6b3ab263734e69207e4547ee9fd9160610f110",
     "CPU_inside_r250.sh": "c85a35143219d91c6edbd529b310e484ba9ab7b399417dca54bb16543f37abe9"
   },
   "reuse": "Original976 current Math0 H6D128 conv/Silu/IndexedKDA host glue, same5 dependency source pins and SDK. Only T<=512 bound extension plus2 MLA primitive submits",
   "CPU_reference_cases": 30,
-  "CPU_reference_result_SHA256": "be30a1c30123a1faa8673b946863aefa2101f0d01dcea7c4c29ae082f952faa8",
+  "CPU_reference_result_SHA256": "653a010587fe0551ed03440cc019a788c74186a7f18a00c1597d581701779932",
   "KDA_scope": "Nonzero complete past3/255/256, widths1/2/7/8/63/64/255/256/511/512; exact in-place vs separate snapshot, canary, causal future perturbation, CPU FP32 model diagnostic2percent relativeL2; no GPUF64",
-  "MLA_scope": "Actual TP16 H6 QK192 V128 padded192;260pages256tokens, request1 noncontiguous128page table, explicit slots then Automatic causal FlashVarlen; QKzero/pastV2/newV1024 analytic right-aligned uniform attention; real GPU not yet executed",
+  "MLA_scope": "H6/QK192/V128+64 strict zero padding;260physical/128logical256-token pages, nonzeroQK cross-page CPU softmax, long uniform analytic and token/head/channel-codedV; all invocation write/canaries, future-prefix/last/analytic-response, wrong/duplicate physical-page negatives; actual GPU pending",
   "explicit_exclusions": [
     "No weights/Model projection/CCL, no new HIP kernel",
     "width1 MLA follows existing Kvcache route and is not covered by this Varlen primitive test",
@@ -48,7 +48,7 @@
     "exit": "Any numeric/canary/lifecycle/source failure stops without numeric retry; preserve negative result"
   },
   "review": 137,
-  "review_state": "INFLIGHT_EARLY_AFTER_AVOIDABLE_HARNESS_ERRORS",
+  "review_state": "REQUIRED_FIXES_IMPLEMENTED_INCREMENTAL_RECHECK_RUNNING",
   "provider_evidence": [
     "evidence/bw1000/Kimi-append-component-provider-and-build-binding-r9779.json",
     "evidence/bw1000/Kimi-append-current-config-geometry-r9780.json"
@@ -56,5 +56,7 @@
   "GPU_GO": false,
   "goal_complete": false,
   "manifest": "manifests/bw1000/Kimi-append512-primitive-component-r250.json",
-  "work_item": "qualify-append512-actual-KDA-carry-and-paged-causal-primitives"
+  "work_item": "qualify-append512-actual-KDA-carry-and-paged-causal-primitives",
+  "CPU_MLA_reference_fixture_cases": 3,
+  "provider_selection_limit": "Actual Automatic outputs and mapped library SHAs will be checked; resolved implementation index remains UNKNOWN; do not interpret requested Auto trace as actual16"
 }

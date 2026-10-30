@@ -1,8 +1,8 @@
 {
-  "UTC": "2026-10-30T20:19:57.637937+00:00",
+  "UTC": "2026-10-30T20:32:27.332573+00:00",
   "review": 137,
   "model": "gpt-6-astra",
-  "state": "RUNNING",
+  "state": "REQUIRED_SOURCE_FIXES_IMPLEMENTED_INCREMENTAL_RECHECK_RUNNING",
   "agent": "/root/astra_review_137",
   "trigger": "Repeated avoidable test-harness EOS/syntax and audit host/container-path mistakes; AGENTS early-review rule",
   "last_review": 136,
@@ -10,5 +10,43 @@
   "latest_gain": "results/bw1000/2026-10-31/GLM241807-W1-W2-ABBA-scoped-prefill-gain-and-cleanup-PASS.json",
   "current_card": "coordination/tasks/Kimi-append512-primitive-device-qualification-r250.json",
   "independent_CPU_preparation_continues": true,
-  "goal_complete": false
+  "goal_complete": false,
+  "recommendation": "Keep minimal no-weight one-card primitive diagnosis after source fixes and CPU compile; no Device/Model qualification yet",
+  "required_fixes_disposition": [
+    {
+      "item": "Separate strict zero check for64padVchannels",
+      "decision": "ADOPTED",
+      "source_SHA256": "0405c66bdf50e568890eb338f0966be2bed93f084cffb5f29c11b2a97fbe1201"
+    },
+    {
+      "item": "Future perturbations require last-response and last CPU-reference; all MLA invocations check cache writes/canaries",
+      "decision": "ADOPTED",
+      "source_SHA256": "0405c66bdf50e568890eb338f0966be2bed93f084cffb5f29c11b2a97fbe1201"
+    },
+    {
+      "item": "Separate-slot0 canary and final conv history reference",
+      "decision": "ADOPTED",
+      "source_SHA256": "0405c66bdf50e568890eb338f0966be2bed93f084cffb5f29c11b2a97fbe1201"
+    },
+    {
+      "item": "NonzeroQK crosspage softmax reference plus token/head/channelV and wrong/duplicatepage negatives",
+      "decision": "ADOPTED",
+      "source_SHA256": "0405c66bdf50e568890eb338f0966be2bed93f084cffb5f29c11b2a97fbe1201"
+    },
+    {
+      "item": "Actual seven CAPI dladdr and mapped dependency/provider library SHA",
+      "decision": "ADOPTED",
+      "source_SHA256": "0405c66bdf50e568890eb338f0966be2bed93f084cffb5f29c11b2a97fbe1201"
+    }
+  ],
+  "conditional_pair_timing": {
+    "decision": "DEFER_UNTIL_DEVICE_DIAGNOSIS_PASS",
+    "reason": "Existing Native.run performs per-call H2D/D2H; no component speed claim from it. Device-resident staged W8/W512 paired source is required before ModelGO."
+  },
+  "GLM_decision": "Retain807 single-workload scope; no repeat or online/TTFT inference",
+  "Deep_decision": "Retain1209, C128/quickprefix PARK; no new GPU",
+  "CPU_reviewed_reference_SHA256": "653a010587fe0551ed03440cc019a788c74186a7f18a00c1597d581701779932",
+  "private_source_SHA256": "0405c66bdf50e568890eb338f0966be2bed93f084cffb5f29c11b2a97fbe1201",
+  "automatic_index_reason": "Source trace prints requestedConfig, not necessarily resolved index; root explicitly keeps resolvedIndexUNKNOWN rather than adding SDK ABI/header instrumentation",
+  "GPU_GO": false
 }
