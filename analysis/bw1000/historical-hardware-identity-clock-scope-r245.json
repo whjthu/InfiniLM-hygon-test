@@ -1,0 +1,98 @@
+{
+  "UTC": "2026-10-30T18:28:38.656402+00:00",
+  "owner": "bw1000-root",
+  "state": "REUSE_HISTORICAL_RW_DEVICE_AND_CLOCK_EVIDENCE_NO_NEW_PROBE",
+  "scope": "Clarifies retained hardware evidence; no new benchmark, device query, frequency control, performance gain, or deployed physical-peak qualification",
+  "evidence": "evidence/bw1000/hardware-rw-historical-device-and-clock-audit-r5978.json",
+  "evidence_SHA256": "dbc0a2a6b0604007a4eda745430efa4b3503c34f8e7dfceb8c6080a363bb5f18",
+  "original_audit_UTC": "2026-10-23T00:47:39.695848+00:00",
+  "producer": [
+    "910374.579",
+    "Deep-HW-rw-r5973",
+    "COMPLETED",
+    "0:0",
+    "00:01:03",
+    "a02r4n04"
+  ],
+  "hardware_reported": {
+    "name": "BW",
+    "arch": "gfx936:sramecc+:xnack-",
+    "CU": 80,
+    "VRAM_bytes": 68702699520
+  },
+  "runtime_reported": {
+    "torch": "2.10.0",
+    "torch_hip": "6.3.26113",
+    "torch_file": "/usr/local/lib/python3.10/dist-packages/torch/__init__.py",
+    "CUDA_compatible_runtime_version": 60326113,
+    "CUDA_compatible_driver_version": 12060
+  },
+  "qualified_original_read_write": {
+    "owners": 8,
+    "all8_CPU_oracle_and_guards": true,
+    "postidle_passed": true,
+    "logical_rates_reference": "results/bw1000/2026-10-24/achieved-hardware-references.json"
+  },
+  "clock_metadata": {
+    "sampling_commands": 5,
+    "devices_per_command": 8,
+    "sampled_core_clock_values": [
+      "1350Mhz",
+      "1500Mhz"
+    ],
+    "sampled_memory_clock_values": [
+      "1800Mhz"
+    ],
+    "all_command_intervals_overlap_owner_timed_windows": true,
+    "instantaneous_sample_point_within_command": "UNKNOWN",
+    "constant_frequency_over_each_kernel": "NOT_PROVED",
+    "samples": [
+      {
+        "operation": "read_checksum",
+        "start_epoch": 1792716244.7639937,
+        "end_epoch": 1792716245.0361674,
+        "raw_telemetry_SHA256": "44880c93dcc4220281286563ba52242d0d696516349c0efa4160c0421fd9ad2d"
+      },
+      {
+        "operation": "read_checksum",
+        "start_epoch": 1792716245.1362648,
+        "end_epoch": 1792716245.3991253,
+        "raw_telemetry_SHA256": "ce1ea8de898e6fa9819587a69beedc37db333fc348ca88f3a37322a3ad599afa"
+      },
+      {
+        "operation": "write_pattern",
+        "start_epoch": 1792716246.338456,
+        "end_epoch": 1792716246.606484,
+        "raw_telemetry_SHA256": "303e3f36df49cfc4937d16ab572cffc4df403105e0346187d0b79bfd23246462"
+      },
+      {
+        "operation": "write_pattern",
+        "start_epoch": 1792716246.7065737,
+        "end_epoch": 1792716246.969114,
+        "raw_telemetry_SHA256": "d966cde22ca20e185f21ac53376968d87b404cf6ad03b5fc2fff68ea3d4809d7"
+      },
+      {
+        "operation": "write_pattern",
+        "start_epoch": 1792716247.069212,
+        "end_epoch": 1792716247.3272088,
+        "raw_telemetry_SHA256": "d52245641c2c8ebc91e745aa926d06720cd6e5c6b14f7bb534895c730fbaf2ac"
+      }
+    ]
+  },
+  "evidence_limits": [
+    "Identity fields name=BW, architecture=gfx936 and80CU do not certify an exact marketed SKU or its dense BF16 matrix peak.",
+    "The5 command intervals overlap original910374.579 read/write windows. They do not prove constant frequency, memory-controller saturation or physical HBM transactions.",
+    "Historical large BF16/FP32 GEMM has no simultaneous clock telemetry; these RW clocks cannot be retroactively assigned to those GEMMs.",
+    "No transfer of old node a02r4n04 clocks to live GLM807 nodes a02r4n12..15 or to current Native kernels.",
+    "Measured GEMM/FMA and logical bandwidth remain capability lower bounds. Matching-precision certified maxima and actual executed FLOPs/traffic/overlap are still required for a physical Model ceiling."
+  ],
+  "decision": "Reuse the retained evidence; do not add device polling during the frozen W1/W2 timing experiment. Keep certified deployed BF16 peak and whole-model maximum TPS unknown.",
+  "retained_hardware_analysis": "analysis/bw1000/hardware-and-long-input-reference-r198.json",
+  "new_GPU_jobs": 0,
+  "new_HTTP": 0,
+  "new_device_queries": 0,
+  "new_performance_rounds": 0,
+  "goal_complete": false,
+  "original_local_audit_SHA256": "9af2f56ff38110b4ad22cfc6b0c1257324fd53e3613c12bc81932d9e128875cd",
+  "publication_normalization": "CRLF to LF only; parsed JSON equals the original local audit, whose byte SHA is retained separately"
+}
