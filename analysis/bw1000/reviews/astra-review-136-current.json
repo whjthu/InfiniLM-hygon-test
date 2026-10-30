@@ -1,0 +1,100 @@
+{
+  "UTC": "2026-10-30T10:29:09.074299+00:00",
+  "review": 136,
+  "model": "gpt-6-astra",
+  "state": "COMPLETE_WITH_SOURCE_DELTA_CORRECTIONS_IMPLEMENTED_CPU_STATIC_NEXT",
+  "new_Model_performance_gain": 0,
+  "performance_rounds": 0,
+  "prior135_implemented": true,
+  "primary_decision": "Retain same-load W1/W2 paired plan; complete minimal runtime integration; no further framework or redundant184 trace",
+  "cost_basis": {
+    "actual_baseline": "910376.804",
+    "stage": 3,
+    "sequence": 6,
+    "input_tokens": 8900,
+    "generated_tokens": 732,
+    "request_wall_s": 685.746633,
+    "prefill_CAPI_s": 524.211278,
+    "decode_CAPI_s": 160.297399,
+    "prefill_wall_fraction": 0.764438719453399,
+    "prefill_calls": 18,
+    "warmup2_estimate_minutes": 22.858221099999998,
+    "first_ABBA_with_warmup_estimate_minutes": 68.57466330000001,
+    "all18_estimate_minutes": 205.7239899,
+    "queue_load_prepare_exit_excluded": true,
+    "not_completion_or_speed_guarantee": true,
+    "CAPI_not_GPU_busy_or_removable_fraction": true
+  },
+  "necessary_fixes_implemented": [
+    {
+      "item": "Only CPU supervisor writes stop after child reaped; isolated session and bounded group reap",
+      "state": "SOURCE_IMPLEMENTED_NOT_LINUX_PROCESS_TESTED"
+    },
+    {
+      "item": "Controller fail-stop only exact matching own run/name/step after finite terminal-wrapper grace; no parent cancel or retry",
+      "state": "SOURCE_IMPLEMENTED_NOT_RUNTIME_TESTED"
+    },
+    {
+      "item": "All32 preweight manifest/source/overlay SHA before Torch and explicit paired payload/import",
+      "state": "SOURCE_IMPLEMENTED_NOT_GPU_TESTED"
+    },
+    {
+      "item": "CPU contract reads actual paired entry",
+      "state": "EXISTING_LOCAL_CPU_CONTRACT_PASS"
+    },
+    {
+      "item": "Atomically publish ready and wrapper, exclusive supervisor intent preserved",
+      "state": "SOURCE_IMPLEMENTED"
+    }
+  ],
+  "budget_seconds": {
+    "process": 21600,
+    "shell": 21720,
+    "GPU_Slurm": 22200,
+    "observer": 22500,
+    "CPU_keeper": 23400
+  },
+  "GLM_card": {
+    "hypothesis": "W2 same-request chunk group reduces matched8900-token prefill/wall while maintaining liveness, typed correctness and EOS/reset",
+    "resources": "One source-bound same-load32card TP8PP4 run after current CPU/static/resource checks and concrete execution decision",
+    "plan": [
+      1,
+      2,
+      1,
+      2,
+      2,
+      1,
+      1,
+      2,
+      2,
+      1,
+      1,
+      2,
+      2,
+      1,
+      1,
+      2,
+      2,
+      1
+    ],
+    "quality": "Existing finite logits, typed calculate arguments, full EOS/reset,512MiB free floor, all32 normal exit and independent cleanup",
+    "first_liveness_result": "Second warmup after ready; do not use warmup as gain",
+    "exit": "Any liveness/source/quality/resource/lifecycle failure stops once; no reload; inconsistent blocks/no gain beyond noise retainsW1",
+    "wall_gain": "UNKNOWN"
+  },
+  "Kimi_card": {
+    "state": "RETAIN497_COMBINED_ACCEPTANCE_APPEND512_SOURCE_BODY_AUTHORIZATION_PENDING",
+    "new_GPU": 0,
+    "production_source_body_export_attempted": false
+  },
+  "Deep_card": {
+    "state": "C128_QUICKPREFIX_PARK_RETAIN1209",
+    "new_GPU": 0
+  },
+  "certified_deployed_BF16_peak_and_Model_maximum_TPS": "UNKNOWN",
+  "source": "code/bw1000/agent-context-32k/GLM-prefill-paired-runtime-r241",
+  "source_manifest_SHA256": "ee1128cece29aeef1637b1ea115397cef3d34828b016f95fc6f561b6f8df2632",
+  "remote_jobs_this_turn": 0,
+  "GPU_GO": false,
+  "goal_complete": false
+}
