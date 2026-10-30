@@ -1,0 +1,16 @@
+--- a/glm_agent_service_window12_r240.py
++++ b/glm_agent_service_window12_r240.py
+@@ -175,7 +175,12 @@
+                 generated_token_ids_SHA256=__import__('hashlib').sha256(json.dumps(generated,separators=(',',':')).encode()).hexdigest(),
+                 generated_natural_EOS=bool(generated and generated[-1] in eos and reason=='eos_token'),
+                 actual_prompt_token_ids_SHA256=__import__('hashlib').sha256(json.dumps(prompt,separators=(',',':')).encode()).hexdigest())
+-            if is_emitter:row['request_id']=req.request_id
++            if is_emitter:
++                from emitter_timing_r244 import snapshot_emitter_timing
++                row['request_id']=req.request_id
++                row['emitter_timing']=snapshot_emitter_timing(accepted=req.metadata.get('accepted_monotonic'),
++                    started=started,token_times=req.metadata.get('token_monotonic'),
++                    generated_count=len(generated),ends_in_eos=row['generated_natural_EOS'])
+             report['service_requests'].append(row);save()
+             if is_emitter:
+                 engine.record_finished(req,len(calls),True)
