@@ -1,0 +1,225 @@
+{
+  "UTC": "2026-10-30T21:21:53.265933+00:00",
+  "terminal_audit_UTC": "2026-10-30T21:18:41.346977+00:00",
+  "owner": "bw1000-root",
+  "state": "STAGED_H6_PRIMITIVE_W512_COMPLETION_WALL_GAIN_QUALIFIED_NOT_MODEL_GAIN",
+  "hardware": {
+    "name": "BW",
+    "gcnArchName": "gfx936:sramecc+:xnack-",
+    "total_memory_bytes": 68702699520,
+    "multi_processor_count": 80,
+    "visible_device_count": 1,
+    "selected_device": 0,
+    "clock_or_certified_SKU": "UNKNOWN_NOT_MEASURED",
+    "reported_cluster": "BW1000",
+    "node": "a14r2n08",
+    "DCUs": 1,
+    "CPUs": 8,
+    "host_memory_GiB": 48
+  },
+  "actual_steps": [
+    [
+      "910380.503",
+      "Kimi-append-pair-pre-r251",
+      "COMPLETED",
+      "0:0",
+      "00:00:01",
+      "2026-10-30T21:13:02",
+      "2026-10-30T21:13:03",
+      "cpu=1,mem=512M,node=1",
+      "a14r2n08"
+    ],
+    [
+      "910380.504",
+      "Kimi-append-resident-pair-r251",
+      "COMPLETED",
+      "0:0",
+      "00:00:36",
+      "2026-10-30T21:13:03",
+      "2026-10-30T21:13:39",
+      "cpu=8,gres/dcu=1,mem=48G,node=1",
+      "a14r2n08"
+    ],
+    [
+      "910380.505",
+      "Kimi-append-pair-post-r251",
+      "COMPLETED",
+      "0:0",
+      "00:00:00",
+      "2026-10-30T21:13:41",
+      "2026-10-30T21:13:41",
+      "cpu=1,mem=512M,node=1",
+      "a14r2n08"
+    ]
+  ],
+  "source_publication_commit": "e6a5f96acc7acce912a2fee094136486493698e4",
+  "source_driver_SHA256": "b4e7c4f3fdc658f964fb94f3c805e89132d1a4634f6f9722628b380efd165dd1",
+  "execution_manifest_SHA256": "6bfce1930029f0105dd2935b1adbda09719faae0f4eecc5f2c409f318b30da33",
+  "reused_component_DSO_SHA256": "a8d5a3056f453cb3b75f2cd81b4021f8690e80dc6d974f09bf61e3d6bafc50bf",
+  "reused_CPU_receipt_SHA256": "4fa4a7636cf5519e2a345f31a0c3abcd6766f8699a0c4878399207a5c228d65c",
+  "prior_numeric_result": "results/bw1000/2026-10-31/Kimi250501-inplace-append512-and-paged-MLA-device-component-PASS.json",
+  "workload": {
+    "kind": "Synthetic projectedQKV/gate/beta H6D128 primitives, not real traffic or checkpoint Model",
+    "initial_nonzero_history_tokens": 256,
+    "append_tokens_each_arm": 512,
+    "state_pool_rows": 3,
+    "W8": "64originalCAPIcalls; alternatingread/write1/2,finalactive1",
+    "W512": "1originalCAPIcall;inplacebank1",
+    "dtype": "BF16 operands/state;F32convweights and constants; no GPUF64",
+    "actual_staged_data_and_initial_state_SHA256": "7f9c19973c1151cec988a8466c2092ec4094e9bd8afd551f6a66ef87bd73b096",
+    "plan": [
+      8,
+      512,
+      8,
+      512,
+      512,
+      8,
+      8,
+      512,
+      512,
+      8,
+      8,
+      512,
+      512,
+      8
+    ],
+    "warmups_excluded": 2,
+    "measured_arms": 12,
+    "independent_blocks": 3,
+    "all_input_positions_and_state_reference_checked": true,
+    "no_weights": true,
+    "HTTP_requests": 0
+  },
+  "timer_scope": "Host perf_counter around prepacked ctypes CAPI loop. Each native call syncs its Runtime stream. Includes Python/ctypes, HOST submit, actual operator snapshots/metadata sync and Silu allocations; not GPU-busy/kernel timing. Reset, poison, fixture transfers, output/reference audit excluded.",
+  "numeric": {
+    "all14_output_and_fullstate_reference_PASS": true,
+    "unused_slot0_unchanged": true,
+    "W512_unused_slot2_unchanged": true,
+    "conv_final_state_exact_reference": true,
+    "predeclared_relative_L2_limit": 0.02,
+    "output_max_relative_L2": 4.01282297176606e-05,
+    "state_max_relative_L2": 2.1284724619559178e-05,
+    "exact_original_CAPI_counts": [
+      455,
+      455,
+      455,
+      7168
+    ]
+  },
+  "matched_measurement": {
+    "W8_geometric_s": 0.02033444085318178,
+    "W512_geometric_s": 0.010934528203784887,
+    "geometric_W8_over_W512": 1.8596541592112956,
+    "time_reduction_percent": 46.226560726532426,
+    "block_ratios": [
+      1.8609975743588367,
+      1.8605415460741153,
+      1.8574253905045408
+    ],
+    "block_ratio_min": 1.8574253905045408,
+    "block_ratio_max": 1.8609975743588367,
+    "within_block_relative_spreads": [
+      {
+        "W8": 0.006595859068393299,
+        "W512": 0.0029951891090149807
+      },
+      {
+        "W8": 0.0027138051292918447,
+        "W512": 0.00014995779710013274
+      },
+      {
+        "W8": 0.0004924979895869605,
+        "W512": 0.0016989104075242475
+      }
+    ],
+    "all3_W512_faster": true,
+    "warmup_credit": false,
+    "statistical_significance_or_randomized_CI": false
+  },
+  "attribution": "Grouping width, bank policy, state-store/round boundaries, snapshots/metadata and host calls change together. Do not assign the measured ratio to a particular copy, kernel or GPU-busy fraction. Python/ctypes overhead remains included.",
+  "actual_mapped_libraries": {
+    "libinfiniops.so": {
+      "path": "/refactor/install/hygon-kimi-5f91ad7-r3672/lib/libinfiniops.so",
+      "SHA256": "6d5a6204f7eef70e84deb9cc737a36c6ae2c1fbc75a0f70645557c8441ed85ca"
+    },
+    "libinfinirt.so": {
+      "path": "/refactor/install/hygon-kimi-5f91ad7-r3672/lib/libinfinirt.so",
+      "SHA256": "e78b7b4aed105e5968fc598f60a2cacafcaf7c07c13dd4a971abfbdd92d47560"
+    },
+    "libinfinilm_runtime.so": {
+      "path": "/refactor/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/python/infinilm/_lib/libinfinilm_runtime.so",
+      "SHA256": "04a6a1a86c97d176e4304b9bb4c1d6fcb8550784beaa47e0f5841fb7603ffabf"
+    },
+    "flash_attn_2_cuda.cpython-310-x86_64-linux-gnu.so": {
+      "path": "/usr/local/lib/python3.10/dist-packages/flash_attn_2_cuda.cpython-310-x86_64-linux-gnu.so",
+      "SHA256": "8db44f244a5d3d57ba6021ef3f531995da78cb9841c8269abea0f801a7fecd51"
+    },
+    "libflash_attention.so": {
+      "path": "/usr/local/lib/python3.10/dist-packages/flash_attn/lib/libflash_attention.so",
+      "SHA256": "8852ec9de971d806547be33296da18145844426cfd2a46ea91a05ba8cb7843bc"
+    }
+  },
+  "seven_CAPI_same_reused_DSO": true,
+  "operator_trace_lines": 0,
+  "minimum_sampled_device_free_bytes": 68165828608,
+  "memory_limit": "Sampled only, no weights and no full Model peak/fit qualification",
+  "lifecycle": {
+    "GPU_step": "910380.504",
+    "GPU_COMPLETED0_elapsed_s": 36,
+    "normal_Runtime_close": true,
+    "child_reaped": true,
+    "independent_post": "910380.505",
+    "post_COMPLETED0_and_KFD_empty": true,
+    "numeric_attempts": 1,
+    "post_attempts": 1,
+    "automatic_retries": 0,
+    "parent_allocation_retained": true
+  },
+  "preparation_and_runtime": {
+    "orientation_clock_witness_UTC": "2026-10-30T20:56:34Z",
+    "controller_submission_UTC": "2026-10-30T21:13:03.591006+00:00",
+    "fresh_pre_CPU_step_elapsed_s": 1,
+    "new_CPP_or_HIP_compilation": false,
+    "weights_loading_s": 0,
+    "child_wall_including_setup_and_audits_s": 35.0659430869855,
+    "sum_all14_measured_interval_walls_s": 0.23538119485601783,
+    "GPU_queue_wait_s": "UNKNOWN_NOT_SEPARATELY_TIMED",
+    "residency": "New no-weight Runtime in a separate step from501 to disable tracing before SDK static trace initialization; not claimed as the same residency"
+  },
+  "root_decision": "Component signal exceeds descriptive within-block spreads and is positive in all3blocks. Proceed with actual Native247/current239 caller Model source closure and finite quality/lifecycle/matched request qualification. Keep existing width8 qualified service/default until it passes.",
+  "qualifications": {
+    "primitive_completion_wall_gain": true,
+    "actual_Native247_new_entry_Model_GPU_executed": false,
+    "whole_Model_gain_or_quality": false,
+    "online_SLO": false,
+    "physical_or_Model_maximum_TPS": false
+  },
+  "evidence": [
+    {
+      "path": "evidence/bw1000/Kimi251504-staged-resident-pair-metadata.json",
+      "SHA256": "8a8fb4846822f641ba901109abee26ab32223211ae9fc612e5e5404e62d81443"
+    },
+    {
+      "path": "evidence/bw1000/Kimi251504-root-terminal-pair-audit-r9788.json",
+      "SHA256": "7cbc8892b2efec890fae7ce89ccdc7d3ef757fa584638e7ff22a519c86692d7a"
+    },
+    {
+      "path": "evidence/bw1000/Kimi251504-wrapper-and-cleanup.json",
+      "SHA256": "aad97c2ed268fbdba6b153a2a941802f4e15b4a049f3558737f677b387ff670d"
+    }
+  ],
+  "remote_numeric_result_SHA256": "8a8fb4846822f641ba901109abee26ab32223211ae9fc612e5e5404e62d81443",
+  "remote_wrapper_SHA256": "0c4b9756ac541e91cdc190b351111859add0f52f0fecc84222d9268d14ff0f51",
+  "remote_final_log_SHA256": "ad17ae52b9a7af1c38054eea38724efdda571a64622004317159a1f0164984ba",
+  "new_performance_rounds": 1,
+  "new_measured_Model_gain": null,
+  "private_source_or_raw_activations_in_Git": false,
+  "goal_complete": false,
+  "source_pins": {
+    "InfiniLM": "5f91ad738583db8f5617aeae53b76523f85d1ec6",
+    "InfiniCore": "2b4f2f20584a69b074f62a455e3de7368e3446c2",
+    "InfiniRT": "cd1d48258f0a6b8d9f66111d5d6cb1664205e78d",
+    "InfiniOps": "1ca4777610d77e9063fffdb975ab35da8466104d",
+    "InfiniCCL": "51cc9db31d58aac21643d72f0f77cf5c9ecfaee5"
+  }
+}
