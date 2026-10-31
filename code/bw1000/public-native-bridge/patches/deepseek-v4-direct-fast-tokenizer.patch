@@ -1,0 +1,12 @@
+--- a/python/infinilm/processors/deepseek_v4_processor.py
++++ b/python/infinilm/processors/deepseek_v4_processor.py
+@@ -7,0 +8,2 @@
++from transformers import PreTrainedTokenizerFast
++
+@@ -14 +16,5 @@
+-        super().__init__(model_dir_path)
++        # The checkpoint declares a fast tokenizer; do not load an unrelated
++        # Transformers model configuration to discover its tokenizer class.
++        self.tokenizer = PreTrainedTokenizerFast.from_pretrained(
++            model_dir_path, local_files_only=True
++        )

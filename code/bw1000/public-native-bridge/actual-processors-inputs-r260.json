@@ -1,0 +1,57 @@
+{
+  "upstream_commit": "99f5c90a40f9b2546bd0202cba3397ed1d55c5a0",
+  "public_source_manifest_SHA256": "53ef542e451954dbe3e125d588a5a073afe1e3ca7515b115f429314781e542da",
+  "public_patches": {
+    "code/bw1000/public-native-bridge/patches/processor-factory-deepseek-v4.patch": "f6535630a172e4845800514f23919978d68d63ce8535b17aa09386ba589225ae",
+    "code/bw1000/public-native-bridge/patches/deepseek-v4-direct-fast-tokenizer.patch": "02456b8b1044742891d15aff8c75795176054ebaefbffb4b4ebc2fc34d625385"
+  },
+  "public_prepared_callback": {
+    "path": "code/bw1000/public-native-bridge/prepared_chat.py",
+    "SHA256": "e970d55f102aca517ae0086e18a6147ba070f06a62697d44ab587d5c90e68882"
+  },
+  "actual_bridge": {
+    "original_remote_path": "/refactor/incoming/Kimi-append512-service-r252/runtime/native_engine_bridge_r143.py",
+    "SHA256": "ee019b3053e209661877f84d1a721f95303cf09652e19fdda845e234d1dde77d",
+    "body_not_published": true
+  },
+  "private_prequeue_audit": {
+    "local_reference": "local-only/public-prepared-history-r257/prepared_history.py",
+    "SHA256": "c0fc27f7e1192b57bd56fa15f2cec1e7cb9836d695d904e8c48c4eb11ff5cebb",
+    "body_not_published": true,
+    "contract": "Pass the SAME prepared encode callback used by queue admission. Do not invoke the old per-family request constraint helper again. Effective RC priority is reasoning_content or reasoning, not both aliases independently. No generation => prefix not checked, correctness N/A; no prefix resolver execution."
+  },
+  "actual_model_metadata_SHA256": {
+    "Kimi": {
+      "config.json": "9710e121a58d03ac92c8d6da287a19541994319afbbe6d6202af001ffd379213",
+      "tokenizer_config.json": "5d0803c94db9cd78763499e0956c95fd5a225c14a727e5a6cf5db3f96f010a6e",
+      "tiktoken.model": "b6c497a7469b33ced9c38afb1ad6e47f03f5e5dc05f15930799210ec050c5103",
+      "encoding_k3.py": "b9cb7ae100fed34b9337f80dacee5abbf7e261fe9b74bc0e76366701d46f5333",
+      "tokenization_kimi.py": "f28ea66e2d862a2a5814970b2ce40c2f7d8296ff09aed90a7e7def689b906944",
+      "preprocessor_config.json": "4be333605990c53a816e586dee9d5dd545afb7a59947c17f8f7ef26b4782668e"
+    },
+    "GLM": {
+      "config.json": "3ac72612095574542f7fff847ada8e59d9199dd8af44bdf625d7e02615572e69",
+      "tokenizer_config.json": "98b1271574f41abf89427ae2dda030d94dc9478f0edc5a8bd240db213c6fd5fc",
+      "tokenizer.json": "19e773648cb4e65de8660ea6365e10acca112d42a854923df93db4a6f333a82d",
+      "chat_template.jinja": "3740abcea51c45830cb3ca562084ad5fb2ef53589376f73332e9886f93ade41c"
+    },
+    "Deep": {
+      "config.json": "fd2ad6f5dbd77e55a49e9b2ff29c89030fbe4b538e8870c183d194648767be09",
+      "tokenizer_config.json": "6ac8c8dc065ed118161d02dd532749ae3f52c243deac27872134fae2f50d8547",
+      "tokenizer.json": "8f9f37ca37fdc4f5fd36d5cf4d3b0e8392edb4e894fd10cc0d70b4957c8633cf"
+    }
+  },
+  "Deep_metadata_view": {
+    "source_weight_view": "/shared/hygon_DeepSeek-V4-Flash-Channel-INT8-w8a8",
+    "config_and_tokenizer_files": "Symlink existing config/tokenizer metadata into an isolated view; no model config rewrite or shared source mutation",
+    "missing_file": "encoding/encoding_dsv4.py",
+    "official_encoder_SHA256": "bdbd57c132a1b3725042323d02b98b9d1df28e5f388f134399555d041f5055e0",
+    "existing_private_modified_encoder_838447_used": false,
+    "whole_weight_files_linked_or_opened": false
+  },
+  "CPU_harness": "Use actual processor factory/classes from patched public source. Only unused Native/scheduler declarations are blocked/substituted; actual processor constructors, tokenizers and Python queue run. HF offline, sockets blocked, weight file reads rejected, GPU visibility empty and distinct function object per guarded CUDA API. No native engine or model is constructed.",
+  "CPU_evidence": "evidence/bw1000/latest-three-processors-actual-CPU-independent-audit.json",
+  "scope": "Finite text-only constructor/BPE/history/queue cases. No actual Native scheduler, multimodal forward, latest fullHTTP/Model, benchmark or performance qualification.",
+  "patch_application": "Apply with git apply --unidiff-zero against pinned99f5 source. Zero context avoids whitespace-only context rows in the delivered patch files.",
+  "patch_application_independently_checked": "Both patches applied in an isolated copy of the exact upstream files; resulting full file bytes equal the actual CPU592tested source."
+}
