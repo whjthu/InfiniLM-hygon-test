@@ -1,0 +1,39 @@
+#include <iostream>
+#include <atomic>
+#include <mutex>
+#include <vector>
+#include <set>
+#include <array>
+#include <cstring>
+#include <cstdint>
+#include "long_capture_geometry_r305.hpp"
+/*ACTUAL_METADATA_DECLARATIONS*/
+namespace kimi_batch_live_r9122 {
+/*ACTUAL_LONG_ARM_FUNCTION*/
+}
+/*ACTUAL_LEGACY_BEGIN_FUNCTION*/
+int main(){
+ using namespace kimi_long_features_r305;int pos=0,neg=0,owner=0;
+ auto yes=[&](bool v){if(!v)throw std::runtime_error("positive assertion");++pos;};
+ auto no=[&](auto f){bool failed=false;try{f();}catch(const std::invalid_argument&){failed=true;}if(!failed)throw std::runtime_error("negative accepted");++neg;};
+ ContextGeometry ctx{true,true,true,1,2,3,32768,128,260,256,2,2,2,0};auto s=validate_context(ctx);yes(s.scoped_long&&s.pages==128&&s.context==32768);auto other=ctx;other.stage=1;yes(validate_context(other).scoped_long);
+ for(int k=0;k<15;++k){auto c=ctx;switch(k){case 0:c.long_agent=false;break;case 1:c.geometry_long=false;break;case 2:c.ready=false;break;case 3:c.logical=2;break;case 4:c.physical=16;break;case 5:c.pool=17;break;case 6:c.context=1024;break;case 7:c.pages_per_row=4;break;case 8:c.blocks=12;break;case 9:c.block_size=128;break;case 10:c.cache_rows=1;break;case 11:c.tp_nodes=1;break;case 12:c.pp_size=4;break;case 13:c.stage=-1;break;case 14:c.stage=2;break;}no([&]{validate_context(c);});}
+ int32_t logical=1,past=1023,width=2;yes(validate_metadata(s,1,1,&logical,&past,&width)==2);no([&]{validate_metadata(legacy_scope(),1,1,&logical,&past,&width);});
+ for(int32_t p:{0,1024,8635,32760,32767}){past=p;width=p==32767?1:8;yes(validate_metadata(s,1,1,&logical,&past,&width)==size_t(width));}
+ past=32767;width=2;no([&]{validate_metadata(s,1,1,&logical,&past,&width);});past=0;width=512;yes(validate_metadata(s,1,1,&logical,&past,&width)==512);width=513;no([&]{validate_metadata(s,1,1,&logical,&past,&width);});width=8;logical=2;no([&]{validate_metadata(s,1,1,&logical,&past,&width);});logical=1;no([&]{validate_metadata(s,0,1,&logical,&past,&width);});no([&]{validate_metadata(s,1,0,&logical,&past,&width);});no([&]{validate_metadata(s,1,2,&logical,&past,&width);});past=-1;no([&]{validate_metadata(s,1,1,&logical,&past,&width);});past=8635;
+ // Actual pair_probe.cpp formula, extracted and checked by the driver.
+ auto pages=[&](int32_t row,size_t count){std::vector<int32_t>table(count);/*ACTUAL_PAGE_TABLE_FORMULA*/return table;};
+ auto table=pages(1,128);int32_t total=past+width,off[2]={0,width};validate_observed(s,1,1,&logical,&past,&width,&past,&total,off,table.data());++pos;
+ for(int kind=0;kind<6;++kind){auto badtable=table;int32_t ap=past,at=total,offsets[2]={0,width};if(kind==0)badtable[0]=2;if(kind==1)badtable=pages(2,128);if(kind==2)ap++;if(kind==3)at++;if(kind==4)offsets[0]=1;if(kind==5)offsets[1]--;no([&]{validate_observed(s,1,1,&logical,&past,&width,&ap,&at,offsets,badtable.data());});}
+ auto wrong=s;wrong.pages=4;no([&]{validate_scope(wrong);});no([&]{validate_observed(s,1,1,&logical,&past,&width,&past,&total,off,nullptr);});
+ using namespace kimi_batch_live_r9122;
+ past=0;width=512;yes(modern_kimi_batch_taps_begin_r9122(&owner,1,1,1,&logical,&past,&width)==0);yes(!metadata.scoped_long&&metadata.context_limit==1024&&metadata.pages_per_row==4);
+ past=8635;width=8;yes(begin_long_validated_r305(&owner,2,1,&logical,&past,&width)==0);yes(metadata.scoped_long&&metadata.pages_per_row==128&&metadata.context_limit==32768&&metadata.past[0]==past);
+ records.push_back({19,metadata,{11,12}});auto saved=metadata;
+ logical=2;yes(begin_long_validated_r305(&owner,3,1,&logical,&past,&width)!=0);yes(armed.load()&&metadata.epoch==saved.epoch&&metadata.logical==saved.logical&&metadata.pages_per_row==128&&records.size()==1);
+ logical=1;past=1024;yes(modern_kimi_batch_taps_begin_r9122(&owner,3,1,1,&logical,&past,&width)!=0);yes(metadata.epoch==saved.epoch&&records.size()==1);
+ past=512;yes(modern_kimi_batch_taps_begin_r9122(&owner,3,1,1,&logical,&past,&width)==0);yes(!metadata.scoped_long&&metadata.pages_per_row==4&&metadata.context_limit==1024&&records.empty());
+ past=32760;yes(begin_long_validated_r305(&owner,4,1,&logical,&past,&width)==0);yes(metadata.past[0]+metadata.width[0]==32768);
+ yes(modern_kimi_batch_taps_begin_r9122(&owner,0,0,0,nullptr,nullptr,nullptr)==0);yes(!armed.load()&&records.empty()&&metadata.pages_per_row==4&&!metadata.scoped_long);
+ std::cout<<"{\"passed\":true,\"positive\":"<<pos<<",\"negative\":"<<neg<<",\"old_new_old_disabled_atomicity\":true}";
+}
