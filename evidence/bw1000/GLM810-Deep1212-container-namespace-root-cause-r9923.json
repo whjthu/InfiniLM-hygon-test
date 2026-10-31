@@ -1,0 +1,61 @@
+{
+  "UTC": "2026-10-31T15:21:10.667723+00:00",
+  "read_only": true,
+  "outer_wrapper_SHA256": "d3ce6c3196d5728a5f97d459d070fb7720df76d25cadc6be8af0dbb6eca75dce",
+  "outer_wrapper_source": "#!/bin/bash\nset -euo pipefail\nulimit -c 0\nTASK_ROOT=/public/home/aclsylqidf/hygon-inference-refactor-20261014\nOLD_ROOT=/public/home/aclsylqidf/hygon-inference-20261013\nAPP=/public/software/apps/apptainer/1.3.4/bin/apptainer\nexport HSA_FORCE_FINE_GRAIN_PCIE=1\nnode_local=\"/dev/shm/infini-pyc-${SLURM_JOB_ID}.${SLURM_STEP_ID}-${SLURM_PROCID}\"\ntest ! -e \"$node_local\"\nmkdir -m700 \"$node_local\"\nlocal_fs=$(stat -f -c %T \"$node_local\")\ntest \"$local_fs\" = tmpfs\nexport LOCAL_PYCACHE_HOST_R3097=\"$node_local\"\necho \"LOCAL_PYCACHE_R3097 node=$(hostname) filesystem=$local_fs root=$node_local\"\nwork_name=\"runtime-raw-sdk-graph-r2323-${SLURM_JOB_ID}.${SLURM_STEP_ID}-rank${SLURM_PROCID}\"\ntask_scratch=\"$TASK_ROOT/results/$work_name\"\nmkdir \"$task_scratch\"\nexport APPTAINER_TMPDIR=\"$task_scratch\"\nexport TMPDIR=\"$task_scratch\"\nexport APPTAINERENV_TMPDIR=/tmp\nif [ \"$1\" = glm ]; then\n  export GLM_PIPELINE_TAIL_NODE=\"$(scontrol show hostnames \"$SLURM_STEP_NODELIST\" | tail -n1)\"\n  cp \"$TASK_ROOT/incoming/resource_glm_r1780_inside.sh\" \"$task_scratch/job-inside.sh\"\nelse\n  cp \"$TASK_ROOT/incoming/${WAVE_INSIDE_R2323}\" \"$task_scratch/job-inside.sh\"\nfi\necho \"SHARED_CACHED_R1780_START node=$(hostname) step=${SLURM_JOB_ID}.${SLURM_STEP_ID} scratch=$work_name\"\n\"$APP\" exec --rocm --home \"$OLD_ROOT/build-deps/root:/root\" \\\n --bind \"$OLD_ROOT:/old:ro\" --bind \"$TASK_ROOT:/refactor\" \\\n --bind /opt/hyhal:/opt/hyhal:ro --bind /public/home/aclsylqidf/shared:/shared:ro \\\n --bind \"$task_scratch:/tmp\" --bind \"$node_local:/local\" \\\n \"$TASK_ROOT/containers/dtk26-sandbox-r1\" /bin/bash --noprofile --norc /tmp/job-inside.sh\necho \"SHARED_CACHED_R1780_COMPLETE node=$(hostname) scratch=$work_name\"\n",
+  "GLM_tracebacks": {
+    "0": {
+      "stack": [
+        "Traceback (most recent call last):",
+        "  File \"/refactor/incoming/GLM-latest-full-owner-r290/model_entry_r290.py\", line 12, in <module>",
+        "    _continuous_preflight = _continuous_validate()",
+        "  File \"/refactor/incoming/GLM-latest-full-owner-r290/preflight_r133.py\", line 7, in validate",
+        "    q=parentvalidate();q['parent648_model_metadata']=q['model_library_metadata'];q['model_library_metadata']=read_private_metadata();return q",
+        "  File \"/refactor/incoming/GLM-latest-full-owner-r290/preflight_r133.py\", line 4, in read_private_metadata",
+        "    def read_private_metadata():return verify()",
+        "  File \"/refactor/incoming/GLM-latest-full-owner-r290/native_chain_r186.py\", line 24, in verify",
+        "    for p,h in receipt[field].items():assert sha(p)==h,p;checked+=1",
+        "  File \"/refactor/incoming/GLM-latest-full-owner-r290/native_chain_r186.py\", line 3, in <lambda>",
+        "    R=pathlib.Path('/refactor');sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()",
+        "  File \"/usr/lib/python3.10/pathlib.py\", line 1126, in read_bytes",
+        "    with self.open(mode='rb') as f:",
+        "  File \"/usr/lib/python3.10/pathlib.py\", line 1119, in open",
+        "    return self._accessor.open(self, mode, buffering, encoding, errors,",
+        "FileNotFoundError: [Errno 2] No such file or directory: '/refactor/candidates/rebased-5f91ad7-r3668/Model/GLM/InfiniLM/third_party/json/include/nlohmann/detail/meta/identity_tag.hpp'"
+      ],
+      "SHA256": "b013676839b73f2144d0acb1671515414522e07445cb676bac160f1efa2ef228"
+    },
+    "3": {
+      "stack": [
+        "Traceback (most recent call last):",
+        "  File \"/refactor/incoming/GLM-latest-full-owner-r290/model_entry_r290.py\", line 12, in <module>",
+        "    _continuous_preflight = _continuous_validate()",
+        "  File \"/refactor/incoming/GLM-latest-full-owner-r290/preflight_r133.py\", line 7, in validate",
+        "    q=parentvalidate();q['parent648_model_metadata']=q['model_library_metadata'];q['model_library_metadata']=read_private_metadata();return q",
+        "  File \"/refactor/incoming/GLM-latest-full-owner-r290/preflight_r133.py\", line 4, in read_private_metadata",
+        "    def read_private_metadata():return verify()",
+        "  File \"/refactor/incoming/GLM-latest-full-owner-r290/native_chain_r186.py\", line 24, in verify",
+        "    for p,h in receipt[field].items():assert sha(p)==h,p;checked+=1",
+        "  File \"/refactor/incoming/GLM-latest-full-owner-r290/native_chain_r186.py\", line 3, in <lambda>",
+        "    R=pathlib.Path('/refactor');sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()",
+        "  File \"/usr/lib/python3.10/pathlib.py\", line 1126, in read_bytes",
+        "    with self.open(mode='rb') as f:",
+        "  File \"/usr/lib/python3.10/pathlib.py\", line 1119, in open",
+        "    return self._accessor.open(self, mode, buffering, encoding, errors,",
+        "FileNotFoundError: [Errno 2] No such file or directory: '/refactor/candidates/rebased-5f91ad7-r3668/Model/GLM/InfiniLM/third_party/json/include/nlohmann/detail/meta/identity_tag.hpp'"
+      ],
+      "SHA256": "9ad31ef3e7bef3221a41065c929c247ff8b1b3364178ff2cc991d7bad705bbdf"
+    }
+  },
+  "GLM_json_link": {
+    "is_symlink": true,
+    "target": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/upstream-b7b370-r2284/nlohmann-json-5ed07097faa6",
+    "resolved": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/upstream-b7b370-r2284/nlohmann-json-5ed07097faa6",
+    "exists_from_host": true
+  },
+  "GLM_header": {
+    "exists_from_host": true,
+    "resolved": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/upstream-b7b370-r2284/nlohmann-json-5ed07097faa6/include/nlohmann/detail/meta/identity_tag.hpp",
+    "SHA256": "b43dc21a675c4cdf7cec46c3925a9deceb3d56070bb9c72b0c2a1ba2e53a24ea"
+  }
+}
