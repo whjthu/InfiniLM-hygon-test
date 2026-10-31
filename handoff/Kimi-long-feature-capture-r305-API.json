@@ -1,0 +1,40 @@
+{
+  "UTC": "2026-10-31T19:04:34.994115+00:00",
+  "status": "SOURCE_AND_ACTUAL_HOST_OBJECTS_ONLY_DEFAULT_OFF",
+  "result": "results/bw1000/2026-10-31/Kimi-long-feature-r305-HOST-compatibility-CPU622-623-PASS.json",
+  "new_public_entry": {
+    "symbol": "modern_kimi_long_features_begin_r305",
+    "signature": "int(void*ctx,uint64_t epoch,int enabled,size_t count,const int32_t*logical,const int32_t*past,const int32_t*width)",
+    "enabled_requires_env": {
+      "INFINILM_KIMI_LONG_FEATURES_R305": "1"
+    },
+    "actual_Context_requirements": [
+      "WeightState Ready",
+      "Scopedlong TP16PP2 andstage0or1",
+      "logical1/physical2/statepool3/context32768",
+      "128pages_per_row/260blocks/blocksize256/cachemaxbatch2",
+      "Batchpair mode with valid nonpoisoned owner; not ordinaryepoch"
+    ],
+    "metadata_scope": "logical1, count1, width1..512, nonnegativepast, past+width<=32768; epoch1..INT64_MAX",
+    "disabled": "enabled0,count0,all metadata pointersnull: delegates to legacy clear; no capture",
+    "return": "0success,1failure; model error channel populated by Context wrapper"
+  },
+  "new_capabilities": {
+    "symbol": "modern_kimi_long_features_capabilities_r305",
+    "signature": "uint64_t(void)",
+    "opaque_version_cookie": "0x01320080",
+    "not_a_GPU_qualification": true
+  },
+  "legacy_entry": "modern_kimi_batch_taps_begin_r9122 remains1024/4pages and oldcapabilities0x01200500; existing AR keepscaptureOFF",
+  "hidden_internal_helper": "begin_long_validated_r305 is not a public entry; do not call directly",
+  "ordering": "Existing single controller contract; actualContext pair→engine lock protects newenable. No concurrent rearm proof or lifecycle redesign.",
+  "logical_vs_state_rows": "MLA logicalrow1 owns pages1..128. KDAactive/shadow rows1/2 do not select different logical KV pages.",
+  "final_artifact": "NONE; objects only. Must not route service or load weights with this candidate based solely on CPU result.",
+  "remaining_work": [
+    "Separate finalNative artifact/source closure if selected",
+    "Actual GPU capture and state/feature parity under real request",
+    "32K draft feature cache, prefill chunk ingestion and query path",
+    "Acceptance, quality and full cycle performance evidence"
+  ],
+  "current_service_modified": false
+}
