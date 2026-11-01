@@ -1,0 +1,36 @@
+{
+  "UTC": "2026-11-01T16:37:32.041378+00:00",
+  "id": 152,
+  "state": "COMPLETE_ADOPTED",
+  "trigger": "Repeated avoidable CPU fixture/packaging mistakes; no new performance round",
+  "agent": "/root/astra_review_148",
+  "model": "gpt-6-astra",
+  "source_scope": [
+    "code/bw1000/Kimi-long-target-publisher-r335",
+    "code/bw1000/Kimi-long-pair-driver-r336",
+    "code/bw1000/Kimi-long-pair-driver-r336b"
+  ],
+  "findings": [
+    "No confirmed Native execution blocker in reviewed publisher/driver sequence",
+    "useful_emitted_tokens included EOS",
+    "raw matched proposal count can include un-emitted post-EOS matches",
+    "Inclusive commit/replay/publish contains nestedRPC wall; do not add twice"
+  ],
+  "adopted": [
+    {
+      "finding": "EOS and raw match accounting",
+      "implementation": "337 cycle_metrics separates raw_matched_proposals, accepted_visible_proposals, emitted_tokens, useful_emitted_tokens; CPU EOS/post-EOS/budget cases pass"
+    },
+    {
+      "finding": "Nested cost",
+      "implementation": "README instructs non-additive inclusive cost interpretation"
+    },
+    {
+      "finding": "Remaining cleanup",
+      "implementation": "GPU_GO remainsfalse; controller must own32target destruction, socket close,KFD/port cleanup"
+    }
+  ],
+  "previous_route_cards_151_retained": true,
+  "new_performance_rounds": 0,
+  "result": "results/bw1000/2026-11-01/Kimi337-frozen-four-request-driver-CPU9-PASS.json"
+}
