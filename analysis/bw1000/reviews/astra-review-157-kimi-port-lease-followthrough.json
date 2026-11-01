@@ -1,0 +1,70 @@
+{
+  "review": 157,
+  "kind": "LIMITED_IMPLEMENTATION_FOLLOWTHROUGH_NOT_NEW_REVIEW",
+  "date_Asia_Shanghai": "2026-11-02",
+  "reviewer": "/root/astra_review_147",
+  "state": "SOURCE_AND_LINUX_CPU_FOLLOWTHROUGH_CONFIRMED_GPU_OUTCOME_UNKNOWN",
+  "parent_report": "analysis/bw1000/reviews/astra-review-157-kimi-port-lease.json",
+  "scope": "只读复核新356/357、既有Linux691/692回执，附361消费者快速静态检查；仅写本落实文件。未运行测试、Slurm/GPU、Git、status或改在途源；不新计158或性能轮次。",
+  "sources": {
+    "target": "code/bw1000/Kimi-long-target-bootstrap-r356",
+    "target_manifest_SHA256": "fd1467f6a27b5bdff293728332e303f163d78030e391edb22d2308cf798c629e",
+    "controller": "code/bw1000/Kimi-long-pair-controller-r357",
+    "controller_manifest_SHA256": "690f43a4dbce3531a3b1535348a788c2e65cd253eb84c6858be0b236cdd8cb60",
+    "verification": "已只读计算两个manifest SHA，分别核对14/12个member SHA，无不匹配。发布commit由root报告为1b4f9e79/bad08c9c；本复核未调用Git。"
+  },
+  "implemented": {
+    "early_bind": "RealDependencies.prepare在verify_artifacts、required environment、hostname后调用reserve_capture，在Torch import/Native/create/weights之前。node0一次bind-only，SO_REUSEADDR/SO_REUSEPORT均0、non-inheritable、SO_ACCEPTCONN=0。",
+    "same_socket": "CapturePortLease.establish要求single-use、node相符、原FD与getsockname不变，weights-ready后对该FD listen/accept；没有第二次bind或候选端口循环。node2单次create_connection。",
+    "handshake": "保留原nonce/Native_SHA/protocol Kimi-long-capture-r336、node2 sender/node0 receiver与四leader collect身份校验。真正wire send/recv被CPU调用，非stub handshake。",
+    "cleanup": "bootstrap execute finally总调用close_capture；prepare后续失败、native=None也能释放lease。establish异常关闭已建peer并finally关闭listener，outer cleanup清除native peer引用。原sampler/Native/control清理保留。",
+    "normal_close_addition": "完整pair完成才走normal关闭：node2 SHUT_WR后等待EOF，node0先读EOF再close；每个peer操作timeout=2秒，残留payload或超时记录cleanup错误。finally无条件释放；不加REUSE、不重bind/retry。该顺序把正常主动关闭放到sender临时端口；实际Linux正常CPU用例确认固定端口可重新bind，不外推所有异常关闭也立即无TIME_WAIT。",
+    "controller_binding": "357 start实际target_inside为r356，verify_sources及target_CPU_receipt路径为r356；结果生产者与collector都保留Kimi-long-pair-r346-<newrun>-nodeN文件名且按新target manifest核验，因此命名一致。原351记账等待、取消、ownedproc清理和预算逻辑未因target切换重置。"
+  },
+  "CPU_evidence": {
+    "file": "evidence/bw1000/Kimi356357-Linux-CPU691692.json",
+    "target": {
+      "actual_step": "910407.691",
+      "accounting": "COMPLETED0/3秒",
+      "receipt_SHA256": "58eeff56541a502a30f06a3a1dd23208ca15b0070ce8c2e8f08041349bcc7ada",
+      "confirmed": [
+        "actual RealDependencies.prepare在Torch import拦截点验证实际socket已绑定且未listen，native=None关闭后可重bind",
+        "实际bootstrap bind冲突和prepare失败created=0；load失败created=destroyed=1；三项均无权重payload读取、lease释放",
+        "四leader recording控制加真实socket/wire正常握手，node0 reserve到listen同FD，全部recording context各create/destroy一次并关闭",
+        "坏nonce经过实际wire，四leader均失败、每个已建recording context销毁且lease关闭",
+        "旧whole bootstrap、qualified parameter loader/93layer key验证使用recording tensors/CAPI；不是实际Native"
+      ]
+    },
+    "controller": {
+      "actual_step": "910407.692",
+      "accounting": "COMPLETED0/6秒",
+      "receipt_SHA256": "8843490cda3ec7f0e1169041146d9660301bc2c31c029bd7033292a54c2cea25",
+      "cases": 59,
+      "failed": 0,
+      "skipped": 0,
+      "scope": "实际controller/后端/文件及Linux proc消费者，Slurm与Native保持recording边界"
+    },
+    "limits": "两回执GPU0、Native_dlopen=false、actual_Context=false、checkpoint_payload_read=false；工程入口落实成立，不能证明真实Native ABI、GPU模型质量、spec收益或正常33owner生命周期。"
+  },
+  "current_run_boundary": {
+    "root_reported": "changed-source新run-c target544/CPU694已完成five-node fresh-idle并处于加载；发布98f71eb0。",
+    "review_status": "本复核未查询远端或重新收集544状态。仅按root提供的时点记为加载中，不声称当前持续RUNNING或已通过capture/AR/spec/正常destroy。",
+    "old539": "原539 FAILED、即时post541capture端口失败、延迟542恢复证据原样保留。新544是修复后独立source/claim驻留，不把旧结果改写或拼配。",
+    "remaining": "沿原实际句柄收集完整四arm数值/计时、first real capture、sole draft认证、正常close/destroy和最终资源清理；出现未知故障不自动重播。"
+  },
+  "GLM361_quick_static_check": {
+    "path": "code/bw1000/GLM-prefill-window-interleave-r361",
+    "result": "在此次有限消费者/W4/owner覆盖检查中未发现确定的显著入口bug；不是全包或实际设备审查结论。",
+    "observations": [
+      "只有long row的完整W4组结束（含不足4的末组）、原cancel vote之后才advance_short；组内没有插decode或WORLD反馈",
+      "short past每次只推进1，produced包含prefill首token；EOS/budget后停止插入，long完整prompt保持原顺序",
+      "原execute_plan末组先vote后sample，故长末组logits会跨一次short forward保留；实际owner每次torch.full新建独立logits并由retained持有，不是共享输出buffer覆盖",
+      "两个arm的后续decode_round均enabled=True，仅prefill interleave开关变化；没有同时变更decode policy",
+      "异常向外传播，无前端账本重播或正在使用的cache reset"
+    ],
+    "existing_CPU": "本地回执为真实新消费者/原W4/decode函数与recording Native，owner仅AST覆盖点检查；未执行整个owner入口、Linux完整部署包、实际Native或权重。GPU_GO=false与当前事实一致。",
+    "metric_limit": "当前355 warm最大ITL约253秒是候选动机，不是正式ABBA结果。361即使每W4组插一次token，也没有证明每用户15tok/s或任意ITL上界；须保留完整emitter时间线、prefill等待与全部服务卡成本。末组插shortdecode会计入long首token等待，不应从long TTFT扣除。",
+    "continuation": "等待原355正式终态与已有路线判断，不提前安排361新GPU、不扩scope、不改355在途源。若未来保留候选，沿既定完整owner/controller Linux入口与claim闭合即可；本次不新增门禁。"
+  },
+  "decision": "157提出的确定端口生命周期修复已在源码与实际Linux CPU边界落实，无本复核发现的新增确定阻塞。544真实模型结果仍未知。Root828终态审核、Deep358、root359和其他独立任务继续，无需等待此落实记录。"
+}

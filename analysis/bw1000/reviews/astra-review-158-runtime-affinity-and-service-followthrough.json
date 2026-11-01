@@ -1,0 +1,127 @@
+{
+  "review": 158,
+  "date_Asia_Shanghai": "2026-11-02",
+  "reviewer": "/root/astra_review_147",
+  "state": "COMPLETE_EXISTING_ROUTES_PRIORITIZED_NO_NEW_FRAMEWORK",
+  "trigger": "358重复可避免Runtime入口工程失败提前触发；同时已可消费157后Deep353归因、GLM349跨负载、GLM355静态C2配对三轮。一次驻留的多个arm不拆轮。",
+  "scope": "只读已保存源码/回执和已存在正式成本；仅写此报告。未启动CPU/GPU/Slurm、未Git/status、未改在途源。原作业与独立实现不等审核。",
+  "round_accounting": {
+    "completed_causal_rounds_since157": ["Deep353/910374.1261归因", "GLM349/910376.828三负载覆盖", "GLM355/910371.649,650+910374.1265,1266同驻留C2配对"],
+    "not_rounds": ["Deep358/1269入口失败：baseline numeric/candidate/ABBA均0", "CPU编译/fixture/affinity合同", "瞬时利用率/轮询", "仍在途Kimi544"],
+    "after158": "从后续完成的真实因果实验重新累计；不要等待每模型各完成三轮，也不把同轮多rank/多shape充轮。"
+  },
+  "previous_review_followthrough": {
+    "Kimi": "157端口lease及356/357实际Linux691/692已在独立followthrough确认；544为修复后新source驻留，root22:16时点实读RUNNING约36分钟、draft未起。旧539失败保留。当前本审核未重查远端，不将该时点观察写作持续状态或完成。",
+    "Deep": "1257固定8K优化范围保留；353完成新归因，无新增模型收益。既定两组件卡358/359正在推进，358需修实际Runtime affinity边界。",
+    "GLM": "349已完成，保留长prefill W4实证；355已完成首次当前C2整模型配对，361是同一系统路线下一消费者候选。341/重复descriptor缓存STOP、Kimi635 Delta PARK不变。"
+  },
+  "question1_real_model_results": {
+    "GLM349": {
+      "evidence": "results/bw1000/2026-11-02/GLM349828-root-audited-cross-workload-W4-gain-PASS-clean.json",
+      "quality_lifecycle": "18实际HTTP/Native，三完整工具负载，各2warm+1ABBA；语义/EOS通过、32owners正常、post830四节点KFD空及43843可bind。",
+      "new_distinct_workload": "9741-token write：HTTP417.9524→303.8150秒，降低27.3087%；prefill388.8443→274.5849秒，降低29.3844%。两端漂移远小于该差异。",
+      "anchor": "8900-token calculate：HTTP510.7768→422.8295秒，降低17.2183%；prefill348.5921→260.3423秒，降低25.3161%。这是旧823锚点复现，不另算新负载收益；跨驻留两个HTTP arm均比823慢约1.26/1.37%，须保留。",
+      "short_control": "479-token read：HTTP57.0852→57.1753秒，增加0.1578%，视为持平；不推短输入加速。",
+      "scope": "当前038d、32卡TP8/PP4、C1/M1串行请求的长prefill控制窗口W2→W4，量化和decode数学不变。decode无改善，18请求backend decode约4.47至4.91tok/s，无>15；不是开放到达、广泛benchmark或客户端增量SLO。",
+      "decision": "采纳长prefill opt-in；不再为重复相同锚点/短control单独加载。"
+    },
+    "GLM355": {
+      "evidence": "results/bw1000/2026-11-02/GLM355-final-audit.json",
+      "audit_boundary": "已读原agent正式成本并复算均值/比率；root独立逐token/时间线审计仍待完成，不能冒称该独立审计已完成。",
+      "terminal": "四stage649/650/1265/1266均COMPLETED0约57分，CPU689正常；12HTTP独立gold与32signature、32normal destroy。独立post658/659/1273/1274原PID消失、无owner/client、KFD空、43843可bind。",
+      "formal_ABBA": [474.7892127451487,442.24451575567946,443.3784167198464,478.287480707746],
+      "schedule": "同trial取max32本地完整schedule：OFF476.53835→ON442.81147秒，latency降低7.0775%，等工作量rate提高7.6165%；OFF端点漂移0.7368%。max32 decode schedule209.1462→175.0849秒，其余prefill等待仍计入完整schedule。",
+      "emitter": "实际949有效输出token/对，正式总吞吐均值1.99219→2.14396tok/s，除全部32卡约0.06226→0.06700tok/s/card；仅同emitter admission到last-visible，不做跨主机绝对时钟相减。",
+      "tail_failure_of_goal": "正式ON short每用户first-to-last速度约0.689/0.688tok/s，long约4.179/4.170；short maxITL255.249/255.967秒。OFF short maxITL253.995/256.417秒。warm253/249秒仅作warm证据，不能替代正式值。改善吞吐未消除长prefill阻塞短请求，所有>15/SLO目标仍未通过。",
+      "memory": "最小观测driver free26935820288字节约25.08594GiB，非实测峰值。",
+      "decision": "保留当前C2/M1 deferred-decode为该两固定请求的配对收益候选；root完成既有独立审计后可正式标窄范围收益，不自动成为online调度或默认生产配置。361优先解决已观察到的长等待。"
+    },
+    "Deep353": {
+      "evidence": ["results/bw1000/2026-11-02/Deep353r1-1261-decision-and-cost.json", "results/bw1000/2026-11-02/Deep3531261-root-metadata-audit-and-next-route.json"],
+      "outcome": "六请求正确98含EOS、正常8owner退出及post clean；当前afc6、8489输入、固定1024，稀疏profile是归因实验，不是优化。",
+      "perturbation": "instrumented call8/87 ON/OFF分别1.05236/1.04286，高于OFF漂移约1.64/1.61%；全decode wrapper约+0.119%、HTTP约+0.211%，不能把被观测call的范围时长当零开销精确kernel分解。四个窗口外observer每次约0.13秒另列。",
+      "retained_gain": "1257原固定8K 1024→2048 prefill约-13.9%、buffered HTTP约-9.5%，decode约+3%变慢，仍仅该scope；353没有新增Model gain。"
+    },
+    "Kimi_and_components": "Kimi544本次尚无完成新性能证据；358编译/数值fixture不等于实际组件通过，1269未到baseline数值；359/361尚无实际GPU结果。不能合并CPU/组件因子为Model收益。"
+  },
+  "question2_time_and_engineering": {
+    "Deep353": "GPU Slurm1301秒、加载364.79秒、六HTTP总873.09秒、正式四HTTP574.71秒，其余约63.12秒为推得host startup/cleanup/residual，不是GPU idle的直接测量。",
+    "GLM349": "GPU1小时32分49秒、CPU1小时33分03秒；18请求emitter admission到last-completion约5327.10秒。不把Slurm余量直接归为纯加载、排队或busy；本次读取汇总未单独给出这些分项。",
+    "GLM355": "各stage约3424至3427秒。六pair同trialmax32 schedule合计2778.99秒，正式四pair1838.70秒；其余含加载、质量等待、服务启动和清理，未从本文件独立拆分。四stage并行不能相加当请求wall。",
+    "Deep358": "1269失败38秒、CPU69842秒；属于Runtime affinity入口失败，不是几十分钟整模型加载失败，但此前多次编译/fixture未触及实际owner affinity初始化，仍是可避免工程浪费。",
+    "parallelism": "实际多机器并行已发生，不能叙述为全串行。21:51的17节点136卡23.53%是一次瞬时busy快照，不是整轮平均、有效计算占比或所有时段持续繁忙。",
+    "action": "已通过且未变的SDK/adapter/fixture源复用；只补358实际affinity producer→Runtime→controller契约，不重新铺全套框架。独立359、361准备及Kimi原句柄推进不等358或审核。"
+  },
+  "Deep358_specific_failure_and_minimum_fix": {
+    "evidence": "../Deep358-first-original-observation-local.json",
+    "confirmed": "1268before和1270post clean；1269八rank均RuntimeError('2392 owner mask too narrow for eight disjoint requested subsets')，trials0/baseline_numeric_first=null/candidate_numeric=null；CPU698COMPLETED0只表示keeper工程正常完成，不代表GPU成功。",
+    "source_contradiction": "旧GPU_driver在Runtime前把每rank affinity缩到4；GPU_inside设置INFINILM_OWNER_CPU_WIDTH_R2392=4，实际r2392初始化要求八个不交请求子集。单rank只看见一张GPU不能绕过此初始化合同。",
+    "repair": "新immutable入口按当前已绑定r2392源码规划允许mask与最终owner子集；不修改共享Runtime/SDK、不把错误放宽为忽略。保证Native初始化时可形成其要求的八子集，同时最终八rank测量CPU亲和仍互不重叠。不要仅把所有rank放宽到相同32CPU却让各自device0都选相同首4CPU。",
+    "short_CPU_contract": "调用当前实际header的初始化/选择函数，可用CPU专用编译入口，不加载Native/GPU。把拟用进程allowed mask、width环境、逻辑device0映射作为真实输入；验证原4CPU反例拒绝、修复正例实际选mask、八rank最终不交，直接消费到controller原最终mask断言。不得只在Python重写需求公式或另造fixture掩盖producer/consumer差异。",
+    "continuation": "原1269封存；具体源码/实际CPU合同/新claim完成后可按已有授权在原8卡<=600秒范围一次组件判定，不需重复GO。baseline必须先通过独立数值，随后candidate hit和全HC ABBA；不能把CPU合同称组件性能或实际Native通过。"
+  },
+  "question3_bottleneck_evidence": {
+    "GLM": "349收益与prefill控制窗口相关且短单chunk无收益；Native CAPI host enclosure含等待，不是纯GPUkernel时间。355实证两个row推迟反馈改善decode schedule，但串行long prefill阻塞short后续token约255秒。361因此针对已观测调度等待，不是来自dense峰值猜测。",
+    "Deep": "353当前inclusive ranges优先HC pre与cache/compression/index，专家/独立TPspan较小；范围重叠与层级不能相加。四instrumented窗口不能代表全部97decode调用。",
+    "r360": "当前F32GEMV输入1x16384、权重24x16384，786432FLOP/HC，冷操作数算术强度约0.47997FLOP/B，23个高级op计数不是23个实测GPUkernel。HC stream占比约22.62%至26.98%，完美移除HC且固定其余duration/overlap得到1.2923至1.3695条件因子；它不是物理上限、完整Model预测或实际收益。缓存复用和真实带宽未由冷字节估计测出；不能拿dense TFLOPS推T1速度。",
+    "Kimi": "最新完成证据仍为入口/资源生命周期修复。544未终态，无法新增数值或瓶颈结论；不因等待而提交重复target/draft。"
+  },
+  "question4_next_cards": [
+    {
+      "model": "Deep", "priority": 1, "id": "358-existing-HC-component-after-affinity-fix",
+      "hypothesis": "保留原norm/F32GEMV/Sinkhorn，仅合并T1 epilogue可降低完整HyperConnection::pre wall。",
+      "minimum_change": "先修当前affinity合同，再复用原private adapter与四真实HC参数组x2seed；原数学与共享SDK不动。",
+      "owner_resource": "Deep原执行者；parent910374/a02r4n07，最多8独立组件卡，单批<=600秒；CPU910407原4CPU/8GiB。",
+      "reuse": "CPU696真实参数/独立oracle、afc6 baseline、358既有kernel/adapter，1269失败保留。",
+      "quality_samples": "实际baseline first数值、collapsed/post/comb有限值/NRMSE与canary/state，candidate每call真hit；每固定fixture排除2warm+5ABBA，完整HC drained wall与OFF漂移，event仅辅证。",
+      "potential_Model_wall": "UNKNOWN；HC完美移除条件因子不是预测。只epilogue快或微秒级小收益不值得整模型reload。",
+      "first_decision_ETA": "CPU修复分钟级工程目标，实际准备/排队UNKNOWN；CPU通过后该次GPU<=10分钟即可首组件判定。",
+      "exit_upgrade": "baseline错误立刻停；无稳定完整HC收益则封存。只有当前整组件显著收益与质量/退出成立才考虑原Model覆盖。",
+      "fallback": "359独立继续，不为等待HC反复扫描kernel小参数。"
+    },
+    {
+      "model": "Deep", "priority": 2, "id": "359-existing-paged-gather-score",
+      "hypothesis": "在完整当前C4Indexer.prepare/commit里合并分页key gather与score/query一次解码，减少物化但保持语义。",
+      "minimum_change": "root继续private namespace实现；exact7f2ffe r9252与Hygon scorec9fb2fbb已读，baseline直接afc6原class；原TemporalCompressor、TPsum、TopK512、prepare/commit/revision和pendingnewkey保持。",
+      "owner_resource": "root接手后续；parent910371/a02r3n16最多8卡<=600秒，当前无新claim/GPU_GO=false。",
+      "reuse": "353当前C4源证明，现359 private source/FP8 CPU reference；不得换旧header或重复已否定cache/readback路线。",
+      "quality_samples": "完整CPU/数学/driver先闭合：256FP8编码、visibility/pending key/canary、scores与TopK/ties、commit后nextstep状态；实际同数据完整C4 2warm+5ABBA，TP8正常退出。",
+      "potential_Model_wall": "UNKNOWN；不把primitive gather/score倍率或层数乘法当模型收益。",
+      "first_decision_ETA": "现source实现中，原90至150分钟工程目标不是保证；先取得CPU/driver结论，已就绪后GPU<=10分钟组件判定，排队UNKNOWN。",
+      "exit_upgrade": "未知布局/decoder或baseline不匹配禁止GPU；无稳定完整C4收益封存。",
+      "fallback": "保留1257窄范围收益，停止继续扩cache/readback参数网格。"
+    },
+    {
+      "model": "GLM", "priority": 1, "id": "361-existing-W4-boundary-short-decode",
+      "hypothesis": "在完整long W4组边界推进short一token，可缩短已观测约255秒最大ITL，且保留可用完整pair吞吐。",
+      "minimum_change": "保留原W4组内顺序/独立row cache；两arm固定deferred decode ON，仅prefill interleave开关变化。当前CPU消费者与owner覆盖已存在，补现有完整owner/controller Linux胶水，不改已结束355源。",
+      "owner_resource": "root/原系统执行者；既定C2/M1 TP8/PP4四节点32卡，355释放后按freshidle和新claim使用；不占Kimi544节点。",
+      "reuse": "355当前038d/32owner正常生命周期与正式ABBA、361 CPU真实消费者/W4/独立logits持有；157followthrough已有有限静态审查。",
+      "quality_samples": "沿用同两完整请求、2warm+1ABBA的六pair；真实owner产生prompt/row状态→consumer→emitter/CPU质量parser完整串接。全部token/EOS/任务gold/reset/32normal清理，逐请求完整admission-first-last与ITL max/P95/P99。",
+      "potential_Model_wall": "现有defer完整pair已有-7.08%latency；361新增幅度UNKNOWN。short最大ITL是首要判定，longTTFT与完整pairwall/全部32卡吞吐必须同时报告，不能以改善short隐藏long代价。",
+      "first_decision_ETA": "现CPU组件已通过，完整部署入口准备UNKNOWN；具备后可在首warm看到是否真正命中组间推进，正式收益需完成既定ABBA，355整驻留约57分钟作成本参考而非承诺。",
+      "exit_upgrade": "root先消费355已有独立数学/时间线审核，不为重复baseline再加载；新CPU闭合后原授权范围一次新claim。数值/状态错误停；未显著降低short停顿或完整pair明显退化则封存并量化tradeoff，不盲扩调度网格。",
+      "fallback": "保留349长prefill opt-in和355窄范围defer收益；341/重复缓存STOP不变。"
+    },
+    {
+      "model": "Kimi", "priority": 1, "id": "follow-existing-544-only",
+      "hypothesis": "356提前持有capture socket和351记账修复能完成原四arm真实spec配对及正常关闭。",
+      "minimum_change": "无在途修改；只跟原544/694句柄和延后draft，不再提交target或手工预起draft。",
+      "owner_resource": "root；原target parent910380四节点32卡、独立draft parent910371/a02r3n15一张，原截止不变。",
+      "reuse": "156/157及Linux672/691/692，536两AR和539失败仅作历史独立证据。",
+      "quality_samples": "原8635/32638两AR与两spec四请求、128预算，firstcapture/质量/EOS/正常32+1close/destroy/post；旧AR不拼入新配对。",
+      "potential_Model_wall": "UNKNOWN；现在没有新增完成spec收益。",
+      "first_decision_ETA": "22:16时点已36分钟加载中，剩余到交接及完整结果UNKNOWN；不等待它让其他路线停工。",
+      "exit_upgrade": "终态按实际数值/性能/生命周期判定；未知失败原句柄诊断不重播。",
+      "fallback": "无第二新猜测卡；当前已有两轮工程损耗，应先消费这次真实终态。"
+    }
+  ],
+  "adoption_actions_for_root": [
+    "采纳358真实affinity合同最小修复，旧1269工程FAIL封存；CPU→source→claim闭合后一次原组件范围，不重复GO。",
+    "采纳349长prefill opt-in、355当前固定C2收益范围，正式root审未完成部分明确pending；不声称>15或onlineSLO。",
+    "保留361为GLM唯一下一系统卡，重点完整token时间线；不同时变更defer和prefill两个因子。",
+    "359由root独立继续现实现，358执行者专注当前修复，避免相互等待或重复实现。",
+    "544跟踪同句柄；审核后释放槽，不创建并发第二审核。136卡总资源与6节点48卡operator pool口径保持。"
+  ],
+  "limitations": "本报告复用了已封存/已保存证据并计算少量均值，不替代root355逐token独立审计、358修复实际CPU回执或任何尚未完成GPU结果。没有新增无关框架、发布审批或测试矩阵。"
+}
