@@ -1,0 +1,93 @@
+{
+  "UTC": "2026-11-01T16:48:06.836238+00:00",
+  "owner": "bw1000-root",
+  "state": "THREE_INDEPENDENT_IMPLEMENTATION_AGENTS_ACTIVE_GPU_BATCHES_PENDING_PUBLISHED_SOURCE",
+  "user_instruction": "Use spare machines to test different operator implementations, parameters and fusion combinations in parallel; avoid serial resource underuse.",
+  "dedicated_nodes": 6,
+  "maximum_operator_cards": 48,
+  "groups": [
+    {
+      "owner": "/root/kimi_operator_tuning",
+      "task": "coordination/tasks/Kimi-operator-search-r339.json",
+      "source": "code/bw1000/Kimi-operator-search-r339",
+      "parent": 910371,
+      "nodes": [
+        "a02r3n03",
+        "a02r3n07"
+      ],
+      "cards": 16,
+      "focus": "Current Kimi KDA/Delta causal kernels and true fusion, real C1T1 shapes; exclude stopped tiny-alias/observer repeats"
+    },
+    {
+      "owner": "/root/deep_operator_tuning",
+      "task": "coordination/tasks/Deep-operator-search-r340.json",
+      "source": "code/bw1000/Deep-operator-search-r340",
+      "parent": 910374,
+      "nodes": [
+        "a02r4n04",
+        "a02r4n05"
+      ],
+      "cards": 16,
+      "focus": "Current Deep attention/compression/normalization causal kernels; real shapes; no blindly reopened closed negative routes"
+    },
+    {
+      "owner": "/root/glm_operator_tuning",
+      "task": "coordination/tasks/GLM-operator-search-r341.json",
+      "source": "code/bw1000/GLM-operator-search-r341",
+      "allocations": [
+        {
+          "parent": 910371,
+          "nodes": [
+            "a02r3n16"
+          ]
+        },
+        {
+          "parent": 910374,
+          "nodes": [
+            "a02r4n07"
+          ]
+        }
+      ],
+      "cards": 16,
+      "focus": "GLM/common GEMM,quantized reads,activation/norm/fusion with real model shapes; distinct from root W2/W4 system grouping"
+    }
+  ],
+  "root_parallel_model_work": [
+    "GLM308 standalone six-request W2/W4 current actual controller, no74/64replay",
+    "Kimi337 long-spec source/Native bootstrap/controller closure",
+    "Deep C1 prefill2048 system card on a02r4n01 reserved"
+  ],
+  "reserved_model_nodes": [
+    "a02r4n12",
+    "a02r4n13",
+    "a02r4n14",
+    "a02r4n15",
+    "a14r2n08",
+    "a14r2n09",
+    "a14r2n10",
+    "a14r2n12",
+    "a02r4n01",
+    "a02r3n15"
+  ],
+  "shared_CPU_compilation": {
+    "parent": 910407,
+    "node": "a14r2n20",
+    "per_group_CPUs": 4,
+    "per_group_memory_GiB": 8,
+    "per_build_max_s": 600
+  },
+  "per_GPU_measurement_max_s": 600,
+  "per_batch_GPU_hard_max_s": 1800,
+  "execution_policy": "Each group independently prepares source/numeric/per-card matrix and resource claim; root briefly serializes ordinary Git publication. GPU GO only after exact candidate source and claim are pushed, then fresh dedup/idle/KFD. No whole-model load for component batches. No fake occupancy: use only useful distinct candidates.",
+  "measurements": [
+    "same-card baseline/candidate pairs",
+    "complete wall and event scopes separately",
+    "finite/numeric/state checks",
+    "baseline drift and negative results",
+    "process/KFD cleanup"
+  ],
+  "component_not_Model_qualification": true,
+  "performance_gain": "UNKNOWN",
+  "GPU_GO": false,
+  "no_new_timer": true
+}
