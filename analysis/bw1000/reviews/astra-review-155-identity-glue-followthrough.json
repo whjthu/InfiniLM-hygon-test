@@ -2,7 +2,7 @@
   "review": 155,
   "date_Asia_Shanghai": "2026-11-02",
   "reviewer": "/root/astra_review_147",
-  "state": "COMPLETE_CAUSE_CONFIRMED_REPAIR_SOURCE_RECEIPT_AWAITING_BINDING",
+  "state": "COMPLETE_IDENTITY_GLUE_AND_COUNTER_REPAIR_CPU667_VERIFIED",
   "trigger": "重复可避免工程入口错误提前触发；不是三轮性能计数触发",
   "performance_rounds_since154": {
     "actual_causal_rounds": ["Kimi910371.635", "Deep910374.1251"],
@@ -75,6 +75,26 @@
         "exit_fallback": "没有必要新加载则保持限定结论，不发明新机制卡"
       }
     ]
+  },
+  "repair_r2_implementation_followthrough": {
+    "state": "LIMITED_REPAIR_SOURCE_AND_CPU_GLUE_PASS_NOT_GPU",
+    "supersedes": "上文repair_review_status中的未取得源码/回执是初审时间状态，本追加已完成独立读取和限定复核。",
+    "owner_directory": "code/bw1000/Deep-prefill-chunk-pair-r348/repair-r2/owner",
+    "owner_manifest_SHA256": "26cc8ec24564a6912ca85f3c88076c1607763e0983910321eee0e14ef5852db7",
+    "CPU_entry_source_SHA256": "bc4327c36c3e70c3a9feda2003f532fdfb09fd5f5027081dd0a3a1d6cf62c5c0",
+    "all_owner_manifest_member_hashes_matched": true,
+    "CPU_evidence": "results/bw1000/2026-11-02/Deep348r2-CPU-entry.json",
+    "actual_CPU": "910407.667",
+    "receipt_SHA256": "b5a4563183be5356d01bedd0cff433780c9aa5bf02fea006bd8170cea8656dcb",
+    "CPU_result": "completed=true, passed=true, 20例；CPU_only=true，GPU=false，Native_dlopen=false，weights_opened=false。",
+    "identity_producer": "worker在identity.json生成前从prepared['identity']恢复report['prepared_entry_identity']，未改为client或测试硬填。",
+    "positive_glue": "success-six/client-failure/Native-failure三种真实worker serve场景的FakePopen，直接消费worker argv中刚写的identity/service-report/manifest/step；调用真实未替换bind_identity并核对prepared identity及actual_step。未重造正例identity。",
+    "negative_glue": "复制该真实产物并仅删除prepared_entry_identity；先由真实binder拒绝，再运行真实client.main。三场景均HTTP trap0、requests为空、passed=false，四个actual计数字段为0；verify/binder未被mock。",
+    "counter_fix": "planned_HTTP/planned_Native固定6；actual_HTTP_attempts/completed及actual_Native_observed/completed初始0，分别在真实调用边界与绑定owner报告观察后更新；错误观察另写count_observation_error。已消除本次身份失败仍报实际6/6的问题。completed计数是操作完成观察，不替代EOS/质量通过。",
+    "definite_remaining_blocker_in_review_scope": false,
+    "minimal_remaining_binding": "最终controller及新claim须绑定上述repair2 owner与CPU667回执/20例/三项glue断言，并保持原6请求与2700s范围。此处未把尚在定稿的controller绑定或CPU PASS冒称GPU通过；无需新增胶水测试或重复GO。root已明确必要源+CPU+claim后可独立一次8卡，旧1254不重播。",
+    "independent_Kimi": "Kimi536及原33卡四请求路线不等待Deep最终绑定或本追加。",
+    "actions": "只读源码/回执和计算文件SHA，仅更新本原155报告；未跑测试、未启动作业、未修改其他文件。"
   },
   "adoption": "root向原Deep owner落实恢复字段、真实文件交接测试及新source/CPU pin；其他独立路线照常推进。此审核不新增性能轮，不把mockPASS当NativeABI，不要求所有模型等待。"
 }
