@@ -13,3 +13,20 @@ def epilogue(xf,mixes,base,scale,constants):
  logits=affine(m[8:],2,8).reshape(4,4);ex=np.exp(logits-logits.max(axis=1,keepdims=True),dtype=np.float32);comb=np.add(ex/ex.sum(axis=1,keepdims=True,dtype=np.float32),c[1],dtype=np.float32)
  weighted=xf*pre[:,None];collapsed=(weighted[0]+weighted[1])+(weighted[2]+weighted[3])
  return dict(collapsed_BF16=bf16_rn(collapsed),post=post,comb_before_original_Sinkhorn=comb,pre=pre)
+
+def full_pre(residual_bits,fn,base,scale,rms_eps,hc_eps,iterations):
+ bits=np.asarray(residual_bits,dtype=np.uint16).reshape(4,4096)
+ x=(bits.astype(np.uint32)<<16).view(np.float32)
+ mean=np.mean(x.reshape(-1)*x.reshape(-1),dtype=np.float32)
+ inv=np.float32(1)/np.sqrt(np.float32(mean+np.float32(rms_eps)),dtype=np.float32)
+ normalized=np.multiply(x.reshape(1,16384),inv,dtype=np.float32)
+ mixes=np.matmul(normalized,np.asarray(fn,dtype=np.float32).reshape(24,16384).T).astype(np.float32).reshape(24)
+ out=epilogue(x,mixes,base,scale,[rms_eps,hc_eps,2])
+ a=out['comb_before_original_Sinkhorn'].copy();eps=np.float32(hc_eps)
+ assert type(iterations)is int and 1<=iterations<=128
+ # Exact retained r89 ordering, independently implemented on CPU.
+ for iteration in range(iterations):
+  if iteration:
+   sums=(a[:,0]+a[:,1])+(a[:,2]+a[:,3]);a=np.divide(a,np.add(sums,eps,dtype=np.float32)[:,None],dtype=np.float32)
+  sums=((a[0]+a[1])+a[2])+a[3];a=np.divide(a,np.add(sums,eps,dtype=np.float32)[None,:],dtype=np.float32)
+ return dict(collapsed_BF16=out['collapsed_BF16'],post=out['post'],comb=a)
