@@ -1,0 +1,6 @@
+"""Maximum bounds include load; none guarantees full plan completion."""
+PROCESS_SECONDS=10200
+NORMAL_CLEANUP_RESERVE=1080
+SHELL_HARD_SECONDS=10200
+GPU_SLURM_SECONDS=10800
+KEEPER_SECONDS=12000
