@@ -1,0 +1,125 @@
+{
+  "review": 157,
+  "date_Asia_Shanghai": "2026-11-02",
+  "reviewer": "/root/astra_review_147",
+  "state": "COMPLETE_DESIGN_REVIEW_R356_IMPLEMENTATION_AND_CPU_PENDING",
+  "trigger": "重复可避免入口工程失败提前审核；539失败不是性能轮次。",
+  "scope": "只读原始回执、冻结346/337与既有351源码；仅写本报告并按原请求追加156实际CPU672落实。未运行测试、GPU/Slurm、Git、status或改其他源码。",
+  "previous_review_followthrough": {
+    "156": "原报告已追加实际Linux910407.672 COMPLETED0/6秒；r351 MF53523371b981c45a6416efef3af2bc36b50ccf836a63e083776c26c1a4d2c3f9，receipt56c83e79736af514357f280a571b6592d669516432f648adbb703d7f4e322f4e；59/59 PASS、0skip。normal/delay真实resource_probe.main/proc→backend串接、probe各1/account1和3成立，仍是CPU工程资格。",
+    "539_relation": "539尚未启动draft，故没有实际到达351所修复的draft记账路径；本次新故障不能解释为351修复实测失败，也不能据539给351真实draft交接资格。",
+    "rounds_since156": "已完成真实性能轮1：Deep1257。GLM828、Deep1261在途，不预计完成；Kimi539工程失败不计。157结束后对待完成真实因果轮重新计数。"
+  },
+  "Kimi539_facts": {
+    "evidence": ["../Kimi539-port-failure-original.json", "../Kimi539-late-capture-port-clean.json"],
+    "source": ["code/bw1000/Kimi-long-target-bootstrap-r346/bootstrap.py", "code/bw1000/Kimi-long-pair-driver-r337/capture_transport.py"],
+    "terminal": "target910380.539 FAILED1/31分58秒，CPU910407.675 FAILED1/32分16秒；draft未启动，AR0、spec0。",
+    "confirmed_cause": "node0在bootstrap.run_pair调用不可变337 capture_transport.establish时，line15 listener.bind((head,45947))抛EADDRINUSE。其余三节点在control.collect遇ConnectionReset；原始栈明确。",
+    "load_cost": "四节点loading_seconds为1618.7503、1460.8155、1607.9470、1838.8612秒，即约24.35至30.65分钟；加载并行，不相加。此次32卡驻留约31.97分钟，约17.05卡小时，尚未产生请求性能样本。",
+    "cleanup": "四节点all8_owned_workers_shutdown_completed=true且cleanup_errors=[]，32个owner销毁成功。各节点completed=false表示请求整体失败，不应抹去实际销毁成功证据。",
+    "immediate_post": "910380.541 KFD全空，但node0capture45947不可bind；即时post整体FAIL必须保留。",
+    "late_witness": "UTC2026-11-01T20:52:57.907728的CPU542四节点KFD空，45947可bind，TCP_rows=[]。这证明稍后端口已恢复，不能反写即时post或模型成功。",
+    "unknown": "原占用者PID/socket状态未采到。ephemeral冲突只是可能解释；536同端口曾完成两AR，故不能断言固定配置必现冲突，也不能断言哪个服务抢占。",
+    "qualification": "本run无AR/spec输出、无性能收益、无客户端SLO；正常owner销毁不等于完成模型请求。旧539只诊断封存，不重载。"
+  },
+  "minimal_design_decision": {
+    "decision": "采纳新的私有r356提前bind-only lease方向；它消除fresh-idle检查后释放socket、约半小时加载后重新bind的时间窗口，不依赖确定原占用者。",
+    "sequence": [
+      "verify_artifacts、固定环境与hostname通过；node0在Torch/Native/weights之前仅一次socket.bind(head,45947)，不listen、不connect。",
+      "同一已绑定socket持有跨prepare/create/load；不提前listen，避免预加载期间积累未认证连接。",
+      "weights-ready后，私有establish只对同一个FD listen/accept；绝不close后重建或再次bind。",
+      "沿用原337 nonce、Native SHA、protocol、四node参与者与node2到node0握手；不改327数学或333/334b/335/337原文件。",
+      "finally在prepare抛错、native=None、load/handshake失败与正常结束均释放lease；peer和Native原清理仍执行。"
+    ],
+    "socket_ownership": "不启用SO_REUSEADDR/SO_REUSEPORT来掩盖占用；明确非inheritable。若已有Native创建用fork而非exec，静态确认继承FD处理，不能仅把CLOEXEC当作fork关闭保证；这属于同一FD所有权核对，不新增框架或性能门禁。",
+    "conflict": "初次bind冲突立即以原端口失败，不重试、不换port、不修改全局ephemeral配置；保留errno/阶段。node0不得进入Torch/Native/weights。其他节点仍受原four-leader admission/before-create同步和owned srun终止约束；不可无证据宣称全局Torch初始化为0。",
+    "deadline": "维持原绝对Native/GPU截止和取消；不得因提前bind或握手重置计时。原max(1,remaining)调用前已有Gate check应保留。",
+    "failure_diagnostics": "若bind失败，可在同一失败回执追加本机/proc相关socket状态与可读owner信息；找不到就UNKNOWN。无需为了溯源新增GPU驻留。",
+    "not_accepted": "仅启动前bind后close的探测、先listen跨加载、选择新端口重试、延长原时限、改共享337或把socket握手stub作为整链通过，均不能实现本修复。"
+  },
+  "shortest_CPU_validation": {
+    "reuse": "复用既有target346 artifact/guard/93keys/head/cleanup录制测试与controller351 CPU672；只补新的socket生命周期与真实入口交接，冻结字节未变的Native无需重建。",
+    "normal_chain": "调用实际r356 bootstrap.execute/RealDependencies新lease入口；设备/权重边界可recording，但不能替换lease实现或establish握手。真实socket reserve后，在prepare/load录制回调中验证同一FD仍持有、SO_ACCEPTCONN=0、第二socket绑定同地址失败；随后四leader recording control协调实际node2/node0 wire握手并正常释放。",
+    "identity": "实际握手至少覆盖正常nonce/Native/protocol以及一个错误身份拒绝；延续原四node唯一参与者校验，不能只返回fake peer。",
+    "failure_boundaries": [
+      "已有socket占用时，通过真实bootstrap入口在Torch/Native/create/load录制调用计数仍0时失败；不重bind、不选新port。",
+      "lease成功但prepare随后失败/native=None：finally释放，实际端口重新可bind。",
+      "load失败与establish/认证失败：lease、已接收peer与所有已创建recording owners均清理，原错误仍可见。",
+      "原取消或截止到来：Gate拒绝后走同一finally；没有延长deadline。"
+    ],
+    "receipt": "Linux实际socket回执绑定新target manifest，列CPU/recording Native与真实socket边界，不以Windows差异或mock结果冒充实际Linux/Native/GPU。一次现有CPU包收束即可。",
+    "controller357": "私有controller仅切实际target路径、manifest和target CPU receipt。必须核对start argv、verify_sources及target result读取路径一致，复用351 accounting/cancel逻辑与CPU672，不丢失原预算/33卡/4请求约束。",
+    "not_qualified": "CPU只能证明端口持有和控制握手；不证明Native ABI、GPU加载、spec数值、收益、正常33owner生命周期或客户端SLO。"
+  },
+  "current_evidence_consumption": {
+    "Deep1257": {
+      "source": "results/bw1000/2026-11-02/Deep348r2-1257-root-audited-scoped-Model-gain-PASS-clean.json",
+      "quality": "6/6真实8489输入、98含EOS/97visible，工具结果正确、normalreset、8owners正常退出及post clean。",
+      "timing": "同驻留2warm排除+1ABBA：prefill109.3474→94.1402秒(-13.907%)，buffered HTTP147.0189→133.0264秒(-9.517%)；decode37.3897→38.5170秒(+3.015%，变慢)。A端点漂移约1.1%，小于该prefill/HTTP差异。",
+      "scope": "固定真实8K C1工具负载的2048候选保留opt-in；不是全局默认晋级，不证明广泛benchmark或客户端增量TTFT/ITL/SLO。wrapper host wall不是subkernel profile。"
+    },
+    "GLM828": "root最新观察short6完成且基本无gain，anchor warm在途；未取得完整三负载18请求终态，不提前封总决策。823原固定负载收益范围保留，341/重复descriptor缓存STOP不变。",
+    "Deep1261": "独立8K稀疏profile原6请求计划warm在途；继续原句柄，不重提。",
+    "Kimi354355": "root报告r354 current038d rows2/cache实证，32PP4C2必要weights+cache约37.6GB/卡为候选；16PP2当前布局必要下界超64GB不能推进。355跨parent四空闲operator节点适配checkpoint，尚未CPU整入口/实际GPU。不得把CPU布局下界或consumer PASS当模型资格。"
+  },
+  "next_cards": [
+    {
+      "model": "Kimi",
+      "priority": 1,
+      "card": "r356 lease与r357同原scope一次新驻留",
+      "hypothesis": "在加载前取得且持续持有capture端口，可排除本次加载后bind冲突并进入既定四请求配对。",
+      "minimum_change": "只修改私有socket持有时序与target绑定；不改数学/权重/原冻结driver。",
+      "owner_resources": "root；target parent910380四节点32卡、独立parent910371/a02r3n15延后draft1、CPU910407。",
+      "reuse": "346真实加载/owner销毁、536两AR质量、351 CPU672真实胶水、固定327/333/334b/335/337。",
+      "numeric_samples": "原4请求顺序8635 AR、32638 AR、32638 spec、8635 spec，128输出预算；每arm完整token/EOS/任务正确性/reset，真实capture、正常close/destroy/post。旧536 AR不拼入新配对。",
+      "wall_effect": "工程修复的预期作用是避免约24至31分钟加载后才发现端口冲突；spec对模型wall收益UNKNOWN。",
+      "first_result_ETA": "CPU边界应分钟级；新run端口冲突判定在pre-Torch即时完成。若无冲突，按539约31分钟加载后进入配对；完整四arm耗时UNKNOWN。",
+      "exit_upgrade": "新source+实际CPU+同scope claim与fresh idle齐备后按现有直接执行授权一次运行。未知数值/身份/生命周期失败停止同句柄诊断，不无变化重放。",
+      "fallback": "355系统线继续独立准备，不因本修复全部等待。"
+    },
+    {
+      "model": "Kimi",
+      "priority": 2,
+      "card": "恢复既有355跨parent32owner整入口",
+      "hypothesis": "现有32PP4C2布局与真实cache约束可被跨parent四节点消费者正确执行。",
+      "minimum_change": "继续checkpoint处的原四节点适配和CPU真实producer→consumer入口，不新增优化候选。",
+      "owner_resources": "原355 agent；既定operator节点03/07/04/05，真实claim和活跃作业检查后使用，不抢占Deep1261/GLM828。",
+      "reuse": "354 current038d rows2/cache、既有32owner CPU consumer。",
+      "numeric_samples": "按原355卡既定范围；CPU只工程验证，真实Model需后续原请求质量与生命周期。",
+      "wall_effect": "UNKNOWN；37.6GB必要weights+cache不等于实测峰值或安全余量。",
+      "first_result_ETA": "恢复agent即可继续CPU入口；准备/排队/实际GPU时间UNKNOWN，不能先占位称RUNNING。",
+      "exit_upgrade": "整入口未通过不加载GPU；16PP2当前布局已超容量下界，不在该路线重复。",
+      "fallback": "保留已证实布局事实，当前卡不成立则checkpoint说明；不扩无关性能round。"
+    },
+    {
+      "model": "Deep",
+      "priority": 1,
+      "card": "完成在途1261原6请求稀疏profile",
+      "hypothesis": "当前profile能区分1257实际8K负载的prefill改善与decode退化来自哪些已测阶段。",
+      "minimum_change": "不改在途源，不重提；消费实际warm/ABBA、质量、profile与退出。",
+      "owner_resources": "Deep原agent/原1261资源。",
+      "reuse": "1257已审质量、ABBA与单次驻留；1261原claim。",
+      "numeric_samples": "原6计划、预热排除与质量/退出一致；profile开销单列，不能与1257无profile时延直接当收益比较。",
+      "wall_effect": "1257已知prefill-13.9%、HTTP-9.5%、decode+3%；1261新增收益UNKNOWN，目标是归因。",
+      "first_result_ETA": "已warm在途，剩余测量/封存时间UNKNOWN；无需等待审核。",
+      "exit_upgrade": "终态后按真实数据决定原候选，不把6请求或多个stage算多轮。",
+      "fallback": "继续保留1257固定8K候选范围。"
+    },
+    {
+      "model": "GLM",
+      "priority": 1,
+      "card": "完成在途828三真实负载18请求覆盖",
+      "hypothesis": "823机制在anchor/其他真实负载保持质量并有可辨整模型收益；short已提示收益依赖负载。",
+      "minimum_change": "跟踪原828，不重新提交，不因short单项无gain提前改在途源。",
+      "owner_resources": "GLM原agent/原32卡parent910376。",
+      "reuse": "823固定负载证据、349/828官方编码与既定配对计划。",
+      "numeric_samples": "原18请求与各负载warm/ABBA，完整质量/EOS/正常退出，分负载报告。",
+      "wall_effect": "short当前基本无gain；其余UNKNOWN。不得把823的-25.63%prefill/-17.31%HTTP外推为短输入或整体服务收益。",
+      "first_result_ETA": "anchor warm在途，剩余时间UNKNOWN；按原实际句柄消费。",
+      "exit_upgrade": "完整终态后保留有收益的窄范围或停止无收益覆盖；不复活341/重复descriptor缓存。",
+      "fallback": "保留823原scope。"
+    }
+  ],
+  "continuation": "审核完成即释放执行槽恢复355。Deep1261/GLM828独立继续；没有全局48卡上限或统一等审门槛。每次实际准备、排队、加载、测量、质量耗时分列；本审核不创造新GPU授权或GPU通过证据。",
+  "pending": "r356/r357最终源码与实际CPU回执尚未提供；本次只认可最小设计与上述具体入口边界，不冒称实现PASS。"
+}
