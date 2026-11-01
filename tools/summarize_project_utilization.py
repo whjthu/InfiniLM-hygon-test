@@ -37,9 +37,9 @@ def summarize(path):
                 mean_host_CPU_busy_percent_1s=statistics.mean(r['host_CPU_busy_percent_1s'] for r in output),
                 per_node=output,
                 scope='One point sample of sysfs GPU gauges; CPU has a one-second interval. Not time-weighted GPU utilization, kernel occupancy, HBM bandwidth or inference throughput.',
-                memory_gauge_warning='Raw mem_busy_percent is not used as HBM utilization; it reads100 even on idle cards in this snapshot.',
-                interpretation='Kimi539 was loading weights with four KFD processes/32allocatedcards; snapshot precedes GLM828 start20:31:35UTC. Dedicated48cardoperatorpool was idle. Source preparation/allocation/load must not be called busy GPU compute.',
-                next_action='Continue originalKimi539; GLM828 later started independently; prepare separateDeep353 current8K attribution and GLM354 smallestmemory-feasibleC2 systemconsumer. No equivalent parked kernel replay to fill cards.')
+                memory_gauge_warning='Raw mem_busy_percent is not used as HBM utilization; historical idle cards also reported100. No bandwidth claim follows from this counter.',
+                interpretation='The counters describe only this snapshot. Match its UTC to independently recorded original job handles and phases; allocation, compilation and weight loading do not establish busy GPU compute.',
+                next_action='Follow confirmed original job handles and keep independent useful candidates moving. Do not infer termination, restart authority or a full-run utilization average from these gauges.')
 
 
 if __name__ == '__main__':
