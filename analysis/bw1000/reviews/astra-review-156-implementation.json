@@ -1,0 +1,44 @@
+{
+  "UTC": "2026-11-01T20:01:29.959031+00:00",
+  "review": 156,
+  "state": "COMPLETE_ADOPTED_SOURCE_FIXED_LINUX_CPU_PENDING",
+  "review_report": "analysis/bw1000/reviews/astra-review-156-kimi-listener-followthrough.json",
+  "review_SHA256": "9990ed6239afeb4527cb10a3c0975e1668d5cc94dce128a0a97201623823fccf",
+  "source": "code/bw1000/Kimi-long-pair-controller-r351/SOURCE_MANIFEST.json",
+  "source_manifest_SHA256": "53523371b981c45a6416efef3af2bc36b50ccf836a63e083776c26c1a4d2c3f9",
+  "decisions": [
+    {
+      "item": "Correct original cancellation path",
+      "decision": "ADOPT",
+      "evidence": "backend uses Kimi-long-pair-cancel; CPU derives Controller.cancel_marker"
+    },
+    {
+      "item": "Existing draft accounting bounded wait",
+      "decision": "ADOPT",
+      "evidence": "same process,90s shared deadline; each sacct/scontrol <=min(2,remaining), <=.1s guard between metadata queries; no new start/probe/connect"
+    },
+    {
+      "item": "Real producer/consumer join",
+      "decision": "ADOPT",
+      "evidence": "normal/delay Linux resource_probe.main stdout consumed by actualbackend.probe\u2192account; CPU source ready, Linux pending"
+    },
+    {
+      "item": "Error evidence",
+      "decision": "ADOPT",
+      "evidence": "phase, stdout/stderr SHA and parsedprobe rows; redacted bounded message and12 structured tracebackframes, no locals"
+    },
+    {
+      "item": "Next GPU residency",
+      "decision": "CONDITIONAL",
+      "evidence": "Original536closedFAIL. Same33card4request scope only after LinuxCPU closure and separate source/resource claim; no automatic reload"
+    },
+    {
+      "item": "Deep/GLM independence",
+      "decision": "ADOPT",
+      "evidence": "Deep1257terminalanalyzer and GLM349 encoding continue independently"
+    }
+  ],
+  "historical_fault": "642probeCOMPLETED0; exact empty assertion line/instantaccountingresponse notpersisted. rowNone remains hypothesis, not confirmed.",
+  "local_CPU": "59recordingPASS;2POSIXskip+2Linuxproducerjoins pending",
+  "performance_rounds_from_this_engineering_repair": 0
+}

@@ -1,0 +1,119 @@
+{
+  "review": 156,
+  "date_Asia_Shanghai": "2026-11-02",
+  "reviewer": "/root/astra_review_147",
+  "state": "REVIEW_COMPLETE_R351_THREE_SOURCE_CORRECTIONS_VERIFIED_LINUX_CPU_PENDING",
+  "trigger": "再次出现可避免入口交接错误；Kimi536失败不计性能轮次。审核156后对待完成的真实因果轮重新计数，不把CPU用例、失败启动或轮询充轮。",
+  "scope": "只读现有源码和保存证据，仅写本报告；未执行测试、Slurm、GPU、Git或修改status。独立Deep/GLM继续。",
+  "evidence": [
+    "results/bw1000/2026-11-02/Kimi346347536-root-audited-two-AR-FAIL-clean.json",
+    "analysis/bw1000/Kimi347b-draft641-listener-diagnosis.json",
+    "code/bw1000/Kimi-long-pair-controller-r347/slurm_backend.py",
+    "code/bw1000/Kimi-long-pair-controller-r351/slurm_backend.py",
+    "code/bw1000/Kimi-long-pair-controller-r351/controller.py",
+    "code/bw1000/Kimi-long-pair-controller-r351/resource_probe.py",
+    "code/bw1000/Kimi-long-pair-controller-r351/check_listener_visibility_CPU.py",
+    "code/bw1000/Kimi-long-draft-worker-r334/worker.py",
+    "results/bw1000/2026-11-02/Deep348r2-1257-terminal-full.json"
+  ],
+  "Kimi536_established": {
+    "terminal": "整体FAIL；target910380.536与draft910371.641被controller取消；CPU666 FAILED；原被动probe910371.642实际COMPLETED0。",
+    "quality": "四leader两AR签名一致；8635及32638输入各完成59token含EOS、58visible，工具参数正确，normal_reset。",
+    "emitter_scope": "两AR node2 emitter TTFT约101.813/272.066秒，visible decode约4.917/4.890 token/s；不是HTTP客户端TTFT、ITL或SLO。",
+    "lifecycle": "post537/643覆盖五节点KFD空与四端口可绑定。spec完成0；first real capture未确认；normal_all8_destroy未确认；强制清理成功不能替代正常33owner生命周期。",
+    "gain": "没有spec配对，没有可申报性能收益。保留两AR质量与emitter范围证据，不拼接到新run形成配对。",
+    "handoff": "draft启动并写pre-auth报告，probe642成功意味着实际/proc被动监听owner观察成功。失败发生在listening marker发布前。",
+    "cause_confidence": "成功probe后单次account可能暂时None，是最吻合源码与现有证据的假设；原traceback、probe stdout和当时account响应丢失，不能把rowNone写为逐行证实根因，也不能完全排除其他空消息身份assert。"
+  },
+  "r351_direction": {
+    "decision": "采纳：只等待已启动的唯一draft记账可见，最多90秒且受原绝对deadline约束；不重probe、不connect、不start、不reload。重复标签、错误parent/node/step、terminal或owned srun退出立即失败。",
+    "unchanged_scope": "原target346、Native327、publisher335、driver337、draft334b和四请求顺序保留；32卡target WORLD加独立1卡draft。",
+    "diagnostic": "保留phase、probe returncode/结构化rows与stdout/stderr摘要、无locals的栈帧和有界脱敏错误；在account交接前保留成功被动观察。异常时保留原取消与owned group清理。",
+    "accept_limit": "原worker的单次accept上限120秒仍有效。新90秒等待不是延长worker或Native预算；若worker/srun提前退出，立即停止。无需为此修改冻结worker。",
+    "current_source_status": "本次读取的是尚未重生manifest/未绑定新Linux回执的候选；不把Windows 57例含3个POSIX skip或旧CPU664当成r351实际Linux PASS。"
+  },
+  "determinate_minimal_corrections": [
+    {
+      "id": "R351_CANCEL_PATH",
+      "severity": "blocking_for_new_wait",
+      "finding": "候选backend检查Kimi-long-cancel-r347-<run>.json；Controller及实际GPU环境使用Kimi-long-pair-cancel-r347-<run>.json。新CPU也复制前者，故PASS掩盖真实取消遗漏。",
+      "repair": "复用Controller实际cancel_marker路径或同一构造函数；CPU从Controller生成的真实路径写取消标记，不能另造同名fixture。"
+    },
+    {
+      "id": "R351_ABSOLUTE_WAIT_BUDGET",
+      "severity": "blocking_for_claimed_90s_bound",
+      "finding": "候选sleep(5)，account内sacct默认25秒、expand默认15秒；末轮查询可跨越90秒边界。前后检查会拒绝迟到结果，但不能据此声称等待严格<=90秒或取消每100毫秒检查。",
+      "repair": "仅新等待路径令查询/节点展开共享剩余绝对预算，等待期间短间隔检查实际cancel和ownedproc。CPU覆盖查询占用剩余预算及sleep中取消。若不承诺100毫秒，也必须如实说明取消响应上界；不能把事后拒绝冒称未超时等待。"
+    },
+    {
+      "id": "R351_REAL_PRODUCER_JOIN",
+      "severity": "required_CPU_glue",
+      "finding": "12边界用例调用真实draft_listening/probe/account，但JSON仍由print手工producer字典产生；独立Linux用例执行真实resource_probe.main和/proc。二者单独PASS仍未消费同一实际producer输出。",
+      "repair": "至少normal与延迟可见正例，把现有Linux录制listener子进程经真实resource_probe.main产生的stdout直接交给真实backend.probe解析，再走真实account等待。保留recording Slurm边界与真实worker=False，不实际运行r334或Native。"
+    }
+  ],
+  "minimal_CPU_acceptance": {
+    "reuse": "继承原44例，不另增测试框架；只补当前监听producer→backend→account/cancel边界。",
+    "positive": ["真实/proc producer输出直接进入backend，首次记账可见", "同一输出进入backend，记账先缺失后出现同一唯一身份；probe/start/connect次数不增加"],
+    "negative": ["记账始终不可见到原90秒预算", "terminal、重复label、错误parent/node/变更step立即失败", "Controller实际取消路径在查询前、查询中或等待中出现", "owned srun在等待中退出", "原deadline不足或查询耗尽剩余预算"],
+    "receipt": "新manifest绑定实际Linux CPU回执，相关POSIX项不skip；回执列实际调用边界与noGPU/noNative/noModel。现有CPU包可一次收束，不反复完整加载来验证控制器。",
+    "not_qualified": "CPU recording Slurm和录制listener仅证明工程入口；不证明真实Slurm可见性分布、Native ABI、模型质量、spec收益或正常GPU生命周期。"
+  },
+  "time_and_priority": {
+    "observed": "536四节点加载分别约23.86、26.09、26.88、29.46分钟；target总驻留37分21秒。并行加载不能相加；失败交接发生于两AR之后，昂贵成本已支付。",
+    "waste": "已有GPU质量结果被后续CPU记账交接中断；旧CPU把producer、consumer与取消路径各自fixture化，遗漏真实交接，是154落实的具体盲区。",
+    "first_decision_estimate": "r351最小CPU判断应在现有<=240秒子测试预算内取得；排队/上传时间UNKNOWN。新驻留按536约37分钟可到首次draft交接，硬件/排队变化另记；完整spec完成时间UNKNOWN。",
+    "profile": "本次证明控制交接阻塞，不是GPU kernel瓶颈。Kimi635真实Delta无稳定收益仍PARK，350移动max解释不构成新收益。"
+  },
+  "next_cards_in_priority_order": [
+    {
+      "model": "Deep",
+      "card": "消费已完成1257并封正式ABBA",
+      "hypothesis": "现有1024→2048分块在相同负载/驻留下减少prefill wall且保留最终质量与正常退出。",
+      "minimal_action": "仅复核已有6请求、预热与ABBA分组、真实计时/质量/退出/清理，不再加载。",
+      "owner_resource": "Deep原agent与root；0新增GPU。",
+      "reuse": "repair2/CPU667与Deep348r2-1257-terminal-full.json；原1254失败保留。",
+      "quality_samples": "已有2warm+4计时ABBA、完整token/EOS、正常Native shutdown及post；以正式封存为准。",
+      "wall_scope": "root初步报告prefill109.35→94.14秒约-13.9%；本审核未复算完整ABBA，不升级为已审HTTP/SLO或一般性能结论。",
+      "first_decision": "已有终态，消费即可；预计分钟级，具体审核耗时待记录。",
+      "exit_fallback": "正式质量/计时/生命周期一致后保留该固定负载收益；若冲突仅诊断现有证据，不重放1257。"
+    },
+    {
+      "model": "Kimi",
+      "card": "r351修复同一监听记账交接后一次原33卡四请求驻留",
+      "hypothesis": "已启动draft只因暂未记账可见而失败的路径能在有界等待内通过，继而完成真实spec配对与正常关闭。",
+      "minimal_action": "上述三项具体修正、现有Linux CPU包收束、冻结新source/receipt/claim，然后新run一次；不延长原预算、不扩大请求。",
+      "owner_resource": "root；parent910380四节点target32，parent910371/a02r3n15独立draft1，CPU910407；与Deep/GLM独立资源并行。",
+      "reuse": "target346 CPU663、原Native4dfdc9a7、draft334b49fa1d26、335/337；只新controller/CPU绑定。",
+      "quality_samples": "保留retained8635 AR、near32k AR、near32k spec、retained8635 spec，128输出上限；每arm完整质量/EOS/reset，first capture、sole authenticated connect、32+1正常destroy/close与post。",
+      "wall_scope": "潜在spec对decode/请求wall影响UNKNOWN；新run同驻留四arm独立核算，旧两AR不可补配。",
+      "first_decision": "CPU边界分钟级；新驻留首次交接约37分钟参考536，完整spec UNKNOWN。",
+      "exit_fallback": "新证据出现未知身份/语义/数值/生命周期错误则停止同句柄诊断；不无变化重播，不启用已PARK的635路线。"
+    },
+    {
+      "model": "GLM",
+      "card": "现有349三真实负载18请求覆盖",
+      "hypothesis": "823固定负载prefill收益可在已选三真实工作负载复现且不损害质量。",
+      "minimal_action": "完成已在途官方编码和真实入口胶水；metadata card6771本身不算输入完成。沿用现有scope，不新增猜测路线。",
+      "owner_resource": "GLM原agent；独立parent910376模型32卡，准备阶段无需占GPU。",
+      "reuse": "823已审固定负载收益、349既定3负载18请求计划。341与重复descriptor缓存STOP保持。",
+      "quality_samples": "按既定每负载预热/ABBA和完整token/EOS/正常退出核对；不能以metadata或CPU编译替代官方tokenizer产物。",
+      "wall_scope": "823已审prefill-25.63%、HTTP wall-17.31%，decode无改善；仅固定负载。349泛化收益及客户端SLO UNKNOWN。",
+      "first_decision": "输入/整胶水尚未ready，准备/排队/加载时长UNKNOWN；完成现有准备即独立继续，不等Kimi审核。",
+      "exit_fallback": "质量失败停当前arm；真实覆盖无收益则保留823窄范围，勿重新开放341/重复缓存。"
+    }
+  ],
+  "continuation": "遵循现有独占服务器直接执行授权；确定修复由root有界推进，无需逐项重复GO。具体source、实际CPU回执、scope及新claim完成后独立运行；本报告不是GPU通过证明。总136卡与6节点48卡operator pool口径保持，不设置虚构全局48卡并行门槛。",
+  "followthrough": {
+    "root_notified": true,
+    "source_reread": "已第二次只读核对root随后落实的三个修正；未执行测试。",
+    "cancel_fixed": "backend已改为Kimi-long-pair-cancel-r347；CPU实际实例化Controller并取cancel_marker，不再复制错误路径。",
+    "budget_fixed": "account增加可选deadline，仅新等待传until；每次sacct/scontrol timeout=min(2,remaining)，共享原until。5秒查询间隔中每<=0.1秒检查实际cancel/ownedpoll。查询期间并非100ms响应，连续sacct+scontrol可能约4秒，须如实表述；原90秒预算不因重查延长。",
+    "producer_join_fixed": "Linux normal/delay用真实录制listener和resource_probe.main的stdout，直接进入实际backend.probe解析、account和等待；recording Slurm只重映射CPU主机，明确不是实际r334/Native。",
+    "diagnostics_fixed": "异常消息有界2000字符并redact nonce；末12个结构化frame仅文件名/行号/函数/有界源码，无locals。",
+    "CPU_status": "root报告本地59例PASS，其中2个POSIX skip、normal/delay真实Linux producer join仍待执行；不能据此申报59项实际Linux PASS。",
+    "decision": "三个确定源码遗漏已落实，可冻结manifest并执行原计划一次Linux CPU包；无需新增无关门禁或等待Deep/GLM。",
+    "pending": "最终冻结manifest与该次Linux CPU回执尚未提供。实际GPU、spec数值及生命周期资格仍未获得。",
+    "no_new_framework": true
+  }
+}

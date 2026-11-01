@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "run": "longpair-20261102-a",
+  "scope": "Read-only diagnosis of original controller347b/draft641 handoff; no source modification, Git, GPU calls, reload or replay",
+  "conclusion": "Controller failed after submitting draft641 and before publishing its listening marker. The original passive listener probe642 completed successfully. Exact assertion line and contemporaneous sacct response were not preserved, so accounting visibility delay remains a hypothesis rather than an established root cause.",
+  "source_identity": {
+    "remote_directory": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/Kimi-long-pair-controller-r347b",
+    "manifest_SHA256": "45ca35f36cba78f718c5015498ead55e3535f2efcf3c8cc26ae52a1f2684e09d",
+    "slurm_backend_SHA256": "9baf5d169f19a98e138cc8606c5ab5dd23acd33cd0ff0fc960159037d0dcec01",
+    "resource_probe_SHA256": "e7d49d52c7dd8d0e3c0a1fdca8f7c4e2b224ef0827a693effa2115db1ec33601"
+  },
+  "established": [
+    "Watch reports completed=true, passed=false, error_type=AssertionError and empty error; draft_submitted=true; no passive_listener field.",
+    "Exclusive draft-start marker exists with the original run, nonce hash, GPU epoch, target Native and worker manifest identities; listening marker does not exist.",
+    "Draft641 report was written at 2026-11-01T19:43:53.698474+00:00 with completed=false, authenticated=false and ready=false. Its source/runtime manifest identities match the frozen worker/runtime.",
+    "Draft641 worker log contains wrapper startup messages and forced cancellation, with no Python exception traceback.",
+    "Original CPU-only listener step910371.642 completed0:0 on a02r3n15 in the same recorded second as its start, 2026-11-02T03:43:53 cluster accounting time; AllocTRES cpu=1,mem=512M,node=1 and no GRES.",
+    "Original draft910371.641 started at 03:43:53 and was CANCELLED0:15 at03:43:55. Watch records owned TERM cleanup; post probes537/643 report empty KFD and four bindable ports.",
+    "resource_probe main prints its listener JSON and returns normally only after matching the exact worker.py path and exact output argument to an owning LISTEN socket inode. CPU_only=true/GPU_initialized=false and TCP_connections_made=0 are literal fields on that successful path. Thus original642 success establishes successful passive ownership observation without a connection.",
+    "slurm_backend.draft_listening calls account('draft') exactly once after probe success and immediately asserts the row exists and is nonterminal (lines153-154); it has no accounting visibility wait.",
+    "Existing RecordingBackend CPU tests stub draft_listening; the account_lag scenario concerns target completion. They do not exercise the real draft_listening producer/probe/accounting join with initially absent accounting."
+  ],
+  "excluded_by_preserved_evidence": [
+    "Failure to start the draft step:641 actually started and wrote its pre-authentication report.",
+    "Passive LISTEN timeout or ownership selector never finding a worker:642 completed0:0 immediately; that producer raises rather than returning success on timeout.",
+    "Generic probe returncode/JSON-row-count assertion as the observed empty assertion:that assertion has a nonempty explicit message.",
+    "Draft authentication, parameter loading, or speculative output as a demonstrated source of this failure:authentication/ready remained false and no speculative request completed."
+  ],
+  "unknown": [
+    "Exact original assertion frame:controller stores only exception type/string, discarding traceback.",
+    "Original642 stdout, stderr and parsed row were captured in memory but not persisted in watch or a separate artifact.",
+    "The first account('draft') response immediately after642:it was not persisted. A transient absent row is the strongest source-compatible hypothesis, not a proven physical cause.",
+    "Whether any other empty identity assertion inside probe/account failed:retrospective accounting and producer literals strongly narrow these possibilities but cannot replace the lost original row/traceback."
+  ],
+  "minimal_engineering_recommendation": [
+    "Preserve a non-secret phase identifier, traceback frames, exact probe returncode/parsed metadata and bounded stderr before subsequent assertions. Persist passive observation before the accounting join.",
+    "Allow a bounded visibility wait only for the existing unique draft label/step, inside the original absolute deadline and cancellation contract. Check deadline/cancel at least every100ms, never resubmit/reprobe/connect/reload. Duplicate labels, changed step/node identity, terminal draft or exited srun must fail explicitly.",
+    "CPU-test the actual producer/listener/accounting glue with absent-then-visible accounting, never-visible accounting, terminal state, wrong identity, cancellation and original deadline; do not rely only on RecordingBackend.draft_listening stubs.",
+    "Retain this run as failed with two AR arms only; the handoff diagnosis does not qualify speculative behavior or performance."
+  ],
+  "evidence_files": [
+    "analysis/bw1000/Kimi347b-draft641-readonly-diagnosis-raw.json",
+    "analysis/bw1000/Kimi347b-draft642-accounting-readonly.json",
+    "../Kimi346347-watch-20261101T1945.json",
+    "../Kimi536-terminal-first.json"
+  ],
+  "GPU_calls": 0,
+  "new_Slurm_jobs": 0,
+  "source_changes": 0,
+  "Git_operations": 0,
+  "further_SSH_stopped": true
+}
