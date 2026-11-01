@@ -1,0 +1,60 @@
+{
+  "owner": "bw1000-root/deep_operator_tuning",
+  "state": "SOURCE_IMPLEMENTING_CPU_PENDING_GPU_NOT_READY",
+  "Native_SHA256": "afc6f58b71ef7a51657deae452da86a31afbfa6e79d36d442ccdd26d56c0e6f2",
+  "evidence353": "results/bw1000/2026-11-02/Deep353r1-1261-decision-and-cost.json",
+  "source_binding": "results/bw1000/2026-11-02/Deep353-current-HC-C4-exact-source-binding.json",
+  "GPU_authorized_in_this_initial_card": false,
+  "Model_loaded": false,
+  "new_GPU_submitted": false,
+  "CPU_parent": 910407,
+  "CPU_node": "a14r2n20",
+  "CPU_cores": 4,
+  "CPU_memory_MiB": 8192,
+  "CPU_max_s": 600,
+  "GPU_max_s": 600,
+  "one_immutable_source_attempt_after_CPU_and_published_finalclaim": true,
+  "no_blind_retry": true,
+  "raw_weights_activations_trace_remote_only": true,
+  "Model_gain": "UNKNOWN; no layer-count multiplication or Model reload for tinycomponent gain",
+  "id": "Deep-HC-epilogue-r358",
+  "priority": 1,
+  "source": "code/bw1000/Deep-HC-epilogue-r358",
+  "GPU_parent": 910374,
+  "GPU_node": "a02r4n07",
+  "GPU_cards_max": 8,
+  "parallelism": "Independent single-owner component ranks; real4parameter groups\u00d72seeds, sameGPU paired. Use fewer ranks if fewer substantive fixture groups.",
+  "hypothesis": "Replace many tiny postGEMM affine/Sigmoid/Softmax/weightedcollapse submissions by oneT1 epilogue kernel; preserve original norm/F32GEMM and originalSinkhorn. CurrentHCpre49\u201352ms perenclosure justifies measuring completecomponent, not the epilogue alone.",
+  "minimum_change": "Private candidateHC pre adapter with same prefix and originalSinkhorn; baseline calls exactafc6 HyperConnection::pre. No Model/class ABI or sharedSDK edits.",
+  "geometry": {
+    "residual_BF16": [
+      1,
+      4,
+      4096
+    ],
+    "fn_F32": [
+      24,
+      16384
+    ],
+    "base_F32": [
+      24
+    ],
+    "scale_F32": [
+      3
+    ],
+    "mixes_F32": [
+      1,
+      24
+    ],
+    "params": "Actual checkpoint HC eps/iterations and fourattn/FFN layerparameter sets, readmetadata; no invented constants"
+  },
+  "dedup": "Not old732 five-opRMS-only fusion; oldRMS+F32GEMM untouched. Not old7371 Graph capture; no capturepolicy override. T512canonical policy cannot hitT1.",
+  "numerics": "ActualSDK baseline first against independentCPUF32 fullprefix/epilogue/originalSinkhorn/BF16rounding; then candidate fullcollapsed/post/comb, finite+input/weight/statecanary. NaNpoison alloutputs andGPUhit percall; explicitlaunch_bounds256. Stop ifbaseline mismatches.",
+  "performance": "FullHyperConnection::pre wrapper wall including allocations/copies/finaldrain,2warm+5ABBA, fixedperGPUfixture, reportendpointdrift andevent/launchscope separately; requireactualT1candidatehit. No isolatedkernel-only promotion.",
+  "first_result_estimate": "60\u201390min engineering target, not guarantee; CPUcompile+fixture closure before one<=600sGPUbatch",
+  "stop": "No stable completeHCpre gain beyondsame-roundOFFdrift =>seal/noModel; ifonlymicroseconds saved do not reloadModel",
+  "initial_source_SHA256": {
+    "hc_epilogue_r358.hip": "fdfea9b2b7119cc9e796e4a852320b15a50def5205eae2de228ef046899f9c78",
+    "reference.py": "1d899a213ae18df0296d7f44d19f4de86d6c6442c8b8af7c9773d5a9dc81d337"
+  }
+}
