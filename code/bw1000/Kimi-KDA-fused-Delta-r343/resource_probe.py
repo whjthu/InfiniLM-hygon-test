@@ -1,7 +1,7 @@
 """CPU-only two-node resource probe. No CUDA, Torch or Runtime imports."""
 from pathlib import Path
 import os,socket,json,fcntl,struct,datetime
-node=socket.gethostname().split('.')[0];p=Path('/proc/driver/kfd/proc');assert p.exists()
+node=socket.gethostname().split('.')[0];p=Path('/sys/class/kfd/kfd/proc');assert p.exists()
 pids=sorted(int(v.name)for v in p.iterdir()if v.name.isdigit())
 s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
 ip=socket.inet_ntoa(fcntl.ioctl(s.fileno(),0x8915,struct.pack('256s',b'ib0'))[20:24]);s.close()
