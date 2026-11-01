@@ -1,0 +1,34 @@
+{
+  "owner": "/root/kimi_operator_tuning",
+  "state": "CPU655_PASS_GPU_READY_FIRST_ON_EARLY_GATE",
+  "method": "Fixed C1 H6D128 shape-and-active-stride predicate; no copies, no wider batch/row scope; firstON warmup chosen1fallback0 before fullschedule",
+  "previous": "910371.621 dispatch miss chosen0fallback160, clean; exact runtime singleton-stride cause source-proved",
+  "source": "code/bw1000/Kimi-KDA-C1-layout-Delta-r345",
+  "CPU": {
+    "parent": 910407,
+    "node": "a14r2n20",
+    "cores": 4,
+    "mem_MiB": 8192,
+    "hard_s": 600
+  },
+  "GPU": {
+    "parent": 910371,
+    "nodes": [
+      "a02r3n03",
+      "a02r3n07"
+    ],
+    "total_cards": 16,
+    "layout": "actual TP16 Delta layer, same309 checkpoint weights/teacher-normalized input/512token warmed state/pool3; no full target model",
+    "hard_s": 600,
+    "batch_hard_s": 1800
+  },
+  "hypothesis": "Raw fused kernel gain survives actual full Delta/TP communication and host lifecycle costs",
+  "scope": "Only C1T1 BF16 H6D128 pool3 read1write2, eager Math0; exact prevalidated metadata bindings; all other paths original; no generalized state protocol",
+  "measurement": "profile alwaysOFF; 8 ABBA/BAAB rounds; same restored checkpoint each call; 2warmups eachblock and8measurements; full APIwall includesupload/forward/drain/outputcopy; numerical finite output/conv/state/canary and baseline drift; paired critical-owner wall",
+  "GPU_gate": "CPU dependency closure passes and root ordinary publishes exact source+claim; freshidle/KFD/dedup; one new batch only",
+  "qualification": "No model gain predicted; r339 baseline includes pool snapshot removed by disjoint candidate, so aggregate4.7x not a pure arithmetic claim",
+  "CPU_source_manifest_SHA256": "2a89e527f696a5cc4a9a1d853f2b27a714a0809bfecf2bbe1593488ffc121d01",
+  "CPU_layout_contract": "2304 physical offsets q/k/v; wrong active stride,T2,wrong shape,negative stride,state-stride reject; GPU0",
+  "CPU_result": "results/bw1000/2026-11-02/Kimi345-CPU655-final.json",
+  "GPU_manifest_SHA256": "7c667389b10e67db360dc5f2ab03423e5d61fcb9d033f1ada6015431ef5a27ab"
+}
