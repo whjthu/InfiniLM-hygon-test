@@ -1,0 +1,69 @@
+{
+  "UTC": "2026-11-01T07:24:04.670988+00:00",
+  "observed_UTC": "2026-11-01T07:21:16.129337+00:00",
+  "state": "PARTIAL_ACTUAL_SAME_HANDLE_COST_OBSERVATION_NOT_FINAL_QUALIFICATION",
+  "source": "tools/summarize_service_costs.py",
+  "source_SHA256": "578f3bc87a18927f15a70c37462c24b0f3d430d1ac7cbd77211b8c0252cd9810",
+  "CPU_verification": "6 unittest cases PASS: EOS interval arithmetic, partial pending row, backward clock/count mismatch, source/topology mismatch, invalid host enclosure, single-token cap",
+  "models": {
+    "GLM": {
+      "actual_GPU": "910376.816",
+      "source_manifest_SHA256": "afde8ff72bdbfd32fbf174691f4cc5069fc356cf743ac577813b2a68b8e5a9ae",
+      "completed_request_timelines": 8,
+      "pending_requests": [],
+      "long_input_completed_requests": 5,
+      "long_input_owner_wall_sum_s": 2790.005147696007,
+      "long_input_Native_prefill_host_enclosure_sum_s": 2486.2063345704228,
+      "long_input_prefill_host_enclosure_wall_fraction": 0.8911117374186703,
+      "backend_emitter_decode_median_tok_s": 4.501458205336936,
+      "long_input_outside_Native_host_enclosure_fraction": 0.0008269789124776758
+    },
+    "Deep": {
+      "actual_GPU": "910374.1218",
+      "source_manifest_SHA256": "415af44d184e05b2c9b5c5971800006c6a07eb2485bc3f08c5943574b8b3cde4",
+      "completed_request_timelines": 18,
+      "pending_requests": [
+        {
+          "admitted_index": 18,
+          "prompt_tokens": 9200,
+          "reported_error": false
+        }
+      ],
+      "long_input_completed_requests": 15,
+      "long_input_owner_wall_sum_s": 3111.943034740165,
+      "long_input_Native_prefill_host_enclosure_sum_s": 2620.858544918243,
+      "long_input_prefill_host_enclosure_wall_fraction": 0.8421936120489025,
+      "backend_emitter_decode_median_tok_s": 2.59887285525586,
+      "long_input_outside_Native_host_enclosure_fraction": 0.0008103535085842659
+    }
+  },
+  "evidence": "evidence/bw1000/GLM816-Deep1218-current-completed-request-costs-20261101.json",
+  "evidence_SHA256": "5e55c0383871206d47a5ccd2c1dfdfb60052a6fd10bd2b80ac267fa69bdd4846",
+  "decisions": [
+    {
+      "action": "Keep current validation source and actual handles unchanged",
+      "reason": "Both are progressing; no replay or hot mutation"
+    },
+    {
+      "action": "Prioritize current long-input Native prefill causes; do not spend model loads on outer Python-only speed claims",
+      "reason": "Most sampled long-input owner wall is enclosed by Native prefill; outside Native spans are small in these observations"
+    },
+    {
+      "action": "Consume Kimi518 real32owner C1T1 profile before choosing its next component",
+      "reason": "Review149, no305Native linkage or speculative expansion before bottleneck evidence"
+    },
+    {
+      "action": "Retain stopped Deep PP1 copy-of-GLM-W2 and previous-cache/failedC128 routes",
+      "reason": "Current data does not reverse topology, feasibility or previous negative evidence"
+    }
+  ],
+  "limits": [
+    "Incomplete heterogeneous real workload, not a matched speed benchmark or quality result",
+    "Backend emitter timeline excludes EOS/control tokens; buffered HTTP has no incremental client SLO qualification",
+    "Native host enclosures include waits and host work, not GPU busy, pure network or removable cost",
+    "No summing pipeline stages, physical peak or new speedup inferred"
+  ],
+  "new_GPU_jobs": 0,
+  "new_performance_gain": null,
+  "goal_complete": false
+}
