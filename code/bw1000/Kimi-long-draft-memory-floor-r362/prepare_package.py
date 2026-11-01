@@ -59,12 +59,13 @@ payload={n:base64.b64encode((D/n).read_bytes()).decode()for n in files+['SOURCE_
 script="""from pathlib import Path
 import base64,json,hashlib,subprocess,os
 R=Path('/public/home/aclsylqidf/hygon-inference-refactor-20261014');D=R/'incoming/Kimi-long-draft-memory-floor-r362';assert not D.exists();D.mkdir()
-for n,b in FILES.items():(D/n).write_bytes(base64.b64decode(b))
-assert hashlib.sha256((D/'SOURCE_MANIFEST.json').read_bytes()).hexdigest()==MANIFEST
+for n,b in __FILES_PAYLOAD__.items():(D/n).write_bytes(base64.b64decode(b))
+assert hashlib.sha256((D/'SOURCE_MANIFEST.json').read_bytes()).hexdigest()==__MANIFEST_SHA__
 args=['srun','--jobid=910407','--overlap','--exact','--immediate=30','--cpu-bind=none','-N1','-n1','-c4','--gres=none','--mem=8192M','-w','a14r2n20','-t','00:05:00','--job-name=Kimi-r362-whole-CPU','--output='+str(R/'logs/Kimi-r362-whole-CPU-%J.log'),'--export=ALL','bash',str(R/'incoming/resource_wave_local_r3097_outer.sh'),'probe']
 env=dict(os.environ,WAVE_INSIDE_R2323=D.name+'/CPU_inside.sh')
 with(R/'logs/Kimi-r362-whole-CPU-client.log').open('x')as f:p=subprocess.Popen(args,env=env,stdin=subprocess.DEVNULL,stdout=f,stderr=subprocess.STDOUT,start_new_session=True)
-print(json.dumps({'GPU':0,'CPU_submitted':True,'PID':p.pid,'label':'Kimi-r362-whole-CPU','source_manifest_SHA256':MANIFEST}))
-""".replace('FILES',repr(payload)).replace('MANIFEST',repr(manifest))
+print(json.dumps({'GPU':0,'CPU_submitted':True,'PID':p.pid,'label':'Kimi-r362-whole-CPU','source_manifest_SHA256':__MANIFEST_SHA__}))
+""".replace('__FILES_PAYLOAD__',repr(payload)).replace('__MANIFEST_SHA__',repr(manifest))
+ast.parse(script)
 (L/'remote362-upload-CPU.py').write_bytes(script.encode())
 print(json.dumps(dict(manifest_SHA256=manifest,CPU_helper='remote362-upload-CPU.py',GPU=0)))
