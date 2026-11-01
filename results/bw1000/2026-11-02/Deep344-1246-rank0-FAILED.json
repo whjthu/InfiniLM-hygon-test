@@ -1,0 +1,54 @@
+{
+  "completed": false,
+  "rank": 0,
+  "actual_step": "910374.1246",
+  "scope": "Actual Runtime full compressor prepare+commit+same bridge output copies/drain. Real checkpoint compressor weights; synthetic hidden; not Model quality/speed.",
+  "ratio": 4,
+  "layer": 2,
+  "kind": "decode_boundary",
+  "T": 1,
+  "past": 127,
+  "library_SHA256": "296e95e83789625757a0ab744b5f2a0639699f2e144fb7f13ba7e0e1891952ab",
+  "records": [],
+  "weights": {
+    "wkv.weight": {
+      "key": "layers.2.attn.compressor.wkv.weight",
+      "shape": [
+        1024,
+        4096
+      ],
+      "dtype": "torch.bfloat16",
+      "tensor_SHA256": "055ed53426ea63a92b335609553a749164917c28600a9bee8ae661df2ff2e2fb"
+    },
+    "wgate.weight": {
+      "key": "layers.2.attn.compressor.wgate.weight",
+      "shape": [
+        1024,
+        4096
+      ],
+      "dtype": "torch.bfloat16",
+      "tensor_SHA256": "d63996405cc51fdb39df0cd5cc6766a19164c25fc530fc1c7a64671fc851943c"
+    },
+    "ape": {
+      "key": "layers.2.attn.compressor.ape",
+      "shape": [
+        4,
+        1024
+      ],
+      "dtype": "torch.float32",
+      "tensor_SHA256": "c94c68eb2d2d8c86b312c3d238c775a00d27cd0ebf60a73cac00f0a28d7dbd24"
+    },
+    "norm.weight": {
+      "key": "layers.2.attn.compressor.norm.weight",
+      "shape": [
+        512
+      ],
+      "dtype": "torch.bfloat16",
+      "tensor_SHA256": "b58f3c56545103b82016e77017461e731dbaf08f57d0e17bc7e54dc43b1a7e65"
+    }
+  },
+  "GPU_F64": false,
+  "error": "AssertionError(0.14692510664463043)",
+  "traceback": "Traceback (most recent call last):\n  File \"/refactor/incoming/Deep-Runtime-boundary-fusion-r344/GPU.py\", line 73, in <module>\n    refcheck=reference(outputs)\n  File \"/refactor/incoming/Deep-Runtime-boundary-fusion-r344/GPU.py\", line 56, in reference\n    table=torch.tensor(table,dtype=torch.float32);expected=normalized.clone();a=normalized[:,-64:-32].float();b=normalized[:,-32:].float();expected[:,-64:-32]=(a*table[:,:32]-b*table[:,32:]).bfloat16();expected[:,-32:]=(b*table[:,:32]+a*table[:,32:]).bfloat16();got=outputs[2][ids];delta=got.float()-expected.float();nr=float(delta.square().mean().sqrt()/(expected.float().square().mean().sqrt()+1e-12));assert nr<.01,nr\nAssertionError: 0.14692510664463043\n",
+  "elapsed_s": 3.351277430076152
+}
