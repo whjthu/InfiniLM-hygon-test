@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-11-01T17:25:02.954495+00:00",
+  "updated_at_utc": "2026-11-01T17:53:00.839554+00:00",
   "owner": "bw1000-agent",
   "hardware": "BW1000",
   "goal_complete": false,
@@ -17,9 +17,7 @@
     "InfiniOps": "1ca4777610d77e9063fffdb975ab35da8466104d",
     "InfiniCCL": "51cc9db31d58aac21643d72f0f77cf5c9ecfaee5"
   },
-  "current_actual_GPU_jobs": [
-    "910376.823"
-  ],
+  "current_actual_GPU_jobs": [],
   "latest_review": {
     "id": 153,
     "review": 153,
@@ -30,10 +28,14 @@
     "report": "analysis/bw1000/reviews/astra-review-153-parallel-component-decisions.json",
     "implementation": "Parallel candidates to fullcomponent/realRuntime;343 ready,Deep344 prepare,GLM onlyunmeasuredvalidrepair; no new Modelclaim",
     "previous_completed_review": 152,
-    "performance_rounds_since_review": 0,
-    "completed_rounds_since_review": 0,
+    "performance_rounds_since_review": 2,
+    "completed_rounds_since_review": 2,
     "inflight_review": null,
-    "round_events_since_review": []
+    "round_events_since_review": [
+      "GLM341 remaining11legal fullchain hypotheses complete:0uniformthresholdpromotions",
+      "GLM308823 scoped6 realModel W2/W4 completed:prefill1.3447x/HTTP1.2093x"
+    ],
+    "early_review_pending": "154: repeated engineering eligibility/reference failures; queued awaiting active agent slot. No reviewer running yet."
   },
   "Kimi": {
     "current_Model_result": "results/bw1000/2026-10-31/Kimi252508-full-agent-history-multicall-paired-gain-and-cleanup-PASS.json",
@@ -1223,7 +1225,7 @@
   "GLM_prefill_W4_candidate": {
     "task": "coordination/tasks/GLM-prefill-W2-W4-scoped-pair-r307.json",
     "source_manifest_SHA256": "3508075aa744f3bfb8f3631af73b1112f8905b0c810800b7ec0819885b718545",
-    "state": "RUNNING_FOLLOW_ORIGINAL823_CPU645",
+    "state": "SCOPED_MODEL_GAIN_ROOT_AUDITED_PASS_NORMAL_CLEAN",
     "local_CPU_result": "evidence/bw1000/GLM-W4-r306-r307-local-CPU-source-traces.json",
     "default_enabled": false,
     "GPU_GO": false,
@@ -1243,7 +1245,21 @@
     "GO_consumed": true,
     "actual_GPU": "910376.823",
     "CPU_keeper": "910407.645",
-    "actual_start_result": "results/bw1000/2026-11-01/GLM308823-scoped-six-actual-start.json"
+    "actual_start_result": "results/bw1000/2026-11-01/GLM308823-scoped-six-actual-start.json",
+    "terminal_result": "results/bw1000/2026-11-02/GLM308823-root-audited-W4-scoped-Model-gain-PASS-clean.json",
+    "root_consumed": true,
+    "scoped_gain": {
+      "prefill_W2_s": 342.5575997487176,
+      "prefill_W4_s": 254.74502776912414,
+      "prefill_speedup": 1.344707697530325,
+      "HTTP_W2_s": 504.4249426226597,
+      "HTTP_W4_s": 417.1150422114879,
+      "HTTP_speedup": 1.2093185130612085,
+      "decode_gain_proven": false,
+      "measured_ABBA_blocks": 1,
+      "frozen_real_request_types": 1,
+      "broad_quality_or_incremental_client_SLO_proven": false
+    }
   },
   "optimization_auto_continuation": {
     "automation_id": "infinilm",
@@ -1301,7 +1317,7 @@
     "new_speedup_claim": false
   },
   "Deep_next_performance_task": "coordination/tasks/Deep-C1-prefill-2048-pair-r151.json",
-  "current_actual_GPU_jobs_basis": "308 source/resource claim478d1b98 followed by actual fresh idle822 and823/645 start observation; no completion claim",
+  "current_actual_GPU_jobs_basis": "Latest real handles terminal: GLM823 and CPU645 COMPLETED0; operator Kimi621 fallback-only FAIL, Deep1246 baseline-reference FAIL, GLM626/1244 completed. Three groups preparing next distinct repairs/cards; do not treat allocation or preparation as GPU busy.",
   "Kimi_long_target_publisher": {
     "source": "code/bw1000/Kimi-long-target-publisher-r335",
     "manifest_SHA256": "5e14dfd4945987141b9da42b3733fbae7e75aae277f9854b0c755e7ffd8e4ab8",
@@ -1338,7 +1354,7 @@
   },
   "parallel_operator_tuning_pool": {
     "task": "coordination/tasks/operator-tuning-pool-r338.json",
-    "state": "ROLLING_THREE_GROUPS_FIRST_RESULTS_CONSUMED_NEXT_CAUSAL_CARDS",
+    "state": "ROLLING_THREE_GROUPS_PARALLEL_REPAIR_AND_DISTINCT_METHODS",
     "nodes": 6,
     "maximum_cards": 48,
     "groups": [
@@ -1346,14 +1362,14 @@
       "/root/deep_operator_tuning",
       "/root/glm_operator_tuning"
     ],
-    "GPU_started": false,
+    "GPU_started": true,
     "first_two_groups_source_claim": "results/bw1000/2026-11-02/operator-first32-source-claim-r339-r340.json",
     "first_two_groups_CPU_compiled": true,
-    "first_two_groups_GPU_pending_fresh_idle": true,
+    "first_two_groups_GPU_pending_fresh_idle": false,
     "next_source_claim": "results/bw1000/2026-11-02/operator-GLM341-Deep340v4-source-claim.json",
-    "Kimi_first_batch": "606/607 reported complete, root audit/cleanup evidence pending",
-    "Deep_first_batch": "1226/1227 shell CRLF pre-Python failure; post1228/1229 clean; repaired v4 pending publishedsource",
-    "GLM341_CPU": "910407.649 COMPLETED0; GPU pending publishedsource",
+    "Kimi_first_batch": "606/607 complete;root independent audit PASS component only",
+    "Deep_first_batch": "1234/1235 valid72arms pass/48launchbound invalid;component only;initial1226/1227 CRLF failures retained",
+    "GLM341_CPU": "649 PASS;all13legal now measured;3staticinvalid",
     "GLM341_source_claim": "results/bw1000/2026-11-02/operator-GLM341-source-claim.json",
     "Deep340_repaired_claim": "results/bw1000/2026-11-02/Deep340-v5-repaired-source-claim.json",
     "Kimi339_result": "results/bw1000/2026-11-02/Kimi339-root-independent-audit.json",
@@ -1361,6 +1377,37 @@
     "GLM341_partial_result": "results/bw1000/2026-11-02/GLM341-GPU-first-batch-summary.json",
     "Kimi343_claim": "results/bw1000/2026-11-02/Kimi343-real-Delta-runtime-claim.json",
     "review": 153,
-    "new_Model_gains": 0
+    "new_Model_gains": 1,
+    "GLM341_result": "results/bw1000/2026-11-02/GLM341-all-variants-final-summary.json",
+    "Kimi343": {
+      "actual_GPU": "910371.621 FAILED1",
+      "state": "ALL_ON_FALLBACK_DISPATCH_MISS_NO_CANDIDATE_PERF",
+      "chosen": 0,
+      "fallback": 160,
+      "post": "627/628 KFDempty/port30040bindable/processesgone",
+      "next": "r345 C1 physical-offset layout predicate only; first ONwarmup chosen1/fallback0 assertion before schedule",
+      "result": "results/bw1000/2026-11-02/Kimi343-GPU621-dispatch-miss-clean.json"
+    },
+    "Deep344": {
+      "actual_GPU": "910374.1246 FAILED1",
+      "post": "910374.1247 KFDempty",
+      "state": "BASELINE_INDEPENDENT_ROPE_REFERENCE_FAIL_ZERO_ABBA",
+      "next": "Confirm actualis_neoxfalse index/position semantics,repairB256/independentreference; no blind replay",
+      "result": "results/bw1000/2026-11-02/Deep344-first-observation.json"
+    },
+    "GLM341": {
+      "actual_GPU": [
+        "910371.626 COMPLETED0",
+        "910374.1244 COMPLETED0"
+      ],
+      "all_legal_variants": 13,
+      "static_invalid_bound": 3,
+      "uniform_threshold_promotions": 0,
+      "family": "STOP_NO_ALL_T_GAIN",
+      "post_KFD_empty": true,
+      "next": "Consume823existingcriticalpath; source-inspect different RMSNorm descriptor reuse hypothesis",
+      "publication_commit": "c30ea1b45fe0b72f9958a462a2e7530305cfdf4a"
+    },
+    "utilization_scope": "Six-node48card pool is resource ceiling, notcontinuousbusy. Actualsamples and compile/load/startup separated. Three independent implement/test/result streams; onlyGit serialized by explicit single token."
   }
 }
