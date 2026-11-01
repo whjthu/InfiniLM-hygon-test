@@ -37,7 +37,7 @@ def verify_sources(root, directory, plan):
     assert target_check['Native_dlopen'] is False
     assert target_check['source_manifest_SHA256'] == plan['target_manifest_SHA256']
     assert sha(directory/'outer.sh') == manifest['outer_wrapper_SHA256']
-    receipt = root/'candidates/Kimi-long-pair-controller-r347/CPU-result.json'
+    receipt = root/'candidates'/directory.name/'CPU-result.json'
     assert sha(receipt) == plan['CPU_receipt_SHA256']
     q = json.loads(receipt.read_bytes())
     assert q['completed'] and q['passed'] and q['GPU'] == 0 and q['Native_dlopen'] is False
@@ -168,7 +168,7 @@ class Controller:
                 if terminal_success(target):
                     if not draft: raise RuntimeError('Target completed without four-arm deferred draft')
                     if terminal_success(draft): break
-                self.save(); self.sleep(5)
+                self.save(); self.sleep(15)
             else: raise TimeoutError('Original GPU bound exceeded')
             # A successful process exit alone does not imply quality or normal ownership.
             self.q['post'] = self.backend.idle('post')

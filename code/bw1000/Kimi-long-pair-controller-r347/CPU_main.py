@@ -17,7 +17,7 @@ def main():
     assert not os.environ.get('LD_PRELOAD') and 'torch' not in sys.modules
     manifest_sha = os.environ['KIMI_LONG_CONTROLLER_SOURCE_SHA_R347']
     verify_bundle(d, manifest_sha)
-    output = Path('/refactor/candidates/Kimi-long-pair-controller-r347')
+    output = Path('/refactor/candidates')/d.name
     output.mkdir(exist_ok=False)
     report = dict(UTC=datetime.datetime.now(datetime.timezone.utc).isoformat(),
                   completed=False, passed=False, GPU=0, Native_dlopen=False,

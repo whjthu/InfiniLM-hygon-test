@@ -20,6 +20,21 @@ def clean_env():
             or k in ['SLURM_CONF', 'SLURM_CONF_SERVER']}
 
 
+def terminal_report(path, visibility_s=90):
+    """Accounting can precede NFS visibility; wait for a final report, never rerun."""
+    until = time.monotonic()+visibility_s
+    while True:
+        try:
+            value = json.loads(Path(path).read_bytes())
+            if not isinstance(value, dict): raise ValueError('Final report must be an object')
+            if value.get('completed') is True: return value
+        except (FileNotFoundError, json.JSONDecodeError):
+            pass
+        if time.monotonic() >= until:
+            raise TimeoutError('Completed owned step final report visibility unresolved')
+        time.sleep(1)
+
+
 class SlurmBackend:
     def __init__(self, root, directory, plan):
         self.root, self.directory, self.plan = Path(root), Path(directory), plan
@@ -169,7 +184,7 @@ class SlurmBackend:
         rows, signatures = [], []
         for node in range(4):
             path = self.root/'results'/('Kimi-long-pair-r346-'+self.run+'-node%d.json'%node)
-            q = json.loads(path.read_bytes())
+            q = terminal_report(path)
             assert q['completed'] and q['all8_owned_workers_shutdown_completed']
             assert q['actual_step'] == self.actual['target']
             assert q['source_manifest_SHA256'] == self.plan['target_manifest_SHA256']
@@ -187,7 +202,7 @@ class SlurmBackend:
             rows.append(dict(node=node, path=str(path), SHA256=sha(path), normal8owners=True))
         assert all(x == signatures[0] for x in signatures)
         draft = self.root/'results'/('Kimi-long-draft-r334-'+self.run+'.json')
-        q = json.loads(draft.read_bytes())
+        q = terminal_report(draft)
         assert q['completed'] and q['passed'] and q['normal_protocol_close']
         assert q['actual_step'] == self.actual['draft'] and q['source_manifest_SHA256'] == WORKER_SHA
         assert q['authenticated'] and q['ready'] and q['GPU_count'] == 1

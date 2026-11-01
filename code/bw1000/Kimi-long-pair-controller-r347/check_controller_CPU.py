@@ -43,7 +43,7 @@ def plan_copy():
     return p
 
 
-def rejected(fn, kinds=(AssertionError, ValueError, RuntimeError, FileExistsError)):
+def rejected(fn, kinds=(AssertionError, ValueError, RuntimeError, FileExistsError, TimeoutError)):
     try: fn()
     except kinds: return
     raise AssertionError('Expected rejection did not occur')
@@ -193,7 +193,8 @@ def run_controller_scenario(scenario):
             assert ctl.cancel_marker.exists()
         if scenario == 'cancel': assert json.loads(ctl.cancel_marker.read_bytes()) == {'user_cancel': True}
         if scenario in ['exit_never','srun0_account_unknown','srun0_account_running']:
-            assert 'unresolved' in result['error'] and 90 < clock.now-(ctl.epoch or clock.now) < 150
+            seen = list(ctl.exit_seen.values())+list(ctl.terminal_seen.values())
+            assert 'unresolved' in result['error'] and seen and 90 < clock.now-min(seen) <= 105
         if scenario == 'cleanup_failure': assert result['cleanup_error_type'] == 'RuntimeError' and result['post_empty']
         if scenario == 'post_failure': assert result['post_error_type'] == 'RuntimeError'
         return dict(expected_pass=expected, starts=backend.starts, passive_listener_calls=backend.listener_calls,
@@ -284,6 +285,40 @@ def test_actual_account_and_foreign():
                 active_foreign_rejected=True,actual_handle_change_rejected=True,owned_handle_allowed=True)
 
 
+@contextlib.contextmanager
+def artifact_clock(on_sleep=None):
+    """Exercise the real visibility helper with no real90-second delay."""
+    value=SimpleNamespace(now=0.,sleeps=[])
+    def sleep(seconds):
+        assert seconds==1
+        value.now+=seconds;value.sleeps.append(seconds)
+        assert value.now<=91, 'Visibility wait is not bounded at90seconds'
+        if on_sleep:on_sleep(value)
+    with mock.patch.object(slurm_backend.time,'monotonic',side_effect=lambda:value.now),mock.patch.object(slurm_backend.time,'sleep',side_effect=sleep):
+        yield value
+
+
+def normal_collector_artifacts(root):
+    plan=plan_copy();b=slurm_backend.SlurmBackend(root,HERE,plan)
+    b.actual={'target':'910380.50','draft':'910371.51'}
+    requests=[dict(name=name,mode=mode,completed=True,normal_reset=True,finish='eos',
+        quality={'passed':True},output_budget=128,tokens=5,prompt_SHA256=('a' if name=='retained8635' else 'b')*64,
+        ids_SHA256=str(i)*64) for i,(name,mode) in enumerate(plan['request_order'])]
+    targets=[]
+    for node in range(4):
+        q=dict(completed=True,all8_owned_workers_shutdown_completed=True,actual_step='910380.50',
+               source_manifest_SHA256=plan['target_manifest_SHA256'],Native_SHA256=plan['Native_SHA256'],
+               first_capture_validation=dict(passed=True),
+               pair_report=dict(completed=True,normal_draft_protocol_close=True,requests=copy.deepcopy(requests)))
+        path=root/'results'/('Kimi-long-pair-r346-'+plan['run']+'-node%d.json'%node);targets.append((path,q))
+    phases=dict(begin=2,seal=2,retire=2,close=1,append_prompt=81,query=2)
+    draft=dict(completed=True,passed=True,normal_protocol_close=True,actual_step='910371.51',source_manifest_SHA256=contract.WORKER_SHA,
+               authenticated=True,ready=True,GPU_count=1,phase_counts=phases,
+               commands=sum(phases.values()),feature_bytes=(8635+32638)*35840*2)
+    draft_path=root/'results'/('Kimi-long-draft-r334-'+plan['run']+'.json')
+    return b,targets,(draft_path,draft)
+
+
 def test_actual_collect_success():
     scenarios=['normal','target_incomplete','wrong_source','wrong_step','leader_signature','quality_failed',
                'no_eos','budget_changed','draft_failed','draft_abnormal_close','owner_close_incomplete',
@@ -291,16 +326,8 @@ def test_actual_collect_success():
                'phase_begin_count','phase_query_count','commands_not_sum','feature_bytes_short']
     for scenario in scenarios:
         with tempfile.TemporaryDirectory(prefix='Kimi347-evidence-') as tmp:
-            root=Path(tmp);(root/'results').mkdir();plan=plan_copy();b=slurm_backend.SlurmBackend(root,HERE,plan)
-            b.actual={'target':'910380.50','draft':'910371.51'}
-            requests=[dict(name=name,mode=mode,completed=True,normal_reset=True,finish='eos',
-                quality={'passed':True},output_budget=128,tokens=5,prompt_SHA256=('a' if name=='retained8635' else 'b')*64,
-                ids_SHA256=str(i)*64) for i,(name,mode) in enumerate(plan['request_order'])]
-            for node in range(4):
-                q=dict(completed=True,all8_owned_workers_shutdown_completed=True,actual_step='910380.50',
-                       source_manifest_SHA256=plan['target_manifest_SHA256'],Native_SHA256=plan['Native_SHA256'],
-                       first_capture_validation=dict(passed=True),
-                       pair_report=dict(completed=True,normal_draft_protocol_close=True,requests=copy.deepcopy(requests)))
+            root=Path(tmp);(root/'results').mkdir();b,targets,(draft_path,draft)=normal_collector_artifacts(root)
+            for node,(path,q) in enumerate(targets):
                 if node==2:
                     if scenario=='target_incomplete':q['completed']=False
                     if scenario=='wrong_source':q['source_manifest_SHA256']='f'*64
@@ -311,11 +338,8 @@ def test_actual_collect_success():
                     if scenario=='quality_failed':q['pair_report']['requests'][0]['quality']['passed']=False
                     if scenario=='no_eos':q['pair_report']['requests'][0]['finish']='length'
                     if scenario=='budget_changed':q['pair_report']['requests'][0]['output_budget']=127
-                (root/'results'/('Kimi-long-pair-r346-'+plan['run']+'-node%d.json'%node)).write_text(json.dumps(q))
-            phases=dict(begin=2,seal=2,retire=2,close=1,append_prompt=81,query=2)
-            draft=dict(completed=True,passed=True,normal_protocol_close=True,actual_step='910371.51',source_manifest_SHA256=contract.WORKER_SHA,
-                       authenticated=True,ready=True,GPU_count=1,phase_counts=phases,
-                       commands=sum(phases.values()),feature_bytes=(8635+32638)*35840*2)
+                path.write_text(json.dumps(q))
+            phases=draft['phase_counts']
             if scenario=='draft_failed':draft['passed']=False
             if scenario=='draft_abnormal_close':draft['normal_protocol_close']=False
             if scenario=='draft_unauthenticated':draft['authenticated']=False
@@ -325,12 +349,43 @@ def test_actual_collect_success():
             if scenario=='phase_query_count':phases['query']=1
             if scenario=='commands_not_sum':draft['commands']+=1
             if scenario=='feature_bytes_short':draft['feature_bytes']-=1
-            (root/'results'/('Kimi-long-draft-r334-'+plan['run']+'.json')).write_text(json.dumps(draft))
-            if scenario=='normal':
-                q=b.collect_success();assert q['all32_normal'] and q['four_request_signatures_equal'] and not q['client_SLO_qualified']
-            else:rejected(b.collect_success)
+            draft_path.write_text(json.dumps(draft))
+            with artifact_clock() as visibility:
+                if scenario=='normal':
+                    q=b.collect_success();assert q['all32_normal'] and q['four_request_signatures_equal'] and not q['client_SLO_qualified']
+                else:rejected(b.collect_success)
+                assert visibility.now==(90 if scenario=='target_incomplete' else 0)
     return dict(actual_backend_validator=True,cases=len(scenarios),four_leaders=True,
                 target_cards=32,draft_cards=1,actual_GPU=False,synthetic_reports=True)
+
+
+def test_terminal_artifact_visibility(which,scenario):
+    with tempfile.TemporaryDirectory(prefix='Kimi347-NFS-visibility-') as tmp:
+        root=Path(tmp);(root/'results').mkdir();b,targets,draft=normal_collector_artifacts(root)
+        for path,data in targets+[draft]:path.write_text(json.dumps(data))
+        path,data=targets[2] if which=='target' else draft
+        if scenario in ['missing_then_complete','missing_forever']:path.unlink()
+        elif scenario=='stale_false_then_complete':
+            stale=copy.deepcopy(data);stale['completed']=False;path.write_text(json.dumps(stale))
+        elif scenario=='partial_JSON_then_complete':path.write_bytes(b'{"completed":')
+        elif scenario=='completed_bad_quality':
+            bad=copy.deepcopy(data)
+            if which=='target':bad['pair_report']['requests'][0]['quality']['passed']=False
+            else:bad['passed']=False
+            path.write_text(json.dumps(bad))
+        else:raise AssertionError(scenario)
+        def reveal(clock):
+            if scenario not in ['missing_forever','completed_bad_quality'] and clock.now==2:
+                path.write_text(json.dumps(data))
+        with artifact_clock(reveal) as visibility,mock.patch.object(b,'start',side_effect=AssertionError('Artifact wait must not restart GPU')),mock.patch.object(subprocess,'Popen',side_effect=AssertionError('Artifact wait must not spawn')):
+            if scenario=='missing_forever':
+                rejected(b.collect_success,kinds=(TimeoutError,));assert visibility.now==90 and len(visibility.sleeps)==90
+            elif scenario=='completed_bad_quality':
+                rejected(b.collect_success,kinds=(AssertionError,));assert visibility.now==0 and not visibility.sleeps
+            else:
+                q=b.collect_success();assert q['all32_normal'] and visibility.now==2 and len(visibility.sleeps)==2
+        return dict(artifact=which,scenario=scenario,simulated_wait_seconds=visibility.now,
+                    real_wait_seconds=0,original_GPU_restarted=False)
 
 
 def test_actual_invoker_exclusive_intent():
@@ -382,6 +437,9 @@ def main():
     case('actual_SlurmBackend_argv_original_deadline',test_real_backend_argv)
     case('actual_SlurmBackend_account_and_foreign_boundaries',test_actual_account_and_foreign)
     case('actual_SlurmBackend_fourleader_quality_normal_evidence',test_actual_collect_success)
+    for artifact in ['target','draft']:
+        for scenario in ['missing_then_complete','stale_false_then_complete','partial_JSON_then_complete','missing_forever','completed_bad_quality']:
+            case('actual_collector_NFS_'+artifact+'_'+scenario,lambda w=artifact,s=scenario:test_terminal_artifact_visibility(w,s))
     case('actual_invoker_exclusive_intent_no_replay',test_actual_invoker_exclusive_intent)
     case('actual_SlurmBackend_owned_group_cleanup',test_backend_owned_cleanup)
     case('actual_passive_proc_listener_no_connect',test_passive_proc_listener)
