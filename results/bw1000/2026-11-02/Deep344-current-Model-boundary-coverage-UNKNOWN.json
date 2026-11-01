@@ -1,0 +1,97 @@
+{
+  "scope": "Read-only current Model coverage audit, no GPU/model reload",
+  "candidate": "Deep344adj1 actualRuntime C4 decode component ~6% paired signal only",
+  "current_Model": "910374.1221 NativeSHA afc6f58b71ef7a51657deae452da86a31afbfa6e79d36d442ccdd26d56c0e6f2",
+  "current_cost_evidence": "analysis/bw1000/Deep1221-current-Native-and-emitter-cost-r151.json",
+  "current_Native_CAPI_median_per_request_decode_s": 0.3320789142368533,
+  "current_Model_C4_boundary_eligible_calls": "UNKNOWN: current1221 retained CAPI/emitter aggregate has no per-step past or norm-boundary counter",
+  "current_Model_boundary_postprocess_wall_share": "UNKNOWN: no corresponding current per-op trace; prior broad cache bucket cannot isolate norm/RoPE",
+  "source_condition": "TemporalCompressor::prepare_impl postprocess && !batch.boundaries.empty(); boundaries append only if (p+1)%ratio_==0; candidate additionally requires dim_==512. D128 indexer prepare_pooled postprocess=false excluded.",
+  "prior1195_profile": {
+    "source": "results/bw1000/2026-10-28/deep1195-C1-profile-qualified-diagnostic.json",
+    "SHA256": "66b18e9eb1f548eba6f59d55764a395dc6bf315c2278ca24bdc30de1ae2911a4",
+    "NativeSHA": "ac9370c8f188bfda8555718c52690b914883fc6b02b9267cbd279be3ecdd3835",
+    "geometries": [
+      {
+        "label": "C1-question0",
+        "geometry": {
+          "tokens": 1,
+          "requests": 1,
+          "past": [
+            385
+          ],
+          "sizes": [
+            1
+          ]
+        },
+        "C4_boundary_from_source_predicate_only": [
+          false
+        ],
+        "C128_boundary_from_source_predicate_only": [
+          false
+        ]
+      },
+      {
+        "label": "C1-question1",
+        "geometry": {
+          "tokens": 1,
+          "requests": 1,
+          "past": [
+            395
+          ],
+          "sizes": [
+            1
+          ]
+        },
+        "C4_boundary_from_source_predicate_only": [
+          true
+        ],
+        "C128_boundary_from_source_predicate_only": [
+          false
+        ]
+      },
+      {
+        "label": "C1-question2",
+        "geometry": {
+          "tokens": 1,
+          "requests": 1,
+          "past": [
+            437
+          ],
+          "sizes": [
+            1
+          ]
+        },
+        "C4_boundary_from_source_predicate_only": [
+          false
+        ],
+        "C128_boundary_from_source_predicate_only": [
+          false
+        ]
+      },
+      {
+        "label": "C1-question3",
+        "geometry": {
+          "tokens": 1,
+          "requests": 1,
+          "past": [
+            407
+          ],
+          "sizes": [
+            1
+          ]
+        },
+        "C4_boundary_from_source_predicate_only": [
+          true
+        ],
+        "C128_boundary_from_source_predicate_only": [
+          false
+        ]
+      }
+    ],
+    "warning": "Different run/source/observer. Predicate-derived eligibility only; does not establish current1221 hit count or share and is not a direct boundary-call counter."
+  },
+  "next": "Keep candidate source/component evidence only. Do not reload entire Model, repeat grid, or multiply micro/component savings by layer count. A future already-needed Model/profile can add scoped real boundary counters/Runtime wall ranges before assessing target significance.",
+  "Model_speedup": "UNKNOWN; no numeric extrapolation",
+  "additional_GPU_jobs": 0
+}
