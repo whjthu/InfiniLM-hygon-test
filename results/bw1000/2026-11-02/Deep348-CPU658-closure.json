@@ -1,0 +1,155 @@
+{
+  "CPU_receipt_path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/Deep-prefill-chunk-pair-r348-CPU/CPU-entry.json",
+  "CPU_receipt_SHA256": "159879833e64dd8ab758e71c714ca1a5fa70063005691374bb0632b0dd470235",
+  "owner_manifest_SHA256": "40f69be372f89c4ed5345a4d326bbd1936423d5330f40da3dcf435a9b2f80d4e",
+  "CPU_entry_source_SHA256": "170e4b651207a1abdabe5cc44f63df85da3b1951815b5c041c56431ee14c14f9",
+  "actual_CPU_shell": "#!/bin/bash\nset -euo pipefail\nsource /opt/dtk/env.sh\nexport CUDA_VISIBLE_DEVICES=-1 HIP_VISIBLE_DEVICES=-1 ROCR_VISIBLE_DEVICES=-1 OMP_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1\nexec timeout --kill-after=5s 540 python3 -B /refactor/incoming/Deep-prefill-chunk-pair-r348/CPU_entry.py --owner-sha 40f69be372f89c4ed5345a4d326bbd1936423d5330f40da3dcf435a9b2f80d4e\n",
+  "actual_CPU_shell_SHA256": "f816926a831c79a077176a0d4f946872c7badc3e7d08e7788ff88471fce2f7e4",
+  "receipt": {
+    "completed": true,
+    "passed": true,
+    "CPU_only": true,
+    "GPU": false,
+    "Native_dlopen": false,
+    "weights_opened": false,
+    "actual_step": "910407.658",
+    "cases": [
+      {
+        "kind": "actual_generate",
+        "chunk": 1024,
+        "cancel": "none",
+        "passed": true,
+        "calls": 11
+      },
+      {
+        "kind": "actual_generate",
+        "chunk": 1024,
+        "cancel": "before",
+        "passed": true,
+        "calls": 0
+      },
+      {
+        "kind": "actual_generate",
+        "chunk": 1024,
+        "cancel": "midprefill",
+        "passed": true,
+        "calls": 1
+      },
+      {
+        "kind": "actual_generate",
+        "chunk": 1024,
+        "cancel": "expired",
+        "passed": true,
+        "calls": 0
+      },
+      {
+        "kind": "actual_generate",
+        "chunk": 2048,
+        "cancel": "none",
+        "passed": true,
+        "calls": 7
+      },
+      {
+        "kind": "actual_generate",
+        "chunk": 2048,
+        "cancel": "before",
+        "passed": true,
+        "calls": 0
+      },
+      {
+        "kind": "actual_generate",
+        "chunk": 2048,
+        "cancel": "midprefill",
+        "passed": true,
+        "calls": 1
+      },
+      {
+        "kind": "actual_generate",
+        "chunk": 2048,
+        "cancel": "expired",
+        "passed": true,
+        "calls": 0
+      },
+      {
+        "kind": "actual_client_main",
+        "scenario": "success",
+        "passed": true,
+        "HTTP": 6
+      },
+      {
+        "kind": "actual_client_main",
+        "scenario": "wrong-binding",
+        "passed": true,
+        "HTTP": 1
+      },
+      {
+        "kind": "actual_client_main",
+        "scenario": "wrong-answer",
+        "passed": true,
+        "HTTP": 1
+      },
+      {
+        "kind": "actual_client_main",
+        "scenario": "cap128",
+        "passed": true,
+        "HTTP": 1
+      },
+      {
+        "kind": "actual_client_main",
+        "scenario": "short-prompt",
+        "passed": true,
+        "HTTP": 1
+      },
+      {
+        "kind": "actual_worker_serve_cleanup",
+        "scenario": "success-six",
+        "passed": true,
+        "error": null,
+        "Native": 6,
+        "normal_server_shutdown": true
+      },
+      {
+        "kind": "actual_worker_serve_cleanup",
+        "scenario": "coldload",
+        "passed": true,
+        "error": "TimeoutError('Cold load consumed original residency deadline; HTTP not started')",
+        "Native": 0,
+        "normal_server_shutdown": false
+      },
+      {
+        "kind": "actual_worker_serve_cleanup",
+        "scenario": "client-failure",
+        "passed": true,
+        "error": "RuntimeError('CPU injected client failure')",
+        "Native": 0,
+        "normal_server_shutdown": false
+      },
+      {
+        "kind": "actual_worker_serve_cleanup",
+        "scenario": "Native-failure",
+        "passed": true,
+        "error": "RuntimeError('Owned Native request failed; stop without advancing or retry')",
+        "Native": 1,
+        "normal_server_shutdown": true
+      }
+    ],
+    "actual_loader_AST": {
+      "mapping_audit_patch": {
+        "replaced_legacy_binding_blocks": 1,
+        "old_AST_SHA256": "f09d78bdc2391bc03f75242f76eddf5862417c3fcb8d43077f353dd3ff191db0",
+        "new_exact_set_and_SHA_required": true
+      },
+      "Native_forward_AST_unchanged": true,
+      "original_finally_destroy_retained": true,
+      "real_rows": 1,
+      "real_capacity": 32768,
+      "CPU_bound_new_Native": true,
+      "precision_and_math_unchanged": true,
+      "weight_open_and_load_deadline_hooks": {
+        "safe_open": 1,
+        "modern_native_engine_load": 1
+      }
+    }
+  },
+  "sacct": "910407.658|COMPLETED|0:0|00:00:04|a14r2n20\n"
+}
