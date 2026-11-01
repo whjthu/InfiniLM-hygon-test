@@ -1,0 +1,60 @@
+{
+  "state": "COMPLETE_CURRENT823_OFFLINE_ENCLOSURES_AND_EXISTING_RMS_CACHE_SOURCE_STOP",
+  "scope": "CPU read-only; no GPU, no model load, no compilation, no implementation or shared dependency changes",
+  "actual_Model": "910376.823 TP8PP4/32 owners/source Native038d4ff2...",
+  "card1": {
+    "state": "COMPLETE_BOUND_API_ENCLOSURES_SUBKERNEL_UNKNOWN",
+    "verified_raw_owner_SHA_files": 32,
+    "same_owner_call_shapes": "6 requests each,18prefill calls(17x512+196),731decode T1",
+    "current_W4_tail_prefill_API_s": 254.74502776912414,
+    "current_W4_tail_decode_API_s": 160.73243039939553,
+    "current_W4_HTTP_mean_s": 417.1150422114879,
+    "prefill_fraction_of_HTTP": 0.6107308583706313,
+    "stage0_W2_W4_prefill_API_s": [
+      119.8091965331696,
+      119.61770062497817
+    ],
+    "critical_limit": "No attention/FFN/GEMM/RMS/communication/GPU event timestamps retained. Stage enclosures overlap upstream work/waits. No cross-node subtraction or summing overlapping stage times. No kernel speedup or GPU utilization inferred.",
+    "next": "Use an existing sparse observer only in next independently necessary model load if operator attribution is needed; do not rerun six requests just for profiling."
+  },
+  "card2": {
+    "state": "STOP_EXISTING_OPS_RMS_CACHE_NO_NEW_IMPLEMENTATION",
+    "bound_Native_library_SHA256": "038d4ff2e7aee2e6db80f691dd885222f3e3160e25ae9d0e269296daf9596c00",
+    "bound_Native_CPU_receipt_SHA256": "6aa62f788aad6080027d665f30d7c9824c07cb1866de905397fef15c56b26529",
+    "bound_SDK_library_SHA256": "0bd37990340f39bbcaf185abbc990ebeb9f56ea1b9992327eda96d627446a863",
+    "bound_operator_header_SHA256": "0a5bf989e59a37b38a88d9eaa4cb7f7bc6acbe3e2435ec93017a3661c3262941",
+    "bound_submit_headers": {
+      "/refactor/candidates/glm-M16-r8861/tree/candidates/rebased-5f91ad7-r3668/Model/GLM/InfiniLM/csrc/execution/submit.hpp": "8c0bd70a372b0017bca78e54f037493fe79918f97b5fed6d885f5b5d8eb0c20d",
+      "/refactor/candidates/rebased-5f91ad7-r3668/Model/GLM/InfiniLM/csrc/execution/submit.hpp": "8c0bd70a372b0017bca78e54f037493fe79918f97b5fed6d885f5b5d8eb0c20d"
+    },
+    "source_path": "actual Native-pinned Model/GLM submit.hpp eager branch -> OpsKey::Call -> installed OperatorFactory<RmsNorm>::Call; recorded graph branch already retains its operator instance",
+    "cache_evidence": [
+      "submit header explicitly delegates instance caching to Ops",
+      "SDK operator.h has CacheKey, cache_generation_ and cache invalidation contract",
+      "actual pinned SDK ELF exports RmsNorm and FusedAddRmsNorm Call::cache guard symbols"
+    ],
+    "actual_SDK_cache_symbols": [
+      "000000000000b708 W _ZGVZN6infini3ops8OperatorINS0_15FusedAddRmsNormELNS_2rt6Device4TypeE10ELm0EE4CallIJNS3_10TensorViewES8_St8optionalIS8_EfEEEvRKNS0_6HandleERKNS0_6ConfigEDpRKT_E5cache",
+      "0000000000003440 W _ZGVZN6infini3ops8OperatorINS0_7RmsNormELNS_2rt6Device4TypeE10ELm0EE4CallIJNS3_10TensorViewES8_fS8_EEEvRKNS0_6HandleERKNS0_6ConfigEDpRKT_E5cache",
+      "0000000000003488 W _ZGVZN6infini3ops8OperatorINS0_7RmsNormELNS_2rt6Device4TypeE10ELm0EE4CallIJNS3_10TensorViewES8_S8_EEEvRKNS0_6HandleERKNS0_6ConfigEDpRKT_E5cache"
+    ],
+    "interpretation": "The repeated-descriptor-creation premise was not established; an existing RMS Call cache is present in the exact SDK bytes loaded by823. Do not layer a duplicate owner cache on top. Cache hit/miss rates and current823 norm wall fraction remain UNKNOWN; no runtime cache effectiveness or performance claim.",
+    "new_implementation": false,
+    "compile": false,
+    "GPU": false,
+    "new_Model_gain": false
+  },
+  "read_only_engineering_limit": {
+    "one_broad_results_directory_listing": "SSH helper hit200s timeout; no GPU or files written by remote read-only query. Removed directory-wide metadata scan; bounded fixed-path header/symbol/receipt query completed successfully. Not a performance round."
+  },
+  "evidence_SHA256": {
+    "GLM346-823-32owner-enclosure-source-read.json": "3bbddc3ed8153ea25b3759d2f127043b9e38ab5bedbcc49cbbe0026d7abd4643",
+    "GLM346-823-current-critical-enclosures.json": "0dae3b6957ab2031e232c199d4723f602aff462335365554a03147f1aeb14844",
+    "GLM346-current-native-norm-source-ancestry.json": "bd4eef02b348a49c457882a4cbc45861f10d9d7bf3c7a95ade55978b44169468",
+    "GLM346-exact-native-RMS-dispatch-headers.json": "81f01ca3eb7cc302a5b1fdfa6683aed64a2b1b37439fcb60a186745e31040807",
+    "GLM346-RMS-existing-cache-proof-minimal.json": "3746a2a260cb0dbc924f77d4070400273f7d64213fd5a7d631e8814a53c583b7"
+  },
+  "new_GPU_work": false,
+  "new_performance_rounds": 0,
+  "source_SiLU_fusion_family_reopened": false
+}
