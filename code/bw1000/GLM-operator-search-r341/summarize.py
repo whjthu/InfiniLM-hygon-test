@@ -1,7 +1,9 @@
 import pathlib,json,sys,statistics,hashlib
 p=pathlib.Path(sys.argv[1]);q=json.loads(p.read_text());out={'raw_evidence_SHA256':hashlib.sha256(p.read_bytes()).hexdigest(),'published_commit':q['launch']['published_commit'],'post_clean':q['post_clean'],'normal_ranks':q['normal_ranks'],'scope':q['scope'],'variants':[]}
-for item in q['results'].values():
+for raw_path,item in q['results'].items():
  z=item['raw'];a={'variant':z.get('fusion_variant'),'node':z.get('node'),'actual_step':z.get('actual_step'),'completed':z.get('completed',False),'normal':z.get('normal',False),'error':z.get('error'),'fullchain':[],'activation':[],'component_retained':False}
+ if a['variant'] is None:
+  rank=int(pathlib.Path(raw_path).stem.rsplit('-rank',1)[1]);first=z['actual_step'] in ['910371.613','910374.1231'];shard=([0,1,2,3,4,5,6,7] if z['node']=='a02r3n16' else [8,9,10,11,12,13,14,15]) if first else ([1,2,3,4,5,6,7] if z['node']=='a02r3n16' else [9,10,12,13]);a['variant']=shard[rank];a['variant_inferred_from_fixed_launch_shard']=True
  for t in [1,8,16]:
   baseline=[v for v in z.get('trials',[]) if v['T']==t and v['mode']==0];candidate=[v for v in z.get('trials',[]) if v['T']==t and v['mode']==1]
   if len(baseline)!=4 or len(candidate)!=4:continue
