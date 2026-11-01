@@ -1,0 +1,80 @@
+{
+  "review": 155,
+  "date_Asia_Shanghai": "2026-11-02",
+  "reviewer": "/root/astra_review_147",
+  "state": "COMPLETE_CAUSE_CONFIRMED_REPAIR_SOURCE_RECEIPT_AWAITING_BINDING",
+  "trigger": "重复可避免工程入口错误提前触发；不是三轮性能计数触发",
+  "performance_rounds_since154": {
+    "actual_causal_rounds": ["Kimi910371.635", "Deep910374.1251"],
+    "count": 2,
+    "Deep910374.1254_is_performance_round": false
+  },
+  "scope": "仅复用源码与已保存回执，写本文件；未启动CPU/GPU作业、未运行测试、未Git或改status。没有增加框架或独立门禁。",
+  "Deep348_cause": {
+    "actual": "910374.1254 FAILED1/7m04s；CPU662 COMPLETED0/7m18s；Native权重加载364.753491s；client身份阶段失败，实际HTTP0/Native请求0；post1255 KFD为空且43882可绑定",
+    "evidence": ["results/bw1000/2026-11-02/Deep348-client-failure-small-diagnosis.json", "results/bw1000/2026-11-02/Deep348-load-observation-c.json", "results/bw1000/2026-11-02/Deep348-CPU658-closure.json"],
+    "source": ["code/bw1000/Deep-prefill-chunk-pair-r348/prepare_owner_local.py", "code/bw1000/Deep-prefill-chunk-pair-r348/owner/worker_r206b.py", "code/bw1000/Deep-prefill-chunk-pair-r348/owner/client_owner_r281.py", "code/bw1000/Deep-prefill-chunk-pair-r348/CPU_entry.py"],
+    "confirmed_mechanism": "prepare_owner_local.py按history_policy_scope至def save整段裁剪，删除prepared_entry_identity。真实worker从report生成identity.json，缺少字段；真实client.bind_identity直接读取prepared_entry_identity.upstream_commit，因而在HTTP前KeyError。",
+    "CPU658_gap": "actual_client_main分支使用测试自行构造的完整identity；actual_worker_serve_cleanup分支Fake Child不调用真实bind_identity。各自通过没有证明producer生成的文件能被consumer接受。",
+    "status_precision": "已实际加载权重并启动HTTP服务进程，但没有HTTP请求/Native推理调用。normal_server_shutdown=true不能替代正常Native/模型生命周期资格；post clean也不代表性能成功。",
+    "count_reporting_gap": "旧client结果初始化HTTP=6/Native=6，即使身份失败仍显示6；这些是计划量，不能当实际计数。实际本次0，requests为空。"
+  },
+  "minimal_repair": {
+    "producer": "在生成identity.json与首次save之前恢复report['prepared_entry_identity']=prepared['identity']；保留真实prepared upstream身份，不从测试或client硬填。保持原Native、权重、拓扑、精度和1024/2048计划。",
+    "actual_CPU_glue_positive": "执行真实worker.serve的现有CPU录制入口；在其Fake Popen边界读取实际argv中的--identity、--service-report、--manifest-sha、--expected-step，调用未替换的client_owner_r281.bind_identity，核对返回step及prepared identity。必须消费worker实际写出的字节，不能重建identity，也不能mock bind_identity/verify。",
+    "actual_CPU_glue_negative": "仅在实际worker文件副本删除prepared_entry_identity，再调用同一真实binder，必须在任何HTTP transport前拒绝。原文件不改；保留实际成功正例及缺字段负例与修复source SHA绑定。",
+    "reporting": "计划6/6与实际调用数分开；可改为plan_HTTP/plan_Native并实际计数从0更新，或在汇总明确原字段是计划。不得把失败后残留计划数写作已执行数。",
+    "avoid_repeat": "本次只补这一producer→consumer交接。原decode/chunk/cleanup/source测试按未变字节复用，不重复完整CPU矩阵或先加载GPU来发现字段问题。"
+  },
+  "repair_review_status": {
+    "root_update": "原agent已准备新immutable repair-r1恢复身份字段及CPU胶水正/负例，无GPU重播。",
+    "independent_observation": "截至本次读取，共享code/bw1000/Deep-prefill-chunk-pair-r348只见原owner/controller；未取得repair-r1确切源码目录、manifest或CPU回执，故不把修复实现及测试标为已独立验证。",
+    "continue_condition": "新不可变修复源及真实胶水CPU回执相互绑定，controller/claim指向新owner与新CPU pin，发布新单次scope并沿已有明确授权执行；旧1254句柄保持终结，不重载重播。无需新增无关审批或门禁。"
+  },
+  "review154_followthrough": {
+    "Kimi635": "首ON1/0、最终160/0，16owner数值/生命周期通过，但完整Delta无稳定收益：OFF3.1522ms、ON3.1756ms、配对中位ratio0.9991且最大OFF漂移8.46%。PARK，不原样重复，不把339组件倍率继承为Model收益。",
+    "Deep1251": "真实Runtime组件仅C4decode边界5/5配对同向、median ON/OFF约0.940；C4prefill近漂移、HCA不明确/无益。保留限定组件候选，Model覆盖和收益UNKNOWN，不自动整模型集成或扩网格。",
+    "GLM341_346": "341原全T门槛0晋级，已STOP；346在实际SDK证实已有RMS Call缓存，重复descriptor缓存路线STOP；823子kernel归因UNKNOWN，离线卡已完成。",
+    "GLM823": "固定8900-token工具请求、同驻留1ABBA的prefill-25.63%与buffered HTTP完成-17.31%继续有效；decode无改善，不能扩展到通用质量/服务或客户端增量SLO。",
+    "Kimi346347": "target c8fd.../CPU663 d5a19...与controller45ca.../CPU664 9a556...已作限定复核，44/44Linux通过。真实Native ABI、capture及四请求质量尚待GPU证据；不因Deep接口错误撤销已有源码/CPU结论。"
+  },
+  "existing_next_cards": {
+    "Deep": [
+      {
+        "priority": 1,
+        "hypothesis": "恢复真实worker身份可让原348六请求到达实际1024/2048配对；prefill收益仍未知。",
+        "owner_resource": "原deep owner；既有910374/a02r4n01单节点8卡，2700s GPU、2580s工作deadline、3300s keeper；新scope一次，非旧句柄重播",
+        "reuse": "348冻结8489-token完整工具任务、128输出、两预热+一个ABBA；同afc6 Native及原数值/生命周期检查",
+        "first_verdict": "CPU交接在原worker写身份处即可判定，秒级执行但实际准备时间UNKNOWN；实际GPU需约365s既有加载成本后首请求，全部沿原有限预算",
+        "checks_samples": "先真实胶水正/负例一次；GPU保持原6请求，不添加profiling或参数扫描；完整token/EOS/答案、真实chunk trace、reset及正常关闭",
+        "wall_impact": "prefill与buffered HTTP完成，UNKNOWN；CPU修复不算收益",
+        "exit_fallback": "任一新身份/质量/生命周期错误即停并保留部分证据；无收益保留原1024基线，不自动再加载"
+      }
+    ],
+    "Kimi": [
+      {
+        "priority": 1,
+        "hypothesis": "现有346/347包可完成同327 DSO的原四请求AR/spec因果诊断。",
+        "owner_resource": "root；原独立32target+1draft节点，claim/freshidle后按现有授权推进，不等待Deep修复或本报告",
+        "reuse": "346/347限定复核、CPU663/664、337冻结8635/32638输入与128预算",
+        "checks_samples": "原四臂，一次驻留，两AR后仅node0一次draft连接；真实capture在proposal前、EOS/工具答案、32/33卡计费及正常清理；不加请求",
+        "first_verdict": "真实加载及首AR耗时UNKNOWN，沿原8h10 GPU/9h keeper有界执行",
+        "wall_impact": "四请求backend端到端wall，UNKNOWN；单对结果不宣称稳定全服务收益",
+        "exit_fallback": "失败停止后续臂、只清理自有句柄；不重放，不重开635 PARK路线"
+      }
+    ],
+    "GLM": [
+      {
+        "priority": 1,
+        "hypothesis": "823固定点收益在下一次独立必要模型加载中可得到最少跨负载/跨驻留验证。",
+        "owner_resource": "沿154原卡，当前仅保留证据与已有覆盖计划，不为本次审核启动GPU",
+        "reuse": "823根审计与346离线32owner外层计时；341及重复缓存路线保持STOP",
+        "checks_samples": "沿154原最少覆盖；仅当必要新加载发生才测，不额外加载只为profile，不要求无关CPU重复通过",
+        "first_verdict": "已有固定点结论可直接复用；后续资源与加载时间UNKNOWN",
+        "wall_impact": "已证实限定prefill/HTTP，推广效果UNKNOWN",
+        "exit_fallback": "没有必要新加载则保持限定结论，不发明新机制卡"
+      }
+    ]
+  },
+  "adoption": "root向原Deep owner落实恢复字段、真实文件交接测试及新source/CPU pin；其他独立路线照常推进。此审核不新增性能轮，不把mockPASS当NativeABI，不要求所有模型等待。"
+}

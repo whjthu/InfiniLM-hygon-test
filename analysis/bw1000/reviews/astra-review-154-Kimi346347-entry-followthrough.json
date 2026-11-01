@@ -1,0 +1,56 @@
+{
+  "review": 154,
+  "kind": "LIMITED_ENTRY_IMPLEMENTATION_FOLLOWTHROUGH",
+  "date_Asia_Shanghai": "2026-11-02",
+  "reviewer": "/root/astra_review_147",
+  "state": "SOURCE_AND_BOUND_LINUX_CPU_ENTRY_FOLLOWTHROUGH_PASS_NOT_NATIVE_ABI",
+  "performance_rounds_added": 0,
+  "actions": "只读源码和现有回执；仅写本文件；未运行测试、Native、GPU或Git，未改status。Deep348独立运行不依赖本复核。",
+  "source_bindings": {
+    "target_directory": "code/bw1000/Kimi-long-target-bootstrap-r346",
+    "target_manifest_SHA256": "c8fd08b5601c2ca3c8d741c969f1e50b60c392e59e5190c584cdae8972f73173",
+    "controller_local_directory": "code/bw1000/Kimi-long-pair-controller-r347",
+    "controller_runtime_directory": "incoming/Kimi-long-pair-controller-r347b",
+    "controller_manifest_SHA256": "45ca35f36cba78f718c5015498ead55e3535f2efcf3c8cc26ae52a1f2684e09d",
+    "all_manifest_members_matched": true,
+    "Native_SHA256": "4dfdc9a7809b367ef91b476280f12bca6da0c12511eb14dae679147382246505",
+    "worker_runtime_directory": "incoming/Kimi-long-draft-worker-r334b",
+    "worker_manifest_SHA256": "49fa1d269f18f78820c7589496011300a7648fe340933e3c7a0e9105958b93c2"
+  },
+  "confirmed_source_boundaries": [
+    "dladdr检查使用raw ctypes函数；GuardedFunction转发argtypes/restype至真实函数，Native调用前执行原deadline/cancel检查，destroy和error保留清理通路。该源码审查没有实际dlopen或验证设备ABI。",
+    "audit.py绑定qualified247基线及327两个HOST替换对象、130保留CAPI、SDK依赖与精确Python来源；binding未伪造历史receipt字段。read_head/93层keys聚合/原parameter_loader在create后、pair前执行。",
+    "ctx先保存再进入后续可失败检查；创建成功后的load/driver失败进入finally销毁；destroy失败不宣称all8正常关闭，cleanup错误阻止completed。",
+    "目标仍4节点×8卡、TP16PP2；draft为独立parent910371/a02r3n15单卡，不加入32卡目标WORLD。原8635/32638输入、128输出上限、四请求顺序保持不变。",
+    "immutable337两AR完成后才调用延迟draft连接；node0独占start marker和唯一连接。controller只从/proc socket inode、worker.py与run输出参数做被动listener检查，TCP_connections_made为0，不消耗single accept。",
+    "首次真实capture由第三臂第一个512-token seed触发；immutable harvest先检查BF16有限值，新增检查epoch/层19,37,66,78,90/节点分布/512×35840×2字节，成功后才继续proposal路径。CPU metadata检查不是实际capture成功。",
+    "原epoch固定映射到monotonic deadline；Native28800s、GPU29400s、keeper32400s，延迟draft仍使用原deadline，不重启预算。safe_open、load、forward和connect前有检查，外层Slurm仍限制挂起调用。",
+    "成功要求目标与draft均sacct COMPLETED0且所属srun返回0；退出/记账不一致最多等待90s，不重提。失败只取消记录的步骤/原Popen进程组，post失败不宣称资源干净。",
+    "最终报告missing、partial JSON、completed=false允许每文件至多90s可见性等待；completed=true后质量/身份/生命周期错误立即拒绝，无重启。成功收集核对4leader相同四请求签名、32owner正常关闭和draft协议闭合。"
+  ],
+  "evidence": {
+    "target_CPU663": {
+      "path": "results/bw1000/2026-11-02/Kimi346-CPU663-whole-entry-and-active-source-PASS.json",
+      "receipt_SHA256": "d5a19f33fbec950b2a0ba9a7df709278e3ad00da06e78fc6d55ff25bd5dc257a",
+      "actual": "910407.663 COMPLETED0/2s",
+      "result": "whole entry recording providers与实际静态source/receipt审计PASS；GPU0、Native_dlopen=false、actual_Native_Context=false、checkpoint_payload_read=false",
+      "reporting_note": "该聚合文件logs仍包含历史661失败；以receipt actual_CPU=663及相应accounting判断当前PASS，旧logs标明661，保留原失败证据。"
+    },
+    "controller_CPU660": "旧aeb1ef...manifest的34项Linux CPU PASS保留有效，不记FAIL；不能替代45ca...新44项回执。",
+    "controller_current": {
+      "path": "results/bw1000/2026-11-02/Kimi347b-controller-CPU664-44-PASS.json",
+      "raw_evidence": "evidence/bw1000/Kimi347b-controller-CPU664.json",
+      "actual": "910407.664 COMPLETED0/5s",
+      "receipt_SHA256": "9a556a1fee6de80a71a4800cfcba3454468554ff5e151a9a83f19d027f4d4633",
+      "controller_manifest_SHA256": "45ca35f36cba78f718c5015498ead55e3535f2efcf3c8cc26ae52a1f2684e09d",
+      "result": "44/44 Linux CPU PASS，POSIX零skip；真实Controller/Backend/marker/passive proc边界配recording Slurm，GPU0、Native_dlopen=false。已读摘要及原证据receipt，不继承为实际NativeABI。"
+    }
+  },
+  "definite_blockers_found": [],
+  "minimal_followthrough": [
+    "已核对347b最终Linux44回执45ca.../9a556...；整包使用该私有347b目录与新receipt，保留660旧PASS，勿误绑旧目录。",
+    "整包plan绑定实际target/controller manifest和各自CPU receipt；保留原run独占标记、default OFF、无重试/重载及真实节点资源边界。",
+    "正式汇总清楚区分661旧路径失败、663新入口CPU PASS、660旧控制器CPU PASS和347b新回执，避免混日志误判。"
+  ],
+  "qualification": "本结论仅限源码入口与CPU工程落实。实际ctypes ABI、Native Context/93层权重加载、真实五tap capture、四请求数值/质量/性能和正常GPU生命周期仍须实际运行证据；不继承latest99/ec服务资格，不新增GPU授权。"
+}
