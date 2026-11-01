@@ -1,0 +1,30 @@
+{
+  "owner": "bw1000-root/deep_operator_tuning",
+  "state": "SOURCE_CPU_BUILD_PENDING_ROOT_PUBLICATION",
+  "method": "Custom BF16 RMSNorm/block sweep and intermediate-BF16-preserving tail64 RoPE fusion",
+  "source": "code/bw1000/Deep-operator-search-r340",
+  "manifest_SHA256": "b1d189e62f118923937851282612c7d1ec22718e1e76703bec301a28b2e62d27",
+  "resources": {
+    "parent": "910374",
+    "nodes": [
+      "a02r4n04",
+      "a02r4n05"
+    ],
+    "max_cards": 16,
+    "seconds_per_GPU": 600,
+    "batch_hard_seconds": 1800
+  },
+  "CPU": {
+    "parent": "910407",
+    "node": "a14r2n20",
+    "CPUs": 4,
+    "memory_MiB": 8192,
+    "seconds": 600
+  },
+  "no_shared_dependencies_mutated": true,
+  "no_model_load": true,
+  "once_only": true,
+  "launch_manifest": "launch-manifest-v3.json",
+  "launch_manifest_SHA256": "cd5a696708771a49526be5bf4e39cde152effc1a20aaf2440f95ffc4999ff6a1",
+  "shape_mapping": "rank0..7 D512 boundary RMSNorm+RoPE output T1,8,16,32,64,128,512,1024; rank8..15 D4096 hidden RMSNorm T1,8,32,128,256,512,2048,4096"
+}

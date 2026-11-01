@@ -1,0 +1,21 @@
+{
+  "owner": "/root/kimi_operator_tuning",
+  "state": "SOURCE_READY_CPU_BUILD_PENDING_GPU_WAIT_PUBLICATION",
+  "model": "Kimi-K3",
+  "hardware": "gfx936 BW1000",
+  "method": "C1 wave64 register KDA rewrite; fuse qk normalization, gate decay, recurrent update and readout versus separate preparation launch",
+  "source": "code/bw1000/Kimi-operator-search-r339",
+  "baseline": "byte-preserved indexed KDA math from r9150c / pinned InfiniOps; original 256-thread kernel plus full pool D2D snapshot",
+  "distinct_from_negative": "Not old 128-vs256 CTA tuning, gate alias531, observer524, or rowAR tuning. Changes reduction algorithm, register state, repeated decay work and launch decomposition.",
+  "shape": {"C":1,"T":1,"H":6,"D":128,"pool":3,"read":1,"write":2},
+  "input": "synthetic BF16 normal .2, seeds339/340; exact actual geometry but not captured activation or full Delta fixture",
+  "arms": ["fused wave1", "fused wave2", "fused wave4", "fused wave8", "prepare+wave1", "prepare+wave2", "prepare+wave4", "prepare+wave8"],
+  "GPU": {"parent":910371,"nodes":["a02r3n03","a02r3n07"],"ranks_per_node":8,"assignment":"local GPU i uses arm i+1; a02r3n03 seed339, a02r3n07 seed340; all ranks independent, no CCL or target model weights","measurement_s_per_GPU":600,"batch_hard_s":1800,"CPU_per_rank":4,"mem_per_node_MiB":64000},
+  "CPU": {"parent":910407,"node":"a14r2n20","cores":4,"mem_MiB":8192,"hard_s":600,"work":"one independent shared library GPU TU compile; no dlopen/no GPU initialization"},
+  "measurement": "20 warmups then100 calls per block; 8 alternating ABBA/BAAB rounds; same-card paired wall and GPUevent; no state restore inside timed block because read1/write2 disjoint",
+  "numerics": "finite output/full state; read/canary untouched; compare original output/state and independent CPU F32 equation, BF16-aware atol.004/rtol.04; no GPU F64",
+  "baseline_drift": "retain every block; reject claimed stable improvement if before/after baseline spread exceeds3%; report distribution and paired ratios",
+  "exit": "first unknown numerical/runtime failure stops corresponding arm without blind retry; parent waits every rank; postprocess/accounting/KFD check required",
+  "limitations": "Only component result. Candidate removing snapshot is legal only for read/write-disjoint fixed C1 mapping. Integration/fullDelta state/runtime overhead and model benefit UNKNOWN.",
+  "GPU_start_gate": "ordinary pushed source and this claim commit returned by root, CPU compile passed, fresh scheduler/KFD and dedup check"
+}

@@ -1,0 +1,44 @@
+{
+  "method": "Custom BF16 RMSNorm/block sweep and intermediate-BF16-preserving tail64 RoPE fusion",
+  "scope": "same-shape synthetic component, custom unfused baseline; not actual activation or production speed claim",
+  "files": {
+    "bench.py": "2f411b6c27d832152eefc0a9415a6ab29c2e17646449e267a271f83d52616197",
+    "build_inside.sh": "1b186a41d51571d7af0fecc780b36d1afa317b65150841616065793d00fd9441",
+    "kernels.hip": "9dde33b747ee11db9e08e0e2462da693805f523f555d88b4277286074a028247",
+    "prepare_local.py": "a65861cf272ac457bc4475374730af3952e170e621bdd6caef48b9b0c87126b5",
+    "run_inside.sh": "88a5ab99d0e19b842cf1cc5f147d379a008fb9af6a500f1b130dbd860ee5ec24"
+  },
+  "dependencies": [
+    "/opt/dtk HIP compiler/runtime gfx936",
+    "container torch ROCm (exact versions and shared-object SHA collected on run)"
+  ],
+  "model_shapes": {
+    "compressor": [
+      128,
+      512
+    ],
+    "hidden": 4096,
+    "tail_rope": 64
+  },
+  "quality": "float32 PyTorch reference, BF16 intermediate, finite required and NRMSE<0.01; maxabs retained",
+  "pairs": "same GPU ABBA x5, 100 calls/interval; launch/event/complete wall and baseline drift retained",
+  "source_basis": "Deep-C128-weight-cache-r172/src/deepseek_v4_compressor_fp32_c128_r19.cpp lines243/244; no cached-weight route",
+  "sealed_negatives_read": "Deep-C1-1195-diagnosis-r172, Deep1221-current-Native-and-emitter-cost-r151; excluded smallT/cache/readback/bankcopy",
+  "GPU_budget": {
+    "parent": "910374",
+    "nodes": [
+      "a02r4n04",
+      "a02r4n05"
+    ],
+    "max_cards": 16,
+    "seconds_per_GPU": 600,
+    "batch_hard_seconds": 1800
+  },
+  "CPU_budget": {
+    "parent": "910407",
+    "node": "a14r2n20",
+    "CPUs": 4,
+    "memory_MiB": 8192,
+    "seconds": 600
+  }
+}
