@@ -1,0 +1,72 @@
+{
+  "scope": "Read-only current afc6 source and offline nm. No GPU/Native dlopen/weights/model. Current per-stage dominance remains UNKNOWN.",
+  "exact_current_exports": {
+    "library": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/latest-family-native-r269/Deep/libDeep_latest_native_r269.so",
+    "library_SHA256": "afc6f58b71ef7a51657deae452da86a31afbfa6e79d36d442ccdd26d56c0e6f2",
+    "exports": {
+      "deep_owner_arm_r8900": [
+        "0000000000151ed0 T deep_owner_arm_r8900"
+      ],
+      "deep_owner_read_r8900": [
+        "00000000001592f0 T deep_owner_read_r8900"
+      ],
+      "deep_attention_inner_arm_r9193": [
+        "00000000001724e0 T deep_attention_inner_arm_r9193"
+      ],
+      "deep_attention_inner_read_r9193": [
+        "0000000000176000 T deep_attention_inner_read_r9193"
+      ]
+    },
+    "all_four_defined": true,
+    "Native_dlopen": false,
+    "GPU_initialized": false,
+    "weights_or_Model_loaded": false
+  },
+  "source_parent": "code/bw1000/Deep-prefill-chunk-pair-r348/repair-r2",
+  "current_worker_source": {
+    "new_source": "/refactor/candidates/latest-family-native-r269/Deep/Native-source/engine/rank_worker.cpp",
+    "new_source_SHA256": "3d2f3e679a588d3dd2fee66355f766aeba3c9f4407a25057d1f325125e3e8f0c",
+    "new_object": "/refactor/candidates/latest-family-native-r269/Deep/Native-worker.o",
+    "new_object_SHA256": "d771eae2c2e1f3f224ee1392b3f4fbc5ca180e52cf16bafd702c802142dff6f6",
+    "all_project_and_system_dependencies_equal_except_worker_source": true
+  },
+  "routed_GPU_object": {
+    "path": "/refactor/candidates/models-5f91ad7-r3675/Deep/helpers/routed.o",
+    "SHA256": "08ed7c8bfb7fe56cee66a6d6bdc5a5d569b05574ae68b2e7741d755a563ea756"
+  },
+  "retained_local_source_reads": [
+    {
+      "filename": "Deep353-current-source-local.json",
+      "SHA256": "28932eaf285396787cb829cae6e4f33e9a4f9bd041867d1ed51108381f7638a5"
+    },
+    {
+      "filename": "Deep353-callpath-local.json",
+      "SHA256": "910b62005a86e8775fe76ea41fa898acfab24b06345404679fa126b3124cee66"
+    },
+    {
+      "filename": "Deep353-deps-local.json",
+      "SHA256": "4ff82fa796d00b94132c6481a73ea8c7100ee0c91f1467d86ea12beb5fde3779"
+    },
+    {
+      "filename": "Deep353-existing-exports-local.json",
+      "SHA256": "580879a146bb60154bec504378741788a6d857889aa9bcf74f1d01b7ce387f91"
+    }
+  ],
+  "interpretation": [
+    "C1 tokens1 directly enters GPU routed_r20 branch for tokens<=64; CPU per-expert grouping and quant1 prefill branches do not apply.",
+    "INT8 I8Gemm implementation_index0 is already selected at attention/shared MLP linear calls. No demonstrated unused dispatch/batching parameter is selected for GPU trial.",
+    "Current Native requires TP8PP1/EPdisabled and graph false. Alternative topology/graph is a new implementation, not an already-supported tuning flag.",
+    "Old1195 C1 past385..437 used different ac937 Native; its attention174..201ms vs routed19..20/shared13..14/TP1.5ms cannot establish current8K shares.",
+    "Routed dp4a scalar lowering was already identified r8738/r8739; that known ISA issue alone does not establish dominant current Model cost."
+  ],
+  "closed_routes": [
+    "775/r216 immutable cast cache PARK; not measured C1 negative but no new causal evidence",
+    "724 post-MoE-SUM drain no stable whole-layer gain",
+    "1112 smallT Model not adopted",
+    "1096 CSA readback negative",
+    "1102 bank-copy sub5% component PARK",
+    "344 norm-RoPE component only; current Model coverage/share UNKNOWN"
+  ],
+  "new_GPU": 0,
+  "new_performance_rounds": 0
+}
