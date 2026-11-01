@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "owner": "/root/glm_operator_tuning",
+  "state": "CPU_COMPILED_GPU_WAITING_ROOT_PUBLISH",
+  "source": "code/bw1000/GLM-operator-search-r341",
+  "method": "BF16 SiLU-round/Mul-round/per128 FP8 quantization fusion, 16 launch geometries",
+  "scope": "component only; synthetic hidden; real checkpoint layer38, TP8 rank0 expert tiles/router; no entire target model",
+  "baseline": "Reused successful r9270b component complete Torch activation+quant chain; this is not the deployed Native activation baseline",
+  "CPU": {"actual": "910407.649", "node": "a14r2n20", "CPUs": 4, "GiB": 8, "max_minutes": 10, "state": "COMPLETED0", "compile_seconds": 7.914636834990233, "GPU_initialized": false},
+  "GPU_resources": [
+    {"parent": 910371, "node": "a02r3n16", "cards": 8, "variants": [0,1,2,3,4,5,6,7]},
+    {"parent": 910374, "node": "a02r4n07", "cards": 8, "variants": [8,9,10,11,12,13,14,15]}
+  ],
+  "per_card": "independent 4 CPU rank, one local device bound by SLURM_LOCALID; same-card 4 ABBA pairs, fullwall/event samples retained",
+  "measurement_seconds_max": 600,
+  "batch_hard_minutes": 30,
+  "fullchain_T": [1,8,16],
+  "activation_rows": [8,64,128,4096],
+  "falsification": {"finite": true, "fullchain_relative_RMS_max": 0.02, "packed_mismatch_fraction_max": 0.005, "dequant_relative_RMS_max": 0.01, "unchanged_input_weights": true, "canaries": true, "all_negative_results_retained": true},
+  "promotion": "At least 3/4 positive fullwall pairs and median >=5% at each fullchain T for component retention; no model or service qualification",
+  "GPU_GO": false,
+  "GPU_GATE": "Root must ordinary-push exact source+claim; controller requires published commit then fresh sacct/KFD/node-free dedup of both parents before one bounded batch. No resubmission on unknown state.",
+  "known_prior_routes_not_repeated": ["W2/W4 fullmodel controlled by root", "down-row2 already tested", "FP8 bitdecode stopped", "arithmetic attention fusion parked"],
+  "cleanup": "No TP collectives, each rank normal gc/emptycache; root/owner post-step KFD check required. Component output is not a model quality result."
+}
