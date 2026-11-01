@@ -1,0 +1,40 @@
+{
+  "state": "TWO_BOUNDED_CARDS_ONLY_NO_NEW_GPU",
+  "closed_family": "GLM341 SiLU/Mul/FP8 quant fusion stopped: 13 numeric-valid variants, 3 static-invalid, zero unchanged all-shape gate retainers; no threshold change or further parameter sweep",
+  "owner": "/root/glm_operator_tuning",
+  "cards": [
+    {
+      "priority": 1,
+      "method": "Reuse actual823 owner traces to choose the current Native critical enclosure before another operator implementation",
+      "hypothesis": "W4 reduced prefill but unchanged decode leaves a different current Native interval worth targeting; old PP2 synthetic layer clocks are insufficient to identify it",
+      "evidence": "results/bw1000/2026-11-02/GLM308823-root-audited-W4-scoped-Model-gain-PASS-clean.json",
+      "actual": "910376.823 TP8PP4/32cards; fixed8900 prompt, 732 outputs; W4 prefill254.745s vs W2 342.558s, decode160.732s vs160.245s; root qualified scoped same-residency gain",
+      "minimal_action": "Read existing source-pinned32owner reports only. Join same request/window/chunk/token identities; reuse same-owner available phase/profile markers. Report W4 prefill and decode largest observable enclosing ranges and coverage. Do not sum overlapping stage CAPI times, subtract unaligned cross-node monotonic clocks, or call wait-containing events pure GPU time. If substage events were OFF, mark substage attribution UNKNOWN and reuse existing sparse observer only in the next independently necessary model load.",
+      "resources": "CPU read-only, no model load, no extra GPU and no replay of the six requests; original GLM341 nodes remain free",
+      "first_result_ETA": "10-20min for offline evidence closure; no new device timing promised",
+      "numeric_check": "No arithmetic/output change; verify32 source/owner SHA and request identity before attributing intervals",
+      "wall_interval": "Current W4 real prefill/decode Native enclosures; subkernel fractions UNKNOWN until actually covered",
+      "exit": "Stop at the first current actionable interval or explicit missing-coverage result; do not build another profiler framework or manufacture kernel attribution from whole CAPI",
+      "fallback": "Card2 CPU source audit, if current retained timestamps cannot split the enclosure"
+    },
+    {
+      "priority": 2,
+      "method": "Runtime-owned RMSNorm descriptor/host-dispatch reuse, preserving original arithmetic",
+      "hypothesis": "If current stateless RMSNorm recreates descriptors per call, retaining a descriptor per Runtime/generation/shape/stride/dtype/epsilon can remove repeated host setup while executing the same original kernel",
+      "evidence": "results/bw1000/2026-10-28/glm787-C1-profile-offline-recovered.json",
+      "measured_prior": "Actual787 C1 Native profile stage0 representative RMS attention/FFN stream enclosures about0.094..0.102ms each; intervals include enqueue/dependency gaps. Old TP8PP2 source, not current823 PP4 fraction. No layer multiplication or model TPS prediction.",
+      "first_action": "Bounded CPU source audit of current source-pinned Native->InfiniOps RMSNorm path and descriptor creation/destruction. Stop immediately if already cached, descriptor captures data pointers incompatibly, or current823 binding cannot be established.",
+      "minimal_change_if_source_confirms": "One private HOST TU cache owned by actual Runtime/generation, original InfiniOps descriptor/kernel and stream; cache key includes all operand metadata and epsilon. Retain the original fallback and final drain. Destroy descriptors at owner close; no global raw-address cache, SDK hot edit, new arithmetic kernel, or GPU F64.",
+      "fixture": "Actual Native RMSNorm wrapper with H6144, T1/8/16 and one actual prefill shape; real trained RMS weights where available. If local benefit exists, reuse an existing full native layer fixture to test enclosing wall before any whole target load.",
+      "numeric_check": "Original kernel outputs finite/allclose, A/B input changes cannot reuse old output, input/weight/canary unchanged, enabled/disabled descriptor counters and owner-close destroys balance; same-card paired complete wrapper wall including cache lookup, creation miss and cleanup separately",
+      "resources": "CPU source audit first <=20min; conditional implementation/CPU compile within existing4CPU8GiB10min budget. No GPU claim yet. A future source-published finite component would need only one card, not fake16-card occupancy.",
+      "first_result_ETA": "CPU feasibility20min; if confirmed, likely1-2h source integration before a short device verdict; current build/runtime interface UNKNOWN",
+      "wall_interval": "Norm wrapper setup/dispatch enclosure only; actual currentNative/wholeModel fraction UNKNOWN",
+      "exit": "Already-cached or unbindable source => STOP. Wrapper-only win cannot qualify the model; without material stable enclosing-layer gain beyond baseline drift, stop rather than start a descriptor parameter grid.",
+      "fallback": "Return to Card1 actual current largest enclosing interval; no reopening SiLU quant fusion, old bitdecode, row2 or O-weight-cache sweeps"
+    }
+  ],
+  "GPU_submitted": false,
+  "Model_or_service_gain_claim": false,
+  "source_family_changed": true
+}

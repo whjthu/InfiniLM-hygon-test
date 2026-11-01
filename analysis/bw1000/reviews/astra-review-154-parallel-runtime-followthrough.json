@@ -1,0 +1,132 @@
+{
+  "id": 154,
+  "date_Asia_Shanghai": "2026-11-02",
+  "reviewer": "/root/astra_review_147",
+  "state": "COMPLETE_PENDING_ROOT_ADOPTION",
+  "trigger": "重复可避免的真实入口、布局谓词和数值参考错误；失败不算性能轮次",
+  "scope": "只读复用证据与当前源码；仅写本审核文件。未运行测试、未启动作业、未Git、未改status或其他源码。",
+  "previous_review_153_followthrough": {
+    "GLM": "13个合法variant全部完成数值检查，但原T1/8/16全部至少5%门槛零晋级；落实停止fusion家族，不转实际Runtime。",
+    "Kimi": "343已转真实TP16 Delta，但所有ON调用fallback，chosen=0；真实候选未执行。345修正固定C1 singleton stride，并在首ON立即检查chosen1/fallback0。CPU655已COMPLETED0/40s。",
+    "Deep": "344已转实际Runtime compressor，但baseline先被错误split-half RoPE参考拒绝，0有效ABBA。当前adjacent-r1按is_neox=false修复邻接配对核及独立非零位置参考。340组件结果不继承为Runtime资格。",
+    "Kimi337": "CPU9个录制Native入口测试已通过；真实Native bootstrap、参数加载、33卡控制与清理仍待收束。不能把driver可调用当完整入口可运行。"
+  },
+  "verified_results": {
+    "GLM823": {
+      "evidence": "results/bw1000/2026-11-02/GLM308823-root-audited-W4-scoped-Model-gain-PASS-clean.json",
+      "audit_source": "tools/audit_glm308.py",
+      "actual": "910376.823 COMPLETED0/51m20s; CPU645 COMPLETED0/51m24s; 32owner正常退出、HTTP正常关闭、4节点KFD与端口post正常",
+      "scope": "TP8PP4/32卡；同一驻留；固定8900-token真实具名工具请求；732输出含EOS；2预热+1个ABBA；buffered HTTP",
+      "prefill_seconds_W2_W4": [342.5575997487176, 254.74502776912414],
+      "prefill_speedup_x": 1.344707697530325,
+      "prefill_latency_reduction_percent": 25.634396096892374,
+      "HTTP_completion_seconds_W2_W4": [504.4249426226597, 417.1150422114879],
+      "HTTP_completion_speedup_x": 1.2093185130612085,
+      "HTTP_completion_latency_reduction_percent": 17.308799195618864,
+      "decode_seconds_W2_W4": [160.24454839201644, 160.73243039939553],
+      "decision": "保留该请求上的真实Model prefill与HTTP完成收益；约0.2%端点漂移远小于效果，两邻接对同向。只有2个测量样本/arm，无跨驻留统计保证。",
+      "not_proven": ["decode改善", "通用质量无回归", "跨负载或跨加载稳定收益", "客户端增量TTFT/ITL/SLO", "GPU busy或具体kernel归因", "大于15tok/s"],
+      "backend_visible_decode_tok_s_observed_range": [4.506166026820865, 4.531120795672357],
+      "source_review_limit": "复核已保存根审计与audit源码，未重新读取远端32份完整原始报告。"
+    },
+    "GLM341": {
+      "evidence": "results/bw1000/2026-11-02/GLM341-final-decision.json",
+      "numeric_valid_variants": 13,
+      "retained_variants": 0,
+      "decision": "STOP。不得用T1局部收益或activation-only倍率修改原全T门槛；不再参数扫描，不为此家族加载整模型。",
+      "timing": "全部合法variant记录的fullchain wall合计1.9762s；权重加载每worker约1.12至15.30s。准备/故障耗时不能称为GPU测量时间。"
+    },
+    "Kimi343": {
+      "evidence": "results/bw1000/2026-11-02/Kimi343-GPU621-dispatch-miss-clean.json",
+      "actual": "910371.621 FAILED1/74s；16owner正常close、post干净",
+      "decision": "每owner chosen0/fallback160，candidate_executed=false；无Delta收益、无Model收益，不计性能轮次。"
+    },
+    "Kimi345": {
+      "evidence": "results/bw1000/2026-11-02/Kimi345-CPU655-final.json",
+      "actual": "910407.655 COMPLETED0/40s; CPU_only=true, Native_dlopen=false",
+      "source_manifest_SHA256": "2a89e527f696a5cc4a9a1d853f2b27a714a0809bfecf2bbe1593488ffc121d01",
+      "decision": "固定C1/H6D128布局修复可继续原有限实际Delta判定；2304offset穷举不是device执行资格。"
+    },
+    "Deep344": {
+      "evidence": ["results/bw1000/2026-11-02/Deep344-layout-source-diagnosis.json", "code/bw1000/Deep-Runtime-boundary-fusion-r344/adjacent-r1/GPU.py", "code/bw1000/Deep-Runtime-boundary-fusion-r344/adjacent-r1/adjacent.hip"],
+      "actual": "910374.1246 FAILED1/44s，1247 post COMPLETED0；baseline参考失败，0有效ABBA",
+      "decision": "当前B256融合核与参考均已改邻接pair；先验证OFF对独立非零position参考，再测ON。未看到修复后GPU结果，不认定Runtime数值/收益通过。"
+    }
+  },
+  "time_and_bottleneck": {
+    "GLM823": "51m20s为整个作业；四个测量请求HTTP总计约1843.08s。其余时间包含预热、加载、准备、清理，当前证据未分解，不能把差值全叫加载。",
+    "current_profile": "823是当前实际负载的prefill/decode CAPI与HTTP外层计时。W4约节约87.81s prefill/87.31s HTTP完成，但计算、通信、同步/空泡、CPU调度细分UNKNOWN。不能跨节点相减未对齐单调时钟，不能累加重叠stage wall。",
+    "engineering_failures": "341绑定/launch-bound、343固定布局拒绝、344错误参考消耗准备及启动时间；均不应包装成优化轮次。先在同一必要批次首有效调用判定路径与语义，再支付完整样本成本。",
+    "new_proven_gain": "一个限定真实GLM Model/HTTP请求收益；Kimi/Deep及341无新增Model收益。"
+  },
+  "parallel_execution": {
+    "continue_independently": "GLM离线823归因/当前源码审计、Kimi345实际Delta、Deep344 adjacent修复判定并行；不等无关Git窗口、审核报告或另一个模型完成。确定修复沿已有有界授权执行，无新增逐项审批。",
+    "resource_rule": "48卡仅是6个专门算子节点的物理容量，不是全局上限。KimiDelta16在a02r3n03/07，Deep4在a02r4n04，GLM算子在a02r3n16/a02r4n07，另一个池节点按实际claim；GLM模型32在独立910376/a02r4n12..15，Kimi模型32在独立910380/a14r2n08/09/10/12，draft在910371/a02r3n15。上述模型与算子节点无交集，52或53卡组合允许实际并行，不新增全局48卡门槛。按节点/卡claim核验边界，禁止伪占卡或为占满池扩测。",
+    "utilization_observation": "root提供17:55UTC一次只读观测：全17节点136加速卡GPU利用率0%、KFD为空，是批次准备空档，不能宣传连续满载，也不能由此推导先前多批实验未执行。",
+    "root_priority": "root把Kimi337剩余bootstrap/33controller作为主线收束；可复用的绑定/清理证据直接复用，不等待Kimi345或GLM新优化。"
+  },
+  "next_cards": {
+    "Kimi": [
+      {
+        "priority": 1,
+        "hypothesis": "345布局谓词使固定C1真实Delta进入候选，组件收益能在完整Delta/TP通信/拷贝/排空后保留。",
+        "minimal_change": "仅固定C1 active-stride判定；首ON warmup记录实际shape/stride及chosen1/fallback0，失败立即停止整批，不再跑320个baseline-only调用。",
+        "owner_resource": "kimi_operator_tuning；已认领2节点16卡；现有600s进程/有限批次上限",
+        "reuse": "345源码、CPU655、343实际fixture及失败证据",
+        "checks_samples": "原profileOFF、8轮ABBA/BAAB，block内2预热8测量；同一初始状态，output/conv/state数值与只读canary；用同trial16owner最大API wall，保持配对且报告baseline漂移，不能平均rank掩盖关键路径。",
+        "first_verdict_ETA": "首ON为加载后第一个ON调用；完整判断目标10分钟内GPU批次，准备/排队另记UNKNOWN",
+        "wall_impact": "完整Delta关键owner wall；整模型覆盖比例UNKNOWN",
+        "exit_fallback": "dispatch miss或数值失败立即停并保留原baseline；完整Delta无超过漂移的稳定收益则封存，不回大参数网格；有收益再决定最小模型整合。"
+      },
+      {
+        "priority": 2,
+        "hypothesis": "337同DSO AR/spec四请求可以验证长prompt场景的实际收益及质量。",
+        "minimal_change": "收束现有真实Native bootstrap、参数加载、原绝对deadline、一次draft启动、33卡controller与正常清理；不扩展原四请求。",
+        "owner_resource": "root；CPU准备独立推进；后续原32target+1draft范围按实际不相交资源安排",
+        "reuse": "Kimi337 CPU9、冻结8635/32638token输入、原327 Native和334/335协议",
+        "checks_samples": "同驻留四臂原顺序；完整输入、128上限、真实EOS与工具整数参数；AR32卡/spec33卡成本分列；inclusive commit/replay/publish已含RPC，不重复相加。",
+        "first_verdict_ETA": "入口剩余准备与加载UNKNOWN；应先在当前工作段给出实际可运行入口或精确剩余阻塞，禁止再交付只有可调用driver的完成声明",
+        "wall_impact": "实际四请求端到端backend wall；收益UNKNOWN，一对/输入不足证明稳定收益",
+        "exit_fallback": "入口、质量、deadline或生命周期失败即停止后续臂；保留完成臂，不自动重放；与345互不依赖。"
+      }
+    ],
+    "Deep": [
+      {
+        "priority": 1,
+        "hypothesis": "B256 BF16中间舍入+邻接tail64 RoPE符合实际is_neox=false语义，且完整Runtime compressor边界仍有收益。",
+        "minimal_change": "复用adjacent-r1；仅修正配对与独立非零位置参考，不扩D4096/高block网格。",
+        "owner_resource": "deep_operator_tuning；现有4卡独立C4/C128×decode-boundary/prefill shards",
+        "reuse": "344实际Runtime/真实compressor权重、340合法B256、真实backend源码及adjacent-r1",
+        "checks_samples": "每shard OFF首先通过独立CPU F32非零position参考，包含BF16中间舍入、tail64和未旋转448；ON实际边界counter递增；原5组ABBA、输入/位置不变、cache/state canary、poison/finite及正常destroy。参考失败不进入测量。",
+        "first_verdict_ETA": "首个OFF/ON调用即可否定布局/参考；GPU单shard沿现有600s上限，准备/排队UNKNOWN",
+        "wall_impact": "full compressor prepare+commit+同bridge输出拷贝/drain；不是纯kernel busy；整模型覆盖UNKNOWN",
+        "exit_fallback": "参考/数值失败立即停；无稳定完整边界收益则保留原Runtime、封存fusion，不继承340自写unfused baseline的收益。"
+      }
+    ],
+    "GLM": [
+      {
+        "priority": 1,
+        "hypothesis": "现有823报告可定位当前W4最大可观测区间，并确定扩大收益适用范围所需的最少覆盖。",
+        "minimal_change": "先只读32owner已有请求/阶段数据，缺少子阶段事件则明确UNKNOWN；下次独立必要的完整模型加载复用W2/W4开关，增加一个有区分力短prompt和一个不同任务长prompt，并对原点做跨驻留复现，不为profile单独重载。",
+        "owner_resource": "glm_operator_tuning离线CPU；后续root32卡整模型仅按既有实际授权及资源安排",
+        "reuse": "GLM308823根审计、audit_glm308.py、原owner/Native；GLM341-next-mechanism-cards.json",
+        "checks_samples": "离线不新增数值门禁。后续每负载各arm预热后先一个ABBA块，取得跨负载/跨驻留方向性判定；仅当漂移、相反配对或稳定性声明需要时追加第二块，不自动扩大样本。报告所有样本；真实token/EOS/工具语义和32owner正常退出，不要求输出逐位相同作为一般晋级标准。测量仍分prefill/decode/HTTP完成。",
+        "first_verdict_ETA": "离线10至20分钟；未来多负载加载/测量总耗时UNKNOWN，已知单个8900token六请求作业约51分钟，不能承诺短测",
+        "wall_impact": "当前证实范围prefill约25.63%/HTTP约17.31%；新负载收益UNKNOWN，不外推decode",
+        "exit_fallback": "已有证据不足归因时直接记录UNKNOWN；新覆盖不稳或质量失败保留原固定点限定结论，不宣布通用W4收益。"
+      },
+      {
+        "priority": 2,
+        "hypothesis": "当前绑定Runtime的RMSNorm若逐次重建descriptor，可复用descriptor减少host dispatch开销而不改算术。",
+        "minimal_change": "沿GLM341-next-mechanism-cards第二卡做不超过20分钟CPU源码核实；已经cache、参数捕获不兼容或无法绑定当前823源码即停。确认后只做Runtime/generation拥有的完整metadata-key缓存及原fallback。",
+        "owner_resource": "glm_operator_tuning；CPU优先，未来条件成立仅单卡组件，不占用16卡伪并行",
+        "reuse": "当前823 source binding及既有RMSNorm源码；787旧profile仅线索，不乘layer数预测收益",
+        "checks_samples": "实际wrapper、T1/8/16及一个实际prefill形状；原kernel数值、换输入不复用输出、canary、创建/命中/销毁计数；预热后至少4配对块，并检验包含lookup与dispatch的完整wrapper和现有完整layer外层wall。",
+        "first_verdict_ETA": "CPU可行性20分钟；若值得实现预计1至2小时准备，GPU实际判定短测但排队未知",
+        "wall_impact": "norm setup/dispatch外层，当前Model比例UNKNOWN；不是新Model收益承诺",
+        "exit_fallback": "缓存已存在或完整layer收益未超漂移则停止；返回当前实际最大区间，不重开341 SiLU/quant融合。"
+      }
+    ]
+  },
+  "implementation_required": "root逐项登记采纳/拒绝/暂缓及理由，并向原owner传递具体下一卡；无需另造门禁框架。下一审核首先核对实际ON命中、OFF独立参考与完整外层wall结果。"
+}
