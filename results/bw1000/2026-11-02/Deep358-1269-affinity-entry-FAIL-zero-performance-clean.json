@@ -1,0 +1,1072 @@
+{
+  "scope": "First HC358 attempt FAIL before baseline numeric; zero candidate/ABBA/performance; no Model loaded",
+  "GPU": "910374.1269",
+  "keeper": "910407.698",
+  "reports": [
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Deep358-GPU-v2-910374.1269-rank0.json",
+      "SHA256": "74c7c9febcd18de7f2e6271f8bf7e7f375caff3ed9ad1f1401a429e28cbdbc44",
+      "report": {
+        "completed": true,
+        "passed": false,
+        "actual_step": "910374.1269",
+        "rank": 0,
+        "Model_loaded": false,
+        "scope": "Actual afc6 HyperConnection::pre versus T1 epilogue fusion; actualHC parameters/synthetic residual only. No Model throughput or quality claim.",
+        "calls": [],
+        "hardware": {
+          "node": "a02r4n07",
+          "cards": 1,
+          "visible_physical_HIP": "0",
+          "name": "BW",
+          "arch": "gfx936:sramecc+:xnack-"
+        },
+        "fixture": {
+          "rank": 0,
+          "layer": 0,
+          "kind": "attn",
+          "seed": 781,
+          "shape": [
+            1,
+            4,
+            4096
+          ],
+          "input_kind": "Synthetic residual, not actual8K activation or service workload",
+          "input_SHA256": "742ec06373519f125991eec715f6fe5f1e737e1b86b0d31d72e689537666fa03",
+          "weights": [
+            {
+              "key": "layers.0.hc_attn_fn",
+              "shape": [
+                24,
+                16384
+              ],
+              "dtype": "F32",
+              "SHA256": "8a428deaca9410e5678abb77147f04aa6fe5357a3d96ee124bfd17b0788b4b3f",
+              "shard": "model-00002-of-00046.safetensors"
+            },
+            {
+              "key": "layers.0.hc_attn_base",
+              "shape": [
+                24
+              ],
+              "dtype": "F32",
+              "SHA256": "ae3e44add38a14ce4b99444e4149929d029cf786ff4aa7773ffa1f969a3822cf",
+              "shard": "model-00002-of-00046.safetensors"
+            },
+            {
+              "key": "layers.0.hc_attn_scale",
+              "shape": [
+                3
+              ],
+              "dtype": "F32",
+              "SHA256": "c0c88d3234cd60792681264e61e967a5c281bb349a744898b4d032a929652720",
+              "shard": "model-00002-of-00046.safetensors"
+            }
+          ],
+          "config_SHA256": "fd2ad6f5dbd77e55a49e9b2ff29c89030fbe4b538e8870c183d194648767be09",
+          "index_SHA256": "7e975ba3bef8947a94e7da0abd60888375b232b4dfad883d59653e65c6ba522a",
+          "checkpoint_scope": "Only three HC parameter tiles; no targetModel construction/loading",
+          "CPU_reference_output_SHA256": {
+            "collapsed_BF16": "061cb9c68202dfadf76203b9351e6493be9b66d1eb4627b7cbe88abb6434884e",
+            "post": "d4d57de916f495d3fc501d48625cdf67c8be3acaa44b873feb8bfd3f86c2bd33",
+            "comb": "f4a748fb5f6f61eadce5131258f5af177dba4fcfa4be2e333de42a9baa3864cc"
+          }
+        },
+        "CPU_affinity_assigned": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "CPU_receipt_SHA256": "df09983718641b117545d42d9aa018f0f45404b9c1b556c8a0392d6a6d645474",
+        "library_SHA256": "bd51e21197f66c7af012e630a1eef2d849ddd9120f4bf3458a1def6f0fc08379",
+        "memory_before_context": [
+          68365058048,
+          68702699520
+        ],
+        "CPU_affinity_after_Runtime_create": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "weights_state_initial": [
+          "8a428deaca9410e5678abb77147f04aa6fe5357a3d96ee124bfd17b0788b4b3f",
+          "ae3e44add38a14ce4b99444e4149929d029cf786ff4aa7773ffa1f969a3822cf",
+          "c0c88d3234cd60792681264e61e967a5c281bb349a744898b4d032a929652720",
+          "8a428deaca9410e5678abb77147f04aa6fe5357a3d96ee124bfd17b0788b4b3f",
+          "ae3e44add38a14ce4b99444e4149929d029cf786ff4aa7773ffa1f969a3822cf",
+          "c0c88d3234cd60792681264e61e967a5c281bb349a744898b4d032a929652720",
+          "150cee55d02a54914a8c24db677d941febed430776f71b4467203098ead12f63"
+        ],
+        "error": "RuntimeError('2392 owner mask too narrow for eight disjoint requested subsets')",
+        "traceback": "Traceback (most recent call last):\n  File \"/refactor/incoming/Deep-HC-epilogue-r358/GPU-v2/GPU_driver.py\", line 58, in <module>\n    q['baseline_numeric_first']=call(0,True);save();q['candidate_numeric']=call(1,True);save()\n  File \"/refactor/incoming/Deep-HC-epilogue-r358/GPU-v2/GPU_driver.py\", line 52, in call\n    baseline_before=int(lib.deep_hc_canonical_calls_r7130(0,2));tick=time.perf_counter();check(lib.deep_hc_epilogue_forward_r358(ctx,mode,ptrs,P(torch.cuda.current_stream().cuda_stream)));wall=time.perf_counter()-tick\n  File \"/refactor/incoming/Deep-HC-epilogue-r358/GPU-v2/GPU_driver.py\", line 25, in check\n    if rc:raise RuntimeError(lib.deep_hc_epilogue_error_r358().decode())\nRuntimeError: 2392 owner mask too narrow for eight disjoint requested subsets\n",
+        "destroy_code": 0,
+        "Runtime_expired": 1,
+        "normal_close": true,
+        "overall_wall_s": 33.167010894045234
+      }
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Deep358-GPU-v2-910374.1269-rank1.json",
+      "SHA256": "d2c209d6658f7f2bc16136d75673d9ddfb7aee29b509ead9f4399997d68b7f84",
+      "report": {
+        "completed": true,
+        "passed": false,
+        "actual_step": "910374.1269",
+        "rank": 1,
+        "Model_loaded": false,
+        "scope": "Actual afc6 HyperConnection::pre versus T1 epilogue fusion; actualHC parameters/synthetic residual only. No Model throughput or quality claim.",
+        "calls": [],
+        "hardware": {
+          "node": "a02r4n07",
+          "cards": 1,
+          "visible_physical_HIP": "1",
+          "name": "BW",
+          "arch": "gfx936:sramecc+:xnack-"
+        },
+        "fixture": {
+          "rank": 1,
+          "layer": 0,
+          "kind": "attn",
+          "seed": 1889,
+          "shape": [
+            1,
+            4,
+            4096
+          ],
+          "input_kind": "Synthetic residual, not actual8K activation or service workload",
+          "input_SHA256": "42fad9035227d6ff240d41e5cac6a463e050ef0d7954cde9247a0f1a5c5e9a88",
+          "weights": [
+            {
+              "key": "layers.0.hc_attn_fn",
+              "shape": [
+                24,
+                16384
+              ],
+              "dtype": "F32",
+              "SHA256": "8a428deaca9410e5678abb77147f04aa6fe5357a3d96ee124bfd17b0788b4b3f",
+              "shard": "model-00002-of-00046.safetensors"
+            },
+            {
+              "key": "layers.0.hc_attn_base",
+              "shape": [
+                24
+              ],
+              "dtype": "F32",
+              "SHA256": "ae3e44add38a14ce4b99444e4149929d029cf786ff4aa7773ffa1f969a3822cf",
+              "shard": "model-00002-of-00046.safetensors"
+            },
+            {
+              "key": "layers.0.hc_attn_scale",
+              "shape": [
+                3
+              ],
+              "dtype": "F32",
+              "SHA256": "c0c88d3234cd60792681264e61e967a5c281bb349a744898b4d032a929652720",
+              "shard": "model-00002-of-00046.safetensors"
+            }
+          ],
+          "config_SHA256": "fd2ad6f5dbd77e55a49e9b2ff29c89030fbe4b538e8870c183d194648767be09",
+          "index_SHA256": "7e975ba3bef8947a94e7da0abd60888375b232b4dfad883d59653e65c6ba522a",
+          "checkpoint_scope": "Only three HC parameter tiles; no targetModel construction/loading",
+          "CPU_reference_output_SHA256": {
+            "collapsed_BF16": "4f52d6bc61ee252fa43beb6dd11378c0ca1663572fdae6321667d86e75eae293",
+            "post": "f51ba7bcfe0c872c3be69756c3bb54ef2683fdd6ba945fbf1150bf7b48057caa",
+            "comb": "9a5b017a870774190e1319c9146131cd984fb7740f18a1bcf404a272f7a23428"
+          }
+        },
+        "CPU_affinity_assigned": [
+          16,
+          17,
+          18,
+          19
+        ],
+        "CPU_receipt_SHA256": "df09983718641b117545d42d9aa018f0f45404b9c1b556c8a0392d6a6d645474",
+        "library_SHA256": "bd51e21197f66c7af012e630a1eef2d849ddd9120f4bf3458a1def6f0fc08379",
+        "memory_before_context": [
+          68365058048,
+          68702699520
+        ],
+        "CPU_affinity_after_Runtime_create": [
+          16,
+          17,
+          18,
+          19
+        ],
+        "weights_state_initial": [
+          "8a428deaca9410e5678abb77147f04aa6fe5357a3d96ee124bfd17b0788b4b3f",
+          "ae3e44add38a14ce4b99444e4149929d029cf786ff4aa7773ffa1f969a3822cf",
+          "c0c88d3234cd60792681264e61e967a5c281bb349a744898b4d032a929652720",
+          "8a428deaca9410e5678abb77147f04aa6fe5357a3d96ee124bfd17b0788b4b3f",
+          "ae3e44add38a14ce4b99444e4149929d029cf786ff4aa7773ffa1f969a3822cf",
+          "c0c88d3234cd60792681264e61e967a5c281bb349a744898b4d032a929652720",
+          "150cee55d02a54914a8c24db677d941febed430776f71b4467203098ead12f63"
+        ],
+        "error": "RuntimeError('2392 owner mask too narrow for eight disjoint requested subsets')",
+        "traceback": "Traceback (most recent call last):\n  File \"/refactor/incoming/Deep-HC-epilogue-r358/GPU-v2/GPU_driver.py\", line 58, in <module>\n    q['baseline_numeric_first']=call(0,True);save();q['candidate_numeric']=call(1,True);save()\n  File \"/refactor/incoming/Deep-HC-epilogue-r358/GPU-v2/GPU_driver.py\", line 52, in call\n    baseline_before=int(lib.deep_hc_canonical_calls_r7130(0,2));tick=time.perf_counter();check(lib.deep_hc_epilogue_forward_r358(ctx,mode,ptrs,P(torch.cuda.current_stream().cuda_stream)));wall=time.perf_counter()-tick\n  File \"/refactor/incoming/Deep-HC-epilogue-r358/GPU-v2/GPU_driver.py\", line 25, in check\n    if rc:raise RuntimeError(lib.deep_hc_epilogue_error_r358().decode())\nRuntimeError: 2392 owner mask too narrow for eight disjoint requested subsets\n",
+        "destroy_code": 0,
+        "Runtime_expired": 1,
+        "normal_close": true,
+        "overall_wall_s": 33.17050985386595
+      }
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Deep358-GPU-v2-910374.1269-rank2.json",
+      "SHA256": "a1ffc066da0b202b3d50a02dadb9ba4cdb4ee007a20eab631d5b68348bc6b708",
+      "report": {
+        "completed": true,
+        "passed": false,
+        "actual_step": "910374.1269",
+        "rank": 2,
+        "Model_loaded": false,
+        "scope": "Actual afc6 HyperConnection::pre versus T1 epilogue fusion; actualHC parameters/synthetic residual only. No Model throughput or quality claim.",
+        "calls": [],
+        "hardware": {
+          "node": "a02r4n07",
+          "cards": 1,
+          "visible_physical_HIP": "2",
+          "name": "BW",
+          "arch": "gfx936:sramecc+:xnack-"
+        },
+        "fixture": {
+          "rank": 2,
+          "layer": 0,
+          "kind": "ffn",
+          "seed": 781,
+          "shape": [
+            1,
+            4,
+            4096
+          ],
+          "input_kind": "Synthetic residual, not actual8K activation or service workload",
+          "input_SHA256": "742ec06373519f125991eec715f6fe5f1e737e1b86b0d31d72e689537666fa03",
+          "weights": [
+            {
+              "key": "layers.0.hc_ffn_fn",
+              "shape": [
+                24,
+                16384
+              ],
+              "dtype": "F32",
+              "SHA256": "6655ef5c1dc7e9446fa0b61f3f4c3f1e479277ccdfa7695e74a93fb7089410fd",
+              "shard": "model-00002-of-00046.safetensors"
+            },
+            {
+              "key": "layers.0.hc_ffn_base",
+              "shape": [
+                24
+              ],
+              "dtype": "F32",
+              "SHA256": "82f8e6d9dd667e4dbca32e57ffac025c7024873353e7811378af4142a56485d1",
+              "shard": "model-00002-of-00046.safetensors"
+            },
+            {
+              "key": "layers.0.hc_ffn_scale",
+              "shape": [
+                3
+              ],
+              "dtype": "F32",
+              "SHA256": "967d400a83e609e8f54670e2eba0ecb9032d15278e151c248c10a914f85fe2bd",
+              "shard": "model-00002-of-00046.safetensors"
+            }
+          ],
+          "config_SHA256": "fd2ad6f5dbd77e55a49e9b2ff29c89030fbe4b538e8870c183d194648767be09",
+          "index_SHA256": "7e975ba3bef8947a94e7da0abd60888375b232b4dfad883d59653e65c6ba522a",
+          "checkpoint_scope": "Only three HC parameter tiles; no targetModel construction/loading",
+          "CPU_reference_output_SHA256": {
+            "collapsed_BF16": "877e1fcbbafd8a1115d36642334693ec9ee2e66409e691a1eee04381a4a3235c",
+            "post": "8d08ceb7ad4da85fa78aaf820974fec6e072744634364209cb65c403c18369f5",
+            "comb": "0a2b42e309fe15e80c91edae88064f4a9c59baeab7cbfc6b465b9ce9e05b0ab3"
+          }
+        },
+        "CPU_affinity_assigned": [
+          32,
+          33,
+          34,
+          35
+        ],
+        "CPU_receipt_SHA256": "df09983718641b117545d42d9aa018f0f45404b9c1b556c8a0392d6a6d645474",
+        "library_SHA256": "bd51e21197f66c7af012e630a1eef2d849ddd9120f4bf3458a1def6f0fc08379",
+        "memory_before_context": [
+          68365058048,
+          68702699520
+        ],
+        "CPU_affinity_after_Runtime_create": [
+          32,
+          33,
+          34,
+          35
+        ],
+        "weights_state_initial": [
+          "6655ef5c1dc7e9446fa0b61f3f4c3f1e479277ccdfa7695e74a93fb7089410fd",
+          "82f8e6d9dd667e4dbca32e57ffac025c7024873353e7811378af4142a56485d1",
+          "967d400a83e609e8f54670e2eba0ecb9032d15278e151c248c10a914f85fe2bd",
+          "6655ef5c1dc7e9446fa0b61f3f4c3f1e479277ccdfa7695e74a93fb7089410fd",
+          "82f8e6d9dd667e4dbca32e57ffac025c7024873353e7811378af4142a56485d1",
+          "967d400a83e609e8f54670e2eba0ecb9032d15278e151c248c10a914f85fe2bd",
+          "150cee55d02a54914a8c24db677d941febed430776f71b4467203098ead12f63"
+        ],
+        "error": "RuntimeError('2392 owner mask too narrow for eight disjoint requested subsets')",
+        "traceback": "Traceback (most recent call last):\n  File \"/refactor/incoming/Deep-HC-epilogue-r358/GPU-v2/GPU_driver.py\", line 58, in <module>\n    q['baseline_numeric_first']=call(0,True);save();q['candidate_numeric']=call(1,True);save()\n  File \"/refactor/incoming/Deep-HC-epilogue-r358/GPU-v2/GPU_driver.py\", line 52, in call\n    baseline_before=int(lib.deep_hc_canonical_calls_r7130(0,2));tick=time.perf_counter();check(lib.deep_hc_epilogue_forward_r358(ctx,mode,ptrs,P(torch.cuda.current_stream().cuda_stream)));wall=time.perf_counter()-tick\n  File \"/refactor/incoming/Deep-HC-epilogue-r358/GPU-v2/GPU_driver.py\", line 25, in check\n    if rc:raise RuntimeError(lib.deep_hc_epilogue_error_r358().decode())\nRuntimeError: 2392 owner mask too narrow for eight disjoint requested subsets\n",
+        "destroy_code": 0,
+        "Runtime_expired": 1,
+        "normal_close": true,
+        "overall_wall_s": 33.16886357823387
+      }
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Deep358-GPU-v2-910374.1269-rank3.json",
+      "SHA256": "328fbf373c1c9ab98c41447b2c8d32829c6814e78ecb9da0fdcd47621dca0e97",
+      "report": {
+        "completed": true,
+        "passed": false,
+        "actual_step": "910374.1269",
+        "rank": 3,
+        "Model_loaded": false,
+        "scope": "Actual afc6 HyperConnection::pre versus T1 epilogue fusion; actualHC parameters/synthetic residual only. No Model throughput or quality claim.",
+        "calls": [],
+        "hardware": {
+          "node": "a02r4n07",
+          "cards": 1,
+          "visible_physical_HIP": "3",
+          "name": "BW",
+          "arch": "gfx936:sramecc+:xnack-"
+        },
+        "fixture": {
+          "rank": 3,
+          "layer": 0,
+          "kind": "ffn",
+          "seed": 1889,
+          "shape": [
+            1,
+            4,
+            4096
+          ],
+          "input_kind": "Synthetic residual, not actual8K activation or service workload",
+          "input_SHA256": "42fad9035227d6ff240d41e5cac6a463e050ef0d7954cde9247a0f1a5c5e9a88",
+          "weights": [
+            {
+              "key": "layers.0.hc_ffn_fn",
+              "shape": [
+                24,
+                16384
+              ],
+              "dtype": "F32",
+              "SHA256": "6655ef5c1dc7e9446fa0b61f3f4c3f1e479277ccdfa7695e74a93fb7089410fd",
+              "shard": "model-00002-of-00046.safetensors"
+            },
+            {
+              "key": "layers.0.hc_ffn_base",
+              "shape": [
+                24
+              ],
+              "dtype": "F32",
+              "SHA256": "82f8e6d9dd667e4dbca32e57ffac025c7024873353e7811378af4142a56485d1",
+              "shard": "model-00002-of-00046.safetensors"
+            },
+            {
+              "key": "layers.0.hc_ffn_scale",
+              "shape": [
+                3
+              ],
+              "dtype": "F32",
+              "SHA256": "967d400a83e609e8f54670e2eba0ecb9032d15278e151c248c10a914f85fe2bd",
+              "shard": "model-00002-of-00046.safetensors"
+            }
+          ],
+          "config_SHA256": "fd2ad6f5dbd77e55a49e9b2ff29c89030fbe4b538e8870c183d194648767be09",
+          "index_SHA256": "7e975ba3bef8947a94e7da0abd60888375b232b4dfad883d59653e65c6ba522a",
+          "checkpoint_scope": "Only three HC parameter tiles; no targetModel construction/loading",
+          "CPU_reference_output_SHA256": {
+            "collapsed_BF16": "96e39d78c162241708babe2c1fc543ec965ea8070c10676312d59cc721acf682",
+            "post": "769d459dcbb2a82dd1be13d7c42702970122892fb49f2f046822312acce305cd",
+            "comb": "e36780ed826e315a3da380d50da763a82cbceda02286fbdb30967b41233c5b7e"
+          }
+        },
+        "CPU_affinity_assigned": [
+          48,
+          49,
+          50,
+          51
+        ],
+        "CPU_receipt_SHA256": "df09983718641b117545d42d9aa018f0f45404b9c1b556c8a0392d6a6d645474",
+        "library_SHA256": "bd51e21197f66c7af012e630a1eef2d849ddd9120f4bf3458a1def6f0fc08379",
+        "memory_before_context": [
+          68365058048,
+          68702699520
+        ],
+        "CPU_affinity_after_Runtime_create": [
+          48,
+          49,
+          50,
+          51
+        ],
+        "weights_state_initial": [
+          "6655ef5c1dc7e9446fa0b61f3f4c3f1e479277ccdfa7695e74a93fb7089410fd",
+          "82f8e6d9dd667e4dbca32e57ffac025c7024873353e7811378af4142a56485d1",
+          "967d400a83e609e8f54670e2eba0ecb9032d15278e151c248c10a914f85fe2bd",
+          "6655ef5c1dc7e9446fa0b61f3f4c3f1e479277ccdfa7695e74a93fb7089410fd",
+          "82f8e6d9dd667e4dbca32e57ffac025c7024873353e7811378af4142a56485d1",
+          "967d400a83e609e8f54670e2eba0ecb9032d15278e151c248c10a914f85fe2bd",
+          "150cee55d02a54914a8c24db677d941febed430776f71b4467203098ead12f63"
+        ],
+        "error": "RuntimeError('2392 owner mask too narrow for eight disjoint requested subsets')",
+        "traceback": "Traceback (most recent call last):\n  File \"/refactor/incoming/Deep-HC-epilogue-r358/GPU-v2/GPU_driver.py\", line 58, in <module>\n    q['baseline_numeric_first']=call(0,True);save();q['candidate_numeric']=call(1,True);save()\n  File \"/refactor/incoming/Deep-HC-epilogue-r358/GPU-v2/GPU_driver.py\", line 52, in call\n    baseline_before=int(lib.deep_hc_canonical_calls_r7130(0,2));tick=time.perf_counter();check(lib.deep_hc_epilogue_forward_r358(ctx,mode,ptrs,P(torch.cuda.current_stream().cuda_stream)));wall=time.perf_counter()-tick\n  File \"/refactor/incoming/Deep-HC-epilogue-r358/GPU-v2/GPU_driver.py\", line 25, in check\n    if rc:raise RuntimeError(lib.deep_hc_epilogue_error_r358().decode())\nRuntimeError: 2392 owner mask too narrow for eight disjoint requested subsets\n",
+        "destroy_code": 0,
+        "Runtime_expired": 1,
+        "normal_close": true,
+        "overall_wall_s": 33.16923432005569
+      }
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Deep358-GPU-v2-910374.1269-rank4.json",
+      "SHA256": "30c5db66e999c2662de553825f4fcbf4093ade212c6d96966d3543c242552ef3",
+      "report": {
+        "completed": true,
+        "passed": false,
+        "actual_step": "910374.1269",
+        "rank": 4,
+        "Model_loaded": false,
+        "scope": "Actual afc6 HyperConnection::pre versus T1 epilogue fusion; actualHC parameters/synthetic residual only. No Model throughput or quality claim.",
+        "calls": [],
+        "hardware": {
+          "node": "a02r4n07",
+          "cards": 1,
+          "visible_physical_HIP": "4",
+          "name": "BW",
+          "arch": "gfx936:sramecc+:xnack-"
+        },
+        "fixture": {
+          "rank": 4,
+          "layer": 20,
+          "kind": "attn",
+          "seed": 781,
+          "shape": [
+            1,
+            4,
+            4096
+          ],
+          "input_kind": "Synthetic residual, not actual8K activation or service workload",
+          "input_SHA256": "742ec06373519f125991eec715f6fe5f1e737e1b86b0d31d72e689537666fa03",
+          "weights": [
+            {
+              "key": "layers.20.hc_attn_fn",
+              "shape": [
+                24,
+                16384
+              ],
+              "dtype": "F32",
+              "SHA256": "fc47e4f69ba3995ef0d19c8ea233456185ec9df68ccfcff453cbf49cf0d51d7b",
+              "shard": "model-00022-of-00046.safetensors"
+            },
+            {
+              "key": "layers.20.hc_attn_base",
+              "shape": [
+                24
+              ],
+              "dtype": "F32",
+              "SHA256": "4fc70df26a83191f6c23e61c3ada19426549747de77ff8ae215db0edfde6c4db",
+              "shard": "model-00022-of-00046.safetensors"
+            },
+            {
+              "key": "layers.20.hc_attn_scale",
+              "shape": [
+                3
+              ],
+              "dtype": "F32",
+              "SHA256": "4c034666a6d56c2fb2e4ac67377cb59ee9f78289ad47f8e646c524c8bc2e0d53",
+              "shard": "model-00022-of-00046.safetensors"
+            }
+          ],
+          "config_SHA256": "fd2ad6f5dbd77e55a49e9b2ff29c89030fbe4b538e8870c183d194648767be09",
+          "index_SHA256": "7e975ba3bef8947a94e7da0abd60888375b232b4dfad883d59653e65c6ba522a",
+          "checkpoint_scope": "Only three HC parameter tiles; no targetModel construction/loading",
+          "CPU_reference_output_SHA256": {
+            "collapsed_BF16": "a2e477ed4c533cbba635618694978683e97580589c539da5326cee2358720452",
+            "post": "380bccf18a87a16bc4dbfda24876d4428dbc76f40b159f92c6849b33bc73ffc2",
+            "comb": "2cf1a9d44dcb5aca61a449b435384d79b737e55f521f9d76e3c6e66b740c0eb3"
+          }
+        },
+        "CPU_affinity_assigned": [
+          64,
+          65,
+          66,
+          67
+        ],
+        "CPU_receipt_SHA256": "df09983718641b117545d42d9aa018f0f45404b9c1b556c8a0392d6a6d645474",
+        "library_SHA256": "bd51e21197f66c7af012e630a1eef2d849ddd9120f4bf3458a1def6f0fc08379",
+        "memory_before_context": [
+          68365058048,
+          68702699520
+        ],
+        "CPU_affinity_after_Runtime_create": [
+          64,
+          65,
+          66,
+          67
+        ],
+        "weights_state_initial": [
+          "fc47e4f69ba3995ef0d19c8ea233456185ec9df68ccfcff453cbf49cf0d51d7b",
+          "4fc70df26a83191f6c23e61c3ada19426549747de77ff8ae215db0edfde6c4db",
+          "4c034666a6d56c2fb2e4ac67377cb59ee9f78289ad47f8e646c524c8bc2e0d53",
+          "fc47e4f69ba3995ef0d19c8ea233456185ec9df68ccfcff453cbf49cf0d51d7b",
+          "4fc70df26a83191f6c23e61c3ada19426549747de77ff8ae215db0edfde6c4db",
+          "4c034666a6d56c2fb2e4ac67377cb59ee9f78289ad47f8e646c524c8bc2e0d53",
+          "150cee55d02a54914a8c24db677d941febed430776f71b4467203098ead12f63"
+        ],
+        "error": "RuntimeError('2392 owner mask too narrow for eight disjoint requested subsets')",
+        "traceback": "Traceback (most recent call last):\n  File \"/refactor/incoming/Deep-HC-epilogue-r358/GPU-v2/GPU_driver.py\", line 58, in <module>\n    q['baseline_numeric_first']=call(0,True);save();q['candidate_numeric']=call(1,True);save()\n  File \"/refactor/incoming/Deep-HC-epilogue-r358/GPU-v2/GPU_driver.py\", line 52, in call\n    baseline_before=int(lib.deep_hc_canonical_calls_r7130(0,2));tick=time.perf_counter();check(lib.deep_hc_epilogue_forward_r358(ctx,mode,ptrs,P(torch.cuda.current_stream().cuda_stream)));wall=time.perf_counter()-tick\n  File \"/refactor/incoming/Deep-HC-epilogue-r358/GPU-v2/GPU_driver.py\", line 25, in check\n    if rc:raise RuntimeError(lib.deep_hc_epilogue_error_r358().decode())\nRuntimeError: 2392 owner mask too narrow for eight disjoint requested subsets\n",
+        "destroy_code": 0,
+        "Runtime_expired": 1,
+        "normal_close": true,
+        "overall_wall_s": 33.762959086336195
+      }
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Deep358-GPU-v2-910374.1269-rank5.json",
+      "SHA256": "404daa9d1b788f8ad341d1cb36f09dbb73cc820beedcdec7e0517eb950d9a980",
+      "report": {
+        "completed": true,
+        "passed": false,
+        "actual_step": "910374.1269",
+        "rank": 5,
+        "Model_loaded": false,
+        "scope": "Actual afc6 HyperConnection::pre versus T1 epilogue fusion; actualHC parameters/synthetic residual only. No Model throughput or quality claim.",
+        "calls": [],
+        "hardware": {
+          "node": "a02r4n07",
+          "cards": 1,
+          "visible_physical_HIP": "5",
+          "name": "BW",
+          "arch": "gfx936:sramecc+:xnack-"
+        },
+        "fixture": {
+          "rank": 5,
+          "layer": 20,
+          "kind": "attn",
+          "seed": 1889,
+          "shape": [
+            1,
+            4,
+            4096
+          ],
+          "input_kind": "Synthetic residual, not actual8K activation or service workload",
+          "input_SHA256": "42fad9035227d6ff240d41e5cac6a463e050ef0d7954cde9247a0f1a5c5e9a88",
+          "weights": [
+            {
+              "key": "layers.20.hc_attn_fn",
+              "shape": [
+                24,
+                16384
+              ],
+              "dtype": "F32",
+              "SHA256": "fc47e4f69ba3995ef0d19c8ea233456185ec9df68ccfcff453cbf49cf0d51d7b",
+              "shard": "model-00022-of-00046.safetensors"
+            },
+            {
+              "key": "layers.20.hc_attn_base",
+              "shape": [
+                24
+              ],
+              "dtype": "F32",
+              "SHA256": "4fc70df26a83191f6c23e61c3ada19426549747de77ff8ae215db0edfde6c4db",
+              "shard": "model-00022-of-00046.safetensors"
+            },
+            {
+              "key": "layers.20.hc_attn_scale",
+              "shape": [
+                3
+              ],
+              "dtype": "F32",
+              "SHA256": "4c034666a6d56c2fb2e4ac67377cb59ee9f78289ad47f8e646c524c8bc2e0d53",
+              "shard": "model-00022-of-00046.safetensors"
+            }
+          ],
+          "config_SHA256": "fd2ad6f5dbd77e55a49e9b2ff29c89030fbe4b538e8870c183d194648767be09",
+          "index_SHA256": "7e975ba3bef8947a94e7da0abd60888375b232b4dfad883d59653e65c6ba522a",
+          "checkpoint_scope": "Only three HC parameter tiles; no targetModel construction/loading",
+          "CPU_reference_output_SHA256": {
+            "collapsed_BF16": "7e2e13645e0c934014b1ee8a943d70941f724e6e3d8d5dc9ec08639c6b7dbec4",
+            "post": "bad4b0bfeb98254063a4780562fc1dd87b1fa3c95bb3d0820dd402d57e5c9236",
+            "comb": "da226fee3bcdb52238e6c1b5058692e4d53c7d3ccf008f2ddbdef1cc4eaff572"
+          }
+        },
+        "CPU_affinity_assigned": [
+          80,
+          81,
+          82,
+          83
+        ],
+        "CPU_receipt_SHA256": "df09983718641b117545d42d9aa018f0f45404b9c1b556c8a0392d6a6d645474",
+        "library_SHA256": "bd51e21197f66c7af012e630a1eef2d849ddd9120f4bf3458a1def6f0fc08379",
+        "memory_before_context": [
+          68365058048,
+          68702699520
+        ],
+        "CPU_affinity_after_Runtime_create": [
+          80,
+          81,
+          82,
+          83
+        ],
+        "weights_state_initial": [
+          "fc47e4f69ba3995ef0d19c8ea233456185ec9df68ccfcff453cbf49cf0d51d7b",
+          "4fc70df26a83191f6c23e61c3ada19426549747de77ff8ae215db0edfde6c4db",
+          "4c034666a6d56c2fb2e4ac67377cb59ee9f78289ad47f8e646c524c8bc2e0d53",
+          "fc47e4f69ba3995ef0d19c8ea233456185ec9df68ccfcff453cbf49cf0d51d7b",
+          "4fc70df26a83191f6c23e61c3ada19426549747de77ff8ae215db0edfde6c4db",
+          "4c034666a6d56c2fb2e4ac67377cb59ee9f78289ad47f8e646c524c8bc2e0d53",
+          "150cee55d02a54914a8c24db677d941febed430776f71b4467203098ead12f63"
+        ],
+        "error": "RuntimeError('2392 owner mask too narrow for eight disjoint requested subsets')",
+        "traceback": "Traceback (most recent call last):\n  File \"/refactor/incoming/Deep-HC-epilogue-r358/GPU-v2/GPU_driver.py\", line 58, in <module>\n    q['baseline_numeric_first']=call(0,True);save();q['candidate_numeric']=call(1,True);save()\n  File \"/refactor/incoming/Deep-HC-epilogue-r358/GPU-v2/GPU_driver.py\", line 52, in call\n    baseline_before=int(lib.deep_hc_canonical_calls_r7130(0,2));tick=time.perf_counter();check(lib.deep_hc_epilogue_forward_r358(ctx,mode,ptrs,P(torch.cuda.current_stream().cuda_stream)));wall=time.perf_counter()-tick\n  File \"/refactor/incoming/Deep-HC-epilogue-r358/GPU-v2/GPU_driver.py\", line 25, in check\n    if rc:raise RuntimeError(lib.deep_hc_epilogue_error_r358().decode())\nRuntimeError: 2392 owner mask too narrow for eight disjoint requested subsets\n",
+        "destroy_code": 0,
+        "Runtime_expired": 1,
+        "normal_close": true,
+        "overall_wall_s": 33.299499773886055
+      }
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Deep358-GPU-v2-910374.1269-rank6.json",
+      "SHA256": "ff2da289de8ba5906c1dfcf767fa61d34fb521f36d31b829d995b0a13125021c",
+      "report": {
+        "completed": true,
+        "passed": false,
+        "actual_step": "910374.1269",
+        "rank": 6,
+        "Model_loaded": false,
+        "scope": "Actual afc6 HyperConnection::pre versus T1 epilogue fusion; actualHC parameters/synthetic residual only. No Model throughput or quality claim.",
+        "calls": [],
+        "hardware": {
+          "node": "a02r4n07",
+          "cards": 1,
+          "visible_physical_HIP": "6",
+          "name": "BW",
+          "arch": "gfx936:sramecc+:xnack-"
+        },
+        "fixture": {
+          "rank": 6,
+          "layer": 20,
+          "kind": "ffn",
+          "seed": 781,
+          "shape": [
+            1,
+            4,
+            4096
+          ],
+          "input_kind": "Synthetic residual, not actual8K activation or service workload",
+          "input_SHA256": "742ec06373519f125991eec715f6fe5f1e737e1b86b0d31d72e689537666fa03",
+          "weights": [
+            {
+              "key": "layers.20.hc_ffn_fn",
+              "shape": [
+                24,
+                16384
+              ],
+              "dtype": "F32",
+              "SHA256": "cda42f32014a65c31dcadcd96ddd03300e831c5f2207386b7160b916c3d8e6d5",
+              "shard": "model-00022-of-00046.safetensors"
+            },
+            {
+              "key": "layers.20.hc_ffn_base",
+              "shape": [
+                24
+              ],
+              "dtype": "F32",
+              "SHA256": "4ecb257a4c7dea9fdf9e9622361abfa7c0957cb7ebe18462c41c640686aaab00",
+              "shard": "model-00022-of-00046.safetensors"
+            },
+            {
+              "key": "layers.20.hc_ffn_scale",
+              "shape": [
+                3
+              ],
+              "dtype": "F32",
+              "SHA256": "3f8a770026f064b319a3d876c50368a647426a0cfb28e8f276b5a4bdc7af4b69",
+              "shard": "model-00022-of-00046.safetensors"
+            }
+          ],
+          "config_SHA256": "fd2ad6f5dbd77e55a49e9b2ff29c89030fbe4b538e8870c183d194648767be09",
+          "index_SHA256": "7e975ba3bef8947a94e7da0abd60888375b232b4dfad883d59653e65c6ba522a",
+          "checkpoint_scope": "Only three HC parameter tiles; no targetModel construction/loading",
+          "CPU_reference_output_SHA256": {
+            "collapsed_BF16": "54bca817d9684cf8087267af60c1236b45c66e4bd5a2e8c1b8aed743407ecf6d",
+            "post": "bdcf3218448eaf098dd29a6ede97892d9fed59ce032def84b1a5b62f6fcfce6c",
+            "comb": "a2331b72c664dc51b591bc76eb0dea5b9b9f306330f1f79b26f9fb7eaa5e1291"
+          }
+        },
+        "CPU_affinity_assigned": [
+          96,
+          97,
+          98,
+          99
+        ],
+        "CPU_receipt_SHA256": "df09983718641b117545d42d9aa018f0f45404b9c1b556c8a0392d6a6d645474",
+        "library_SHA256": "bd51e21197f66c7af012e630a1eef2d849ddd9120f4bf3458a1def6f0fc08379",
+        "memory_before_context": [
+          68365058048,
+          68702699520
+        ],
+        "CPU_affinity_after_Runtime_create": [
+          96,
+          97,
+          98,
+          99
+        ],
+        "weights_state_initial": [
+          "cda42f32014a65c31dcadcd96ddd03300e831c5f2207386b7160b916c3d8e6d5",
+          "4ecb257a4c7dea9fdf9e9622361abfa7c0957cb7ebe18462c41c640686aaab00",
+          "3f8a770026f064b319a3d876c50368a647426a0cfb28e8f276b5a4bdc7af4b69",
+          "cda42f32014a65c31dcadcd96ddd03300e831c5f2207386b7160b916c3d8e6d5",
+          "4ecb257a4c7dea9fdf9e9622361abfa7c0957cb7ebe18462c41c640686aaab00",
+          "3f8a770026f064b319a3d876c50368a647426a0cfb28e8f276b5a4bdc7af4b69",
+          "150cee55d02a54914a8c24db677d941febed430776f71b4467203098ead12f63"
+        ],
+        "error": "RuntimeError('2392 owner mask too narrow for eight disjoint requested subsets')",
+        "traceback": "Traceback (most recent call last):\n  File \"/refactor/incoming/Deep-HC-epilogue-r358/GPU-v2/GPU_driver.py\", line 58, in <module>\n    q['baseline_numeric_first']=call(0,True);save();q['candidate_numeric']=call(1,True);save()\n  File \"/refactor/incoming/Deep-HC-epilogue-r358/GPU-v2/GPU_driver.py\", line 52, in call\n    baseline_before=int(lib.deep_hc_canonical_calls_r7130(0,2));tick=time.perf_counter();check(lib.deep_hc_epilogue_forward_r358(ctx,mode,ptrs,P(torch.cuda.current_stream().cuda_stream)));wall=time.perf_counter()-tick\n  File \"/refactor/incoming/Deep-HC-epilogue-r358/GPU-v2/GPU_driver.py\", line 25, in check\n    if rc:raise RuntimeError(lib.deep_hc_epilogue_error_r358().decode())\nRuntimeError: 2392 owner mask too narrow for eight disjoint requested subsets\n",
+        "destroy_code": 0,
+        "Runtime_expired": 1,
+        "normal_close": true,
+        "overall_wall_s": 33.910281989723444
+      }
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Deep358-GPU-v2-910374.1269-rank7.json",
+      "SHA256": "4c44afd754988050fd896f17266da7cb31f5b5b6c598218d881c4ac356a9cfa7",
+      "report": {
+        "completed": true,
+        "passed": false,
+        "actual_step": "910374.1269",
+        "rank": 7,
+        "Model_loaded": false,
+        "scope": "Actual afc6 HyperConnection::pre versus T1 epilogue fusion; actualHC parameters/synthetic residual only. No Model throughput or quality claim.",
+        "calls": [],
+        "hardware": {
+          "node": "a02r4n07",
+          "cards": 1,
+          "visible_physical_HIP": "7",
+          "name": "BW",
+          "arch": "gfx936:sramecc+:xnack-"
+        },
+        "fixture": {
+          "rank": 7,
+          "layer": 20,
+          "kind": "ffn",
+          "seed": 1889,
+          "shape": [
+            1,
+            4,
+            4096
+          ],
+          "input_kind": "Synthetic residual, not actual8K activation or service workload",
+          "input_SHA256": "42fad9035227d6ff240d41e5cac6a463e050ef0d7954cde9247a0f1a5c5e9a88",
+          "weights": [
+            {
+              "key": "layers.20.hc_ffn_fn",
+              "shape": [
+                24,
+                16384
+              ],
+              "dtype": "F32",
+              "SHA256": "cda42f32014a65c31dcadcd96ddd03300e831c5f2207386b7160b916c3d8e6d5",
+              "shard": "model-00022-of-00046.safetensors"
+            },
+            {
+              "key": "layers.20.hc_ffn_base",
+              "shape": [
+                24
+              ],
+              "dtype": "F32",
+              "SHA256": "4ecb257a4c7dea9fdf9e9622361abfa7c0957cb7ebe18462c41c640686aaab00",
+              "shard": "model-00022-of-00046.safetensors"
+            },
+            {
+              "key": "layers.20.hc_ffn_scale",
+              "shape": [
+                3
+              ],
+              "dtype": "F32",
+              "SHA256": "3f8a770026f064b319a3d876c50368a647426a0cfb28e8f276b5a4bdc7af4b69",
+              "shard": "model-00022-of-00046.safetensors"
+            }
+          ],
+          "config_SHA256": "fd2ad6f5dbd77e55a49e9b2ff29c89030fbe4b538e8870c183d194648767be09",
+          "index_SHA256": "7e975ba3bef8947a94e7da0abd60888375b232b4dfad883d59653e65c6ba522a",
+          "checkpoint_scope": "Only three HC parameter tiles; no targetModel construction/loading",
+          "CPU_reference_output_SHA256": {
+            "collapsed_BF16": "15e33fa6e10e1f70cbc82e75fe09111b136c146e938c45775015d240485b8197",
+            "post": "9f065c5e69ac4ca8f55a421d37af90de0aa0c8b9e135ea89e892b0d24505b2bb",
+            "comb": "9ec05679c3a5cd7d48f51a39ca2e0cab16d39088ee89a84ccc92946ab6469f4e"
+          }
+        },
+        "CPU_affinity_assigned": [
+          112,
+          113,
+          114,
+          115
+        ],
+        "CPU_receipt_SHA256": "df09983718641b117545d42d9aa018f0f45404b9c1b556c8a0392d6a6d645474",
+        "library_SHA256": "bd51e21197f66c7af012e630a1eef2d849ddd9120f4bf3458a1def6f0fc08379",
+        "memory_before_context": [
+          68365058048,
+          68702699520
+        ],
+        "CPU_affinity_after_Runtime_create": [
+          112,
+          113,
+          114,
+          115
+        ],
+        "weights_state_initial": [
+          "cda42f32014a65c31dcadcd96ddd03300e831c5f2207386b7160b916c3d8e6d5",
+          "4ecb257a4c7dea9fdf9e9622361abfa7c0957cb7ebe18462c41c640686aaab00",
+          "3f8a770026f064b319a3d876c50368a647426a0cfb28e8f276b5a4bdc7af4b69",
+          "cda42f32014a65c31dcadcd96ddd03300e831c5f2207386b7160b916c3d8e6d5",
+          "4ecb257a4c7dea9fdf9e9622361abfa7c0957cb7ebe18462c41c640686aaab00",
+          "3f8a770026f064b319a3d876c50368a647426a0cfb28e8f276b5a4bdc7af4b69",
+          "150cee55d02a54914a8c24db677d941febed430776f71b4467203098ead12f63"
+        ],
+        "error": "RuntimeError('2392 owner mask too narrow for eight disjoint requested subsets')",
+        "traceback": "Traceback (most recent call last):\n  File \"/refactor/incoming/Deep-HC-epilogue-r358/GPU-v2/GPU_driver.py\", line 58, in <module>\n    q['baseline_numeric_first']=call(0,True);save();q['candidate_numeric']=call(1,True);save()\n  File \"/refactor/incoming/Deep-HC-epilogue-r358/GPU-v2/GPU_driver.py\", line 52, in call\n    baseline_before=int(lib.deep_hc_canonical_calls_r7130(0,2));tick=time.perf_counter();check(lib.deep_hc_epilogue_forward_r358(ctx,mode,ptrs,P(torch.cuda.current_stream().cuda_stream)));wall=time.perf_counter()-tick\n  File \"/refactor/incoming/Deep-HC-epilogue-r358/GPU-v2/GPU_driver.py\", line 25, in check\n    if rc:raise RuntimeError(lib.deep_hc_epilogue_error_r358().decode())\nRuntimeError: 2392 owner mask too narrow for eight disjoint requested subsets\n",
+        "destroy_code": 0,
+        "Runtime_expired": 1,
+        "normal_close": true,
+        "overall_wall_s": 33.360988521017134
+      }
+    }
+  ],
+  "logs": [
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/logs/Deep-HC-epilogue-r358-v2-910374.1269-rank0.log",
+      "SHA256": "2da3827a49e446302d2ee1fe29d12be254a028f88691def90f8994c184f3d2fe",
+      "bytes": 924,
+      "tail": " any rocm files on this host!\nWARNING: Environment variable TMPDIR already has value [/tmp], will not forward new value [/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/runtime-raw-sdk-graph-r2323-910374.1269-rank0] from parent process environment\nWARNING: /opt/hyhal/lib/cmake/rocm_smi doesn't exist, please install the latest driver(version >= 6.3.15)\nThe rocm_smi_lib will be used in default\nTraceback (most recent call last):\n  File \"/refactor/incoming/Deep-HC-epilogue-r358/GPU-v2/GPU_driver.py\", line 72, in <module>\n    assert q['passed']and q.get('normal_close'),q.get('error')\nAssertionError: RuntimeError('2392 owner mask too narrow for eight disjoint requested subsets')\n"
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/logs/Deep-HC-epilogue-r358-v2-910374.1269-rank1.log",
+      "SHA256": "fb1f991e97a03ab0cd168d7e392189b70a4643ffe076daf7cfa024fe92f61472",
+      "bytes": 924,
+      "tail": " any rocm files on this host!\nWARNING: Environment variable TMPDIR already has value [/tmp], will not forward new value [/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/runtime-raw-sdk-graph-r2323-910374.1269-rank1] from parent process environment\nWARNING: /opt/hyhal/lib/cmake/rocm_smi doesn't exist, please install the latest driver(version >= 6.3.15)\nThe rocm_smi_lib will be used in default\nTraceback (most recent call last):\n  File \"/refactor/incoming/Deep-HC-epilogue-r358/GPU-v2/GPU_driver.py\", line 72, in <module>\n    assert q['passed']and q.get('normal_close'),q.get('error')\nAssertionError: RuntimeError('2392 owner mask too narrow for eight disjoint requested subsets')\n"
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/logs/Deep-HC-epilogue-r358-v2-910374.1269-rank2.log",
+      "SHA256": "9e34502c641a368646a4d83999945b920957bec1aa2a5252dd0f02015d3ca484",
+      "bytes": 924,
+      "tail": " any rocm files on this host!\nWARNING: Environment variable TMPDIR already has value [/tmp], will not forward new value [/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/runtime-raw-sdk-graph-r2323-910374.1269-rank2] from parent process environment\nWARNING: /opt/hyhal/lib/cmake/rocm_smi doesn't exist, please install the latest driver(version >= 6.3.15)\nThe rocm_smi_lib will be used in default\nTraceback (most recent call last):\n  File \"/refactor/incoming/Deep-HC-epilogue-r358/GPU-v2/GPU_driver.py\", line 72, in <module>\n    assert q['passed']and q.get('normal_close'),q.get('error')\nAssertionError: RuntimeError('2392 owner mask too narrow for eight disjoint requested subsets')\n"
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/logs/Deep-HC-epilogue-r358-v2-910374.1269-rank3.log",
+      "SHA256": "5748b7f7fce1dd3d6ff54b74ba6b99f89e505d8fddef9c7ce428f76622a96084",
+      "bytes": 924,
+      "tail": " any rocm files on this host!\nWARNING: Environment variable TMPDIR already has value [/tmp], will not forward new value [/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/runtime-raw-sdk-graph-r2323-910374.1269-rank3] from parent process environment\nWARNING: /opt/hyhal/lib/cmake/rocm_smi doesn't exist, please install the latest driver(version >= 6.3.15)\nThe rocm_smi_lib will be used in default\nTraceback (most recent call last):\n  File \"/refactor/incoming/Deep-HC-epilogue-r358/GPU-v2/GPU_driver.py\", line 72, in <module>\n    assert q['passed']and q.get('normal_close'),q.get('error')\nAssertionError: RuntimeError('2392 owner mask too narrow for eight disjoint requested subsets')\n"
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/logs/Deep-HC-epilogue-r358-v2-910374.1269-rank4.log",
+      "SHA256": "16efa387d1e892010c0b16668d4c244f128b177edf210b2561e34367ef83cf17",
+      "bytes": 924,
+      "tail": " any rocm files on this host!\nWARNING: Environment variable TMPDIR already has value [/tmp], will not forward new value [/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/runtime-raw-sdk-graph-r2323-910374.1269-rank4] from parent process environment\nWARNING: /opt/hyhal/lib/cmake/rocm_smi doesn't exist, please install the latest driver(version >= 6.3.15)\nThe rocm_smi_lib will be used in default\nTraceback (most recent call last):\n  File \"/refactor/incoming/Deep-HC-epilogue-r358/GPU-v2/GPU_driver.py\", line 72, in <module>\n    assert q['passed']and q.get('normal_close'),q.get('error')\nAssertionError: RuntimeError('2392 owner mask too narrow for eight disjoint requested subsets')\n"
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/logs/Deep-HC-epilogue-r358-v2-910374.1269-rank5.log",
+      "SHA256": "1737d728215da142a2141df00e4004332691ca37db89ed54d6b302de3c7e8d85",
+      "bytes": 924,
+      "tail": " any rocm files on this host!\nWARNING: Environment variable TMPDIR already has value [/tmp], will not forward new value [/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/runtime-raw-sdk-graph-r2323-910374.1269-rank5] from parent process environment\nWARNING: /opt/hyhal/lib/cmake/rocm_smi doesn't exist, please install the latest driver(version >= 6.3.15)\nThe rocm_smi_lib will be used in default\nTraceback (most recent call last):\n  File \"/refactor/incoming/Deep-HC-epilogue-r358/GPU-v2/GPU_driver.py\", line 72, in <module>\n    assert q['passed']and q.get('normal_close'),q.get('error')\nAssertionError: RuntimeError('2392 owner mask too narrow for eight disjoint requested subsets')\n"
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/logs/Deep-HC-epilogue-r358-v2-910374.1269-rank6.log",
+      "SHA256": "96365b8a1d9e30238757a9595ca6c9fa631a0f32476f47ec7dbcac3810a7e891",
+      "bytes": 924,
+      "tail": " any rocm files on this host!\nWARNING: Environment variable TMPDIR already has value [/tmp], will not forward new value [/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/runtime-raw-sdk-graph-r2323-910374.1269-rank6] from parent process environment\nWARNING: /opt/hyhal/lib/cmake/rocm_smi doesn't exist, please install the latest driver(version >= 6.3.15)\nThe rocm_smi_lib will be used in default\nTraceback (most recent call last):\n  File \"/refactor/incoming/Deep-HC-epilogue-r358/GPU-v2/GPU_driver.py\", line 72, in <module>\n    assert q['passed']and q.get('normal_close'),q.get('error')\nAssertionError: RuntimeError('2392 owner mask too narrow for eight disjoint requested subsets')\n"
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/logs/Deep-HC-epilogue-r358-v2-910374.1269-rank7.log",
+      "SHA256": "864f9ac740b5c085ca0096c2f7b778fe7f0ee015644bdfd1bd91eff8114c6203",
+      "bytes": 924,
+      "tail": " any rocm files on this host!\nWARNING: Environment variable TMPDIR already has value [/tmp], will not forward new value [/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/runtime-raw-sdk-graph-r2323-910374.1269-rank7] from parent process environment\nWARNING: /opt/hyhal/lib/cmake/rocm_smi doesn't exist, please install the latest driver(version >= 6.3.15)\nThe rocm_smi_lib will be used in default\nTraceback (most recent call last):\n  File \"/refactor/incoming/Deep-HC-epilogue-r358/GPU-v2/GPU_driver.py\", line 72, in <module>\n    assert q['passed']and q.get('normal_close'),q.get('error')\nAssertionError: RuntimeError('2392 owner mask too narrow for eight disjoint requested subsets')\n"
+    }
+  ],
+  "watch": {
+    "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Deep-HC-epilogue-r358-v2-watch.json",
+    "SHA256": "54a9c306f52c71c3b5d0503b1995af106281098a15702e76d3ca891839154f6d",
+    "report": {
+      "completed": true,
+      "publication_commit": "823d85bcaa515be594f24614d761be3c4350002f",
+      "manifest_SHA256": "fe28de564c81c84fe71983cb7bd9886b527e07945fd3ef5a3a0caae896cfa69d",
+      "CPU_keeper_actual": "910407.698",
+      "GPU_submitted": true,
+      "GPU_max_s": 600,
+      "no_retry": true,
+      "Model_loaded": false,
+      "fresh_before": {
+        "node": "a02r4n07",
+        "actual_step": "910374.1268",
+        "KFD_available": true,
+        "kfd_pids": [],
+        "GPU_initialized": false
+      },
+      "observed_UTC": "2026-11-01T22:20:58.974637+00:00",
+      "srun_client_PID": 1736541,
+      "actual_GPU": "910374.1269",
+      "last_Slurm": [
+        "910374.1269",
+        "Deep-HC-epilogue-r358-v2",
+        "FAILED",
+        "1:0",
+        "a02r4n07"
+      ],
+      "terminal": [
+        "910374.1269",
+        "Deep-HC-epilogue-r358-v2",
+        "FAILED",
+        "1:0",
+        "a02r4n07"
+      ],
+      "post": {
+        "node": "a02r4n07",
+        "actual_step": "910374.1270",
+        "KFD_available": true,
+        "kfd_pids": [],
+        "GPU_initialized": false
+      },
+      "reports": [
+        {
+          "rank": 0,
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Deep358-GPU-v2-910374.1269-rank0.json",
+          "SHA256": "74c7c9febcd18de7f2e6271f8bf7e7f375caff3ed9ad1f1401a429e28cbdbc44",
+          "passed": false,
+          "normal_close": true,
+          "error": "RuntimeError('2392 owner mask too narrow for eight disjoint requested subsets')",
+          "CPU_affinity": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "physical_HIP": "0"
+        },
+        {
+          "rank": 1,
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Deep358-GPU-v2-910374.1269-rank1.json",
+          "SHA256": "d2c209d6658f7f2bc16136d75673d9ddfb7aee29b509ead9f4399997d68b7f84",
+          "passed": false,
+          "normal_close": true,
+          "error": "RuntimeError('2392 owner mask too narrow for eight disjoint requested subsets')",
+          "CPU_affinity": [
+            16,
+            17,
+            18,
+            19
+          ],
+          "physical_HIP": "1"
+        },
+        {
+          "rank": 2,
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Deep358-GPU-v2-910374.1269-rank2.json",
+          "SHA256": "a1ffc066da0b202b3d50a02dadb9ba4cdb4ee007a20eab631d5b68348bc6b708",
+          "passed": false,
+          "normal_close": true,
+          "error": "RuntimeError('2392 owner mask too narrow for eight disjoint requested subsets')",
+          "CPU_affinity": [
+            32,
+            33,
+            34,
+            35
+          ],
+          "physical_HIP": "2"
+        },
+        {
+          "rank": 3,
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Deep358-GPU-v2-910374.1269-rank3.json",
+          "SHA256": "328fbf373c1c9ab98c41447b2c8d32829c6814e78ecb9da0fdcd47621dca0e97",
+          "passed": false,
+          "normal_close": true,
+          "error": "RuntimeError('2392 owner mask too narrow for eight disjoint requested subsets')",
+          "CPU_affinity": [
+            48,
+            49,
+            50,
+            51
+          ],
+          "physical_HIP": "3"
+        },
+        {
+          "rank": 4,
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Deep358-GPU-v2-910374.1269-rank4.json",
+          "SHA256": "30c5db66e999c2662de553825f4fcbf4093ade212c6d96966d3543c242552ef3",
+          "passed": false,
+          "normal_close": true,
+          "error": "RuntimeError('2392 owner mask too narrow for eight disjoint requested subsets')",
+          "CPU_affinity": [
+            64,
+            65,
+            66,
+            67
+          ],
+          "physical_HIP": "4"
+        },
+        {
+          "rank": 5,
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Deep358-GPU-v2-910374.1269-rank5.json",
+          "SHA256": "404daa9d1b788f8ad341d1cb36f09dbb73cc820beedcdec7e0517eb950d9a980",
+          "passed": false,
+          "normal_close": true,
+          "error": "RuntimeError('2392 owner mask too narrow for eight disjoint requested subsets')",
+          "CPU_affinity": [
+            80,
+            81,
+            82,
+            83
+          ],
+          "physical_HIP": "5"
+        },
+        {
+          "rank": 6,
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Deep358-GPU-v2-910374.1269-rank6.json",
+          "SHA256": "ff2da289de8ba5906c1dfcf767fa61d34fb521f36d31b829d995b0a13125021c",
+          "passed": false,
+          "normal_close": true,
+          "error": "RuntimeError('2392 owner mask too narrow for eight disjoint requested subsets')",
+          "CPU_affinity": [
+            96,
+            97,
+            98,
+            99
+          ],
+          "physical_HIP": "6"
+        },
+        {
+          "rank": 7,
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Deep358-GPU-v2-910374.1269-rank7.json",
+          "SHA256": "4c44afd754988050fd896f17266da7cb31f5b5b6c598218d881c4ac356a9cfa7",
+          "passed": false,
+          "normal_close": true,
+          "error": "RuntimeError('2392 owner mask too narrow for eight disjoint requested subsets')",
+          "CPU_affinity": [
+            112,
+            113,
+            114,
+            115
+          ],
+          "physical_HIP": "7"
+        }
+      ],
+      "valid_ranks": 0,
+      "all8_passed": false
+    }
+  },
+  "sacct": [
+    "910374.1268|Deep-HC-epilogue-r358-v2-before|COMPLETED|0:0|00:00:01|a02r4n07",
+    "910374.1269|Deep-HC-epilogue-r358-v2|FAILED|1:0|00:00:38|a02r4n07",
+    "910374.1270|Deep-HC-epilogue-r358-v2-post|COMPLETED|0:0|00:00:01|a02r4n07",
+    "910407.698|Deep-HC-epilogue-r358-v2-keeper|COMPLETED|0:0|00:00:42|a14r2n20"
+  ],
+  "valid_ABBA": 0,
+  "baseline_numeric_passed": 0,
+  "candidate_calls": 0,
+  "Model_gain": "UNMEASURED",
+  "measurement_GPU_seconds": 0,
+  "Slurm_GPU_allocation_s": 38,
+  "CPU_keeper_s": 42,
+  "root_cause": "Driver narrowed the submitting thread to four CPUs before the production r2392 first submission; also candidate compiled Common submit.hpp lacking the Model guard. Both corrected in new immutable repair, original not replayed."
+}

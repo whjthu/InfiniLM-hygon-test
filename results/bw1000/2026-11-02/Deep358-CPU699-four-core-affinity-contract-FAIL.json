@@ -1,0 +1,85 @@
+{
+  "CPU-build.json": {
+    "SHA256": "5fd0c70923677b7659fbc37f0a766df73506b991b6b405f60ddc2ff6eac7fffc",
+    "report": {
+      "completed": false,
+      "CPU_only": true,
+      "GPU_initialized": false,
+      "Native_dlopen": false,
+      "weights_payload_opened": false,
+      "whole_Model_loaded": false,
+      "actual_step": "910407.699",
+      "commands": [
+        [
+          "g++",
+          "-std=c++17",
+          "-O2",
+          "-fPIC",
+          "-pthread",
+          "-D_GLIBCXX_USE_CXX11_ABI=1",
+          "-I/refactor/incoming/Deep-HC-epilogue-r358-cpu-r1",
+          "-I/refactor/candidates/deep-c4-projection-model-r5920/incoming",
+          "-I/refactor/candidates/rebased-5f91ad7-r3668/Model/Deep/InfiniLM/csrc",
+          "-I/refactor/candidates/rebased-5f91ad7-r3668/Common/Deep/InfiniLM/csrc",
+          "-I/refactor/install/hygon-deep-5f91ad7-r3672/include",
+          "-I/refactor/install/hygon-deep-5f91ad7-r3672/include/infiniccl",
+          "-I/refactor/candidates/rebased-5f91ad7-r3668/Common/Deep/InfiniLM/third_party/json/include",
+          "-I/refactor/candidates/rebased-5f91ad7-r3668/Common/Deep/InfiniLM/third_party/spdlog/include",
+          "-I/opt/dtk/cuda/cuda/include",
+          "-MD",
+          "-MF",
+          "/refactor/candidates/Deep-HC-epilogue-r358-cpu-r1/adapter.d",
+          "-c",
+          "/refactor/incoming/Deep-HC-epilogue-r358-cpu-r1/adapter.cpp",
+          "-o",
+          "/refactor/candidates/Deep-HC-epilogue-r358-cpu-r1/adapter.o"
+        ],
+        [
+          "g++",
+          "-std=c++17",
+          "-O2",
+          "-fPIC",
+          "-pthread",
+          "-D_GLIBCXX_USE_CXX11_ABI=1",
+          "-I/refactor/incoming/Deep-HC-epilogue-r358-cpu-r1",
+          "-I/refactor/candidates/deep-c4-projection-model-r5920/incoming",
+          "-I/refactor/candidates/rebased-5f91ad7-r3668/Model/Deep/InfiniLM/csrc",
+          "-I/refactor/candidates/rebased-5f91ad7-r3668/Common/Deep/InfiniLM/csrc",
+          "-I/refactor/install/hygon-deep-5f91ad7-r3672/include",
+          "-I/refactor/install/hygon-deep-5f91ad7-r3672/include/infiniccl",
+          "-I/refactor/candidates/rebased-5f91ad7-r3668/Common/Deep/InfiniLM/third_party/json/include",
+          "-I/refactor/candidates/rebased-5f91ad7-r3668/Common/Deep/InfiniLM/third_party/spdlog/include",
+          "-I/opt/dtk/cuda/cuda/include",
+          "-M",
+          "/refactor/incoming/Deep-HC-epilogue-r358-cpu-r1/adapter.cpp"
+        ],
+        [
+          "python3",
+          "-B",
+          "/refactor/incoming/Deep-HC-epilogue-r358-cpu-r1/CPU_affinity_contract.py"
+        ]
+      ],
+      "error": "AssertionError(('CPU-affinity', 1, 'Traceback (most recent call last):\\n  File \"/refactor/incoming/Deep-HC-epilogue-r358-cpu-r1/CPU_affinity_contract.py\", line 24, in <module>\\n    print(json.dumps(worker(int(sys.argv[1]),sys.argv[2]==\\'1\\')));sys.exit(0)\\n  File \"/refactor/incoming/Deep-HC-epilogue-r358-cpu-r1/CPU_affinity_contract.py\", line 11, in worker\\n    initial,expected=rank_plan(device if device<8 else 0)\\n  File \"/refactor/incoming/Deep-HC-epilogue-r358-cpu-r1/affinity_protocol.py\", line 7, in rank_plan\\n    assert len(initial) >= 32, initial\\nAssertionError: [0, 1, 2, 3]\\nTraceback (most recent call last):\\n  File \"/refactor/incoming/Deep-HC-epilogue-r358-cpu-r1/CPU_affinity_contract.py\", line 38, in <module>\\n    good=[run(d)for d in range(8)]\\n  File \"/refactor/incoming/Deep-HC-epilogue-r358-cpu-r1/CPU_affinity_contract.py\", line 38, in <listcomp>\\n    good=[run(d)for d in range(8)]\\n  File \"/refactor/incoming/Deep-HC-epilogue-r358-cpu-r1/CPU_affinity_contract.py\", line 37, in run\\n    return json.loads(subprocess.check_output([sys.executable,\\'-B\\',str(__file__),str(d),str(int(narrow))],env=env,text=True,timeout=10))\\n  File \"/usr/lib/python3.10/subprocess.py\", line 421, in check_output\\n    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,\\n  File \"/usr/lib/python3.10/subprocess.py\", line 526, in run\\n    raise CalledProcessError(retcode, process.args,\\nsubprocess.CalledProcessError: Command \\'[\\'/usr/bin/python3\\', \\'-B\\', \\'/refactor/incoming/Deep-HC-epilogue-r358-cpu-r1/CPU_affinity_contract.py\\', \\'0\\', \\'0\\']\\' returned non-zero exit status 1.\\n'))",
+      "traceback": "Traceback (most recent call last):\n  File \"/refactor/incoming/Deep-HC-epilogue-r358-cpu-r1/build_cpu.py\", line 21, in <module>\n    run(['python3','-B',str(S/'CPU_affinity_contract.py')],'CPU-affinity',90)\n  File \"/refactor/incoming/Deep-HC-epilogue-r358-cpu-r1/build_cpu.py\", line 10, in run\n    assert z.returncode==0,(label,z.returncode,z.stderr[-6000:]);return z.stdout\nAssertionError: ('CPU-affinity', 1, 'Traceback (most recent call last):\\n  File \"/refactor/incoming/Deep-HC-epilogue-r358-cpu-r1/CPU_affinity_contract.py\", line 24, in <module>\\n    print(json.dumps(worker(int(sys.argv[1]),sys.argv[2]==\\'1\\')));sys.exit(0)\\n  File \"/refactor/incoming/Deep-HC-epilogue-r358-cpu-r1/CPU_affinity_contract.py\", line 11, in worker\\n    initial,expected=rank_plan(device if device<8 else 0)\\n  File \"/refactor/incoming/Deep-HC-epilogue-r358-cpu-r1/affinity_protocol.py\", line 7, in rank_plan\\n    assert len(initial) >= 32, initial\\nAssertionError: [0, 1, 2, 3]\\nTraceback (most recent call last):\\n  File \"/refactor/incoming/Deep-HC-epilogue-r358-cpu-r1/CPU_affinity_contract.py\", line 38, in <module>\\n    good=[run(d)for d in range(8)]\\n  File \"/refactor/incoming/Deep-HC-epilogue-r358-cpu-r1/CPU_affinity_contract.py\", line 38, in <listcomp>\\n    good=[run(d)for d in range(8)]\\n  File \"/refactor/incoming/Deep-HC-epilogue-r358-cpu-r1/CPU_affinity_contract.py\", line 37, in run\\n    return json.loads(subprocess.check_output([sys.executable,\\'-B\\',str(__file__),str(d),str(int(narrow))],env=env,text=True,timeout=10))\\n  File \"/usr/lib/python3.10/subprocess.py\", line 421, in check_output\\n    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,\\n  File \"/usr/lib/python3.10/subprocess.py\", line 526, in run\\n    raise CalledProcessError(retcode, process.args,\\nsubprocess.CalledProcessError: Command \\'[\\'/usr/bin/python3\\', \\'-B\\', \\'/refactor/incoming/Deep-HC-epilogue-r358-cpu-r1/CPU_affinity_contract.py\\', \\'0\\', \\'0\\']\\' returned non-zero exit status 1.\\n')\n",
+      "seconds": 9.872212664689869
+    }
+  },
+  "sacct": [
+    "910407.685|Deep353r1v2-controller-CPU|COMPLETED|0:0|00:00:00|a14r2n20",
+    "910407.686|Deep-C1-current-profile-Model-r353r1-keeper|COMPLETED|0:0|00:21:52|a14r2n20",
+    "910407.687|GLM-r355-whole-CPU|FAILED|1:0|00:00:09|a14r2n20",
+    "910407.688|GLM-r355-whole-CPU-r2|COMPLETED|0:0|00:00:17|a14r2n20",
+    "910407.689|GLM-r355-GLM-C2M1-r355-a-keeper|COMPLETED|0:0|00:57:12|a14r2n20",
+    "910407.690|Deep358-CPU-build-v1|FAILED|1:0|00:00:05|a14r2n20",
+    "910407.691|Kimi-target-port-lease-CPU-r356|COMPLETED|0:0|00:00:03|a14r2n20",
+    "910407.692|Kimi-controller-port-lease-CPU-r357|COMPLETED|0:0|00:00:06|a14r2n20",
+    "910407.693|Deep358-CPU-build-v2|COMPLETED|0:0|00:00:11|a14r2n20",
+    "910407.694|Kimi-long-keeper-r347-longpair-20261102-c|FAILED|1:0|00:43:41|a14r2n20",
+    "910407.695|utilization-snapshot-20261101-910407|COMPLETED|0:0|00:00:01|a14r2n20",
+    "910407.696|Deep358-CPU-build-v3|COMPLETED|0:0|00:00:15|a14r2n20",
+    "910407.697|Deep358-controller-preflight-v2|COMPLETED|0:0|00:00:00|a14r2n20",
+    "910407.698|Deep-HC-epilogue-r358-v2-keeper|COMPLETED|0:0|00:00:42|a14r2n20",
+    "910407.699|Deep358-CPU-build-r1|FAILED|1:0|00:00:10|a14r2n20"
+  ],
+  "log_tail": "LOCAL_PYCACHE_R3097 node=a14r2n20 filesystem=tmpfs root=/dev/shm/infini-pyc-910407.699-0\nSHARED_CACHED_R1780_START node=a14r2n20 step=910407.699 scratch=runtime-raw-sdk-graph-r2323-910407.699-rank0\nWARNING: Could not find any rocm files on this host!\nWARNING: Environment variable TMPDIR already has value [/tmp], will not forward new value [/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/runtime-raw-sdk-graph-r2323-910407.699-rank0] from parent process environment\nWARNING: /opt/hyhal/lib/cmake/rocm_smi doesn't exist, please install the latest driver(version >= 6.3.15)\nThe rocm_smi_lib will be used in default\n{\"completed\": false, \"actual_step\": \"910407.699\", \"error\": \"AssertionError(('CPU-affinity', 1, 'Traceback (most recent call last):\\\\n  File \\\"/refactor/incoming/Deep-HC-epilogue-r358-cpu-r1/CPU_affinity_contract.py\\\", line 24, in <module>\\\\n    print(json.dumps(worker(int(sys.argv[1]),sys.argv[2]==\\\\'1\\\\')));sys.exit(0)\\\\n  File \\\"/refactor/incoming/Deep-HC-epilogue-r358-cpu-r1/CPU_affinity_contract.py\\\", line 11, in worker\\\\n    initial,expected=rank_plan(device if device<8 else 0)\\\\n  File \\\"/refactor/incoming/Deep-HC-epilogue-r358-cpu-r1/affinity_protocol.py\\\", line 7, in rank_plan\\\\n    assert len(initial) >= 32, initial\\\\nAssertionError: [0, 1, 2, 3]\\\\nTraceback (most recent call last):\\\\n  File \\\"/refactor/incoming/Deep-HC-epilogue-r358-cpu-r1/CPU_affinity_contract.py\\\", line 38, in <module>\\\\n    good=[run(d)for d in range(8)]\\\\n  File \\\"/refactor/incoming/Deep-HC-epilogue-r358-cpu-r1/CPU_affinity_contract.py\\\", line 38, in <listcomp>\\\\n    good=[run(d)for d in range(8)]\\\\n  File \\\"/refactor/incoming/Deep-HC-epilogue-r358-cpu-r1/CPU_affinity_contract.py\\\", line 37, in run\\\\n    return json.loads(subprocess.check_output([sys.executable,\\\\'-B\\\\',str(__file__),str(d),str(int(narrow))],env=env,text=True,timeout=10))\\\\n  File \\\"/usr/lib/python3.10/subprocess.py\\\", line 421, in check_output\\\\n    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,\\\\n  File \\\"/usr/lib/python3.10/subprocess.py\\\", line 526, in run\\\\n    raise CalledProcessError(retcode, process.args,\\\\nsubprocess.CalledProcessError: Command \\\\'[\\\\'/usr/bin/python3\\\\', \\\\'-B\\\\', \\\\'/refactor/incoming/Deep-HC-epilogue-r358-cpu-r1/CPU_affinity_contract.py\\\\', \\\\'0\\\\', \\\\'0\\\\']\\\\' returned non-zero exit status 1.\\\\n'))\", \"seconds\": 9.872212664689869}\nTraceback (most recent call last):\n  File \"/refactor/incoming/Deep-HC-epilogue-r358-cpu-r1/build_cpu.py\", line 31, in <module>\n    (B/'CPU-build.json').write_text(json.dumps(q,indent=2)+'\\n');print(json.dumps({k:q.get(k)for k in ['completed','actual_step','error','seconds']}));assert q['completed']\nAssertionError\nsrun: error: a14r2n20: task 0: Exited with exit code 1\nsrun: Terminating StepId=910407.699\n"
+}
