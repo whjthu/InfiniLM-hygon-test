@@ -1,0 +1,227 @@
+{
+  "schema": 1,
+  "card": "r352",
+  "state": "STOP_NO_DISTINCT_BOUNDED_OPERATOR_CANDIDATE",
+  "GPU_calls": 0,
+  "Native_dlopen": false,
+  "Slurm_jobs": 0,
+  "resource_claim": null,
+  "Native327_SHA256": "4dfdc9a7809b367ef91b476280f12bca6da0c12511eb14dae679147382246505",
+  "installed_SDK_SHA256": "6d5a6204f7eef70e84deb9cc737a36c6ae2c1fbc75a0f70645557c8441ed85ca",
+  "closure": "MoE source/implementation index, retained compiler recipe/dependency objects, and installed SDK code-section identity mapped; not a reproducible rebuild or observed runtime kernel/ISA trace.",
+  "dispatch_chain": [
+    "Native327 keeps r201/moe.o db8e6363b30be629401ef4b17f8eab0fbdcdb6e7f92f3b983c8968418bca15d3; source r201 lines410-422 selects FusedMoeMxfp4 Hygon implementation_index1 in the fallback.",
+    "generated/src/operator_call_instantiations_6.cc lines153-167 explicitly instantiates active indices, DefaultConfig, Call, Make and OperatorFactory for FusedMoeMxfp4; generated/bindings/generated_dispatch_6.cc forwards the factory/call.",
+    "Hygon kernel.h implementation1 inherits implementation0 and overrides ParallelRoutes=true; BF16 selects Launch<__nv_bfloat16>, then launchFusedMoeMxfp4R330.",
+    "R330 first tries the process-optin T1 tiled branch; its following static path requires I384, so it cannot apply to actual I192. The remaining path is generic launchFusedMoeMxfp4.",
+    "Generic launch uses W13 route*I CTAs and W2 token*H CTAs; implementation1/topk16 chooses W2Routes16."
+  ],
+  "actual_geometry": {
+    "T_decode": 1,
+    "T_W8_verify": 8,
+    "experts": 896,
+    "topk": 16,
+    "routed_H": 3584,
+    "local_I": 192,
+    "activation": 2,
+    "weights": "packed UInt8 E2M1 two nibbles/byte; UInt8 E8M0 exponent scale per32 weights",
+    "activation_dtype": "BF16; source arithmetic/reduction float"
+  },
+  "already_implemented": [
+    "W13 gate/up share each input pair, decode the two packed rows into registers, accumulate FP32, block-reduce both, and fuse SITU plus BF16 activated-store. No full BF16 weight materialization in this generic path.",
+    "W2Routes16 assigns warp32 to one route, handles8 routes concurrently per tile over two tiles for topk16, warp-reduces each partial, then sums weighted routes in ascending order before one BF16 store. Proposing parallel routes again is a duplicate.",
+    "SDK already contains process-optin INFINILM_MXFP4_TILE_TP_R2559 for BF16/T1/H3584/topk16/activation2 and I64/96/192/384, with I192 Tile4. This is existing code, not a new kernel mechanism.",
+    "No native FP4 GEMM/MMAC or packed FP32 pair FMA is demonstrated by the generic source: nibble table plus ldexpf produces float weights, BF16 input converts to float. Actual emitted scalar FMA contraction/ISA was not disassembled."
+  ],
+  "packing_and_route_reuse_boundary": [
+    "T1 topk16 selects distinct experts within that token; different routes therefore do not automatically share expert weights. T8 cross-token reuse depends on actual expert overlap, which was not captured here.",
+    "Generic W13 reuses one input pair for gate and up of a single output channel; it does not group tokens by expert or share decoded weights across tokens. W2Routes16 reuses no output-channel pair; the separate Model W2_PAIR optin is disabled in r346.",
+    "Source logical packed-byte loads and useful-FLOP/address-set ratios do not measure HBM traffic, cache hit rate, achieved arithmetic utilization or a roofline."
+  ],
+  "retained_build": {
+    "directory": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/build/ops-kimi-5f91ad7-r3672",
+    "compiler": "/opt/dtk/cuda/cuda/bin/nvcc -x cu -arch=gfx936 -O3 -DNDEBUG, C++17, ABI1",
+    "objects_and_dependencies": [
+      {
+        "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/build/ops-kimi-5f91ad7-r3672/src/CMakeFiles/infiniops.dir/__/generated/src/operator_call_instantiations_6.cc.o",
+        "bytes": 933136,
+        "SHA256": "ef3d4cdb66c7dc9680489abd3bc04e26c2894d22cad3c7b821d4c734f98788b5"
+      },
+      {
+        "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/build/ops-kimi-5f91ad7-r3672/src/CMakeFiles/infiniops.dir/__/generated/src/operator_call_instantiations_6.cc.o.d",
+        "bytes": 78374,
+        "SHA256": "332e6340e4977326f33f1e159a7d83f0ff6b55a46dabf2edea9d74bfe4a8b508"
+      },
+      {
+        "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/build/ops-kimi-5f91ad7-r3672/src/CMakeFiles/infiniops.dir/__/generated/bindings/generated_dispatch_6.cc.o",
+        "bytes": 151712,
+        "SHA256": "889175b39e42a95eb9ec7c89d1b364fc6482762e798cfb9cbe85029c984ec0f9"
+      },
+      {
+        "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/build/ops-kimi-5f91ad7-r3672/src/CMakeFiles/infiniops.dir/__/generated/bindings/generated_dispatch_6.cc.o.d",
+        "bytes": 78470,
+        "SHA256": "5155142c445fa1b9277ec8668ee5aa24b83eaafada9d78baa5e9cd1bda25f02a"
+      }
+    ],
+    "commands": [
+      "\tcd /refactor/build/ops-kimi-5f91ad7-r3672/src && /opt/dtk/cuda/cuda/bin/nvcc -forward-unknown-to-host-compiler $(CUDA_DEFINES) $(CUDA_INCLUDES) $(CUDA_FLAGS) -MD -MT src/CMakeFiles/infiniops.dir/__/generated/src/operator_call_instantiations_6.cc.o -MF CMakeFiles/infiniops.dir/__/generated/src/operator_call_instantiations_6.cc.o.d -x cu -c /refactor/candidates/rebased-5f91ad7-r3668/Ops/Kimi/InfiniOps/generated/src/operator_call_instantiations_6.cc -o CMakeFiles/infiniops.dir/__/generated/src/operator_call_instantiations_6.cc.o",
+      "\tcd /refactor/build/ops-kimi-5f91ad7-r3672/src && /opt/dtk/cuda/cuda/bin/nvcc -forward-unknown-to-host-compiler $(CUDA_DEFINES) $(CUDA_INCLUDES) $(CUDA_FLAGS) -MD -MT src/CMakeFiles/infiniops.dir/__/generated/bindings/generated_dispatch_6.cc.o -MF CMakeFiles/infiniops.dir/__/generated/bindings/generated_dispatch_6.cc.o.d -x cu -c /refactor/candidates/rebased-5f91ad7-r3668/Ops/Kimi/InfiniOps/generated/bindings/generated_dispatch_6.cc -o CMakeFiles/infiniops.dir/__/generated/bindings/generated_dispatch_6.cc.o"
+    ],
+    "build_library_SHA256": "0bb264392e81db392edf5cdd836d407a241a7ea3921ba1452a4efe61b7e48e83",
+    "installed_library_SHA256": "6d5a6204f7eef70e84deb9cc737a36c6ae2c1fbc75a0f70645557c8441ed85ca",
+    "only_different_ELF_section": ".dynstr",
+    "matching_code_sections": {
+      ".text": {
+        "size": 15909106,
+        "type": 1,
+        "flags": 6,
+        "SHA256": "e4efd2c0616e8f97d10ea520869fed9dcb1ca0ed79f6bdd6e7fe95ebc5d55dd1"
+      },
+      ".hip_fatbin": {
+        "size": 8285256,
+        "type": 1,
+        "flags": 2,
+        "SHA256": "ecf1a1a71e4daed1caa253cf0c57c8586df5a5185f81276e09bca1204985d9be"
+      },
+      ".rodata": {
+        "size": 1515411,
+        "type": 1,
+        "flags": 2,
+        "SHA256": "73723deefa5e0a206abd8b133433fcca419cc5eeaa2a84c160e20e1746211a7b"
+      },
+      ".note.gnu.build-id": {
+        "size": 36,
+        "type": 7,
+        "flags": 2,
+        "SHA256": "1f78425691dd20bb849bec509e7b6cb5ad5c27b8dc7b6140b9741ccbc7beaa04"
+      }
+    },
+    "limitation": "Retained .o.d files bind source paths, not historical source-byte digests. Current source hashes also match earlier archived r8669u/r166 hashes, but no fresh reproducible SDK rebuild was performed."
+  },
+  "source_manifest": {
+    "generated/bindings/fused_moe_mxfp4.cc": {
+      "SHA256": "01944b751bfabd1ac94528b8991f422e30b6153f804e2e6e74b3d2091f8a29db",
+      "bytes": 29
+    },
+    "generated/bindings/generated_dispatch_6.cc": {
+      "SHA256": "51c674ec7a7235a18b69ee8bd6346efe5d953b1bb698cc77b5bdcf9a639d3d60",
+      "bytes": 12578
+    },
+    "generated/bindings/fused_moe_mxfp4.h": {
+      "SHA256": "048e2ec9405efe029564220630829b21cdec955243b3a0e4814c3899d974cde0",
+      "bytes": 3942
+    },
+    "generated/bindings/ops.cc": {
+      "SHA256": "048a2666da614b10fc67a3e646f95cce63d8406b599ab61a7767ddc6b6473242",
+      "bytes": 36725
+    },
+    "generated/bindings/generated_dispatch.h": {
+      "SHA256": "7c0a0bdd73283dbf07135b21595080bc3e284486bb5b3e85aebc4dcd0282e4bc",
+      "bytes": 401334
+    },
+    "generated/src/cache_clear_dispatch.cc": {
+      "SHA256": "e12d31e3c1767078a803904339508204846935a74987236ac4fbb95c9dae1004",
+      "bytes": 67039
+    },
+    "generated/src/operator_call_instantiations_6.cc": {
+      "SHA256": "7c053ebc70475f45516741903f59223e351978b1f1c7432f01be650746d676a9",
+      "bytes": 21611
+    },
+    "generated/src/fused_moe_mxfp4/operator.cc": {
+      "SHA256": "70fa9ac9dfe2e69fd2358ba65dd53f1a495115e462bc4827dc9f58b0ab820608",
+      "bytes": 5736
+    },
+    "generated/include/fused_moe_mxfp4.h": {
+      "SHA256": "477ba11318845902decadb65d830df6cef815627d1ca8f79875e3b6a47994f27",
+      "bytes": 1260
+    },
+    "generated/include/infini/operator_call_instantiations.h": {
+      "SHA256": "7a95b2f9d7a4f3ea327395b67a24faa868435f09d22880374cbb19eaa29cd9eb",
+      "bytes": 1274047
+    },
+    "src/native/cuda/ops/fused_moe_mxfp4/kernel.cuh": {
+      "SHA256": "e33d9e0ab3ead7f6d9a9c928bc99dc92276acf399c682941f256bfc4c84b1897",
+      "bytes": 9902
+    },
+    "src/native/cuda/hygon/ops/fused_moe_mxfp4/kimi_tiled_tp_r2536.cuh": {
+      "SHA256": "9e0042a49edf37a4b3503b1dbd5d075c6870d5ab88e2c455b061e85e9e1a3ddd",
+      "bytes": 1522
+    },
+    "src/native/cuda/hygon/ops/fused_moe_mxfp4/kernel.h": {
+      "SHA256": "bd495744e997943a7a82aae391eff7b5ba17bf2b819e2a38187110b59e942fb4",
+      "bytes": 2674
+    },
+    "src/native/cuda/hygon/ops/fused_moe_mxfp4/kimi_tiled_dispatch_r2559.cuh": {
+      "SHA256": "1a8fb6f63777c823c45462639f0371d5a5c6ea756a54305d80f69f2f2ad8c98f",
+      "bytes": 3344
+    },
+    "src/native/cuda/hygon/ops/fused_moe_mxfp4/kimi_mxfp4_dispatch_r330.cuh": {
+      "SHA256": "27b726a61fcf12c1481f6b998908d460570bdee81b2945bd8bade8d4fa04b45f",
+      "bytes": 2282
+    },
+    "src/native/cuda/hygon/ops/fused_moe_mxfp4/kimi_mxfp4_static_r326.cuh": {
+      "SHA256": "c28ce7a5e5f5546ea4966e72c421f958d3b2c2681d669649677eab72b8c5696d",
+      "bytes": 9200
+    },
+    "src/base/fused_moe_mxfp4.h": {
+      "SHA256": "bd9c2d4e99521e423abccbc37f4662c0320fedb4f94c4c5c9f375c644c091384",
+      "bytes": 3325
+    }
+  },
+  "known_negative_dedup": [
+    {
+      "mechanism": "Direct register decode to BF16 MMAC, coalesced LDS/padding, persistent/hybrid, guarded FDOT2/postscale",
+      "evidence": "analysis/bw1000/Kimi-next-expert-placement-card-r8669zi.json",
+      "decision": "Previously qualified sparse-route negatives; no equivalent repeat."
+    },
+    {
+      "mechanism": "W2 group32 A8/exact W8 register scale",
+      "evidence": "coordination/tasks/kimi-int8-group32-w2.json",
+      "decision": "753/757 qualified mixed and PARK; no equivalent repeat."
+    },
+    {
+      "mechanism": "W2 output-channel reuse2 to4",
+      "evidence": "results/bw1000/2026-10-28/kimi1184-W2-quad4-negative.json",
+      "decision": "Qualified no single-user gain, PARK; no equivalent repeat."
+    },
+    {
+      "mechanism": "Expert placement TP8xEP2",
+      "evidence": "analysis/bw1000/Kimi-next-expert-placement-card-r8669zi.json",
+      "decision": "Different mechanism but already proposed/implemented in the historical family and wider than one minimal kernel edit; not reopened here."
+    }
+  ],
+  "remaining_unknown": [
+    "Original536 did not preserve the exact process value of INFINILM_MXFP4_TILE_TP_R2559 or a selected-kernel counter; the r346 shell neither sets nor unsets this inherited SDK flag. Therefore generic-versus-existing-T1-tile selection in that original run is not certified by this read-only source card.",
+    "An exact current T1/T8 W13-versus-W2 phase split, actual route overlap histogram and emitted GPU ISA were not captured; aggregate MoE critical-path cost cannot rank a fresh low-level change.",
+    "Full Model wall impact of any new MoE candidate remains UNKNOWN. No model load, new observer, GPU profiling, grid or resource claim was added."
+  ],
+  "actionable_gap": "Before a new operator card, require a distinct source change absent from the existing tile/parallel-route/MMAC/INT8/quad4 negatives, an explicit eligible branch/path counter, independent FP4+scale+SITU reference, same installed-SDK path baseline, and a fixture covering T1/T8 with actual route reuse. Current evidence does not justify paying GPU time for another equivalent variant.",
+  "decision": "STOP within the CPU/read-only card; preserve original failed536 and parked kernel conclusions. Do not toggle existing tile optin or expand SDK/cache/framework under this task.",
+  "raw_evidence": [
+    {
+      "path": "analysis\\bw1000\\Kimi-MoE-producer-r352-build-identity.json",
+      "SHA256": "6d09cd3d395a7b0cfbdf40568e01e93830afc84f0d1d193ff2f2469e19dc3fd2",
+      "bytes": 42560
+    },
+    {
+      "path": "analysis\\bw1000\\Kimi-MoE-producer-r352-ELF-sections.json",
+      "SHA256": "f55c1e18b36ba831651e88aac253c5c51e6a22f4e0fc627d5677bc256fc7f2db",
+      "bytes": 10303
+    },
+    {
+      "path": "analysis\\bw1000\\Kimi-MoE-producer-r352-object-deps.json",
+      "SHA256": "3ee71241ad8b4a290a2a465e1f49128ef602cdabd0f2768c64fd9e94bd32aa38",
+      "bytes": 271725
+    },
+    {
+      "path": "analysis\\bw1000\\Kimi-MoE-producer-r352-recipe-first.json",
+      "SHA256": "f4adc1abe84d45b5e5fde2c06b4b6fae8ab44e0a4d0878ec9b6c2d0974b38cac",
+      "bytes": 51112
+    },
+    {
+      "path": "analysis\\bw1000\\Kimi-MoE-producer-r352-scan.json",
+      "SHA256": "bc908571c9dfc7a42310383ab87dc218475ce13066b22faadf3a7200031cc6cf",
+      "bytes": 140825
+    }
+  ]
+}
