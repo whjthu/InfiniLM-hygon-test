@@ -1,0 +1,142 @@
+{
+  "state": "COMPLETE_NUMERIC_PASS_UNCHANGED_PERFORMANCE_GATE_FAIL",
+  "scope": "Component only. Synthetic hidden, real checkpoint layer38 TP8rank0 expert tiles and trained-router formula. Baseline is retained Torch activation/quant component chain, not deployed Native activation. No full target load, tokens, quality benchmark, or model/service speedup qualification.",
+  "decision": "STOP this fusion family under review153; zero candidates passed original all-T>=5% gate. Do not proceed to actual Runtime or whole-model integration.",
+  "published_source_commits": [
+    "665a7374d973378d93393dfe6c271e47e2cc5902",
+    "bcd82fb8edfbce939eeac19973d4e2ee2d1e52f3",
+    "d29a2db2d531e15349f8eff5bc5c278e8e26ee7e"
+  ],
+  "final_source_manifest_SHA256": "6a42fb9db1d974667cb18201d555021065e19e1f3ebfe507e2f7f10dcad25823",
+  "fusion_library_SHA256": "5a831e6a758ba55bdb0987b1a37aaef90d2719b0dd54aca11650bab381a217ea",
+  "parent_component_library_SHA256": "26298a61aa072a32071b00906f11b61ede9878e2c9dd9761495c28e1695f7793",
+  "parent_native_library_SHA256": "f35956f532833ce964bf766c8a61b44b56fe79042921d86710ccd075101705d2",
+  "initial_steps_FAILED1": [
+    "910371.613",
+    "910374.1231"
+  ],
+  "initial_normal_variants_not_repeated": [
+    0,
+    8
+  ],
+  "initial_pre_numeric_binding_failures": 14,
+  "v2_pre_GPU_Path_TypeError_submissions": 0,
+  "diagnostic_steps_COMPLETED0": [
+    "910371.623",
+    "910374.1241"
+  ],
+  "repair_measure_steps_COMPLETED0": [
+    "910371.626",
+    "910374.1244"
+  ],
+  "probe_normal_workers": 11,
+  "unique_PCI_per_node": {
+    "a02r3n16": [
+      "0000:09:00.0",
+      "0000:36:00.0",
+      "0000:55:00.0",
+      "0000:77:00.0",
+      "0000:85:00.0",
+      "0000:b5:00.0",
+      "0000:d5:00.0"
+    ],
+    "a02r4n07": [
+      "0000:09:00.0",
+      "0000:36:00.0",
+      "0000:55:00.0",
+      "0000:77:00.0"
+    ]
+  },
+  "valid_variants": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    12,
+    13
+  ],
+  "static_INVALID_BOUND_variants": [
+    11,
+    14,
+    15
+  ],
+  "compiled_max_flat_workgroup_size": 256,
+  "retained_variants": [],
+  "unchanged_gate": {
+    "all_T": [
+      1,
+      8,
+      16
+    ],
+    "pairs": 4,
+    "positive_pairs_min": 3,
+    "median_speedup_min": 0.05
+  },
+  "additional_drift_rejection": "absolute first-to-last baseline wall drift >5%; variants4/7 at T1 rejected despite local median gains",
+  "fullchain_paired_speedup_range": {
+    "1": [
+      0.06249329767351597,
+      0.12700324904014404
+    ],
+    "8": [
+      0.0013035877921612204,
+      0.02485833551780736
+    ],
+    "16": [
+      0.006358042336435221,
+      0.017004824461881896
+    ]
+  },
+  "activation_only_rows4096_speedup_x_range": [
+    1.7464246461950708,
+    2.948563887571887
+  ],
+  "numeric": {
+    "all13_finite_readonly_canary_passed": true,
+    "max_fullchain_relative_RMS": 0.001677417131629571,
+    "max_packed_mismatch_fraction": 0.00128173828125,
+    "max_dequant_relative_RMS": 0.0021234380546957254
+  },
+  "timing_scope": "Full input quant + gate/up + activation/down quant + down + weighted reduce + final sync. Router/checkpoint load excluded. Stream event includes launch gaps; not GPU busy time. All individual wall/event samples retained.",
+  "weight_load_seconds_range": [
+    1.1235758028924465,
+    15.301585261244327
+  ],
+  "sum_recorded_fullchain_wall_seconds_all_valid_variants": 1.9762057568877935,
+  "post_KFD_clean": true,
+  "post_KFD": [
+    {
+      "utc": "2026-11-01T17:42:54.630313+00:00",
+      "node": "a02r3n16",
+      "step": "910371.629",
+      "kfd_proc_exists": true,
+      "kfd_pids": [],
+      "CUDA_not_initialized_by_probe": true
+    },
+    {
+      "utc": "2026-11-01T17:42:55.046065+00:00",
+      "node": "a02r4n07",
+      "step": "910374.1248",
+      "kfd_proc_exists": true,
+      "kfd_pids": [],
+      "CUDA_not_initialized_by_probe": true
+    }
+  ],
+  "evidence_SHA256": {
+    "GLM341-GPU-first-batch-terminal-raw.json": "846f5140887a02de246853acaef34f5bf74bdf72bcaef637df4366b85c99d073",
+    "GLM341-v2-preGPU-path-TypeError.json": "65df27242b28484ea6842d287b7adee3ce0393cdf8578d9867c475f09e3a1371",
+    "GLM341-compiled-launch-bound-verified.json": "474b63e1f9f4d1699ca43c52a5717408e61523b323edb997b8e4f3483bef17d9",
+    "GLM341-repair-v3-probe-terminal-post.json": "322476fe05154a7f1c5227d3f801b86a3ea5e32efb067c30c2e7c64c4950a19a",
+    "GLM341-repair-v3-measure-terminal-post.json": "2ef100cadf54530bf6b34b23d96da0d769aeb133c64fb93f0f16f5a92bb05cbb",
+    "GLM341-all-variants-final-summary.json": "501e2a5cffb1aec098f7384d5335c2c57058ca4d79a5c4affd94fbfb3fd9a4ca"
+  },
+  "new_Model_or_service_gain_claim": false,
+  "future_GPU_work": false
+}
