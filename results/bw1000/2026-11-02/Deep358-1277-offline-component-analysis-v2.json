@@ -1,0 +1,1663 @@
+{
+  "scope": "Full T1 HyperConnection::pre component including staging/output copies/final drain. Actual afc6 baseline and actual HC small parameter tiles; synthetic BF16 residuals, not service activations. No Model speed or quality promotion.",
+  "publication_commit": "f731ba95583844d2cad9a7c814f5b0f1ef84b769",
+  "manifest_SHA256": "49f78448510f87e9e192d42808fdd7ca930477b7074a7340d524425ff5c7ba7c",
+  "GPU": "910374.1277",
+  "CPU_keeper": "910407.703",
+  "terminal": [
+    "910374.1277",
+    "Deep-HC-epilogue-r358-r2",
+    "COMPLETED",
+    "0:0",
+    "a02r4n07"
+  ],
+  "before": {
+    "node": "a02r4n07",
+    "actual_step": "910374.1276",
+    "KFD_available": true,
+    "kfd_pids": [],
+    "GPU_initialized": false
+  },
+  "post": {
+    "node": "a02r4n07",
+    "actual_step": "910374.1278",
+    "KFD_available": true,
+    "kfd_pids": [],
+    "GPU_initialized": false
+  },
+  "valid_ranks": 8,
+  "valid_ABBA_total": 40,
+  "all8_passed": true,
+  "ranks": [
+    {
+      "rank": 0,
+      "passed": true,
+      "normal_close": true,
+      "source_report_path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Deep358-GPU-r2-910374.1277-rank0.json",
+      "source_report_SHA256": "92a62c22c7aea554e80cd2006472b28f89efcb5256745fbc39a846f6b2b1b8d5",
+      "error": null,
+      "valid_ABBA": 5,
+      "fixture": {
+        "rank": 0,
+        "layer": 0,
+        "kind": "attn",
+        "seed": 781,
+        "shape": [
+          1,
+          4,
+          4096
+        ],
+        "input_kind": "Synthetic residual, not actual8K activation or service workload",
+        "input_SHA256": "742ec06373519f125991eec715f6fe5f1e737e1b86b0d31d72e689537666fa03",
+        "weights": [
+          {
+            "key": "layers.0.hc_attn_fn",
+            "shape": [
+              24,
+              16384
+            ],
+            "dtype": "F32",
+            "SHA256": "8a428deaca9410e5678abb77147f04aa6fe5357a3d96ee124bfd17b0788b4b3f",
+            "shard": "model-00002-of-00046.safetensors"
+          },
+          {
+            "key": "layers.0.hc_attn_base",
+            "shape": [
+              24
+            ],
+            "dtype": "F32",
+            "SHA256": "ae3e44add38a14ce4b99444e4149929d029cf786ff4aa7773ffa1f969a3822cf",
+            "shard": "model-00002-of-00046.safetensors"
+          },
+          {
+            "key": "layers.0.hc_attn_scale",
+            "shape": [
+              3
+            ],
+            "dtype": "F32",
+            "SHA256": "c0c88d3234cd60792681264e61e967a5c281bb349a744898b4d032a929652720",
+            "shard": "model-00002-of-00046.safetensors"
+          }
+        ],
+        "config_SHA256": "fd2ad6f5dbd77e55a49e9b2ff29c89030fbe4b538e8870c183d194648767be09",
+        "index_SHA256": "7e975ba3bef8947a94e7da0abd60888375b232b4dfad883d59653e65c6ba522a",
+        "checkpoint_scope": "Only three HC parameter tiles; no targetModel construction/loading",
+        "CPU_reference_output_SHA256": {
+          "collapsed_BF16": "061cb9c68202dfadf76203b9351e6493be9b66d1eb4627b7cbe88abb6434884e",
+          "post": "d4d57de916f495d3fc501d48625cdf67c8be3acaa44b873feb8bfd3f86c2bd33",
+          "comb": "f4a748fb5f6f61eadce5131258f5af177dba4fcfa4be2e333de42a9baa3864cc"
+        }
+      },
+      "CAPI_OFF_us_per_call": 661.702650540974,
+      "CAPI_ON_us_per_call": 462.20875810831785,
+      "pooled_ON_over_OFF": 0.6985142914728236,
+      "pooled_speedup": 1.4316099358418153,
+      "component_OFF_us_per_call": 592.1128468750001,
+      "component_ON_us_per_call": 395.75809062499997,
+      "pairs": [
+        {
+          "ON_over_OFF": 0.6320066931005316,
+          "native_ON_over_OFF": 0.6033157704481916,
+          "OFF_endpoint_drift": -0.22220658469485322,
+          "gain_exceeds_absolute_drift": true
+        },
+        {
+          "ON_over_OFF": 0.7203571734238645,
+          "native_ON_over_OFF": 0.6887072703058192,
+          "OFF_endpoint_drift": -0.001216496913902576,
+          "gain_exceeds_absolute_drift": true
+        },
+        {
+          "ON_over_OFF": 0.721418968863787,
+          "native_ON_over_OFF": 0.6907209275628203,
+          "OFF_endpoint_drift": 0.004499464505641759,
+          "gain_exceeds_absolute_drift": true
+        },
+        {
+          "ON_over_OFF": 0.7144257080275963,
+          "native_ON_over_OFF": 0.6830269408876679,
+          "OFF_endpoint_drift": -0.004555827679081692,
+          "gain_exceeds_absolute_drift": true
+        },
+        {
+          "ON_over_OFF": 0.7143206442626653,
+          "native_ON_over_OFF": 0.6861690736003997,
+          "OFF_endpoint_drift": -0.0013385192679344904,
+          "gain_exceeds_absolute_drift": true
+        }
+      ],
+      "all5_same_direction": true,
+      "all5_gain_exceeds_drift": true,
+      "baseline_numeric": [
+        {
+          "name": "collapsed_BF16",
+          "NRMSE": 0.0,
+          "max_abs": 0.0,
+          "exact_diagnostic": true
+        },
+        {
+          "name": "post",
+          "NRMSE": 3.064968603927015e-09,
+          "max_abs": 4.656612873077393e-10,
+          "exact_diagnostic": false
+        },
+        {
+          "name": "comb",
+          "NRMSE": 1.4283831202563938e-09,
+          "max_abs": 1.862645149230957e-09,
+          "exact_diagnostic": false
+        }
+      ],
+      "candidate_numeric": [
+        {
+          "name": "collapsed_BF16",
+          "NRMSE": 0.0,
+          "max_abs": 0.0,
+          "exact_diagnostic": true
+        },
+        {
+          "name": "post",
+          "NRMSE": 3.064968603927015e-09,
+          "max_abs": 4.656612873077393e-10,
+          "exact_diagnostic": false
+        },
+        {
+          "name": "comb",
+          "NRMSE": 1.4283614969264112e-09,
+          "max_abs": 1.862645149230957e-09,
+          "exact_diagnostic": false
+        }
+      ],
+      "max_NRMSE_all_measurement_calls": 3.064968603927015e-09,
+      "candidate_measurement_hits": 320,
+      "baseline_qualification_hits": 1,
+      "baseline_qualification_producer_stream_event_ms": 4180.7119140625,
+      "candidate_qualification_producer_stream_event_ms": 2.9767990112304688,
+      "actual_CAPI_measurement_s": 0.3596516507677734,
+      "measurement_loop_wall_s": 0.9212073488160968,
+      "prepare_qualification_s": 37.061169158201665,
+      "driver_wall_s": 37.98681715037674,
+      "CPU_initial": [
+        0,
+        1,
+        2,
+        3,
+        16,
+        17,
+        18,
+        19,
+        32,
+        33,
+        34,
+        35,
+        48,
+        49,
+        50,
+        51,
+        64,
+        65,
+        66,
+        67,
+        80,
+        81,
+        82,
+        83,
+        96,
+        97,
+        98,
+        99,
+        112,
+        113,
+        114,
+        115
+      ],
+      "CPU_final": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "physical_Runtime_device": 0,
+      "memory_before_context": [
+        68365058048,
+        68702699520
+      ],
+      "memory_after_measurement": [
+        67987046400,
+        68702699520
+      ],
+      "measurement_calls_per_arm": 320,
+      "median_all5_ABBA_OFF_us_per_call": 642.6101972465403,
+      "median_all5_ABBA_ON_us_per_call": 462.9088653018698,
+      "qualification_cold_CAPI_OFF_s": 4.180526369251311,
+      "qualification_cold_CAPI_ON_s": 0.0029090987518429756
+    },
+    {
+      "rank": 1,
+      "passed": true,
+      "normal_close": true,
+      "source_report_path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Deep358-GPU-r2-910374.1277-rank1.json",
+      "source_report_SHA256": "ef48dc014888a47f3437ebfa32f754a34608ae6efe53108328603ecac13e3d37",
+      "error": null,
+      "valid_ABBA": 5,
+      "fixture": {
+        "rank": 1,
+        "layer": 0,
+        "kind": "attn",
+        "seed": 1889,
+        "shape": [
+          1,
+          4,
+          4096
+        ],
+        "input_kind": "Synthetic residual, not actual8K activation or service workload",
+        "input_SHA256": "42fad9035227d6ff240d41e5cac6a463e050ef0d7954cde9247a0f1a5c5e9a88",
+        "weights": [
+          {
+            "key": "layers.0.hc_attn_fn",
+            "shape": [
+              24,
+              16384
+            ],
+            "dtype": "F32",
+            "SHA256": "8a428deaca9410e5678abb77147f04aa6fe5357a3d96ee124bfd17b0788b4b3f",
+            "shard": "model-00002-of-00046.safetensors"
+          },
+          {
+            "key": "layers.0.hc_attn_base",
+            "shape": [
+              24
+            ],
+            "dtype": "F32",
+            "SHA256": "ae3e44add38a14ce4b99444e4149929d029cf786ff4aa7773ffa1f969a3822cf",
+            "shard": "model-00002-of-00046.safetensors"
+          },
+          {
+            "key": "layers.0.hc_attn_scale",
+            "shape": [
+              3
+            ],
+            "dtype": "F32",
+            "SHA256": "c0c88d3234cd60792681264e61e967a5c281bb349a744898b4d032a929652720",
+            "shard": "model-00002-of-00046.safetensors"
+          }
+        ],
+        "config_SHA256": "fd2ad6f5dbd77e55a49e9b2ff29c89030fbe4b538e8870c183d194648767be09",
+        "index_SHA256": "7e975ba3bef8947a94e7da0abd60888375b232b4dfad883d59653e65c6ba522a",
+        "checkpoint_scope": "Only three HC parameter tiles; no targetModel construction/loading",
+        "CPU_reference_output_SHA256": {
+          "collapsed_BF16": "4f52d6bc61ee252fa43beb6dd11378c0ca1663572fdae6321667d86e75eae293",
+          "post": "f51ba7bcfe0c872c3be69756c3bb54ef2683fdd6ba945fbf1150bf7b48057caa",
+          "comb": "9a5b017a870774190e1319c9146131cd984fb7740f18a1bcf404a272f7a23428"
+        }
+      },
+      "CAPI_OFF_us_per_call": 648.4572746558115,
+      "CAPI_ON_us_per_call": 461.9840969098732,
+      "pooled_ON_over_OFF": 0.7124356761285242,
+      "pooled_speedup": 1.4036354909037414,
+      "component_OFF_us_per_call": 580.8878562499999,
+      "component_ON_us_per_call": 395.725725,
+      "pairs": [
+        {
+          "ON_over_OFF": 0.7128425816224161,
+          "native_ON_over_OFF": 0.6819622138699445,
+          "OFF_endpoint_drift": -0.0037652973712084536,
+          "gain_exceeds_absolute_drift": true
+        },
+        {
+          "ON_over_OFF": 0.7139558505088484,
+          "native_ON_over_OFF": 0.6821397397295665,
+          "OFF_endpoint_drift": -0.000939755557964439,
+          "gain_exceeds_absolute_drift": true
+        },
+        {
+          "ON_over_OFF": 0.7123120601497482,
+          "native_ON_over_OFF": 0.6808268664452064,
+          "OFF_endpoint_drift": 0.0014319983642279155,
+          "gain_exceeds_absolute_drift": true
+        },
+        {
+          "ON_over_OFF": 0.7110805218522536,
+          "native_ON_over_OFF": 0.6802519628859165,
+          "OFF_endpoint_drift": -0.007889515911426948,
+          "gain_exceeds_absolute_drift": true
+        },
+        {
+          "ON_over_OFF": 0.7119899482732004,
+          "native_ON_over_OFF": 0.6810328916915859,
+          "OFF_endpoint_drift": 0.003887349092913883,
+          "gain_exceeds_absolute_drift": true
+        }
+      ],
+      "all5_same_direction": true,
+      "all5_gain_exceeds_drift": true,
+      "baseline_numeric": [
+        {
+          "name": "collapsed_BF16",
+          "NRMSE": 0.0,
+          "max_abs": 0.0,
+          "exact_diagnostic": true
+        },
+        {
+          "name": "post",
+          "NRMSE": 8.823702076932485e-08,
+          "max_abs": 1.4901161193847656e-08,
+          "exact_diagnostic": false
+        },
+        {
+          "name": "comb",
+          "NRMSE": 6.566601004988881e-08,
+          "max_abs": 1.1920928955078125e-07,
+          "exact_diagnostic": false
+        }
+      ],
+      "candidate_numeric": [
+        {
+          "name": "collapsed_BF16",
+          "NRMSE": 0.0,
+          "max_abs": 0.0,
+          "exact_diagnostic": true
+        },
+        {
+          "name": "post",
+          "NRMSE": 8.823702076932485e-08,
+          "max_abs": 1.4901161193847656e-08,
+          "exact_diagnostic": false
+        },
+        {
+          "name": "comb",
+          "NRMSE": 6.566601004988881e-08,
+          "max_abs": 1.1920928955078125e-07,
+          "exact_diagnostic": false
+        }
+      ],
+      "max_NRMSE_all_measurement_calls": 8.823702076932485e-08,
+      "candidate_measurement_hits": 320,
+      "baseline_qualification_hits": 1,
+      "baseline_qualification_producer_stream_event_ms": 4055.71044921875,
+      "candidate_qualification_producer_stream_event_ms": 2.63775897026062,
+      "actual_CAPI_measurement_s": 0.3553412389010191,
+      "measurement_loop_wall_s": 0.9151134812273085,
+      "prepare_qualification_s": 37.083664163947105,
+      "driver_wall_s": 38.00326898787171,
+      "CPU_initial": [
+        0,
+        1,
+        2,
+        3,
+        16,
+        17,
+        18,
+        19,
+        32,
+        33,
+        34,
+        35,
+        48,
+        49,
+        50,
+        51,
+        64,
+        65,
+        66,
+        67,
+        80,
+        81,
+        82,
+        83,
+        96,
+        97,
+        98,
+        99,
+        112,
+        113,
+        114,
+        115
+      ],
+      "CPU_final": [
+        16,
+        17,
+        18,
+        19
+      ],
+      "physical_Runtime_device": 1,
+      "memory_before_context": [
+        68365058048,
+        68702699520
+      ],
+      "memory_after_measurement": [
+        67987046400,
+        68702699520
+      ],
+      "measurement_calls_per_arm": 320,
+      "median_all5_ABBA_OFF_us_per_call": 647.424312774092,
+      "median_all5_ABBA_ON_us_per_call": 462.1476327884011,
+      "qualification_cold_CAPI_OFF_s": 4.055529880337417,
+      "qualification_cold_CAPI_ON_s": 0.002572476863861084
+    },
+    {
+      "rank": 2,
+      "passed": true,
+      "normal_close": true,
+      "source_report_path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Deep358-GPU-r2-910374.1277-rank2.json",
+      "source_report_SHA256": "e273ac0f0545174a8d026746717c440e5d394d957051d1e8b2bfa6fd56bd9c08",
+      "error": null,
+      "valid_ABBA": 5,
+      "fixture": {
+        "rank": 2,
+        "layer": 0,
+        "kind": "ffn",
+        "seed": 781,
+        "shape": [
+          1,
+          4,
+          4096
+        ],
+        "input_kind": "Synthetic residual, not actual8K activation or service workload",
+        "input_SHA256": "742ec06373519f125991eec715f6fe5f1e737e1b86b0d31d72e689537666fa03",
+        "weights": [
+          {
+            "key": "layers.0.hc_ffn_fn",
+            "shape": [
+              24,
+              16384
+            ],
+            "dtype": "F32",
+            "SHA256": "6655ef5c1dc7e9446fa0b61f3f4c3f1e479277ccdfa7695e74a93fb7089410fd",
+            "shard": "model-00002-of-00046.safetensors"
+          },
+          {
+            "key": "layers.0.hc_ffn_base",
+            "shape": [
+              24
+            ],
+            "dtype": "F32",
+            "SHA256": "82f8e6d9dd667e4dbca32e57ffac025c7024873353e7811378af4142a56485d1",
+            "shard": "model-00002-of-00046.safetensors"
+          },
+          {
+            "key": "layers.0.hc_ffn_scale",
+            "shape": [
+              3
+            ],
+            "dtype": "F32",
+            "SHA256": "967d400a83e609e8f54670e2eba0ecb9032d15278e151c248c10a914f85fe2bd",
+            "shard": "model-00002-of-00046.safetensors"
+          }
+        ],
+        "config_SHA256": "fd2ad6f5dbd77e55a49e9b2ff29c89030fbe4b538e8870c183d194648767be09",
+        "index_SHA256": "7e975ba3bef8947a94e7da0abd60888375b232b4dfad883d59653e65c6ba522a",
+        "checkpoint_scope": "Only three HC parameter tiles; no targetModel construction/loading",
+        "CPU_reference_output_SHA256": {
+          "collapsed_BF16": "877e1fcbbafd8a1115d36642334693ec9ee2e66409e691a1eee04381a4a3235c",
+          "post": "8d08ceb7ad4da85fa78aaf820974fec6e072744634364209cb65c403c18369f5",
+          "comb": "0a2b42e309fe15e80c91edae88064f4a9c59baeab7cbfc6b465b9ce9e05b0ab3"
+        }
+      },
+      "CAPI_OFF_us_per_call": 658.0317349289544,
+      "CAPI_ON_us_per_call": 468.7935652327724,
+      "pooled_ON_over_OFF": 0.7124178673288251,
+      "pooled_speedup": 1.4036705785460573,
+      "component_OFF_us_per_call": 590.2217093749999,
+      "component_ON_us_per_call": 402.033796875,
+      "pairs": [
+        {
+          "ON_over_OFF": 0.7114418915070679,
+          "native_ON_over_OFF": 0.6807893909798683,
+          "OFF_endpoint_drift": -0.009479435542193881,
+          "gain_exceeds_absolute_drift": true
+        },
+        {
+          "ON_over_OFF": 0.7142085997717015,
+          "native_ON_over_OFF": 0.6814463920567175,
+          "OFF_endpoint_drift": -0.001965704639104504,
+          "gain_exceeds_absolute_drift": true
+        },
+        {
+          "ON_over_OFF": 0.7119643026809014,
+          "native_ON_over_OFF": 0.6815466274204892,
+          "OFF_endpoint_drift": 0.0021647439138208213,
+          "gain_exceeds_absolute_drift": true
+        },
+        {
+          "ON_over_OFF": 0.7116976181064872,
+          "native_ON_over_OFF": 0.6804177393031523,
+          "OFF_endpoint_drift": -0.0004468024258426073,
+          "gain_exceeds_absolute_drift": true
+        },
+        {
+          "ON_over_OFF": 0.7127819458722945,
+          "native_ON_over_OFF": 0.6815879372121734,
+          "OFF_endpoint_drift": 0.0024711442906399927,
+          "gain_exceeds_absolute_drift": true
+        }
+      ],
+      "all5_same_direction": true,
+      "all5_gain_exceeds_drift": true,
+      "baseline_numeric": [
+        {
+          "name": "collapsed_BF16",
+          "NRMSE": 1.5481547158033988e-08,
+          "max_abs": 4.76837158203125e-07,
+          "exact_diagnostic": false
+        },
+        {
+          "name": "post",
+          "NRMSE": 1.1886158970289796e-08,
+          "max_abs": 1.4901161193847656e-08,
+          "exact_diagnostic": false
+        },
+        {
+          "name": "comb",
+          "NRMSE": 4.409576975439076e-09,
+          "max_abs": 4.6566128730773926e-09,
+          "exact_diagnostic": false
+        }
+      ],
+      "candidate_numeric": [
+        {
+          "name": "collapsed_BF16",
+          "NRMSE": 1.5481547158033988e-08,
+          "max_abs": 4.76837158203125e-07,
+          "exact_diagnostic": false
+        },
+        {
+          "name": "post",
+          "NRMSE": 1.1886158970289796e-08,
+          "max_abs": 1.4901161193847656e-08,
+          "exact_diagnostic": false
+        },
+        {
+          "name": "comb",
+          "NRMSE": 5.459701377402451e-09,
+          "max_abs": 5.587935447692871e-09,
+          "exact_diagnostic": false
+        }
+      ],
+      "max_NRMSE_all_measurement_calls": 1.5481547158033988e-08,
+      "candidate_measurement_hits": 320,
+      "baseline_qualification_hits": 1,
+      "baseline_qualification_producer_stream_event_ms": 4280.013671875,
+      "candidate_qualification_producer_stream_event_ms": 3.174398899078369,
+      "actual_CAPI_measurement_s": 0.36058409605175257,
+      "measurement_loop_wall_s": 0.920539977028966,
+      "prepare_qualification_s": 37.734390834812075,
+      "driver_wall_s": 38.659345394931734,
+      "CPU_initial": [
+        0,
+        1,
+        2,
+        3,
+        16,
+        17,
+        18,
+        19,
+        32,
+        33,
+        34,
+        35,
+        48,
+        49,
+        50,
+        51,
+        64,
+        65,
+        66,
+        67,
+        80,
+        81,
+        82,
+        83,
+        96,
+        97,
+        98,
+        99,
+        112,
+        113,
+        114,
+        115
+      ],
+      "CPU_final": [
+        32,
+        33,
+        34,
+        35
+      ],
+      "physical_Runtime_device": 2,
+      "memory_before_context": [
+        68365058048,
+        68702699520
+      ],
+      "memory_after_measurement": [
+        67987046400,
+        68702699520
+      ],
+      "measurement_calls_per_arm": 320,
+      "median_all5_ABBA_OFF_us_per_call": 657.8180036740378,
+      "median_all5_ABBA_ON_us_per_call": 468.8807966886088,
+      "qualification_cold_CAPI_OFF_s": 4.2798228221945465,
+      "qualification_cold_CAPI_ON_s": 0.0031078089959919453
+    },
+    {
+      "rank": 3,
+      "passed": true,
+      "normal_close": true,
+      "source_report_path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Deep358-GPU-r2-910374.1277-rank3.json",
+      "source_report_SHA256": "01b16487090c97f4c9d9d458ce8ca9c2878be742f37dc8161f6f23602983f825",
+      "error": null,
+      "valid_ABBA": 5,
+      "fixture": {
+        "rank": 3,
+        "layer": 0,
+        "kind": "ffn",
+        "seed": 1889,
+        "shape": [
+          1,
+          4,
+          4096
+        ],
+        "input_kind": "Synthetic residual, not actual8K activation or service workload",
+        "input_SHA256": "42fad9035227d6ff240d41e5cac6a463e050ef0d7954cde9247a0f1a5c5e9a88",
+        "weights": [
+          {
+            "key": "layers.0.hc_ffn_fn",
+            "shape": [
+              24,
+              16384
+            ],
+            "dtype": "F32",
+            "SHA256": "6655ef5c1dc7e9446fa0b61f3f4c3f1e479277ccdfa7695e74a93fb7089410fd",
+            "shard": "model-00002-of-00046.safetensors"
+          },
+          {
+            "key": "layers.0.hc_ffn_base",
+            "shape": [
+              24
+            ],
+            "dtype": "F32",
+            "SHA256": "82f8e6d9dd667e4dbca32e57ffac025c7024873353e7811378af4142a56485d1",
+            "shard": "model-00002-of-00046.safetensors"
+          },
+          {
+            "key": "layers.0.hc_ffn_scale",
+            "shape": [
+              3
+            ],
+            "dtype": "F32",
+            "SHA256": "967d400a83e609e8f54670e2eba0ecb9032d15278e151c248c10a914f85fe2bd",
+            "shard": "model-00002-of-00046.safetensors"
+          }
+        ],
+        "config_SHA256": "fd2ad6f5dbd77e55a49e9b2ff29c89030fbe4b538e8870c183d194648767be09",
+        "index_SHA256": "7e975ba3bef8947a94e7da0abd60888375b232b4dfad883d59653e65c6ba522a",
+        "checkpoint_scope": "Only three HC parameter tiles; no targetModel construction/loading",
+        "CPU_reference_output_SHA256": {
+          "collapsed_BF16": "96e39d78c162241708babe2c1fc543ec965ea8070c10676312d59cc721acf682",
+          "post": "769d459dcbb2a82dd1be13d7c42702970122892fb49f2f046822312acce305cd",
+          "comb": "e36780ed826e315a3da380d50da763a82cbceda02286fbdb30967b41233c5b7e"
+        }
+      },
+      "CAPI_OFF_us_per_call": 651.9066941109486,
+      "CAPI_ON_us_per_call": 467.2606955864467,
+      "pooled_ON_over_OFF": 0.7167600820907096,
+      "pooled_speedup": 1.3951669812346565,
+      "component_OFF_us_per_call": 583.769909375,
+      "component_ON_us_per_call": 400.4211468749999,
+      "pairs": [
+        {
+          "ON_over_OFF": 0.7177687492151749,
+          "native_ON_over_OFF": 0.6870601109601638,
+          "OFF_endpoint_drift": -0.009545890168324966,
+          "gain_exceeds_absolute_drift": true
+        },
+        {
+          "ON_over_OFF": 0.7154995144354157,
+          "native_ON_over_OFF": 0.6842781412155585,
+          "OFF_endpoint_drift": 0.0011636902530396398,
+          "gain_exceeds_absolute_drift": true
+        },
+        {
+          "ON_over_OFF": 0.7162218342685948,
+          "native_ON_over_OFF": 0.6855075801154857,
+          "OFF_endpoint_drift": 0.00222872697180998,
+          "gain_exceeds_absolute_drift": true
+        },
+        {
+          "ON_over_OFF": 0.7173799438982202,
+          "native_ON_over_OFF": 0.6864537610439294,
+          "OFF_endpoint_drift": -0.0019098141079725295,
+          "gain_exceeds_absolute_drift": true
+        },
+        {
+          "ON_over_OFF": 0.7169237934155184,
+          "native_ON_over_OFF": 0.6863095000938069,
+          "OFF_endpoint_drift": 0.0024760406346280295,
+          "gain_exceeds_absolute_drift": true
+        }
+      ],
+      "all5_same_direction": true,
+      "all5_gain_exceeds_drift": true,
+      "baseline_numeric": [
+        {
+          "name": "collapsed_BF16",
+          "NRMSE": 4.011908467332332e-06,
+          "max_abs": 0.00048828125,
+          "exact_diagnostic": false
+        },
+        {
+          "name": "post",
+          "NRMSE": 5.280014359585481e-10,
+          "max_abs": 6.984919309616089e-10,
+          "exact_diagnostic": false
+        },
+        {
+          "name": "comb",
+          "NRMSE": 3.5704360886923194e-09,
+          "max_abs": 6.51925802230835e-09,
+          "exact_diagnostic": false
+        }
+      ],
+      "candidate_numeric": [
+        {
+          "name": "collapsed_BF16",
+          "NRMSE": 4.011908467332332e-06,
+          "max_abs": 0.00048828125,
+          "exact_diagnostic": false
+        },
+        {
+          "name": "post",
+          "NRMSE": 5.280014359585481e-10,
+          "max_abs": 6.984919309616089e-10,
+          "exact_diagnostic": false
+        },
+        {
+          "name": "comb",
+          "NRMSE": 3.5704360886923194e-09,
+          "max_abs": 6.51925802230835e-09,
+          "exact_diagnostic": false
+        }
+      ],
+      "max_NRMSE_all_measurement_calls": 4.011908467332332e-06,
+      "candidate_measurement_hits": 320,
+      "baseline_qualification_hits": 1,
+      "baseline_qualification_producer_stream_event_ms": 4164.701171875,
+      "candidate_qualification_producer_stream_event_ms": 3.5161569118499756,
+      "actual_CAPI_measurement_s": 0.3581335647031665,
+      "measurement_loop_wall_s": 0.9293496827594936,
+      "prepare_qualification_s": 37.05778249865398,
+      "driver_wall_s": 37.991659705061466,
+      "CPU_initial": [
+        0,
+        1,
+        2,
+        3,
+        16,
+        17,
+        18,
+        19,
+        32,
+        33,
+        34,
+        35,
+        48,
+        49,
+        50,
+        51,
+        64,
+        65,
+        66,
+        67,
+        80,
+        81,
+        82,
+        83,
+        96,
+        97,
+        98,
+        99,
+        112,
+        113,
+        114,
+        115
+      ],
+      "CPU_final": [
+        48,
+        49,
+        50,
+        51
+      ],
+      "physical_Runtime_device": 3,
+      "memory_before_context": [
+        68365058048,
+        68702699520
+      ],
+      "memory_after_measurement": [
+        67987046400,
+        68702699520
+      ],
+      "measurement_calls_per_arm": 320,
+      "median_all5_ABBA_OFF_us_per_call": 651.3251209980808,
+      "median_all5_ABBA_ON_us_per_call": 466.53573372168466,
+      "qualification_cold_CAPI_OFF_s": 4.164516442455351,
+      "qualification_cold_CAPI_ON_s": 0.0034467908553779125
+    },
+    {
+      "rank": 4,
+      "passed": true,
+      "normal_close": true,
+      "source_report_path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Deep358-GPU-r2-910374.1277-rank4.json",
+      "source_report_SHA256": "34f1fb74251b768fb75bbc4c5f2bac8bcb0d5da771bc6eafbc35d420351ac1f8",
+      "error": null,
+      "valid_ABBA": 5,
+      "fixture": {
+        "rank": 4,
+        "layer": 20,
+        "kind": "attn",
+        "seed": 781,
+        "shape": [
+          1,
+          4,
+          4096
+        ],
+        "input_kind": "Synthetic residual, not actual8K activation or service workload",
+        "input_SHA256": "742ec06373519f125991eec715f6fe5f1e737e1b86b0d31d72e689537666fa03",
+        "weights": [
+          {
+            "key": "layers.20.hc_attn_fn",
+            "shape": [
+              24,
+              16384
+            ],
+            "dtype": "F32",
+            "SHA256": "fc47e4f69ba3995ef0d19c8ea233456185ec9df68ccfcff453cbf49cf0d51d7b",
+            "shard": "model-00022-of-00046.safetensors"
+          },
+          {
+            "key": "layers.20.hc_attn_base",
+            "shape": [
+              24
+            ],
+            "dtype": "F32",
+            "SHA256": "4fc70df26a83191f6c23e61c3ada19426549747de77ff8ae215db0edfde6c4db",
+            "shard": "model-00022-of-00046.safetensors"
+          },
+          {
+            "key": "layers.20.hc_attn_scale",
+            "shape": [
+              3
+            ],
+            "dtype": "F32",
+            "SHA256": "4c034666a6d56c2fb2e4ac67377cb59ee9f78289ad47f8e646c524c8bc2e0d53",
+            "shard": "model-00022-of-00046.safetensors"
+          }
+        ],
+        "config_SHA256": "fd2ad6f5dbd77e55a49e9b2ff29c89030fbe4b538e8870c183d194648767be09",
+        "index_SHA256": "7e975ba3bef8947a94e7da0abd60888375b232b4dfad883d59653e65c6ba522a",
+        "checkpoint_scope": "Only three HC parameter tiles; no targetModel construction/loading",
+        "CPU_reference_output_SHA256": {
+          "collapsed_BF16": "a2e477ed4c533cbba635618694978683e97580589c539da5326cee2358720452",
+          "post": "380bccf18a87a16bc4dbfda24876d4428dbc76f40b159f92c6849b33bc73ffc2",
+          "comb": "2cf1a9d44dcb5aca61a449b435384d79b737e55f521f9d76e3c6e66b740c0eb3"
+        }
+      },
+      "CAPI_OFF_us_per_call": 652.0255046780221,
+      "CAPI_ON_us_per_call": 471.979305439163,
+      "pooled_ON_over_OFF": 0.7238663243276533,
+      "pooled_speedup": 1.3814705372968237,
+      "component_OFF_us_per_call": 582.627096875,
+      "component_ON_us_per_call": 403.6512125,
+      "pairs": [
+        {
+          "ON_over_OFF": 0.722374247186334,
+          "native_ON_over_OFF": 0.6917534512538571,
+          "OFF_endpoint_drift": 0.0014002087288671472,
+          "gain_exceeds_absolute_drift": true
+        },
+        {
+          "ON_over_OFF": 0.7243572325794075,
+          "native_ON_over_OFF": 0.6933038054491276,
+          "OFF_endpoint_drift": -0.006142503953612599,
+          "gain_exceeds_absolute_drift": true
+        },
+        {
+          "ON_over_OFF": 0.7239256965814306,
+          "native_ON_over_OFF": 0.6933210270810002,
+          "OFF_endpoint_drift": 1.1522039540245999e-05,
+          "gain_exceeds_absolute_drift": true
+        },
+        {
+          "ON_over_OFF": 0.7244215692538021,
+          "native_ON_over_OFF": 0.6926778897729284,
+          "OFF_endpoint_drift": 0.0030124075559836427,
+          "gain_exceeds_absolute_drift": true
+        },
+        {
+          "ON_over_OFF": 0.7242604981413937,
+          "native_ON_over_OFF": 0.693009904612211,
+          "OFF_endpoint_drift": 0.001946642688989586,
+          "gain_exceeds_absolute_drift": true
+        }
+      ],
+      "all5_same_direction": true,
+      "all5_gain_exceeds_drift": true,
+      "baseline_numeric": [
+        {
+          "name": "collapsed_BF16",
+          "NRMSE": 1.7919579911494587e-05,
+          "max_abs": 0.000244140625,
+          "exact_diagnostic": false
+        },
+        {
+          "name": "post",
+          "NRMSE": 2.646514818433478e-07,
+          "max_abs": 1.1920928955078125e-07,
+          "exact_diagnostic": false
+        },
+        {
+          "name": "comb",
+          "NRMSE": 4.624849473925826e-08,
+          "max_abs": 5.960464477539063e-08,
+          "exact_diagnostic": false
+        }
+      ],
+      "candidate_numeric": [
+        {
+          "name": "collapsed_BF16",
+          "NRMSE": 1.7919579911494587e-05,
+          "max_abs": 0.000244140625,
+          "exact_diagnostic": false
+        },
+        {
+          "name": "post",
+          "NRMSE": 2.646514818433478e-07,
+          "max_abs": 1.1920928955078125e-07,
+          "exact_diagnostic": false
+        },
+        {
+          "name": "comb",
+          "NRMSE": 4.624849473925826e-08,
+          "max_abs": 5.960464477539063e-08,
+          "exact_diagnostic": false
+        }
+      ],
+      "max_NRMSE_all_measurement_calls": 1.7919579911494587e-05,
+      "candidate_measurement_hits": 320,
+      "baseline_qualification_hits": 1,
+      "baseline_qualification_producer_stream_event_ms": 4718.45703125,
+      "candidate_qualification_producer_stream_event_ms": 2.7999980449676514,
+      "actual_CAPI_measurement_s": 0.35968153923749924,
+      "measurement_loop_wall_s": 0.9302360559813678,
+      "prepare_qualification_s": 37.84751731809229,
+      "driver_wall_s": 38.78213228704408,
+      "CPU_initial": [
+        0,
+        1,
+        2,
+        3,
+        16,
+        17,
+        18,
+        19,
+        32,
+        33,
+        34,
+        35,
+        48,
+        49,
+        50,
+        51,
+        64,
+        65,
+        66,
+        67,
+        80,
+        81,
+        82,
+        83,
+        96,
+        97,
+        98,
+        99,
+        112,
+        113,
+        114,
+        115
+      ],
+      "CPU_final": [
+        64,
+        65,
+        66,
+        67
+      ],
+      "physical_Runtime_device": 4,
+      "memory_before_context": [
+        68365058048,
+        68702699520
+      ],
+      "memory_after_measurement": [
+        67987046400,
+        68702699520
+      ],
+      "measurement_calls_per_arm": 320,
+      "median_all5_ABBA_OFF_us_per_call": 651.3662010547705,
+      "median_all5_ABBA_ON_us_per_call": 471.8218187917955,
+      "qualification_cold_CAPI_OFF_s": 4.718219835776836,
+      "qualification_cold_CAPI_ON_s": 0.0027326690033078194
+    },
+    {
+      "rank": 5,
+      "passed": true,
+      "normal_close": true,
+      "source_report_path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Deep358-GPU-r2-910374.1277-rank5.json",
+      "source_report_SHA256": "4483c374dbc3350442c64208385d8628cc1dfbc80d301ab2cdc0d5a7c2cc2925",
+      "error": null,
+      "valid_ABBA": 5,
+      "fixture": {
+        "rank": 5,
+        "layer": 20,
+        "kind": "attn",
+        "seed": 1889,
+        "shape": [
+          1,
+          4,
+          4096
+        ],
+        "input_kind": "Synthetic residual, not actual8K activation or service workload",
+        "input_SHA256": "42fad9035227d6ff240d41e5cac6a463e050ef0d7954cde9247a0f1a5c5e9a88",
+        "weights": [
+          {
+            "key": "layers.20.hc_attn_fn",
+            "shape": [
+              24,
+              16384
+            ],
+            "dtype": "F32",
+            "SHA256": "fc47e4f69ba3995ef0d19c8ea233456185ec9df68ccfcff453cbf49cf0d51d7b",
+            "shard": "model-00022-of-00046.safetensors"
+          },
+          {
+            "key": "layers.20.hc_attn_base",
+            "shape": [
+              24
+            ],
+            "dtype": "F32",
+            "SHA256": "4fc70df26a83191f6c23e61c3ada19426549747de77ff8ae215db0edfde6c4db",
+            "shard": "model-00022-of-00046.safetensors"
+          },
+          {
+            "key": "layers.20.hc_attn_scale",
+            "shape": [
+              3
+            ],
+            "dtype": "F32",
+            "SHA256": "4c034666a6d56c2fb2e4ac67377cb59ee9f78289ad47f8e646c524c8bc2e0d53",
+            "shard": "model-00022-of-00046.safetensors"
+          }
+        ],
+        "config_SHA256": "fd2ad6f5dbd77e55a49e9b2ff29c89030fbe4b538e8870c183d194648767be09",
+        "index_SHA256": "7e975ba3bef8947a94e7da0abd60888375b232b4dfad883d59653e65c6ba522a",
+        "checkpoint_scope": "Only three HC parameter tiles; no targetModel construction/loading",
+        "CPU_reference_output_SHA256": {
+          "collapsed_BF16": "7e2e13645e0c934014b1ee8a943d70941f724e6e3d8d5dc9ec08639c6b7dbec4",
+          "post": "bad4b0bfeb98254063a4780562fc1dd87b1fa3c95bb3d0820dd402d57e5c9236",
+          "comb": "da226fee3bcdb52238e6c1b5058692e4d53c7d3ccf008f2ddbdef1cc4eaff572"
+        }
+      },
+      "CAPI_OFF_us_per_call": 672.0567820593715,
+      "CAPI_ON_us_per_call": 481.5662105102092,
+      "pooled_ON_over_OFF": 0.7165558377888168,
+      "pooled_speedup": 1.3955646542296678,
+      "component_OFF_us_per_call": 600.84341875,
+      "component_ON_us_per_call": 412.083378125,
+      "pairs": [
+        {
+          "ON_over_OFF": 0.6960223753188335,
+          "native_ON_over_OFF": 0.6658785477671516,
+          "OFF_endpoint_drift": -0.07513359999919378,
+          "gain_exceeds_absolute_drift": true
+        },
+        {
+          "ON_over_OFF": 0.7217024543355299,
+          "native_ON_over_OFF": 0.691386129338315,
+          "OFF_endpoint_drift": 0.0008403011044784137,
+          "gain_exceeds_absolute_drift": true
+        },
+        {
+          "ON_over_OFF": 0.7237362665512748,
+          "native_ON_over_OFF": 0.6918628225963088,
+          "OFF_endpoint_drift": 0.0016084557568010194,
+          "gain_exceeds_absolute_drift": true
+        },
+        {
+          "ON_over_OFF": 0.7198692501785205,
+          "native_ON_over_OFF": 0.6894718441021755,
+          "OFF_endpoint_drift": 0.00039864621092622343,
+          "gain_exceeds_absolute_drift": true
+        },
+        {
+          "ON_over_OFF": 0.7223266073319037,
+          "native_ON_over_OFF": 0.6914687457477308,
+          "OFF_endpoint_drift": 0.0004943926910887519,
+          "gain_exceeds_absolute_drift": true
+        }
+      ],
+      "all5_same_direction": true,
+      "all5_gain_exceeds_drift": true,
+      "baseline_numeric": [
+        {
+          "name": "collapsed_BF16",
+          "NRMSE": 0.0,
+          "max_abs": 0.0,
+          "exact_diagnostic": true
+        },
+        {
+          "name": "post",
+          "NRMSE": 4.652139316249196e-07,
+          "max_abs": 1.7881393432617188e-07,
+          "exact_diagnostic": false
+        },
+        {
+          "name": "comb",
+          "NRMSE": 9.610595584780255e-08,
+          "max_abs": 8.940696716308594e-08,
+          "exact_diagnostic": false
+        }
+      ],
+      "candidate_numeric": [
+        {
+          "name": "collapsed_BF16",
+          "NRMSE": 0.0,
+          "max_abs": 0.0,
+          "exact_diagnostic": true
+        },
+        {
+          "name": "post",
+          "NRMSE": 4.652139316249196e-07,
+          "max_abs": 1.7881393432617188e-07,
+          "exact_diagnostic": false
+        },
+        {
+          "name": "comb",
+          "NRMSE": 9.15509144777716e-08,
+          "max_abs": 7.450580596923828e-08,
+          "exact_diagnostic": false
+        }
+      ],
+      "max_NRMSE_all_measurement_calls": 4.652139316249196e-07,
+      "candidate_measurement_hits": 320,
+      "baseline_qualification_hits": 1,
+      "baseline_qualification_producer_stream_event_ms": 4214.58935546875,
+      "candidate_qualification_producer_stream_event_ms": 2.77583909034729,
+      "actual_CAPI_measurement_s": 0.3691593576222658,
+      "measurement_loop_wall_s": 0.9395727231167257,
+      "prepare_qualification_s": 37.06639434304088,
+      "driver_wall_s": 38.01042879978195,
+      "CPU_initial": [
+        0,
+        1,
+        2,
+        3,
+        16,
+        17,
+        18,
+        19,
+        32,
+        33,
+        34,
+        35,
+        48,
+        49,
+        50,
+        51,
+        64,
+        65,
+        66,
+        67,
+        80,
+        81,
+        82,
+        83,
+        96,
+        97,
+        98,
+        99,
+        112,
+        113,
+        114,
+        115
+      ],
+      "CPU_final": [
+        80,
+        81,
+        82,
+        83
+      ],
+      "physical_Runtime_device": 5,
+      "memory_before_context": [
+        68365058048,
+        68702699520
+      ],
+      "memory_after_measurement": [
+        67987046400,
+        68702699520
+      ],
+      "measurement_calls_per_arm": 320,
+      "median_all5_ABBA_OFF_us_per_call": 666.3412132184021,
+      "median_all5_ABBA_ON_us_per_call": 481.65343469008803,
+      "qualification_cold_CAPI_OFF_s": 4.214376759249717,
+      "qualification_cold_CAPI_ON_s": 0.002710907720029354
+    },
+    {
+      "rank": 6,
+      "passed": true,
+      "normal_close": true,
+      "source_report_path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Deep358-GPU-r2-910374.1277-rank6.json",
+      "source_report_SHA256": "762d5c6d70f9edb4f819162cbdfb99ab7141a5eae9ee8a4a161a4e8a773e5035",
+      "error": null,
+      "valid_ABBA": 5,
+      "fixture": {
+        "rank": 6,
+        "layer": 20,
+        "kind": "ffn",
+        "seed": 781,
+        "shape": [
+          1,
+          4,
+          4096
+        ],
+        "input_kind": "Synthetic residual, not actual8K activation or service workload",
+        "input_SHA256": "742ec06373519f125991eec715f6fe5f1e737e1b86b0d31d72e689537666fa03",
+        "weights": [
+          {
+            "key": "layers.20.hc_ffn_fn",
+            "shape": [
+              24,
+              16384
+            ],
+            "dtype": "F32",
+            "SHA256": "cda42f32014a65c31dcadcd96ddd03300e831c5f2207386b7160b916c3d8e6d5",
+            "shard": "model-00022-of-00046.safetensors"
+          },
+          {
+            "key": "layers.20.hc_ffn_base",
+            "shape": [
+              24
+            ],
+            "dtype": "F32",
+            "SHA256": "4ecb257a4c7dea9fdf9e9622361abfa7c0957cb7ebe18462c41c640686aaab00",
+            "shard": "model-00022-of-00046.safetensors"
+          },
+          {
+            "key": "layers.20.hc_ffn_scale",
+            "shape": [
+              3
+            ],
+            "dtype": "F32",
+            "SHA256": "3f8a770026f064b319a3d876c50368a647426a0cfb28e8f276b5a4bdc7af4b69",
+            "shard": "model-00022-of-00046.safetensors"
+          }
+        ],
+        "config_SHA256": "fd2ad6f5dbd77e55a49e9b2ff29c89030fbe4b538e8870c183d194648767be09",
+        "index_SHA256": "7e975ba3bef8947a94e7da0abd60888375b232b4dfad883d59653e65c6ba522a",
+        "checkpoint_scope": "Only three HC parameter tiles; no targetModel construction/loading",
+        "CPU_reference_output_SHA256": {
+          "collapsed_BF16": "54bca817d9684cf8087267af60c1236b45c66e4bd5a2e8c1b8aed743407ecf6d",
+          "post": "bdcf3218448eaf098dd29a6ede97892d9fed59ce032def84b1a5b62f6fcfce6c",
+          "comb": "a2331b72c664dc51b591bc76eb0dea5b9b9f306330f1f79b26f9fb7eaa5e1291"
+        }
+      },
+      "CAPI_OFF_us_per_call": 654.0661153849214,
+      "CAPI_ON_us_per_call": 471.05887497309595,
+      "pooled_ON_over_OFF": 0.7202007012637787,
+      "pooled_speedup": 1.3885018415633879,
+      "component_OFF_us_per_call": 584.933303125,
+      "component_ON_us_per_call": 403.6214875,
+      "pairs": [
+        {
+          "ON_over_OFF": 0.7182700746165753,
+          "native_ON_over_OFF": 0.6884499733330551,
+          "OFF_endpoint_drift": -0.013463560612531622,
+          "gain_exceeds_absolute_drift": true
+        },
+        {
+          "ON_over_OFF": 0.7221248364830345,
+          "native_ON_over_OFF": 0.6912065556715238,
+          "OFF_endpoint_drift": 0.002029544170739195,
+          "gain_exceeds_absolute_drift": true
+        },
+        {
+          "ON_over_OFF": 0.7212047548779131,
+          "native_ON_over_OFF": 0.6918005194225587,
+          "OFF_endpoint_drift": -0.0007529105230594801,
+          "gain_exceeds_absolute_drift": true
+        },
+        {
+          "ON_over_OFF": 0.7188730892669389,
+          "native_ON_over_OFF": 0.6886571630383461,
+          "OFF_endpoint_drift": -0.006199407875564389,
+          "gain_exceeds_absolute_drift": true
+        },
+        {
+          "ON_over_OFF": 0.7205495441588246,
+          "native_ON_over_OFF": 0.6900502896872248,
+          "OFF_endpoint_drift": 0.0004676742791509536,
+          "gain_exceeds_absolute_drift": true
+        }
+      ],
+      "all5_same_direction": true,
+      "all5_gain_exceeds_drift": true,
+      "baseline_numeric": [
+        {
+          "name": "collapsed_BF16",
+          "NRMSE": 0.0,
+          "max_abs": 0.0,
+          "exact_diagnostic": true
+        },
+        {
+          "name": "post",
+          "NRMSE": 1.7246006404293456e-07,
+          "max_abs": 2.384185791015625e-07,
+          "exact_diagnostic": false
+        },
+        {
+          "name": "comb",
+          "NRMSE": 3.4552650767306546e-08,
+          "max_abs": 5.960464477539063e-08,
+          "exact_diagnostic": false
+        }
+      ],
+      "candidate_numeric": [
+        {
+          "name": "collapsed_BF16",
+          "NRMSE": 0.0,
+          "max_abs": 0.0,
+          "exact_diagnostic": true
+        },
+        {
+          "name": "post",
+          "NRMSE": 1.7246006404293456e-07,
+          "max_abs": 2.384185791015625e-07,
+          "exact_diagnostic": false
+        },
+        {
+          "name": "comb",
+          "NRMSE": 3.4552650767306546e-08,
+          "max_abs": 5.960464477539063e-08,
+          "exact_diagnostic": false
+        }
+      ],
+      "max_NRMSE_all_measurement_calls": 1.7246006404293456e-07,
+      "candidate_measurement_hits": 320,
+      "baseline_qualification_hits": 1,
+      "baseline_qualification_producer_stream_event_ms": 4503.88330078125,
+      "candidate_qualification_producer_stream_event_ms": 2.72639799118042,
+      "actual_CAPI_measurement_s": 0.36003999691456556,
+      "measurement_loop_wall_s": 0.9206219976767898,
+      "prepare_qualification_s": 37.9968089601025,
+      "driver_wall_s": 38.92175106005743,
+      "CPU_initial": [
+        0,
+        1,
+        2,
+        3,
+        16,
+        17,
+        18,
+        19,
+        32,
+        33,
+        34,
+        35,
+        48,
+        49,
+        50,
+        51,
+        64,
+        65,
+        66,
+        67,
+        80,
+        81,
+        82,
+        83,
+        96,
+        97,
+        98,
+        99,
+        112,
+        113,
+        114,
+        115
+      ],
+      "CPU_final": [
+        96,
+        97,
+        98,
+        99
+      ],
+      "physical_Runtime_device": 6,
+      "memory_before_context": [
+        68365058048,
+        68702699520
+      ],
+      "memory_after_measurement": [
+        67987046400,
+        68702699520
+      ],
+      "measurement_calls_per_arm": 320,
+      "median_all5_ABBA_OFF_us_per_call": 653.2219849759713,
+      "median_all5_ABBA_ON_us_per_call": 471.1835354100913,
+      "qualification_cold_CAPI_OFF_s": 4.503634802997112,
+      "qualification_cold_CAPI_ON_s": 0.0026597478426992893
+    },
+    {
+      "rank": 7,
+      "passed": true,
+      "normal_close": true,
+      "source_report_path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Deep358-GPU-r2-910374.1277-rank7.json",
+      "source_report_SHA256": "1419002b1d376ee0fd20b5571169c9fee826ebfe8fe842f0345cd7ec1cf7f02a",
+      "error": null,
+      "valid_ABBA": 5,
+      "fixture": {
+        "rank": 7,
+        "layer": 20,
+        "kind": "ffn",
+        "seed": 1889,
+        "shape": [
+          1,
+          4,
+          4096
+        ],
+        "input_kind": "Synthetic residual, not actual8K activation or service workload",
+        "input_SHA256": "42fad9035227d6ff240d41e5cac6a463e050ef0d7954cde9247a0f1a5c5e9a88",
+        "weights": [
+          {
+            "key": "layers.20.hc_ffn_fn",
+            "shape": [
+              24,
+              16384
+            ],
+            "dtype": "F32",
+            "SHA256": "cda42f32014a65c31dcadcd96ddd03300e831c5f2207386b7160b916c3d8e6d5",
+            "shard": "model-00022-of-00046.safetensors"
+          },
+          {
+            "key": "layers.20.hc_ffn_base",
+            "shape": [
+              24
+            ],
+            "dtype": "F32",
+            "SHA256": "4ecb257a4c7dea9fdf9e9622361abfa7c0957cb7ebe18462c41c640686aaab00",
+            "shard": "model-00022-of-00046.safetensors"
+          },
+          {
+            "key": "layers.20.hc_ffn_scale",
+            "shape": [
+              3
+            ],
+            "dtype": "F32",
+            "SHA256": "3f8a770026f064b319a3d876c50368a647426a0cfb28e8f276b5a4bdc7af4b69",
+            "shard": "model-00022-of-00046.safetensors"
+          }
+        ],
+        "config_SHA256": "fd2ad6f5dbd77e55a49e9b2ff29c89030fbe4b538e8870c183d194648767be09",
+        "index_SHA256": "7e975ba3bef8947a94e7da0abd60888375b232b4dfad883d59653e65c6ba522a",
+        "checkpoint_scope": "Only three HC parameter tiles; no targetModel construction/loading",
+        "CPU_reference_output_SHA256": {
+          "collapsed_BF16": "15e33fa6e10e1f70cbc82e75fe09111b136c146e938c45775015d240485b8197",
+          "post": "9f065c5e69ac4ca8f55a421d37af90de0aa0c8b9e135ea89e892b0d24505b2bb",
+          "comb": "9ec05679c3a5cd7d48f51a39ca2e0cab16d39088ee89a84ccc92946ab6469f4e"
+        }
+      },
+      "CAPI_OFF_us_per_call": 655.4283056175336,
+      "CAPI_ON_us_per_call": 474.11920968443155,
+      "pooled_ON_over_OFF": 0.7233731067469299,
+      "pooled_speedup": 1.3824124655353647,
+      "component_OFF_us_per_call": 585.8384312499999,
+      "component_ON_us_per_call": 405.102934375,
+      "pairs": [
+        {
+          "ON_over_OFF": 0.721319922342521,
+          "native_ON_over_OFF": 0.6892795878436988,
+          "OFF_endpoint_drift": -0.00020377526520809486,
+          "gain_exceeds_absolute_drift": true
+        },
+        {
+          "ON_over_OFF": 0.7254602940071276,
+          "native_ON_over_OFF": 0.6930439749037669,
+          "OFF_endpoint_drift": 0.0015142598594517498,
+          "gain_exceeds_absolute_drift": true
+        },
+        {
+          "ON_over_OFF": 0.7238658206232679,
+          "native_ON_over_OFF": 0.6929611616459643,
+          "OFF_endpoint_drift": 0.0018680703195708137,
+          "gain_exceeds_absolute_drift": true
+        },
+        {
+          "ON_over_OFF": 0.7229625812034389,
+          "native_ON_over_OFF": 0.6910858267077556,
+          "OFF_endpoint_drift": 0.000370339533471542,
+          "gain_exceeds_absolute_drift": true
+        },
+        {
+          "ON_over_OFF": 0.7232625102791764,
+          "native_ON_over_OFF": 0.6910987687934482,
+          "OFF_endpoint_drift": 0.004311702198226852,
+          "gain_exceeds_absolute_drift": true
+        }
+      ],
+      "all5_same_direction": true,
+      "all5_gain_exceeds_drift": true,
+      "baseline_numeric": [
+        {
+          "name": "collapsed_BF16",
+          "NRMSE": 0.0,
+          "max_abs": 0.0,
+          "exact_diagnostic": true
+        },
+        {
+          "name": "post",
+          "NRMSE": 2.0214950733744846e-07,
+          "max_abs": 4.172325134277344e-07,
+          "exact_diagnostic": false
+        },
+        {
+          "name": "comb",
+          "NRMSE": 2.3246901630545753e-08,
+          "max_abs": 2.60770320892334e-08,
+          "exact_diagnostic": false
+        }
+      ],
+      "candidate_numeric": [
+        {
+          "name": "collapsed_BF16",
+          "NRMSE": 0.0,
+          "max_abs": 0.0,
+          "exact_diagnostic": true
+        },
+        {
+          "name": "post",
+          "NRMSE": 2.0214950733744846e-07,
+          "max_abs": 4.172325134277344e-07,
+          "exact_diagnostic": false
+        },
+        {
+          "name": "comb",
+          "NRMSE": 2.2281125518481354e-08,
+          "max_abs": 2.60770320892334e-08,
+          "exact_diagnostic": false
+        }
+      ],
+      "max_NRMSE_all_measurement_calls": 2.0214950733744846e-07,
+      "candidate_measurement_hits": 320,
+      "baseline_qualification_hits": 1,
+      "baseline_qualification_producer_stream_event_ms": 4056.888427734375,
+      "candidate_qualification_producer_stream_event_ms": 2.79967999458313,
+      "actual_CAPI_measurement_s": 0.36145520489662886,
+      "measurement_loop_wall_s": 0.9242632277309895,
+      "prepare_qualification_s": 37.062465532217175,
+      "driver_wall_s": 37.9911470329389,
+      "CPU_initial": [
+        0,
+        1,
+        2,
+        3,
+        16,
+        17,
+        18,
+        19,
+        32,
+        33,
+        34,
+        35,
+        48,
+        49,
+        50,
+        51,
+        64,
+        65,
+        66,
+        67,
+        80,
+        81,
+        82,
+        83,
+        96,
+        97,
+        98,
+        99,
+        112,
+        113,
+        114,
+        115
+      ],
+      "CPU_final": [
+        112,
+        113,
+        114,
+        115
+      ],
+      "physical_Runtime_device": 7,
+      "memory_before_context": [
+        68365058048,
+        68702699520
+      ],
+      "memory_after_measurement": [
+        67987046400,
+        68702699520
+      ],
+      "measurement_calls_per_arm": 320,
+      "median_all5_ABBA_OFF_us_per_call": 654.846167890355,
+      "median_all5_ABBA_ON_us_per_call": 474.02075870195404,
+      "qualification_cold_CAPI_OFF_s": 4.056663343217224,
+      "qualification_cold_CAPI_ON_s": 0.0027361679822206497
+    }
+  ],
+  "all8_all5_same_direction": true,
+  "all8_all5_gain_exceeds_drift": true,
+  "Model_gain": "UNMEASURED",
+  "quality": "Component finite, independent CPU full-chain numerical, immutable state/input/tail checks only.",
+  "timing_limits": "Qualification events bracket complete synchronous producer-stream CAPI including host launch gaps; no events in ABBA. Summed per-rank CAPI intervals are not GPUbusy or cross-rank wall. Startup/qualification, loop, CAPI, allocation elapsed separated; memory checkpoints are not peak.",
+  "archive_SHA256": "3774b3410733d2f31b912e5e5a037e335a1767e40869ae5f41a5b32c1eebb1d2"
+}
