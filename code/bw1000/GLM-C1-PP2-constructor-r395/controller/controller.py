@@ -67,10 +67,19 @@ def main():
         with(R/'logs'/(LABEL+'-'+RUN+'-srun-client.log')).open('x')as log:proc=subprocess.Popen(cmd,env=env,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
         watch.update(GPU_submitted=True,srun_PID=proc.pid);save()
         while time.time()<deadline:
-            row=exact()
+            # Observation transport loss is not proof the owned healthy step
+            # failed. Keep its original epoch/label/handle; never resubmit.
+            try:row=exact()
+            except (subprocess.TimeoutExpired,subprocess.CalledProcessError,OSError) as observation:
+                watch.setdefault('transient_observation_errors',[]).append(dict(
+                    at_unix=time.time(),error_type=type(observation).__name__,
+                    error=str(observation)[:1000],actual_GPU=actual,label=LABEL+'-'+RUN))
+                if proc.poll() not in (None,0):raise RuntimeError('Owned srun nonzero during observation loss')
+                save();time.sleep(min(5,max(0,deadline-time.time())));continue
             if row:
                 actual=row[0];watch.update(actual_GPU=actual,last_Slurm=row);save()
                 if row[2].split()[0].rstrip('+')in TERMINAL:break
+            if proc.poll() not in (None,0):raise RuntimeError('Owned srun nonzero')
             time.sleep(min(5,max(0,deadline-time.time())))
         else:raise TimeoutError('Original300s deadline;neverrestart')
         watch['srun_exit_code']=proc.wait(timeout=min(25,max(1,cleanup_deadline-time.monotonic())))

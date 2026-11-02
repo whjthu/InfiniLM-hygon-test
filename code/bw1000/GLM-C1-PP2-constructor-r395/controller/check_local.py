@@ -8,7 +8,7 @@ from check_CPU import case
 from constructor import NATIVE_SHA
 
 def scenario(mode):
-    actual_popen=subprocess.Popen;calls=[];state={'started':False};reports=[]
+    actual_popen=subprocess.Popen;calls=[];state={'started':False,'temporary_failure':False,'account_reads':0};reports=[]
     with tempfile.TemporaryDirectory() as tmp:
         root=Path(tmp);source=root/'incoming/GLM-C1-PP2-constructor-r395';source.mkdir(parents=True)
         for name in ['results','control','logs']: (root/name).mkdir()
@@ -40,6 +40,11 @@ def scenario(mode):
             if argv[:3]==['scontrol','show','hostnames']:return '\n'.join(controller.NODES)+'\n'
             assert argv[0]=='sacct'
             if not state['started']:return ''
+            state['account_reads']+=1
+            if mode=='transient_account' and state['account_reads']==1:
+                return step+'|'+controller.LABEL+'-'+controller.RUN+'|RUNNING|0:0|a02r4n[12-13]\n'
+            if mode=='transient_account' and not state['temporary_failure']:
+                state['temporary_failure']=True;raise subprocess.TimeoutExpired(argv,2)
             status='FAILED|1:0' if mode=='step_failed' else 'COMPLETED|0:0'
             return step+'|'+controller.LABEL+'-'+controller.RUN+'|'+status+'|a02r4n[12-13]\n'
         def run(argv,**kw):
@@ -52,16 +57,21 @@ def scenario(mode):
         with mock.patch.object(controller,'R',root),mock.patch.object(controller,'S',source),mock.patch.object(controller.socket,'gethostname',return_value='a14r2n20'),mock.patch.dict(os.environ,env),mock.patch.object(sys,'argv',['controller','--publication-commit','2'*40,'--manifest-sha',mf]),mock.patch.object(controller.subprocess,'check_output',side_effect=output),mock.patch.object(controller.subprocess,'run',side_effect=run),mock.patch.object(controller.subprocess,'Popen',side_effect=popen),contextlib.redirect_stdout(io.StringIO()):
             rc=controller.main()
             watch=root/'results'/(controller.LABEL+'-'+controller.RUN+'-watch.json');q=json.loads(watch.read_bytes())
-            assert q['completed'] and q['passed']==(mode=='normal') and rc==int(mode!='normal') and len(calls)==1
+            expected=mode in ['normal','transient_account']
+            assert q['completed'] and q['passed']==expected and rc==int(not expected) and len(calls)==1
+            if mode=='transient_account':
+                assert len(q['transient_observation_errors'])==1 and not q['forced_cleanup']
+                assert q['transient_observation_errors'][0]['actual_GPU']==step
+                assert q['actual_GPU']==step and q['normal16owners']
             before=sha(watch)
             try:controller.main()
             except AssertionError:pass
             else:raise AssertionError('Existingwatch replay accepted')
             assert len(calls)==1 and sha(watch)==before
-        return dict(mode=mode,passed=True,controller_expected_pass=mode=='normal',real_CPU_Popen_children=1,owned_report_leaves_recorded=16,actual_GPU=False,actual_Slurm=False)
+        return dict(mode=mode,passed=True,controller_expected_pass=mode in ['normal','transient_account'],real_CPU_Popen_children=1,owned_report_leaves_recorded=16,actual_GPU=False,actual_Slurm=False)
 
 def main():
-    cases=[scenario(x) for x in ['normal','step_failed','bad_identity','bad_post']]
+    cases=[scenario(x) for x in ['normal','step_failed','bad_identity','bad_post','transient_account']]
     return dict(completed=True,passed=True,cases=cases,GPU=0,Native_dlopen=False,weights=False,source='actualfinalcontroller.main/verify/parser/GOwriter/Popen.wait/reportcollector/immutableintent;Slurm/resource/Nativeleavesrecorded')
 
 if __name__=='__main__':print(json.dumps(main(),indent=2))

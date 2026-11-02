@@ -33,8 +33,10 @@ argv=['srun','--jobid=910407','--overlap','--exact','--immediate=30','--cpu-bind
 with(R/'logs'/(label+'-keeper-'+run+'-client.log')).open('x')as log:p=subprocess.Popen(argv,env=env,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
 print(json.dumps(dict(CPU_keeper_client_PID=p.pid,publication_commit=PUBLICATION,GPU_manifest_SHA256=DIGEST,watch=str(watch),GPU_submitted_by_invoker=False,Model_GO=False)))
 '''
-    script=script.replace('__MF__',repr(m)).replace('__DIGEST__',repr(h)).replace('__PUBLICATION__',repr(a.publication)).replace('__PAYLOAD__',repr(payload));ast.parse(script)
+    script=script.replace('__MF__',repr(m)).replace('__DIGEST__',repr(h)).replace('__PUBLICATION__',repr(a.publication)).replace('__PAYLOAD__',repr(payload))
+    assert '\x00' not in script
+    ast.parse(script);compile(script,'remote395-launch-once.py','exec')
     (L/'remote395-launch-once.py').write_text(script,encoding='utf8',newline='\n')
-    print(json.dumps(dict(helper_AST=True,GPU_manifest_SHA256=h,publication_commit=a.publication,submitted=False,Model_GO=False)))
+    print(json.dumps(dict(helper_AST=True,helper_full_compile=True,NUL_bytes=0,GPU_manifest_SHA256=h,publication_commit=a.publication,submitted=False,Model_GO=False)))
 
 if __name__=='__main__':main()
