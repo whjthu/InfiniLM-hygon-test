@@ -1,0 +1,52 @@
+{
+  "parent": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\InfiniLM-hygon-test\\code\\bw1000\\agent-context-32k\\GLM-PP4-registry-repair-private-r184b\\resident_caller_registry_r184b.cpp",
+  "parent_SHA256": "8aa1de7218120cc8d6687fbc3110c419d8651028f6cac92982b03fd5e7578dcd",
+  "derived_SHA256": "cedf4d0e43b0015b37e34ca698e04915e492d283f9614771702fa380c5884a73",
+  "edits": [
+    {
+      "old": "#include \"glm_registry_geometry_r184b.hpp\"",
+      "new": "#include \"glm_registry_geometry_r184b.hpp\"\n#include \"selected_values_r398.hpp\""
+    },
+    {
+      "old": "  const bool host4504=projected_host_r4504::enabled();",
+      "new": "  const bool v398=v_on_demand_r398::requested();\n  const bool host4504=projected_host_r4504::enabled();\n  if(v398&&(rows!=1||capacity!=32768||topk!=2048||rank.tp_size!=8||host4504))throw std::invalid_argument(\"r398 C1/full32K/TP8/device-K-only scope\");"
+    },
+    {
+      "old": "  projected_value_=exact_banks_r4188::allocate(r,{host4504?size_t{1}:rows,capacity,prepare_->local_heads(),256});",
+      "new": "  if(!v398)projected_value_=exact_banks_r4188::allocate(r,{host4504?size_t{1}:rows,capacity,prepare_->local_heads(),256});"
+    },
+    {
+      "old": "  r.setDeviceMemory(projected_value_->data(),0xff,projected_value_->nbytes());",
+      "new": "  if(projected_value_)r.setDeviceMemory(projected_value_->data(),0xff,projected_value_->nbytes());"
+    },
+    {
+      "old": " const bool request_batch5055=batch_flag5055&&std::string(batch_flag5055)==\"1\";",
+      "new": " const bool request_batch5055=batch_flag5055&&std::string(batch_flag5055)==\"1\";\n // Constructor-frozen policy: a later environment change cannot toggle storage.\n const bool v398=!projected_value_;\n if(v398&&(resident5640||request_batch5055||host_bank_r4504_||rows_!=1||capacity_!=32768))throw std::invalid_argument(\"r398 incompatible storage policy\");"
+    },
+    {
+      "old": ":projected_value_->narrow({{0,host_bank_r4504_?size_t{0}:request.row,1}})->view({capacity_,prepare_->local_heads(),256});",
+      "new": ":projected_value_?projected_value_->narrow({{0,host_bank_r4504_?size_t{0}:request.row,1}})->view({capacity_,prepare_->local_heads(),256}):rt::Tensor{};"
+    },
+    {
+      "old": "   }else{\n    key_row->narrow({{0,request.past,count}})->copy_from(r,fresh.first);\n    value_row->narrow({{0,request.past,count}})->copy_from(r,fresh.second);\n   }",
+      "new": "   }else{\n    key_row->narrow({{0,request.past,count}})->copy_from(r,fresh.first);\n    if(value_row)value_row->narrow({{0,request.past,count}})->copy_from(r,fresh.second);\n   }"
+    },
+    {
+      "old": "expanded={key_row->narrow({{0,0,prefix}}),value_row->narrow({{0,0,prefix}})};",
+      "new": "expanded={key_row->narrow({{0,0,prefix}}),v398?v_on_demand_r398::selected_values(*prepare_,r,latent_row,rotary_row,ids,work.held):value_row->narrow({{0,0,prefix}})};"
+    },
+    {
+      "old": "expanded={work.alloc({logical.size(),prepare_->local_heads(),256},rt::DataType::kBFloat16),work.alloc({logical.size(),prepare_->local_heads(),256},rt::DataType::kBFloat16)};",
+      "new": "expanded={work.alloc({logical.size(),prepare_->local_heads(),256},rt::DataType::kBFloat16),v398?v_on_demand_r398::selected_values(*prepare_,r,latent_row,rotary_row,ids,work.held):work.alloc({logical.size(),prepare_->local_heads(),256},rt::DataType::kBFloat16)};"
+    },
+    {
+      "old": "ex::submit<infini::ops::IndexSelect>(r,infini::ops::IndexSelect::DefaultConfig(r.device().type()),value_row,ids,int64_t{0},expanded.second);",
+      "new": "if(!v398)ex::submit<infini::ops::IndexSelect>(r,infini::ops::IndexSelect::DefaultConfig(r.device().type()),value_row,ids,int64_t{0},expanded.second);"
+    }
+  ],
+  "class_header_changed": false,
+  "layout_changed": false,
+  "default_OFF": true,
+  "policy_frozen_at_constructor": true,
+  "Model_GO": false
+}
