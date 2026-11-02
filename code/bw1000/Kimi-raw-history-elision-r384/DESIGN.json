@@ -1,0 +1,74 @@
+{
+  "state": "CPU_SOURCE_READY_NOT_EXECUTED_NO_GPU_CLAIM",
+  "mechanism": "Do not persist already-projected raw context history; originaltransmittedBF16 input/contextprojection/norm and fullquery/head/selector unchanged",
+  "default": "discard_raw=False; explicitprivateoptin only",
+  "source_calls": [
+    "DraftSession.append_prompt/append_committed -> codec.decode(body,rows) -> Context._append -> unchangedcontext_proj/rowNorm/finite -> projectedcat -> originalfence -> owner/epochcheck -> publication",
+    "query passes onlyself.projected to originalquery_long_projected; raw is never a modelqueryinput",
+    "Retire/close use projected is not None as originallivepublishedstate predicate; do not use eliminatedraw as sentinel. Originalguards/poison on rejectedSessionrequests remain"
+  ],
+  "state_semantics": "No tensor/counter publication untilprojection/finite/fence/secondowner-epochcheck succeed. Acceptedcommittedprefix only, no rejectedfeatures. raw=None alwayswhenON; projected andlogicalmetadata authoritative. No attentionKV/lifecyclecache or weight modifications.",
+  "payload_semantics": {
+    "raw": "Actualretainedrawtensorbytes;0whenON",
+    "projected": "Actualretainedprojectedtensorbytes",
+    "published_raw_input_bytes": "Acceptedpublishedcurrentcontextlength*rawdimension*element_size; notnetworktransfer bytes, allocatorpeak or HBM traffic",
+    "wire": "UnchangedBF16 payload; no transport saving claim"
+  },
+  "original_wall_evidence": {
+    "path": "results\\bw1000\\2026-11-02\\Kimi364365-run-d-4arm-emitter-phase-audit.json",
+    "SHA256": "4558c174269b4f343aa31f7bafce984b57671bf8d662975516fc1f8762e35111",
+    "arms": [
+      {
+        "name": "near32k",
+        "L": 32638,
+        "prompt_raw_payload_bytes": 2339491840,
+        "prompt_raw_cat_output_bytes": 76290314240,
+        "committed_counts": [
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8
+        ],
+        "committed_raw_cat_output_bytes": 16392499200,
+        "append_prompt_RPC_sum_s": 6.320313550531864,
+        "append_committed_RPC_sum_s": 0.10587344272062182,
+        "complete_generation_s": 295.871714620851
+      },
+      {
+        "name": "retained8635",
+        "L": 8635,
+        "prompt_raw_payload_bytes": 618956800,
+        "prompt_raw_cat_output_bytes": 5573478400,
+        "committed_counts": [
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8
+        ],
+        "committed_raw_cat_output_bytes": 4348753920,
+        "append_prompt_RPC_sum_s": 0.8650696594268084,
+        "append_committed_RPC_sum_s": 0.03749281354248524,
+        "complete_generation_s": 80.32278407877311
+      }
+    ],
+    "limits": "AppendRPCs include transfer/deviceprojection/finite/fence/collect; rawcat portion UNKNOWN. Eliminating allnear committedappendRPCs would save only0.1058734427/4.912162127=2.1553%ofbackendfirst-last; actualrawcat saving is smaller. Prefixappend6.3203s bounds TTFT opportunity, not a repeated6.32sdecodecost. Query and targetNative unchanged."
+  },
+  "negative_dedup": {
+    "635": "FusedKDA only samecard gains butno stable maxownerDelta; not reopened",
+    "371": "crop samefirstlayer smalldifferences/cumulativecauseUNKNOWN; no crop here",
+    "376": "preRoPEKVcat full8cycle slower; not reused/cache notimplemented",
+    "379": "standalonewarm shiftedstartup with net+1s; no warm here",
+    "380": "guardedFP16 slower40/40; no dtypechange",
+    "352": "MoE currentI192 generic dequantbody mapped, existingtile/MMAC/FDOT2/INT8/quad4 negatives. Need selectedkernel+W13/W2/router/TP splitbeforefreshmajor targetkernel candidate"
+  },
+  "CPU": "Onefuture4core8GiB300s/270inside, actualreduced40to8BF16/F32Torch+333Session only. FixedlocalPythonhasnoTorch: AST/static only currently, no fakePASS.",
+  "GPU_GO": false,
+  "draft_cost_card": "NOT_CLAIMED; onlyafterrealCPU/rootconsumption consider1draftfullprefix+complete8query/7committed8 fixedsequence baseline/candidate; allload/prefix/query/cat/fence/cardcost included. No targetreload.",
+  "decision": "Smallsourcecandidate withboundedprefixretention scope. Do not promote to main targetdecode solution or spend Modelload; actualcat timing and wholecomponent netgain UNKNOWN."
+}

@@ -1,0 +1,93 @@
+{
+  "state": "SOURCE_AND_EXISTING_DATA_DIAGNOSIS_NO_NEW_PERFORMANCE_TEST",
+  "UTC": "2026-11-02T09:32:23.020596+00:00",
+  "GPU_new": 0,
+  "Model_loads_new": 0,
+  "source_parent": "3afa8b4a14a9b7fdb6b1d864d484904f227c1d40",
+  "root_PD_result": "results/bw1000/2026-11-02/Deep382-PD836-root-audited15-comparison-negative-clean.json",
+  "original_sealed_SHA256": "a1f05ec4d49c0b4c8c8da9751b037cf92db6d8390cbfe48d440534e269cabd4a",
+  "same_D_node_formal_comparison": {
+    "co": {
+      "indices": [
+        8,
+        14
+      ],
+      "role": "D",
+      "count": 2,
+      "decode_calls": [
+        97,
+        97
+      ],
+      "forward_wall_s": [
+        36.4419523878023,
+        36.583462816663086
+      ],
+      "median": 36.512707602232695
+    },
+    "PD": {
+      "indices": [
+        4,
+        5,
+        9,
+        10,
+        11,
+        12
+      ],
+      "role": "D",
+      "count": 6,
+      "decode_calls": [
+        97,
+        97,
+        97,
+        97,
+        97,
+        97
+      ],
+      "forward_wall_s": [
+        31.1643637008965,
+        31.031230754218996,
+        31.07228686893359,
+        31.240591074805707,
+        31.255628208629787,
+        31.164428985212
+      ],
+      "median": 31.16439634305425
+    }
+  },
+  "D_import_over_D_co_forward_wall_ratio": 0.8535219212597807,
+  "actual_runtime_providers": {
+    "/refactor/candidates/latest-family-native-r269/Deep/python/_infinilm.cpython-310-x86_64-linux-gnu.so": "6e1a7e7643f84a52ab147cfc3c55eee4816affc6898109dbef31d559feaa86d1",
+    "/refactor/candidates/rebased-5f91ad7-r3668/Common/Deep/InfiniLM/python/infinilm/_lib/libinfinilm_runtime.so": "c04e19df5fa07bb52c0acf7be9768d258f5e2aa706647db32761e23426b153ec"
+  },
+  "findings": [
+    {
+      "hypothesis": "The14.9percentlocalDdecode difference is solely a different physicalnode/TP topology.",
+      "decision": "INSUFFICIENT_AS_SOLE_EXPLANATION",
+      "evidence": "On the same actual D node/a02r4n13, TP8, sameNative/HC0 and same full98IDs includingEOS, two formalDcolocated calls and sixPD importedD calls still have different forwardwall. Workload history and operation phases differ; no causal attribution to pool/kernel is proven."
+    },
+    {
+      "hypothesis": "PD compacts GPU cache storage or changes dtype/attention math.",
+      "decision": "EXCLUDED_FOR_THIS_CODEC_SOURCE",
+      "evidence": "Codec constructs host vectors/metadata and copies only live prefix bytes into preallocated targets. GPU tensor storage_shape is retained, no Tensor::empty/newGPUcache/reshape allocation in codec. Host archive bytes372424784 are transfer payload, not proof of lowerGPUallocatedcache memory.",
+      "source": "code/bw1000/Deep-PD-disaggregation-r382/native/v2/deep_pd_codec_r382.cpp",
+      "SHA256": "482ed93591fea095afb63abc113740ae2ffb94bd399140fae3050c26e17b5b53"
+    },
+    {
+      "hypothesis": "Allocator after large prefill differs from fresh-reset importedD.",
+      "decision": "OPEN_NOT_PROFILED",
+      "evidence": "Runtime reset before eachstage invokes trimMemory. Co then executes largeprefill, while importedD never does. Runtime allocateMemory delegates to ReusableMemoryPool. Existing report has no allocation/pool counters or perop events, so implementation complexity, hit rates and savedwall remainUNKNOWN. Do not build or load a Model merely to chase the observation."
+    },
+    {
+      "hypothesis": "Repeated host metadata and cache status roundtrips are a currentdecode cost.",
+      "decision": "SOURCE_PRESENT_COST_SHARE_UNKNOWN_PRIOR_DUPLICATES_MUST_BE_CHECKED",
+      "evidence": "PagedLatentCache validate performs D2H slots and invoke reads status; these correctness checks cannot be dropped without a new bounded provenance/validation contract. Existing359 source explicitly retainsallchecks; no candidate or performancegain is claimed."
+    }
+  ],
+  "runtime_source_read": {
+    "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\Deep383-runtime-cc-read.json",
+    "SHA256": "7d188994886e9e006cd421ded9c44f222deb6d153f1b3ac13943b1758d13fa0b",
+    "qualification": "Read actual named parent source, not proof of matching every internalbinary relocation. OriginalGPU providerpaths/SHA independentlyretained. Loginhostldd environment is not the GPU container and itsmissinglibs cannotinvalidateoriginalsuccessfulModel."
+  },
+  "decision": "Preserve localDdecode observation; exclude cachecompaction and simplecrossnode explanation. Do not reopenPD/skipstatechecks or addGPU now. Reuse a next otherwiseNecessaryDeep residency only if it can causally distinguish postprefillpoolhistory from kernelstate while preserving identicalfixedtokens and fullcost.",
+  "performance_rounds_added": 0
+}
