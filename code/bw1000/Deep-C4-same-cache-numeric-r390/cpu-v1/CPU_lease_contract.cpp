@@ -1,0 +1,4 @@
+#include "lease_contract.hpp"
+#include <iostream>
+int main(){same_cache_r390::Lease l;int n=0;auto ok=[&](bool v){if(!v)throw std::runtime_error("CPU lease contract");++n;};auto reject=[&](auto fn){try{fn();}catch(const std::logic_error&){++n;return;}throw std::runtime_error("Expected lease rejection");};
+ reject([&]{l.check(0);});auto a=l.begin();ok(a==1);reject([&]{l.begin();});reject([&]{l.reset();});reject([&]{l.check(a+1);});reject([&]{l.finish(a);});reject([&]{l.score(a,2);});l.score(a,0);reject([&]{l.score(a,0);});reject([&]{l.finish(a);});l.score(a,1);l.finish(a);l.readable(a);ok(!l.active&&l.committed);reject([&]{l.score(a,1);});auto b=l.begin();ok(b!=a);reject([&]{l.readable(a);});l.score(b,1);l.score(b,0);l.finish(b);l.reset();reject([&]{l.readable(b);});ok(!l.active&&!l.committed);std::cout<<"{\"passed\":true,\"checks\":"<<n<<",\"actual_adapter_protocol_header\":true}\n";}
