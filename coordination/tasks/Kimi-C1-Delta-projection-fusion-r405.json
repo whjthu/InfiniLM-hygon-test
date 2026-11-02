@@ -1,0 +1,49 @@
+{
+  "task": "Kimi-C1-Delta-projection-fusion-r405",
+  "owner": "/root/glm_operator_tuning",
+  "phase": "SOURCE_CPU_READY",
+  "source_directory": "code/bw1000/Kimi-C1-Delta-projection-fusion-r405",
+  "source_manifest_SHA256": "2f023dbbfb909be7456b670b5d701402c10949cd43a756128f02f3f1ae05e82e",
+  "mechanism": "pack qkv2304/f_a128/beta6/g768 rows once; four current NoneQuantization BF16 linears to one; complete Delta component",
+  "default_OFF": true,
+  "baseline_Native_SHA256": "8df87f0741b13c90f658174a793f0068efb4eb8097eddf1d5f44edb4d208e1a2",
+  "CPU_claim": {
+    "parent": 910407,
+    "node": "a14r2n20",
+    "cores": 4,
+    "memory_MiB": 8192,
+    "Slurm_seconds": 300,
+    "inside_seconds": 270,
+    "HOST_TUs": 1,
+    "GPU_TUs": 0,
+    "Native_dlopen": false,
+    "GPU": 0
+  },
+  "local_CPU_receipt": {
+    "path": "results/bw1000/2026-11-03/Kimi405-local-CPU-consumer-contract.json",
+    "SHA256": "b6915fbf558129c751728a64e0569fa1df77919e1f5fe67a47a6698a2e951a69"
+  },
+  "GPU_claim_planned": {
+    "parent": 910371,
+    "nodes": [
+      "a02r3n03",
+      "a02r3n07"
+    ],
+    "GPUs": 16,
+    "parallel": "TP16 real communicator;8 Runtime ownerthreads/node",
+    "seconds": 600,
+    "measurement_seconds": 300,
+    "guardian_seconds": 900,
+    "calls_per_owner": 321,
+    "formal_schedule": "8 balanced ABBA/BAAB rounds x4 blocks x10 calls incl2warm/block;320 C1+1 baseline512 state setup",
+    "profile": false,
+    "Model": 0,
+    "HTTP": 0,
+    "GPU_GO": false
+  },
+  "GPU_GO": false,
+  "Model_GO": false,
+  "hardware_scope": "CPU noGPU/Native_dlopen; future real TP16 same original communicator, not Model",
+  "quality": "finite/readonly/canary/source-state rows and output/conv/SSM NRMS/maxabs, original QUALITY allows reasonable rounding; no GPU F64/bitexact rejection",
+  "stop": "first candidate count/4consumer numerical or state failure saved before STOP; no automatic GPU retry; no Model forecast"
+}
