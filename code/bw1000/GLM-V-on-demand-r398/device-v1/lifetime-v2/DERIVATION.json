@@ -1,0 +1,23 @@
+{
+  "parent_SHA256": "2bdcba3ba591123b120c6d8eccadbaa8451a73375d12f4b3fbe052dfa114cd91",
+  "new_SHA256": "94bf9c85e2a3f2d4aefc1bc7c7af110bf9c26eda4986b5124076a628cc89474d",
+  "edits": [
+    {
+      "old": "struct Work {rt::Runtime&r;std::vector<rt::Tensor>held;~Work()",
+      "new": "struct Work {rt::Runtime&r;std::vector<rt::Tensor>held;m::SelectionMapR302 host_selection;~Work()"
+    },
+    {
+      "old": "auto remapped=m::selection_map_r302(host,count,2048,past);",
+      "new": "auto&remapped=w.host_selection;remapped=m::selection_map_r302(host,count,2048,past);"
+    },
+    {
+      "old": "auto map=m::selection_map_r302(host,count,2048,past);",
+      "new": "auto&map=w.host_selection;map=m::selection_map_r302(host,count,2048,past);"
+    }
+  ],
+  "added_sync": 0,
+  "math_changed": false,
+  "class_header_changed": false,
+  "RuntimeGuarantee_assumed": false,
+  "proof": "All H2D(false) logical/mapped buffers are now Work members. Work destructor body synchronizes before ANY member destruction, including unwinding after arbitrary later throws. Temporary selection-map construction/move occurs before borrowing its host storage."
+}
