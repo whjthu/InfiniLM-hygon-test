@@ -1,0 +1,3613 @@
+{
+  "passed": true,
+  "decision": "STOP_GUARDED_FP16_DTYPE_ROUTE",
+  "state": "NUMERIC_AND_LIFETIME_PASS_PERFORMANCE_NEGATIVE_CLEAN",
+  "scope": "Four actual checkpoint KV projections with synthetic inputs; complete percall guarded FP16 compute vs original raw BF16Linear, no fullquery/head/Model",
+  "actual_GPU": "910371.707",
+  "actual_keeper": "910407.763",
+  "source_publication_commit": "448237a2d8bf57e2c982ceafd1672f2225d4d8c4",
+  "GPU_manifest_SHA256": "d603d60fddaa495bec9493ec5f8bd13507ad265961d3a1f25c1d8fe5c268e0a9",
+  "cases": [
+    {
+      "rank": 0,
+      "layer": 0,
+      "projection": "KVA",
+      "M": 32646,
+      "K": 7168,
+      "N": 576,
+      "seed": 380000,
+      "median_OFF_us": 1161.5550611168146,
+      "median_ON_us": 7354.997331276536,
+      "median_same_group_ratio": 6.332026416556471,
+      "max_OFF_endpoint_drift": 0.008875103392890177,
+      "all_groups_candidate_slower": true,
+      "whole_output_NR": 0.00143406201597285,
+      "baseline_independent_CPU": {
+        "independent_CPU": {
+          "finite": true,
+          "NRMSE": 0.0,
+          "maxabs": 0.0
+        },
+        "rows": [
+          0,
+          16323,
+          32645
+        ],
+        "columns": [
+          0,
+          18,
+          37,
+          55,
+          74,
+          92,
+          111,
+          129,
+          148,
+          166,
+          185,
+          204,
+          222,
+          241,
+          259,
+          278,
+          296,
+          315,
+          333,
+          352,
+          370,
+          389,
+          408,
+          426,
+          445,
+          463,
+          482,
+          500,
+          519,
+          537,
+          556,
+          575
+        ],
+        "reference": "NumPyF32 fullK plus explicit FP16 storage and BF16 rounding",
+        "path": "baseline"
+      },
+      "candidate_independent_CPU": {
+        "independent_CPU": {
+          "finite": true,
+          "NRMSE": 0.0005843835276960912,
+          "maxabs": 0.0009765625
+        },
+        "rows": [
+          0,
+          16323,
+          32645
+        ],
+        "columns": [
+          0,
+          18,
+          37,
+          55,
+          74,
+          92,
+          111,
+          129,
+          148,
+          166,
+          185,
+          204,
+          222,
+          241,
+          259,
+          278,
+          296,
+          315,
+          333,
+          352,
+          370,
+          389,
+          408,
+          426,
+          445,
+          463,
+          482,
+          500,
+          519,
+          537,
+          556,
+          575
+        ],
+        "reference": "NumPyF32 fullK plus explicit FP16 storage and BF16 rounding",
+        "path": "hit"
+      },
+      "all_groups": [
+        {
+          "group": 0,
+          "OFF_us": 1162.8360953181982,
+          "ON_us": 7378.587266430259,
+          "ratio": 6.345337314637781,
+          "OFF_endpoint_drift": 0.004059392797010538,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 0.0011651962995529175,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.007405407726764679,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.0073517668060958385,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 0.001160475891083479,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        },
+        {
+          "group": 1,
+          "OFF_us": 1161.5550611168146,
+          "ON_us": 7354.997331276536,
+          "ratio": 6.332026416556471,
+          "OFF_endpoint_drift": 0.00027541467046153604,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 0.0011617150157690048,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.007321756798774004,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.007388237863779068,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 0.0011613951064646244,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        },
+        {
+          "group": 2,
+          "OFF_us": 1160.9999928623438,
+          "ON_us": 7322.896970435977,
+          "ratio": 6.307404836740796,
+          "OFF_endpoint_drift": 0.000628502361496349,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 0.0011613648384809494,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.007326976861804724,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.00731881707906723,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 0.0011606351472437382,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        },
+        {
+          "group": 3,
+          "OFF_us": 1160.074956715107,
+          "ON_us": 7365.907076746225,
+          "ratio": 6.349509602037859,
+          "OFF_endpoint_drift": 0.00068961586228877,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 0.0011596749536693096,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.00740690715610981,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.007324906997382641,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 0.0011604749597609043,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        },
+        {
+          "group": 4,
+          "OFF_us": 1161.6998817771673,
+          "ON_us": 7348.537445068359,
+          "ratio": 6.325676330298471,
+          "OFF_endpoint_drift": 0.008875103392890177,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 0.001156544778496027,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.007335707079619169,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.0073613678105175495,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 0.0011668549850583076,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        }
+      ],
+      "whole_case_including_fixture_qual_state_and_checks_wall_s": 6.378365660086274,
+      "Torch_peak_allocated_bytes": 1761027072,
+      "Torch_peak_scope": "Torch allocator since this case input generation, includes numerical comparison/F32 metric buffers and both arms; not physical memory or candidate-only peak"
+    },
+    {
+      "rank": 0,
+      "layer": 0,
+      "projection": "KVB",
+      "M": 32646,
+      "K": 512,
+      "N": 16384,
+      "seed": 380001,
+      "median_OFF_us": 2989.6043706685305,
+      "median_ON_us": 13416.152214631438,
+      "median_same_group_ratio": 4.465139666640525,
+      "max_OFF_endpoint_drift": 0.05119691293618047,
+      "all_groups_candidate_slower": true,
+      "whole_output_NR": 0.0014359148006954103,
+      "baseline_independent_CPU": {
+        "independent_CPU": {
+          "finite": true,
+          "NRMSE": 0.0,
+          "maxabs": 0.0
+        },
+        "rows": [
+          0,
+          16323,
+          32645
+        ],
+        "columns": [
+          0,
+          528,
+          1056,
+          1585,
+          2113,
+          2642,
+          3170,
+          3699,
+          4227,
+          4756,
+          5284,
+          5813,
+          6341,
+          6870,
+          7398,
+          7927,
+          8455,
+          8984,
+          9512,
+          10041,
+          10569,
+          11098,
+          11626,
+          12155,
+          12683,
+          13212,
+          13740,
+          14269,
+          14797,
+          15326,
+          15854,
+          16383
+        ],
+        "reference": "NumPyF32 fullK plus explicit FP16 storage and BF16 rounding",
+        "path": "baseline"
+      },
+      "candidate_independent_CPU": {
+        "independent_CPU": {
+          "finite": true,
+          "NRMSE": 0.0,
+          "maxabs": 0.0
+        },
+        "rows": [
+          0,
+          16323,
+          32645
+        ],
+        "columns": [
+          0,
+          528,
+          1056,
+          1585,
+          2113,
+          2642,
+          3170,
+          3699,
+          4227,
+          4756,
+          5284,
+          5813,
+          6341,
+          6870,
+          7398,
+          7927,
+          8455,
+          8984,
+          9512,
+          10041,
+          10569,
+          11098,
+          11626,
+          12155,
+          12683,
+          13212,
+          13740,
+          14269,
+          14797,
+          15326,
+          15854,
+          16383
+        ],
+        "reference": "NumPyF32 fullK plus explicit FP16 storage and BF16 rounding",
+        "path": "hit"
+      },
+      "all_groups": [
+        {
+          "group": 0,
+          "OFF_us": 2980.824327096343,
+          "ON_us": 13416.152214631438,
+          "ratio": 4.500819485628754,
+          "OFF_endpoint_drift": 0.007632077470858719,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 0.002992199268192053,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.013425757177174091,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.013406547252088785,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 0.0029694493860006332,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        },
+        {
+          "group": 1,
+          "OFF_us": 3014.3705662339926,
+          "ON_us": 13418.42208057642,
+          "ratio": 4.451483912059539,
+          "OFF_endpoint_drift": 0.029100870551339912,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 0.0029705101624131203,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.013424977194517851,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.013411866966634989,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 0.003058230970054865,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        },
+        {
+          "group": 2,
+          "OFF_us": 3059.815615415573,
+          "ON_us": 13438.817579299212,
+          "ratio": 4.392035098975727,
+          "OFF_endpoint_drift": 0.05119691293618047,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 0.0031381421722471714,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.013476408086717129,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.013401227071881294,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 0.002981489058583975,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        },
+        {
+          "group": 3,
+          "OFF_us": 2989.6043706685305,
+          "ON_us": 13349.001063033938,
+          "ratio": 4.465139666640525,
+          "OFF_endpoint_drift": 0.012567197858173043,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 0.0029708188958466053,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.01335658598691225,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.013341416139155626,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 0.0030083898454904556,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        },
+        {
+          "group": 4,
+          "OFF_us": 2963.7941624969244,
+          "ON_us": 13400.416821241379,
+          "ratio": 4.521372297309559,
+          "OFF_endpoint_drift": 0.018014204755464103,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 0.002990489359945059,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.013397247064858675,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.013403586577624083,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 0.00293709896504879,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        }
+      ],
+      "whole_case_including_fixture_qual_state_and_checks_wall_s": 0.5704978918656707,
+      "Torch_peak_allocated_bytes": 10814497280,
+      "Torch_peak_scope": "Torch allocator since this case input generation, includes numerical comparison/F32 metric buffers and both arms; not physical memory or candidate-only peak"
+    },
+    {
+      "rank": 0,
+      "layer": 0,
+      "projection": "KVA",
+      "M": 8,
+      "K": 7168,
+      "N": 576,
+      "seed": 380002,
+      "median_OFF_us": 158.11179764568806,
+      "median_ON_us": 486.82140186429024,
+      "median_same_group_ratio": 3.060064906144409,
+      "max_OFF_endpoint_drift": 1.096879048676661,
+      "all_groups_candidate_slower": true,
+      "whole_output_NR": 0.0014280427199967458,
+      "baseline_independent_CPU": {
+        "independent_CPU": {
+          "finite": true,
+          "NRMSE": 0.0,
+          "maxabs": 0.0
+        },
+        "rows": [
+          0,
+          4,
+          7
+        ],
+        "columns": [
+          0,
+          18,
+          37,
+          55,
+          74,
+          92,
+          111,
+          129,
+          148,
+          166,
+          185,
+          204,
+          222,
+          241,
+          259,
+          278,
+          296,
+          315,
+          333,
+          352,
+          370,
+          389,
+          408,
+          426,
+          445,
+          463,
+          482,
+          500,
+          519,
+          537,
+          556,
+          575
+        ],
+        "reference": "NumPyF32 fullK plus explicit FP16 storage and BF16 rounding",
+        "path": "baseline"
+      },
+      "candidate_independent_CPU": {
+        "independent_CPU": {
+          "finite": true,
+          "NRMSE": 0.0,
+          "maxabs": 0.0
+        },
+        "rows": [
+          0,
+          4,
+          7
+        ],
+        "columns": [
+          0,
+          18,
+          37,
+          55,
+          74,
+          92,
+          111,
+          129,
+          148,
+          166,
+          185,
+          204,
+          222,
+          241,
+          259,
+          278,
+          296,
+          315,
+          333,
+          352,
+          370,
+          389,
+          408,
+          426,
+          445,
+          463,
+          482,
+          500,
+          519,
+          537,
+          556,
+          575
+        ],
+        "reference": "NumPyF32 fullK plus explicit FP16 storage and BF16 rounding",
+        "path": "hit"
+      },
+      "all_groups": [
+        {
+          "group": 0,
+          "OFF_us": 72.86109030246735,
+          "ON_us": 404.39493022859097,
+          "ratio": 5.550217935935782,
+          "OFF_endpoint_drift": 0.003297798910959429,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 7.274094969034195e-05,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.0003959150053560734,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.00041287485510110855,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 7.298123091459274e-05,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        },
+        {
+          "group": 1,
+          "OFF_us": 161.02194786071777,
+          "ON_us": 488.5366652160883,
+          "ratio": 3.0339756269665,
+          "OFF_endpoint_drift": 1.096879048676661,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 0.0002493327483534813,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.0005712672136723995,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.00040580611675977707,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 7.271114736795425e-05,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        },
+        {
+          "group": 2,
+          "OFF_us": 158.11179764568806,
+          "ON_us": 487.34177835285664,
+          "ratio": 3.0822606890153663,
+          "OFF_endpoint_drift": 1.0590102858994088,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 0.00024183280766010284,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.0005671181716024876,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.0004075653851032257,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 7.439078763127327e-05,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        },
+        {
+          "group": 3,
+          "OFF_us": 161.39191575348377,
+          "ON_us": 486.82140186429024,
+          "ratio": 3.016392733127228,
+          "OFF_endpoint_drift": 1.0446771585159838,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 0.000245693139731884,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.0005671069957315922,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.0004065358079969883,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 7.709069177508354e-05,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        },
+        {
+          "group": 4,
+          "OFF_us": 156.83192759752274,
+          "ON_us": 479.9158778041601,
+          "ratio": 3.060064906144409,
+          "OFF_endpoint_drift": 1.0691817550193887,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 0.00024067284539341927,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.0005628769285976887,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.00039695482701063156,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 7.29910098016262e-05,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        }
+      ],
+      "whole_case_including_fixture_qual_state_and_checks_wall_s": 0.1631425227969885,
+      "Torch_peak_allocated_bytes": 84034560,
+      "Torch_peak_scope": "Torch allocator since this case input generation, includes numerical comparison/F32 metric buffers and both arms; not physical memory or candidate-only peak"
+    },
+    {
+      "rank": 0,
+      "layer": 0,
+      "projection": "KVB",
+      "M": 8,
+      "K": 512,
+      "N": 16384,
+      "seed": 380003,
+      "median_OFF_us": 165.63688404858112,
+      "median_ON_us": 495.59702165424824,
+      "median_same_group_ratio": 2.9920692151446784,
+      "max_OFF_endpoint_drift": 1.0542073301017112,
+      "all_groups_candidate_slower": true,
+      "whole_output_NR": 0.0014475649364884336,
+      "baseline_independent_CPU": {
+        "independent_CPU": {
+          "finite": true,
+          "NRMSE": 0.0,
+          "maxabs": 0.0
+        },
+        "rows": [
+          0,
+          4,
+          7
+        ],
+        "columns": [
+          0,
+          528,
+          1056,
+          1585,
+          2113,
+          2642,
+          3170,
+          3699,
+          4227,
+          4756,
+          5284,
+          5813,
+          6341,
+          6870,
+          7398,
+          7927,
+          8455,
+          8984,
+          9512,
+          10041,
+          10569,
+          11098,
+          11626,
+          12155,
+          12683,
+          13212,
+          13740,
+          14269,
+          14797,
+          15326,
+          15854,
+          16383
+        ],
+        "reference": "NumPyF32 fullK plus explicit FP16 storage and BF16 rounding",
+        "path": "baseline"
+      },
+      "candidate_independent_CPU": {
+        "independent_CPU": {
+          "finite": true,
+          "NRMSE": 0.0,
+          "maxabs": 0.0
+        },
+        "rows": [
+          0,
+          4,
+          7
+        ],
+        "columns": [
+          0,
+          528,
+          1056,
+          1585,
+          2113,
+          2642,
+          3170,
+          3699,
+          4227,
+          4756,
+          5284,
+          5813,
+          6341,
+          6870,
+          7398,
+          7927,
+          8455,
+          8984,
+          9512,
+          10041,
+          10569,
+          11098,
+          11626,
+          12155,
+          12683,
+          13212,
+          13740,
+          14269,
+          14797,
+          15326,
+          15854,
+          16383
+        ],
+        "reference": "NumPyF32 fullK plus explicit FP16 storage and BF16 rounding",
+        "path": "hit"
+      },
+      "all_groups": [
+        {
+          "group": 0,
+          "OFF_us": 82.49585516750813,
+          "ON_us": 400.54554119706154,
+          "ratio": 4.855341403319626,
+          "OFF_endpoint_drift": 0.046190275939342454,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 8.440110832452774e-05,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.00040986621752381325,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.00039122486487030983,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 8.059060201048851e-05,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        },
+        {
+          "group": 1,
+          "OFF_us": 180.88752403855324,
+          "ON_us": 498.44197928905487,
+          "ratio": 2.755535418699302,
+          "OFF_endpoint_drift": 1.0542073301017112,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 0.0002762340009212494,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.0005822679959237576,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.0004146159626543522,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 8.554104715585709e-05,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        },
+        {
+          "group": 2,
+          "OFF_us": 165.63688404858112,
+          "ON_us": 495.59702165424824,
+          "ratio": 2.9920692151446784,
+          "OFF_endpoint_drift": 0.9789613511291037,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 0.00024671293795108795,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.0005983579903841019,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.0003928360529243946,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 8.45608301460743e-05,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        },
+        {
+          "group": 3,
+          "OFF_us": 161.83685511350632,
+          "ON_us": 491.8859340250492,
+          "ratio": 3.039393799886057,
+          "OFF_endpoint_drift": 0.9951487877724131,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 0.00024236273020505905,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.0005911369808018208,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.00039263488724827766,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 8.131098002195358e-05,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        },
+        {
+          "group": 4,
+          "OFF_us": 168.67206431925297,
+          "ON_us": 497.48108722269535,
+          "ratio": 2.9493982256664104,
+          "OFF_endpoint_drift": 1.0096640030036952,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 0.0002538231201469898,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.0005865972489118576,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.0004083649255335331,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 8.352100849151611e-05,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        }
+      ],
+      "whole_case_including_fixture_qual_state_and_checks_wall_s": 0.17591071175411344,
+      "Torch_peak_allocated_bytes": 86255104,
+      "Torch_peak_scope": "Torch allocator since this case input generation, includes numerical comparison/F32 metric buffers and both arms; not physical memory or candidate-only peak"
+    },
+    {
+      "rank": 1,
+      "layer": 4,
+      "projection": "KVA",
+      "M": 32646,
+      "K": 7168,
+      "N": 576,
+      "seed": 380100,
+      "median_OFF_us": 1165.154855698347,
+      "median_ON_us": 7383.0129113048315,
+      "median_same_group_ratio": 6.336507868629831,
+      "max_OFF_endpoint_drift": 0.009189636241725765,
+      "all_groups_candidate_slower": true,
+      "whole_output_NR": 0.0014344902931793851,
+      "baseline_independent_CPU": {
+        "independent_CPU": {
+          "finite": true,
+          "NRMSE": 0.0,
+          "maxabs": 0.0
+        },
+        "rows": [
+          0,
+          16323,
+          32645
+        ],
+        "columns": [
+          0,
+          18,
+          37,
+          55,
+          74,
+          92,
+          111,
+          129,
+          148,
+          166,
+          185,
+          204,
+          222,
+          241,
+          259,
+          278,
+          296,
+          315,
+          333,
+          352,
+          370,
+          389,
+          408,
+          426,
+          445,
+          463,
+          482,
+          500,
+          519,
+          537,
+          556,
+          575
+        ],
+        "reference": "NumPyF32 fullK plus explicit FP16 storage and BF16 rounding",
+        "path": "baseline"
+      },
+      "candidate_independent_CPU": {
+        "independent_CPU": {
+          "finite": true,
+          "NRMSE": 0.0,
+          "maxabs": 0.0
+        },
+        "rows": [
+          0,
+          16323,
+          32645
+        ],
+        "columns": [
+          0,
+          18,
+          37,
+          55,
+          74,
+          92,
+          111,
+          129,
+          148,
+          166,
+          185,
+          204,
+          222,
+          241,
+          259,
+          278,
+          296,
+          315,
+          333,
+          352,
+          370,
+          389,
+          408,
+          426,
+          445,
+          463,
+          482,
+          500,
+          519,
+          537,
+          556,
+          575
+        ],
+        "reference": "NumPyF32 fullK plus explicit FP16 storage and BF16 rounding",
+        "path": "hit"
+      },
+      "all_groups": [
+        {
+          "group": 0,
+          "OFF_us": 1161.079853773117,
+          "ON_us": 7346.4675806462765,
+          "ratio": 6.327271597016122,
+          "OFF_endpoint_drift": 0.006761049169808294,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 0.0011571547947824001,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.007355668116360903,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.00733726704493165,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 0.001165004912763834,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        },
+        {
+          "group": 1,
+          "OFF_us": 1165.154855698347,
+          "ON_us": 7383.0129113048315,
+          "ratio": 6.336507868629831,
+          "OFF_endpoint_drift": 0.0018536051581219519,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 0.0011662347242236137,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.007400577887892723,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.00736544793471694,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 0.0011640749871730804,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        },
+        {
+          "group": 2,
+          "OFF_us": 1165.89548997581,
+          "ON_us": 7345.076417550445,
+          "ratio": 6.299944103654471,
+          "OFF_endpoint_drift": 0.007926137742254941,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 0.001161274965852499,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.007330265827476978,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.007359887007623911,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 0.001170516014099121,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        },
+        {
+          "group": 3,
+          "OFF_us": 1160.145504400134,
+          "ON_us": 7433.1434443593025,
+          "ratio": 6.407078608818719,
+          "OFF_endpoint_drift": 0.009189636241725765,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 0.0011654761619865894,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.007410207763314247,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.007456079125404358,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 0.0011548148468136787,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        },
+        {
+          "group": 4,
+          "OFF_us": 1167.279900982976,
+          "ON_us": 7413.637824356556,
+          "ratio": 6.35120832468157,
+          "OFF_endpoint_drift": 0.0022192395663726363,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 0.0011659846641123295,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.00745144858956337,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.007375827059149742,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 0.0011685751378536224,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        }
+      ],
+      "whole_case_including_fixture_qual_state_and_checks_wall_s": 6.1346601117402315,
+      "Torch_peak_allocated_bytes": 1761027072,
+      "Torch_peak_scope": "Torch allocator since this case input generation, includes numerical comparison/F32 metric buffers and both arms; not physical memory or candidate-only peak"
+    },
+    {
+      "rank": 1,
+      "layer": 4,
+      "projection": "KVB",
+      "M": 32646,
+      "K": 512,
+      "N": 16384,
+      "seed": 380101,
+      "median_OFF_us": 2941.8037738651037,
+      "median_ON_us": 13436.491833999753,
+      "median_same_group_ratio": 4.571480095174093,
+      "max_OFF_endpoint_drift": 0.027442493403223887,
+      "all_groups_candidate_slower": true,
+      "whole_output_NR": 0.0014345210860602837,
+      "baseline_independent_CPU": {
+        "independent_CPU": {
+          "finite": true,
+          "NRMSE": 0.0,
+          "maxabs": 0.0
+        },
+        "rows": [
+          0,
+          16323,
+          32645
+        ],
+        "columns": [
+          0,
+          528,
+          1056,
+          1585,
+          2113,
+          2642,
+          3170,
+          3699,
+          4227,
+          4756,
+          5284,
+          5813,
+          6341,
+          6870,
+          7398,
+          7927,
+          8455,
+          8984,
+          9512,
+          10041,
+          10569,
+          11098,
+          11626,
+          12155,
+          12683,
+          13212,
+          13740,
+          14269,
+          14797,
+          15326,
+          15854,
+          16383
+        ],
+        "reference": "NumPyF32 fullK plus explicit FP16 storage and BF16 rounding",
+        "path": "baseline"
+      },
+      "candidate_independent_CPU": {
+        "independent_CPU": {
+          "finite": true,
+          "NRMSE": 0.0,
+          "maxabs": 0.0
+        },
+        "rows": [
+          0,
+          16323,
+          32645
+        ],
+        "columns": [
+          0,
+          528,
+          1056,
+          1585,
+          2113,
+          2642,
+          3170,
+          3699,
+          4227,
+          4756,
+          5284,
+          5813,
+          6341,
+          6870,
+          7398,
+          7927,
+          8455,
+          8984,
+          9512,
+          10041,
+          10569,
+          11098,
+          11626,
+          12155,
+          12683,
+          13212,
+          13740,
+          14269,
+          14797,
+          15326,
+          15854,
+          16383
+        ],
+        "reference": "NumPyF32 fullK plus explicit FP16 storage and BF16 rounding",
+        "path": "hit"
+      },
+      "all_groups": [
+        {
+          "group": 0,
+          "OFF_us": 2934.129210188985,
+          "ON_us": 13453.783234581351,
+          "ratio": 4.58527292794812,
+          "OFF_endpoint_drift": 0.027442493403223887,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 0.0029743891209363937,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.01349983923137188,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.013407727237790823,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 0.002893869299441576,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        },
+        {
+          "group": 1,
+          "OFF_us": 2927.2933024913073,
+          "ON_us": 13436.491833999753,
+          "ratio": 4.59007364330881,
+          "OFF_endpoint_drift": 0.011945791130876446,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 0.0029447777196764946,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.01337773585692048,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.013495247811079025,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 0.00290980888530612,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        },
+        {
+          "group": 2,
+          "OFF_us": 2941.8037738651037,
+          "ON_us": 13448.39739613235,
+          "ratio": 4.571480095174093,
+          "OFF_endpoint_drift": 0.0034569188277817618,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 0.0029468885622918606,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.013488578144460917,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.013408216647803783,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 0.002936718985438347,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        },
+        {
+          "group": 3,
+          "OFF_us": 2954.0788382291794,
+          "ON_us": 13411.211781203747,
+          "ratio": 4.539896365542867,
+          "OFF_endpoint_drift": 0.0006567004569474999,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 0.0029531088657677174,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.01344171678647399,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.013380706775933504,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 0.0029550488106906414,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        },
+        {
+          "group": 4,
+          "OFF_us": 2953.678136691451,
+          "ON_us": 13399.506686255336,
+          "ratio": 4.536549368667749,
+          "OFF_endpoint_drift": 0.02273806670071483,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 0.0029200976714491844,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.01337902620434761,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.013419987168163061,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 0.0029872586019337177,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        }
+      ],
+      "whole_case_including_fixture_qual_state_and_checks_wall_s": 0.4645615736953914,
+      "Torch_peak_allocated_bytes": 10814497280,
+      "Torch_peak_scope": "Torch allocator since this case input generation, includes numerical comparison/F32 metric buffers and both arms; not physical memory or candidate-only peak"
+    },
+    {
+      "rank": 1,
+      "layer": 4,
+      "projection": "KVA",
+      "M": 8,
+      "K": 7168,
+      "N": 576,
+      "seed": 380102,
+      "median_OFF_us": 81.0655765235424,
+      "median_ON_us": 401.2403078377247,
+      "median_same_group_ratio": 4.978423098628669,
+      "max_OFF_endpoint_drift": 0.28320030585699524,
+      "all_groups_candidate_slower": true,
+      "whole_output_NR": 0.0014233612189405033,
+      "baseline_independent_CPU": {
+        "independent_CPU": {
+          "finite": true,
+          "NRMSE": 0.0,
+          "maxabs": 0.0
+        },
+        "rows": [
+          0,
+          4,
+          7
+        ],
+        "columns": [
+          0,
+          18,
+          37,
+          55,
+          74,
+          92,
+          111,
+          129,
+          148,
+          166,
+          185,
+          204,
+          222,
+          241,
+          259,
+          278,
+          296,
+          315,
+          333,
+          352,
+          370,
+          389,
+          408,
+          426,
+          445,
+          463,
+          482,
+          500,
+          519,
+          537,
+          556,
+          575
+        ],
+        "reference": "NumPyF32 fullK plus explicit FP16 storage and BF16 rounding",
+        "path": "baseline"
+      },
+      "candidate_independent_CPU": {
+        "independent_CPU": {
+          "finite": true,
+          "NRMSE": 0.0,
+          "maxabs": 0.0
+        },
+        "rows": [
+          0,
+          4,
+          7
+        ],
+        "columns": [
+          0,
+          18,
+          37,
+          55,
+          74,
+          92,
+          111,
+          129,
+          148,
+          166,
+          185,
+          204,
+          222,
+          241,
+          259,
+          278,
+          296,
+          315,
+          333,
+          352,
+          370,
+          389,
+          408,
+          426,
+          445,
+          463,
+          482,
+          500,
+          519,
+          537,
+          556,
+          575
+        ],
+        "reference": "NumPyF32 fullK plus explicit FP16 storage and BF16 rounding",
+        "path": "hit"
+      },
+      "all_groups": [
+        {
+          "group": 0,
+          "OFF_us": 76.8960453569889,
+          "ON_us": 387.7498675137758,
+          "ratio": 5.042520271538699,
+          "OFF_endpoint_drift": 0.13928166992666519,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 7.15409405529499e-05,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.0003904649056494236,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.00038503482937812805,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 8.225115016102791e-05,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        },
+        {
+          "group": 1,
+          "OFF_us": 84.0409193187952,
+          "ON_us": 398.00023660063744,
+          "ratio": 4.735791086374126,
+          "OFF_endpoint_drift": 0.28320030585699524,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 9.594112634658813e-05,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.00041213585063815117,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.0003838646225631237,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 7.214071229100227e-05,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        },
+        {
+          "group": 2,
+          "OFF_us": 81.0655765235424,
+          "ON_us": 407.55048394203186,
+          "ratio": 5.027417325819849,
+          "OFF_endpoint_drift": 0.24364829079713016,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 9.094132110476494e-05,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.00040808599442243576,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.00040701497346162796,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 7.118983194231987e-05,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        },
+        {
+          "group": 3,
+          "OFF_us": 81.27582259476185,
+          "ON_us": 404.6254325658083,
+          "ratio": 4.978423098628669,
+          "OFF_endpoint_drift": 0.2710519455592892,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 9.229080751538277e-05,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.00042225606739521027,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.0003869947977364063,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 7.026083767414093e-05,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        },
+        {
+          "group": 4,
+          "OFF_us": 81.02599531412125,
+          "ON_us": 401.2403078377247,
+          "ratio": 4.951994804657418,
+          "OFF_endpoint_drift": 0.24646843139734026,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 9.10111702978611e-05,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.0004068547859787941,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.0003956258296966553,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 7.10408203303814e-05,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        }
+      ],
+      "whole_case_including_fixture_qual_state_and_checks_wall_s": 0.13239788822829723,
+      "Torch_peak_allocated_bytes": 84034560,
+      "Torch_peak_scope": "Torch allocator since this case input generation, includes numerical comparison/F32 metric buffers and both arms; not physical memory or candidate-only peak"
+    },
+    {
+      "rank": 1,
+      "layer": 4,
+      "projection": "KVB",
+      "M": 8,
+      "K": 512,
+      "N": 16384,
+      "seed": 380103,
+      "median_OFF_us": 86.69099770486355,
+      "median_ON_us": 400.7001407444477,
+      "median_same_group_ratio": 4.64077345198567,
+      "max_OFF_endpoint_drift": 0.18294815153020802,
+      "all_groups_candidate_slower": true,
+      "whole_output_NR": 0.001421515955281912,
+      "baseline_independent_CPU": {
+        "independent_CPU": {
+          "finite": true,
+          "NRMSE": 0.0,
+          "maxabs": 0.0
+        },
+        "rows": [
+          0,
+          4,
+          7
+        ],
+        "columns": [
+          0,
+          528,
+          1056,
+          1585,
+          2113,
+          2642,
+          3170,
+          3699,
+          4227,
+          4756,
+          5284,
+          5813,
+          6341,
+          6870,
+          7398,
+          7927,
+          8455,
+          8984,
+          9512,
+          10041,
+          10569,
+          11098,
+          11626,
+          12155,
+          12683,
+          13212,
+          13740,
+          14269,
+          14797,
+          15326,
+          15854,
+          16383
+        ],
+        "reference": "NumPyF32 fullK plus explicit FP16 storage and BF16 rounding",
+        "path": "baseline"
+      },
+      "candidate_independent_CPU": {
+        "independent_CPU": {
+          "finite": true,
+          "NRMSE": 0.0,
+          "maxabs": 0.0
+        },
+        "rows": [
+          0,
+          4,
+          7
+        ],
+        "columns": [
+          0,
+          528,
+          1056,
+          1585,
+          2113,
+          2642,
+          3170,
+          3699,
+          4227,
+          4756,
+          5284,
+          5813,
+          6341,
+          6870,
+          7398,
+          7927,
+          8455,
+          8984,
+          9512,
+          10041,
+          10569,
+          11098,
+          11626,
+          12155,
+          12683,
+          13212,
+          13740,
+          14269,
+          14797,
+          15326,
+          15854,
+          16383
+        ],
+        "reference": "NumPyF32 fullK plus explicit FP16 storage and BF16 rounding",
+        "path": "hit"
+      },
+      "all_groups": [
+        {
+          "group": 0,
+          "OFF_us": 78.86090315878391,
+          "ON_us": 395.3250125050545,
+          "ratio": 5.012940464415937,
+          "OFF_endpoint_drift": 0.023082033037599092,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 7.795076817274094e-05,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.000394314993172884,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.00039633503183722496,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 7.977103814482689e-05,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        },
+        {
+          "group": 1,
+          "OFF_us": 86.45141497254372,
+          "ON_us": 400.7001407444477,
+          "ratio": 4.634974926341077,
+          "OFF_endpoint_drift": 0.1686587343053977,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 9.374180808663368e-05,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.0004090750589966774,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.000392325222492218,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 7.916102185845375e-05,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        },
+        {
+          "group": 2,
+          "OFF_us": 86.69099770486355,
+          "ON_us": 407.78517723083496,
+          "ratio": 4.703892999583708,
+          "OFF_endpoint_drift": 0.18294815153020802,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 9.46209765970707e-05,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.0004209051840007305,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.0003946651704609394,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 7.87610188126564e-05,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        },
+        {
+          "group": 3,
+          "OFF_us": 87.02115155756474,
+          "ON_us": 403.84544990956783,
+          "ratio": 4.64077345198567,
+          "OFF_endpoint_drift": 0.14640150045618364,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 9.339116513729095e-05,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.00042063603177666664,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.000387054868042469,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 8.065113797783852e-05,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        },
+        {
+          "group": 4,
+          "OFF_us": 86.96573786437511,
+          "ON_us": 397.98556827008724,
+          "ratio": 4.576349008741282,
+          "OFF_endpoint_drift": 0.16938007844397146,
+          "arms": [
+            {
+              "mode": 0,
+              "wall_s": 9.433086961507797e-05,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.00040939589962363243,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 1,
+              "wall_s": 0.00038657523691654205,
+              "path": "hit",
+              "count_delta": {
+                "baseline": 0,
+                "hit": 1,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            },
+            {
+              "mode": 0,
+              "wall_s": 7.960060611367226e-05,
+              "path": "baseline",
+              "count_delta": {
+                "baseline": 1,
+                "hit": 0,
+                "range_fallback": 0,
+                "weight_range_fallback": 0,
+                "output_fallback": 0,
+                "rejected_nonfinite": 0
+              }
+            }
+          ]
+        }
+      ],
+      "whole_case_including_fixture_qual_state_and_checks_wall_s": 0.14556030184030533,
+      "Torch_peak_allocated_bytes": 86255104,
+      "Torch_peak_scope": "Torch allocator since this case input generation, includes numerical comparison/F32 metric buffers and both arms; not physical memory or candidate-only peak"
+    }
+  ],
+  "ranks": [
+    {
+      "rank": 0,
+      "layer": 0,
+      "physical_mask": "0",
+      "device": {
+        "visible_device": 0,
+        "physical_mask": "0",
+        "name": "BW",
+        "arch": "gfx936:sramecc+:xnack-"
+      },
+      "driver_wall_s": 52.255430206190795,
+      "prepare_wall_s": 44.829314173199236,
+      "measured_arms_wall_s": 0.26162004191428423,
+      "whole_cases_wall_s": 7.287916786503047,
+      "final_counts": {
+        "KVA": {
+          "baseline": 26,
+          "hit": 26,
+          "range_fallback": 1,
+          "weight_range_fallback": 0,
+          "output_fallback": 0,
+          "rejected_nonfinite": 0
+        },
+        "KVB": {
+          "baseline": 26,
+          "hit": 26,
+          "range_fallback": 1,
+          "weight_range_fallback": 0,
+          "output_fallback": 0,
+          "rejected_nonfinite": 0
+        }
+      },
+      "weight_loads": [
+        {
+          "key": "layers.0.self_attn.kv_a_proj_with_mqa.weight",
+          "BF16_H2D_and_module_wall_s": 1.4939726940356195,
+          "once_FP16_weight_guard_copy_drain_wall_s": 0.03864654991775751,
+          "private_FP16_bytes": 8257536,
+          "CPU_to_GPU_FP16_storage_exact_diagnostic": true,
+          "GPU_storage_different_from_CPU_half_count": 0,
+          "GPU_storage_nonzero_to_zero": 6,
+          "FP16_conversion": {
+            "elements": 4128768,
+            "finite": true,
+            "maxabs": 0.2275390625,
+            "nonzero_to_zero": 6,
+            "FP16_subnormal": 9960,
+            "changed": 872,
+            "FP16_nonfinite": 0,
+            "conversion_maxabs": 2.9802322387695312e-08
+          }
+        },
+        {
+          "key": "layers.0.self_attn.kv_b_proj.weight",
+          "BF16_H2D_and_module_wall_s": 0.00639978377148509,
+          "once_FP16_weight_guard_copy_drain_wall_s": 0.001064414158463478,
+          "private_FP16_bytes": 16777216,
+          "CPU_to_GPU_FP16_storage_exact_diagnostic": true,
+          "GPU_storage_different_from_CPU_half_count": 0,
+          "GPU_storage_nonzero_to_zero": 5,
+          "FP16_conversion": {
+            "elements": 8388608,
+            "finite": true,
+            "maxabs": 0.1435546875,
+            "nonzero_to_zero": 5,
+            "FP16_subnormal": 11683,
+            "changed": 988,
+            "FP16_nonfinite": 0,
+            "conversion_maxabs": 2.9802322387695312e-08
+          }
+        }
+      ],
+      "matmul_policy": {
+        "original_FP16_flags": {
+          "allow_fp16_reduced_precision_reduction": true,
+          "allow_fp16_accumulation": false
+        },
+        "effective_FP16_flags": {
+          "allow_fp16_reduced_precision_reduction": false,
+          "allow_fp16_accumulation": false
+        },
+        "BF16_reduced_precision_unchanged": true,
+        "actual_ISA_accumulation_precision": "UNKNOWN; numeric tested, not inferred from API flags/scalar FP16 specs"
+      },
+      "cleanup_errors": [],
+      "normal_close": true,
+      "raw_report_path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Kimi380-gpu-v1-910371.707-rank0.json",
+      "raw_report_SHA256": "45e9a254835f22cf99be762e884248d893dc7742b5dea5c5adabeacd35dd5f80"
+    },
+    {
+      "rank": 1,
+      "layer": 4,
+      "physical_mask": "1",
+      "device": {
+        "visible_device": 0,
+        "physical_mask": "1",
+        "name": "BW",
+        "arch": "gfx936:sramecc+:xnack-"
+      },
+      "driver_wall_s": 51.8357018539682,
+      "prepare_wall_s": 44.82905083009973,
+      "measured_arms_wall_s": 0.25887274043634534,
+      "whole_cases_wall_s": 6.8771798755042255,
+      "final_counts": {
+        "KVA": {
+          "baseline": 26,
+          "hit": 26,
+          "range_fallback": 1,
+          "weight_range_fallback": 0,
+          "output_fallback": 0,
+          "rejected_nonfinite": 0
+        },
+        "KVB": {
+          "baseline": 26,
+          "hit": 26,
+          "range_fallback": 1,
+          "weight_range_fallback": 0,
+          "output_fallback": 0,
+          "rejected_nonfinite": 0
+        }
+      },
+      "weight_loads": [
+        {
+          "key": "layers.4.self_attn.kv_a_proj_with_mqa.weight",
+          "BF16_H2D_and_module_wall_s": 1.4941293061710894,
+          "once_FP16_weight_guard_copy_drain_wall_s": 0.03861764958128333,
+          "private_FP16_bytes": 8257536,
+          "CPU_to_GPU_FP16_storage_exact_diagnostic": true,
+          "GPU_storage_different_from_CPU_half_count": 0,
+          "GPU_storage_nonzero_to_zero": 6,
+          "FP16_conversion": {
+            "elements": 4128768,
+            "finite": true,
+            "maxabs": 0.197265625,
+            "nonzero_to_zero": 6,
+            "FP16_subnormal": 9163,
+            "changed": 805,
+            "FP16_nonfinite": 0,
+            "conversion_maxabs": 2.9802322387695312e-08
+          }
+        },
+        {
+          "key": "layers.4.self_attn.kv_b_proj.weight",
+          "BF16_H2D_and_module_wall_s": 0.00648515485227108,
+          "once_FP16_weight_guard_copy_drain_wall_s": 0.0011128848418593407,
+          "private_FP16_bytes": 16777216,
+          "CPU_to_GPU_FP16_storage_exact_diagnostic": true,
+          "GPU_storage_different_from_CPU_half_count": 0,
+          "GPU_storage_nonzero_to_zero": 6,
+          "FP16_conversion": {
+            "elements": 8388608,
+            "finite": true,
+            "maxabs": 0.138671875,
+            "nonzero_to_zero": 6,
+            "FP16_subnormal": 11325,
+            "changed": 962,
+            "FP16_nonfinite": 0,
+            "conversion_maxabs": 2.9802322387695312e-08
+          }
+        }
+      ],
+      "matmul_policy": {
+        "original_FP16_flags": {
+          "allow_fp16_reduced_precision_reduction": true,
+          "allow_fp16_accumulation": false
+        },
+        "effective_FP16_flags": {
+          "allow_fp16_reduced_precision_reduction": false,
+          "allow_fp16_accumulation": false
+        },
+        "BF16_reduced_precision_unchanged": true,
+        "actual_ISA_accumulation_precision": "UNKNOWN; numeric tested, not inferred from API flags/scalar FP16 specs"
+      },
+      "cleanup_errors": [],
+      "normal_close": true,
+      "raw_report_path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Kimi380-gpu-v1-910371.707-rank1.json",
+      "raw_report_SHA256": "f0816ee02560c0dd707ed4dc5fcdde18de6c47daf8cd84bb55525fd2a9ff2b9e"
+    }
+  ],
+  "paired_groups": 40,
+  "groups_candidate_slower": 40,
+  "groups_slowdown_exceeds_own_OFF_drift": 40,
+  "measured_calls": 160,
+  "total_wrapper_or_Linear_calls": 212,
+  "actual_range_fallback_probes": 4,
+  "measured_candidate_fallbacks": 0,
+  "max_whole_output_GPU_F32_NR": 0.0014475649364884336,
+  "max_baseline_sample_CPU_NR": 0.0,
+  "max_candidate_sample_CPU_half_NR": 0.0005843835276960912,
+  "additional_private_FP16_weight_bytes": 50069504,
+  "GPU_storage_nonzero_to_zero": 23,
+  "summed_two_rank_measured_complete_call_wall_s": 0.5204927823506296,
+  "GPU_busy": "NOT_MEASURED",
+  "Slurm": [
+    "910371.706|Kimi-draft-KV-guarded-FP16-r380-v1-before|COMPLETED|0:0|00:00:00|a02r3n07",
+    "910371.707|Kimi-draft-KV-guarded-FP16-r380-v1|COMPLETED|0:0|00:00:58|a02r3n07",
+    "910371.708|Kimi-draft-KV-guarded-FP16-r380-v1-post|COMPLETED|0:0|00:00:01|a02r3n07",
+    "910407.763|Kimi-draft-KV-guarded-FP16-r380-v1-keeper|COMPLETED|0:0|00:01:01|a14r2n20"
+  ],
+  "Slurm_GPUstep_s": 58,
+  "Slurm_GPUcards": 2,
+  "Slurm_keeper_s": 61,
+  "fresh": {
+    "node": "a02r3n07",
+    "actual_step": "910371.706",
+    "KFD_available": true,
+    "kfd_pids": [],
+    "matching_component_processes": [],
+    "GPU_initialized": false
+  },
+  "post": {
+    "node": "a02r3n07",
+    "actual_step": "910371.708",
+    "KFD_available": true,
+    "kfd_pids": [],
+    "matching_component_processes": [],
+    "GPU_initialized": false
+  },
+  "raw_watch_path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Kimi-draft-KV-guarded-FP16-r380-v1-watch.json",
+  "raw_watch_SHA256": "c9aba435e3089ee73f6576061a4ddd1b70185f3f03be921cd91b985ac83fec7f",
+  "local_archive": "Kimi380-GPU-v1-observed-1-local.json",
+  "local_archive_SHA256": "c41fecc72909fd0fd7008b8b74e0897ff0559d7520e5f7ffbca9d473b7a80260",
+  "M8_max_OFF_drift_retained": 1.096879048676661,
+  "bare_FP16_GEMM_performance": "NOT_ISOLATED",
+  "BF16_physical_peak": "NOT_CERTIFIED",
+  "GPU_output_overflow_fallback_qualification": "NOT_TESTED_CPU_ONLY",
+  "Model_gain": "UNMEASURED",
+  "quality_or_acceptance": "NOT_QUALIFIED",
+  "no_Model_load": true,
+  "no_new_dtype_or_size_grid": true,
+  "no_more_GPU": true,
+  "reader_SHA256": "8d044269dad02795af7314a90b3f3b8d2db5183c44b872a8b306c70a2ca651c8"
+}
