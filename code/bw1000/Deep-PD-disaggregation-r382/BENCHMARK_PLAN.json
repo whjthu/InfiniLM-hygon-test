@@ -2,7 +2,14 @@
   "state": "FROZEN_FIRST_WORKLOAD_AND_ORDER_NOT_EXECUTION_GO",
   "GPU_GO": false,
   "model": "DeepSeek-v4 same private Native export/import build on P and D and colocated arms",
-  "placement": {"parent": 910376, "P": "a02r4n12", "D": "a02r4n13", "TP_per_replica": 8, "PP": 1, "total_cards": 16},
+  "placement": {
+    "parent": 910376,
+    "P": "a02r4n12",
+    "D": "a02r4n13",
+    "TP_per_replica": 8,
+    "PP": 1,
+    "total_cards": 16
+  },
   "fixture": {
     "path": "/refactor/incoming/Deep-prefill-chunk-pair-r348/repair-r2/owner/frozen-toolprompt.json",
     "SHA256": "43377e6a70efdf8960989559c957241f9e725f8a2c2a55b9bf438c331275cb6d",
@@ -17,27 +24,115 @@
   "prefill_chunk": 1024,
   "sampling": "Same pinned Native topk1/topp1/temp1 actual greedy source path; HTTP defaults do not determine Native sampling",
   "optimization_flags": "Same fixed flags in all arms; no epilogue/fullpre optin changes between co and PD; exact newDSO and dependency/source hashes required before execution",
-  "planned_external_requests": 14,
+  "planned_external_requests": 15,
   "planned_groups": [
-    {"id": 0, "phase": "warm", "mode": "co", "requests": 1, "co_nodes": ["P"]},
-    {"id": 1, "phase": "warm", "mode": "PD", "requests": 1},
-    {"id": 2, "phase": "latency", "mode": "co", "requests": 1, "co_nodes": ["P"]},
-    {"id": 3, "phase": "latency", "mode": "PD", "requests": 1},
-    {"id": 4, "phase": "latency", "mode": "PD", "requests": 1},
-    {"id": 5, "phase": "latency", "mode": "co", "requests": 1, "co_nodes": ["P"]},
-    {"id": 6, "phase": "capacity", "mode": "co", "requests": 2, "co_nodes": ["P", "D"], "arrival_offsets_s": [0, 0.01]},
-    {"id": 7, "phase": "capacity", "mode": "PD", "requests": 2, "arrival_offsets_s": [0, 0.01]},
-    {"id": 8, "phase": "capacity", "mode": "PD", "requests": 2, "arrival_offsets_s": [0, 0.01]},
-    {"id": 9, "phase": "capacity", "mode": "co", "requests": 2, "co_nodes": ["P", "D"], "arrival_offsets_s": [0, 0.01]}
+    {
+      "id": 0,
+      "phase": "warm",
+      "mode": "co",
+      "requests": 2,
+      "co_nodes": [
+        "P",
+        "D"
+      ],
+      "arrival_offsets_s": [
+        0,
+        0.01
+      ]
+    },
+    {
+      "id": 1,
+      "phase": "warm",
+      "mode": "PD",
+      "requests": 1
+    },
+    {
+      "id": 2,
+      "phase": "latency",
+      "mode": "co",
+      "requests": 1,
+      "co_nodes": [
+        "P"
+      ]
+    },
+    {
+      "id": 3,
+      "phase": "latency",
+      "mode": "PD",
+      "requests": 1
+    },
+    {
+      "id": 4,
+      "phase": "latency",
+      "mode": "PD",
+      "requests": 1
+    },
+    {
+      "id": 5,
+      "phase": "latency",
+      "mode": "co",
+      "requests": 1,
+      "co_nodes": [
+        "P"
+      ]
+    },
+    {
+      "id": 6,
+      "phase": "capacity",
+      "mode": "co",
+      "requests": 2,
+      "co_nodes": [
+        "P",
+        "D"
+      ],
+      "arrival_offsets_s": [
+        0,
+        0.01
+      ]
+    },
+    {
+      "id": 7,
+      "phase": "capacity",
+      "mode": "PD",
+      "requests": 2,
+      "arrival_offsets_s": [
+        0,
+        0.01
+      ]
+    },
+    {
+      "id": 8,
+      "phase": "capacity",
+      "mode": "PD",
+      "requests": 2,
+      "arrival_offsets_s": [
+        0,
+        0.01
+      ]
+    },
+    {
+      "id": 9,
+      "phase": "capacity",
+      "mode": "co",
+      "requests": 2,
+      "co_nodes": [
+        "P",
+        "D"
+      ],
+      "arrival_offsets_s": [
+        0,
+        0.01
+      ]
+    }
   ],
   "planned_role_request_lifecycles": {
-    "external_co": 7,
+    "external_co": 8,
     "external_PD": 7,
     "P_colocated": 5,
-    "D_colocated": 2,
+    "D_colocated": 3,
     "P_prefill_only": 7,
     "D_imported_decode_only": 7,
-    "total_stage_lifecycles": 21,
+    "total_stage_lifecycles": 22,
     "Native_forward_calls": "Depends on actual natural EOS and complete prompt chunks; not21 or14. Each PD prompt must be consumed once on P and zero times on D."
   },
   "handoff": {
@@ -54,13 +149,19 @@
     "tokens": "Exclude EOS/control IDs from useful-token rate; per-user decode=(visible_n-1)/(last_visible-first_visible), include P-to-D ITL gap. Include failed/rejected/unfinished requests in planned denominators.",
     "capacity": "Same16cards: two co replicas vs P8+D8. Group makespan ends at all planned requests terminal, not first completion. Report useful tokens/group wall/16 and all queue delays.",
     "latency": "Single co request uses one8card replica vs PD16cards. State this resource difference. Whole experiment retains both replicas resident and reports full16card seconds including idleD, coldload, warmup, copies and teardown.",
-    "qualified_scope": "One fixed complete historical8Ktool request, two warmups, one latencyABBA and one two-request cohortABBA. Not online arrival stability, broad quality, or a production SLO."
+    "qualified_scope": "One fixed complete historical8Ktool request, three warmups (coP,coD,PD), one latencyABBA and one two-request cohortABBA. Not online arrival stability, broad quality, or a production SLO."
   },
-  "proposed_budget_not_final_claim": {"GPU_each_node_s_including_load": 3600, "CPU_keeper_s": 3900, "model_loads": 2, "model_reloads": 0},
+  "proposed_budget_not_final_claim": {
+    "GPU_each_node_s_including_load": 3600,
+    "CPU_keeper_s": 3900,
+    "model_loads": 2,
+    "model_reloads": 0
+  },
   "remaining_before_GPU": [
     "Exact complete Native state export/import implementation, CPU/isolated link and actual ownership/shape closure",
     "Source/ABI/checkpoint/current binding pins, timed driver/controller, original-deadline/no-retry and independent cleanup closure",
     "Ordinary push of exact final source/CPU receipts/resources/budget before fresh idle and once-only model batch"
   ],
-  "stop": "Any unexpected Native/transport/identity/state/numeric/lifecycle failure preserves partial work and stops remaining requests, no replay or automatic reload. Wrong task/cap remains reported; no false qualification. If true PD unavailable, report the precise gap instead of replacing it with recomputation."
+  "stop": "Any unexpected Native/transport/identity/state/numeric/lifecycle failure preserves partial work and stops remaining requests, no replay or automatic reload. Wrong task/cap remains reported; no false qualification. If true PD unavailable, report the precise gap instead of replacing it with recomputation.",
+  "warmup_revision_before_any_GPU": "Both P/D execute an actual colocated warmup before measured comparisons. This avoids D firstprefillkernel cold cost contaminating capacity baseline; no additional Model loads or formal samples."
 }
