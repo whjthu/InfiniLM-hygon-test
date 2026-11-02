@@ -1,0 +1,98 @@
+{
+  "parent_SHA256": "d54b80d68497c26c83a0c63fe87fbec376f4b106daa40d0da61238dfb5914be2",
+  "edits": [
+    {
+      "old": "#include \"selected_values_r400.hpp\"",
+      "new": "#include \"selected_kv_r408.hpp\""
+    },
+    {
+      "old": "  const bool host4504=projected_host_r4504::enabled();",
+      "new": "  const bool kv408=kv_on_demand_r408::requested(v398);\n  const bool host4504=projected_host_r4504::enabled();\n  kv_on_demand_r408::scope(kv408,v398,rows,capacity,topk,rank.tp_size,host4504);"
+    },
+    {
+      "old": "  projected_key_=exact_banks_r4188::allocate(r,{host4504?size_t{1}:rows,capacity,prepare_->local_heads(),256});",
+      "new": "  if(!kv408)projected_key_=exact_banks_r4188::allocate(r,{host4504?size_t{1}:rows,capacity,prepare_->local_heads(),256});"
+    },
+    {
+      "old": "  r.setDeviceMemory(projected_key_->data(),0xff,projected_key_->nbytes());",
+      "new": "  if(projected_key_)r.setDeviceMemory(projected_key_->data(),0xff,projected_key_->nbytes());"
+    },
+    {
+      "old": " const bool v398=!projected_value_;",
+      "new": " const bool v398=!projected_value_;\n const bool kv408=!projected_key_;\n if(kv408&&!v398)throw std::logic_error(\"r408 frozen NoK requires NoV\");"
+    },
+    {
+      "old": ":projected_key_->narrow({{0,host_bank_r4504_?size_t{0}:request.row,1}})->view({capacity_,prepare_->local_heads(),256});",
+      "new": ":projected_key_?projected_key_->narrow({{0,host_bank_r4504_?size_t{0}:request.row,1}})->view({capacity_,prepare_->local_heads(),256}):rt::Tensor{};"
+    },
+    {
+      "old": "latent_row->narrow({{0,request.past,count}})->copy_from(r,prepared.kv_latent->narrow({{0,begin,count}}));rotary_row->narrow({{0,request.past,count}})->copy_from(r,prepared.k_rot->narrow({{0,begin,count}})->view({count,64}));",
+      "new": "kv_on_demand_r408::append_latent_rotary(r,latent_row,rotary_row,prepared.kv_latent->narrow({{0,begin,count}}),prepared.k_rot->narrow({{0,begin,count}}),request.past,count);"
+    },
+    {
+      "old": "    key_row->narrow({{0,request.past,count}})->copy_from(r,fresh.first);\n    if(value_row)value_row->narrow({{0,request.past,count}})->copy_from(r,fresh.second);",
+      "new": "    kv_on_demand_r408::store_projected(r,key_row,value_row,fresh.first,fresh.second,request.past,count);"
+    },
+    {
+      "old": "   if(complete_prefix){\n    expanded=",
+      "new": "   if(kv408){\n    expanded=kv_on_demand_r408::selected(*prepare_,r,latent_row,rotary_row,ids,work.held,true);\n    work.held.insert(work.held.end(),{expanded.first,expanded.second});\n   }else if(complete_prefix){\n    expanded="
+    }
+  ],
+  "necessary_Model_HOST_TUs": 1,
+  "headers_class_layout_changed": false,
+  "added_sync": 0,
+  "fresh_projection_and_fence_retained": true,
+  "default_OFF": true,
+  "component_parent_SHA256": "fcf8441fd5effc8fb1a8397868c02c15ba69ac9471e0ba8b62fe986dedfb6c97",
+  "component_edits": [
+    {
+      "old": "#include \"selected_values_r400.hpp\"",
+      "new": "#include \"selected_kv_r408.hpp\""
+    },
+    {
+      "old": "c->key=rt::Tensor::empty(*c->r,{32768,8,256},rt::DataType::kBFloat16);if(!mode)c->value=rt::Tensor::empty(*c->r,{32768,8,256},rt::DataType::kBFloat16);",
+      "new": "if(!mode)c->key=rt::Tensor::empty(*c->r,{32768,8,256},rt::DataType::kBFloat16);m::kv_on_demand_r408::scope(bool(mode),true,1,32768,2048,8,false);"
+    },
+    {
+      "old": "c->latent->narrow({{0,past,count}})->copy_from(*c->r,a.kv_latent);c->rotary->narrow({{0,past,count}})->copy_from(*c->r,a.k_rot->view({count,64}));c->key->narrow({{0,past,count}})->copy_from(*c->r,kv.first);if(c->value)c->value->narrow({{0,past,count}})->copy_from(*c->r,kv.second);",
+      "new": "m::kv_on_demand_r408::append_latent_rotary(*c->r,c->latent,c->rotary,a.kv_latent,a.k_rot,past,count);m::kv_on_demand_r408::store_projected(*c->r,c->key,c->value,kv.first,kv.second,past,count);"
+    },
+    {
+      "old": "c->latent->narrow({{0,past,count}})->copy_from(*c->r,a.kv_latent);c->rotary->narrow({{0,past,count}})->copy_from(*c->r,a.k_rot->view({count,64}));c->key->narrow({{0,past,count}})->copy_from(*c->r,fresh.first);if(c->value)c->value->narrow({{0,past,count}})->copy_from(*c->r,fresh.second);",
+      "new": "m::kv_on_demand_r408::append_latent_rotary(*c->r,c->latent,c->rotary,a.kv_latent,a.k_rot,past,count);m::kv_on_demand_r408::store_projected(*c->r,c->key,c->value,fresh.first,fresh.second,past,count);"
+    },
+    {
+      "old": "const auto selected_before=m::v_on_demand_r400::completed_expand_calls;size_t free0",
+      "new": "const auto selected_before=m::kv_on_demand_r408::counts;size_t free0"
+    },
+    {
+      "old": "size_t U=0,free1=0,free2=0;",
+      "new": "size_t U=0,free1=0,free2=0;bool complete=false;"
+    },
+    {
+      "old": "bool complete=U==c->seeded;",
+      "new": "complete=U==c->seeded;"
+    },
+    {
+      "old": "if(complete){k=c->key->narrow",
+      "new": "if(!c->key){auto pair=m::kv_on_demand_r408::selected(*c->prep,*c->r,c->latent,c->rotary,ids,w.held,true);k=pair.first;v=pair.second;}\n else if(complete){k=c->key->narrow"
+    },
+    {
+      "old": "if(!c->value)v=m::v_on_demand_r400::selected_values(*c->prep,*c->r,c->latent,c->rotary,ids,w.held);",
+      "new": "if(c->key)v=m::kv_on_demand_r408::selected(*c->prep,*c->r,c->latent,c->rotary,ids,w.held,false).second;"
+    },
+    {
+      "old": "{{\"complete_attention_CAPI_ms\",ms},{\"mode\",!bool(c->value)}",
+      "new": "{{\"complete_attention_CAPI_ms\",ms},{\"mode\",!bool(c->key)}"
+    },
+    {
+      "old": "{\"logical_persistent_bytes\",c->latent->nbytes()+c->rotary->nbytes()+c->key->nbytes()+(c->value?c->value->nbytes():0)}",
+      "new": "{\"persistent_K_bytes\",c->key?c->key->nbytes():0},{\"logical_persistent_bytes\",c->latent->nbytes()+c->rotary->nbytes()+(c->key?c->key->nbytes():0)}"
+    },
+    {
+      "old": "{\"selectedV_HOST_completed_expand_calls\",m::v_on_demand_r400::completed_expand_calls-selected_before},{\"selectedV_max_block_rows\",8192}",
+      "new": "{\"selected_HOST_completed_expand_calls\",m::kv_on_demand_r408::counts.completed_expand_calls-selected_before.completed_expand_calls},{\"selected_max_block_rows\",8192},{\"selected_K_copy_calls\",m::kv_on_demand_r408::counts.K_copy_calls-selected_before.K_copy_calls},{\"selected_K_copy_bytes\",m::kv_on_demand_r408::counts.K_copy_bytes-selected_before.K_copy_bytes},{\"fresh_expand_calls\",1},{\"query_kv_b_expand_calls_total\",1+m::kv_on_demand_r408::counts.completed_expand_calls-selected_before.completed_expand_calls},{\"held_chunk_KV_logical_bytes\",U*8*256*2*2},{\"allV_output_bytes\",U>8192?U*4096:0},{\"additional_allK_bytes_vs_complete_prefix_NoV\",(!c->key&&U>8192)?U*4096:0},{\"selected_latent_rotary_bytes\",U*576*2},{\"complete_prefix\",complete}"
+    }
+  ],
+  "directK_diagnostic": "Streamed same existing K projection helper vs original NoV cachedK; wholeK and rotary64 metrics outside timed query"
+}
