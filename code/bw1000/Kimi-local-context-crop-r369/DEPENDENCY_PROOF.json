@@ -1,0 +1,20 @@
+{
+  "scope": "Actual pinned strict-loader factory and selected five-layer implementation, no GPU or checkpoint",
+  "dependencies_SHA256": {
+    "/refactor/incoming/dflash2_creator_factory_r9007.py": "e62831319cfb85739bd7410dd51daa8bee116a45e8784d9e639a90059ef9556d",
+    "/refactor/incoming/dflash2_strict_loader_r9007.py": "168610216e11662d74278f33c46a9b5197c7779314ebbc3ef3ccbf24bf3c2c19",
+    "/refactor/incoming/r9000_torchspec_deepseek_eagle.py": "56d8c18321bc270493d90efaa32f9aabfe00499c12ed96e7c12359200decb580",
+    "/refactor/incoming/r9000_torchspec_dflash.py": "81489dec80b0d4075ed59ac4e48bc12382f3d50e880d1ebdd2dfbfe702a831d7",
+    "/refactor/incoming/r9000_torchspec_dflash2.py": "195dfadcab1c3c4fb2fdc76428dc5b19fa6af2e2358ba3b9b58c38d5d9f03fad",
+    "/refactor/incoming/r9000_torchspec_dspark.py": "0794d502e5be22cacd7bdc27cdf128107a1d35b2303da8de204a1422b6eb6382",
+    "/refactor/incoming/r9000_torchspec_llama3_eagle.py": "5c94ee86ab8f8b680b473696706a8bacbf1bfb398342f86193786844acf60f3e",
+    "/refactor/incoming/config.json": "aac0900105b9099b99a452c728ff9c4685889d264f7bed0101e57788df8f09c8",
+    "/refactor/incoming/Kimi-long-draft-RPC-CPU-r333/query_long_projected_r323.py": "9033376e5c431ba96803faf6c94c1a565fc6a910012ca4585ab8fd8e90dc401e"
+  },
+  "K_V_dependency": "K3DSparkMLAAttention.forward: Q only draft_hidden; K/V from tokenwise Linear(cat(context,draft))->split->RMSNorm(mean -1 only)->Linear; context rows never depend on anchor/draft/query. DFlash2DecoderLayer convolves only eight draft rows before/after attention; context never updated between layers.",
+  "position_dependency": "Pinned config YaRN factor32/theta50000/original32768/mscale1/all_dim1. inv_freq and mscale depend only fixed configuration; t is absolute index. Attention still requests a sliced RoPE table of ctx_len+8. Crop alone fails absolute dp/cp indexing; private AST forward changes only seq_len=absolute_span (static integer original L+8).",
+  "mask_algebra": "dp=L+j,j0..7;cp=k,k0..L-1. abs(L+j-k)<4096 iff k>=L+j-4095. Union over all8 queries k>=L-4095. Keep context suffix max(0,L-4095)..L-1, preserve per-query original mask columns and absolute cp/dp. All8 draft self-key columns remain (max distance7). Fifth global layer uses fullctx/fullmask.",
+  "condition": "C1 contiguous positions0..L-1,8 fixed draft positions,L<=32760; no padding/crossrow generalization",
+  "nonchanges": "No weight/head/projection/selector math changes; original five class files untouched; no persistent KV lifecycle, cache or new allocator. Default crop_localFalse. Local borrowed-weight copies do not mutate original model modules.",
+  "cost_bound": "Root368 measured near32638 queryRPC1.4829100701s / first-last4.9121621270s. Holding other costs/acceptance fixed, >15tok/s requires >74.9986% query saving; even zeroquery insufficient for this first-request33card per-card generation gain. No speed/acceptance prediction."
+}
