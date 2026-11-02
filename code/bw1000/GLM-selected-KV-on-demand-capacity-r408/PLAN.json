@@ -1,0 +1,82 @@
+{
+  "id": "GLM-selected-KV-on-demand-capacity-r408",
+  "hypothesis": "Existing NoV selected-union kv_b already computes unused K; same K can replace persistent projectedK without another GEMM, while preserving original check/fence/FP8/rope/order",
+  "scope": "Capacity fallback candidate, not latent absorption or Model fit claim",
+  "baseline": "NoV-only fromr403; projectedK present, V absent",
+  "candidate": "NoK+NoV with same helper expansion; no persistent K/V",
+  "policy": "GLM_SELECTED_KV_ON_DEMAND_R408 strict01 defaultOFF requires originalr403NoV; C1/full32768/topK2048/TP8/nohost/noresident frozenconstructor",
+  "object_graph": {
+    "Model_objects": 29,
+    "reused_original": 28,
+    "new_caller": 1,
+    "additional_component_bridge": 1,
+    "total": 30
+  },
+  "shared": "Actualcaller+bridge same selected_kv_r408.hpp includingpair/geometry/state-copy; realMD proves identity",
+  "geometry": [
+    {
+      "name": "decode1-union2048",
+      "T": 1,
+      "past": 32767,
+      "U": 2048
+    },
+    {
+      "name": "prefill512-union32768",
+      "T": 512,
+      "past": 32256,
+      "U": 32768
+    }
+  ],
+  "schedule": [
+    0,
+    1,
+    0,
+    1,
+    1,
+    0
+  ],
+  "perowner": {
+    "queries": 12,
+    "warm": 4,
+    "formal": 8,
+    "seed_calls": 774,
+    "untimed_directK": 2,
+    "checkpoint_weight_loads": 1
+  },
+  "CPU_claim": {
+    "id": "GLM-selected-KV-on-demand-capacity-r408",
+    "parent": 910407,
+    "node": "a14r2n20",
+    "cores": 4,
+    "memory_MiB": 8192,
+    "total_s": 300,
+    "inside_s": 270,
+    "attempts": 1,
+    "GPU": 0,
+    "Native_dlopen": false,
+    "checkpoint_payload_IO": false,
+    "necessary_HOST_TUs": 2,
+    "scope": "1actualr403Modelcaller+1old400componentbridge; latter sameobjectGC-linked pureHOSTpolicy/chunkcontract, no thirdcompile",
+    "GPU_TUs": 0,
+    "source_published_before_CPU": true,
+    "label": "GLM408-NoK-CPU-v1",
+    "candidate_dir": "/refactor/candidates/GLM-selected-KV-on-demand-capacity-r408-CPU",
+    "Model_GO": false,
+    "GPU_GO": false
+  },
+  "later_component_GPU": {
+    "parent": 910371,
+    "node": "a02r3n16",
+    "cards": 8,
+    "total_s": 600,
+    "keeper_s": 900
+  },
+  "GPU_GO": false,
+  "Model_GO": false,
+  "math": "OriginalFP8kv_b/scale1/16/D256/rope/indexer/selection and fresh_all+fence unchanged; noGPUF64",
+  "checks": "DirectK inclrotary64 oncepergeometry outsidebenchmark; fullattention/hidden finite/NRMSEalert.005 stop.02 everyquery; input/outputcanary/prefix/state metadata; normal8close/post",
+  "timing": "Completeattention component with originalfresh projection/copies/gather/reprojection/attention/O/TP/drain; directK/seed/load/checked separate; sameindexmax8; profileOFF; O1scalarJSONLappend, finalaggregateonce",
+  "memory": "AtU32768 completeprefix: addallK128MiB+4copy128MiB payload; allchunkK/V retained256MiB and allV128MiB asold. One-layer activeallK canoffsetremovedpersistentK; loadedModel peak/fitUNKNOWN. Free snapshots not peak",
+  "qualification_limits": "Component doesnotexecute actualModel indexer/FFN or full nullableModelcallerpath; Modelcaller CPUlink/sourceonly. NoV735 K wasnotqualified, newdirectK required.",
+  "stop": "Unknown failure preserves originalhandle/evidence, no unchanged replay; noModelGO/automaticscopeexpand"
+}
