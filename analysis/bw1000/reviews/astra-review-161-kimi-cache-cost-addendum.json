@@ -1,0 +1,76 @@
+{
+  "review": 161,
+  "kind": "BOUNDED_COST_ADDENDUM_NOT_NEW_REVIEW_OR_APPROVAL_GATE",
+  "date": "2026-11-02",
+  "reviewer": "/root/astra_review_147",
+  "scope": "只读原源码和已保存证据，仅写本增量；无Git、测试、作业或GPU。161后371/697与372/1298各一因果轮，本增量及CPU747失败不新增轮次、不重置计数。root自主采纳；独立375和源码工作不等此报告。",
+  "decision": "值得做一张有界单draft lazy context KV缓存卡。源/CPU闭包<=90分钟合理，但不是完成时间保证；保留部分改善，不用单独不到15作二元淘汰。第二张为有界全shape预热/重叠的成本假设，先量化同Runtime首query，不直接支付32target重载。",
+  "evidence": [
+    "analysis/bw1000/Kimi-rund-serialized-cost-constraints-r368.json",
+    "analysis/bw1000/Kimi-lazy-context-KV-feasibility-r375.json",
+    "results/bw1000/2026-11-02/Kimi371-root-consumed-firstlayer-boundary.json",
+    "results/bw1000/2026-11-01/Kimi324601-long-draft-cost-and-cleanup-PASS.json",
+    "results/bw1000/2026-11-02/Deep372-1298-component-decision-and-cost.json",
+    "results/bw1000/2026-11-02/Deep375-CPU747-encoding-failure.json"
+  ],
+  "source_basis": {
+    "attention": "code/bw1000/kimi-dflash2-trained-worker/r9000_torchspec_dspark.py，原0794d502：各层KV_A(cat(context,draft))→逐行KVnorm→KV_B；context每层均取同一已投影target context，不由前层draft输出更新。KV_A/KV_B是可复用context投影的具体边界。",
+    "context": "code/bw1000/Kimi-C1-long-draft-r323/long_context_r323.py：原append发布raw/projected前fence；decode每次<=8行；query首尾32760/32761和retire/close语义保持。原协议可能多次append后再query，不可把整个协议误限为累计delta<=8。",
+    "minimal_delta": "优先采用root提出的私有Context+KV_A/KV_B模块包装，缓存pre-RoPE context输出，拼回原完整L+8形状。原fullmask、RoPE、attention forward、head/selector均保留；不同时crop，也不复用r9003手写attention替换。r375可行性报告的post-RoPE K/V和codec pending adapter是较大备选，首卡无需一起实现。",
+    "memory": "L=32638、五层BF16，保存KV_A576+KV_B16384输出约5.155247GiB；32760约5.174518GiB，若另存normalized512再增加。不同于r375展开post-RoPE K/V的6.225GiB。视图会保留原含8draft底层storage；拼接更新可能同时持有旧/新缓存及完整临时张量。数字是shape算术，非实测峰值/流量；原4GiB floor保持。"
+  },
+  "conditional_cost": {
+    "scope": "原rund near backend emitter，58visible对应57间隔；固定其余时间/接受率。不是HTTP/online，也不是可达到的预测。",
+    "first_last_s": 4.912162126973271,
+    "query_RPC_sum_s": 1.4829100701026618,
+    "first_query_s": 0.5921919569373131,
+    "later7_s": 0.8907181131653488,
+    "lazy_zero_later7_upper_tok_s": 14.17401306701929,
+    "lazy_zero_later7_rate_gain_fraction": 0.22149210833397226,
+    "lazy_zero_later7_time_reduction_approx": 0.181329,
+    "strict15_required_saving_s": 1.1121621269732715,
+    "meaning": "约22.15% rate提升/18.13%时长下降是连后7次全部RPC都归零的乐观上界。实际cache仅去投影重复，仍有cat、mask、attention、head、selector、有限值/同步和RPC；不能把上界称预计20%实得。",
+    "warm_illustration_only": "若首query从0.592192降至同轮后7均值0.127245，只是假设，可省约0.464947s；组合还需从later7省>0.647216s即>72.662%。后7全归零再叠该假设约16.027tok/s；不是已测组合收益，r324的127.545ms不能直接替换原RPC。",
+    "per_card": "r368固定其余成本下，即使全部queryRPC归零也不能使原near首请求33卡generation赢32卡AR按卡效率。缓存/预热不自动消除append、target verify、TTFT和99.30045s一次draft初始化。"
+  },
+  "Kimi_next_cards_max2": [
+    {
+      "priority": 1,
+      "name": "私有Context的lazy KV_A/KV_B前缀复用，完整八周期成本",
+      "hypothesis": "保持原全shape attention，仅避免后续query重新投影已提交context，可在包含首query/cache harvest/追加/cat的完整八周期中得到可复现的净节省。",
+      "owner_resource": "root交原Kimi执行者；先源/CPU，无target卡。闭包后最短一张原draft节点、一份真实checkpoint驻留；复用已有加载器/协议/清理，不改在途共享源。",
+      "source_CPU_bound": "<=90分钟作为有界工程预算合理。先实际小维model+真实Context/query/RPC消费者做首fullM、后delta0/1/8、累计delta>8原full路径刷新、append失败/异步fence失败、epoch/retire/tail的闭包。不写新框架；到时若仍无可执行闭包，记录一个具体阻塞并暂停该实现，不继续扩cache类型。",
+      "small_implementation": "首query仍原fullM投影，截取context前缀；后query每层KV_A仅算新增context与本次8draft，KV_B同理，再cat完整context+draft。只缓存context，anchor变化的draft8永远重算。保留原norm/RoPE/fullmask/SDPA调用与dtype。",
+      "lifecycle": "缓存按owner、request/epoch、model/weighttag、layer、device/dtype和cached_length隔离，不仅凭Tensor地址。固定weights/config不可热改；inference tensor可能无version。只有完整query和原fence成功后缓存才可复用；失败即丢弃pending并沿现有poison/close，不做隐式重试。gap>8按原full query刷新一次或既定有界语义处理，不拒绝原合法append协议。retire/close释放全部新增引用，ARtail不触发缓存构造。",
+      "necessary_numeric": "以同sequence原fullquery为参考，对真实checkpoint至少记录完整五层终hidden、logits、7proposal与finite，含cold首query及后续append变化。tiny CPU证明生命周期，不能替代实际BF16形状变化数值。371首层1.12e-5/同QKV2.81e-5不解释原4.513%，也不认证新cache；中间位不一致是诊断而非全局质量失败，不放宽已预先声明的该卡数值停止条件。无target时不称接受率。",
+      "samples_and_clock": "优先near32638、原8cycle及合法<=8接受append序列的OFF/ON配对；合成feature/接受序列明确标注。一次加载内按ABBA独立Context重建，保持首个真实cold观测，预热/准备另列；不只报后7稳态。主指标完整8cycle append+query wall，并单列每query及firstcold、cache构造/cat、内存高水/现有floor、清理。固定原完整RPC或清楚区分dispatch与RPC，禁止把局部kernel时间代入r368。",
+      "first_result_estimate": "源CPU预算<=90分钟；闭包后单卡实测以既有54~56s驻留为参照，计划1~5分钟量级，排队/上传/加载另列且不是保证。",
+      "exit_upgrade": "完整sequence净省超过同轮OFF漂移、数值/生命周期可接受且4GiB floor满足则保留，即使不到15。无净省、复制/内存吞掉收益或数值未知则停止当前实现并保存原因，不扩大allocator/crop grid。只有后续实际target消费才能给新接受率/Model结论；无需为本卡立即重载32target。"
+    },
+    {
+      "priority": 2,
+      "name": "有界全shape预热降低首query冷成本，并审实际启动重叠",
+      "hypothesis": "在相同draft Runtime中做两次有界完整shape合成warm，再清除请求状态，可降低首真实query；draft加载/warm若能与已有target prefill/AR重叠，可能缩短关键路径。",
+      "minimal_change": "复用324原两warm逻辑但保持当前实际shape、dtype、head、协议消费者和固定cache开关；只增加有界startup阶段，不提前连接唯一accept、不窃用真实epoch、不缓存合成context进入真实请求。不同时改算子/crop。",
+      "first_judgment": "先单draft比较无warm与两warm后的首query及完整8cycle，加载/CPUfixture/append/warm/retire显式计时。可复用第一卡已准备的单卡入口，但独立固定warm因素，不能将cache与warm一起ON后无法归因。先用原源时间线确认draft可独立启动且不会阻塞target现有deadline/唯一connect；无需先启动32target。",
+      "owner_resource_time": "root/原Kimi执行者，原draft单卡；复用闭包后预估数分钟可得到cold可回收性首结果，startup调度集成准备时长UNKNOWN。排名低于cache，因为0.592s首RPC混合了实际feature/协议和backend，r324温热127.5ms不是同因果对照。",
+      "accounting": "所有synthetic H2D、全shapewarm、cache清除、draft提前驻留卡秒计入startup和全部33card总成本。真实request admission/首token计时不后移；同时报告既有端到端起点的critical path和原first-last。99.3s一次初始化、coldquery和warm不能重复扣除。早启动可增加卡秒，即使关键路径缩短也应明列。",
+      "exit_upgrade": "warm省出的真实首query时间小于新增串行warm/cleanup、破坏memory floor/nonce/epoch/唯一连接，或无法在原target工作下重叠则停止该调度变体。单draft证实后只在下一必要target驻留验证实际重叠/接受率/端到端；不到15可保留有价值增量，不声称两个独立upperbound可相加。"
+    }
+  ],
+  "Deep372": {
+    "decision": "保留严格7stage候选，等下一本就必要的Model驻留再决定是否纳入独立配对，不为层数乘法推导约1.5%单独重载。375 enlargedquality独立继续，初始比较保持其既定366 Native基线；若混入372会改变质量对照，需另明确arm，不热改。",
+    "actual": "1298 CAPI729.445→670.942us，-8.020%；native457.047→402.233us，-11.993%。whole checked harness ratio0.998821，不是稳定全外层收益；Model仍UNKNOWN。8owner、4真实参数组/合成残差，不是86模块Model覆盖。",
+    "time": "GPU71s、keeper73s；driver prepare46.599s、whole62.261s、measurement phase sum4.977s。root原archive消费仍独立完成；本报告未独立重算原archive。"
+  },
+  "Deep375_CPU747_minimum_followthrough": {
+    "fact": "实际CPU747 FAILED，encoding约6.94s、encoded_cases=1。CPU_encode.py:93调用engine.record_started/record_finished，但实际prepare_app返回DeepBridge继承NativeEngineBridge；这两个方法只存在旧service_queue_bridge。whole_entry未执行，GPU/weights/Native均0；失败保留，不计性能轮。",
+    "minimum_fix": "只修新immutable CPU encoder生命周期：沿实际NativeRequest.finish与NativeEngineBridge.stream_request消费到终态，使用当前真实FinishReason明确标CPU合成终态，执行其finally释放_requests；不要给真实engine补虚假的record_*方法。仅删两行仍有max_pending注册积累风险。正常和异常均关闭真实prepared engine。",
+    "necessary_followthrough": "复用同一真实prepared factory/采样/历史/官方tokenizer，完成129 case编码后再把该receipt交原四副本whole_entry消费者；记录实际执行阶段与首失败，不用1case冒称prepared全覆盖，也不重造预期token IDs。新增修复只需这条接口胶水，不重复无关Native编译/模型加载，不阻塞Kimi源CPU。",
+    "status": "源码缺口已确认；root随后告知原执行者已在新immutable CPUencoder按真实req.finish+stream_request finally修复，owner/client不变。本报告未复核新文件或执行测试，不称修复CPU通过。"
+  },
+  "GLM": "既有污染hook/微grid STOP保持；本增量不给第三条路线，不以Deep375由GLM agent执行混淆模型归属。",
+  "actual_new_CPU_jobs": 0,
+  "actual_new_GPU_jobs": 0,
+  "new_Model_gain": "UNKNOWN"
+}
