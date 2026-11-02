@@ -1,0 +1,35 @@
+{
+  "scope": "Private preRoPE KV_A/KV_B CPU prototype; originalattention.forward/fullmask/KVnorm/RoPE/SDPA/Q/O/head/selector unchanged; no GPU/target/checkpoint load",
+  "review161addendum": {
+    "path": "analysis/bw1000/reviews/astra-review-161-kimi-cache-cost-addendum.json",
+    "SHA256": "f517aaebd4a2ae02cc7a55cbba6294e733469fadd306839d0fb82bd119b3a368"
+  },
+  "minimum_change": "Private shallowmodel/layer/attention routing copies borrow originalparameters/buffers. TwoLinear wrappers firstcompute fullM=L+8 andharvest prefixviews; latercompute originalLinear onlysuffixdelta+8 andcat originalfullshape. KVnorm staysfulltokenwise. cacheflag defaultFalse.",
+  "lifetime": "Contextowner/epoch/request/modelinstance/weighttag/KVweightmodule/deviceptr/dtype/version/epsilon signature/cached_length. Frozeninferenceweights mayhave noversion, nohotreplacement or perqueryfullweightSHA.",
+  "publication": "Stage10A/B values across5layers; originalcodec4GiBfence mustsuccess beforecommitting allpending. PrivateSession delegates original333dispatch andonly addsabort/drop on failure; rejected/partialfailure cannotpublish. append remains original. retire/close/newEpoch drop; gap>8 legal cumulativeappend executesoriginalfullquery refresh, ARtail original.",
+  "memory": {
+    "L": 32638,
+    "perlayer_A": [
+      1,
+      32638,
+      576
+    ],
+    "perlayer_B": [
+      1,
+      32638,
+      16384
+    ],
+    "dtype": "BF16",
+    "all5_cache_bytes": 5535404800,
+    "all5_cache_GiB": 5.155247449874878,
+    "capacity32760_bytes": 5556096000,
+    "fullM_view_extra8rows_bytes": 1356800,
+    "old_plus_next_pending_bytes": 11072166400,
+    "delta0_reuses_prior_cache_reference": true,
+    "meaning": "Shape arithmetic not actualGPUpeak; fullM cat/finite/attention temporaries and originalfloor mustbe measured later."
+  },
+  "CPU_scope": "Actual pinnedtinyfactory+actual333 Session/LongCommittedFeatureContext/originalquery. BF16actualwire andF32reference decodedBF16->F32 only. Threecontext513/8635/32638; cold+8queries/sevenaccepted8, fullOFFvsON stage/hidden/logits/proposals. Additionaldelta0/K1/partial1,3,8/gap9/owner/epoch/version/rejectedcommit/fence/projection/nonfinite/closeerror/tail cases. No repeat740 productionwidthmatrix run.",
+  "timing": "Recordmodel/head CPUstartup, allpromptappend/seal/query/acceptedappend/retire/finalclose, perLinear compute/cat hostwall,logical/unique cachebytes, peakRSS. CPUquerytiming includes traceclones andvalidation; not GPUperformance. Futuredevicecard mustkeep fullcold+8cycle+startup andRPC/dispatch scope clear.",
+  "cost_boundary": "Originalnear firstRPC.592191957 retained; later7zero conditionalbest14.174tok/s/+22.15% is an optimisticbound, not predictedbenefit; below15 doesnotkillpartialimprovement. No cache+warmup mixedgain.",
+  "quality": "Reportfinite/NRMSE/maxabs/proposals; no tokenbitwise requirement or Modelquality/acceptance certification. FirstfullM mathpreserved; delta+8 shape variation needs actualBF16device qualification later."
+}
