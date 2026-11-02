@@ -1,0 +1,21 @@
+{
+  "UTC": "2026-11-02T00:23:02.779744+00:00",
+  "actual_CPU": "910407.721 FAILED1/6s",
+  "source_claim": "6e1590e068f68f84e66289136999af6e45ac0edf",
+  "source_manifest_SHA256": "eb686da91ac6c6da1ca1c0af65a8144d4a06acee789fb451839cdc8c3ae2153e",
+  "receipt": {
+    "SHA256": "79d982c7bb8e3e67bc72f5b74bb6310aa95d73ec3410d800fec924450eeeea5d",
+    "completed": false,
+    "error": "AssertionError()",
+    "traceback": "Traceback (most recent call last):\n  File \"/refactor/incoming/Deep-C4-paged-score-r359-runtime-cpu-v4/build_adapter_CPU.py\", line 29, in <module>\n    assert any('/Model/Deep/InfiniLM/csrc/' in p and p.endswith('owner_affinity_r2392.hpp')for p in deps)\nAssertionError\n"
+  },
+  "adapter_object_SHA256": "94fa580f3a87626046991e7d62c8a0e97445006399f8844a2c4be5fb8e3daacb",
+  "selected_MD": [
+    "/refactor/candidates/deep-tailSUM-r7212/incoming/deepseek_v4_c4_indexer.hpp \\",
+    "/refactor/incoming/Deep-C4-paged-score-r359-source-cpu-v2/private_indexer_r359.hpp \\"
+  ],
+  "cause": "Postcompile assertion wrongly required owner_affinity.hpp in adapter TU, but Runtime::create external call has no submit inline. Actual C4 header is exact b97c99 original deep-tailSUM path. Adapter compile/freshM passed; no link/Runtime/GPU yet.",
+  "repair": "Reuse compiled adapter.o, private.o/score.o; verify actual original MD headerSHA and external Native pin; link-only new CPU check, actual8owner affinity still required on GPU",
+  "performance_round": false,
+  "GPU": 0
+}
