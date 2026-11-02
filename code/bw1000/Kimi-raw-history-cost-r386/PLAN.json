@@ -1,0 +1,228 @@
+{
+  "state": "SOURCE_AND_RECORDING_CPU_READY_GPU_GO_FALSE",
+  "GPU_GO": false,
+  "target_cards": 0,
+  "draft_cards_planned": 1,
+  "loads_planned": 1,
+  "reloads_allowed": 0,
+  "profile": false,
+  "shape": {
+    "lengths": [
+      8635,
+      32638
+    ],
+    "raw_dim": 35840,
+    "projected_dim": 7168,
+    "dtype": "BF16",
+    "draft_queries_per_phase": 8,
+    "positions_per_query": 8,
+    "proposals_per_query": 7,
+    "synthetic_accepted_prefix8_appends_per_phase": 7,
+    "fullcontext_attention": true
+  },
+  "schedule": [
+    {
+      "ordinal": 0,
+      "L": 8635,
+      "phase": "warm",
+      "discard_raw": false,
+      "arm": "OFF",
+      "position": 0
+    },
+    {
+      "ordinal": 1,
+      "L": 8635,
+      "phase": "warm",
+      "discard_raw": true,
+      "arm": "ON",
+      "position": 1
+    },
+    {
+      "ordinal": 2,
+      "L": 8635,
+      "phase": "formal",
+      "discard_raw": false,
+      "arm": "OFF",
+      "position": 2
+    },
+    {
+      "ordinal": 3,
+      "L": 8635,
+      "phase": "formal",
+      "discard_raw": true,
+      "arm": "ON",
+      "position": 3
+    },
+    {
+      "ordinal": 4,
+      "L": 8635,
+      "phase": "formal",
+      "discard_raw": true,
+      "arm": "ON",
+      "position": 4
+    },
+    {
+      "ordinal": 5,
+      "L": 8635,
+      "phase": "formal",
+      "discard_raw": false,
+      "arm": "OFF",
+      "position": 5
+    },
+    {
+      "ordinal": 6,
+      "L": 8635,
+      "phase": "formal",
+      "discard_raw": false,
+      "arm": "OFF",
+      "position": 6
+    },
+    {
+      "ordinal": 7,
+      "L": 8635,
+      "phase": "formal",
+      "discard_raw": true,
+      "arm": "ON",
+      "position": 7
+    },
+    {
+      "ordinal": 8,
+      "L": 8635,
+      "phase": "formal",
+      "discard_raw": true,
+      "arm": "ON",
+      "position": 8
+    },
+    {
+      "ordinal": 9,
+      "L": 8635,
+      "phase": "formal",
+      "discard_raw": false,
+      "arm": "OFF",
+      "position": 9
+    },
+    {
+      "ordinal": 10,
+      "L": 32638,
+      "phase": "warm",
+      "discard_raw": false,
+      "arm": "OFF",
+      "position": 0
+    },
+    {
+      "ordinal": 11,
+      "L": 32638,
+      "phase": "warm",
+      "discard_raw": true,
+      "arm": "ON",
+      "position": 1
+    },
+    {
+      "ordinal": 12,
+      "L": 32638,
+      "phase": "formal",
+      "discard_raw": false,
+      "arm": "OFF",
+      "position": 2
+    },
+    {
+      "ordinal": 13,
+      "L": 32638,
+      "phase": "formal",
+      "discard_raw": true,
+      "arm": "ON",
+      "position": 3
+    },
+    {
+      "ordinal": 14,
+      "L": 32638,
+      "phase": "formal",
+      "discard_raw": true,
+      "arm": "ON",
+      "position": 4
+    },
+    {
+      "ordinal": 15,
+      "L": 32638,
+      "phase": "formal",
+      "discard_raw": false,
+      "arm": "OFF",
+      "position": 5
+    },
+    {
+      "ordinal": 16,
+      "L": 32638,
+      "phase": "formal",
+      "discard_raw": false,
+      "arm": "OFF",
+      "position": 6
+    },
+    {
+      "ordinal": 17,
+      "L": 32638,
+      "phase": "formal",
+      "discard_raw": true,
+      "arm": "ON",
+      "position": 7
+    },
+    {
+      "ordinal": 18,
+      "L": 32638,
+      "phase": "formal",
+      "discard_raw": true,
+      "arm": "ON",
+      "position": 8
+    },
+    {
+      "ordinal": 19,
+      "L": 32638,
+      "phase": "formal",
+      "discard_raw": false,
+      "arm": "OFF",
+      "position": 9
+    }
+  ],
+  "totals": {
+    "phases": 20,
+    "warm_phases": 4,
+    "formal_phases": 16,
+    "queries": 160,
+    "committed_appends": 140,
+    "commands": 1190,
+    "fences": 1270,
+    "feature_H2D_input_bytes": 29664768000
+  },
+  "timing": {
+    "primary": "Eachphase continuous wall beforebegin to afterretire+close includes same-input CPUdecode/H2D/projection/rawcat/projectedcat/originalquery/head/selector/finite/fence and bookkeeping. 2warm+twoABBA perlength. No profiler/stage hooks.",
+    "secondary": "prefix+seal,8query+7commit,querydispatch,commitdispatch,retireclose; components not substitutedfor primary.",
+    "numeric": "All8 originalmandatoryfinite/proposals. Onlyfinalquery perphase fullhidden/logits readback/numeric aftertimedclose; itswall and helddebug/head tensors remainin whole drivercost. No claimallqueryrawactivation equivalence.",
+    "memory": "Perphase resetTorch peak allocated/reserved beforefreshContext; captured beforepostnumeric. Torchonly excludesexternalHIP; original4GiBguard everyappend/query fence,trimreported. Allrecorded resident vs input counters distinguished.",
+    "load": "One strict checkpoint+borrowedtargethead; load/fixture/warm/diagnostic/cleanup/fullGPUcardseconds separate; no targetmodel."
+  },
+  "quality": "No acceptance/Modelquality qualification. Finite shape/range/state/poison mandatory. Propsmaydiffer as diagnostics. Unexpectedfinalsame-mathNR>.02 stops withcompletefields; not a globalquality threshold.",
+  "decision": "Retain only if completephase paired improvement exceeds ownOFF drift; otherwiseSTOP no unchangedrepeat/windowgrid/targetreload. A prefixcost improvement is not mainTargetdecodegain.",
+  "estimated_total_s": [
+    120,
+    200
+  ],
+  "estimate_basis": "379strictload+fixture39..49s,fullnearpriming4.4s thenwarmphase1.24s; newphasehas8queries and7commits.20phases likelywellbelow600; estimate notguarantee.",
+  "candidate_resource": {
+    "GPU_parent": 910371,
+    "node": "a02r3n15",
+    "GPU_cards": 1,
+    "CPUs": 8,
+    "hostmem_MiB": 65536,
+    "GPU_hard_s": 600,
+    "driver_original_deadline_s": 570,
+    "CPU_keeper_parent": 910407,
+    "CPU_keeper_node": "a14r2n20",
+    "CPU_keeper_cores": 1,
+    "CPU_keeper_mem_MiB": 4096,
+    "CPU_keeper_hard_s": 660,
+    "one_attempt_only": true,
+    "fresh_membership_dedup_KFD_PID_required": true,
+    "HTTP_TCP_listeners": 0,
+    "post": "OriginalGPUstep/srun/keeperterminal+actualsessionRuntimeclose+CPUonlyKFD/PID; no inventedunusedports gate"
+  },
+  "CPU_scope": "Actualphaseconsumer20schedule+recordingSession only; actualTorchprojection/lifecycle delegates separately qualifiedCPU7723d33. This is source/CPU readiness, not GPUpermission."
+}
