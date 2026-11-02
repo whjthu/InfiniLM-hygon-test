@@ -1,0 +1,144 @@
+{
+  "state": "NEW_GUARDED_DTYPE_COMPONENT_FEASIBLE_CPU_FIRST_GPU_NOT_GO",
+  "dedup": {
+    "Kimi_DFlash_files_scanned": 3587,
+    "search": "torch.float16 or .half( literals in py/cpp/json/hip files with Kimi/DFlash path",
+    "hits": 0,
+    "existing_orthogonal_routes": [
+      "371 sameBF16 retainedKV vs crop attention: finite tiny firstproducer differences, not this compute dtype",
+      "376 preRoPE prefix reuse: cache/cumulativeappend mechanism, no weight or compute dtype change",
+      "324 actual BF16 fullquery cost:127ms near32k, no FP16 physicalpeak or Modelgain proof"
+    ]
+  },
+  "current_callchain": {
+    "strict_loader_SHA256": "168610216e11662d74278f33c46a9b5197c7779314ebbc3ef3ccbf24bf3c2c19",
+    "attention_source_SHA256": "56d8c18321bc270493d90efaa32f9aabfe00499c12ed96e7c12359200decb580",
+    "strict_BF16_87_parameter_check": true,
+    "original": "KVA nn.Linear[7168\u2192576] ->split latent512/RoPE64->original latentRMS -> KVB nn.Linear[512\u219216384]; no bias",
+    "current_draft_query_M": 32646,
+    "query_Q_rows": 8,
+    "M8_scope": "Small suffix/cache-related operator geometry; not current uncached fullKV dominant M",
+    "layers_selected": [
+      0,
+      4
+    ],
+    "normalization_RoPE_attention_Q_O_head_unchanged": true
+  },
+  "checkpoint": {
+    "path": "/refactor/models/kimi-k3-dflash2/e77935fb4804e17eb55085bffd045eae1d779769/model.safetensors",
+    "expected_full_SHA256_inherited": "1f2a5376315ce5d235303d48d975f78a3dcb19b906e820c1d6447e5fa66e52c2",
+    "header_SHA256": "d250fe199d420a34c0bba811511d6e0ee79f11c95ad8f9482cd014ce9180fb24",
+    "file_bytes": 7385765464,
+    "fresh_read_scope": "Only bounded header+four selected payloads; fresh payload SHA each; expected fullSHA inherited from exact strict-loader pin, no claim of fresh all87-payload hash"
+  },
+  "candidate": "One defaultOFF private FP16 weight-copy compute wrapper. BF16 originalweight/module never changed; percall finite+maxrange guard, cast,F.linear,outputfinite guard,backcast,external drain all included",
+  "precision": {
+    "BF16_to_FP16_normals": "BF167mantissabits fit FP1610; in FP16normal exponent range the BF16stored values are exact",
+    "small_values": "BF16 below2^-14 can require FP16subnormal rounding; belowhalfminsubnormal can flush to zero; actual weight+CPU stats recorded, GPU backend FTZ unknown until numeric qualification",
+    "range": "FP16max65504; BF16adjacent65280 safe and65536 unsafe. Max.item() compared as Pythonfloat, never BF16scalar65504",
+    "double_rounding": "FP16 GEMM output storage rounded before BF16cast, unlike directBF16 output. Approximate, not bit/mathematical-equivalence claim",
+    "accumulation": "F.linear backend; future GPU requests disabled FP16reduced precision reduction and FP16accumulation if API exists, records actual flags; physical ISA/accumulation not inferred from scalar specs",
+    "GPU_F64": false,
+    "CPU_reference": "Independent NumPy F32 dot with explicit input/weight FP16 conversion and intermediate outputFP16/BF16 rounding; FP64 only CPU norm sums"
+  },
+  "fallbacks": {
+    "input_NaN_Inf": "explicit rejection",
+    "input_outside_FP16_range": "original BF16Linear, fullguard+fallback+drain cost included",
+    "weight_outside_FP16_range": "no privatehalf cache and original BF16Linear fallback",
+    "FP16_output_overflow": "original BF16Linear after failed candidate, all wasted candidatecost included",
+    "underflow": "disclosed/quantified approximation, not hidden as exact; numeric screen required"
+  },
+  "bytes": {
+    "one_layer_original_BF16_KVA_plus_KVB": 25034752,
+    "one_layer_additional_private_FP16": 25034752,
+    "two_layer_additional_private_FP16": 50069504,
+    "shapes": [
+      {
+        "M": 8,
+        "projection": "KVA",
+        "K": 7168,
+        "N": 576,
+        "extra_private_FP16_weight_bytes": 8257536,
+        "percall_FP16_input_bytes": 114688,
+        "percall_FP16_output_bytes": 9216,
+        "minimum_cast_read_write_bytes": 247808,
+        "input_finite_bool_temporary_bytes": 57344,
+        "input_abs_BF16_temporary_bytes": 114688,
+        "output_finite_bool_temporary_bytes": 4608,
+        "notes": "Elementwise guards/reduction reads and GEMM traffic extra; not an allocator peak or bandwidth measurement"
+      },
+      {
+        "M": 8,
+        "projection": "KVB",
+        "K": 512,
+        "N": 16384,
+        "extra_private_FP16_weight_bytes": 16777216,
+        "percall_FP16_input_bytes": 8192,
+        "percall_FP16_output_bytes": 262144,
+        "minimum_cast_read_write_bytes": 540672,
+        "input_finite_bool_temporary_bytes": 4096,
+        "input_abs_BF16_temporary_bytes": 8192,
+        "output_finite_bool_temporary_bytes": 131072,
+        "notes": "Elementwise guards/reduction reads and GEMM traffic extra; not an allocator peak or bandwidth measurement"
+      },
+      {
+        "M": 32646,
+        "projection": "KVA",
+        "K": 7168,
+        "N": 576,
+        "extra_private_FP16_weight_bytes": 8257536,
+        "percall_FP16_input_bytes": 468013056,
+        "percall_FP16_output_bytes": 37608192,
+        "minimum_cast_read_write_bytes": 1011242496,
+        "input_finite_bool_temporary_bytes": 234006528,
+        "input_abs_BF16_temporary_bytes": 468013056,
+        "output_finite_bool_temporary_bytes": 18804096,
+        "notes": "Elementwise guards/reduction reads and GEMM traffic extra; not an allocator peak or bandwidth measurement"
+      },
+      {
+        "M": 32646,
+        "projection": "KVB",
+        "K": 512,
+        "N": 16384,
+        "extra_private_FP16_weight_bytes": 16777216,
+        "percall_FP16_input_bytes": 33429504,
+        "percall_FP16_output_bytes": 1069744128,
+        "minimum_cast_read_write_bytes": 2206347264,
+        "input_finite_bool_temporary_bytes": 16714752,
+        "input_abs_BF16_temporary_bytes": 33429504,
+        "output_finite_bool_temporary_bytes": 534872064,
+        "notes": "Elementwise guards/reduction reads and GEMM traffic extra; not an allocator peak or bandwidth measurement"
+      }
+    ]
+  },
+  "CPU": {
+    "id": "Kimi-draft-KV-guarded-FP16-r380-CPU-v1",
+    "parent": 910407,
+    "node": "a14r2n20",
+    "cores": 4,
+    "memory_MiB": 8192,
+    "hard_s": 300,
+    "inner_s": 270,
+    "GPU": 0,
+    "Model": 0,
+    "head": 0,
+    "Native_dlopen": false,
+    "scope": "Read/hash only four selected actual KV payloads (50,069,504bytes), conversionstats all weights; independent NumPy F32 sampled dots with full K; actual guarded TorchCPU entry and fallback/finite boundaries",
+    "one_attempt": true,
+    "publish_before_CPU": true
+  },
+  "future_GPU_NOT_GO_now": {
+    "parent": 910371,
+    "node": "a02r3n07",
+    "maximum_cards": 2,
+    "maximum_s": 600,
+    "rank0_layer": 0,
+    "rank1_layer": 4,
+    "samecard_pair": "OriginalBF16Linear vs only guardedFP16 candidate; representative M32646 and8 for KVA/KVB; cast/guards/drain counted; percase real hit/fallback counts and same-round OFF drift",
+    "no_full_draft_head_target": true,
+    "requires": "Actual CPUclosure + concrete source/shape/seed/resource claim ordinarypush + freshidle/dedup before once execution"
+  },
+  "Model_gain": "UNKNOWN",
+  "quality_or_acceptance": "NOT_QUALIFIED",
+  "no_GPU_submitted": true
+}
