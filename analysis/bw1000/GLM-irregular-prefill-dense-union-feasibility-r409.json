@@ -1,0 +1,141 @@
+{
+  "scope": "source/retained evidence only; 0newCPU/Slurm/GPU/compile/Git, no third execution card;404/408 retain priority",
+  "decision": "KEEP_CONDITIONAL_HIGH_ROI_SOURCE_CANDIDATE; NOT_READY until real Hygon mask contract and finite-V fallback close. No claimed speed/fit.",
+  "current_provider": {
+    "sparse_source": "R/candidates/glm-prefill-prefix-r8703/src/glm_prefill_prefix_dense_r8703.cpp",
+    "SHA256": "ab5829f41a5a888ed77eef2f3846118a446f2315a776614a04bb265a1e672292",
+    "SDK_SHA256": "0bd37990340f39bbcaf185abbc990ebeb9f56ea1b9992327eda96d627446a863",
+    "Runtime_SHA256": "dc8542f14f70b85c67c227532f61756d432bbfee02308d373ff7ae5b9a540c36",
+    "current403_library_SHA256": "9520769d28742aba489b38ecbd1e1692f6830168c699d7111f1e0c2ae4cd598b",
+    "current403_qualification": "CPU804 fullNative1caller+28retainedobjects link/exports/identity only, no device/fullModel timing inherited",
+    "caller": "r403 caller_v_on_demand_r403.cpp216-243 reads chosenIDs, selection_map_r302 union/remap, projectedK and cached/recomputedV, then r8703 sparse_attention_mapped_bounded forprefill. Complete-prefix proof gate onlycapacity/prefix<=2048. U32768 goes irregular perquery independentdense_mode.",
+    "irregular_per_512_query": "CPU D2Hindices/positions, validate everyid, std::set physicalid dedup+causal filter, eachquery idsH2D(true),2IndexSelect,2smallGemm,Cast/Mul/Cast/Cast/F32Softmax/Cast; finalcompletionfence and retainedscratch. No mask-batched irregular branch exists."
+  },
+  "actual_cost_boundary": {
+    "source": "GLM400-GPU735-keeper803-prefill-component-PASS-cost-tradeoff.json",
+    "measured": "actual layer38weights/TP8,synthetic hidden/selection,T512/U32768,noindexer/FFN/Model",
+    "OFF_max8_native_ms": [
+      264.682767,
+      260.291505
+    ],
+    "ON_NoV_max8_native_ms": [
+      276.421253,
+      277.889634
+    ],
+    "enclosure": "wholeattentionprepare/gather/Vexpansion/attention/O/TP/release-drain; not exclusive per-query sparse math. Earlyshape warm~6009ms separate. Actual403/404 fullModel cost UNKNOWN; cannot subtract nested ranges or multiply per-layer timings."
+  },
+  "dedup": {
+    "r52_summary_SHA256": "86a8b93eb45d27bcb460694b68ae15a7e2c9777a7e768a7a210850eed883218d",
+    "actual_step": "910373.254",
+    "old_modes": "mode7 batches QK/F32softmax/PV only fullcausal prefix<=2048; mode2 retains perqueryQK/PV andbatchessoftmax. Mode8 original perquery.",
+    "old_mode7": [
+      {
+        "layer": 0,
+        "speedup_over_original": 1.87730863329209,
+        "hidden_NRMSE": 6.619895430048928e-05,
+        "context_NRMSE": 2.789950303849764e-05,
+        "bitexact": false
+      },
+      {
+        "layer": 1,
+        "speedup_over_original": 1.8946959643739067,
+        "hidden_NRMSE": 0.00020563136786222458,
+        "context_NRMSE": 5.2994495490565896e-05,
+        "bitexact": false
+      }
+    ],
+    "interpretation": "old mode7 was~1.88-1.89x component withsmallfiniteNRMS, excluded by then-bitexact gate. Not byitself a negative undercurrentQUALITY, and not currentU32768 irregular-mask evidence. Do not simplylift denseguard/mode7 andclaimnewmask qualified.",
+    "old_fullModel": "r56/910374.59 and.60 qualifiedmode0/2 fixed512input histories; no mode7 fullModel qualification or irregular longunion negative established. Crossrequest batching/fused attention andr400 V recompute are different scopes; no copiedModelgain."
+  },
+  "mathematics": [
+    "SameSDK BF16Q/K; QK alpha1/beta0 outputBF16, CastF32, MuloriginalF32scale(sf=1/16 atcaller), CastBF16 once, CastF32logits; do not foldscale intoGemm alpha or roundscalar early.",
+    "Buildmembership byphysicalunionid after alloriginal invalidid/shape/device/position/scale checks. Dedup meansset, not multiplicity. Causal predicate logical_position[id]<=past+t; nonemptyselectedset perrow required beforeGpu output. DistinctphysicalIDs withsame logicalposition remain distinct asbaseline allows.",
+    "MaskedFill/Where must REPLACE allunselected logits with-inf beforeF32softmax, thenBF16probabilities and sameBF16PV output. Add(-inf) cannot suppress NaN logits. Extra zeros change reductionassociation; numerical/QUALITY checks needed, notbitexact promise.",
+    "PV fullunion includeszero-probability terms:0*NaN/Inf inV cancontaminatequery thatneverselectedthatrow. Need provedfiniteV predicate orboundednonfinite fallback tooriginal sparse. Do not silentlysanitizeV/NaN or onlymaskprobability. A no-newkernel conservativefallback canD2H unionV (up to128MiB/rank/call) and inspectBF16exponent; allguardcost measured. ExistingSDK compare/reduce alternative onlyifactualbackend contract proven.",
+    "Read only actualexpandedunion/prefix initializedrows, neverfullcapacityunwritten0xff cache slots. KeepallIDs/masks/finite-checkhostbuffers andTensorbanks alive tosameRuntime stream drain on success/error; preservecaller poison/failstop andoriginalfallback."
+  ],
+  "SDK_mask_contract": {
+    "Where_header_SHA256": "da1e4232657ad21c68b31e59e39a8e544d60752d8b3ae31a7e3534fab340dd94",
+    "MaskedFill_header_SHA256": "e9adce36403c96cb51caf7f0a97f4cfafca527b1115467d307a88b024b96d5b4",
+    "declared": "Where(condition,input,other,out);MaskedFill(input,mask,doubleValue,out) andTensorValue overload exist inactualinstalled/MDpinnedheaders.",
+    "not_proven": "Hygon bool/U8mask type, [1,T,U]headbroadcast/strides, replacementNaNbehavior, outputalias anddeviceworkspace. Source scan foundheaders/nativeotherplatformmentions butno matchingHygonimplementation inboundedread; not proofunsupported andnot GPUqualification. CouldmaterializefullHmask toavoidbroadcast assumption ifdtype/provider supports, withcostincluded.",
+    "constraint": "No newkernel/sharedSDK; currentold causal_mask_r25 onlyrectangular prefix cannot encodearbitrary selectedsets. IfexistingHygonMaskedFill/Where cannotclose, STOP thisSDK-onlycandidate ratherthan bypasssemantics."
+  },
+  "work_memory": {
+    "geometries": [
+      {
+        "T": 512,
+        "H_per_TP8_rank": 8,
+        "D": 256,
+        "U": 2048,
+        "QK_plus_PV_FLOPs": 8589934592,
+        "score_elements": 8388608,
+        "original_seven_bank_bytes": 184549376,
+        "two_F32_one_BF16_reuse_bytes": 83886080,
+        "shared_U8_mask_bytes": 1048576,
+        "shared_F32_mask_bytes": 4194304,
+        "full_H_U8_mask_if_no_broadcast": 8388608,
+        "union_K_or_V_bytes": 8388608
+      },
+      {
+        "T": 512,
+        "H_per_TP8_rank": 8,
+        "D": 256,
+        "U": 32768,
+        "QK_plus_PV_FLOPs": 137438953472,
+        "score_elements": 134217728,
+        "original_seven_bank_bytes": 2952790016,
+        "two_F32_one_BF16_reuse_bytes": 1342177280,
+        "shared_U8_mask_bytes": 16777216,
+        "shared_F32_mask_bytes": 67108864,
+        "full_H_U8_mask_if_no_broadcast": 134217728,
+        "union_K_or_V_bytes": 134217728
+      }
+    ],
+    "ratio": "U32768 vsperquerymax2048 gives16x QK+PV usefulmatrixFLOPs, ~137.44GF vs8.59GF/rank, no speedprediction. Realrow selectedcount may<2048 =>higher ratio.",
+    "reuse_plan": "2F32 banks+1BF16bank FIFO: QK->BF16bank,CastF32A,Mul->B,Cast->BF16bank,Cast->A,mask->B,Softmax->A,Cast->BF16bank,PV. Every singleop inputs/output distinctbanks; no in-opaliasassumption; same-streamreuse only after priorread ordered.",
+    "peak": "atU32768 originalsevenheldscorebanks2.75GiB; proposedscorebanks1.25GiB, sharedmask16MiB(U8)/64MiB(F32), fullH-U8mask128MiB ifneeded, K/Vunion128MiB each. Additionaloperandpacking/SDKworkspace/guardstaging/output/callerheldchunks/allocatorfragmentation excluded. No16cardloadedModel fit claim."
+  },
+  "minimal_future_card_if_selected": {
+    "source": "one private r8703 providerHOST replacement retaining oldAPI/fallback, no newmathkernel/Common/SharedSDK/largeNativebuild; caller remainsunchanged unlesssource showsnecessarytypedhostmask handoff",
+    "first_CPU_boundary": "actualmaskdescriptor/dtype/stride/broadcast contract andinvalid/duplicate/empty/NaNfallback/owner-error lifecycle; samepinnedSDK. CPUrecording cannotqualifydevicearithmetic. NoCPUjobauthorizedhere.",
+    "first_device_scope": "one Runtime/oneGPU fullsparse_attention operator OFF/ON atT512/H8/D256,U2048 irregular andU32768, fixedsameBF16QKV/selection, explicitgeometry-onlyifsynthetic. IncludeallD2Hvalidation+finiteguard+CPUset/maskbuild+H2D+QK+casts+scale+mask+softmax+PV+allalloc/tempdestroy/drain inwall; firstON numerical/canary beforetiming, changedinputs andmalformedboundary cases. NoCCL/FFN/Model claim. CompleteNativeAttention/O/TP8 onlylater ifoperatorpositive.",
+    "estimated_first_judge": "sourcecontractclosure20-40min ifexistingmaskbackendavailable, oneHOSTcompile estimated<1min, thenboundedcomponent<=600s with~3GiB scratch; estimates notguarantees. Blockbeforedevice ifmask/NaNguard cannotclose. Currentlyonlysource-ranking,404/408alreadyactive, no newresourceclaim orlaunch."
+  },
+  "refs": [
+    {
+      "path": "code/bw1000/glm-prefill-prefix-provenance/glm_prefill_prefix_dense_r8703.cpp",
+      "SHA256": "ab5829f41a5a888ed77eef2f3846118a446f2315a776614a04bb265a1e672292"
+    },
+    {
+      "path": "code/bw1000/GLM-V-on-demand-Model-integration-r403/caller_v_on_demand_r403.cpp",
+      "SHA256": "d54b80d68497c26c83a0c63fe87fbec376f4b106daa40d0da61238dfb5914be2"
+    },
+    {
+      "path": "code/bw1000/GLM-V-on-demand-Model-integration-r403/selected_values_r400.hpp",
+      "SHA256": "50ece2ded22ce1e70ea55947972dd3f5f17cdee2dd39f9080f1bb08a3cae0489"
+    },
+    {
+      "path": "results/bw1000/2026-11-03/GLM403-CPU804-fullNative-link-PASS-no-device.json",
+      "SHA256": "49f5cf80dee9a9f98dcaea941f7639bdd6092b37dd555ed812e9853b4c427216"
+    },
+    {
+      "path": "results/bw1000/2026-11-03/GLM400-GPU735-keeper803-prefill-component-PASS-cost-tradeoff.json",
+      "SHA256": "9b6fd8967cd26614301a4da20d203de8c3f7195382051a31237d921d260c3cbf"
+    }
+  ],
+  "readonly_local_evidence": [
+    {
+      "path": "L/GLM-NoK-provider-readonly-local.json",
+      "SHA256": "8284bbed709964c1d91e8736f7f87960aac6fa944ccb5840c12b5f4691748adc"
+    },
+    {
+      "path": "L/GLM409-mask-contract-old-modes.json",
+      "SHA256": "208b719ce48370a80122bd9b7eb9061a7bdec30199a8ff24a6f31e50b22fe926"
+    },
+    {
+      "path": "L/GLM409-mask-source-bounded-v2.json",
+      "SHA256": "6479fc2627d29b852cec71a032634bdbf0980b073b243eb8b3c2d8893d32341f"
+    }
+  ]
+}

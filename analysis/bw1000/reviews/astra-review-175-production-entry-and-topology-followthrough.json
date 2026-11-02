@@ -1,0 +1,181 @@
+{
+  "review": 175,
+  "state": "COMPLETE_RECOMMENDATIONS_FOR_ROOT_ADOPTION",
+  "date": "2026-11-03",
+  "scope": {
+    "trigger": "重复可避免的生产入口错误；不是三轮性能触发",
+    "after_174_causal_rounds": 1,
+    "round_definition": "405 的完整计划失败但有效 partial prefix 诊断计一轮；404 shell/preengine 和 CPU/构建错误不计性能轮",
+    "actions": "只读源/已有证据，仅写本报告；未执行测试、reader、编译、作业或 Git",
+    "does_not_gate_independent_work": true,
+    "cutoff": "含根报告的 CPU819 COMPLETED0/51s；404 owner_v2/CPU-v4 尚未得到本审核实读的执行回执"
+  },
+  "evidence": [
+    {
+      "path": "analysis/bw1000/GLM404-run-b-root-preengine-failure-consumption.json",
+      "scope": "根已消费实际847/817失败与848清理"
+    },
+    {
+      "path": "../GLM404-run-b-progress2-observed.json",
+      "sha256": "1b719446667e520c092c88dbe13a0df3dcb3732ee7e005b01a2fb038d44fc1c8",
+      "scope": "原始观察，根消费结果引用"
+    },
+    {
+      "path": "code/bw1000/GLM-V-on-demand-Model-r404/owner/preengine_r133.py",
+      "scope": "旧真实 PP4 断言位于 Torch 设备选择和 CDLL 后"
+    },
+    {
+      "path": "code/bw1000/GLM-V-on-demand-Model-r404/owner_v2",
+      "scope": "本轮读取中的候选源，未冒称冻结版本/CPU已通过"
+    },
+    {
+      "path": "code/bw1000/GLM-V-on-demand-Model-r404/cpu-layout-v4/check_layout_CPU.py",
+      "scope": "真实 topology/create_context/preengine 首 Torch 边界消费者"
+    },
+    {
+      "path": "../GLM408-CPU818-original-receipt-local.json",
+      "receipt_sha256": "4aaa85f77833e69a829ac749fa4f325fdd7e9c9a1b6c7b2cc314e940dc260003",
+      "scope": "实际编译/链接回执，不是设备资格"
+    },
+    {
+      "path": "code/bw1000/GLM-selected-KV-on-demand-capacity-r408",
+      "scope": "实际12query组件计划及持久K移除候选"
+    },
+    {
+      "path": "code/bw1000/Kimi-TP8PP4-ordinary-r410",
+      "scope": "实际普通TP8PP4源码/拓扑说明"
+    },
+    {
+      "path": "analysis/bw1000/GLM-irregular-prefill-dense-union-feasibility-r409.json",
+      "scope": "源可行性条件，尚无设备证据"
+    },
+    {
+      "path": "status/bw1000/latest.json",
+      "scope": "各作业最后观察；不据 RUNNING 重提"
+    }
+  ],
+  "prior_174_followthrough": {
+    "reused_successes": "807/810/804 与813已通过的同源边界继续复用，不重编、不重复这些 CPU。",
+    "correction": "813 recording 替换了真实 production preengine，因此通过范围不是整个生产入口。它没有检验旧 PP4 断言，也没有消除最终 shell 与真实 preengine 的交接风险。",
+    "retained_failures": "保留844/815缺环境、847/817拓扑失败及各自清理原件；不改原FAIL为PASS。",
+    "independent_routes": "408准备、410 CPU 和已在途作业继续，不等待本报告。"
+  },
+  "four_questions": {
+    "model_and_service_gain": {
+      "answer": "本次没有新增可信 Model/服务收益。404未create；408/410只有CPU工程证据。405有效前缀不能晋级为收益。",
+      "GLM404": "847 FAILED1/93s，817 FAILED1/107s；已经cuda.set_device及CDLL952，随后真实preengine PP4断言失败。0create/0weights/0HTTP，848两节点清理通过。不能称未初始化GPU，也不能称容量不足。",
+      "Kimi405": "745完整计划测量超时FAIL，16正常Runtime close/post746 clean；有效6轮前缀gain4.9635%低于OFF drift9.2371%，273/owner而非320计划，PARK。",
+      "Deep406": "三status关键owner7 wall113.1us/threadCPU108.271us，占prepare1.778166ms的6.36%；这是当前组件范围，不能乘21/43层或代表Model78ms。停止status deferral/containment。",
+      "CPU818": "2HOST/30objects路径通过，实际约35s；0Native dlopen/Runtime/权重/GPU。",
+      "CPU819": {
+        "provenance": "根本轮增量：已实际执行 audit_CPU_receipt.py PASS，本审核不另跑",
+        "state": "910407.819 COMPLETED0/51s",
+        "receipt_sha256": "a6994b7f65394b749bd5f9cd33c642fedf17ad873664adb89750de69499e8d75",
+        "scope": "3HOST/33total/30reuse，old130CAPI+3new、freshMD563/547/1117及4coreproviders；非设备/容量/性能"
+      }
+    },
+    "time_and_iteration": {
+      "answer": "主要可避免浪费在真实生产入口被替身绕过、阶段配置来自不同文件且未在设备前统一消费；不是增加更多元数据或重复已过构建能解决。",
+      "observed": "404第二次生产尝试消耗GPU步骤93s、keeper107s仍未create。405步骤364s而完整计划未完成，API外检查和history重写使完整测量成本不可忽略。818约35s/81951s是有界工程推进，不是计算利用率。",
+      "minimal_improvement": "让最终入口调用同一纯配置生产者，在Torch/CDLL前拒绝拓扑/角色/环境不一致；现有CPU只替换设备叶子，保留真实配置→preengine→create参数交接。避免再为一个遗漏flag支付一次GPU。",
+      "utilization": "没有足够连续利用率/加载分解证据，UNKNOWN；不能用驻留卡秒当有效忙碌率。",
+      "report_cost": "本报告后直接交还执行者；不新增通用入口框架、重复报告或无关CPU门槛。"
+    },
+    "bottleneck_evidence": {
+      "proven": [
+        "404本轮是入口拓扑不一致，尚无Model容量或性能数据。",
+        "405完整测量预算失败且部分收益低于漂移；API外审计成本存在，不能当成候选Runtime gain。",
+        "406当前status占prepare约6.36%，不是主要Model瓶颈的证明。"
+      ],
+      "hypotheses": [
+        "408移除持久K可省逻辑缓存，但临时allK/allV及chunkK/V会影响实际峰值；完整attention成本可能抵消容量价值。",
+        "410将TP16PP2变为TP8PP4同时改变通信、每卡head6→12及I192→384；将来结果属于拓扑整包，不能单归因通信。"
+      ],
+      "unknown": [
+        "404加载后真实peak/free、完整输出、性能。",
+        "408实际设备数学/loader与完整wall、实际Model索引器/FFN及构造路径。",
+        "410实际12head数值、权重加载、峰值与整模型wall。",
+        "409Hygon布尔mask广播/别名/workspace与unselected非finiteV传播；dense峰值不能预测该路径收益。"
+      ]
+    },
+    "route_decision": "GLM仅保留404容量Model和408短组件两张现卡；Kimi消费已通过819后推进410原范围必要边界，405停；Deep406停且暂无有依据的新卡。409留源条件候选，不占第三张GPU卡。"
+  },
+  "production_fix_review": {
+    "conclusion": "所读 owner_v2 修复方向正确且范围足够小；未发现必须追加完整框架的理由。它不是已经实际Model验证。",
+    "exact_changes": [
+      "model_entry 在 protocol/preweight 前 read_layout；真实 preengine 在 import torch 前同样调用 read_layout。",
+      "typed layout固定 TP8/PP2、C1/32768、两节点角色stage0/1及[0,38,78]；真实配置78层/hidden6144进入同一消费者。",
+      "create_context统一16个owner的rank/stage/rows/capacity/config和三组通信buffer，再调用原8参数CABI；不能全局把历史4替换2。",
+      "历史stage0/3旧receipt作为历史证据保留，新的运行角色是stage0/1。Native952与数学路径不因本修复重编。"
+    ],
+    "CPU_v4_actual_scope": "源调用真实 preengine.validate 到首次 Torch import 拒绝边界，真实config、旧PP4反例、stage/role/16owner create_context recording CABI叶子；不调用真实CDLL/Runtime/权重。该窄CPU范围应如实记录。",
+    "remaining_small_handoff": "所读CPU测试的环境为独立硬编码dict，不能把它称作已经消费最终GPU shell。根最后源审对照最终GPU_inside实际exports与read_layout所需键，沿已有CPU/源检查闭合即可；不要求新独立作业、重复804/813或重建原Native。若最终版本已完成此对应，直接复用。",
+    "final_binding": "根消费最终source/owner/CPU-v4路径与SHA及实际preengine差异后，沿既定claim/资源执行；本报告不是额外GO。当前未见新CPU回执，不能提前写PASS。",
+    "errors_not_hidden": "844 shell错误、847先设备/CDLL后断言、旧CPU替身遗漏分别保留；0create不等于0GPU初始化。"
+  },
+  "next_cards": {
+    "GLM": [
+      {
+        "priority": 1,
+        "id": "404-privateowner-v2-existing-capacity-scope",
+        "hypothesis": "完整C1/32768、NoV当前Native在16卡TP8PP2能否满足原floor并完成两条真实工具history。",
+        "minimal_change": "只统一设备前拓扑/config/role/createargs；沿既有CPU-v4消费真实入口缺口，原Native/数学/floor不动。",
+        "owner": "原kimi_operator执行者；根消费最终范围",
+        "resources": "原910376 n12/n13，共16卡；既定GPU5400/worker5100/measurement4500/keeper6000秒预算",
+        "reuse": "804 Native952、813其余同源边界、349完整8900 calculate及9741工具history；不改成16K输入。",
+        "checks": "原8GiB preweight/512MiBforward、full32768、W2、各4096输出budget；正常EOS/工具gold/owner与post清理。",
+        "samples": "原两完整请求，同一驻留；不补quality64，不降ctx/W/floor。",
+        "first_result_eta": "CPU-v4和最终源消费后入口判定预计分钟级；实际构造/加载/两请求时间UNKNOWN，上界沿原预算，不承诺加载速度。",
+        "affected_wall": "容量能否成立优先；速度收益UNKNOWN，逻辑5GiB不等于Model fit。",
+        "exit": "入口再次异常先保原件定位，不按单flag反复GPU；floor/构造拒绝即终止，不降阈值；完整质量/生命周期后才讨论Model资格。",
+        "fallback": "若不成立先消费408，不造第三Model加载卡。"
+      },
+      {
+        "priority": 2,
+        "id": "408-existing-12query-selected-KV-component",
+        "hypothesis": "原NoV基础上同时不存持久K，能否保数值并改善真实资源成本而不产生不可接受attention wall退化。",
+        "minimal_change": "复用已有kv_b中K结果及同一selected-kv实现；不改变FP8/RoPE/顺序/额外GEMM。",
+        "owner": "原执行者独立推进",
+        "resources": "原910371 n16八卡、GPU600s/keeper900s",
+        "reuse": "CPU818两HOST/30objects及其receipt，NoV403/735已有负成本证据；不重复编译。",
+        "checks": "原finite/NRMS阈值、directK含rotary、state/canary、8owner同index max及正常清理。",
+        "samples": "两固定geometry：decode T1/U2048和prefill T512/U32768；各0,1,0,1,1,0，总12query/owner，4warm+8formal。",
+        "first_result_eta": "既有准备完成后单步≤600s；排队UNKNOWN。",
+        "affected_wall": "完整attention含freshprojection/copy/gather/reprojection/attentionO/TP/drain；Model收益UNKNOWN。",
+        "exit": "数值失败或完整wall/峰值不支持容量价值则停；不可把条件40层5GiB当实测峰值。",
+        "iteration_improvement": "已有O(1)标量JSONL追加、末尾一次聚合，比405反复history重写更直接减少测量干扰；不另造harness。",
+        "fallback": "保留NoV已测边界；409仅条件源研究。"
+      }
+    ],
+    "Kimi": [
+      {
+        "priority": 1,
+        "id": "410-ordinary-TP8PP4-consume-CPU819",
+        "hypothesis": "当前ordinary C1在TP8PP4的真实12head/I384路径能否保持功能与内存边界，并成为比既有TP16PP2更有价值的拓扑。",
+        "minimal_change": "消费已成功3HOST构建，复用30objects；原ordinary factory/长上下文cache准入，未混入paired/draft。",
+        "owner": "root与原Kimi执行者",
+        "resources": "CPU819已完成，不再重复；设备资源/请求尚须沿该卡现有计划明确，当前不新增32卡加载。",
+        "reuse": "819 receipt、当前8df、原4GiBfloor；旧普通/配对路径身份分开。",
+        "checks": "下一必要真实消费者明确12head和长cache/尺度准入；不能以130+3导出或recording宣称设备数学通过。",
+        "samples": "当前无冻结设备采样计划，本审核不代造；准备不足不填GPU。",
+        "first_result_eta": "CPU结果可立即消费；首设备结果UNKNOWN，先收束已准备的最薄真实入口。",
+        "affected_wall": "UNKNOWN；拓扑同时改变本地计算和通信，不能预测纯通信收益。",
+        "exit": "不破坏旧短ctx factory；实际资源/数学/生命周期不闭合则停在该边界，不回到405/401裸算子填卡。",
+        "fallback": "无已证实的第二张Kimi新卡。"
+      }
+    ],
+    "Deep": [],
+    "stopped_or_conditional": [
+      "405：PARK当前实现及完整计划，不把不完整6轮增益晋级，不自动重放745。",
+      "406：STOP status deferral/containment，不乘层数，不重历史smallT。",
+      "409：条件源可行性保留，mask Hygon广播及非finiteV传播未闭合；fullPV会遇到0*NaN/Inf，不能凭概率mask宣称等价。未测前无GPU/Model卡，也不为审核补大框架。"
+    ]
+  },
+  "root_adoption_items": [
+    "保留404两次工程失败；修正813被称整生产入口的过宽资格。",
+    "源审最终shell→purelayout→真实preengine→createargs连续性；只补缺口，复用804/813及CPU818/819。",
+    "404和408独立推进，第三次404GPU前消费最终source/CPU记录；已知修复不因本审核等待。",
+    "410按819实际PASS更新，停止重复HOST构建；未知设备能力明确保留。",
+    "405/406停、409条件候选；不造新卡填机器，工程错误不计性能轮。"
+  ]
+}
