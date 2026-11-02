@@ -1,0 +1,63 @@
+{
+  "state": "SOURCE_ONLY_NO_NEW_GPU",
+  "actual_failed_report": "results/bw1000/2026-11-02/Kimi369-GPU690-query-FAIL-sealed.json",
+  "failed_SHA256": "08b46fb69de4b933ccca3d30269934ce7c3cdc764176fa1179b0f7d670086c10",
+  "missing_690_raw": "Not captured; no fabricated reconstruction. This CPU uses random parameters and a distinct geometry sample.",
+  "frozen369_GPU_manifest_SHA256": "389f5434ae820c8b5b1ec2544ed9bc6c01b50f8b1b6face653b7f2bbec433038",
+  "source_semantics": {
+    "mask": {
+      "L": 32638,
+      "keep_cp": [
+        28543,
+        32637
+      ],
+      "dp": [
+        32638,
+        32645
+      ],
+      "retained_context_union_rows": 4095,
+      "valid_context_rows_per_query": [
+        4095,
+        4094,
+        4093,
+        4092,
+        4091,
+        4090,
+        4089,
+        4088
+      ],
+      "all8draft_columns_retained": true
+    },
+    "RoPE": "Both paths call the same original rotary module; bothrequest absoluteL+8=32646. Original full total_len32646 and crop total_len4103 affect K/V reshape, but privateforward only replaces rotary seq_len. Cacheddtype depends on loader-restored defaultdtype; actual690bufferdtype was not logged, cannot infer it from CPU. Both arm bufferobject/dtype remain shared by source.",
+    "copy": "copy.copy(layer) copies Python routing only, _modules dictionary copied; SpanAttention.original references originalself_attn. No parameters/buffers reconstructed or cast. Original function globals copied, then only call wrapper captures exactQKV and returns originalSDPA unchanged.",
+    "dependency": "KVA/latentRMS/KVB tokenwise; normalization mean(-1), never over context. Draft groupedconv only8draft, context neverupdated. Globalfifth unchanged.",
+    "mathematical_conclusion": "No real-number mask/absoluteposition/norm/borrowedbuffer semantic difference identified. Finiteprecision/backend/M-shape changes remain hypothesis, not established cause."
+  },
+  "hypotheses": [
+    {
+      "name": "Retained KV recomputation changes first",
+      "test": "Same captured firstattention draft input/context/weights. Compare ALL retained4095context+8draft rows at Q,KV_A,latentRMS,KV_B; report firstnonzero/finite/NRMSE/maxabs/RMS."
+    },
+    {
+      "name": "Same-QKV masked attention changes with shape",
+      "test": "Materialize fullfirstattention Q,K,V once. Use samevalues; crop only allFalse columns, preserve perquery mask, contiguousK/V as normal candidate. Projection absent. Compare rawSDPAoutput beforeOproj."
+    },
+    {
+      "name": "Full replay state/input differs",
+      "test": "Original completeOFFquery capture8xH attentioninput/output; samefirstattention fullreplay output vs original validates replaypath. Retained cache/bufferSHA and weights/module identity guard, no prefixreload."
+    }
+  ],
+  "bounds": {
+    "CPU_max_s": 600,
+    "CPU_cores": 4,
+    "CPU_memory_MiB": 8192,
+    "CPU_scope": "Randomparameters, fullproduction KV_A hidden7168/output576/M32646 vs4103; latent512 and full16384 KV_B output only12alignedrows; actualtiny fullquery69commands + samefirstlayer producer/fixedQKV controls. No checkpointloaded/GPU/native.",
+    "next_GPU": "NOT_YET_CLAIMED: 1draftn15,600s incl strictload/CPU900. Original fullquery exactlyonce + onefullfirstattention replay + onefixedQKV cropSDPA + onecropfirstattention replay. Scalar summaries saved before any diagnostic stop; no full5layerON/ABBA/target.",
+    "GPU_reference_QK_V_bytes": 1337180160,
+    "GPU_firstproducer_retained_KVB_bytes": 134447104,
+    "CPU_expected_peak_below_claim": "Estimated <4GiB for described tensors/randomattention; actualru_maxrss recorded; not GPU allocator peak",
+    "no_unbounded_activation_logging": true,
+    "original_numeric_threshold": 0.02
+  },
+  "cost_bound": "r368 unchanged: >74.9986% queryRPC saving needed strict15near ifallothercosts/acceptance held; zeroquery still insufficientfirstrequest33card percard. No speed/acceptance forecast."
+}
