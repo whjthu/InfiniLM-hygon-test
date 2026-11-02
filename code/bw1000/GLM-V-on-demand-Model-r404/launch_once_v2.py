@@ -4,7 +4,7 @@ import argparse,hashlib,json,os,re,subprocess,time
 R=Path('/public/home/aclsylqidf/hygon-inference-refactor-20261014');S=R/'incoming/GLM-V-on-demand-Model-r404'
 LABEL='GLM-V-on-demand-Model-r404-model-20261103-a';sha=lambda p:hashlib.sha256(Path(p).read_bytes()).hexdigest()
 def main():
- p=argparse.ArgumentParser();p.add_argument('--publication-commit',required=True);p.add_argument('--manifest-sha',required=True);a=p.parse_args();assert re.fullmatch('[0-9a-f]{40}',a.publication_commit)
+ p=argparse.ArgumentParser();p.add_argument('--publication-commit',required=True);p.add_argument('--manifest-sha',required=True);p.add_argument('--preflight-only',action='store_true');a=p.parse_args();assert re.fullmatch('[0-9a-f]{40}',a.publication_commit)
  m=json.loads((S/'GPU_MANIFEST.json').read_bytes());assert sha(S/'GPU_MANIFEST.json')==a.manifest_sha and m['GPU_GO']is True and m['Model_GO']is True
  assert sha(S/'SOURCE_MANIFEST.json')==m['source_manifest_SHA256']and sha(S/'owner/SOURCE_MANIFEST.json')==m['owner_manifest_SHA256']
  for n,h in json.loads((S/'SOURCE_MANIFEST.json').read_bytes())['files_SHA256'].items():assert sha(S/n)==h,n
@@ -20,10 +20,14 @@ def main():
 
  intent=R/'results/GLM-r404-Model-intent-v2.json';watch=R/'results'/(LABEL+'-watch.json');assert not intent.exists()and not watch.exists()
  parent=subprocess.check_output(['scontrol','show','job','910407','-o'],text=True,timeout=20);assert 'JobState=RUNNING'in parent and'a14r2n20'in parent
- argv=['srun','--jobid=910407','--overlap','--exact','--immediate=30','--cpu-bind=none','-N1','-n1','-c2','--gres=none','--mem=8192M','-w','a14r2n20','-t','01:40:00','--job-name='+LABEL+'-keeper-v2','--output='+str(R/'logs'/(LABEL+'-keeper-%J.log')),'--export=ALL','python3','-B','-u',str(S/m['controller_entry']),'--publication-commit',a.publication_commit,'--manifest-sha',a.manifest_sha]
+ client_log=R/'logs'/(LABEL+'-keeper-v2-client.log');output=R/'logs'/(LABEL+'-keeper-v2-%J.log')
+ assert not client_log.exists()and not list((R/'logs').glob(LABEL+'-keeper-v2-*.log')),'Recovery keeper output already exists; reconcile original attempt'
+ argv=['srun','--jobid=910407','--overlap','--exact','--immediate=30','--cpu-bind=none','-N1','-n1','-c2','--gres=none','--mem=8192M','-w','a14r2n20','-t','01:40:00','--job-name='+LABEL+'-keeper-v2','--output='+str(output),'--export=ALL','python3','-B','-u',str(S/m['controller_entry']),'--publication-commit',a.publication_commit,'--manifest-sha',a.manifest_sha]
+ if a.preflight_only:
+  print(json.dumps(dict(preflight_passed=True,actual_launcher_CLI=True,Slurm_submitted=0,intent_created=False,log_created=False,GPU_submitted=False,prior_keeper=old[0],prior_intent_SHA256=sha(prior),GPU_manifest_SHA256=a.manifest_sha,keeper_argv=argv)));return
  data=dict(recovery_of_preGPU_keeper='910407.814',prior_intent_SHA256=hashlib.sha256(prior_bytes).hexdigest(),GPU_attempt=1,keeper_attempt=2,publication_commit=a.publication_commit,GPU_manifest_SHA256=a.manifest_sha,created_unix=time.time(),attempt=1,no_retry=True,keeper_argv=argv)
  with intent.open('x')as f:json.dump(data,f,indent=2)
- with(R/'logs'/(LABEL+'-keeper-client.log')).open('x')as log:proc=subprocess.Popen(argv,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+ with client_log.open('x')as log:proc=subprocess.Popen(argv,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
  data.update(keeper_srun_PID=proc.pid,keeper_label=LABEL+'-keeper-v2',GPU_label=LABEL);tmp=intent.with_suffix('.tmp');tmp.write_text(json.dumps(data,indent=2));tmp.replace(intent)
  print(json.dumps(data))
 if __name__=='__main__':main()
