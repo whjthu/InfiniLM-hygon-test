@@ -1,0 +1,107 @@
+{
+  "review": 168,
+  "date": "2026-11-02",
+  "trigger": "167后Kimi391实际策略负结果与Deep393真实工具任务质量失败两个事件；因新的质量反例立即提前审核，不等待第三轮。393不是0请求胶水失败。",
+  "scope": "只读AGENTS/QUALITY、167落实、391根审、393终态/原archive及实际client/worker/bootstrap/profile源码；仅写本报告，无新测试、GPU、Git或框架。GLM395独立无权重容量验证不等待本审核。",
+  "decision": [
+    "Kimi391生产512拆8×64策略明确STOP；C/B局部正倍率不抵C/A约-87.8%至-88.0%的策略吞吐倒退，不扩grid或Model。",
+    "Deep393整卡QUALITY_FAIL且GPU FAILED；当前976f HC1在该8489工作负载的重复稳定正确资格不能继续标为通过。保留历史366/375实际观测，但不得用旧scoped PASS覆盖新反例。",
+    "六次完整Native/HTTP、最后一次语义错误、四个真实observer窗口、异常清理及post空分别陈述；keeper COMPLETED和legacy shutdown完成不能改写正常Native成功stamp。",
+    "唯一原数据离线诊断卡已由root独立闭合；没有HC0数学对照，根因仍UNKNOWN，不归因HC、observer或reset，不盲重6/68/103、不新增完整Model加载。"
+  ],
+  "167_followthrough": {
+    "record": "analysis/bw1000/reviews/astra-review-167-implementation.json",
+    "391": "782 metadata FAIL、旧上传SyntaxError零提交、fixed唯一783 CPU成功已分开记录；v2实际GPU726及根审现在关闭其性能问题。",
+    "393_deployment": "此前NUL生成脚本0提交与r1完整最终脚本修复后实际1320分开保留。该已修工程问题不解释本次第六请求语义错误，不重开167或为包装重新申请GO。"
+  },
+  "Kimi391": {
+    "root_result": "results/bw1000/2026-11-02/Kimi391-root-audited-full-MoE-strategy-negative-normal-clean.json",
+    "actual": "726，16卡TP16；原tar12entries、96 aligned max16 formal trials及6warm BF16根独审；16 normal、post727clean。",
+    "two_fixture_means_ms": [{"A_production512": 6.0611445, "B_SDK_8x64": 65.256814625, "C_I192_8x64": 50.41245675}, {"A_production512": 6.02994425, "B_SDK_8x64": 64.2427876875, "C_I192_8x64": 49.5610229375}],
+    "median_C_over_A_rate_gain": [-0.8798628414326539, -0.8783259026813783],
+    "C_over_B": "同64分块内约+29.5%仅局部dispatch收益；主策略比较必须C/A，不用C/B冒充prefill改善。",
+    "cost": "两节点权重加载299.512/402.586s，实际驻留7664 card-seconds；不是busy或实际Model收益。",
+    "limits": "两个teacher16扩展512的固定geometry，非真实prefill activation；全MoE含8calls/原collectives/stitch/释放/finaldrain。负结果足以停止此策略，不能反推所有任意512分解或整个Model硬件上限。"
+  },
+  "Deep393_actual": {
+    "handles": "GPU910374.1320 FAILED1/22m11；keeper910407.785 COMPLETED0/22m23；post1321 KFD空/43882可bind。",
+    "Native": "976f97b51e9f4b11dfb2439d2c97f2a1e7788e4de05ee8a8a0138f33e38b6ed1，TP8/PP1、HC固定1；无HC0数学对照。",
+    "requests": "实际HTTP attempts/completed=6/6，Native observed/completed=6/6；六次8489 prompt、98含EOS/97 visible、normal_reset_before/after=true。前五任务gold通过，第六index5 observer OFF完整答案错误。",
+    "client_rows_explanation": "client.requests只有5不是丢失第六请求：client_chunk_pair.py先保存HTTP/Native实际计数，完整wire已落盘，再检查gold；错误发生在append(task_correct=true)之前。最终质量分母必须6，不能拿成功row数5作5/5通过。",
+    "specific_semantic_failure": {
+      "source": "原archive第六wire与冻结fixture（均SHA已核）",
+      "right_json_sum_expected": 275061,
+      "right_json_sum_actual": 275062,
+      "total_expected": 477137,
+      "total_actual": 477138,
+      "unchanged": "left sum202076及两nonce一致；均whole JSON fence可解析。",
+      "interpretation": "结构化任务数值差1，非允许的措辞/token变化，也非单纯strict裸JSON格式问题。root已从opaqueID→path及tool records独立复算left202076/right275061/total477137，与冻结fixture一致；strict JSON唯一键/finite、整数非bool、record/query ID唯一及映射完整覆盖均通过，不能为通过改期望或容忍错误答案。"
+    },
+    "timing": "加载399.488s；GPU1331s/keeper1343s含加载、请求、异常清理，不等于GPU忙碌。原前五记录有实际HTTP和emitter，但失败第六次HTTP elapsed未持久化，正式HTTP ABBA为UNKNOWN；不能从wire/event/mtime补造，也不能删坏请求后展示通过的ABBA。"
+  },
+  "identity_reset_and_capture_evidence": {
+    "direct_archive_read": "L/Deep393-1320-original-terminal-archive-local.json；本审核读取内嵌fixture、完整report、6wire并分别核对text bytes SHA与archive记录，未运行新reader/测试。",
+    "prompt_identity": "六次Native_prompt_token_ids_SHA256完全相同：681977ee292994eac340bae5c1aadf7a6b136890df725d02bb75fc8f31ecf0df。root已由原archive完成六请求messages/tools/max_tokens、opaque响应ID对应唯一owner row、session/index/step/manifest、fixture token SHA、分块历史、EOS、reset及逐forward HC覆盖核对。",
+    "first_difference": "直接比较第0与第5原generated_token_ids，首次分歧为zero-index83：30722→28302；两者均98tokens。它定位生成分歧位置，不证明最早内部数值分歧或其因果；未有该步logits/margins就保持UNKNOWN。",
+    "reset": "六次before/after reset标记为true，实际row消费要求二者成立。但reset API成功只证明调用返回成功，不证明所有GPU隐藏状态逐字节重置；不能因此断言无跨请求影响。",
+    "capture": "index3/4各decode8/87，四window的native_window_closed、owner_event_validation_passed、inner_event_validation_passed均true；index0/1/2/5无profile。profile_contract.complete检查精确窗口集合并对两个existing API执行disarm(0)。",
+    "limits": "关闭/事件校验说明capture合同完成，不等于证明observer对未来状态完全无副作用。最后OFF失败不能排除前序ON残留/扰动；同样也不能据此认定observer导致失败。"
+  },
+  "lifecycle_labels": {
+    "original_report": "completed=false、passed=false、normal_Native_shutdown=false；normal_server_shutdown=true，forced_cleanup=false、HTTP线程退出、cleanup errors=[]。",
+    "legacy_finally": "engine_worker_shutdown_completed=true；shutdown_entered存在。",
+    "why_stamp_absent": "bootstrap在exec(legacy)正常返回后才写normal_Native_shutdown与owner_exit_observation。client质量失败导致worker抛Phase failed，legacy finally虽shutdown完成，异常继续传播，bootstrap成功stamp未执行。",
+    "allowed_claim": "异常路径engine shutdown已完成、HTTP正常关闭且post资源空；不能称原卡正常Native成功、不能补写COMPLETED/PASS，也不能仅凭未写stamp宣称确定泄漏。",
+    "independent_post": "原archive含1322独立post：node01 KFD[]、owned_or_old_Deep_processes[]、43882可bind、GPU_imported=false；与1321同向，但不追溯正常成功资格。",
+    "keeper": "785 COMPLETED0说明守护/终态处理完成，不是子GPU或Model成功。"
+  },
+  "quality_and_attribution_boundaries": {
+    "current_qualification": "393该工作负载稳定正确/整个profile卡不合格。暂停把当前HC1该固定工具工作负载当已通过基线继续晋级；本轮5/6只是重复同一题的观察，不能当广泛准确率或推置信结论。",
+    "historical_evidence": "366/375历史逐请求正确和既有paired收益不删改，但仍限定当时样本、参数、顺序和运行。它们不能豁免393新反例；没有本轮HC0对照，也不宣布HC1算法已证有普遍回归。",
+    "math_cause": "HC、observer、底层非确定性、未完全复位、此前状态、输入/评测映射均须靠原证据排除；现有相同prompt SHA和明确算术差已排除仅prompt长度一致/纯格式的说法，不能进一步凭猜测指定kernel。",
+    "profile_retention": "root已实际运行analyze_archive.py --allow-quality-failure，四个原owner+inner窗口消费者复算通过；可保存为失败运行中实际执行的、受observer扰动的HC_ON诊断数据。不是已通过服务profile、性能增益或全Model因果份额。",
+    "timing_limit": "observer ON/OFF只有相同HC1，不是HC ON/OFF收益。sample8前缀一致，记录的ON/OFF wrapper ratio1.05994是该采样窗口扰动；sample87生成前缀已经分歧，ratio1.05152只能列混杂诊断，不能当因果observer开销。四窗口不是完整97步decode profile。末OFF语义失败且HTTP elapsed缺失，完整质量合格/HTTP ABBA均不成立；owner/inner、event/host/CAPI嵌套不得相加，旧HC_OFF profile不得挪作当前ON分母。",
+    "hardware": "截至所读原件，当前硬件瓶颈仍未知；不以自然EOS/finite或CAPI98%证明数学正确、GPU算力/HBM饱和。"
+  },
+  "only_next_card": {
+    "status": "COMPLETED_ROOT_OFFLINE_AUDIT_NO_NEW_EXPERIMENT",
+    "model": "Deep",
+    "owner": "原Deep执行者收原件；root沿既有reader独立消费",
+    "card": "393原6wire、同输入身份、语义分歧与四窗口离线闭合",
+    "hypothesis": "已有原件足以区分真实最终答案错误、评测/输入映射错误以及能直接观测的reset/capture遗漏；先关闭可诊断事实，可能仍无法定位数学根因。",
+    "resource": "现有本地/远端归档只读CPU；0新Slurm/GPU、0权重/Model加载、0请求重发。",
+    "minimal_work": [
+      "校验remote archive及raw manifest SHA；从六request/wire opaqueID对应owner row，重算实际输入SHA、预算、EOS、reset、HC覆盖和各arm，不以client成功rows替代第六行。",
+      "由原tool records/file映射独立重算right/total与nonce；逐字段记录第六错值。对六原tokens定位首次分歧，关联已有clock/Native_continuation及窗口时序；无logits/状态快照的部分明确UNKNOWN。",
+      "复用既有owner/inner消费者审四window closure/kind/geometry和外层同次耗时；保留所有扰动与坏请求，分别输出质量FAIL、诊断trace可用范围、异常shutdown/post事实。",
+      "以后已有client源码需要变更时，可在质量断言前持久化失败row的index/expected/actual/wireSHA/task_correct=false，以免成功列表掩盖分母；本轮直接从原wire补诊断，不热改或为此重跑。"
+    ],
+    "first_result_ETA": "已闭合：root实际运行diagnose_gold.py及analyze_archive.py --allow-quality-failure，2026-11-03 00:06:30+08正式结果已生成。数学根因仍UNKNOWN，不继续无界分析或重复运行。",
+    "expected_Model_gain": "不寻求性能晋级，UNKNOWN；此卡为质量反例定位。",
+    "exit": "原件不支持具体因果则输出已排除/未排除项并停止，不自动重6/68/103或扩profiling框架。只有以后明确一个可证伪缺口且存在必要最小实验时，root才另定范围，本审核不预排GPU。"
+  },
+  "other_models": {"Kimi": "391 STOP，无下一新卡或32target重载；389小decode观察保持其原范围，不据此挽救512策略。", "GLM": "395为独立无权重PP2容量验证，final待root消费；不因393失败冻结，无Model/weights/质量/性能资格由本审核授予。"},
+  "root_followthrough": "393正式根审已确认真实六请求质量失败、正常Native成功stamp未成立但异常清理/post完成；撤销该工作负载当前稳定PASS措辞。唯一离线诊断卡已完成，保留旧历史证据及scope，不把NUL零提交、重复reader或167工程修复另算性能事件。",
+  "root_audit_followthrough": {
+    "result": "results/bw1000/2026-11-02/Deep393-root-gold-and-current-profile-audit-quality-FAIL-clean.json",
+    "state": "ROOT_RECOMPUTED_ACTUAL_QUALITY_FAIL_DIAGNOSTIC_ONLY_STOP",
+    "strict_actual_JSON_unique_keys_finite_int_not_bool_checked": true,
+    "opaque_ID_to_path_records_gold_independently_recomputed": true,
+    "six_request_identity_reset_HC_coverage_verified": true,
+    "four_windows_consumers_recomputed_PASS": true,
+    "correct_of_actual_completed": "5/6",
+    "HTTP_ABBA": "UNKNOWN; failed sixth elapsed not persisted",
+    "sample87_prefixes_equal": false,
+    "whole_quality_and_lifecycle_PASS": false,
+    "reviewer_action": "只读正式root结果和SHA并更新本报告；未新增测试、GPU、Git或数学归因。"
+  },
+  "evidence_SHA256": {
+    "L/Deep393-Model-observation-d-local.json": "0ba59257b73f94ae8c3f60b6a75571a854f3fcb278d8693166c4f81a92891979",
+    "L/Deep393-terminal-client-failure-original-local.json": "4e80eef1a16b69e966bf9930775352b9654e2ea8d00013b6db0f827f4b29c0ac",
+    "L/Deep393-1320-original-terminal-archive-local.json": "66fe3753f79863405761476af918c96760d24cf3667bbe12117f85e85b3bf005",
+    "remote_393_archive": "8f15404c58fffc13909c6717532a895c709c5514b10da89be111bdaaa6ea5692",
+    "last_wire": "da48b39bcb0312f8b939bf12026210d5e10e658607718dd996a7d4b531f4a2d2",
+    "results/bw1000/2026-11-02/Kimi391-root-audited-full-MoE-strategy-negative-normal-clean.json": "618714c8feebd2a330c55becfcb4e137d042a61fded041ae309774ae1ce58dbc",
+    "results/bw1000/2026-11-02/Deep393-root-gold-and-current-profile-audit-quality-FAIL-clean.json": "135b77a8c4880fcad1fc4105d797a409b4840dc124ef0c784b76b5d2c01a5897"
+  }
+}
