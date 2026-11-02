@@ -19,6 +19,8 @@ IDENTITY = dict(model_SHA256='1' * 64, ABI_SHA256='2' * 64,
 DATA = [bytes([i + 1]) * (wire.CHUNK + 13 if i == 0 else 19) for i in range(8)]
 BLOCKS = [dict(key='recording_state', shard=i, nbytes=len(value), layout_SHA256='4' * 64)
           for i, value in enumerate(DATA)]
+DATA.append(b'')
+BLOCKS.append(dict(key='C128_unwritten_live_prefix', shard=0, nbytes=0, layout_SHA256='5' * 64))
 
 
 class Sink:
@@ -135,6 +137,8 @@ def main():
     assert sink.data == DATA and exported['block_SHA256'] == result['block_SHA256']
     assert exported['payload_bytes'] == result['payload_bytes'] == sum(map(len, DATA))
     checks.append('Actual socket8shard chunkboundary roundtrip and publishACK')
+    assert result['block_SHA256'][-1] == hashlib.sha256(b'').hexdigest()
+    checks.append('Exact zero-length uninitialized C128 ABIblock retained without fakepayload')
     for key, value in [('epoch', 6), ('epoch', 7.0), ('model_SHA256', '5' * 64),
                        ('prompt_IDs_SHA256', '6' * 64), ('next_token', 43)]:
         identity = dict(IDENTITY); identity[key] = value
@@ -153,7 +157,7 @@ def main():
     checks.append('Device/import verify failure aborts staged state')
     failed_transfer(frame(), ack_failure=True)
     checks.append('ACK failure after publish poisons and aborts request')
-    bad_blocks = copy.deepcopy(BLOCKS); bad_blocks[-1]['shard'] = 6
+    bad_blocks = copy.deepcopy(BLOCKS); bad_blocks[7]['shard'] = 6
     try:
         wire.ImportTicket(IDENTITY, bad_blocks, Sink())
     except ValueError:

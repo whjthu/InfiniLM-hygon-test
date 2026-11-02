@@ -76,11 +76,13 @@ def validate_blocks(blocks):
         require(type(key) is str and 0 < len(key) <= 192 and key.isascii()
                 and all(c.isalnum() or c in '_.:-' for c in key), 'Invalid semantic block key')
         require(type(shard) is int and 0 <= shard < 8, 'Invalid shard')
-        require(type(size) is int and 0 < size <= MAX_BYTES, 'Invalid block size')
+        # A C128 cache before its first compressed token has a legitimate
+        # zero-length live prefix. Retain its exact ABI descriptor and digest.
+        require(type(size) is int and 0 <= size <= MAX_BYTES, 'Invalid block size')
         require(valid_sha(block['layout_SHA256']), 'Invalid local Native layout identity')
         require((shard, key) not in seen, 'Duplicate semantic block')
         seen.add((shard, key)); total += size
-    require(total <= MAX_BYTES, 'Transfer exceeds hard bound')
+    require(0 < total <= MAX_BYTES, 'Empty transfer or transfer exceeds hard bound')
     # Empty ranks must be explicitly represented by their Native state metadata.
     require({shard for shard, key in seen} == set(range(8)), 'Missing TP shard')
     return total
