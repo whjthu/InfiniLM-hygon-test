@@ -1,7 +1,7 @@
 {
   "task": "GLM-V-on-demand-Model-r404",
   "owner": "bw1000 Kimi reused operator agent",
-  "state": "SOURCE_READY_CPU_NOT_STARTED_GPU_NOT_GO",
+  "state": "CPU809_FAIL_KNOWN_RECORDING_LEAF_REPAIR_READY",
   "source": "code/bw1000/GLM-V-on-demand-Model-r404",
   "source_manifest_SHA256": "a3de385519b8e5ce238d08dcd2ae2ad153c8ac5d42fbeb925164bbb36c408477",
   "owner_manifest_SHA256": "c57fcf4929391d0bde21e1cdf176c6da65787cd48230c2973c36814f4d5fe3fa",
@@ -114,5 +114,44 @@
     ],
     "membership_KFD_port_must_be_fresh_again_before_any_future_launch": true
   },
-  "next": "Ordinarypublish exactsource/CPUclaim then unique4c8GiB300CPU. Root consumes source/actualreceipt/peak unknown before any separately activated16cardModel GO; no auto load."
+  "next": "Ordinarypublish exactsource/CPUclaim then unique4c8GiB300CPU. Root consumes source/actualreceipt/peak unknown before any separately activated16cardModel GO; no auto load.",
+  "CPU809": {
+    "actual_CPU": "910407.809",
+    "terminal": "FAILED1/15s",
+    "receipt_path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/GLM-V-on-demand-Model-r404-CPU/CPU-result.json",
+    "receipt_SHA256": "c7c2a91f2f17814317593a03e3c5fdbf4422a4efd67b08ef1551381c7c584e27",
+    "original_observation": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\GLM404-CPU-first-observed.json",
+    "observation_SHA256": "54fb33a44487cd330555ab4cc37f50e2344df11648bb1ab8e8fba1160395d2ce",
+    "CPU_elapsed_s": 13.663916593883187,
+    "primary": "AssertionError('AssertionError()')",
+    "child_traceback": "Traceback (most recent call last):\n  File \"/refactor/incoming/GLM-V-on-demand-Model-r404/CPU_whole_glue.py\", line 49, in <module>\n    result['actual_samectx_changed_entry']=changed_entry(torch)\n  File \"/refactor/incoming/GLM-V-on-demand-Model-r404/check_entry_CPU.py\", line 76, in run\n    if phase=='normal':assert calls['load']==calls['finish']==1 and state['normal']and events.index('actual_snapshot_read')<events.index('WORLD_admission')<events.index('load')<events.index('finish')<events.index('request_same_ctx')<events.index('destroy')\nAssertionError\n",
+    "Native_dlopen": false,
+    "GPU": 0,
+    "Model": 0,
+    "original_phase_primary_saved": false,
+    "original_phase_events_saved": false,
+    "source_defect": "Actual guard AST asks torch.tensor(device=cuda) before existing tensor->CPU recording adapter. Original caught RuntimeError was not preserved; exact originalprimary remains UNKNOWN. v2 reproduces guarded old leaf and persists allphase fields before assertions.",
+    "production_source_changed": false,
+    "replay": false
+  },
+  "CPU_v2": {
+    "source": "code/bw1000/GLM-V-on-demand-Model-r404/cpu-v2",
+    "manifest_SHA256": "7f7acb7038e892265c602086d8c120b70c230935a2733b0b128d2d49a3dc89f8",
+    "claim": {
+      "parent": 910407,
+      "node": "a14r2n20",
+      "cores": 4,
+      "mem_MiB": 8192,
+      "total_s": 300,
+      "inside_s": 270,
+      "attempts": 1,
+      "GPU": 0,
+      "Model": 0,
+      "Native_dlopen": false,
+      "weights": false,
+      "compile": false
+    },
+    "execution": "NOT_STARTED",
+    "production_owner_unchanged": true
+  }
 }
