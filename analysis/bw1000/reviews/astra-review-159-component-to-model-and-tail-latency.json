@@ -1,0 +1,138 @@
+{
+  "review": 159,
+  "date_Asia_Shanghai": "2026-11-02",
+  "reviewer": "/root/astra_review_147",
+  "state": "COMPLETE_EXISTING_MODEL_AND_COMPONENT_CARDS_RETAINED",
+  "scope": "复用158、已保存终态与有限源码读取，仅写本报告；不Git/status/stage、不执行测试或GPU/Slurm、不改在途源、不新增框架或无关门禁。",
+  "rounds_since158": {
+    "completed": ["Deep358/1277独立进程完整HC组件", "Deep363/1283共享进程八owner完整HC组件", "Kimi362b/662真实draft内存压力因果验证"],
+    "count": 3,
+    "interpretation": "362b计有区分力的内存因果实验，不计模型性能收益；八owner/40个ABBA组各合为本轮，不能拆轮。",
+    "not_completed": ["GLM361原667/668/1286/1287+716", "Kimi364/365 run-d550/719", "Deep359环境/编译", "Deep366尚待具体源/CPU/claim"],
+    "next": "159后从完成的下一真实因果实验重新累计，工程编译/失败/轮询不充性能轮。"
+  },
+  "review158_followthrough": {
+    "source": "analysis/bw1000/reviews/astra-review-158-implementation.json",
+    "affinity": "358已采用真实Model r2392 header、两DSO actualapply_once、实际allowedmask/最终互斥合同，CPU700/701/1275/702后1277通过；原1269与CPU699失败保留。原误用Common submit不能继承actual affinity资格。",
+    "GLM": "349与355 root独立源码/wire/owner/timeline审核已经完成；355在158的root-audit-pending状态已解除。361随后用独立source/CPU707/claim启动，未修改355。",
+    "Kimi": "原544在draft653内存floor失败后取消；保留两AR和首次实际5tap capture，0seal/query/acceptance。先做362b单draft压力验证，再独立364/365新claim run-d，不能把原544继续写RUNNING。",
+    "359": "root接手独立继续。CPU714 C++/HIP/link已成功，失败点为ldd搜索环境缺5库；现env-check-v3明确复用原objects/DSO、CPU700完整LD环境，不重编。尚无Runtimeadapter/GPU资格。"
+  },
+  "question1_real_Model_and_other_results": {
+    "retained_Model_gains": {
+      "GLM349": "root已审：9741新write HTTP-27.309%、prefill-29.384%；8900旧锚点HTTP-17.218%是复现，479短control持平。18请求质量、32normal/post通过；无decode/>15/clientSLO或广泛benchmark资格。",
+      "GLM355": "root已独审固定两请求C2/M1：同trialmax32完整pair476.53835→442.81147秒，rate+7.6165%、latency-7.0775%，OFF漂移0.7368%；12HTTP gold与32normal/post。short最大ITL仍255至256秒，约0.689tok/s，long约4.175tok/s，无>15/online资格。",
+      "Deep1257": "原固定8K候选prefill约-13.9%、bufferedHTTP约-9.5%，decode约+3%变慢；本审核不新增其范围。",
+      "new_Model_gain_since158": "尚无完成且可新申报的Model增益；以下358/363/362b均为组件或工程因果证据。"
+    },
+    "Deep3581277": {
+      "evidence": "results/bw1000/2026-11-02/Deep358-1277-decision-cost-and-coverage.json",
+      "result": "八独立进程，四真实HC参数组x2合成BF16残差seed，每owner2warm+5ABBA，共40组；完整HC CAPI pooled ON/OFF0.69851至0.72387，全部40组同方向且改善超对应OFF漂移。首次大漂移outlier已保留，不删点。",
+      "numeric_lifecycle": "最大NRMSE1.79196e-5；poison/finite/weight/input/tail/hit通过，8个Runtime正常destroy，1278/1279KFD空与无组件进程。",
+      "scope": "实际afc6 baseline与private候选，真实小参数、合成残差；没有Model激活、全86组参数或共享process Model状态资格。"
+    },
+    "Deep3631283": {
+      "evidence": "results/bw1000/2026-11-02/Deep363-1283-decision-cost-and-future-coverage.json",
+      "context": "同一process八实际Runtime owner threads，真实8个互斥4CPU masks，同trialmax8对齐；40owner组/5max8 ABBA，数值与正常thread join/Runtime释放通过。",
+      "CAPI": "928.417→719.036微秒/调用，ON/OFF0.77448，降低22.552%；5/5稳定超OFF漂移。",
+      "CPP": "完整C++组件664.718→439.211微秒/调用，ON/OFF0.66075，降低33.925%；5/5稳定超OFF漂移。",
+      "checked_harness": "whole checked-phase7816.629→7780.854微秒/调用，ON/OFF0.995423，仅降低0.458%；5组均同方向但2组不超过OFF漂移，整检查循环稳定收益未成立。必须同时保留CAPI/CPP与harness口径。",
+      "decision": "组件收益经共享process覆盖仍成立，足够保留候选做一次最短真实Model条件验证。harness没有稳定收益不等于证明Model无收益；组件收益也不等于Model有收益。停止重复同一harness网格，不用200微秒x层数或353 inclusive spans外推。"
+    },
+    "Kimi362b662": {
+      "evidence": "results/bw1000/2026-11-02/Kimi362b-GPU662-memory-pressure-PASS-clean.json",
+      "actual": "单真实draft checkpoint，87个BF16 tensors按严格loader加载；32760合成periodic feature rows、69协议命令（64append、一次query等），normalclose和独立post clean。无target卡。",
+      "cause": "第54次append fence前driverfree3.409GB低于原4GiB；一次empty_cache回收49,849,303,040字节inactive reserved cache，allocated14,609,187,328字节不变，free升至53,258,223,616字节，原floor通过。没有降低guard或重试append/query。",
+      "limits": "证明此合成几何的allocator压力处理与协议/正常清理；不是原653真实targetfeature回放，不证明外借head数值兼容、训练接受率或spec/Model增益。"
+    },
+    "GLM361_inflight": {
+      "evidence": "results/bw1000/2026-11-02/GLM361-r1-observed-06.json",
+      "observed": "已保存3/6pair，正式OFF完整schedule约442.445秒；正式ABBA尚不完整，不能计算新稳定gain。",
+      "warm_tradeoff": "warm OFF short maxITL253.598秒、P99 0.380秒；ON真实5次组间推进，maxITL60.065秒但P99 56.217秒。一次极长停顿被拆成多段长停顿，不能只报最大值改善为全面尾延迟改善。warm first-to-last速度仅约0.693→0.701tok/s，尚无严格>15。",
+      "judgment": "等待原正式ABBA和正常退出；不在途改W4或频率，不用warm差异晋级。余下decode阶段已排除此前提前生成token，不能把该短窗口速度当完整请求收益。"
+    }
+  },
+  "question2_time_cost": {
+    "358": "GPU allocation46秒/keeper51秒；每rank准备资格约37至38秒，测量loop约0.92至0.94秒，CAPI累计约0.36秒。CPU编译15秒、actual affinity合同3秒。640测量call/owner未加载target模型。",
+    "363": "GPU52秒/keeper57秒；parent准备31.17秒、threadbatch14.16秒、全driver45.33秒；同phase测量约4.99秒。CAPI与checkedloop不同，不相加或当GPUbusy。",
+    "362b": "GPU60秒/keeper73秒；严格draft加载12.12秒、driver57.38秒；64append RPC总5.02秒、一次query0.614秒、trim约0.00114秒，只有本run成本，不是性能加速率。",
+    "359": "CPU714仅13秒构建/链接后ldd失败；复用其准确DSO与成功CPU700依赖搜索环境检查，是当前最短修复。重新编译不会修搜索路径，禁止以缺库报文推测数学失败。",
+    "model_runs": "361和run-d550均已真实在途，按原句柄消费，不重复target/draft/keeper。已知355上一完整驻留约57分钟，Kimi以往加载约25至31分钟；本轮剩余时间未知，不用旧均值承诺结束时间。",
+    "parallelism": "多机器并行保持；不能拿一次136卡利用率快照当整轮平均、有效计算或连续繁忙。CPU准备/加载/测量/质量等待/清理继续分列，不让所有分支等一份审核。"
+  },
+  "question3_bottleneck_and_uncertainty": {
+    "Deep": "358/363直接证明特定完整HC组件受候选影响；sharedprocess CAPI变大并不证明某锁/GIL/CPU缓存是原因。checkedharness大量校验开销使总时长改善小，也不能将其直接当Model调用占比。真实Model HC约1.16ms与组件仍有上下文差异，366才可测实际状态/激活/重叠。",
+    "prior360": "固定其余跨度条件下完美消除HC的1.292至1.369因子继续仅作条件分析；不是物理或Model全局上限。F32GEMV冷操作数约0.48FLOP/B与23高级op不提供实测带宽/23kernel/Model预测。",
+    "GLM": "355/361直接证明short在long prefill期间等待；组间只推进5token可改变等待分布，却没有改善到交互SLO。必须联合max/P95/P99、完整first-last、TTFT、pairwall与全部32卡吞吐，而不是挑一个百分位。",
+    "Kimi": "362b显示inactive allocator reserve是这次低driverfree的可回收部分；activeallocation没变且floor没降。它不能证明真实spec激活或接受率，run-d需真实target→draft完整闭环。"
+  },
+  "next_cards_max_two_per_model": [
+    {
+      "model": "Deep", "priority": 1, "card": "366已派发的最短真实Model HC条件验证",
+      "hypothesis": "同afc6整模型中T1 HC候选命中全部实际参数/激活后能降低完整decode/HTTP，且不损害任务正确性和正常生命周期。",
+      "minimum_change": "私有Native仅替换原HC pre TU并连接同kernel，默认OFF且仅T1；T>1prefill、原norm/F32GEMM/Sinkhorn/HCpost/precision/layout/topology不改，使用原权重不复制adapter权重。",
+      "owner_resources": "Deep原agent；既定TP8/PP1 C1原Model8卡节点，一次新source/CPU/claim后6请求；本报告不启动或扩量。",
+      "reuse": "CPU700与1277/1283当前组件、afc6原对象图、348r2真实loader/identity/client/normal8owner失败清理胶水。",
+      "necessary_CPU": "闭合实际新hook/defaultOFF/T1hit与原baseline路径、fresh依赖/链接loader；现有独立oracle覆盖43层x2实际HC小参数及状态，不加载整target。真实worker产出身份→client消费与原入口字段复用，避免再造fixture。",
+      "quality_and_samples": "同8489输入、chunk1024、128输出/context32768，2warm+1ABBA共6真实HTTP/Native；任务gold/完整EOS、actualhit、所有owner状态与正常退出，分别报告prefill/backendTTFT/decode/bufferedHTTP和OFF漂移。",
+      "Model_wall_effect": "UNKNOWN；不能以组件22.55%或33.93%直接预测Model。",
+      "first_decision_ETA": "源/CPU实现准备UNKNOWN；具备后沿用此前Deep约6分钟加载、约20至22分钟六请求驻留作量级参考，实际耗时单独记。",
+      "exit_upgrade": "入口/数值不符停同句柄；有效Model差异未超漂移则封存不追加68/103请求重跑。质量/正常退出与稳定Model收益齐备才窄范围采纳。",
+      "fallback": "保留组件结论与原1257收益；不重复共享process/harness或HC微参数网格。"
+    },
+    {
+      "model": "Deep", "priority": 2, "card": "359既有分页gather-score全组件闭合",
+      "hypothesis": "不改压缩/TPsum/TopK512/prepare-commit语义，私有分页gather与score/query一次解码降低完整当前C4成本。",
+      "minimum_change": "先消费已提交env-check-v3原DSO环境结果，复用CPU714对象与CPU700完整LD_LIBRARY_PATH，不重编；再完成既定Runtime adapter/whole-entry。",
+      "owner_resources": "root；CPU910407当前4CPU/8GiB<=180秒环境检查，后续原parent910371/a02r3n16最多8卡<=600秒组件scope，GPU_GO仍false直到具体闭合。",
+      "reuse": "exact7f2ffe r9252、Hygon score源、CPU714 privateDSO SHA5612ab74、原afc6 baseline class、已通过独立FP8/reference。",
+      "quality_and_samples": "在相同环境同时解析private与原Native依赖；env检查不dlopen。随后真实whole prepare/commit、pendingkey、cache revision/nextstep、score/TopK tie与hit、2warm+5ABBA及正常8owner/post。仅ldd成功不能当Runtime或数值资格。",
+      "Model_wall_effect": "UNKNOWN；primitive与完整组件分开，不乘层数。",
+      "first_decision_ETA": "现环境原检查上限3分钟；adapter准备UNKNOWN，就绪后原组件上限10分钟。",
+      "exit_upgrade": "缺库未解只修准确搜索环境，不反复构建；baseline/状态错误停；完整组件无稳定收益封存，不启新cache网格。",
+      "fallback": "366独立继续，不相互等待。"
+    },
+    {
+      "model": "GLM", "priority": 1, "card": "完成原361六pair并联合判定等待分布",
+      "hypothesis": "固定decode-defer ON，W4组间short推进能改善可用响应体验，同时不牺牲完整pair成本。",
+      "minimum_change": "无在途修改；只消费原667/668/1286/1287+716，不能在正式ABBA中途改W4、频率或排序。",
+      "owner_resources": "原GLM agent/root、原四stage32卡，原controller继续；审核不占该作业执行槽。",
+      "reuse": "355 root独审、361 CPU707/原claim、已完成3pair；不新加载基线。",
+      "quality_and_samples": "剩余原ABBA完成后同trialmax32、全部12HTTP gold、完整rowtoken/EOS/正常32destroy/post；逐用户first-last、TTFT、ITL max/P95/P99、等待次数和完整32卡吞吐同表报告。",
+      "Model_wall_effect": "UNKNOWN；warm max60秒与P99约56秒表明有tradeoff，不构成全面改善。",
+      "first_decision_ETA": "3/6pair已完成，剩余约3个7至8分钟pair是先验量级，实际状态与质量等待另计；不把此估算当承诺。",
+      "exit_upgrade": "正式质量或生命周期失败停；若仅把一段超长停顿拆成多段长停顿且P99/first-last目标仍失败，只记录窄范围max改善，不晋级online/SLO。先消费全部正式证据再决定是否有第二卡，目前不预造新调度猜测。",
+      "fallback": "保留349长prefill与355defer窄范围，341/重复descriptor缓存STOP。"
+    },
+    {
+      "model": "Kimi", "priority": 1, "card": "跟踪364/365原run-d550/719",
+      "hypothesis": "在真实targetfeature下，362b一次条件trim能保持原4GiBfloor并完成原spec质量、关闭与配对。",
+      "minimum_change": "无在途修改/重复target/draft；仅跟原run-d，trim最多原允许次数，不降低floor、不重试append/query、不重置截止。",
+      "owner_resources": "root；原target parent91038032卡加延后parent910371/a02r3n15独立draft1、CPU719；299402f5发布范围。",
+      "reuse": "356lease/351account修复、362b真实loader/内存压力/normalclose、364/365 CPU717/718、原四请求。",
+      "quality_and_samples": "原8635/32638两AR两spec、128输出，实际5tapfeature、真实proposal/acceptance/任务gold/EOS、正常32+1close/destroy/post；不可借合成662推接受率，不拼旧AR为新配对。",
+      "Model_wall_effect": "UNKNOWN；内存修复只避免因inactive reserve触发floor，不保证spec加速。",
+      "first_decision_ETA": "root观察仍加载、draft未起；到真实spec/终态剩余UNKNOWN。只按原deadline跟踪，不因等待全体停工。",
+      "exit_upgrade": "真实floor/数值/协议未知错误停同句柄诊断；完成后按实际成本/接受率与质量决定，不新增无变化重载。",
+      "fallback": "本轮无第二Kimi猜测卡，635 Delta继续PARK。"
+    }
+  ],
+  "root_adoption_actions": [
+    "采纳366最短真实Model条件验证，复用已通过组件和loader胶水；停止重复HC组件/harness网格。",
+    "继续359同原DSO环境检查与adapter，不以ldd失败重编或夸大CPU资格；其与366独立推进。",
+    "GLM361正式ABBA尚未齐，不晋级warm，不改在途；必须同时展示max改善/P99恶化与first-last。",
+    "Kimi保留一次条件trim工程结论和原floor；跟run-d不重提，synthetic不冒充接受率。",
+    "根独审349/355已完成，更新158中pending为已落实；本159不把其再计新轮。审核结束释放槽，维持最多一个周期审核。"
+  ],
+  "evidence_links": [
+    "analysis/bw1000/reviews/astra-review-158-implementation.json",
+    "results/bw1000/2026-11-02/Deep358-1277-decision-cost-and-coverage.json",
+    "results/bw1000/2026-11-02/Deep363-1283-decision-cost-and-future-coverage.json",
+    "results/bw1000/2026-11-02/Kimi362b-GPU662-memory-pressure-PASS-clean.json",
+    "results/bw1000/2026-11-02/GLM355-root-audited-C2-deferred-decode-scoped-PASS-clean.json",
+    "results/bw1000/2026-11-02/GLM361-r1-observed-06.json",
+    "results/bw1000/2026-11-02/Kimi364365-run-d-actual550719-start.json",
+    "results/bw1000/2026-11-02/Deep359-env-check-v3-claim.json"
+  ],
+  "final_limit": "所有在途状态只是所读回执或root报告时点。366源/CPU/claim尚未在本次提供，认可现有最短路径不代表实现/GPU/Model通过；尚无严格15tok/s或客户端增量SLO达成。"
+}
