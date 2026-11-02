@@ -1,0 +1,90 @@
+{
+  "review": 164,
+  "reviewer": "/root/astra_review_147",
+  "date": "2026-11-02",
+  "state": "COMPLETE_PRESERVE_NEGATIVE_MEASUREMENTS_RUN_FAIL_PARK_CURRENT_PD_CPU_REPAIR_ONLY",
+  "trigger": "163后PD382一轮实际因果实验：完整12formal容量显著负收益，并在全部请求后出现可避免stopped消息大小工程失败，提前审核。",
+  "round_count_since163": 1,
+  "scope": "只读最新AGENTS、163实施、root sealed audit及reader、原bootstrap和当前private shutdown-repair-r1；仅写本报告，不执行reader/测试/GPU/Git，不改实现文件。root落实后按本次提前审核重置周期。",
+  "decision": "保留全部15请求/12formal的已审测量与质量事实；原run最终仍FAIL/final_scope_qualified=false。暂停当前C1单P8单D8普通host迁移路线，不为修复收尾消息重载或重跑原scope。只完成最小CPU shutdown回归。",
+  "evidence": {
+    "root_audit": "L/Deep382-PD-root-final-audit.json；正式仓库结果results/bw1000/2026-11-02/Deep382-PD836-root-audited15-comparison-negative-clean.json",
+    "sealed": "L/Deep382-PD-terminal-sealed-original.json + L/Deep382-PD836-sealed",
+    "sealed_snapshot_SHA256": "a1f05ec4d49c0b4c8c8da9751b037cf92db6d8390cbfe48d440534e269cabd4a",
+    "reader": "tools/audit_pd382.py",
+    "reviewed_reader_scope": "已读实际reader检查：sealed原文件长度/SHA、冻结15顺序/source/DSO、gold重解析、token序列与单client clock重算、7次全部2184block摘要、D0prompt和两组管线。root已实际执行；本审核未另运行。",
+    "observed_large_role_files_bytes": {"P":1240096,"D":1237342},
+    "original_handles": {"GPU":"910376.836 CANCELLED by0/0:9/38m33s","CPU_keeper":"910407.771 FAILED1:0/39m32s","post":"910376.837 COMPLETED0/58s"}
+  },
+  "review163_followthrough": {
+    "actual_result": "已实现真实Native完整state迁移，一驻留两模型完成冻结15请求；没有D重算prompt、没有增加独立GPU ABI卡/重复网络卡/8576额外请求。用户要求的首个PD性能结果已经实际取得，结果为当前方案负收益。",
+    "schema_seam": "163指出的build.compiled接缝与Native弱符号/ABI parser问题经私有版本收束，实际同新DSO完成create/load/export/import/decode；不能把765..768工程失败抹去，也不再因其历史存在重复资格。",
+    "stops": "379 standalone PARK、380 STOP、376cat STOP及fixedbuffer暂缓保持，无新增旁路实验填卡。",
+    "blind_spot": "前置CPU整入口覆盖了调用/管线/故障，却没有覆盖真实role report累积至约1.2MB后的最后stopped序列化；大报告重复装进有界控制header的尺寸增长属于可避免工程缺口。修复应直接覆盖真实末端大小，不扩成新测试框架。"
+  },
+  "question1_retained_performance_and_quality": {
+    "measurement_validity": "15/15任务正确自然EOS，全部98generated/97visible，full15_measurement_and_quality_pass=true；3warm排除，12formal和10groups/22stage完成。7次每次8shard/2184block/372424784B实际handoff，D预填prompt tokens/calls均0，续算跨原8576边界。原sealed source未变。",
+    "why_retained": "失败点在scheduler已结束全部groups、角色已退出stage loop并完成owner destroy之后发送stopped报告，位于正式token时间线与group结束时间之外。root可从完整partial client及独立role reports重建全部样本，不存在未完成正式请求被删去的选择性分母。工程FAIL不能把真实负结果变成UNKNOWN或要求无变化重跑。",
+    "formal_latency": {"co_mean_group_s":143.8116628259886,"PD_mean_group_s":145.83085082587786,"wall_ratio":1.0140405024196992,"wall_increase_percent":1.40405024196992,"all16card_output_ratio":0.9861539037285041},
+    "formal_capacity": {"co_two_request_mean_group_s":145.09789666393772,"PD_two_request_mean_group_s":259.65686042560264,"wall_ratio":1.789528769166074,"wall_increase_percent":78.9528769166074,"all16card_output_ratio":0.5588063278055057,"all16card_output_drop_percent":44.11936721944943},
+    "drift_and_pairs": "latency两对PD/co wall为1.01699/1.01111；capacity两对1.78775/1.79132。同一固定负载一次ABBA，足以停止当前明显负收益实现，不外推广泛置信区间。co latency端点约0.72%、capacity约-0.23%；capacity损失远大于该轮端点差。",
+    "private_client": "正式PD maxITL实际6.426–7.323s，C1两次约6.78s；必须包含P首token到D下一token间隔，不能只报D内部约31s decode。capacity第二请求入队等待114.109/114.674s，TTFT约222s，均保留。所有正式用户严格>15为0；token-ID client不是public HTTP/SSE文字SLO。",
+    "scope": "固定历史完整8489工具prompt、output128/ctx32768、同新DSO/HC0、C1及两请求静态cohort。该题质量通过不是广泛benchmark；此次没有Model性能提升。co capacity是同16卡两个独立副本，分母包含PD闲置角色，比较资源口径正确。"
+  },
+  "final_failure_boundary": {
+    "must_remain_fail": "原GPU836被取消0:9、srun137，keeper771 FAILED1；original_client_completed=false，双方ValueError Header exceeds bound，随后控制socket EOF。final_scope_qualified=false及完整协议/进程退出FAIL必须保留，不能用CPU修复、已算完请求或清理成功回写历史PASS。",
+    "cleanup_fact": "独立证据支持all16_actual_owners_destroyed=true、normal stage loop和control socket关闭；post837两node PID/KFD空、最终ports可bind。初次port false是已记录TIME_WAIT，约57.5s被动释放后clean，不是遗留listener或继续占GPU。",
+    "field_interpretation": "reader的final_normal16owner_and_post_clean=false是同时要求原Slurm/srun/keeper全部0的组合资格，并不推翻单独的16owner destroy与postclean事实。对外分列measurement complete/quality、owner/resource cleanup、run terminal三个结果，勿把这个组合字段念作清理失败。",
+    "retained_cost": "group指标结束在各group协议收束点，不能将其当整个run正常服务可用率；38m33s全16卡驻留37008卡秒仍含load/warm/idle/收尾失败。失败处理和清理不能从完整实验成本中删除。",
+    "recommended_statement": "首次PD完成15个正确EOS请求与全部正式测量；当前16卡两请求吞吐较co两副本下降44.12%，收尾控制消息超限导致原作业最终失败；16个Native owner已正常销毁并独立确认资源清理。"
+  },
+  "question2_time_cost": {
+    "load": "P参数load527.401s、D520.998s并行，不能相加当关键路径。GPU驻留2313s、keeper2372s，post58s分别保留，不称GPU实际busy时间。",
+    "outcome": "从长期准备转为真实一次驻留得到了可判定负结果；现在再付约9分钟双模型load或38分钟整轮，仅为了绿色shutdown状态没有性能价值。",
+    "minimal_next_duration": "shutdown修复是CPU文件/真实socket/control消息边界，预期准备后秒至分钟级回归；具体实际耗时由原执行者回执记录。超过小范围修复时先指出一个确定接缝，不再堆报告/资格或追加GPU。"
+  },
+  "question3_bottleneck_and_stop_loss": {
+    "observed": "P prefill约107–108s；D import后decode约31.0–31.3s；snapshot约2.42–2.55s，源connect/export/ACK约3.39–4.19s。源与目标RPC enclosure重叠，不能相加。实际P2确在D1未结束时dispatch，证明管线有发生，但GPU busy overlap比例未知。",
+    "local_decode_observation_retained": "root正式结果补充分阶段现象：formal C1 Native decode co中位36.5352s、importedD31.0978s，约14.9%局部时长下降；capacity co中位36.6894s、PD31.2025s。但C1 private client含handoff的decode rate中位2.65017→2.57509tok/s反而下降。该局部差异真实保留，尚无kernel/拓扑/导入state布局因果归因，不能叫整PD加速、HC收益或直接晋级。只解释已有轨迹；将来其他必要驻留才可固定硬件/起始状态/调用顺序作区分，不立即新增GPU或微基准。",
+    "critical_imbalance": "当前唯一P串行预填两个请求，第二请求约114s等待，而两个co副本可并行预填。即使D局部decode较co快，也不足抵消该队列和迁移。负结果不应描述成管线未运行。",
+    "conditional_bound": "固定当前阶段时长/拓扑，仅把所有迁移成本理想归零，两个PD请求完成仍约2×107+31=245s，远高于实测co双副本约145s；这是阶段固定的条件估算，不是所有PD设计的物理下界。因而仅缩减约6–7s handoff gap、改TCP为RDMA，不能合理承诺扭转当前44%容量损失。",
+    "unknown": "372MB/约3.4s不是独立NIC链路带宽：enclosure包含host拷贝、checksum、Python/ctypes、H2D/fence/ACK。没有deviceDirect/RDMA、显式pinned传输或物理400G带宽测量；不从此判网卡慢，也不从原4×400G规格推可获收益。",
+    "park": "当前C1单P8/单D8普通host staged路线PARK。后续若要不同P能力/批次/比例，应先用已有107/31阶段数据明确它改变哪个限制、同16卡公平基线和首结果成本；现在不自动安排比例/grid或额外PD请求。"
+  },
+  "shutdown_repair_readonly_feedback": {
+    "source_scope": "当前execution/shutdown-repair-r1/{bootstrap.py,controller.py,shutdown_report.py}尚在原执行者完善；本审核未执行测试，不能称CPU修复PASS。",
+    "direction": "小stopped frame只带固定摘要及独立immutable post-destroy大报告path/bytes/SHA是最小正确方向；不增大1MiB控制header、不裁掉stage/错误证据。该snapshot在后续finally修改主role文件前独立固定，避免发送的SHA被下一次save改变。",
+    "specific_remaining_edge": "当前consume直接path.read_bytes，跨节点NFS新文件可能短暂不可见；publish宜先完成私有写入再原子发布，consumer仅在原cleanup绝对deadline内对尚未可见作有界被动读取。已可见的SHA/大小/身份不一致立即失败，不能无限重试或改成新执行。该建议已通知root，不要求新增GPU验证。",
+    "minimal_CPU_regression": [
+      "真实>1MiB role payload经publish→原send_json/recv_json→consume→controller双方stopped完成，控制frame仍小于原界且大文件完整SHA一致；不能只测summary函数。",
+      "至少一条大报告损坏/identity或hash不符负例使controller失败，保留完整partial和原planned分母；文件未可见的有界场景只验证读取等待，不重发stage。",
+      "post-destroy快照只证明destroy/stage loop；最终control close/进程退出仍使用原角色finally和外层终态，不让CPU recording叶子自称actual Native。"
+    ],
+    "no_new_gate": "复用原socket/生命周期测试叶子与现有scope，补这一个真实尺寸接缝即可；不为报告修复新增模型质量、Native ABI GPU或第二套框架。"
+  },
+  "next_cards_by_model": {
+    "Deep": [
+      {
+        "priority": 1,
+        "name": "382 private shutdown report CPU修复收束",
+        "hypothesis": "将完整role报告移出有界控制header后，真实大报告可被原controller完整消费并正常收尾。",
+        "owner_resource": "原Kimi执行者负责private shutdown-repair-r1；CPU-only、0新GPU/0Model load，root消费实际回执。",
+        "minimum_change": "只改停止消息/immutable引用/原deadline内读取；旧836源与错误证据不动，原PD数学/Native/计时/样本不变。",
+        "checks": "上述>1MiB真实生产者到消费者正例与损坏负例，原deadline/close保持。CPU身份明确，不伪造16actual owner证明。",
+        "first_result_time": "实现后秒至分钟级CPU判断，实际以回执计；没有性能改善预测。",
+        "exit": "通过则保存工程修复，仍PARK当前PD，不为关闭旧FAIL重播836。若失败，仅修明确接缝；不扩控制header或加载GPU。"
+      }
+    ],
+    "Kimi": [],
+    "GLM": [],
+    "reason_no_second_card": "当前结果已足够止损；没有新机制/成本证据支持另一性能卡，不为填机器凑卡。不同资源比例/批次只列未来条件，不自动创建实验。"
+  },
+  "root_adoption_items": [
+    "公开保留全部formal负结果与15质量PASS，同时原run terminal FAIL、16owner/postclean分别表述。",
+    "PARK当前C1单P单D host路线，不重载836或为shutdown成功重复15请求。",
+    "原执行者只做真实>1MiB停止消息CPU回归，收束可见性/immutable SHA边界；CPU完成不回写原GPU结果。",
+    "将本次PD算163后一轮真实因果实验，严重退化和工程故障触发164提前审核；落实后计数归0。"
+  ],
+  "review_new_jobs": 0,
+  "review_new_GPU": 0
+}
