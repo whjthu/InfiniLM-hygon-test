@@ -1,7 +1,7 @@
 {
   "task": "Kimi-C1-Delta-projection-fusion-r405",
   "owner": "/root/glm_operator_tuning",
-  "phase": "CPU_V2_SOURCE_READY_AFTER_KNOWN_DUPLICATE_SCOPE_HEADER",
+  "phase": "CPU810_PASS_FINAL_GPU_SOURCE_READY",
   "source_directory": "code/bw1000/Kimi-C1-Delta-projection-fusion-r405/cpu-v2",
   "source_manifest_SHA256": "eb4545050db294fde5ef3d10479ee6911c13100f4206f376f12409b3c5093034",
   "mechanism": "pack qkv2304/f_a128/beta6/g768 rows once; four current NoneQuantization BF16 linears to one; complete Delta component",
@@ -41,7 +41,7 @@
     "HTTP": 0,
     "GPU_GO": false
   },
-  "GPU_GO": false,
+  "GPU_GO": true,
   "Model_GO": false,
   "hardware_scope": "CPU noGPU/Native_dlopen; future real TP16 same original communicator, not Model",
   "quality": "finite/readonly/canary/source-state rows and output/conv/SSM NRMS/maxabs, original QUALITY allows reasonable rounding; no GPU F64/bitexact rejection",
@@ -51,5 +51,46 @@
     "passed": false,
     "receipt_SHA256": "5755f388bf1e3622e4a9957a8ed0fd60b759a73ba66003623885d92d91db11d9",
     "failure_path": "results/bw1000/2026-11-03/Kimi405-CPU808-duplicate-Scope-compile-FAIL.json"
+  },
+  "actual_CPU": "910407.810",
+  "CPU_receipt_SHA256": "8393c571691ab5137f44d255e2396686332c51b10291fb92fe4d3c3977a48a95",
+  "library_SHA256": "f4cb17eb0c5976407ea0590332d0af38fbc1ed3ee60a09038b49242ebc5d7ded",
+  "GPU_source_directory": "code/bw1000/Kimi-C1-Delta-projection-fusion-r405/gpu-v1",
+  "GPU_source_manifest_SHA256": "8b21d742ddf9fe712073ed7361ccf6a0b08bdc078048da7ed251403610c1004b",
+  "GPU_claim": {
+    "parent": 910371,
+    "nodes": [
+      "a02r3n03",
+      "a02r3n07"
+    ],
+    "GPUs_per_node": 8,
+    "Runtime_owners": 16,
+    "CPUs_per_owner": 4,
+    "CPUs_per_node": 32,
+    "mem_MiB_per_node": 49152,
+    "GPU_seconds": 600,
+    "shell_seconds": 540,
+    "measurement_seconds": 300,
+    "controller_seconds": 900
+  },
+  "actual_call_plan": {
+    "rounds": 8,
+    "arm_blocks_per_round": 4,
+    "block_order_even": "OFF ON ON OFF",
+    "block_order_odd": "ON OFF OFF ON",
+    "calls_per_block": 10,
+    "warm_calls_per_block": 2,
+    "formal_calls_per_block": 8,
+    "C1_total_per_owner": 320,
+    "C1_warm_per_owner": 64,
+    "C1_formal_per_owner": 256,
+    "baseline_T512_state_initialization_calls_per_owner": 1,
+    "total_Delta_calls_per_owner": 321,
+    "ON_total_per_owner": 160,
+    "OFF_C1_total_per_owner": 160,
+    "formal_four_arm_groups": 8,
+    "formal_points_per_group_per_armblock": 8,
+    "two_inputs": "actual norm rows512 and513 alternating by trial parity",
+    "state_restore": "same original OFF512 state restored before every C1 call, outside measured APIwall and reported separately"
   }
 }

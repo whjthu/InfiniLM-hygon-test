@@ -1,0 +1,63 @@
+{
+  "semantic_id": "Kimi-C1-Delta-projection-fusion-r405",
+  "scope": "single actual current Delta layer0 weights, historical teacher-normalized C1 input, real TP16 component; not Model/HTTP",
+  "baseline": "four existing BF16 input linears complete Delta",
+  "candidate": "one postloaded pack3206x7168 BF16 + original NoneQuantization::forward, canonical C1 views, f_b/o_proj/state/TP unchanged",
+  "precision": "same BF16 operands/output and vendor accumulation path; shape change can alter reduction association, numerical qualification not bitexact",
+  "resources": {
+    "parent": 910371,
+    "nodes": [
+      "a02r3n03",
+      "a02r3n07"
+    ],
+    "GPUs_per_node": 8,
+    "Runtime_owners": 16,
+    "CPUs_per_owner": 4,
+    "CPUs_per_node": 32,
+    "mem_MiB_per_node": 49152,
+    "GPU_seconds": 600,
+    "shell_seconds": 540,
+    "measurement_seconds": 300,
+    "controller_seconds": 900
+  },
+  "schedule": {
+    "rounds": 8,
+    "arm_blocks_per_round": 4,
+    "block_order_even": "OFF ON ON OFF",
+    "block_order_odd": "ON OFF OFF ON",
+    "calls_per_block": 10,
+    "warm_calls_per_block": 2,
+    "formal_calls_per_block": 8,
+    "C1_total_per_owner": 320,
+    "C1_warm_per_owner": 64,
+    "C1_formal_per_owner": 256,
+    "baseline_T512_state_initialization_calls_per_owner": 1,
+    "total_Delta_calls_per_owner": 321,
+    "ON_total_per_owner": 160,
+    "OFF_C1_total_per_owner": 160,
+    "formal_four_arm_groups": 8,
+    "formal_points_per_group_per_armblock": 8,
+    "two_inputs": "actual norm rows512 and513 alternating by trial parity",
+    "state_restore": "same original OFF512 state restored before every C1 call, outside measured APIwall and reported separately"
+  },
+  "firstON": "chosen delta1/fallback0/all4 consumer delta1, original SDK invoke per chosen1 source-bound, GPU kernel count UNKNOWN; persist counters+numerics/canary before failstop",
+  "quality": {
+    "finite": true,
+    "NRMS_max": 0.02,
+    "max_abs_bound": "max(.05,.1*reference_max_abs)",
+    "source_state_rows": "rows0 and1 exactly readonly; compare written row2 conv andSSM",
+    "BF16_output_canary": true,
+    "no_GPU_F64": true
+  },
+  "timing": "full CAPI H2D metadata+full Delta+allreduce+D2H+drain+temporary destructors; state readback/restore/barriers excluded separately; max16owner per same synchronized trial, no sum of microkernels",
+  "setup": "postloadpack45961216B perrank and setupwall logged; pack remains for OFF too; destroywall measured; not a productionmemory fit claim",
+  "negative_families_not_repeated": [
+    "rawKDA",
+    "gatealias",
+    "MoE",
+    "customGEMV"
+  ],
+  "gate": "complete max16owner positive rate gain must exceed same-run OFF endpoint drift and both adjacent comparisons; numeric/state/counter failstop; no automatic Model upgrade",
+  "GPU_GO": true,
+  "Model_GO": false
+}
