@@ -1,0 +1,283 @@
+{
+  "schema": 1,
+  "UTC": "2026-11-02T16:23:17.723337+00:00",
+  "owner": "/root/glm_operator_tuning",
+  "scope": "Bounded read-only CPU/source hardware-work inventory for current Kimi8df/327; no Slurm/GPU/compile/dlopen/Git. Updates r213 geometry accounting without treating its old disabled dispatcher as current.",
+  "decision": "NO_NEW_PERFORMANCE_CANDIDATE_READY_MINIMUM_CURRENT_MODEL_ATTRIBUTION_MISSING",
+  "current_identity": {
+    "qualified_Native_SHA256": "8df87f0741b13c90f658174a793f0068efb4eb8097eddf1d5f44edb4d208e1a2",
+    "capture_Native_SHA256": "4dfdc9a7809b367ef91b476280f12bca6da0c12511eb14dae679147382246505",
+    "same_moe_object_SHA256": "db8e6363b30be629401ef4b17f8eab0fbdcdb6e7f92f3b983c8968418bca15d3",
+    "SDK_SHA256": "6d5a6204f7eef70e84deb9cc737a36c6ae2c1fbc75a0f70645557c8441ed85ca",
+    "config_SHA256": "9710e121a58d03ac92c8d6da287a19541994319afbbe6d6202af001ffd379213",
+    "checkpoint_index_SHA256": "a1c5210650ce71d2d3ae9ec5a101ac4afd3cf4b10091be589853437eb967febd",
+    "binding_basis": "r327 build retains r247 objects except pair_probe/trace; maps retained r201 MoE and r179 Delta. Current389 binding pins both DSOs. Actual391 dladdr/provider/current-config and math counters independently observed; no new binary read in this audit."
+  },
+  "geometry": {
+    "global_H": 7168,
+    "routed_H": 3584,
+    "experts": 896,
+    "topk": 16,
+    "global_expert_I": 3072,
+    "local_expert_I": 192,
+    "shared_global_I": 6144,
+    "shared_local_I": 384,
+    "TP": 16,
+    "Model_PP": 2,
+    "component391_PP": 1,
+    "layers": 93,
+    "no_93x_component_latency_or_throughput_projection": true
+  },
+  "execution_precision": {
+    "C1_T1": "r201 falls through private I192 gate; SDK FusedMoeMxfp4 implementation1. Packed E2M1 nibble + E8M0 U8/group32; BF16 activations, float decode/accumulate. Optional SDK T1 tile flag process selection not established by symbol presence. No native FP4 MMAC or BF16-peak assertion.",
+    "T512": "Owner grouped_prefill qualifier ON calls helper mode2. Current BOUNDED_BF16=0, METADATA_PACK=0, STATIC_DIV=0. Helper dequantizes selected expert W13/W2 to FP32, gathers activation FP32, FP32 grouped GEMMs, SITU/weighted sum then BF16 final output. BF16 helper optin additionally requires I384 and therefore is not legal currentTP16/I192.",
+    "T8": "Current389 OFF/ON only changes privateI192 dispatch; already measured smallverify improvement diluted in fullrequest. Not T1 orT512 evidence.",
+    "dense": "Source ReplicatedLinear and current checkpoint dtype metadata show BF16 router/down/up and shared matrices; actual GEMM ISA/dispatch/achieved throughput not certified here."
+  },
+  "bound_definition": {
+    "FLOPs": "Dense-dot algorithmic work, MAC=2. Excludes unpack/scale/SITU/routerselection/norm/reduction/padding/address/control/attention/cache; not emitted ISA instruction count.",
+    "weight_bytes": "Unique required logical stored addresses for the unchanged standard dense/selected-expert implementation. Cold-once HBM fetch scenario only if no address cached; actual repeated-call HBM lower bound can be0 for resident data, no positive source-only hardwaretraffic bound. Packed/scales values can be reused and cache/transaction amplification UNKNOWN.",
+    "collective": "BF16 tensor payload passed to existing allreduce APIs, not per-link wire bytes. Ring2*(p-1)/p is a conditional algorithm model, not actual SHCA/RCCL selection. No latency bound from API byte count.",
+    "excluded_model_parts": "MoE layer0/dense exception, MLA projection/score/value/cache reads, KDA recurrent+conv+norm state, embedding/logit head, PP transfer/host waits not inventoried as complete Model. No claim this subtotal is total Model work."
+  },
+  "expert_formula": {
+    "elements_per_expert_per_rank": "3*3584*192",
+    "packed_bytes": "elements/2",
+    "U8_scale_bytes": "elements/32",
+    "elements": 2064384,
+    "packed_bytes_value": 1032192,
+    "scale_bytes_value": 64512,
+    "payload_per_expert": 1096704,
+    "useful_FLOPs": "6*T*16*3584*192",
+    "all896_storage_bytes_per_rank": 982646784,
+    "all896_storage_not_C1_read_demand": true
+  },
+  "dense_matrix_inventory": [
+    {
+      "name": "router replicated BF16",
+      "input": 7168,
+      "output": 896,
+      "elements_per_rank": 6422528,
+      "logical_weight_bytes": 12845056,
+      "useful_dot_FLOPs_per_row": 12845056
+    },
+    {
+      "name": "routed_down replicated BF16",
+      "input": 7168,
+      "output": 3584,
+      "elements_per_rank": 25690112,
+      "logical_weight_bytes": 51380224,
+      "useful_dot_FLOPs_per_row": 51380224
+    },
+    {
+      "name": "routed_up replicated BF16",
+      "input": 3584,
+      "output": 7168,
+      "elements_per_rank": 25690112,
+      "logical_weight_bytes": 51380224,
+      "useful_dot_FLOPs_per_row": 51380224
+    },
+    {
+      "name": "shared_gate TP16-local BF16",
+      "input": 7168,
+      "output": 384,
+      "elements_per_rank": 2752512,
+      "logical_weight_bytes": 5505024,
+      "useful_dot_FLOPs_per_row": 5505024
+    },
+    {
+      "name": "shared_up TP16-local BF16",
+      "input": 7168,
+      "output": 384,
+      "elements_per_rank": 2752512,
+      "logical_weight_bytes": 5505024,
+      "useful_dot_FLOPs_per_row": 5505024
+    },
+    {
+      "name": "shared_down TP16-local BF16",
+      "input": 384,
+      "output": 7168,
+      "elements_per_rank": 2752512,
+      "logical_weight_bytes": 5505024,
+      "useful_dot_FLOPs_per_row": 5505024
+    }
+  ],
+  "per_MoE_layer_per_rank": [
+    {
+      "T": 1,
+      "selected_routes": 16,
+      "expert_unique_U_range": [
+        16,
+        16
+      ],
+      "packed_and_scale_unique_address_bytes_range": [
+        17547264,
+        17547264
+      ],
+      "dense_logical_weight_bytes_per_layer_per_rank": 132120576,
+      "dense_plus_expert_address_set_bytes_range": [
+        149667840,
+        149667840
+      ],
+      "routed_useful_dot_FLOPs": 66060288,
+      "dense_useful_dot_FLOPs": 132120576,
+      "MoE_useful_dot_FLOPs_subtotal": 198180864,
+      "allreduce_API_payload_bytes": {
+        "routed": 7168,
+        "shared": 14336,
+        "sum": 21504
+      },
+      "not_measured_HBM_or_network_bytes": true
+    },
+    {
+      "T": 512,
+      "selected_routes": 8192,
+      "expert_unique_U_range": [
+        16,
+        896
+      ],
+      "packed_and_scale_unique_address_bytes_range": [
+        17547264,
+        982646784
+      ],
+      "dense_logical_weight_bytes_per_layer_per_rank": 132120576,
+      "dense_plus_expert_address_set_bytes_range": [
+        149667840,
+        1114767360
+      ],
+      "routed_useful_dot_FLOPs": 33822867456,
+      "dense_useful_dot_FLOPs": 67645734912,
+      "MoE_useful_dot_FLOPs_subtotal": 101468602368,
+      "allreduce_API_payload_bytes": {
+        "routed": 3670016,
+        "shared": 7340032,
+        "sum": 11010048
+      },
+      "not_measured_HBM_or_network_bytes": true
+    }
+  ],
+  "shared_norm_router_bias_excluded_from_dot_subtotal": {
+    "routed_norm_BF16_bytes": 7168,
+    "router_correction_F32_bytes": 3584
+  },
+  "attention_partial_lower_inventory": {
+    "scope": "KDA dense matrices only, source r179 retainedDelta and configlocalheads6x128; all explicit nullptr/unquantized constructors. Not fullattention/MLA inventory.",
+    "matrices": [
+      {
+        "name": "QKV",
+        "input": 7168,
+        "output": 2304
+      },
+      {
+        "name": "f_a",
+        "input": 7168,
+        "output": 128
+      },
+      {
+        "name": "f_b",
+        "input": 128,
+        "output": 768
+      },
+      {
+        "name": "b",
+        "input": 7168,
+        "output": 6
+      },
+      {
+        "name": "g",
+        "input": 7168,
+        "output": 768
+      },
+      {
+        "name": "o",
+        "input": 768,
+        "output": 7168
+      }
+    ],
+    "logical_BF16_matrix_bytes_per_KDA_layer_per_rank": 57167872,
+    "useful_dot_FLOPs": "2*T*sum(input*output)",
+    "useful_dot_FLOPs_T1": 57167872,
+    "useful_dot_FLOPs_T512": 29269950464,
+    "output_allreduce_API_payload_bytes_T1_T512": [
+      14336,
+      7340032
+    ],
+    "KDA_plus_MoE_API_payload_bytes_T1_T512": [
+      35840,
+      18350080
+    ],
+    "recurrent_cache_HBMbytes": "UNKNOWN no source-only positive percall HBM bound"
+  },
+  "T512_actual_helper_work_formula": {
+    "U": "distinct experts selected across512rows; actual Model U UNKNOWN,16<=U<=896",
+    "S": "sum_e 8*ceil(count_e/8); 8192<=S<=8192+7*U for8192routes, tighter value needs actual histogram",
+    "padded_expert_GEMM_FLOPs": "6*S*3584*192 (each planexpert once, paddedrowscount; non-MAC work excluded)",
+    "FP32_decoded_weight_logical_write_bytes": "4*3*3584*192*U = 8257536*U, at least one GEMM logical read of same materialized values; neither is measured HBM",
+    "FP32_contributions_buffer_bytes": 117440512,
+    "route_D2H_bytes": 32768,
+    "metadata_H2D_bytes": "16*S + 4*U; existing7counter field4 records this total",
+    "observed391_geometry": [
+      {
+        "fixture": 0,
+        "actual_component_U": 33,
+        "actual_component_padded_rows": 8192,
+        "padding_ratio": 1.0,
+        "plans": 3,
+        "metadata_H2D_calls": 9,
+        "metadata_H2D_bytes": 131204,
+        "metadata_packed_plan_calls": 0,
+        "same_MoE_math_but_geometry_only": true
+      },
+      {
+        "fixture": 1,
+        "actual_component_U": 33,
+        "actual_component_padded_rows": 8192,
+        "padding_ratio": 1.0,
+        "plans": 3,
+        "metadata_H2D_calls": 9,
+        "metadata_H2D_bytes": 131204,
+        "metadata_packed_plan_calls": 0,
+        "same_MoE_math_but_geometry_only": true
+      }
+    ],
+    "important": "391 bothU33/S8192 contain no routepadding; cannot use their goodT512helper latency to certify Model routeU/S or prescribe newpadding kernel. No decodedweightcache recommendation: coldBF16bank781 and prior MMAC/padding negatives already exist."
+  },
+  "hardware_result_connection": {
+    "389": "FormalOFF complete76.6636s; sequential fourleadermax CAPI sums T51264.6003s(16calls), tail4436.19487s(1call), T8verify2.59087s(8calls). CAPI includes host/PP/collectives/GPU, not MoE-exclusive; no samehost subtraction into pureGPUbusy. No T1 ordinarydecode counterfactual in this Spec request.",
+    "391": "SingleL1geometry currentproductionA\u22486.061/6.030ms vs eight64 C50.412/49.561ms; wholemax16 strategy -87.99/-87.83percent rate. STOP, not Model -88percent. Raw weightloading16.10GB/node is CPU loading all896 expert keys, not forwardGPUtraffic.",
+    "r213": "Historical source arithmetic reusable with source/config equality, but oldNative and disabledflags do not establish current runtimepath.",
+    "prior_profile": "Old661 has drained MoE phase buckets for T8/T16/T32/T64, segmentmax may select differentowners and profiler changesoverlap; not actual currentlongprefillT512/T1enclosure."
+  },
+  "minimal_missing_observation": {
+    "question": "On one already-necessary future Model residency, which actual current T512/T443/T1 layer spans contain the broad CAPI time: KDA/MLA versus MoE and, withinMoE, replicatedBF16 projections/shared versus routed helper?",
+    "exact_existing_hooks": "r201 PROFILE_R9125 has router/down/expert/routedAR/norm/up/shared/add drained_segment_ms and route_counts/U; existing helper7metadata counter has calls/tokens/plans/H2Dcount/H2Dbytes. Existing Native trace/CAPI clocks available. No new framework/kernel required, but profiler-overhead OFF comparison needed if root later elects this bounded observation.",
+    "minimum_metadata": "One selected current actualowner/layer/call for each relevant shape withsameowner complete enclosingwall, routeU and counts/S, helperplan/H2Dcounter, providerflags and layerkind. Preserve existingclock/overlap boundaries; if onlydisjointphase sums lackcritical enclosure keep attributionUNKNOWN.",
+    "why_not_implement_yet": "Replicateddown/up BF16 addressset102760448B perMoElayer exceeds T1selectedFP4expert17547264B, but oldphase values and sourcebytes do not prove wallcritical bandwidth; shardingwould addcommunication andnorm constraints. T512 FP32materialization overhead depends U/S and canalready be fast. No source-only justified >=5percent Modelmechanism; do not re-open64/EP2/coldbank/FDOT2/MMAC or blindtargetload."
+  },
+  "source_inputs_SHA256": {
+    "analysis/bw1000/Kimi-source-bound-work-and-traffic-inventory-r213.json": "d2eee264b0db88c2ddec340ac9ad45485ccfc5c56a9f34945780f54a262352c4",
+    "results/bw1000/2026-10-29/Kimi-actual-config-scalars-root-r9660-a.json": "570f15f879dde31ebb00d5542ed7d664b2c07babf8d61015a4d5069fe4be0fc6",
+    "analysis/bw1000/Kimi-MoE-producer-binding-r352.json": "2a159a7a515d6ee47ca1fea421642b043f7d14aa063877f1d2b905edd88bf9f9",
+    "analysis/bw1000/Kimi-MoE-current-positive-inheritance-readonly-audit.json": "1f78e94311bc67ac8e356bd7bb19db4a0d81678e5ec77bed2273e04e33a97f6b",
+    "analysis/bw1000/Kimi-current-EP2-placement-dedup-feasibility-audit.json": "11dbfc838297f5bd36ddea7fd475be59ee15a0ea41f17406c8bbc5b9a37a30c9",
+    "analysis/bw1000/Kimi389-formal-prefill-call-geometry-budget.json": "1c3a35f5126c76ca6daa0f0dd269338bab75be8f794dd98fc522813e62e2d347",
+    "analysis/bw1000/Kimi-prefill-MoE512-vs64-production-source-feasibility.json": "b548fed8aaf4b135241e33b464005cc983dfc65b233cc8122e668401541e1dd5",
+    "analysis/bw1000/Kimi-next-expert-placement-card-r8669zi.json": "1af73af2d7d06b81deeda52439329e43ec5f9e80cf804e3f3eeffde1f49579e9",
+    "analysis/bw1000/reviews/astra-review-168-implementation.json": "273b583b3744bcd7432b5cf5b3a5999a433405338d38372ff10e1eb7692242f5",
+    "code/bw1000/Kimi-I192-Model-pair-r389/target/bindings.json": "58b1adce629b55706fe8567e2deec6f9246fde22da0e5f1ccb5408de8b92275a",
+    "code/bw1000/Kimi-I192-Model-pair-r389/target/target_inside.sh": "8f0201ce38246478344b37a5bef08a4f975e83ae36d409b53f4dea36146b2e03",
+    "code/bw1000/Kimi-long-capture-link-CPU-r327/build_CPU.py": "8d52de40b27c4e9dc7e07bc9944ec44be4aaaf4a68ad432d4089b1717dcf9b85",
+    "code/bw1000/agent-context-32k/Kimi-long-scale-exact-private-r201/kimi_moe_scale_exact_r201.cpp": "1959878b051f9ad25d60a3f17bb776a9f74623cacccf9fd7d216949addea70eb",
+    "code/bw1000/agent-context-32k/Kimi-long-agent32K-private-r179/native/delta.cpp": "cc3d6b8dd19021d758560938e46808871d3cfcc9af50868227ef43f98555b588",
+    "evidence/bw1000/concurrency-expanded/Kimi-loader-bindings-cache-private-r9130/actual-one-layer-key-metadata.json": "17d24f9c7de228923d45ba4a3d03c35451b3794ef66897ef69c74406e7692b17",
+    "evidence/bw1000/parallel-inference/Kimi-MoE-batch-lazy-profile-private-r9125b/terminal-compact-r9125b.json": "803c0c8e34debfd90c896705772c9c7236c9a451df081f4f3c24ba1378185a10",
+    "results/bw1000/2026-11-02/Kimi391-726-complete-MoE512-vs-micro64-numeric-PASS-performance-FAIL-clean.json": "f565a39a53c873c8e764c13f9a6995d086224bf33136babaf1651d70e0160280",
+    "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\kimi_helper_bounded_bf16_r6054.cpp": "28c57095dbbc68aafe03210b251d823be5708ff9d20147e810a5c2a6518984b1",
+    "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\Kimi391-original-evidence-sealed\\Kimi391-910371.726-node0.json": "4fc008f76c17f442d9a331e3259de06a53970c6f04bb4f186187e33e0adbc106"
+  },
+  "new_GPU": 0,
+  "new_Slurm": 0,
+  "new_compile": 0,
+  "Git_operations": 0,
+  "new_performance_round": false
+}
