@@ -1,0 +1,101 @@
+{
+  "schema": 1,
+  "scope": "Bounded read-only source audit after Deep393 quality FAIL; no GPU, Slurm, compilation, Git, Native modification, or new numerical test",
+  "decision": "UNKNOWN_STOP",
+  "definite_quality_cause_found": false,
+  "conclusion": "No inspected source path establishes an uninitialized read, tensor overwrite, stale request state, or observer-induced numerical mutation that explains the final answer error. The original quality FAIL remains. Source-level checks do not establish numerical transparency of observers, allocator correctness, or complete reset correctness.",
+  "identity": {
+    "Native_SHA256": "976f97b51e9f4b11dfb2439d2c97f2a1e7788e4de05ee8a8a0138f33e38b6ed1",
+    "CPU724_receipt_SHA256": "e3012f3c27c58f3c2c18f237906cd0120a4232620873cbea9b90e5012fd61152",
+    "link_objects": 49,
+    "unchanged_parent_objects": 47,
+    "HC_unit3_object_SHA256": "889dbf8e39012171463c6b5186fa53023f0c2ab72b6a6bea662cd2038db53e65",
+    "HC_epilogue_object_SHA256": "514f3739f71bcd6165edb2d2cedf387e7835b5f8026310b907c0eba968506fda",
+    "HC_unit3_source": "code/bw1000/Deep-HC-T1-Model-r366/cpu-v1/deepseek_v4_hyper_connection_model_r366.cpp",
+    "HC_unit3_source_SHA256": "16671c55218a1d879849e93ec032bfe580e3acc280ddee17201d032ed330fb2e",
+    "HC_kernel_source": "code/bw1000/Deep-HC-epilogue-r358/repair-r2/hc_epilogue_r358.hip",
+    "HC_kernel_source_SHA256": "fdfea9b2b7119cc9e796e4a852320b15a50def5205eae2de228ef046899f9c78",
+    "owner_object": "/refactor/candidates/deep-owner-device-r8918/deep_model_owner_r8900.cpp.o",
+    "owner_object_SHA256": "43f97ef93315f43e5332d85d7807022d2d6065e8a46e0b33c40498d48de8ddb0",
+    "owner_source_SHA256": "9872e3553ee22c1292637559a116fe8c0fd9726aaa1290206a3bfc6beb5117c6",
+    "owner_events_header_SHA256": "cf2639f31babef1dbbca667e60dec82625fe8d5210f4d92f46786d3e063bb4f5",
+    "owner_header_identity_record": "code/bw1000/deep-owner-device-fix/Deep-owner-device-source-r8918.json",
+    "owner_header_identity_record_SHA256": "3a9b38fb95ba659b4f3d51051705a51880e350b00ae5db99677844f5349a2d39",
+    "inner_header_reviewed": "code/bw1000/cache-pp4-and-deep-profile/Deep-attention-inner-private-r9193b/deep_attention_inner_r9193.hpp",
+    "inner_header_identity_limit": "The local header was inspected, but its exact historical byte hash was not independently rebound to the current object's original MD during this bounded audit. Current Native/object graph and actual original four packet results are separate evidence; do not substitute this local header for a newly certified build.",
+    "current_source_proof": "code/bw1000/Deep-HC-on-current-profile-r393/SOURCE_PROOF.json",
+    "current_source_proof_SHA256": "331a33a2733c47bbe63f8977ccd092beaed8f3060139458109517702ccedbb45"
+  },
+  "comparison_with_successful_375": {
+    "375_pin": "code/bw1000/Deep-paired-quality-r375/repair-v4/owner/NATIVE_BUILD_PIN.json",
+    "393_pin": "code/bw1000/Deep-HC-on-current-profile-r393/source-v1/owner/NATIVE_BUILD_PIN.json",
+    "both_pin_files_byte_SHA256": "5c692b3ca2ba3fd7a7d5d36489b2b5e3c8fb4bcdf28a9791fb8ddc696fd3adbf",
+    "same_Native_HC_math_and_object_graph": true,
+    "not_claimed": "The two complete Python workloads are not byte-identical. Deep393 adds sparse observer scheduling and packet consumers; Deep375 was a distinct benchmark workload. Prior success is not proof that the failed request must be correct.",
+    "new_profile_wrapper": "code/bw1000/Deep-HC-on-current-profile-r393/source-v1/owner/profile_contract.py",
+    "new_profile_wrapper_SHA256": "3e63a1cbfb259bb660d7bc32376876b67cd8cf38ba783e3488ec25f435fba879",
+    "existing_observer_consumer_byte_SHA256": "d5093cd4b4cccb52f6986a9259593dd0d2b51030017bf65116d75c99ae1da1ff"
+  },
+  "source_findings": [
+    {
+      "path": "HC unit3 Work at lines 24-27 and HyperConnection::pre from line 48",
+      "fact": "Allocated scratch tensors are retained by Work; its destructor synchronizes the stream. The T1 BF16 branch allocates separate collapsed/post/comb/hit outputs, poisons output storage, zeroes hit, launches the epilogue on the Runtime stream, runs existing Sinkhorn, synchronizes, and returns shared output tensors. Constructor parameter copies also synchronize before stack constants expire.",
+      "exclusion": "No obvious source-level temporary lifetime expiry or deliberately aliased input/output buffer was found in this branch.",
+      "limit": "Separate allocation requests are not an independent proof of the runtime allocator's physical non-overlap or absence of corruption elsewhere. No failing-request tensor dump exists to prove intermediate values."
+    },
+    {
+      "path": "HC HIP kernel lines 20-42",
+      "fact": "The first four lanes initialize all four shared pre values and all four post values; they write disjoint four-element comb rows. A block-wide barrier precedes collapsed reads. A 256-thread stride covers all 4096 collapsed elements. The inspected kernel has no persistent model-data storage.",
+      "exclusion": "No missing shared initialization, missing pre-read barrier, or uncovered output element was found for the fixed launch geometry.",
+      "limit": "The fused sigmoid/softmax/collapse uses its declared floating-point evaluation and BF16 rounding. Existing tolerant oracle qualification does not make it bit-identical to the original SDK path, and this audit cannot identify those numerical differences as the cause of the final answer error."
+    },
+    {
+      "path": "Native reset_cache, native_sparse_model_r22.cpp lines 36-39; SHA 2d68978d64c15daac6decef2d0547eee753441ff2e99d512aea08b19926572d2",
+      "fact": "The loaded-engine reset validates cache geometry/rank, synchronizes, trims memory, and dispatches model reset. NativeDecoderR20::reset at line 65 of SHA 1886f34a86308859e521778326e3e1119d93ff8e4d85e1ff1f2a3af3b3d6dfa9 resets the selected attention/cache implementation, clears decoder lengths, and clears poisoned_.",
+      "limit": "API reset success does not prove every internal valid cache value or every downstream implementation was independently compared between the six requests."
+    },
+    {
+      "path": "TemporalCompressor::reset lines 242-245; SHA 8e3160a8d3defff085c888dea3d78bf1d09f0b8d3c4d6cbf2d8f85735041feee",
+      "fact": "Reset invokes cache reset, explicitly zeroes compressor state bytes, synchronizes, clears lengths, and increments revision.",
+      "limit": "Raw cache allocation bytes need not all be zero when validity metadata controls reads. Reset not clearing all raw allocation bytes is not evidence of an uninitialized read. This bounded source audit did not prove all reset consumers read only valid prefixes."
+    },
+    {
+      "path": "deep_owner_events_r8900.hpp; owner arm/read wrappers in deep_model_owner_r8900.cpp",
+      "fact": "The inspected owner observer stores event handles, timing/seen/done metadata and Runtime/decoder/stream identities. Context restores its previous thread-local active pointer on destruction. Arm/read do not directly assign model tensors, weights, cache payloads, or HC mode. Read clears the owner window after validating completed rows.",
+      "limit": "GPU event operations, synchronization timing, and DeviceGuard changes are executable side effects; absence of direct tensor writes is not proof of bitwise numerical transparency or exclusion of timing-sensitive faults in another component."
+    },
+    {
+      "path": "deep_attention_inner_r9193.hpp, with the identity limit above",
+      "fact": "The inspected inner observer records seven events per Frame, host timings and pointer identities; finish validates event timing and destruction. Arm/read manage host row state and reject in-flight windows. No direct mathematical tensor assignment was found in those routines.",
+      "limit": "Do not promote this source inspection to a new GPU qualification or claim it proves lack of all cross-request side effects."
+    }
+  ],
+  "concrete_failure_path_contract_caveat_not_observed_quality_cause": {
+    "native_owner_behavior": "Owner arm rejects any call while window is nonzero before testing w==0. Therefore arm(0) does not abort an already armed owner window.",
+    "wrapper_location": "profile_contract.py lines 34-43",
+    "wrapper_behavior": "After an arm/read exception the wrapper attempts both arm(0) calls, records whether they succeeded, raises OwnerWindowStillArmed if not, and never issues a subsequent forward on that failed path.",
+    "qualification": "Fake cleanup leaves accepting arm(0) unconditionally do not establish real Native abort semantics. This is a failure-cleanup contract limitation, not a proven mathematical defect.",
+    "393_relevance": "All four original captures returned valid completed rows and closed windows. No such observer arm/read exception was observed before the final answer failure. This caveat does not explain the quality failure and does not justify a new run or hot fix."
+  },
+  "original_six_request_constraints": {
+    "original_local_archive": "C:/Users/WangHaojie/Documents/ChatGPT/海光集群/Deep393-1320-original-terminal-archive-local.json",
+    "original_local_archive_SHA256": "66fe3753f79863405761476af918c96760d24cf3667bbe12117f85e85b3bf005",
+    "gold_difference_original_SHA256": "0b83da5c417f9b954f608419fb3074e965a54a33b46aba8941bc69d626bb257b",
+    "same_six_request_prompt_ID_SHA256": "681977ee292994eac340bae5c1aadf7a6b136890df725d02bb75fc8f31ecf0df",
+    "facts": [
+      "All six had 8489 prompt tokens, the same semantic input, 98 Native calls including EOS, successful before/after reset calls, and recorded HC mode1 completions of 86 modules per owner per forward.",
+      "Only requests 3 and 4 armed observers, at decode calls 8 and 87. All four original captures had 344 completed owner rows and 344 completed inner rows and closed windows.",
+      "Requests 0 through 4 passed the task. Request 5 failed: right.sum and total were each +1; left.sum, nonces and tool selection/mapping were unchanged. Its first output token-ID divergence was index 83.",
+      "The final OFF position in the schedule does not identify a cause or exclude a persistent side effect of previous requests.",
+      "No per-layer hidden values, logits, margin, or failing-request cache-state snapshot was saved at the first divergence. The earliest internal divergence and its cause remain UNKNOWN.",
+      "Finally engine shutdown completed and post checks were clean, but normal_Native_shutdown remained false after the quality exception. Full normal-success lifecycle is not retroactively claimed."
+    ]
+  },
+  "remaining_unknowns": [
+    "Whether numerical differences from the HC epilogue, another Native/SDK operation, runtime state, or observer timing contributed to the failed request.",
+    "Whether every valid cache/state value immediately after each reset was identical across requests.",
+    "Whether any hidden race or allocator issue exists outside the inspected local paths; no source-provable instance was identified.",
+    "The first internal numeric divergence before output token index83."
+  ],
+  "followthrough": "STOP this audit with quality FAIL and cause UNKNOWN. Do not change BF16 tolerances, hot-patch Native, reopen Deep393/390, or allocate GPU to fill the missing evidence. No definite-bug repair proposal is justified by these original sources and six requests."
+}
