@@ -1,0 +1,149 @@
+{
+  "review": 165,
+  "date": "2026-11-02",
+  "kind": "EARLY_BOUNDED_REVIEW_NO_NEW_GPU_OR_TESTS",
+  "trigger": {
+    "completed_causal_rounds_after164_at_start": 2,
+    "completed_causal_rounds_included_at_close": 3,
+    "rounds": ["Kimi386 GPU713 complete-draft-phase comparison", "GLM385 GPU716 complete-layer comparison", "Deep387 GPU1315 Model positions OFFONONOFF，审核期间终态纳入"],
+    "reason": "启动时因Kimi自约10:00 UTC实际GPU713后超过90分钟主要推进CPU/接口提前触发；11:45:42 UTC收到Deep387原句柄终态，作为第3轮合入本165，不另开166。",
+    "not_rounds": ["388 worker/client CPU", "PD382 shutdown CPU repair", "source inheritance audit", "polls/publication/reporting"]
+  },
+  "scope": {
+    "read": "AGENTS.md、QUALITY_POLICY、ASTRA_REVIEW、164 实施、最新 status、指定源码和正式结果",
+    "write_only": "analysis/bw1000/reviews/astra-review-165-parallel-closure-and-next-routes.json",
+    "Git": false,
+    "GPU_or_jobs_or_tests": false,
+    "new_framework_or_approval_gate": false,
+    "cutoff": "已直接读取Deep387 11:45:42 UTC终态原始观测、六请求标量及11:51:53 UTC正式root独审结果；root_recomputed_from_original_not_summary与remote_archive_bytes_reconstructed_SHA_verified均true，原archive SHA和formal paired数据已核对。本人复用root实际reader独审，不声称另跑测试。"
+  },
+  "decisions": [
+    "Deep387原句柄已完成且正常清理，正式root原archive独审确认prefill/decode/HTTP均无收益；PARK位置借用路线，不采纳7e2b性能晋级，不增加profile/hotpatch或重复加载。",
+    "Kimi386 是完整 draft phase 正组件，388 已有可调用生产接口；停止继续扩 raw-history/cache/微复制链，388 默认 OFF 保留，不为这项小绝对时间差专门加载 32 target。",
+    "Kimi 当前 I192 T8 GROUPED 分支值得一次有界的当前 Model ON/OFF 因果卡。已有真实 T8 Runtime 正组件和当前 append→verify8→commit 全链，无需先另造不载 32 target 的完整层 adapter。其目标是完整 decode 的实际改善，整请求收益预计很小且 UNKNOWN。",
+    "GLM385 原 5% gate 未通过，停止此 M1 shared 路线和相同尺寸微 grid；目前没有第二个有证据可立即执行的 GLM 新卡，不为占满机器凑卡。",
+    "PD382 普通 host、C1、一 P8 一 D8 路线保持 PARK；164 shutdown 修复仅 CPU 闭合，不追溯改变原 FAIL 或重载。"
+  ],
+  "review164_followthrough": {
+    "implementation": "analysis/bw1000/reviews/astra-review-164-implementation.json",
+    "status": "ADOPTED_AND_CPU_REPAIR_CLOSED",
+    "retained": "15/15 正确自然 EOS、12 formal、16 owner destroy/post clean 与原836/771生命周期 FAIL 分开保留；同16卡 capacity throughput -44.12%，无 PD 晋级。",
+    "shutdown_repair": "独立不可变修复，16 个 CPU 检查覆盖真实大于 1 MiB role report；stopped 控制帧约476字节，正文走精确文件/SHA及原有有界 NFS 等待。没有新 GPU、实际 Native 或 Model 资格。",
+    "local_D_decode_difference": "31.1s 对 co 36.5s 的局部差异仍无 kernel/拓扑/state 因果归因；只在另有必要的未来驻留中复用轨迹验证，不为此新增微基准。",
+    "no_open_blocker_for_independent_387": true
+  },
+  "measured_outcomes": {
+    "Kimi386": {
+      "actual": "GPU713/CPU773/post714 正常；20 phase=4 warm+16 formal，160 query、140 committed append、1190 commands、1270 fences",
+      "scope": "一个真实 trained draft/device、周期合成 features、完整 prefix+8 query/7 accepted append+retire/close；没有 target、实际接受率或 Model 服务对照。",
+      "8K": {"OFF_phase_s": 0.6240329512, "ON_phase_s": 0.5927030508, "latency_reduction_percent": 5.02055, "saved_s": 0.0313299004},
+      "near32K": {"OFF_phase_s": 2.1786480304, "ON_phase_s": 1.8950830868, "latency_reduction_percent": 13.01564, "saved_s": 0.2835649436, "prefix_saved_s": 0.232904718, "eight_cycles_saved_s": 0.0506553382},
+      "memory": "near32K allocated 少 2343505920 bytes（2.3435 GB，约2.182 GiB），reserved 不降；不是腾出同量物理容量的实证。",
+      "query": "8K query sum 约 +0.075%，near32K 约 +0.101%，没有 query 加速。两轮 ABBA phase 收益一致，但不能代替全 Model。",
+      "time": "load fixture 37.0745s，driver 69.8844s，GPU76s、keeper82s；后续约90分钟主要是接口与证据工作。",
+      "388": "worker23与client-r1 10 CPU合同已闭合，execute_with_policy 可调用且默认OFF。Torch/Model/Native叶子 recording 不构成388实际设备/Model资格；也不否定此前362b真实 Model 链。"
+    },
+    "GLM385": {
+      "actual": "GPU716/post717，8 owner，96 aligned trials，完整真实 layer38含既有attention/shared/TP；不是 Model 请求。",
+      "paired_median_rate_gain_percent": [1.171254, 1.346605],
+      "positive_blocks": ["2/4", "3/4"],
+      "OFF_endpoint_drift_percent": [4.347976, 0.003978],
+      "numerical": "max relative RMS 0；8 owner normal、post clean。",
+      "decision": "原每输入 median>=5% 等 gate FAIL，STOP；不能以数字正确或个别 block 正收益晋级。",
+      "time": "每 owner 加载约17.28s，8卡 GPU143s/1144 card-seconds；CPU774 metadata FAIL与编译/link成功、readonly qualification分开保留，不为 metadata 重编/重测。"
+    },
+    "Deep387": {
+      "state": "ROOT_ORIGINAL_ARCHIVE_AUDITED_NO_GAIN_NORMAL_CLEAN_PARK",
+      "handles": ["910374.1315", "CPU777"],
+      "resource": "a02r4n01 TP8/PP1，单驻留6请求；GPU2700s含加载、worker2580s、keeper3000s",
+      "design": "976f HC1固定，两个HOST位置验证借用候选7e2b；positions [0,1,0,1,1,0]，同8489/128/chunk1024。",
+      "source_read": "cpu-v1 proof header 的 owner-thread/runtime/stream/device/Int64 contiguous tensor identity 与 validated host positions 守卫；不匹配回原 D2H；model contract 每 forward ON scopes43/hits62、fallback0，OFF原copies62。",
+      "observed_only": "首ON warm 8 owner 43 scopes/62 hits、0 fallback，9 prefill+97 decode、98EOS/finite/gold/reset；这是入口和机制命中进展，122→108 warm 差异不是收益。",
+      "terminal_observation": "L/Deep387-Model-terminal-first-observation-local.json，UTC11:45:42；GPU1315 COMPLETED0/22m13，CPU777 COMPLETED0/22m24，post1316 KFD[]且43882可bind。6HTTP/6Native、六请求98EOS/97decode/reset，8个唯一owner线程destroy后不存在、Native/HTTP正常退出，无强清理；不是逐owner Native callback。",
+      "formal_scalar_recalculation": {"indices": "OFF2/5，ON3/4，排除warm0/1", "Native_prefill_OFF_mean_s": 108.37119181430899, "Native_prefill_ON_mean_s": 109.4024989947211, "Native_prefill_ON_over_OFF": 1.0095164329481512, "Native_decode_OFF_mean_s": 31.76037703687325, "Native_decode_ON_mean_s": 31.862049656454474, "Native_decode_ON_over_OFF": 1.003201240950735, "scope": "直接从first-observation保存的request标量复算，与随后正式root原archive独审的paired完全一致；质量/正常生命周期成立，性能无收益。"},
+      "actual_loading_s": 399.19025024492294,
+      "producer_terminal_audit_received": {"attribution": "原Deep执行者的完整archive结果已由root实际运行reader独立复核；本审核读取正式root结果并核对true字段、原SHA及paired，不冒称本人重跑reader。", "HTTP_OFF_mean_s": 140.5729390408378, "HTTP_ON_mean_s": 141.7113181911409, "HTTP_ON_over_OFF": 1.008098138646531, "visible_rate_OFF": 3.0481279212428287, "visible_rate_ON": 3.0385985669880293, "OFF_decode_endpoint_change_percent": 0.528, "ON_decode_endpoint_change_percent": -1.696, "checks": "6 gold经opaqueID→file/tool records重算；636 forward每次8owner43scope/62 ON borrow或OFF62原读取及HC86逐次/总和闭合；8owner正常退出，post1316及独立1317 PID/KFD/43882clean。", "archive": "L/Deep387-1315-original-terminal-archive-local.json", "reader": "code/bw1000/Deep-forward-position-proof-r387/analysis-model-v1/analyze_model.py", "root_result": "results/bw1000/2026-11-02/Deep387-1315-root-audited-positions-no-gain-normal-clean.json", "remote_original_archive_SHA256": "d4cc9c7bfcbe4e2b9b83755dd5843939b33bc1e72e7031d2ef2f8ee8aa9ec3ab", "root_recomputed_from_original_not_summary": true, "remote_archive_bytes_reconstructed_SHA_verified": true, "all6_HTTP_complete_sum_s": 858.6718937829137, "GPU_allocated_card_seconds": 10664, "cardtime_not_GPUbusy": true, "decision": "STOP positions route / 不将7e2b作为性能晋级，不新Model；正式root独审已确认，保留976fHC既有基线。"},
+      "retained_Model_baseline": "此前366/375的976f scoped Model/128 paired quality证据保留；不把新7e2b借用、a314fullpre或其他组件自动并入这些结论。"
+    }
+  },
+  "Kimi_actual_current_chain_correction": {
+    "authoritative": "results/bw1000/2026-11-02/Kimi-rund-root-audited-long-spec-observations-controller-FAIL-delayed-clean.json",
+    "root_verified": "6原件SHA、4leader签名、原emitter已独审true；较早4arm报告PENDING标签已被此最终root报告取代，不重复审核或另计轮次。",
+    "actual": "target550 COMPLETED0/46m11，draft672 COMPLETED0/7m13；四arm59EOS/gold、32owner正常，draft118commands/16query/14commit/127floor/normalclose；每spec56proposal、50matched、57cycle useful、8cycles。",
+    "8K": "AR backend4.90346→spec17.95310 tok/s，确有一次严格>15的狭义backend观察；完整116.139→80.323s受第一AR cold prefill33.812对后来4.696s顺序混杂，不能全部归因spec。",
+    "near32K": "backend4.86702→11.60385；完整294.731→295.872s无收益，未>15。",
+    "startup": "一次draft connect/load99.30045s发生在request_start前，单列计入服务驻留，不能称公共HTTP TTFT；旧4arm实际89105 card-seconds不是AR反事实成本。",
+    "lifecycle": "CPU719即时post失败39947原因UNKNOWN、无原final_evidence，保留原controller FAIL；延迟554/680五node PID/KFD/ports/TCP clean不回写原PASS。",
+    "meaning": "真实 current327+362b capture/append/query/verify/commit调用链已存在；388新raw-history策略未在该Model验证，与原链是否存在是两件事。"
+  },
+  "bottlenecks_and_unknowns": {
+    "Kimi": {
+      "observed": "near32K prefill CAPI281.684s/完整295.872s；verify3.212s、queryRPC1.4829s、harvest2.7785s、append_prompt6.3203s为有重叠/不同边界的记录，不能无条件相加。8K spec prefill75.509s、verify2.6535s、完整80.3228s、first-last3.17494s。",
+      "inherited_MoE": "当前8df/327相同moe.o/provider继承旧651/661/841正路线；GROUPED/MOE_EXEC默认0的原因UNKNOWN。661已真实Runtime/T8完整MoE 1.790835→1.468741ms，旧651 B16M16 Model decode+12.764%，不是当前C1收益。",
+      "eligible": "TP16/localI192 T8满足BATCH1/specmath0门限；T1、当前512/443/382 prefill不eligible；较短verify1..7仍fallback。",
+      "unknown": "当前Model ON数学/接受率/状态及完整decode收益未知；query、copy、smallGEMM、通信各自硬件瓶颈未由这些phase时长归因。不能用dense峰值或旧T8倍率推Model。"
+    },
+    "Deep": "387命中计数已证跳过逐forward重复位置读取路径，但正式标量没有变快，不能据此把重复位置读取指认为主导瓶颈；不能投射HBM/算力利用率。375既有HC976f paired Model收益保留，仍远低15且非在线全面质量。",
+    "GLM": "385 shared M1完整层未达到有用收益，不能据此声称全Model瓶颈是别处某个具体kernel；此前349/W4有条件prefill收益仍保留，361调度SLO取舍、367与370负路线不重开。"
+  },
+  "time_and_utilization": {
+    "issue": "Kimi实际GPU阶段约76s，但后续接口、查证超过90分钟没有新因果性能；388已经闭合，应结束工程扩展，转一次有依据的Model ON判定或明确PARK，不继续小cache变体。",
+    "not_all_serial": "387在本审核期间独立完成，Kimi源码/下一卡可并行；没有为审核暂停原作业。",
+    "resource_scope": "算子六节点48卡池不是全局上限；Kimi原独立target32+draft1与Deep节点01不冲突，实际新claim仍使用当时fresh-idle证据。",
+    "honesty": "status performance_GPU_scheduling仍含旧1221/636/601/816，latest_utilization约00:19UTC为旧瞬时样本。不能据此报告当前忙碌率、整轮平均或可用率，也不能把一个已知8卡作业反推其余128卡空闲。root应消歧旧字段，不为利用率填无信息GPU任务。"
+  },
+  "next_cards_by_model": {
+    "Deep": [
+      {
+        "priority": 1,
+        "card": "既有387正式原件独审已完成，封存并PARK，无新GPU卡",
+        "owner": "原Deep执行者；root消费sealed原件",
+        "source": "7e2b Native，MF881acf，publicationdcb7e101，CPU775/776；同GPU1315/keeper777",
+        "hypothesis": "validated positions主机借用减少当前真实Model的重复读取/同步开销，而不改变数学、HC或状态。",
+        "minimal_change": "无新增改动/资源/请求；原6请求同驻留2warm+ABBA已完成，只读封存/审计。",
+        "first_result_ETA": "11:45:42 UTC终态观测后约6分钟，11:51:53 UTC正式root独审完成；未延缓独立Kimi源准备。实际加载399.19s、6HTTP858.672s、GPU1333s/keeper1344s及10664 card-seconds，驻留不是GPU busy。",
+        "metrics": "formal paired prefill/decode/HTTP wall、逐用户rate、gold/EOS/finite、真实hit/fallback、8owner normal和post；全加载/驻留成本单列。",
+        "expected_wall_gain": "正式root独审：Native prefill +0.9516%、decode +0.3201%、完整HTTP +0.8098%，无正收益，PARK。",
+        "exit": "按原deadline收束；数值/状态/生命周期失败即保留FAIL不重播；收益不足波动或wall退化则PARK此借用，不再微调相同路径。",
+        "upgrade": "仅正式配对和质量/清理成立后报告该8489固定scope的Model增量；不继承在线或>15。",
+        "fallback": "本轮不预填第二Deep卡，也不重375/790/68/103。"
+      }
+    ],
+    "Kimi": [
+      {
+        "priority": 2,
+        "card": "当前spec Model I192 GROUPED单变量6请求",
+        "decision": "值得一次有界Model判定；无需新完整层adapter或重复裸MoE作为前置门槛。不是自动宣告GPU已测，也不是为flag发现而盲加载。",
+        "owner": "原Kimi执行者；root确定最小source/claim和原控制器绑定",
+        "reuse": "current327与同moe/provider/SDK；原run-d实际362b worker/335publisher/337调用链及已修控制器；保持388 OFF，不同时更换raw-history策略或priming/crop/cache。",
+        "hypothesis": "已存在的I192 T8快路径在当前真实verify8中降低完整decode wall，且不损坏accept/commit/replay或任务质量。",
+        "change": "双arm固定MOE_EXEC=1、WORKSPACE/compact/BATCH1、specmath0/W2_PAIR0及其他SDK selector；仅GROUPED0/1。source确认实际各owner进程请求重置不覆盖该唯一因素，使用既有I192_T_counts8记实际命中。",
+        "samples": "同固定8635输入、原128输出预算、仅spec，共6请求=OFF/ON warm后OFF/ON/ON/OFF；既有一加载、原deadline/cancel/清理，不重复旧四armAR/spec实验。",
+        "resource": "原独立target32 TP16/PP2+draft1，一驻留；与Deep节点01独立。GPU/keeper沿已验证预算有界，不在报告中创建作业。",
+        "first_result_ETA": "最小source与既有整入口合同收束约20至30分钟预算；历史加载主导，启动后约30至45分钟得到首个ON质量/命中结果，约40至55分钟获得ABBA/清理是规划估计而非保证。超过既有deadline不续租或reload。",
+        "wall_budget": "旧8K verify CAPI2.6535s/完整80.3228s=3.30%。在固定其他时长且收益仅来自该verify enclosure的条件下，完全消除verify也只改善generation约3.30%；T1/prefill不适用此分支。旧T8约18%延迟下降若极乐观作用全部verify约省0.48s/完整0.6%，仅为决策量级例子，非Model预测/物理上限；实际受MoE占比、较短尾verify和缓存状态影响，收益UNKNOWN。它可能改善数秒级完整first-last，不能许诺整请求5%或near32K>15。",
+        "why_pay_load_once": "已有真实T8正组件与旧不同scope Model正结果、当前spec调用链，唯一缺项是当前ON Model因果；比为386约0.031s/0.284s独立加载或重测661更有信息。小整请求潜力不等于完整decode改进无价值，但不适合无限扩grid。",
+        "checks_and_metrics": "首ON真实各owner T8命中、finite/语义gold/自然EOS；记录proposal/accepted/useful/verify/rollback/commit/reset，不强制与旧50/56或token逐位相同；实际emitter first-last、TTFT/ITL与完整request、startup/全部33卡驻留成本。正常destroy/post独立于数字结果。",
+        "exit": "首ON零命中则该卡未测到假设，保留事实不扩请求；非finite/状态错误停止。formal完整decode无一致超出OFF漂移的改善或完整request成本恶化即PARK，不复测T8裸MoE/其他T网格。若仅decode正则只保留该scope，不谎报整个Model wall加速。",
+        "fallback": "如root认为约40至55分钟驻留相对最大verify预算不划算，可明确经济性PARK；不能改写为缺少强制adapter或否定现成全链。无第二Kimi GPU卡。"
+      }
+    ],
+    "GLM": [],
+    "GLM_zero_card_reason": "当前已知385路线明确负；没有新证据足以列一张高于重复微grid的信息卡。保留349/W4 scoped正结果，停止污染profile/调度grid，空出机器不伪造可测候选。"
+  },
+  "adoption_requested_from_root": [
+    "逐项登记387正式负结果封存/PARK、停止385与cache扩展、PD PARK、Kimi单次Model卡采纳或经济性暂缓；不需要再次向人类索取逐次GO。",
+    "删除下一步中的强制新layer adapter前置条件；实际最小flag传播/现有入口检查属于实施，不新增独立框架。",
+    "status保留run-d最终rootaudit与旧controller FAIL/延迟clean区分，避免旧PENDING或536-only描述覆盖已成立的当前spec链。",
+    "标注陈旧资源观测日期；完成本次落实后再归零，本165已含387第3轮，不再记入下一周期，不将warm/CPU算性能轮。"
+  ],
+  "evidence_SHA256": {
+    "analysis/bw1000/reviews/astra-review-164-implementation.json": "76da1d65855b08e52dc7993fe3d715647a1895b267f44174771a4dfe5c5b874a",
+    "results/bw1000/2026-11-02/Kimi386-root-audited-complete-draft-phase-gain-clean.json": "9ea5751e38470c921d1c7ec0fa515896fead40ff7f75c8ba66677fdb0e63cd51",
+    "results/bw1000/2026-11-02/GLM385-root-recalculated-shared-M1-gate-FAIL.json": "91984cd5f54073879dbb34164381f6ec1425f6e32e07113d94ab00d035403ca2",
+    "results/bw1000/2026-11-02/Kimi-rund-root-audited-long-spec-observations-controller-FAIL-delayed-clean.json": "81d1f5b9e45bd7aabadd13b3a8a258336c56dd1dcd7211e63029973646d51fd2",
+    "analysis/bw1000/Kimi-MoE-current-positive-inheritance-readonly-audit.json": "1f78e94311bc67ac8e356bd7bb19db4a0d81678e5ec77bed2273e04e33a97f6b",
+    "L/Deep387-Model-terminal-first-observation-local.json": "6b845cfe876d774a6d0d480fef060cd2984f82afd0865cfb6dc0ada726889dd7",
+    "results/bw1000/2026-11-02/Deep387-1315-root-audited-positions-no-gain-normal-clean.json": "f8e93db1f77b04eb5bf7a24362e9b17434d497abc95301b18a6fc5aa81dca29f"
+  }
+}
