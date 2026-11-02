@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "state": "SOURCE_INTERPRETATION_CORRECTION_NO_IMPLEMENTATION_CHANGE",
+  "actual_component": "910371.741",
+  "reused_object": {
+    "path": "/refactor/candidates/models-5f91ad7-r3675/Kimi/helpers/grouped.o",
+    "SHA256": "5a653bbf75252d66f372197d618b79ffda88ddc9e69864a64fea56c159b14fcb"
+  },
+  "immutable_sibling_snapshot": {
+    "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/models-5f91ad7-r3675/Kimi/helpers/src/modern_kimi_grouped_fused_fp32_kernels_r21.cu",
+    "SHA256": "d4ffaaaf85b58c01194d2e04cd995b2458184fc211d2cbfcba3b3c5ce7fe9ed8"
+  },
+  "same_incoming_source_SHA256": "d4ffaaaf85b58c01194d2e04cd995b2458184fc211d2cbfcba3b3c5ce7fe9ed8",
+  "prior_description": "r396 inventory/r401 frozen card described FP32-storage SITU as F32 value precision and candidate as addingBF16rounding.",
+  "actual_source": "activate_f32_r21 writes __bfloat162float(__float2bfloat16_rn(SITU(...))); decode_batch_f32_r21 likewise BF16rounds decodedweights beforeF32storage. Gather casts originalBF16X exactlytoF32. Candidate activate writes sameBF16roundedexpression directly toBF16storage.",
+  "corrected": "Baseline is FP32 operand/intermediate storage of BF16-rounded weight/X/SITU values, F32 GEMMoutputs and CUBLAS_COMPUTE_32F. Candidate uses BF16 operand/intermediate storage and same SITU BF16round boundary, with possible differentGEMMaccumulation association. This is not an additionalweightquantizer or newlyintroducedSITUrounding relativetoactual baseline.",
+  "actual_numeric": "Consumer reported relativeRMS/maxabs0 in all68 calls; this is not independentrawtensor orbitwiseModelqualification.",
+  "source_provenance_limit": "Sibling retainedsrc snapshot+existingreusedobject identity and actualstrongsymbol resolution; originalGPU grouped.o MD/source-byte-at-build receipt not present inhelperdirectory. No newdisassembly/rebuild performed.",
+  "precision_scope": "Current1layer logicalTP16rank0 only; W13 all-loaded scales[110,122],W2[119,122]. Nonzero decodedweights are in normalBF16range; vendorISA/FTZ of other intermediate values UNKNOWN.",
+  "future": "Preserve published originalcards/objects unchanged, append this correction. Rootowns statuswording; no newGPU/grid/Model.",
+  "references_SHA256": {
+    "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\Kimi401-immutable-helper-source-snapshot.json": "126f393e51c9c35f5d4183e73f1a312e363e331f46876490b414d98817df6b79",
+    "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\Kimi401-741-accounting-current-activation-source.json": "715df80d4523d14098eff49388d4de2d9239c34f95c2586efccea077e9500ef1",
+    "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\modern_kimi_grouped_fused_fp32_kernels_r21.cu": "d4ffaaaf85b58c01194d2e04cd995b2458184fc211d2cbfcba3b3c5ce7fe9ed8"
+  }
+}
