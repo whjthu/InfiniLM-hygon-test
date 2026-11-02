@@ -1,0 +1,54 @@
+{
+  "task": "Deep-PD-disaggregation-r382",
+  "UTC": "2026-11-02T05:34:22.169070+00:00",
+  "owner": "/root",
+  "direct_user_request": "划出一部分机器，测一下PD分离的性能",
+  "state": "INTERFACE_AND_FRESH_RESOURCE_PREPARATION",
+  "GPU_GO": false,
+  "GPU_submitted": false,
+  "resources_candidate": {
+    "model": "DeepSeek-v4 current pinned Deep entry",
+    "prefill": {
+      "parent": 910376,
+      "node": "a02r4n12",
+      "cards": 8
+    },
+    "decode": {
+      "parent": 910376,
+      "node": "a02r4n13",
+      "cards": 8
+    },
+    "exact_allocation_and_idle": "PENDING r381 once-only CPU resource probe; candidate not actual reservation or GPU start",
+    "separate_from": [
+      "375910374.1304/1305/1301",
+      "375910371.701",
+      "380910371/a02r3n07"
+    ],
+    "upper_bound_service_cards": 16
+  },
+  "parallel_work": {
+    "actual_Native_KV_state_ABI": "/root/glm_operator_tuning",
+    "resource_and_transfer_path": "/root/kimi_operator_tuning",
+    "contract_and_integration": "/root"
+  },
+  "first_scope": "Actual P prefill state exported/transferred/imported into D; D must not replay/recompute prompt. Same checkpoint/precision/tokenizer/template/context/output/inputIDs. KV bytes and full semantic state must be identified from actual source before GPU GO.",
+  "comparison": {
+    "latency": "One8card colocated replica vs P8+D8; explicitly different16vs8card cost, no percard gain claim from raw latency",
+    "capacity_fair": "Two colocated8card replicas on same16cards vs P8+D8 with fixed arrivals/queue; include idleP and allD cards",
+    "frozen_workload": "Reuse current prepared real Deep tool fixtures and complete input IDs; exact request/arrival/warmup counts fixed after ABI feasibility before Model load",
+    "report": [
+      "client and backend TTFT separately",
+      "per-request visible(n-1)/(last-first) decode",
+      "client ITL p50/p95/p99",
+      "queue/rejected/failed/unfinished",
+      "KV bytes/serialization/D2H/network/H2D/import and overlap",
+      "total serving16card seconds plus coldload separate",
+      "task correctness/EOS/length/state reset/normalowner shutdown/allnodeKFDandport cleanup"
+    ]
+  },
+  "validation": "CPU actual handoff consumers must reject wrongowner/epoch/source/shape/length/truncation, partial transfer and stale state. Device transfer correctness before full Model. Synthetic transfer only component result, never PDModel performance.",
+  "stop": "If current ABI cannot export/import complete decode state, implement smallest private source-backed bridge and qualify; never substitute D prompt replay or a transfer-only microbenchmark as PD performance.",
+  "time_and_request_budget": "Not frozen execution GO: exact limits/source hashes/CPU receipts/resource claim will be appended and ordinary-pushed before GPU; no model jobs yet",
+  "actual_jobs": [],
+  "new_performance_result": false
+}

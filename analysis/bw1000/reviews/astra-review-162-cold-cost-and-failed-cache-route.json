@@ -1,0 +1,121 @@
+{
+  "review": 162,
+  "reviewer": "/root/astra_review_147",
+  "date": "2026-11-02",
+  "state": "COMPLETE_PARK_CAT_IMPLEMENTATION_CONTINUE_BOUNDED_COLD_AND_DTYPE_CARDS",
+  "scope": "只读已保存证据和当前私有源码，仅写本报告；不Git/status、不跑测试/CPU/GPU、不改冻结源。root逐项落实后重置周期；独立379/380准备和375原在途句柄继续。",
+  "rounds_since161": ["Kimi371/697首层FP因果诊断", "Deep372/1298严格7stage HC组件配对", "Kimi376/703完整八周期缓存ABBA"],
+  "round_count": 3,
+  "excluded": "377链接CPU、378/1307实际32call dispatch/生命周期资格没有性能配对，不另计性能轮；375尚在途、CPU修复、报告及本审核均不计。",
+  "review161_followthrough": {
+    "cache": "161 addendum的pre-RoPE两Linear私有包装已实际376落实：首fullM、后新ctx8+draft8、原norm/RoPE/mask/attention、post-fence publication和原4GiB guard均保留。144query/18context/840cmd/912fence及完整cold/append/cat成本已测，得到负结果；应据此停止该实现，不继续引用理论22%上界作可实现收益。",
+    "warm": "379是对161第二卡的直接落实：四个独立进程OFF/ON/ON/OFF、同原strict Runtime和fullquery、不同priming/measured feature seed、6query/412cmd；每ON进程一次priming，而非旧324两warm照搬。四次加载是预声明的对照，不是失败重试。",
+    "Deep": "372保留候选，377/378把a314 Native dispatch/clear/state/lifetime闭合；未以其组件比率宣布Model提升或单独重载Model。375原976f质量对照仍独立在途。",
+    "engineering": "375原747/748/749失败保留；实际751继承749已成功129题encoding及相同owner/client资格，完成真实worker identity到client.main等剩余整入口。读取751正式metadata，不重做已有编码/编译。"
+  },
+  "question1_actual_gain_and_numerical_scope": {
+    "new_Model_gain": "本周期新增Model收益为未测；不能把372或376计入真实服务加速。此前366 scoped decode时长-13.29%、HTTP-3.57%、约3.046tok/s及349/355既有范围保留，不扩成广泛质量或客户端15资格。",
+    "Kimi371": "same-input KV_A NRMSE1.1196e-5、same-QKV attention2.81435e-5，首层tiny差异已实证；仍未解释369近32k五层4.513%差异。不是接受率、Model质量或新性能提升。",
+    "Deep372": "当前epilogueON参照上，same-trial max8 CAPI729.445→670.942us（-8.02%）、C++457.047→402.233us（-11.99%）；checked outer ratio0.998821不稳定获益。8owner合成残差/4真实参数组，不等于86模块完整Model覆盖；root原archive另消费，本报告没有重新计算其激活。",
+    "Kimi376": {
+      "evidence": "results/bw1000/2026-11-02/Kimi376-GPU703-whole-sequence-and-numeric-audit.json",
+      "original": "L/Kimi376-device-terminal-original.json，report SHA170ca0a5055c4245748cb52ff1353e40268f83e235969a00ec745d8164818aaa。已从原archive sequence_artifacts独立重算三组正式checked配对比，与audit一致；未独立重建原激活。",
+      "formal_checked": [
+        {"L":1024,"OFF_s":0.5172415825072676,"ON_s":0.5534210200421512,"ratio":1.0699468850889908,"OFF_drift_percent":1.2066826235177741},
+        {"L":8635,"OFF_s":0.7201351444236934,"ON_s":0.7800346880685538,"ratio":1.0831781980211457,"OFF_drift_percent":0.21429792303382378},
+        {"L":32638,"OFF_s":1.4425284042954445,"ON_s":1.4845739887095988,"ratio":1.0291471448943081,"OFF_drift_percent":-1.5306116766237943}
+      ],
+      "complete_dispatch_ratio": [1.170173605200752,1.0770183599352512,1.0411414821467928],
+      "decision": "PARK/STOP此cat实现。三L正式checked与dispatch都慢，不能因首warm OFF冷而ON温热制造收益；不重复同源码GPU或进入32target。",
+      "numerics": "全finite/canary，首fullM hidden/logits NR0；增量hidden最大0.0263523、logits0.0211064，proposal位置一致分别168/168、120/168、162/168。8K至少一query为0/7同proposal；这是合成feature诊断，不是实际target接受率或任务质量。原0.02 alert、0.10 hidden/logits investigation stop是本卡局部诊断政策；stage样本NR最高0.10550不能与全hidden停止指标混为一谈。不同token政策不等于已证明无质量损失。",
+      "clock": "checked八周期含8query+7synthetic accepted8 append、canary/stage读回、inline numeric/JSON；dispatch仍有hooks/cache诊断。二者都不是无观测生产吞吐；没有客户端emitter/HTTP。",
+      "lifecycle": "703 COMPLETED0/73s、760 COMPLETED0/82s，18context/Runtime正常关闭，704 KFD/PID空和两port可bind；原model参数和模块identity未改。"
+    }
+  },
+  "question2_time_and_parallelism": {
+    "376": "加载9.9683s、CPUfixture0.6469s、driver67.1400s；18sequence总27.8864s（warm11.3972、formal16.4891）。其余driver时间是剩余准备/检查/保存等总差额，未逐项归因，不称GPU空泡或GPU忙碌比例。73卡秒和82s keeper分列。",
+    "372": "GPU71s、keeper73s；driver prepare46.599s、whole62.261s、measurement phase sum4.977s。组件已有判定，不为预计层数乘法1.5%单独再支付Model加载。",
+    "379": "四planned freshprocess各加载一次；同一GPU、600s GPU/900s CPU总界内，首失败即停，不继续剩余load。需保留每child source/load/fixture、priming prefix/query/retire、measured prefix/query、Runtime close及wholechild；按源码现有clock即可，不能仅报告measured query。",
+    "375": "root05:04观测91/264，仅带时间的在途快照；四个原8卡句柄1304/1305/1301/701与keeper753..756继续，不重提、不以等全结束阻塞独立卡，也不把未完成请求移出分母。",
+    "resource_scope": "380虽然由Deep执行者推进，数据/源码实际是Kimi draft，不算Deep机制。按模型限制下一卡；6节点48卡operator pool不是所有独立target/draft的全局上限。"
+  },
+  "question3_hardware_and_cost_evidence": {
+    "proven": "376原KV_A/B输出每query用torch.cat复建完整L+8，两投影五层近32K逻辑输出约5.15GiB；这是源码shape字节，不是测得HBM流量/带宽/占比。完整路径退化已证，cat因果占比尚未证。",
+    "counter_evidence_to_cat_only": "未做KV投影/cat的7次accepted append，ON仍较OFF多12.282ms/11.488ms/12.494ms（1024/8635/32638）。源码cacheON的_check每次遍历五层weight/module signature，且多处调用；这是具体CPU开销候选，不能先断言已定量证明。近32K第一fullM query另多32.863ms，首query无旧prefix cat也已慢。",
+    "unknown": "smallM16 Linear效率、原full norm与SDPA、allocator/copy/finite与Python guard的独占时长均未隔离。prefix_cache.py中compute_host_wall/cat_host_wall没有各段GPU同步，不能作为设备exclusive时间相加或宣布cat主瓶颈。",
+    "memory": "376 Torch allocated peak30,415,396,864B、reserved peak63,717,769,216B；一次floor前free4,163,371,008B触发原trim，floor后通过，912fence均通过。该trim不是OOM，也不是全部设备真实peak；不能用reserved直接判新增buffer不可能。",
+    "380": "BF16→FP16改变计算dtype和输出舍入，是近似算子候选。CPU小NR/23个权重下溢不认证GPUFTZ/全模型质量；GPU flags也不证明真实ISA累加。必须计输入finite/max .item同步、cast、F.linear、输出finite/backcast及fallback，不能拿裸FP16 GEMM或物理峰值代替。"
+  },
+  "next_cards_by_model": {
+    "Kimi": [
+      {
+        "priority":1,
+        "name":"379 原fullquery进程首次调用与显式priming成本",
+        "hypothesis":"一次有界同shape priming可减少新请求首query的进程冷成本，且有可陈述的完整startup代价。",
+        "owner_resource":"root；拟a02r3n03单卡，GPU600s/CPU900s，原strict Runtime不cache/crop/dtype改动。当前源及local CPU已读，未冒称正式GPU已通过。",
+        "minimal_samples":"按现有四进程OFF/ON/ON/OFF、6query/412cmd计划即可；每ON一个独立priming context，retire后同measured seed。四load不是异常retry，首child失败停止。",
+        "numerical":"继承原完整hidden/head finite、7proposal与strict权重检查；记录measured四组proposal。无target不称接受率；不把freshprocess称物理GPU冷。",
+        "wall_scope":"首query可回收时间UNKNOWN；另报load+priming+measured prefix/query完整代价与OFF/ON端点漂移。新进程仍共享driver/device/OS缓存，ABBA只能给该条件下诊断。",
+        "first_result":"源CPU在推进；准备完成后单卡总界<=600s，通常四次约10s级draft load加source验证/前缀，应为分钟级；排队与实际wall另列。",
+        "exit":"measured query降幅不超过漂移或priming只是把相同串行成本前移，则不进入target预热调度。即使query改善也不称overlap/Model；仅当下一必要target驻留能真实重叠且完整startup/33card账目有价值才集成。"
+      },
+      {
+        "priority":2,
+        "name":"380 原实际KV_A/B权重的guarded FP16最小配对",
+        "hypothesis":"GPU后端FP16路径的节省能覆盖所有逐调用guard/cast/fallback开销。与缓存重用是独立机制。",
+        "owner_resource":"原Deep执行者负责Kimi draft组件；a02r3n07最多2卡、每卡独立同卡配对，layer0/4；CPU7616s通过为root报告，已读其CPU/GPU候选源，正式GPU资格仍待实际回执。",
+        "minimal_samples":"沿当前M32646和M8、KVA/KVB、各5ABBA与4warm；只选定四个权重payload共50,069,504B，不是四份各50MB。M8不是376实际M16，也不是现uncached fullKV主路径，不借它宣传完整query收益。",
+        "numerical":"现源先originalBF16独立CPUref，再candidate独立CPUref和wholeoutput BF16差值；保存下溢/真实hit/权重及输入状态。原input-range fallback全时长保留，输出overflow fallback的CPU资格不可冒称GPU已实测；不扩成新全模型quality gate。",
+        "wall_scope":"测完整同步wrapper，私有half权重转换/H2D单列并纳入驻留成本。全draft/Model收益UNKNOWN，不能用M8小GEMM收益替换near32K queryRPC。",
+        "first_result":"GPU源/CPU闭包后预计分钟级，现拟<=600s；加载仅四个小payload，无target/head/draft全checkpoint。",
+        "exit":"完整wrapper无超过OFF漂移的净省、range/output fallback使代价反转或数值越过预定诊断界，则停止此dtype卡，不跑dtype/size网格。若只有M8获益只保留small-suffix组件资格；若M32646获益才值得下一原fullquery消费，仍不能直接Model晋级。"
+      }
+    ],
+    "Deep": [
+      {
+        "priority":1,
+        "name":"完成现有375四副本真实128题质量与成本消费",
+        "hypothesis":"当前976f opt-in收益在扩大真实题集下无明显质量掉点，且完整请求/卡时成本可报告。",
+        "owner_resource":"原375执行者及root，继续现有四8卡句柄，不新提交。",
+        "source_evidence":"CPU751实际整入口/继承749129encoding；当前在途原976f，不混入377a314改变对照。",
+        "checks_samples":"按原128题、四副本/264请求计划处理全部完成/失败/截断/EOS与任务分数，保留预定比较和原实际计时，不以当前91条提前宣布全PASS。",
+        "wall_first_result":"增量已可读，最终ETA UNKNOWN；按原deadline/同handle继续。加载、推理、质量评分和清理分列。",
+        "exit":"终态按原规则收束；故障先保留诊断不重播，不为等四副本暂停Kimi独立卡。"
+      },
+      {
+        "priority":2,
+        "name":"保留377/378 fullpre Native供下一必要Model驻留",
+        "hypothesis":"严格fullpre组件净省可能在真实Model保留部分收益，但现证据不能量化。",
+        "owner_resource":"root，当前0新增GPU；仅复用已链接Native和32call实际dispatch资格。",
+        "minimal_change":"未来有其他必要Model验证时，以当前epilogueON为基线加明确fullpreOFF/ON arm，保留完整质量/计时/正常退出；不热改375。",
+        "first_result":"当前工程资格已经得到；未来Model时机/收益UNKNOWN，不为层数乘法预计~1.5%单独装载。",
+        "exit":"没有独立必要驻留就继续保留而非重复HC组件；不把378功能PASS增加性能轮或模型晋级。"
+      }
+    ],
+    "GLM": [],
+    "GLM_reason":"原hook污染与341/361/367等无收益grid保持STOP。没有足够新证据时不凑两张；由GLM agent执行Deep375不改变模型归属。"
+  },
+  "fixed_capacity_buffer_reserve_not_third_active_Kimi_card": {
+    "decision":"这是不同于cat的具体可证伪实现，值得源级准备，但暂列替补：379/380之一判定后才替换，不在本报告新增第三张活跃Kimi实验。无需另搭大profile框架或先跑一轮无关microbenchmark。",
+    "minimal_mechanism":"保持原Linear计算结果/原norm/fullmask/RoPE/SDPA，在每层A/B预分配固定capacity输出buffer。首fullM仍原Linear，复制结果并计入cold；后query只把computed tail写入[old_cached_length:new_length+8]，返回[:new_length+8]的同shape有效视图。capacity涵盖最大32760context+8draft；不改完整query数学，也不先做allocation/容量网格。",
+    "publication":"old有效context前缀[0:old_cached_length]禁止写；原draft尾巴不属于已提交context，可被下一真实accepted行覆盖。所有层pending_length只在原query fence成功后统一publish；拒绝/有限值/fence异常不publish，沿原poison/close清除，不能让失败尾部重新变valid。必须等待旧query消费者完成才覆写共享storage；debug快照若跨query保留须在写前消费/取独立诊断副本，不能让保存的参考随buffer变动。",
+    "small_CPU_closure":"实际私有Linear+copy消费者验证初次full、delta0/1/8、gap刷新、retire/new epoch、failure不publish、oldvalid不变、capacity/tail、返回shape/stride以及源码原forward未变；CPU不证明GPU性能。沿既有Context闭包补差异即可，不重建整个框架。",
+    "discriminating_measurement":"在下一必要单draft驻留同一固定near形状，保留同源smallM16 Linear和同guard，比较当前cat与唯一tailcopy机制；完整八周期对原OFF仍为主判据。可在同驻留外部同步的短小独立函数中记录cat/reuse+tailcopy与smallM16/fullM Linear成本，不能把unsynced host enqueue当GPU时间。这样同时区分copy是否可回收与smallGEMM是否已吞掉节省，不必先增加单独GPU加载或广泛grid。",
+    "stop":"即便tailcopy大幅减少逻辑写量，若完整八周期仍不省、首cold/guard吞掉收益或数值/内存不闭合，即停止此实现；不删guard或拉长序列摊薄cold后声称原8cycle获益。oldcat作为新机制因果对照不是无变化寻优重跑，不能单独重新跑376宣称等待更好噪声。",
+    "first_result_estimate":"源CPU可沿原<=90分钟有界预算；未来被选中且闭包后首单卡判定分钟级，未提交/未安排新GPU。潜在Model收益UNKNOWN。"
+  },
+  "files_read": [
+    "analysis/bw1000/reviews/astra-review-161-kimi-cache-cost-addendum.json",
+    "code/bw1000/Kimi-preRoPE-prefix-cache-r376/prefix_cache.py",
+    "code/bw1000/Kimi-draft-query-warm-cost-r379/warm_plan.py",
+    "code/bw1000/Kimi-draft-query-warm-cost-r379/child_driver.py",
+    "code/bw1000/Kimi-draft-query-warm-cost-r379/GPU_driver.py",
+    "code/bw1000/Kimi-draft-KV-guarded-FP16-r380/SOURCE_FEASIBILITY.json",
+    "code/bw1000/Kimi-draft-KV-guarded-FP16-r380/cpu-v1/guarded_linear.py",
+    "code/bw1000/Kimi-draft-KV-guarded-FP16-r380/gpu-v1/GPU_driver.py",
+    "results/bw1000/2026-11-02/Deep375-CPU751-final-qualified-metadata.json",
+    "results/bw1000/2026-11-02/Deep378-GPU1307-a314-dispatch-lifetime-PASS-clean.json"
+  ],
+  "new_jobs": 0,
+  "new_GPU": 0
+}
