@@ -1,0 +1,136 @@
+{
+  "review": 166,
+  "date": "2026-11-02",
+  "kind": "EARLY_ENGINEERING_FOLLOWTHROUGH",
+  "trigger": "165后完成1轮Kimi389真实Model因果试验；390消费端可避免的元素宽度错误提前触发。390原失败不是第二轮性能试验，不伪称已满3轮。",
+  "scope": "只读AGENTS/QUALITY/ASTRA、165落实、389根审、390实际终态及consumer/interface/adapter/CPU fixture/driver、现有512-vs64源码可行性；仅写本报告，不Git、不运行测试/作业/GPU，不新增框架或完整Model加载。",
+  "decisions": [
+    "390保留GPU723/keeper781 FAILED、post724 clean及8 owner close；原agent和root已分别消费已留原始数据，离线结果逐字节一致，不自动GPU重提。",
+    "CPU漏点是实际C ABI胶水被单字节假状态掩盖，最小修复为状态shape/dtype/raw bytes比较；不能把8192bytes擅自解释成F32。",
+    "24份archive已离线完成两步same-cache三路共48score及8575commit→8576precommit的cache/state承接，原件/SHA/metadata检查均通过；第二commit未执行，不能离线补成两个commit全部PASS。",
+    "Kimi389保留小幅decode/verify正结果及ON完整链资格，但完整request没有超过波动的收益，不默认晋级、不追加同grid或32target加载。",
+    "GLM原agent当前负责的512 vs8×64分析实际是Kimi MoE卡，不能记成GLM优化。baseline必须是flags3、owner TLS grouped_prefill ON的生产T512 helper，不是SDK fallback。独立源工作继续，不等390离线收尾。"
+  ],
+  "review165_followthrough": {
+    "record": "analysis/bw1000/reviews/astra-review-165-implementation.json",
+    "implemented": [
+      "387正式原archive独审无收益，positions路线PARK，不采纳7e2b；976fHC基线保留。",
+      "386/388组件与接口保留，defaultOFF，停止cache扩展。",
+      "唯一Kimi6Spec GROUPED单变量已实际执行为389，未另造完整层adapter或重测裸661；正常target32+draft清理。",
+      "GLM385 STOP、PD382 host一P一D PARK、旧run-d root已审链路复用。"
+    ],
+    "389_actual": {
+      "root_evidence": "results/bw1000/2026-11-02/Kimi389-root-audited-Model-decode-small-gain-request-flat-clean.json",
+      "decode_gain_percent": 1.4133442958164988,
+      "verify_CAPI_reduction_percent": 2.4994717188511317,
+      "full_generation_change_percent": 0.03629061634851105,
+      "OFF_full_generation_endpoint_change_percent": 0.34011535500184653,
+      "scope": "一个固定8635工具prompt、2warm+一ABBA，node0及实际node2各自本地first-last；ON约18.20至18.23tok/s，非HTTP/SSE或在线广泛SLO。",
+      "cost": {"target32_elapsed_s": 2407, "draft1_elapsed_s": 549, "all_GPU_card_seconds": 77573, "all6_visible_tokens": 348},
+      "assessment": "有真实小decode/verify改善，但完整76.5至76.8s请求持平；加载及驻留成本远大于省下的verify时间。正常ON路径可继承为工程证据，不能据此默认性能晋级或重复加载。"
+    }
+  },
+  "390_actual_and_failure": {
+    "source": "code/bw1000/Deep-C4-same-cache-numeric-r390",
+    "evidence": "L/Deep390-GPU-v1-terminal-observation-local.json",
+    "handles": "910371.723 FAILED1/59s，910407.781 FAILED1/62s，910371.724 COMPLETED0且KFD[]/matching_component_processes[]",
+    "lifecycle": "report completed=false/normal=false原值保留；8个owner.normal_close=true是失败路径清理成功，不能改原run为正常完成。",
+    "actual_work": "真实8owner原C4 prepare、SDK replay、旧paged replay；8575一共同CPU oracle通过并原commit。没有完整Model、performance_trials=0。driver46.0178s，GPU59s含准备，不能当有效计算时间。",
+    "first_step": "8575 actual_prepare/SDK/paged三路对同一CPU参考的NRMSE约8.3796e-8，TopK有效/唯一512及cutoff/tie检查通过；commit_checked=true，原记录nextstep_consumed=false因为它是第一步。",
+    "failure": "8576 precommit消费previous时，consumer.py:46 array(a[8]).tobytes()调用无dtype array；uint8 raw长度8192被直接reshape为(8,512)，抛ValueError。shape元素数4096而raw为8192bytes，证明一元素两bytes；具体dtype名称仍须actual metadata/当前enum核对，不能先写F32或任猜BF16。",
+    "retained": "8×8575-precommit、8×8575-postcommit、8×8576-precommit，共24份npz及metadata，每份在原report记录SHA。未见8576-postcommit。"
+  },
+  "offline_followthrough_completed": {
+    "root_result": "results/bw1000/2026-11-02/Deep390-root-audited-original-failure-offline-score-carry-PASS-second-commit-UNKNOWN.json",
+    "root_raw_output": "L/Deep390-root-offline-recomputed.json",
+    "root_raw_output_SHA256": "cffcc3987cbabdd33a1cfa051d093372d0199aa881dab7ce06f039df7cff90a4",
+    "agent_root_identical": true,
+    "review_action": "只读analyze_raw.py、consumer_statebytes.py、SOURCE_DELTA和root实际输出及正式结果；未重跑reader。",
+    "implemented_delta": "analysis-v1仅equal增加dtype及carry改用equal；旧cpu-v1/GPU-v1/Native不改，修复SHA c65927085ac075a81ca696c885030c39ec340900505958fba66460dc0d808157。",
+    "actual_state_metadata": "8个owner state shape[8,512]、dtype_enum9、8192bytes，首次post state与第二次before state SHA/bytes相同；原agent已查当前dtype头SHA02e1f3e4…确认enum9是BF16/2bytes，本审核消费该来源说明且实际比对不依赖数值解码。不是F32。",
+    "reader_verified": "先重建canonical原report SHA，再校验24NPZ/24metadata及每field SHA；allow_pickle=False，原consumer reference SHA固定；两个past实际数据重建并依次调用committed=True和previous=first/committed=False。",
+    "numeric_summary": {"owner_steps": 16, "score_paths_checked": 48, "max_CPU_FP8_NRMSE": 8.379634159380026e-8, "maxabs": 7.62939453125e-6, "minimum_cutoff_margin": 0.014787673950195312, "all_finite_legal_unique_TopK": true},
+    "first_commit": true,
+    "next8576_actual_original_prepare_consumed_committed_slot2143": true,
+    "actual_second_commit": false,
+    "second_commit_output_and_state": "UNKNOWN: NOT_EXECUTED",
+    "new_GPU": 0,
+    "decision": "此最小离线数值/carry收尾已完成，无需再为同原件要求GPU或重复CPU；原FAILED保留，缺失第二commit保持明确边界。"
+  },
+  "why_CPU_missed": {
+    "precise_boundary": "interface.snapshot实际读取proof_info的shape/size/dtype及proof_read的raw bytes；adapter.cpp:88给真实Tensor dtype/nbytes。但CPU fixtures把state设为np.zeros(64,uint8)，field()给dtype=-1，check_interface_CPU.info又不转发field dtype而固定-1。真实consumer和ctypes调用虽被执行，fake叶子没有保留实际生产元素宽度/状态shape。",
+    "false_confidence": "单字节state令np.asarray(raw,uint8).reshape(shape)碰巧成功；当前相同假fixture被复用于consumer、CABI和threaded score_then_commit三层，因此更多胶水测试数量没有增加该边界的真实性。",
+    "minimal_source_fix": "carry-state无需数值解码：对a[8]与old.post_commit[11]检查None、shape、真实dtype以及完整uint8 raw bytes相等。复用/修正equal函数同时比较dtype；保留各字段原用途，raw page仍按字节布局、score/scale按其真实typed contract读取。不要把array全局默认为F32，也不要仅reshape(-1)后丢掉shape/dtype检查。",
+    "minimal_existing_CPU_followthrough": "在独立不可变consumer修复中，仅把既有fixture的状态shape、dtype enum及byte长度改为actual metadata对应值，fake proof_info转发真实field dtype；使用非零多字节state通过原snapshot→validate_same_cache→previous承接。沿原负例补dtype/shape或单byte损坏拒绝即可，不另造测试框架、不重编Native、不要求另一GPU。最好直接重放已留24份真实packet；比继续堆fake分支更能检验本次错误。",
+    "preserve": "旧cpu-v1、CPU780 PASS、GPU723 FAIL原件不热改；修复的离线PASS不能回写原GPU进程退出码。"
+  },
+  "raw_sufficiency_and_limits": {
+    "why_data_exist_before_failure": "numeric_driver.precheck先retain(packets,past,'precommit')和save，再调用consumer。每个packet包含before/after_sdk/after_paged、各identity及17个field的实际shape/dtype/raw；异常发生在读取状态承接处而非GPU scorer前。",
+    "offline_can_check": [
+      "先按原report校验24对npz/metadata SHA，再逐field核对保存的SHA；按rank/past/phase配对，不重新生成状态或重算GPU输出。",
+      "8575 pre/post重新执行同一数值consumer及原commit有效cache更新检查。",
+      "8576 precommit重新执行原prepare、SDK replay、paged replay对同一个CPU oracle的score/TopK检查，不能将先前8575数值通过自动继承到8576。",
+      "按同rank验证8576的Runtime/C4owner/stream与8575一致，generation前进，before有效cache包含原commit新slot2143；状态shape/dtype/raw与8575 post state一致。",
+      "原只读lease的prepare前后/两次score前后有效cache、query、scale、positions和state不被修改，invalid raw padding保持诊断范围。"
+    ],
+    "what_is_not_proven_yet": "root已实际跑原24份raw reader并通过8576数值/状态承接，本审核读取正式输出且SHA与agent结果一致。仍未执行第二commit、8577后续或完整Model/性能；不以本离线PASS补这些范围。",
+    "second_commit_boundary": "score_then_commit的rank0 precheck位于所有owner commit之前，其他owner在barrier等待；rank0失败会abort barrier，所有rank无法进入第二commit。8576只有precommit raw，没有postcommit。离线可证明一次真实commit被下一prepare/score消费，不可证明第二commit或8577继续状态、两个完整commit生命周期。",
+    "qualification_label": "实际离线已通过：two-step same-cache score numerical PASS + first-commit-to-next-prepare/state carry PASS；second commit NOT_EXECUTED；original GPU723 ENGINEERING_FAIL_CLEAN。不是Model/性能资格，也不追溯把旧359/684所有cross-trial状态称bitwise已证。",
+    "why_no_replay_needed_now": "当前缺失第二commit不妨碍确认已有两份实际scorer输出及首次state承接；不为凑一个总PASS重放GPU。以后若另一个必要候选确实依赖第二commit再前进，才在该必要执行里覆盖其缺失边界。"
+  },
+  "production512_feasibility": {
+    "model": "Kimi；执行owner沿用原GLM agent，仅agent分工不改变模型归属",
+    "read": "analysis/bw1000/Kimi-prefill-MoE512-vs64-production-source-feasibility.json及r201实际MoE dispatch、r179 worker TLS传播、当前247 flags3链",
+    "baseline": "flags3使Input.kimi_grouped_prefill=true，由实际Runtime owner设置TLS；r201 I192 T512不eligible，但随后qualify_grouped_prefill&&T>=512进入modern_grouped_mxfp4_owned。旧661显式TLS0不是此生产T512 baseline。",
+    "causal_design": "A=一次512生产helper；B=8×64且GROUPED0/SDK；C=同8×64 GROUPED1/I192。C/A是策略整体，B/A测拆分及调用开销，C/B测I192分支。其他policy/SDK选择固定，owner TLS实际设置，不偷换baseline。",
+    "cost_boundary": "完整MoE八次共享MLP、投影、router、原TP reductions、输出保活与stitch及final drain都计入max16策略wall；不能只加kernel时间或拿661×8当对照。",
+    "input_scope": "未找到当前真实prefill512 MoE activation；现有teacher0 16行重复/重排只能构成geometry stress，不是实际prefill流量。旧routerID分布是proxy，实际512/64 router可能因舍入改变near-tie；不要求bitexact，但不能用proxy冒充真实选中expert。",
+    "decision": "允许继续一薄HOST currentDSO适配的源准备，A/B/C技术可行且不是389/T8重复；尚未实现/CPU闭合/GPU，不新加完整层adapter门禁或32target capture。若必须扩Native/私有ABI或重载Model取输入，则本源卡PARK。",
+    "Model_gain": "UNKNOWN；当前prefill中MoE独占wall未知。MoE内部切片与整个engine改64是不同改动，后者还涉及KDA/MLA非零state、capture512和ledger，不由此组件自动资格化。"
+  },
+  "next_cards": {
+    "Deep": [
+      {
+        "priority": 1,
+        "owner": "原Deep执行者/root",
+        "card": "390原24份raw离线consumer修复与复算，审核期间已完成",
+        "resource": "已有本地/远端CPU文件读取，无Slurm/GPU/Native重编或权重加载",
+        "hypothesis": "异常仅为状态byte/element消费错误，已有actual GPU输出足以关闭两步同cache数值及一次commit承接。",
+        "minimal_change": "不可变小consumer修复，shape+dtype+bytes状态比较；既有fixture改用actual metadata，原packet接口不变。",
+        "samples": "原8owner×3phase组=24份，不生成替代数据；8575 committed=True、8576 previous=8575且committed=False。",
+        "first_decision_ETA": "本审核期间root/agent已独立完成且输出逐字节相同；原规划15至30分钟，实际文件读取/校验独立耗时未记录，不造数，不等待其他模型。",
+        "wall_gain": "不测性能，UNKNOWN；原59s失败成本不能算性能轮。",
+        "exit": "已达最小数值/carry收束，停止本离线修复任务；第二commit未执行及原run FAIL保留，不再GPU重播。",
+        "fallback": "保留partial qualification，没有第二Deep性能卡，不为本次补完整Model。"
+      }
+    ],
+    "Kimi": [
+      {
+        "priority": 2,
+        "owner": "原GLM agent负责的独立Kimi MoE源工作",
+        "card": "生产512 vs8×64一薄HOST源/CPU闭合",
+        "resource": "源准备；若后续根采纳沿原提案CPU4核8GiB<=300s，不在此审核创建作业；未来候选TP16节点03/07最多600s只是未执行提案",
+        "hypothesis": "8×64私有I192在包含全部重复调用和stitch成本后可能优于真实生产T512 helper。",
+        "minimal_change": "root已采纳原agent最多一HOST r391 source/CPU，源/claim先普通push；复用当前8df/327及原weights/Runtime，仅HOST调用分块；不改kernel/Common/原Native，不改整个engine的512 metadata，GPU仍false。",
+        "first_decision_ETA": "薄wrapper与既有ABI可在约30至45分钟内给出可行/不可行结论；CPU已准备后的单次编译最多300s。若需要新大模块则立即PARK，不承诺GPU结果时间。",
+        "metrics": "后续真正执行前固定A/B/C、相同512矩阵、两种既定geometry、原数值语义与全策略wall；实际owner TLS/provider/T64计数，完整输出finite/诊断误差和正常清理。现仅源准备，没有性能样本。",
+        "wall_gain": "UNKNOWN，组件潜力不得外推整Model；389的完整请求持平已排除直接复测T8作为替补。",
+        "exit": "生产A无法准确复用、需要重载32target或扩私有Native则PARK；负组件不扩grid/Model。",
+        "fallback": "Kimi389既有微小decode收益存档且不默认晋级，无第二Kimi卡。"
+      }
+    ],
+    "GLM": [],
+    "GLM_reason": "没有新GLM候选；原385/361等STOP保持。并行做Kimi源工作不伪造GLM性能轮。"
+  },
+  "hardware_and_time": "390是host NumPy消费端shape错误，不是GPU数学失败、内存带宽或算力瓶颈证据；已执行scorer工作保留，硬件归因仍UNKNOWN。389表明T8 verify可小幅改善而整请求由prefill/其他成本主导，但这些host enclosure不等于纯kernel占比。资源利用率没有本审核的新实测，不用驻留card-seconds或空缺任务填造busy。",
+  "root_followthrough": "登记采纳390离线闭合及第二commit边界、389PARK默认晋级、Kimi生产512基线纠正；原独立源码工作继续。165后只记389一个真实因果轮，本工程审核不自增性能轮；原raw离线结果可追加同166，不再新开审核。",
+  "evidence_SHA256": {
+    "L/Deep390-GPU-v1-terminal-observation-local.json": "0cfac1406e3c28d565e1afe5b6ce2b45328bb2d91667ba53b6ccf9fa086f2520",
+    "results/bw1000/2026-11-02/Kimi389-root-audited-Model-decode-small-gain-request-flat-clean.json": "936c380722a202ebf1f4eec40bb3587c5aeea55d70e060ad899645fe3fdc29ac",
+    "code/bw1000/Deep-C4-same-cache-numeric-r390/cpu-v1/consumer.py": "d8008f77d0488215b7ea282c381bf7f8ee79b25619d78a394248750e6a6dd6bb",
+    "code/bw1000/Deep-C4-same-cache-numeric-r390/cpu-v1/check_consumer_CPU.py": "4f0b915697e35bfac226558cd44c9d6adffd7d2d817f7b3031ede51b51194a28",
+    "code/bw1000/Deep-C4-same-cache-numeric-r390/cpu-v1/check_interface_CPU.py": "7109853437f94f25dc5f302b3b0b238e527154c4e0afa64ee8018c992e754299",
+    "analysis/bw1000/Kimi-prefill-MoE512-vs64-production-source-feasibility.json": "b548fed8aaf4b135241e33b464005cc983dfc65b233cc8122e668401541e1dd5",
+    "results/bw1000/2026-11-02/Deep390-root-audited-original-failure-offline-score-carry-PASS-second-commit-UNKNOWN.json": "1ed27776f4a2f8f5bc6371e902b38dafea79d1f46819270c7df386ff2636dc1f"
+  }
+}
