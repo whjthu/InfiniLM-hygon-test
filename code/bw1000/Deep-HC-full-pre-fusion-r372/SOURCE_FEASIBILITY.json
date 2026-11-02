@@ -1,0 +1,123 @@
+{
+  "state": "ONE_STRICT_STAGED_CANDIDATE_READY_NO_GPU_YET",
+  "baseline": "Current976fHyperConnection::pre with366epilogueON, notafc6OFF",
+  "current_geometry": {
+    "T": 1,
+    "residual": "BF16[1,4,4096]",
+    "norm": "F32flat[1,16384]",
+    "GEMM": "F32[1,16384]xF32[16384,24]->F32[1,24],alpha1,beta0",
+    "output": "collapsedBF16[1,4096],postF32[1,4],combF32[1,4,4]"
+  },
+  "current_actual_call_chain": [
+    "CastBF16toF32",
+    "MulF32square",
+    "MeanF32axis1keepdim",
+    "AddFP32eps",
+    "RsqrtF32",
+    "MulF32normalizedmaterialized",
+    "F32GemmoriginalSDK",
+    "358epilogueaffine/sigmoid/softmax/pairwiseBF16collapse",
+    "originalr89Sinkhorn"
+  ],
+  "new_actual_call_chain": [
+    "castSquarecustomwritesxfF32andsquareF32",
+    "originalMeanF32",
+    "originalAddEPSF32",
+    "originalRsqrtF32",
+    "originalnormalizedMulF32",
+    "originalF32Gemm",
+    "fused358tail+literalr89Sinkhornarithmetic"
+  ],
+  "advanced_op_or_custom_entry_counts": {
+    "current": 9,
+    "candidate": 7,
+    "actual_GPU_kernel_counts": "UNKNOWN",
+    "output_poison_and_hit_memsets_each_arm_internal": 4,
+    "producerwait/staging/3outputcopies/drains": "Retainedcompletecomponentboundary"
+  },
+  "arithmetic_preserved": [
+    "OriginalMeanimplementationandgeometrynotported",
+    "OriginalAdd/Rsqrt/normalizedMulremainSDKcalls",
+    "normalizedF32materializedbeforeGemm",
+    "OriginalF32Gemmprovider/geometry/alpha/beta/transposeunchanged",
+    "358affinevolatileproduct/noFMA+sigmoid+rowSoftmaxunchanged",
+    "r89rowpairwisesum/columnleftassociativesum+everyEPS/F32divisionretained",
+    "358collapsed(a+b)+(c+d),BF16RNEretained"
+  ],
+  "current_Sinkhorn": {
+    "object": "/refactor/candidates/models-5f91ad7-r3675/Deep/helpers/sinkhorn.o",
+    "object_SHA256": "8a027b285b41f18410abc30759f9c3cc3875ee45a72680643802c43f002529b7",
+    "source_SHA256": "f254be195ce38d6399c0a55f4b4680c1eba73ac6dfe4bad392adc98d528691d4",
+    "symbol": "modern_deepseek_sinkhorn_r89",
+    "attention_sinkbroadcast9040_is_different_symbol": true
+  },
+  "dedup_closed": [
+    {
+      "path": "evidence/bw1000/Deep732-HC-RMS-qualified-negative-r7397.json",
+      "result": "M32RmsNormonesreplacementchangedreductiontree,originalstrictIDsfailedatdecode10;formalABBAstopped;notcurrentC1qualityproof",
+      "action": "DoNotRetryRmsNormonesorunknownMean/Gemmreductiontree;currentqualitypolicyallowsIDchangesbutoldrunhasnogainproof"
+    },
+    {
+      "path": "analysis/bw1000/reviews/astra-review-r8467.json",
+      "result": "Unknown-treecollapsePARKandoriginalMathScratchonlywasapproved;nofullT1fusionacceptedthere",
+      "action": "NoSumtreereassociation/newworkspacebank/forcedGraph/drainremoval"
+    },
+    {
+      "path": "coordination/tasks/Deep-HC-T1-Model-r366.json",
+      "result": "ExistingepiloguefusionacceptedonescopedModelABBA, no>15globalproof",
+      "action": "UsecurrentepilogueONasbaseline;donotrepeatoldOFFepiloguegrid"
+    }
+  ],
+  "rejected_design": "SingleCTAfullprewouldreplaceopaqueMean/Gemmaccumulationorcomputexdotfnthenapplyinvrms;cannotclaimoriginalF32normalizedrounding/reductioncontract,notimplemented",
+  "new_designs": 1,
+  "relative_benefit": "UNKNOWN untilcompleteHCprepairedwall;2fewerdispatchentries+xf/squareproducerfusion+combintermediateeliminationisameasurablehypothesis,notModelprediction",
+  "logical_intermediate_traffic_reduced_bytes": {
+    "xf_read_for_square": 65536,
+    "comb_write_and_read": 128
+  },
+  "inheritance": {
+    "reused": [
+      "CPU72449objects+exactSDK",
+      "Original172realgroups/seed/referenceSHAs",
+      "363production8ownerthread/phase/max8indexprotocol"
+    ],
+    "newly_checked": [
+      "CPU741newkernelcompile+MDfreshequals",
+      "CPU741C++newleafvs172independentNumPy/state/canary",
+      "CPU743actualheader2DSOthroughnewproductionrun_backend",
+      "CPU745actualcontrollerpreflight/noGPU"
+    ],
+    "not_inherited": [
+      "NewGPUoutputnumerics/hit/statecanary",
+      "newcomponentperformance",
+      "newModelquality/gain"
+    ]
+  },
+  "future_run": {
+    "node": "a02r4n04",
+    "parent": 910374,
+    "cards": 8,
+    "processes": 1,
+    "owner_threads": 8,
+    "physical_devices": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "fixtures": "layers0/20attn/ffn x seeds781/1889 std.5/2 BF16syntheticresidual",
+    "warm": 2,
+    "ABBA_groups": 5,
+    "calls_each_arm_block": 32,
+    "measured_calls_per_owner": 640,
+    "GPU_max_s": 600,
+    "CPU_keeper_max_s": 900,
+    "Model_loaded": false,
+    "source_claim_publish_then_freshidle_only": true
+  },
+  "stop": "Baselineindependentnumericfails->stop;candidatehit/finite/statefailurestop;nofullcomponentstablegain->STOP;noautomaticModelreload"
+}
