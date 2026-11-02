@@ -1,0 +1,113 @@
+{
+  "review": 161,
+  "date_Asia_Shanghai": "2026-11-02",
+  "reviewer": "/root/astra_review_147",
+  "state": "COMPLETE_SCOPED_MODEL_GAIN_RETAINED_NUMERICAL_DIAGNOSIS_BOUNDED",
+  "scope": "只读最新已保存证据、160落实和当前366/369少量源码；仅写本报告。不Git/status、不开CPU/GPU/Slurm、不改冻结源、不新增框架或无关门禁。root继续独立消费366原archive，独立源码工作不等报告。",
+  "rounds_since160": ["Deep366/1295真实Model六请求", "Kimi369/690单draft三几何局部裁剪，近32k数值停止", "GLM370/694原hook开销因果实验"],
+  "round_count": 3,
+  "round_policy": "369为有区分力的数值停止结果，370为观测开销负结果；均计各自一轮，不将多owner/多arm拆轮。CPU错误/编译/轮询不计；161后重新累计下一已完成真实因果实验。",
+  "review160_followthrough": {
+    "evidence": "analysis/bw1000/reviews/astra-review-160-implementation.json",
+    "Deep": "366原CPU730/731/733失败均保留；CPU732真实whole entry与734controller闭合后一次1295，未无变化重播。359继续暂停晋级，数值未知范围未被改写。",
+    "Kimi": "source依赖调查形成更小的local-mask crop369而非持久KVcache/allocgrid；CPU736证明绝对RoPE span与mask，737整入口通过后仅一张draft690，未重新加载32卡target。",
+    "GLM": "361调度grid、367gate-only/n07仍STOP。原已有5670hook经具体source审查后做一次短370开销判定，未编新kernel/Native或加载整Model；本轮该hook定量归因也应停止。"
+  },
+  "question1_real_gains_and_limits": {
+    "Deep366": {
+      "evidence": ["results/bw1000/2026-11-02/Deep366-1295-independent-Model-HC-ABBA-analysis.json", "results/bw1000/2026-11-02/Deep366-1295-scoped-Model-decision-and-cost.json", "results/bw1000/2026-11-02/Deep366-1295-source-provider-and-terminal-clean-metadata.json"],
+      "actual_scope": "一次1295 Model驻留，TP8/PP1 C1、完整8489输入、128输出预算、chunk1024、六真实HTTP/Native，2warm排除+1ABBA。基线是派生976f同coverage instrumentation的modeOFF，不是无instrumentation的原afc6。",
+      "quality_lifecycle": "六答案独立按原工具记录复算正确，98含EOS/97visible；每owner86实际HC模块/全部636forward coverage一致；正常8owner退出，1296KFD空/43882可bind。原agent独立分析通过，root正在另消费原archive，本报告不冒称其工作已完成。",
+      "paired": {
+        "Native_decode_s": [36.68450432131067,31.810429750243202],
+        "decode_time_reduction_fraction": 0.13286467028085291,
+        "HTTP_wall_s": [143.95158680947497,138.81482207938097],
+        "HTTP_time_reduction_fraction": 0.03568397434126713,
+        "backend_visible_decode_tok_s": [2.64128667268686,3.045562839758108],
+        "visible_decode_rate_gain_fraction": 0.15306031384317564,
+        "Native_prefill_s": [106.90390371158719,106.64695056993514],
+        "backend_ITL_P95_s": [0.3996382645564154,0.3490248476737179],
+        "backend_ITL_P99_s": [0.40390663880389177,0.35910177385667336]
+      },
+      "interpretation": "decode约13.29%改善显著大于同轮OFF端点约0.53%漂移；HTTP约3.57%改善大于约0.19%OFF漂移。prefill约0.24%差异不归T1-only hook收益；不把组件比率或层数外推当此Model结果来源。",
+      "coverage_counter": "CPU分支完成计数在stream drain后读取，86/86、eligible/completed等与实际schedule一致；不是GPU硬件hit readback或kernel launch计数。",
+      "decision": "KEEP_OPTIN_SCOPED_C1_MODEL_HC_GAIN，default仍OFF。3.0456tok/s不满足15，bufferedHTTP不是客户端增量TTFT/ITL；单负载单ABBA不是广泛benchmark/全局默认晋级。"
+    },
+    "Kimi369": {
+      "evidence": "results/bw1000/2026-11-02/Kimi369-GPU690-numerical-stop-audit.json",
+      "actual": "真实strict draft checkpoint+target head，单卡690；periodic synthetic BF16五tap feature，几何1024/8635/32638，不是实际targetfeatures、接受率或Model任务质量。",
+      "stop": "32638首次ONwarm完整query dispatch返回后，外部hidden比较NRMSE0.0451309超过本卡预先声明0.02，触发停止；没有近32k正式ABBA。原失败、738失败及独立clean保留。",
+      "quality_policy": "2%是这张卡的诊断停止阈值，不是用户的全局质量标准。不能下结论全局任务质量失败，也不能为了继续该卡放宽阈值或删除异常点。不同tokens可接受的政策不授权抹去本卡已触发停止。",
+      "partial_results": "1024无裁剪，median ratio1.00049、hidden/logits NRMSE0。8635 complete query median ON/OFF0.75168，约24.83%时长降低；hidden最大1.956%、logits1.611%，已保存ON七proposal全匹配。但这是先完成部分几何诊断，不能晋级全三几何或外推近32k。",
+      "unknown": "失败query的logits/proposals、per-layer值未保存，near之后context hash未到达，均UNKNOWN。finite检查已通过，但finite不等于数值等价。GEMM/SDPA shape算法、量化舍入、RoPE等具体原因均未证实，不能写确定root cause。",
+      "lifecycle": "Runtime cleanup正常、原floor通过；第三retire/close协议未完成，不能称69命令normal协议通过。原post与独立post KFD/PID/端口clean。",
+      "timing_scope": "完整DraftSession.dispatch query含guards/fences、pack/window/layers/head/selector与proposal CPU传输；不含TCP、append/seal、加载及外部数值D2H。8K24.8%不是queryRPC全成本节省或Model收益。",
+      "decision": "PARK当前crop候选；只准备最小首次分叉数值定位，不再跑同ABBA/shapegrid/target加载。"
+    },
+    "GLM370": {
+      "evidence": "results/bw1000/2026-11-02/GLM370-final-decision.json",
+      "actual": "直接原038d layer38 TP8，真实checkpoint、固定synthetic prefix512/M1，capacity640/topk2048 all-visible shortcut。96formal+16warm，数值/state通过，8normal/post695clean；无新compile/Native/整Model。",
+      "overhead": "max8完整driver OFF2.571448→ON2.968552毫秒，+15.4428%，明显超过原3%low-overhead屏障及OFF约1.989%漂移。Native wall+11.015%、owner CPU+13.210%，不能视为零扰动。",
+      "attribution": "定量region预算、可回收>=5%完整窗口与真实Model exclusive FFN/attention均UNKNOWN。原tape可保留为hook执行/相邻范围描述，不能通过减掉平均15.44%或按比例缩stage来恢复无偏归因。相邻stream/host/CPU是含队列依赖enclosure，重叠父子范围不能相加。",
+      "decision": "STOP当前5670hook作为定量预算；不重编hook/重测阈值/微grid，不用prefix512 all-visible替代8900/32K长attention。保留361/367/341/重复cache路线STOP。"
+    }
+  },
+  "question2_time_cost": {
+    "Deep366": "GPU1304秒、keeper1314秒；原loader计时375.328秒（含Runtimecreate/load/finish），六HTTP总861.108秒、六backend span861.238秒，正式四backend565.595秒。计数观察六次总0.03683秒。源码首次文件到启动约4318.86秒是实现/CPU/协调/传输的观察区间，不是activeCPU时间。CPU72416秒、7301秒、7316秒、7328秒、733/734约0秒，失败保留。",
+    "Kimi369": "GPU56秒/keeper62秒，strictloader11.657秒、driver50.247秒。避免了32卡target加载；失败发生在外部数值门，不是超时/内存或模型装载故障。一次trim发生第三context54thappend，不在query计时arm内，不能拿trim解释query比率。",
+    "GLM370": "GPU112秒，checkpoint加载每owner约1.5至3.9秒，无额外CPU Slurm构建；一次有界实验足够否定当前hook定量用途，继续微调会重付准备成本而不增加可用归因。",
+    "efficiency": "本轮Deep取得真实Model收益，Kimi与GLM以单draft/单layer有限成本排除了路径。下一轮先source/CPU定位，只有明确新机制和具体可测scope才支付GPU，更不能为填满资源重复已停路线。Slurm时间不等于GPUbusy。"
+  },
+  "question3_source_and_bottleneck": {
+    "Deep_current_source": "已读366 HyperConnection::pre：BF16→F32 flat，square/Mean/Add/Rsqrt/Mul产生normalized，再F32 GEMM产生24mixes；当前T1 ON随后调用已融合epilogue、原Sinkhorn并sync。故完整pre仍有前缀多次提交/中间张量，存在不同于epilogue单独融合的源码机会；但未测它们在epilogueON Model下的独占成本。",
+    "Deep_dedup": "下一基线必须是当前976f epilogueON，不是afc6/epilogueOFF。先去重旧five-op RMS-only、graph捕获、T512 padding/canonical、immutable-weight/cache/readback与既有负路线；不能将它们改名为full-pre新机制。旧360条件因子/冷操作数0.48FLOP/B/23高级op也不能预测新Model收益。",
+    "Deep_numeric_risk": "若把normalized F32输入与F32 GEMM改成dot后缩放或不同reduction，浮点顺序/中间舍入会改变；实数代数等价不足以声明原运算边界不变。先准确写保留/改变的cast/reduction/eps/Sinkhorn边界，不以denseTFLOPS替代T1组件/Model证据。",
+    "Kimi_source": "369保留cp>=L-4095与8draft列，首四层local、第五global不变，absolute RoPE span=L+8；private_forward仅对pinned0794 attention AST的seq_len做一处替换。CPUtiny接近等价不能证明真实BF16长序列等价。需要找第一个不同的producer，而非先假设归因于最后hidden。",
+    "GLM": "已有decode lease与descriptor/RMS缓存，剩余D2H/drain有语义；callsite多不等于可删同步。370高扰动不能提供当前Model exclusive region比例，不新增据此推演的小kernel或调度grid。"
+  },
+  "next_cards_max_two_per_model": [
+    {
+      "model": "Deep", "priority": 1, "card": "源码先查相对epilogueON的完整T1 HC pre融合",
+      "hypothesis": "在保持当前epilogueON效果的基础上，合并仍存在的norm→mixes前缀/必要边界可降低完整HC pre，而非只优化已融合部分。",
+      "minimum_change_now": "只读精确976f源码/对象/当前SDK，列数据流、中间buffer和同步所有权；与旧负路线去重。选一个能解释额外消除何种完整成本的私有实现方案，先不编排新Model加载。",
+      "owner_resource": "原Deep agent/root；source/CPU-only阶段0GPU，复用CPU724/172oracle与358/363/366既有资源边界，不新增当前GPU claim。",
+      "reuse": "366已审Model结果、358/363同process8owner经验、当前86HC小参数/两residual seed、原owner affinity和loader胶水。",
+      "quality_boundary": "明确F32norm/GEMM与BF16collapsed、eps、24mixes、4post/16comb及原Sinkhorn的舍入顺序。若候选数值路径改变，沿既有独立CPU oracle/finite/canary/state完整链验证，不引GPU F64、不自创逐bit用户门槛。",
+      "later_sample_if_selected": "真正有不同机制时才建一张完整HC pre组件卡，以epilogueON为OFF参考、同sharedprocess8owner固定fixture，2warm+既有5ABBA全CAPI/Cpp/checkedenclosure。不能把旧OFF收益重复记入。组件没有稳定新增收益则不Model加载。",
+      "potential_Model_wall": "UNKNOWN；366已有decode-13.29%不等于剩余前缀仍可提供同量收益。",
+      "first_decision_ETA": "source去重/方案判定目标20至40分钟；如无新的可消除边界即停止，不无期限收集。CPU实现和后续测量准备时间UNKNOWN。",
+      "exit_upgrade": "若只是重做旧RMS/graph/epilogue或需改变权重/拓扑，拒绝当前卡；有明确新完整成本才推进原有限组件路径。",
+      "fallback": "保留366 opt-in窄范围，不重跑六请求确认已得到的收益；359仍暂停晋级。"
+    },
+    {
+      "model": "Kimi", "priority": 1, "card": "369首层数值首次分叉定位准备",
+      "hypothesis": "近32k差异在裁剪形状引起的K/V投影或attention归约等某个具体边界首次出现；目前原因UNKNOWN。",
+      "minimum_change_now": "冻结原checkpoint、synthetic seed、32638 context、anchor、dp/cp/absolute_span及原失败阈值，先source/CPU核对localmask保留列逐行映射与RoPE位置。准备只读诊断副本，失败前先保存有界逐stage数值摘要，避免assert前丢掉首分叉证据。",
+      "owner_resource": "原Kimi执行者/root；先source/CPU小步0GPU，不重跑原690或32target；本审核不启动新单draft作业。",
+      "minimal_boundary_plan": [
+        "同一first-layer输入下，比较full路径保留行的norm/K/V与crop路径重算的对应行，验证绝对位置/mask逐项一致。",
+        "若投影已分叉，在该producer停止向后归因；可用full路径投影后切片作为诊断中间参考，将projection shape与attention shape分开。",
+        "若输入K/V一致，再用同一Q/K/V比较full masked attention与crop attention输出；首个分叉后才考虑继续到residual/MLP及第二层，不先遍历所有kernel算法。"
+      ],
+      "quality_boundary": "保存首层输入/输出hash、finite、norm、relative error和最大误差位置的有界摘要；不发布raw激活。没有原failed perlayer数据就明确下一诊断才会产生，不补写旧690。不同tokens政策不把本卡4.51%自动转成通过，也不等于全局任务失败。",
+      "potential_Model_wall": "UNKNOWN；8635query约-24.8%不证明near32k或接受率。原r368成本约束仍在：固定其余条件near>15需queryRPC节省>75%，仅query归零仍不足33卡首请求per-card门槛。",
+      "first_decision_ETA": "source/CPU索引与第一层对照设计目标20至30分钟；真实BF16首分叉可能需后续单卡有界诊断，必须由具体新source/scope决定，当前无新GPU或性能ABBA安排。",
+      "exit_upgrade": "不要放宽2%或重放计时grid。若source语义不成立就修准确边界；若仅定位浮点差异，先量化到实际输出/接受率所需证据，不宣称质量通过。未形成可解释修复不target加载。",
+      "fallback": "封存当前crop与部分8K计时；保留run-d真实功能/窄backend证据，不恢复allocgrid或持久KV缓存猜测。"
+    }
+  ],
+  "GLM_next_decision": {
+    "active_new_cards": 0,
+    "decision": "停止高扰动5670hook的定量归因、hook重编/阈值调整、微grid与profile-only Model重载；当前没有来自无偏预算的新机制卡，不为凑并行度虚构候选。",
+    "conditional_reuse_only": "仅当以后另有独立必要的真实Model资格验证时，才可source绑定已有r131 precreated event pool/有界M1 observer并测其自身OFF/ON开销；不能把Model observer API套到任意component指针，也不能继承370 stage比例。此项不是现在新增运行卡。",
+    "retained": "349长prefill、355defer窄收益保留；361/367/341/重复cache STOP保持。"
+  },
+  "root_actions": [
+    "消费366原archive并确认同976f OFF/ON身份、六任务gold、counter范围和normalclean；采纳窄C1 opt-in，不以新Model结果冒称15或默认晋级。",
+    "Deep下一只做epilogueON之上的完整pre源码去重/可行性，未发现新机制前不重复组件或Model。",
+    "Kimi保留690原停止条件与局部8K结果，先定位第一层首分叉；不放宽阈值、不凭finite或proposal部分相同宣称near通过。",
+    "GLM停止污染hook定量用途，不从失真tape推可回收预算，释放资源给具体独立工作。",
+    "161后重新计数，最多一个周期审核；本报告发布不阻塞已经独立推进的源码读取。"
+  ],
+  "limits": "只有366新增真实Model收益；369失败和370负归因均有明确证据边界。下一卡都是源码/诊断准备，非新增GPU或全面模型资格。所有后续实际耗时、样本与失败按原句柄留证，不把准备PASS当执行PASS。"
+}
