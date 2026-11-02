@@ -1,0 +1,158 @@
+{
+  "review": 170,
+  "state": "COMPLETE_RECOMMENDATIONS_FOR_ROOT_ADOPTION",
+  "scope": {
+    "basis": "coordination/ASTRA_REVIEW.zh-CN.md；已读 AGENTS 和 169 implementation",
+    "trigger": "反复实际入口/报告路径工程错误，提前审核",
+    "causal_rounds_since_169": 1,
+    "causal_event": "Deep397 GPU1325 / keeper795 固定 teacher 368 forward 数值诊断",
+    "not_performance_rounds": "CPU 构建、入口修复和 Deep399 GPU1329 报告路径异常",
+    "review_actions": "仅阅读当前源、已有实际回执及根独审；只写本文件，未运行测试、GPU、Git 或新增框架",
+    "independent_work_continues": true,
+    "review_is_not_execution_permission_gate": true
+  },
+  "169_followthrough": {
+    "evidence": "analysis/bw1000/reviews/astra-review-169-implementation.json",
+    "state": "COMPLETE_ADOPTED",
+    "397": "792 原入口回执已复用，未重复 CPU；实际 1325 已完成，不再停留在 source-ready 标签。",
+    "399": "793 provider 对象复用，794 HOST mutable seam 已闭合；当前797库已完成 CPU / link / recording。1329 新错误在 Python main 报告文件交接，不回退为 vendor 编译或图能力失败。",
+    "398": "789 caller/库闭包复用；796 direct consumer、798 Work-owned SelectionMap 是具体必要增量，非无变化重编。下一执行必须绑定798新库，不能仍用789旧库SHA冒充已修复。",
+    "retained": "395 原8GiB loaded admission 拒绝、391完整策略STOP、393工具质量FAIL、PD382负结果PARK不变。"
+  },
+  "four_questions": {
+    "actual_Model_or_service_gain": "本轮新增整模型/真实服务收益为 NONE。397 是有区分力数值诊断，398 是 CPU 工程闭合，3991329 没有持久化完整功能或性能结果。历史 scoped 正结果保持历史范围，不替代当前质量或设备证明。",
+    "time_cost": {
+      "397_GPU_seconds": 1041,
+      "397_keeper_seconds": 1056,
+      "397_loading_seconds": 383.348672460299,
+      "397_allocated_card_seconds": 8328,
+      "397_observed_decision_wrapper_seconds_each": [37.6874035038054, 34.58163555664942, 34.969587380066514, 38.9442831100896],
+      "397_timing_limit": "每项为84个observed decision的Native调用+counter/finite/top8诊断；不含前8个prefill chunk和report JSON IO，不是纯GPU或完整序列性能。",
+      "399_failed_step_seconds": 44,
+      "398_changed_HOST_CPU_seconds": 26,
+      "unknown": "排队、人工准备等待与GPU busy时间缺完整时间线，UNKNOWN；驻留card-time不当利用率。无需新增等待图表，优先让当前具体修复完成原结果。"
+    },
+    "bottleneck_scope": "397 证实返回BF16与相对分数存在同mode重复差异，未证计算/通信/reset/硬件原因。398 持久V省内存与kv_b重算/临时空间的权衡尚未设备测量。399 已证报告变量覆盖，未证vendor捕获不支持；当前没有可用于Model加速外推的图性能结果。",
+    "routes": "397先消费已完成原轨迹与现有ownership源审，不第五序列/重载；399仅driver修复原卡；398继续已准备attention-only原范围；Kimi不凑新卡。"
+  },
+  "Deep397": {
+    "root_result": "results/bw1000/2026-11-03/Deep397-root-audited-fixed-teacher-repeat-differences-clean.json",
+    "root_executed_original_reader": true,
+    "reader_SHA256": "b72f022223a3760aac2493673f7b88ff119bf222d77fcaab3c19198b459e5a3c",
+    "original_archive_SHA256": "ebd6b3852bcd5c18a6217ac6a1c51970bfb404748cb906d278c886a08a090f9c",
+    "actual": "1325 COMPLETED0 / 1041s，795 COMPLETED0 / 1056s；4 reset、HC0110、368forward、每序列84decision；8实际owner线程退出，post1326及独立1327 clean。",
+    "numerical_facts": {
+      "same_chosen_IDs_across_all_four": 84,
+      "first83_matches_frozen_teacher_each": 83,
+      "old393_wrong28302_at_output83_reproduced": false,
+      "within_mode_full_BF16_hash_equal_counts": [0, 0],
+      "first_hash_difference_index_each": 0,
+      "OFF_repeat_fixed_ID_gap_to_top1_max_abs_delta": 8.0,
+      "ON_repeat_fixed_ID_gap_to_top1_max_abs_delta": 5.4375,
+      "output83_correct_minus_old_wrong_scores": [10.0, 8.0, 8.0, 2.0],
+      "output0_HC_T1_eligible_and_completed_each_owner": 0,
+      "current_tie_observed": false
+    },
+    "interpretation": [
+      "当前序列尚无T1候选调用的output0已出现重复差异，因而当前序列T1 HC执行不是该早期差异的必要条件；这不排除其他状态、顺序或此前序列影响，也不构成特定根因。",
+      "hash不相等本身不是新增逐位质量拒绝门槛；相对gap也有差异，不能把全部现象解释为共同加性偏移。没有保留完整vector，不能补算full-vector误差。",
+      "F32数值是返回BF16的精确展开，不是precast F32 logits。当前无tie不能排除原393未保存logits的near-tie。",
+      "teacher强制轨迹不等于自由生成、工具gold、自然EOS或HTTP；84 chosen一致不恢复393的已失败工作负载资格。"
+    ],
+    "ownership_scope": "父协调者已完成源读核并报告排除明显Python借用buffer；本审读到summary即时astype扩展、tobytes hash、标量结果记录均在下一forward之前。此证据不证明Native内部异步/状态完全正确，不将ownership假设升级为已证根因。根result旧ownership pending措辞可在其既有结果维护时按已完成源读核消歧，不新增报告链。",
+    "cause": "UNKNOWN",
+    "next": "保留原393 FAIL和397诊断原件；现无足够证据支持盲重同4序列或完整Model。仅从已有source/轨迹提出能区分的具体原因后，再决定必要最小消费者。"
+  },
+  "Deep399": {
+    "actual_failure_evidence": "L/Deep399-1329-original-log-and-accounting.json",
+    "original_log_SHA256": "094aa5c1270f459c7de161f1739059a0ac8d6b3afa168c2b2b20807ad8f3fdf1",
+    "actual_GPU": "910374.1329 FAILED1 / 44s",
+    "independent_post": "910374.1330 COMPLETED0，PID/KFD clean；没有监听端口",
+    "source_reviewed": "code/bw1000/Deep-fixed-Gemm-Cast-graph-r399/gpu-v1/GPU_driver.py 与 check_entry_CPU.py",
+    "exact_cause": "main先令path为results报告路径，save闭包运行时读取该局部变量；dladdr循环又赋值path=provider真实路径。首pattern observe因而写libcublas.so.12.6.3.tmp，readonly目录拒绝。",
+    "coverage_gap": "旧CPU只调用实际execute_session，observe=lambda无写盘，另测Controller；没有执行实际main的manifest/receipt→dladdr→report path→session→finally真实文件消费。局部测试是真，但不足以覆盖这次失败边界。",
+    "qualification_limit": "栈位置与源码控制流可推断运行经过首pattern之前的阶段，但缺少持久化pattern数值/计时/完整close回执，不能据此宣布capture、99/100调用、三pattern数学或Runtime正常destroy通过。外部post clean不替代内部正常生命周期stamp。此失败也不证明vendor不支持图。",
+    "minimum_repair": [
+      "新immutable driver使用report_path和vendor_path不同名字，save固定使用report_path；不触碰provider、Runtime数学或797库。",
+      "同一次既定CPU直接调用实际main，recording CABI/设备叶子，真实临时目录和实际save/replace；三个pattern、provider路径消费、最后报告解析与正常close计数一并穿过。不能再次只测execute_session。",
+      "原primary错误先保留；finally保存或cleanup失败只能追加secondary证据，不能用后续save异常覆盖首异常。用这次真实文件消费同时确认，不新增报告框架。"
+    ],
+    "reuse": {
+      "CPU": "910407.797 COMPLETED0 / 14s",
+      "receipt_SHA256": "fb9a1624c50386f43a18dbff6944aabbc29e7b570a7ad4750c61435a539bb0dc",
+      "library_SHA256": "116f6ecb310d1bb8a5d1a47e026822cddba2e5a800b45f7f660d137034f55aa2",
+      "recompile": false
+    },
+    "authorization": "root已给有界driver修复及原scope一次changed-source继续授权，不等待本报告；原1329保持FAIL，不热改旧源。"
+  },
+  "GLM398": {
+    "actual_receipt": "L/GLM398-lifetime-CPU-first-observed.json",
+    "CPU": "910407.798 COMPLETED0 / 26s",
+    "receipt_SHA256": "92103aba80235b27780abf942a43ad2e4a3cdc80119143297285e768c89d9f7c",
+    "source_manifest_SHA256": "b799ed6f8ba0a8d36408d1f2d8fba82c0f4b5713ea369d146e3e51136628ce3c",
+    "new_library_SHA256": "fe3c3f39bc2903b2d6076a1275f25db9304579eccb0f8a6fb494c157e1f75eed",
+    "new_HOST_TUs": 1,
+    "source_review": "device-v1/lifetime-v2/attention_component_r398.cpp中SelectionMap成为Work成员；既有Work析构先syncStream，之后成员析构释放host map与held tensors。保活跨异步H2D的host selection合理，不新增数学或额外同步。",
+    "reuse": "保留此前caller/provider对象；无需再做789/796/798相同CPU。",
+    "scope": "原8卡attention-only，synthetic hidden/selection+真实checkpoint权重；不是Model routing/完整Model。Direct V、attention和hidden数值及完整wall尚待实际设备，省5GiB为特定stage逻辑bank潜力，临时peak与loaded admission仍UNKNOWN。",
+    "continue": "绑定798新库与最终源，按已准备原claim继续；不因399修复或397数值未归因而全局等待。"
+  },
+  "next_cards_at_most_two_per_model": {
+    "Deep": [
+      {
+        "priority": 1,
+        "card": "399 driver-only原Runtime设备图能力卡",
+        "hypothesis": "修正报告交接后，现有797库可完整完成原固定buffer eager/graph三pattern功能与成本观察",
+        "change": "仅report_path/vendor_path及primary保存；库与数学不变",
+        "owner": "/root/glm_operator_tuning",
+        "resource": "原910374/a02r4n07单卡、原有限时claim；本审不改变预算或启动",
+        "first_verdict": "CPU真实main文件消费应在原CPU预算内先给入口结果；设备一次原scope，精确耗时UNKNOWN，不把先前44s失败当性能预测",
+        "reuse": "CPU797库及实际依赖；原execute_session",
+        "samples": "三个输入pattern，各eager/graph warm后OFF/ON/ON/OFF，原16loops；一次prepare/capture，原99eager/100replay和owner拒绝检查",
+        "numeric": "原F32/BF16 finite及CPU oracle误差、canary和变化输入；不增逐位门槛",
+        "wall_scope": "private prepared eager相对graph的完整完成wall、prepare/capture单列；private eager包含SetWorkspace，不等同production Generic基线；Model影响UNKNOWN",
+        "exit": "任一实际语义/数值/生命周期失败保留首错停止；若仅组件小收益无Model连接，不支付完整Model加载或重复grid",
+        "fallback": "消费已保存诊断，PARK无证据的Model外推"
+      },
+      {
+        "priority": 2,
+        "card": "397现有数值证据收束，非新GPU卡",
+        "owner": "/root 与 /root/deep_operator_tuning",
+        "hypothesis": "现有证据是否能排除具体ownership解释；已完成部分直接复用",
+        "change": "仅对已完成源审与结果措辞消歧，不追加instrumentation或第五序列",
+        "resource": "本地只读，无GPU/加载",
+        "first_verdict": "现有84decision与源读核已可判；原因仍UNKNOWN即可收束",
+        "samples": "复用4序列368forward，不增加样本",
+        "numeric": "保持返回BF16、同mode和相对gap范围；不补造未保存fullvector",
+        "wall_scope": "不测性能",
+        "exit": "无具体可区分原因时停在UNKNOWN，保留393 FAIL，不重同输入Model",
+        "fallback": "让独立399/398先产出实际结果"
+      }
+    ],
+    "GLM": [
+      {
+        "priority": 1,
+        "card": "398原attention-only V按需重算权衡",
+        "hypothesis": "去持久V的空间收益是否能以可接受的完整attention成本换取",
+        "change": "已完成Work-owned SelectionMap保活；数学与原caller不变",
+        "owner": "/root/kimi_operator_tuning",
+        "resource": "既定8卡、<=600s attention-only claim，非完整Model",
+        "first_verdict": "798入口闭合已完成；下一原设备驻留内，加载/seed/数值/测量分列，实际耗时待回执",
+        "reuse": "798新库fe3c3f与未变caller/provider、原真实loader/consumer",
+        "samples": "原U2048与U32768两geometry，各warm OFF/ON再ABBA；不扩grid",
+        "numeric": "原direct V/attention/hidden有限值与误差、边界及清理",
+        "wall_scope": "完整attention与checked消费者分别报告，prefix seed/load/全部卡成本保留；Model影响UNKNOWN",
+        "exit": "数值/状态失败停止；重算代价抵消空间用途则PARK，不降低8GiB loaded floor，不盲载Model",
+        "fallback": "保留395 admission拒绝，等待不同且有依据的内存机制"
+      }
+    ],
+    "Kimi": [],
+    "Kimi_reason": "本轮无新的独立Kimi候选；不重复391/缓存负路线凑卡。"
+  },
+  "minimum_process_followthrough": [
+    "只把真实生产者到最终消费者的断点接入已有CPU：本次是main路径变量和真实save，不增加更多不稳定AST/metadata gate。",
+    "一个结果文件保留primary与secondary错误及最后持久化阶段；避免三个finally/save失败覆盖首错后再写多个解释报告。",
+    "成功对象、CPU和原reader继续复用；只编/测确实变化的接口。CPU通过和控制流推断均不写设备PASS。",
+    "root逐项登记采纳即可，独立已授权修复继续；本审核不等待399新回执、不另开审核、不为未知原因新增Model加载。"
+  ]
+}
