@@ -1,0 +1,74 @@
+{
+  "schema": 1,
+  "state": "PREPARATION_ONLY_PENDING_ACTUAL_NATIVE_STATE_INTERFACE",
+  "GPU_GO": false,
+  "Model_GO": false,
+  "No_Git_this_turn": true,
+  "no_transfer_or_model_started": true,
+  "preferred_pair": {
+    "parent": 910376,
+    "P_node": "a02r4n12",
+    "D_node": "a02r4n13",
+    "P_TP": 8,
+    "D_TP": 8,
+    "PP": 1,
+    "P_GPU_cards": 8,
+    "D_GPU_cards": 8,
+    "not_yet_claimed": true,
+    "fresh_before_actual_GPU": ["membership", "all_numeric_steps", "label_duplicate", "KFD", "owned_processes", "16GPU_PCI_and_binding", "ports"]
+  },
+  "first_baseline_route": {
+    "path": "P_GPU -> explicit pack -> pinnedhost D2H -> TCP over IPoIB -> pinnedhost H2D -> D_GPU -> unpack -> complete GPU fence -> ACK",
+    "network": "ib0 P12.1.2.72 -> D12.1.2.73",
+    "pairing": "P_local_TP_rank i -> D_local_TP_rank i, i0..7; no TP allreduce substituted for state migration",
+    "candidate_ports": [49181,49182,49183,49184,49185,49186,49187,49188],
+    "chunk_bytes_max": 67108864,
+    "pinned_slots_per_owner": 2,
+    "pinned_host_bytes_per_owner_max": 134217728,
+    "no_hidden_fallback": true,
+    "RDMA_claim": false,
+    "multi_rail_claim": false,
+    "future_hostverbs_arm": "Separate, source-qualified arm may register these host buffers with libibverbs; do not label TCP as RDMA",
+    "future_device_RDMA_arm": "Only after actual GPU-pointer registration and current container UCX/HIP consumer qualification. UCX rocm(reg,cache) advertisement alone is not success. No automatic fallback during timed scope."
+  },
+  "payload_shape_dependency": {
+    "owner": "glm_operator_tuning current976f Native/SDK investigation",
+    "must_freeze_before_GPU": [
+      "actual checkpoint, Native976f and SDK SHA",
+      "TP8 owner index, rows1 capacity32768 and exact layer count",
+      "all active KV/cacheVec tensor dtypes/shapes/strides/storage offsets and live-prefix ranges",
+      "compressed/sliding/indexer or other attention state; do not assume plain2xLxheadKV",
+      "non-Tensor metadata: rowID/past/compression positions/window validcount and any pre-skip/recurrent state",
+      "prefill final-output/next-token handoff boundary and RNG/sampling state where present",
+      "export synchronization and D import ownership/reset/destroy semantics"
+    ],
+    "numeric_bytes": "UNKNOWN pending actual interface; neither use padded capacity bytes as live payload nor divide replicated state byTP8 without source proof",
+    "minimal_geometry_set": "Only exact short/long PD workload prefix lengths selected by root after ABI investigation; no arbitrary size or rail grid"
+  },
+  "bounded_microbenchmark_proposal_not_a_claim": {
+    "max_GPU_seconds_including_setup": 300,
+    "max_CPU_keeper_seconds": 600,
+    "GPU_cards": 16,
+    "model_weights": false,
+    "one_attempt": true,
+    "per_geometry": {"untimed_labeled_warm_transfers": 1,"fixed_formal_transfers": 3},
+    "source_and_CPU_manifest_required_before_GPU": true,
+    "future_actual_GPU_requires_new_published_resource_claim": true,
+    "no_timer_started_now": true
+  },
+  "transport_microbenchmark_validation": [
+    "Synthetic GPU bytes follow actual frozen state layout, deterministic layer/owner/offset pattern and distinct epoch/row/past headers",
+    "Full payload digest and canary validation at receiver after GPU copy fence; exact raw bytes transport, no floating-point tolerance used to excuse corruption",
+    "Reject truncated, reordered, foreignowner/checkpoint/epoch/past/shape frames before publishing imported state; failed transfer leaves D unpublished",
+    "Record all8 P/D owner counts, exact logical bytes, wire bytes, startup, pack, D2H, network, H2D, unpack and sender-local finalACK envelope separately",
+    "No crossnode clock subtraction. Sender local end-to-end ACK must include receiver completion, with own-node phase timers only",
+    "Synthetic transfer pass proves byte/state-frame transport only, not actual Native import/next-token correctness or Model performance"
+  ],
+  "actual_PD_Model_qualification_required": [
+    "P performs real prefill once. Export every required state tensor and metadata, then D resumes from imported state without recomputing prompt",
+    "Compare same loaded-source baseline continuation with same prompt, first carried token, complete generated timeline/EOS/tool answers; full floating state only diagnostic underQUALITY",
+    "Explicit epoch/row ownership and reset/cancel/failure cleanup on both P and D; all16 owner normal shutdown plus CCL/Slurm/srun/CPUkeeper/PID/KFD/ports",
+    "Count all16 P+D service cards, including idle resident stages, load, pack/copy/network/import and admission/queue. Report per-user TTFT/ITL/decode, total throughput and throughput per all-service-card",
+    "Offline fixedcohort is not online SLO. Transport-only bandwidth is not PD Model gain. No deviceRDMA claim without actual path evidence."
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "scope": "CPU-only resource/interconnect inventory preparation",
+  "GPU": 0,
+  "model_loaded": false,
+  "node_CPU_step_submitted": false,
+  "failure": "squeue: error: Invalid job step format specification: T; subsequent active-node assertion stopped before srun",
+  "cause": "Step-mode squeue does not support job-state %T format; no resource-busy conclusion follows",
+  "minimal_repair": "Use only supported stepID/name/node fields %i|%j|%N; retain blocked-node skip and one CPU-only probe",
+  "second_pre_CPU_skip": {
+    "node_CPU_step_submitted": false,
+    "GPU": 0,
+    "failure": "Selectedcandidatehasactivestep;noCPUprobe",
+    "actual_steps": ["910376.batch", "910376.extern", "910380.batch", "910380.extern"],
+    "cause": "Allocation batch/extern were incorrectly included as active numeric child steps; no numerical child task was present",
+    "minimal_repair": "Only parent.numeric step IDs enter dedup; do not treat persistent allocation shell as resource busy",
+    "raw_path": "L/Deep381-fresh-allocation-and-interconnect-once.json",
+    "raw_SHA256": "3bdc1345db14d51b2df6391727eb99d6646f36e64b11b1d342393fce3bf0f81d"
+  },
+  "after_both_preCPU_repairs": "Exactly one actual two-node CPU-only inventory 910376.832; no model, GPU, benchmarktimer or networktransfer was started"
+}
