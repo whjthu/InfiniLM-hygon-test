@@ -1,0 +1,132 @@
+{
+  "id": "Kimi-draft-KV-guarded-FP16-r380-gpu-v1",
+  "CPU761_receipt_SHA256": "5f85bb5d2006d8d7e6b04f1ec2ec261d6a0e065627fd277ff06127a1791bfb3d",
+  "CPU761_source_manifest_SHA256": "9ac3793ad275db9e1b24bf9e8dd4652ddec5ebb9ab78453158c38f14b0f48fa3",
+  "production_dependencies_SHA256": {
+    "/refactor/incoming/dflash2_creator_factory_r9007.py": "e62831319cfb85739bd7410dd51daa8bee116a45e8784d9e639a90059ef9556d",
+    "/refactor/incoming/r9000_torchspec_dspark.py": "0794d502e5be22cacd7bdc27cdf128107a1d35b2303da8de204a1422b6eb6382",
+    "/refactor/incoming/r9000_torchspec_dflash2.py": "195dfadcab1c3c4fb2fdc76428dc5b19fa6af2e2358ba3b9b58c38d5d9f03fad",
+    "/refactor/incoming/dflash2_strict_loader_r9007.py": "168610216e11662d74278f33c46a9b5197c7779314ebbc3ef3ccbf24bf3c2c19",
+    "/refactor/incoming/config.json": "aac0900105b9099b99a452c728ff9c4685889d264f7bed0101e57788df8f09c8",
+    "/refactor/incoming/actual-safetensors-header.json": "d250fe199d420a34c0bba811511d6e0ee79f11c95ad8f9482cd014ce9180fb24"
+  },
+  "claim": {
+    "id": "Kimi-draft-KV-guarded-FP16-r380-gpu-v1",
+    "parent": 910371,
+    "node": "a02r3n07",
+    "cards": 2,
+    "processes": 2,
+    "tasks_per_node": 2,
+    "cores_per_task": 4,
+    "memory_MiB": 64000,
+    "GPU_hard_s": 600,
+    "driver_absolute_s_from_original_start": 570,
+    "inside_timeout_s": 585,
+    "kill_on_bad_exit": 0,
+    "CPU_keeper_parent": 910407,
+    "CPU_keeper_node": "a14r2n20",
+    "CPU_keeper_cores": 1,
+    "CPU_keeper_memory_MiB": 4096,
+    "CPU_keeper_hard_s": 900,
+    "rank_mapping": [
+      {
+        "rank": 0,
+        "physical_mask": "0",
+        "Torch_visible_device": 0,
+        "layer": 0
+      },
+      {
+        "rank": 1,
+        "physical_mask": "1",
+        "Torch_visible_device": 0,
+        "layer": 4
+      }
+    ],
+    "fixed_cases_per_rank": [
+      {
+        "projection": "KVA",
+        "M": 32646,
+        "K": 7168,
+        "N": 576,
+        "seed": "380000+100*rank+case_index",
+        "input_scale": 0.1
+      },
+      {
+        "projection": "KVB",
+        "M": 32646,
+        "K": 512,
+        "N": 16384,
+        "seed": "380000+100*rank+case_index",
+        "input_scale": 1.0
+      },
+      {
+        "projection": "KVA",
+        "M": 8,
+        "K": 7168,
+        "N": 576,
+        "seed": "380000+100*rank+case_index",
+        "input_scale": 0.1
+      },
+      {
+        "projection": "KVB",
+        "M": 8,
+        "K": 512,
+        "N": 16384,
+        "seed": "380000+100*rank+case_index",
+        "input_scale": 1.0
+      }
+    ],
+    "M8_not_current_uncached_fullKV_or376_M16": true,
+    "candidate_count": 1,
+    "warmups_per_case": [
+      0,
+      1,
+      0,
+      1
+    ],
+    "formal_groups_per_case": 5,
+    "formal_arms": [
+      0,
+      1,
+      1,
+      0
+    ],
+    "measured_calls_total": 160,
+    "numeric_qualification_calls_total": 16,
+    "warm_calls_total": 32,
+    "real_weight_unsafe_range_probe_calls_total": 4,
+    "wrapper_calls_total": 212,
+    "candidate_timing": "All percall finite/range guard, inputFP16cast, F.linear, outputfinite check, BF16backcast, final drain; no cast/guard amortization",
+    "one_time_weight_conversion_and_H2D": "Reported separately and resident private memory count; each GPU onlyits layer2weights, each process reuses exact CPU761 fourpayload loader and reads four bounded payloads50MB",
+    "numerics": "Actual originalBF16 against independent CPU fullK/3alignedrows/32cols first; candidate against independent half reference, wholeoutput candidatevsBF16 GPUF32 NR<.02; finite/state and actualhit required",
+    "fallbacks": "Any measured fallback invalidates pureFP16 fastarm, wall retained; CPU outputoverflow fallback not claimed GPUqualified. Only input65536 range fallback deliberately probed on each realweight projection",
+    "precision_policy": "Request FP16reduced_precision_reduction=False and FP16accumulation=False where API exists; BF16policy unchanged. ISA/actualaccum/backendFTZ unknown until numericobservations, no scalarpeak projection",
+    "partial_failure_evidence": "Save actual qualification metrics before numericstop; save completed ABBAgroups outside measuredarms; other rank continues",
+    "one_attempt": true,
+    "fresh_source_DSO_checkpoint_header_payload_sacct_dedup_KFD": true,
+    "post_KFD_matching_processes": true,
+    "Model": 0,
+    "full_draft": 0,
+    "target": 0,
+    "head": 0,
+    "new_HIP_or_tilegrid": false,
+    "Model_gain": "UNKNOWN",
+    "publish_before_GPU": true,
+    "current_GPU_submitted": false,
+    "baseline_timing": "Direct original nn.Linear(x), no new wrapper identity/count overhead; actual completed-call counter updates after timed drain",
+    "baseline_call_counters": "Driver-observed completed originalLinear calls, not hardware kernel counters",
+    "GPU_output_overflow_fallback_qualified": false,
+    "CPU_output_overflow_fallback_qualified": true,
+    "numerical_failure_metrics_retained": true
+  },
+  "files_SHA256": {
+    "controller.py": "2a419490d586501cff90552689ba2b825b67fb2261767e3bb075e7ac21ac861f",
+    "GPU_driver.py": "d2fb16818915b4e4ce3e36ad58b25be27a54ade9c920e83c6d7f1d4ed8aba1ac",
+    "GPU_inside.sh": "54af5c0fd70321228c391268ef203b98204830096a7d0237a8e467b08e1e5ca5",
+    "guarded_linear.py": "94607a398a18f1c4622d3b738bc31e5796b225dc2c0fb5f20b1826b2e4895242",
+    "idle.py": "f6b9067044f30a9c7419cfe0be4b238c81635a8c0c5aa5ad54b3a4b0d11a8e91",
+    "launch_once.py": "f3449f7a72528d13db59cfd50558943cd2b3eadc846762f7e40703f35c298c8b",
+    "reference.py": "cdc7a61f5ff3d452298741eb370001a95dbe5a8460189117dd3cae5b0b1eb2ec",
+    "tiles.py": "53ba8861e4cf8eeea18a4e20f1743e40d2a3c5162a329b61c3853b0501a98845"
+  }
+}
