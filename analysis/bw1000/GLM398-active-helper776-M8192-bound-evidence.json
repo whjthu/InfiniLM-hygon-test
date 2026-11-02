@@ -1,0 +1,78 @@
+{
+  "schema": 1,
+  "scope": "Read-only actual helper binary guard and MD header evidence after failed729; no build/GPU/Model",
+  "actual_CPU": "910407.798",
+  "CPU_receipt_SHA256": "92103aba80235b27780abf942a43ad2e4a3cdc80119143297285e768c89d9f7c",
+  "actual_deployed_library": {
+    "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/glm-grouped-native-model-r5117/helpers/libglm_fp8_batched_r776.so",
+    "SHA256": "e32b4dc2749b4012efbf4322d334b6460dd091190bca78bb8f41e4384f09a7e8"
+  },
+  "dependency_binding": "e32b4dc2749b4012efbf4322d334b6460dd091190bca78bb8f41e4384f09a7e8",
+  "binary_symbol": "glm_fp8_create_r776",
+  "symbol_address": "0x11340",
+  "binary_guard_excerpt": [
+    "   11366:\t49 89 d7             \tmov    %rdx,%r15",
+    "   11369:\t48 8d 42 ff          \tlea    -0x1(%rdx),%rax",
+    "   1136d:\t48 3d ff 1f 00 00    \tcmp    $0x1fff,%rax",
+    "   11373:\t0f 87 4b 02 00 00    \tja     115c4 <glm_fp8_create_r776+0x284>"
+  ],
+  "proven_M_bounds": {
+    "min": 1,
+    "max": 8192,
+    "condition": "unsigned(M-1)<=0x1fff"
+  },
+  "active_r790_header": {
+    "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/glm-M16-r8861/tree/candidates/glm-PP2-B32-r8843/tree/candidates/glm-deferred-attention-model-5f91ad7-r5096/src/glm_fp8_model_r790.hpp",
+    "SHA256": "89b60c43051bd994ed2a41137e564d564b47e4bbe551b11e2f0f23ca4d3c82a7",
+    "current798_MD_SHA256": "dd43e09b321b29d394ee2b72b5e48cdb1a18ce41fc5357a8d8ddd4b83eb67f19",
+    "current798_MD_contains_exact_header": true,
+    "call": "fp8_prefill_r780: M>=32 -> glm_fp8_create_r776(...,x.rows,...) without upperbound split/fallback"
+  },
+  "actual_kv_b_geometry": {
+    "M_rejected": 32768,
+    "N": 3584,
+    "K": 512,
+    "scaleRows": 224,
+    "scaleCols": 4,
+    "rowOffset": "TP_rank*3584",
+    "colOffset": 0,
+    "only_violated_bound": "M>8192"
+  },
+  "supporting_incoming_CU": {
+    "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/glm_fp8_batched_r776.cu",
+    "SHA256": "56f3e4b7a7c85a8a73ca8ab586348bb0ea897007f75fc7eb8de200c0ef93faac",
+    "line": 24,
+    "guard": "m>8192 -> same776 bounded geometry error"
+  },
+  "provenance_limit": {
+    "original_candidate_library": {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/glm-fp8-batched-r776/libglm_fp8_batched_r776.so",
+      "SHA256": "cb28ba5d92d98dc6ca5a0a9eba6d39699ad4c89a4f220cdaeb0f3879544feebb"
+    },
+    "candidate_not_equal_deployed": true,
+    "deployed_build_MD": "UNKNOWN; not supplied by original r776 script",
+    "incoming_CU_not_claimed_byteidentical_deployed_source": true,
+    "live_GPU_symbol_dladdr_776": "NOT_CAPTURED; exact expected dynamic dependency was filehashed, active artifact binary independently inspected"
+  },
+  "next_scope": {
+    "task": "r400",
+    "remaining_case": "prefill512-union32768 only",
+    "chunk_rows_fixed_max": 8192,
+    "chunks": 4,
+    "guard_unchanged": true,
+    "provider_unchanged": true,
+    "caller_o_not_recompiled": true,
+    "query_result_must_persist_before_diagnostic": true,
+    "no_replay729": true
+  },
+  "raw_references": [
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\GLM398-helper776-exact-bound-detail.json",
+      "SHA256": "9b1904468a76b5a997985df23c5753da02407f0ada65a40658c7ac1b1779bd79"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\GLM398-helper776-actual-source-binding.json",
+      "SHA256": "1963544b77923a7b15f8b4edea031e2a0b3f20e6c1c9f1e37f481da622837763"
+    }
+  ]
+}
