@@ -1,0 +1,70 @@
+{
+  "review": 167,
+  "date": "2026-11-02",
+  "kind": "EARLY_MINIMAL_ENGINEERING_REVIEW",
+  "trigger": "391 CPU782 metadata解析和本地上传生成器两个可避免入口错误。166已收束，本周期真实因果性能轮0；CPU编译/上传失败不充性能轮。",
+  "scope": "约5分钟，只读AGENTS、166落实、391原证据/v2源码/实际上传生成器、392及root最新393范围；仅写本报告，无测试/Git/Slurm/GPU。不是已知修复的等待GO。",
+  "decision": "v2两处最小修复已由唯一CPU783 COMPLETED0闭合，不新增部署框架、Native/SDK/kernel构建或GPU重测。区分原782失败、旧上传脚本零提交、fixed脚本唯一783成功三个实际状态。",
+  "prior166": {
+    "implementation": "analysis/bw1000/reviews/astra-review-166-implementation.json",
+    "confirmed": "390原24NPZ/24metadata离线48score和首次commit→下一prepare/state已root复算；第二commit未执行、原GPU/keeperFAIL保留。389完整request持平PARK；391仅源/CPU。无旧结论重写或重复GPU建议。"
+  },
+  "391_states": {
+    "original_CPU782": {
+      "overall": "910407.782 FAILED1/27s，原FAIL保留",
+      "completed_subscope": "一HOST编译/link、MD当前public header、exports及实际容器ldd-r成功；错误在最终metadata取currentNative路径KeyError，不是编译/实际ABI/数值失败。",
+      "library_SHA256": "0317b437040385cecd177c801fc4f132d07c6db4daa7ea598e7135e318ca7b88",
+      "ldd_log_SHA256": "7b702a5d3d669b4e8fc41784cc2036537f7d18fd34dc142910fa4757bb937c17",
+      "no_actual_Native_or_GPU": true
+    },
+    "v2_source": {
+      "directory": "code/bw1000/Kimi-MoE-prefill512-micro64-r391/v2",
+      "manifest_SHA256_read": "be25c18967951a0995bca260ab8245c89543bb59fdcf0a4a7fca06b19b67e441",
+      "publication_reported": "49c8aa6f0c3695de61fde58f517124339cb63230",
+      "GPU_run_and_plan_original_bytes_equal": true,
+      "GPU_run_SHA256": "95a99104dc985f2a2725aededa76751962bff77c0ed9bcaa6667a0762ea2eacd",
+      "plan_SHA256": "56472f90724bee2510283efc04d0d5aeb35675718583b12b506804e103a9bfb1",
+      "changes": "ldd直接绝对路径和=>路径均解析；A/B/C临时held输出/vector释放与finaldrain移入wall endpoint之前。原GPU计划和数学不变，一HOST重编因adapter正文改变有必要，不能错误复用旧计时wrapper作v2。"
+    },
+    "old_v2_upload_generator": {
+      "path": "L/Kimi391-v2-prepare-upload.py",
+      "cause": "先将PAYLOAD展开为完整base64字典，再对整个脚本全局replace短MF/COMMIT标记。MF等字串可能出现在base64数据中，后续替换破坏字面量并使远端Python解析SyntaxError。",
+      "effects": "按原故障记录，Python整模块在执行任何语句前解析失败：没有mkdir、intent、Popen或v2 Slurm提交。不能把此错误算作一次失败CPU作业，也不能因远端未运行就假称生成器正确。"
+    },
+    "fixed_upload_latest_observation": {
+      "generator": "L/Kimi391-v2-prepare-upload-fixed.py",
+      "generated_script": "L/Kimi391-v2-published-upload-CPU-once-fixed.py",
+      "submission_receipt_read": "L/Kimi391-v2-CPU-submitted-fixed.json",
+      "state": "fixed脚本唯一CPU910407.783 COMPLETED0/26s；原Popen PID/PGID626165，parent910407/node a14r2n20、4CPU/8192MiB/300s/GPU0。审核直接读取L/Kimi391-v2-CPU-first-observed.json的完整receipt completed/ passed=true。",
+      "CPU_receipt_SHA256": "1f65c8d79f23201839328f3f20abd36404f1cf684510db5275d5ee96c939f2d2",
+      "qualification": "一HOST编译/link、736公共deps/当前headers/实际ldd/nm/14个Python payload recording检查通过；Native_dlopen/Runtime/GPU/weights均false。不是数值、实际Native ABI执行或性能通过。",
+      "important_update": "初始任务描述的v2未提交只适用于旧污染脚本；fixed脚本唯一783现已终态成功，不能再重复invoke或猜测另一个CPU编号。"
+    }
+  },
+  "fix_review": {
+    "dependency_parser": "CPU_build.dependency_paths使用可选name=>前缀匹配绝对路径，覆盖实际ldd两种格式；check_CPU直接读original782-ldd-r.log，检查current247 Native、grouped-prefill helper和libinfiniops，而非人工编造=>样例。ldd-r仍先拒绝not found/undefined symbol，随后核实解析到的currentNative及已有库SHA。未发现本次格式遗漏的剩余阻塞。",
+    "timing_lifetime": "adapter先tick，再实际A1/B8/C8完整forward及copy/stitch；held.clear、空vector交换释放storage、r.syncStream均在wall计时结束前。shared/router/TP重复调用没有从wall扣除。这里只确认源码计时范围，尚未运行Native/性能。",
+    "fixed_generator": "先核对manifest pin及每个源文件的base64 decode SHA，再用长__R391_SOURCE_PIN__/__R391_PUBLICATION__占位替换；文件payload最后注入，此后不对已含base64的正文全局替换；compile最终完整s后才写出上传脚本。现有修复消除了此次payload被后续短token替换的机制。",
+    "remote_consumer": "最终脚本校验远端SOURCE_MANIFEST SHA后调用原invoke；invoke在创建once-intent前逐member SHA验证，独占intent文件写入/fsync在Popen之前。已提交则只观察同一handle，报错不能从零重新生成/重提。",
+    "minimal_future_guard": "在现有生成器保留每个占位符预期出现次数和payload最后注入即可；实际上传必须使用刚compile通过的同一份bytes，保存其SHA，避免compile模板却发送另一次生成结果。若需要语义检查，直接从最终脚本的payload字面量读取并核对manifest/files，不另建部署系统。对这次已提交CPU不补无关新检查或重复作业。"
+  },
+  "why_local_tests_missed": {
+    "metadata": "编译/link和mock Python payload合同证明不了ldd输出消费的完整格式；原parser只覆盖=>却真实Native以direct DT_NEEDED出现。缺的是已存在真实输出到最终metadata字典的边界，不是更多编译次数。",
+    "upload": "check_CPU对仓库Python源码ast.parse和实际dispatch的recording leaf不包含本地临时生成的最终上传程序。模板与每个源文件各自合法，不能推出后续全局字符串替换后的组合程序仍合法或payload未变。",
+    "recurrence": "与此前manifest短标记替换、fake dtype状态相同：已验证局部组件，却在序列化/生成/跨文件交接时改变了真实载荷。应检查实际生产者输出被实际消费者读取的那一份对象；不以更多mock用例数量抵消边界缺失。",
+    "shortest_prevention": "本次actual782 log→真实parser与最终script bytes→compile/文件SHA已针对根因闭合；保留原失败，复用这些真实证据，不新增全流程认证、审批或GPU补票。"
+  },
+  "Deep393_independence": {
+    "read": "analysis/bw1000/Deep-current-HC-on-bottleneck-and-next-card-r392.json、status.Deep393、source-v1/owner/profile_contract.py",
+    "reason": "392显示当前976f HC_ON的请求CAPI约占HTTP中位98.09%，但当前ON attention/cache/compress/router/collective细分未知。旧353 HC_OFF事件/host/drain不可直接套用当前HC_ON；代码未变不保证时序份额不变。",
+    "authorized_work": "既有当前976f四profile CAPI与353 owner/inner消费者、366 loader/binding复用；HC1固定，d8f8源已发布50paths，源/CPU独立继续，无Native/SDK/kernel构建。此审核不增新优化卡、不因391等待阻塞393；目前无GPU。",
+    "observed_source_scope": "6同8489请求、1024chunk、128输出；两warm后observer OFF/ON/ON/OFF，只decode8/87；existing observer arm/read以及错误双disarm。CPU/最终claim尚不能当实际profile或性能。",
+    "later_measurement_limit": "root当前提案为独立节点01/8卡<=1800s含加载，不是本报告启动授权。只可作为当前ON因果profile；观察器全开销和OFF端点要保留，扰动大则归因UNKNOWN，不将profile arm耗时当优化收益或旧HC_OFF比例重标ON。",
+    "no_new_barrier": "现有已授权CPU和源工作继续；最终既有源码/receipt/claim/资源流程由root收束，无需等待本审核或另加一次批准。"
+  },
+  "next_actions": [
+    {"model": "Kimi", "owner": "原391执行者", "action": "唯一783完整receipt已取得，本次已知工程修复收束；不重复CPU或新增批准，后续只沿root原范围独立落实。", "new_GPU": 0, "first_result": "实际CPU26s，内部elapsed25.628s；编译/metadata成功只记CPU工程闭合，不声称实际Native/数值/性能。", "exit": "保留原782FAIL与旧上传SyntaxError0提交证据；不为最终报告再执行同模板。"},
+    {"model": "Deep", "owner": "原393执行者", "action": "继续已授权current HC_ON既有profile源/CPU闭合，保持旧OFF归因隔离。", "new_GPU_by_review": 0, "first_result": "沿原4CPU/8GiB/300s CPU范围，尚无新性能数字。"}
+  ],
+  "final_scope": "167不产生真实性能轮，当前0；166原结论保持。没有新增GLM卡、GPU实验、完整Model加载、测试框架或逐次GO等待；root登记两处修复采纳和实际新CPU状态即可。"
+}
