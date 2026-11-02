@@ -1,5 +1,7 @@
 """Bounded386 lifecycle specialized to one16card unloaded constructor group."""
 from pathlib import Path
+import sys
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 import argparse,datetime,hashlib,json,os,re,signal,socket,subprocess,time,traceback
 R=Path('/public/home/aclsylqidf/hygon-inference-refactor-20261014')
 S=R/'incoming/GLM-V-on-demand-Model-r404'
