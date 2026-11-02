@@ -1,0 +1,20 @@
+{
+  "CPU_only": true,
+  "GPU_or_Slurm_submitted": false,
+  "Native_dlopen": false,
+  "weights_opened": false,
+  "performance_round": false,
+  "incidents": [
+    {
+      "reader": "analyze_sources.py",
+      "failure": "Exact needle r.memcpyD2H did not match existing bridge spelling c->r->memcpyD2H; source not missing or invalid.",
+      "correction": "Match the actual memcpyD2H call spelling; keep original source unchanged."
+    },
+    {
+      "reader": "read_boundaries.py",
+      "failure": "Existing host objdump rejects --disassemble=<function>.",
+      "correction": "Use actual nm -D -S symbol address/size and bounded --start-address/--stop-address disassembly; no compile or executable load."
+    }
+  ],
+  "runtime_or_hardware_changed": false
+}
