@@ -1,0 +1,366 @@
+{
+  "UTC": "2026-11-02T00:51:38.305683+00:00",
+  "decision": "ONE_CONCRETE_M1_GATE_ONLY_CANDIDATE_CPU_FIRST",
+  "GPU": false,
+  "Native_dlopen": false,
+  "weights_opened": false,
+  "current_Native_SHA256": "038d4ff2e7aee2e6db80f691dd885222f3e3160e25ae9d0e269296daf9596c00",
+  "SDK": {
+    "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/latest-sdk-r3672-GLM-build.json",
+    "SHA256": "73fac70668d3885f02d7cda9f24ffaf954847b374d8cfcb6519ab040570192d5",
+    "library_sha256": "0bd37990340f39bbcaf185abbc990ebeb9f56ea1b9992327eda96d627446a863"
+  },
+  "current_objects_SHA256": {
+    "/refactor/candidates/glm-vector-model-r8542/vector-0.o": "4b36b711d264f8e7f28ea048d3f6176ffeec9291618ea106ba4a6ba8f3941c41",
+    "/refactor/candidates/glm-grouped-native-model-r5117/helpers/routed.o": "e10632453a7b950afd3078076da7f2a68e0828436ee2d5c725045c30e4a4ef69",
+    "/refactor/candidates/GLM-down-row2-r9281/vector.o": "d4a4361bef63a31158001abda0c06870722a531249584b1b1769412da8f70e23",
+    "/refactor/candidates/GLM-down-row2-Model-r9284/dispatch.o": "a421246080486aa95c38964575a0e44b16d85d4e6022b750f06abe9fabc8c06f"
+  },
+  "source_FFN_SHA256": "c716b37fd3fe786cece00a5b4a309d9eb13b76e4bbdb8cc8843be936c708e64b",
+  "dispatch9284_SHA256": "2bedb52f033e73cdc68addaa6c3ec893802c8e3e36980a840b397083bddd3ebf",
+  "actual_shapes": {
+    "Native_row_tokens": 1,
+    "routes": 8,
+    "hidden": 6144,
+    "experts": 256,
+    "topk": 8,
+    "TP": 8,
+    "local_intermediate": 256,
+    "expert_global_intermediate": 2048,
+    "shared_global_intermediate": 2048,
+    "gate_up_weight_per_TP_expert": [
+      256,
+      6144
+    ],
+    "down_weight_per_TP_expert": [
+      6144,
+      256
+    ],
+    "router_weight": [
+      256,
+      6144
+    ],
+    "weight_and_activation_format": "FP8 E4M3 bytes with F32 block128 scales; BF16 gate/up/Silu/Mul/down outputs and F32 routed weighting/merge/TP"
+  },
+  "current_path": "Current vector policy OFF in361; even ON selects only routes32/64/128. M1gate/down call same f359 grouped fallback -> original custom scalar kernels; not per-expert Torch GEMM. SharedFFN uses SDK Fp8BlockLinear.",
+  "candidate": "Independent defaultOFF M1 gate-only bit; routes8 gate/up calls already-linked8528 widefetch preserving original W64 FP32 tree/scales; down remains current scalar. All other geometries/9284 row2/Frame ABI8 preserved. No new GPU TU.",
+  "previous_M1_component": {
+    "tokens": 1,
+    "U": 8,
+    "projections": [
+      {
+        "gateup": true,
+        "owner_medians": {
+          "wall_scalar_ms": 0.21612617031981549,
+          "wall_candidate_ms": 0.19639377327015,
+          "wall_speedup": 1.1006815407645814,
+          "wall_OFF_ABBA_relative_drift": 0.03989860901152434,
+          "wall_ON_ABBA_relative_drift": 0.01543112396467634,
+          "event_scalar_ms": 0.19479991495609283,
+          "event_candidate_ms": 0.17619983355204266,
+          "event_speedup": 1.1068400469893813,
+          "event_OFF_ABBA_relative_drift": 0.03725034591832637,
+          "event_ON_ABBA_relative_drift": 0.005424265296743938,
+          "max_abs_vs_scalar": 0.0
+        },
+        "owners": [
+          {
+            "rank": 0,
+            "wall_scalar_ms": 0.21603369774917763,
+            "wall_candidate_ms": 0.19501196220517159,
+            "wall_speedup": 1.1077971592424116,
+            "wall_OFF_ABBA_relative_drift": 0.054158450308290855,
+            "wall_ON_ABBA_relative_drift": 0.010990524175093727,
+            "event_scalar_ms": 0.19893333315849304,
+            "event_candidate_ms": 0.1780798335870107,
+            "event_speedup": 1.1171019713542871,
+            "event_OFF_ABBA_relative_drift": 0.05308318957757664,
+            "event_ON_ABBA_relative_drift": 0.006590724152371544,
+            "max_abs_vs_scalar": 0.0
+          },
+          {
+            "rank": 1,
+            "wall_scalar_ms": 0.2214288494239251,
+            "wall_candidate_ms": 0.1980836968868971,
+            "wall_speedup": 1.1178549921266754,
+            "wall_OFF_ABBA_relative_drift": 0.11547554247343839,
+            "wall_ON_ABBA_relative_drift": 0.037526314614058205,
+            "event_scalar_ms": 0.19439966479937235,
+            "event_candidate_ms": 0.17535966634750366,
+            "event_speedup": 1.1085768400935356,
+            "event_OFF_ABBA_relative_drift": 0.042249770567202236,
+            "event_ON_ABBA_relative_drift": 0.00425780644111633,
+            "max_abs_vs_scalar": 0.0
+          },
+          {
+            "rank": 2,
+            "wall_scalar_ms": 0.2094238686064879,
+            "wall_candidate_ms": 0.1930752769112587,
+            "wall_speedup": 1.0846747028245536,
+            "wall_OFF_ABBA_relative_drift": 0.007386583041988493,
+            "wall_ON_ABBA_relative_drift": 0.019871723754258955,
+            "event_scalar_ms": 0.1909864942232768,
+            "event_candidate_ms": 0.17535982529322308,
+            "event_speedup": 1.0891120238282856,
+            "event_OFF_ABBA_relative_drift": 0.006700327120522816,
+            "event_ON_ABBA_relative_drift": 0.009734256695643765,
+            "max_abs_vs_scalar": 0.0
+          },
+          {
+            "rank": 3,
+            "wall_scalar_ms": 0.21136722837885222,
+            "wall_candidate_ms": 0.1955587261666854,
+            "wall_speedup": 1.0808376211179263,
+            "wall_OFF_ABBA_relative_drift": 0.009869848713725185,
+            "wall_ON_ABBA_relative_drift": 0.0035630448198336272,
+            "event_scalar_ms": 0.19370649258295697,
+            "event_candidate_ms": 0.17821333805720013,
+            "event_speedup": 1.0869359987005243,
+            "event_OFF_ABBA_relative_drift": 0.0022009182561645592,
+            "event_ON_ABBA_relative_drift": 0.0002992272600938791,
+            "max_abs_vs_scalar": 0.0
+          },
+          {
+            "rank": 4,
+            "wall_scalar_ms": 0.2162703312933445,
+            "wall_candidate_ms": 0.19742028477291265,
+            "wall_speedup": 1.0954818120241017,
+            "wall_OFF_ABBA_relative_drift": 0.04155281914805803,
+            "wall_ON_ABBA_relative_drift": 0.0015874257638651107,
+            "event_scalar_ms": 0.19514650106430054,
+            "event_candidate_ms": 0.17658666769663492,
+            "event_speedup": 1.105103253885227,
+            "event_OFF_ABBA_relative_drift": 0.032250921269450505,
+            "event_ON_ABBA_relative_drift": 0.0030202866864583733,
+            "max_abs_vs_scalar": 0.0
+          },
+          {
+            "rank": 5,
+            "wall_scalar_ms": 0.21493365056812763,
+            "wall_candidate_ms": 0.19722882037361464,
+            "wall_speedup": 1.0897679667757196,
+            "wall_OFF_ABBA_relative_drift": 0.038244398874990655,
+            "wall_ON_ABBA_relative_drift": 0.02435628743693124,
+            "event_scalar_ms": 0.19570650657018024,
+            "event_candidate_ms": 0.17565316955248514,
+            "event_speedup": 1.114164390365317,
+            "event_OFF_ABBA_relative_drift": 0.04823379268973494,
+            "event_ON_ABBA_relative_drift": 0.00759254120063498,
+            "max_abs_vs_scalar": 0.0
+          },
+          {
+            "rank": 6,
+            "wall_scalar_ms": 0.22035394795238972,
+            "wall_candidate_ms": 0.1978070940822363,
+            "wall_speedup": 1.1139840508489538,
+            "wall_OFF_ABBA_relative_drift": 0.07714813722972952,
+            "wall_ON_ABBA_relative_drift": 0.02345564939332402,
+            "event_scalar_ms": 0.20034649968147278,
+            "event_candidate_ms": 0.17589316765467328,
+            "event_speedup": 1.1390237742196339,
+            "event_OFF_ABBA_relative_drift": 0.08332072644064296,
+            "event_ON_ABBA_relative_drift": 0.007881628280966621,
+            "max_abs_vs_scalar": 0.0
+          },
+          {
+            "rank": 7,
+            "wall_scalar_ms": 0.21621864289045334,
+            "wall_candidate_ms": 0.19551704948147136,
+            "wall_speedup": 1.1058812695050608,
+            "wall_OFF_ABBA_relative_drift": 0.009234891003303713,
+            "wall_ON_ABBA_relative_drift": 0.0025230051547741727,
+            "event_scalar_ms": 0.19445332884788513,
+            "event_candidate_ms": 0.17650649944941205,
+            "event_speedup": 1.1016780087671318,
+            "event_OFF_ABBA_relative_drift": 0.023587545575673684,
+            "event_ON_ABBA_relative_drift": 0.0021170970331262948,
+            "max_abs_vs_scalar": 0.0
+          }
+        ]
+      },
+      {
+        "gateup": false,
+        "owner_medians": {
+          "wall_scalar_ms": 0.12483952256540458,
+          "wall_candidate_ms": 0.1487161886567871,
+          "wall_speedup": 0.8418053529963314,
+          "wall_OFF_ABBA_relative_drift": 0.010620564085114092,
+          "wall_ON_ABBA_relative_drift": 0.01007987543551269,
+          "event_scalar_ms": 0.10643983383973439,
+          "event_candidate_ms": 0.12911983331044516,
+          "event_speedup": 0.8261533049950516,
+          "event_OFF_ABBA_relative_drift": 0.00303066667525792,
+          "event_ON_ABBA_relative_drift": 0.001430043788855357,
+          "max_abs_vs_scalar": 0.0
+        },
+        "owners": [
+          {
+            "rank": 0,
+            "wall_scalar_ms": 0.11618357772628467,
+            "wall_candidate_ms": 0.14935185511906943,
+            "wall_speedup": 0.777918544323794,
+            "wall_OFF_ABBA_relative_drift": 0.015438733371898992,
+            "wall_ON_ABBA_relative_drift": 0.02729392886243078,
+            "event_scalar_ms": 0.09546666840712228,
+            "event_candidate_ms": 0.13133316735426584,
+            "event_speedup": 0.7269044852135855,
+            "event_OFF_ABBA_relative_drift": 0.0022346538463960306,
+            "event_ON_ABBA_relative_drift": 0.002032989926688842,
+            "max_abs_vs_scalar": 0.0
+          },
+          {
+            "rank": 1,
+            "wall_scalar_ms": 0.12399326078593731,
+            "wall_candidate_ms": 0.14741842945416767,
+            "wall_speedup": 0.8410974207569263,
+            "wall_OFF_ABBA_relative_drift": 0.003118347613762967,
+            "wall_ON_ABBA_relative_drift": 0.0013814365255186078,
+            "event_scalar_ms": 0.10597333312034607,
+            "event_candidate_ms": 0.12818649907906848,
+            "event_speedup": 0.8267121255490346,
+            "event_OFF_ABBA_relative_drift": 0.0010065970635449847,
+            "event_ON_ABBA_relative_drift": 0.002909791090143342,
+            "max_abs_vs_scalar": 0.0
+          },
+          {
+            "rank": 2,
+            "wall_scalar_ms": 0.1231687298665444,
+            "wall_candidate_ms": 0.1461920328438282,
+            "wall_speedup": 0.8425132852357365,
+            "wall_OFF_ABBA_relative_drift": 0.006577119211703429,
+            "wall_ON_ABBA_relative_drift": 0.024420413342039614,
+            "event_scalar_ms": 0.1060533324877421,
+            "event_candidate_ms": 0.12959999839464825,
+            "event_speedup": 0.8183127608134407,
+            "event_OFF_ABBA_relative_drift": 0.001508662962670805,
+            "event_ON_ABBA_relative_drift": 0.01975308377005201,
+            "max_abs_vs_scalar": 0.0
+          },
+          {
+            "rank": 3,
+            "wall_scalar_ms": 0.12460707997282347,
+            "wall_candidate_ms": 0.14852538394431275,
+            "wall_speedup": 0.8389615072097234,
+            "wall_OFF_ABBA_relative_drift": 0.0074367039332317135,
+            "wall_ON_ABBA_relative_drift": 0.013442822543351152,
+            "event_scalar_ms": 0.10874666770299277,
+            "event_candidate_ms": 0.13114650050799054,
+            "event_speedup": 0.8291999197978371,
+            "event_OFF_ABBA_relative_drift": 0.0029425956339013894,
+            "event_ON_ABBA_relative_drift": 2.5754377921611605e-06,
+            "max_abs_vs_scalar": 0.0
+          },
+          {
+            "rank": 4,
+            "wall_scalar_ms": 0.1250719651579857,
+            "wall_candidate_ms": 0.1494470052421093,
+            "wall_speedup": 0.8368984373782853,
+            "wall_OFF_ABBA_relative_drift": 0.21046452461620557,
+            "wall_ON_ABBA_relative_drift": 0.009100492830843089,
+            "event_scalar_ms": 0.1066666692495346,
+            "event_candidate_ms": 0.1291998326778412,
+            "event_speedup": 0.8255944844410685,
+            "event_OFF_ABBA_relative_drift": 0.25599998733401336,
+            "event_ON_ABBA_relative_drift": 0.0028870460531824514,
+            "max_abs_vs_scalar": 0.0
+          },
+          {
+            "rank": 5,
+            "wall_scalar_ms": 0.12652032698194188,
+            "wall_candidate_ms": 0.14827695364753407,
+            "wall_speedup": 0.8532703422184583,
+            "wall_OFF_ABBA_relative_drift": 0.013804424236996468,
+            "wall_ON_ABBA_relative_drift": 9.002718611661409e-05,
+            "event_scalar_ms": 0.10621299842993417,
+            "event_candidate_ms": 0.12874649961789447,
+            "event_speedup": 0.8249777566393085,
+            "event_OFF_ABBA_relative_drift": 0.00451927867190695,
+            "event_ON_ABBA_relative_drift": 2.6234472760066904e-06,
+            "max_abs_vs_scalar": 0.0
+          },
+          {
+            "rank": 6,
+            "wall_scalar_ms": 0.14000370477636653,
+            "wall_candidate_ms": 0.14890699336926144,
+            "wall_speedup": 0.9402090634466279,
+            "wall_OFF_ABBA_relative_drift": 0.03380833223388446,
+            "wall_ON_ABBA_relative_drift": 0.007163362610833083,
+            "event_scalar_ms": 0.11970666547616322,
+            "event_candidate_ms": 0.12903983394304913,
+            "event_speedup": 0.9276721909685265,
+            "event_OFF_ABBA_relative_drift": 0.0031187377166144504,
+            "event_ON_ABBA_relative_drift": 0.0004107909612131983,
+            "max_abs_vs_scalar": 0.0
+          },
+          {
+            "rank": 7,
+            "wall_scalar_ms": 0.13128039427101612,
+            "wall_candidate_ms": 0.14949038935204345,
+            "wall_speedup": 0.8781861820016832,
+            "wall_OFF_ABBA_relative_drift": 0.004569813808168462,
+            "wall_ON_ABBA_relative_drift": 0.01105925804018229,
+            "event_scalar_ms": 0.10743966698646545,
+            "event_candidate_ms": 0.1289599984884262,
+            "event_speedup": 0.8331239783327685,
+            "event_OFF_ABBA_relative_drift": 0.017380303758652873,
+            "event_ON_ABBA_relative_drift": 0.0008270976510218723,
+            "max_abs_vs_scalar": 0.0
+          }
+        ]
+      }
+    ],
+    "gateup_plus_down_wall_owner_medians": {
+      "scalar_ms": 0.3413981370006999,
+      "candidate_ms": 0.3452547825872898,
+      "speedup": 0.9861722955622754
+    }
+  },
+  "previous_M1_boundary": "Real layer38 TP8 checkpoints, synthetic BF16 inputs and frozen constructed routes, isolated gateup/down. No Model activations/tokens/EOS/TPS. Full output subtraction max_abs0; signedzero bits not separately audited.",
+  "existing_Model_cost_basis": {
+    "path": "results/bw1000/2026-10-28/glm787-C1-profile-offline-recovered.json",
+    "SHA256": "6bca3e9c8b0c2ec69d72565b9b67d322bb9599ca2b26e8e5f91dbde297fb992b",
+    "actual_GPU_step": "910376.787",
+    "C1_T1_samples_per_owner": 3,
+    "normal_owners": 16,
+    "representative_FFN_enclosure_ms_across_owner_medians": {
+      "detail.layer.0.FFN": {
+        "min": 0.5831995010375999,
+        "median": 0.5959200859069818,
+        "max": 0.62160015106201
+      },
+      "detail.layer.3.FFN": {
+        "min": 1.2412796020507821,
+        "median": 1.2524795532226558,
+        "max": 1.2614383697509766
+      },
+      "detail.layer.38.FFN": {
+        "min": 1.239356994628904,
+        "median": 1.2567977905273489,
+        "max": 1.2668838500976691
+      },
+      "detail.layer.39.FFN": {
+        "min": 1.163520812988275,
+        "median": 1.1674423217773455,
+        "max": 1.1735992431640696
+      }
+    },
+    "boundary": "Actual earlier Model C1T1 inclusive same-stream FFN envelopes establish nonzero FFN cost; PP2 geometry/short history, not current361 PP4 cost or exclusive GPUbusy. No multiplication by layers and no Model speedup projection."
+  },
+  "current361_M1_FFN_exclusive_cost": "UNKNOWN; original361 captures wholeNative calls without FFN subevents",
+  "complete_component_entry": "Existing current038d exported glm_layer_*r5670 layer38 TP8 API; whole layer wall includes complete FFN/router/shared/TP/drain. No new replay framework. GPU feasibility still conditional on CPU close and first actual constructor success.",
+  "planned_component_fixture": "Real layer38 checkpoint subset, synthetic replicated BF16 hidden and synthetic prefix512, actual M1 decode; inputs changed between blocks, state restored identically, canary/finite/independent repeat/full output comparison and normal8owner destroy; component not actual Model activation/quality qualification",
+  "excluded": [
+    "341 activation/downquant fusion zero original retainers",
+    "RMS descriptor cache already present",
+    "bitdecode same math old negative and existing hardware ldexp",
+    "BF16 unpack/cache stale large-U lowreuse negatives",
+    "8528 down-vector M1 not adopted",
+    "schedule interleave frequency grid"
+  ],
+  "fallback": "If complete current Runtime layer entry cannot close without new architecture or has no measurable full-wall effect, stop this card; alternative router F32GEMV+sigmoid/bias/top8 normalization fusion requires separate complete FFN evidence, not launched",
+  "raw_read_artifacts": {
+    "results/bw1000/2026-11-02/GLM367-current038d-provenance.json": "11b1e4bda213560afde9a797514d9f9eb7dbf1bfff784a4c15447def44cff995",
+    "results/bw1000/2026-11-02/GLM367-current-dispatch-source-read.json": "5efda3706c5c5b37b25129e1f7ee11c32776b2f9a79d0bb3f5a643b22a91f812"
+  },
+  "raw_reads_published": false
+}
