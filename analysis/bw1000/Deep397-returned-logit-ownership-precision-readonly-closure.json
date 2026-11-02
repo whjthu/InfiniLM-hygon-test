@@ -1,0 +1,180 @@
+{
+  "state": "READONLY_RETURNED_LOGIT_OWNERSHIP_PRECISION_CLOSED_TO_CAPI_NO_DEFINITE_QUALITY_CAUSE_STOP",
+  "GPU": 0,
+  "Slurm": 0,
+  "Native_loads": 0,
+  "compile": 0,
+  "new_teacher_sequences": 0,
+  "Git_operations": 0,
+  "running_GLM850_source_touched": false,
+  "facts": {
+    "actual397_GPU": "910374.1325",
+    "actual397_keeper": "910407.795",
+    "Native_SHA256": "976f97b51e9f4b11dfb2439d2c97f2a1e7788e4de05ee8a8a0138f33e38b6ed1",
+    "four_modes": [
+      0,
+      1,
+      1,
+      0
+    ],
+    "forwards": 368,
+    "resets": 4,
+    "decisions_per_sequence": 84,
+    "all_four_input_past_count_ID_hashes_same": true,
+    "within_HC_repeats": [
+      {
+        "sequence_pair": [
+          0,
+          3
+        ],
+        "HC_modes": [
+          0,
+          0
+        ],
+        "equal_full_returned_BF16_hashes": 0,
+        "equal_native_IDs": 84,
+        "selected_original_pair_gap_max_abs_delta": 8.0
+      },
+      {
+        "sequence_pair": [
+          1,
+          2
+        ],
+        "HC_modes": [
+          1,
+          1
+        ],
+        "equal_full_returned_BF16_hashes": 0,
+        "equal_native_IDs": 84,
+        "selected_original_pair_gap_max_abs_delta": 2.1875
+      }
+    ],
+    "all_four_same_chosen_ID_count": 84,
+    "all_336_observed_returned_BF16_top1_are_unique": true,
+    "prefill_HC_T1_eligible_completed_zero_all8owners_all4sequences": true,
+    "original393wrong_output83_not_reproduced": true
+  },
+  "interpretation": [
+    "SameHC repeated chosenIDs are stable on84positions; fullreturnedBF16 vectors are not byte-stable. Selected pair gaps also change, so the recorded differences are not solely a uniform additive offset on these selected scores. This is not a bitexact quality gate.",
+    "Current sequence HC T1 epilogue is not necessary for differences visible atoutput0: all9prefillcalls have0 eligible/completed on8owners. Prior sequence state/order is not thereby excluded.",
+    "No fullvector snapshots, original393logits/margins or failing intermediate states were retained. No fullvectorNRMSE or original near-tie can be reconstructed."
+  ],
+  "semantic_baselines": {
+    "original366": "Same976f artifact, real6requests HC[0,1,0,1,1,0] all6correct/naturalEOS in original1295 scopedpair. Both OFF and ON had actual task success; not a wholebenchmark guarantee.",
+    "original393": "HC candidate fixedON onall6requests; OFF/ON schedule inprofile_contract toggles observer only. Last request5 had right.sum275062 vs275061 andtotal477138 vs477137; naturalEOS butsemanticFAIL. It is not an HC0 baseline failure.",
+    "teacher397": "Forced prefix83tokens, no free-running fullanswer/naturalEOS/HTTP or task score. HC0/HC1 bothchoose30722 atoutput83 and all84chosenIDs match; no original error reproduction and no qualityPASS. SamePIN976f/math/providerbaseline is sourcebound, separate temporalresidencies/runtime states are not identical."
+  },
+  "returned_logit_call_chain": [
+    {
+      "location": "Pinned BASE d206 forward 157..197",
+      "finding": "Every call materializes six contiguous inputarrays, independently allocates uint16[rows,vocab] filled0x7fc0 and int64[rows] IDs, passes their owned addresses to synchronousCAPI; returns same newlyowned NumPyarrays. No ctypes borrowed-buffer getter.",
+      "source_SHA256": "d206637dff3e79d17756962974ed6935e85299d137f602b988d8688d29d999d4"
+    },
+    {
+      "location": "modern_native_engine_probe_r22.cpp:13,27..32",
+      "finding": "CAPI requires BF16 andcount*vocab logits, int64 IDs. InferEngine::forward completes before copy_cpu; CPUcopy ismemcpy, devicecopy cudaMemcpy D2H, both complete before return. No extra F32 Native cast.",
+      "source_SHA256": "8c82b8b6d4d4b4a37d795a7d45983331775cea2b8685961c7d16cc600cd5ff23",
+      "identity_limit": "Matches originalguard source hash recorded inexistingDeep375-capi-sampling.json; no new nm/DSO executed during this audit."
+    },
+    {
+      "location": "infer_engine.cpp:514..538",
+      "finding": "Waitsall8workers; returns completedview with sharedowner. View ismutable/borrowed, but CAPI copies tocallerownedhostarray before nextcall, so it is not exposed directly to397 Python.",
+      "source_SHA256": "b3594a5c8b3643690b6759e8377191a2a2b2941311b29a63c1c7390baf11491b"
+    },
+    {
+      "location": "rank_worker.cpp:934..1025",
+      "finding": "Actualcurrent Native-worker source3d2 andobjectd771 are rebound fromexistingr269CPUreceipt andretained in976f49objectgraph. Sampling useslogits originaldtype, lasttoken-only branch whenlogits_positions==n_req; ranksync before publication, rank0samples and publishes completed IDs/logits.",
+      "actual_object": {
+        "path": "/refactor/candidates/latest-family-native-r269/Deep/Native-worker.o",
+        "SHA256": "d771eae2c2e1f3f224ee1392b3f4fbc5ca180e52cf16bafd702c802142dff6f6"
+      },
+      "actual_source_SHA256": "3d2f3e679a588d3dd2fee66355f766aeba3c9f4407a25057d1f325125e3e8f0c"
+    },
+    {
+      "location": "teacher_forced_r397.py:logits_summary andnestedforward",
+      "finding": "hc.snapshot writesseparateCuint64[56] counterbuffer afterCAPI; no nextforward untilfinitecheck, bitexpansion/top8/hash andsave complete. astypeuint32/shift/viewF32 operate on newdiagnosticstorage; lexsort doesnot mutate originaluint16. F32 isreturnedBF16 representation, notprecast accumulator or sampler precision.",
+      "source_SHA256": "f1a7ba18cc3fc4058143aa97b1c3b928fb936f115d95e223c8a94353886e7fd7"
+    }
+  ],
+  "provider_precision_boundary": {
+    "source_locked": "ActualNativeworker MD locks request_sampling.hpp27bb566c...; localheader bytehash matches. Greedycall has top_k1/temperature1/top_p1 and passes original BF16logits. Original393/397CAPI andNative976f identity match qualifiedchain.",
+    "exact_common_sampler_cpp_provider_to_binary": "UNKNOWN: a localolder06d snapshotrequest_sampling.cpp exists, but its implementation isnot independently tied byretainedMD+symbol-provider data to theactualcurrent976f/Common/SDK call inthis audit; donot promote header equality to implementation qualification.",
+    "SDK_Argmax_comparison_and_tie_details": "UNKNOWN. ActualSDK librarySHA e1d9432e6de79cf09782fc3b3b332fb969d1a948dbac513b3da677d78f7f1f09 isretained; no installedArgmaxsource/registration/body\u2192binary closure ispresent. No fifthsequence justified just to chasebitdifferences.",
+    "observational_exclusion": "Every336397decision NativechosenID isindependently aunique maximum ofreturnedBF16, so an observed397 sampled-ID vsreturned-logit disagreement orBF16tie isnot present. Original393final logits were notsaved, so this doesnot exclude a tie/otherproblem atits firstdivergence."
+  },
+  "definite_bug_found": false,
+  "repair_proposal": null,
+  "stop_reason": "This closes apparentreturnedhostarray lifetime/precision questions usingactualcachedBASE/CAPI/currentworker evidence, but identifies no definitecause of393semanticerror or397withinmode numericdrift. Repeating this sourceaudit without originalfailing logits/state or an actualsamplerprovider mapping adds no causal information. NoModel reload, unchangedGPU replay, fifthteacher, widercacheframework or newperformance round.",
+  "evidence": [
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\InfiniLM-hygon-test\\analysis\\bw1000\\Deep397-root-original-teacher-prefix-provenance.json",
+      "SHA256": "30e44dd643b91ac4eae345b36c44da9ae27968b1357c701d7eaae9c734b5b0b8"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\InfiniLM-hygon-test\\results\\bw1000\\2026-11-03\\Deep397-root-audited-fixed-teacher-repeat-differences-clean.json",
+      "SHA256": "ee0680ed044495e5d5474ca3dd3bc4daf19dedf51c7e902c37a9e97eed73b509"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\InfiniLM-hygon-test\\analysis\\bw1000\\Deep393-quality-source-readonly-audit.json",
+      "SHA256": "f6bdbc0d5510e2bd8d6214baab0a8eb3bfa94cb6f78fb558550af3cc7b24affe"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\InfiniLM-hygon-test\\results\\bw1000\\2026-11-02\\Deep393-root-gold-and-current-profile-audit-quality-FAIL-clean.json",
+      "SHA256": "135b77a8c4880fcad1fc4105d797a409b4840dc124ef0c784b76b5d2c01a5897"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\InfiniLM-hygon-test\\results\\bw1000\\2026-11-02\\Deep366-1295-root-audited-scoped-Model-gain-PASS-clean.json",
+      "SHA256": "6a1a84e73eb8c3f94e265f575fac2a684d0796dc4d317d99482181bb55a42cb9"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\Deep375-capi-sampling.json",
+      "SHA256": "b8579868a2f42a12b6c01fdfebee40deb57c287a0c532cd3fe948bf543435326"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\Deep366-CPU-v1-and-loader-local.json",
+      "SHA256": "e853bd2e74df8fd55b8aaf526413eee81be42c8681e644a5323068e411e27449"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\Deep366-actual-HC-Native-chain-local.json",
+      "SHA256": "9b4f09800e53b468db0a785a0f7f952bf8528057bd999af66710d24afe89d201"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\Deep397-1325-original-terminal-archive-local.json",
+      "SHA256": "ebd6b3852bcd5c18a6217ac6a1c51970bfb404748cb906d278c886a08a090f9c"
+    }
+  ],
+  "sources": [
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\InfiniLM-hygon-test\\code\\bw1000\\Deep-HC-teacher-forced-logits-r397\\source-v3\\owner\\teacher_forced_r397.py",
+      "SHA256": "f1a7ba18cc3fc4058143aa97b1c3b928fb936f115d95e223c8a94353886e7fd7"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\InfiniLM-hygon-test\\code\\bw1000\\Deep-HC-teacher-forced-logits-r397\\source-v3\\owner\\bootstrap_r206b.py",
+      "SHA256": "b470f0b6f234f650bf92f28ae7ecc976ba0ae5551c14fa58dd172ade11d77194"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\InfiniLM-hygon-test\\code\\bw1000\\Deep-HC-teacher-forced-logits-r397\\source-v3\\owner\\hc_model_contract.py",
+      "SHA256": "9acc5ec5f69fac0af289f6fccbc7a2fb8a103ac715dc8e8751d21ea541708422"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\InfiniLM-hygon-test\\code\\bw1000\\Deep-HC-teacher-forced-logits-r397\\source-v3\\owner\\NATIVE_BUILD_PIN.json",
+      "SHA256": "5c692b3ca2ba3fd7a7d5d36489b2b5e3c8fb4bcdf28a9791fb8ddc696fd3adbf"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\InfiniLM-hygon-test\\code\\bw1000\\Deep-PD-disaggregation-r382\\native\\original\\modern_native_engine_probe_r22.cpp",
+      "SHA256": "8c82b8b6d4d4b4a37d795a7d45983331775cea2b8685961c7d16cc600cd5ff23"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\InfiniLM-hygon-test\\code\\bw1000\\Deep-PD-disaggregation-r382\\native\\original\\infer_engine.cpp",
+      "SHA256": "b3594a5c8b3643690b6759e8377191a2a2b2941311b29a63c1c7390baf11491b"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\InfiniLM-hygon-test\\code\\bw1000\\Deep-PD-disaggregation-r382\\native\\original\\rank_worker.cpp",
+      "SHA256": "3d2f3e679a588d3dd2fee66355f766aeba3c9f4407a25057d1f325125e3e8f0c"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\latest-experimental-source-r3642\\candidates\\rebased-06d0c03-r3548\\Model\\Deep\\InfiniLM\\csrc\\engine\\request_sampling.hpp",
+      "SHA256": "27bb566c8015ba8f42c131d0b432d57fbe461d621fbc33446e903ff949081719"
+    }
+  ]
+}
