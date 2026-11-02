@@ -1,0 +1,64 @@
+{
+  "task": "paired-quality-expansion-r373",
+  "owner": "glm_operator_tuning",
+  "state": "PREPARATION_ONLY_NO_GPU",
+  "GPU_GO": false,
+  "actual_GPU": null,
+  "actual_CPU_jobs": [],
+  "dataset": "Existing GSM64+MMLU64, same128 cases per model; historical use explicitly retained; no answer/speed filtering",
+  "result": "results/bw1000/2026-11-02/GLM373-preparation-card-v2.json",
+  "scope": "Custom zero-shot ordinary4096 paired quality/per-request timing; not full official benchmark, no regression or performance qualification yet",
+  "no_new_dependency": true,
+  "no_network_dataset_fetch": true,
+  "read_only_server_inventory": true,
+  "published_raw_payloads": false,
+  "resource_claim": {
+    "current_GPU_cards": 0,
+    "current_CPU_jobs": 0,
+    "future_proposal_only": {
+      "GLM": {
+        "replicas": 2,
+        "cards_per_replica": 32,
+        "GPU_seconds_per_replica": 21600,
+        "estimated_wall_s": 14913.635404878733,
+        "nodes": "Original910376 four nodes plus910380 four nodes proposed by root; exact allocation/provider/namespace qualification pending"
+      },
+      "Deep": {
+        "replicas": 4,
+        "cards_per_replica": 8,
+        "GPU_seconds_per_replica": 7200,
+        "estimated_wall_s": 4209.309557623346,
+        "nodes": "Not assigned or qualified yet"
+      }
+    }
+  },
+  "next_minimal_work": [
+    "Root r374 implements shared pairedCI/coverage consumer; this task does not duplicate it",
+    "Reuse actual prepared processor/engine ingress to encode frozen128 whole prompts per model; no Native create/weights; record IDs/hash/effectiveW4 count",
+    "New immutable finite-plan client and owner adapters preserving original loader, identity, normal resets, EOS and cancellation; remove only fixed6/18 indices/budget128 assumptions",
+    "Actual worker/supervisor->ready identity->client full CPU glue including failures/partial/deadline and all shards; no quality-score early abort",
+    "Only after source/CPU/provider/precise resource claim publication consider new GPU execution; no launch authorized by this preparation artifact"
+  ],
+  "artifacts": [
+    {
+      "path": "code/bw1000/paired-quality-expansion-r373/prepare_card.py",
+      "SHA256": "5f04c852420f3dd8230f6d8ada82c33676d844b8cb7b4d65c3bc5ad4fac65183"
+    },
+    {
+      "path": "code/bw1000/paired-quality-expansion-r373/read_inventory_remote.py",
+      "SHA256": "0e595a46bd26e1b0ca7837521edf5cfba0d63d15665c3062b0393ae9e1f6126e"
+    },
+    {
+      "path": "results/bw1000/2026-11-02/GLM373-preparation-card.json",
+      "SHA256": "a98965dc493096f67e904817c638be2fb7a31e541ed8027cc73401fb7ef5696a"
+    },
+    {
+      "path": "results/bw1000/2026-11-02/GLM373-preparation-card-v2.json",
+      "SHA256": "3412cb5e8c328f988954e8076185901a76c14cd63f7b308e11888e7b11562730"
+    },
+    {
+      "path": "results/bw1000/2026-11-02/GLM373-dataset-inventory.json",
+      "SHA256": "72bfd87db7c8a80e0dd68156deb62b36a4f4556a4019440ade3630f52185202e"
+    }
+  ]
+}
