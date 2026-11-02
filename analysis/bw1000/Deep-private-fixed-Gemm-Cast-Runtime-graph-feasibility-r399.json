@@ -1,0 +1,198 @@
+{
+  "schema": 1,
+  "UTC": "2026-11-02T16:40:03.086960+00:00",
+  "owner": "/root/glm_operator_tuning",
+  "scope": "Bounded current SDK/source/vendorheader feasibility. No build/Slurm/GPU/Native dlopen/Git, no current-provider capture or performance qualification.",
+  "decision": "NEW_PRIVATE_FIXED_BUFFER_PREPARED_OPERATOR_ROUTE_SOURCE_FEASIBLE_VENDOR_WORKSPACE_CAPTURE_QUALIFICATION_REQUIRED",
+  "old_result_boundary": "7371/9010 STOP applies to existing capture_safe contracts and current Runtime fallback, not proof vendorBLAS cannot graph. Old2762 manualcapture is a different olderKimi SDK and bypassedRuntime qualifier; only precedent, never currentDeepqualification.",
+  "currentSDK": {
+    "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/install/hygon-deep-5f91ad7-r3672/lib/libinfiniops.so",
+    "SHA256": "e1d9432e6de79cf09782fc3b3b332fb969d1a948dbac513b3da677d78f7f1f09"
+  },
+  "source_facts": [
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Deep/InfiniOps/src/native/cuda/hygon/ops/gemm/cublas.h",
+      "SHA256": "8701eb47fb5b1e363ebe3d3b2b8e36fcd41a62a5a43461707624072df04393fa",
+      "lines": [
+        {
+          "line": 19,
+          "text": "owner_(HygonGemmHandle::Acquire(y.device().index())) {}"
+        },
+        {
+          "line": 23,
+          "text": "cublasHandle_t GetHandle() const override { return owner_->get(); }"
+        }
+      ]
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Deep/InfiniOps/src/native/cuda/hygon/blas.h",
+      "SHA256": "d2e6dba471777cf29e19b9de37b17bb109b530bf550da916458c50859912c059",
+      "lines": [
+        {
+          "line": 27,
+          "text": "static constexpr auto BlasCreate = cublasCreate;"
+        },
+        {
+          "line": 29,
+          "text": "static constexpr auto BlasSetStream = cublasSetStream;"
+        },
+        {
+          "line": 31,
+          "text": "static constexpr auto BlasDestroy = cublasDestroy;"
+        },
+        {
+          "line": 33,
+          "text": "static constexpr auto BlasGemmStridedBatchedEx = [](auto&&... args) {"
+        }
+      ]
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Deep/InfiniOps/src/native/cuda/ops/gemm/blas.h",
+      "SHA256": "9d9e424fc6e890fe6dad857e44c44cc072b0e2f7bc9fa635023c1a5aa20012a4",
+      "lines": [
+        {
+          "line": 42,
+          "text": "const auto handle = GetHandle();"
+        },
+        {
+          "line": 43,
+          "text": "CheckStatus(Backend::BlasSetStream("
+        },
+        {
+          "line": 64,
+          "text": "Backend::BlasGemmStridedBatchedEx("
+        },
+        {
+          "line": 112,
+          "text": "virtual typename Backend::BlasHandle GetHandle() const {"
+        },
+        {
+          "line": 113,
+          "text": "thread_local typename Backend::BlasHandle handle = []() {"
+        }
+      ]
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Deep/InfiniOps/src/native/cuda/hygon/ops/cast/kernel.h",
+      "SHA256": "95e72f39d136216331064e21782c509283ebd0f84d6ea70fa2259d896a8fb4eb",
+      "lines": [
+        {
+          "line": 61,
+          "text": "static bool supports(const Tensor input,Tensor out){"
+        },
+        {
+          "line": 75,
+          "text": "bool capture_safe()const override{return false;}"
+        },
+        {
+          "line": 76,
+          "text": "void operator()(const Tensor input,Tensor out)const override{"
+        },
+        {
+          "line": 86,
+          "text": "auto status=cudaGetLastError();if(status!=cudaSuccess)throw std::runtime_error(cudaGetErrorString(status));"
+        }
+      ]
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Deep/InfiniOps/src/base/cast.h",
+      "SHA256": "864f425febd0986d2ececb5826d20cb3b2c1c3a1b7169b78257669b89e93781e",
+      "lines": [
+        {
+          "line": 26,
+          "text": "virtual void operator()(const Tensor input, Tensor out) const = 0;"
+        }
+      ]
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Deep/InfiniOps/src/native/cuda/hygon/ops/gemm/hip_handle_owner.h",
+      "SHA256": "d26a4820a7d0c40b67501404ef6b504653f5dc2fe1188be745590b41aff8528f",
+      "lines": [
+        {
+          "line": 17,
+          "text": "static thread_local std::map<std::pair<int,CUcontext>,std::weak_ptr<HygonGemmHandle>> leases;"
+        },
+        {
+          "line": 34,
+          "text": "if(cublasDestroy(handle_)!=CUBLAS_STATUS_SUCCESS)std::terminate();"
+        },
+        {
+          "line": 45,
+          "text": "if(cublasCreate(&handle_)!=CUBLAS_STATUS_SUCCESS || !handle_)throw std::runtime_error(\"Cannot create Hygon BLAS handle\");"
+        }
+      ]
+    }
+  ],
+  "vendor_contract": {
+    "actual_container": "R/containers/dtk26-sandbox-r1; headers read as files, container not executed",
+    "cublas_compat": "cublas_v2.h lines24/27/28 maps SetWorkspace/PointerMode; cublas_api.h176-186 declares workspace+stream+pointermode APIs. Declarations alone do not guarantee graph support or prohibit internal allocations.",
+    "rocblas": "installed internal/rocblas-functions.h25329-25336 explicitly documents rocblas_initialize to perform upfrontdevicekernellazyinit;25382/25394 memorysizequery;25459 set_workspace. cublasHandle ABI is NOT proven equivalent to rocblasHandle: no reinterpretcast allowed.",
+    "graph_documentation": "No installed graph-specific guarantees found in inspectedhipblas/rocblasheaders/doc LICENSE tree. Actualcompat workspace enforcement/defaultalgo capture support remainUNKNOWN; cannot infer unsupported fromabsenceofdocs.",
+    "historical_precedent": "L/public_gemm_capture_r2762.cpp lines create: existingOps factory warm3 thenrawcapture; audit2785 has224contexts/672changedinputs across8devices (oldSDK), unchangedSDKsafe=false. Its noWorkspace op case does not prove newF32/currentshape orRuntimelease correctness."
+  },
+  "Runtime_lifetime": {
+    "source": "9010 current graph/runtime text bytes retained in Deep-graph-current-source-r9010.json",
+    "GraphTensor": "Capturing snapshot to_blob_ retains original Runtime allocation; use existing detail::snapshot/GraphTensor and fixedlayout. No raw pointer withoutretention.",
+    "submit": "submit.hpp creates Operator::Make once, allocates requiredworkspace viaRuntime, recordedclosure holds instance/workspace/Runtime. Only instance.capture_safe controlsclassification. CurrentgenericGemm reports0workspace andTLSsharedhandle seesSetStream only.",
+    "PinLease": "startGraphRecording begins allocatorpinmode; stopGraphRecording stopsmanager, commitsPinLease, Graph.retain_runtime, instantiate; failures cancelpin/finish state. Graph ownerthread asserted, replayfailure retires, destructor drains beforelease release.",
+    "limitation": "There is no prepare callback before StreamBeginCapture for ordinaryfreshMake. Flipping safe flag in existingHygonGemm would allowfirstvendorinitialization/allocation duringcapture. Fixedbuffer preparation must be explicit and outsideRuntime recording; cannot silently execute duringcapture_safe query or constructor outputmutation.",
+    "dynamicbinding": "Recordedclosures fix addresses/layout/stream. Crossforwardstateallocation/N/R/head/past/captureupdate is separateconsumerengineering. This proposal is only persistent2D fixedbuffers, not currentMode2/Modeladoption."
+  },
+  "minimal_design": {
+    "default": "All installed/sharedSDK/Native remainunchanged. Private explicitfactory/entry flag defaultOFF; no globalcapture_safe override. Existingordinaryfactory retainsfalse.",
+    "unit1": "private_provider.cu: PreparedHygonGemm subclass of current BlasGemm<Blas<kHygon>> with private peroperator BLAShandlelease and unchangeddefaulttensoropalgo/computeenum/scalarsemantics. PreparedCast wraps samecurrentCast kernel/conversions with fixedmetadata qualification; do notreplace existingSDKfactory symbols or interpose publicspecializations. Compilehiddenprivate symbols.",
+    "unit2": "runtime_fixed_graph.cpp: explicit prepare/record/replay/close entry using actual Runtime APIs, existingGraphTensor snapshots, allocateMemory and addGraphOperator RecordedCall. Reuse standard ownerDeviceGuard and allocationlease paths; no directcudaGraph capture/launch. Can include existing submit.hpp detail::snapshot, but pin exactheaderSHA and do notmodifyCommon.",
+    "prepare_sequence": [
+      "Assert owningRuntime/currentdevice/context, eager/inactivegraph, explicitoptin, immutable2DcontiguousF32/BF16contract, Cabsent/beta0 and fixedalpha1 initially; reject unsupportedbeforemutation.",
+      "Create dedicatedBLAShandle beforecapture (do not mutate currentHygonGemmHandle registry sharedhandle workspace: weakregistry keys onlydevice/context). Preserve current math/defaultalgorithm and explicitHOSTpointermode matchingoriginalscalar contract.",
+      "Allocate explicitworkspace from Runtime, assignpointer/size via cublasSetWorkspace AFTER SetStream because compatibility may resetworkspace onstreamchange. Choose documented/query-proven bound if obtainable throughcompatAPI; otherwise boundedexplicit size is an engineering trial, not proof vendoralloc isdisabled. Insufficientworkspace/capture failure must failstop, no hostfallback disguisedassuccess.",
+      "Perform acknowledged eager warmup(s) on samefixedmatrices/handle/workspace outsidecapture/timing thenRuntime.syncStream. This is explicitprepare behavior, notconstructor orcapture_safe sideeffect; caller can overwriteinputs/poisonoutput afterprepare. Currentcompatfirstuse remains a devicequalification item.",
+      "Freeze fixedpointers/shapes/strides/dtypes/alpha/beta/stream/device/context/workspaceidentity/generation; only setinstance READY/capture_safe after this explicitpreparation. Never advertisepreparedready by getenv alone.",
+      "Record exactsamepreparedinstances via Runtime.addGraphOperator, captureclosure retains instance+workspace+GraphTensor+Runtime. stopGraphRecording uses originalPinLease/deviceGraphengine. Assert all2ops arecaptured and hostreplay0; require_device_graph alone isinsufficient.",
+      "For eachreplay, updatevalues in sameinputbuffers only; finish H2D beforegraphlaunch onoriginalstream, compareoutput/math andcanaries afteroriginaldrain. No pointerpatch/dynamicshape/fallback/repreparehidden fromcounts.",
+      "Oncapture/replayerror preserveoriginalexception, retirepreparedplan andgraph, drainowner before releasing anybuffer/workspace/handle. closegraph first thenoperatorlease/workspace thenRuntime; owner/device validationfailure beforelaunch must notmutateoutput."
+    ],
+    "Cast_specific": "Currentkernel supports() calls cudaGetDevice and validatesalias/layout on host; fixedmetadata checks occur beforecapture. Cast kernel launches and cudaGetLastError do not allocate workspace in visiblecode. Readywrapper freezesaddress/metadata and usesidenticaldeviceconversion, but currentcontext/captureerror semantics requireactualqualification; no F64test/GPU introduced.",
+    "workspace_issue": "Runtime PinLease covers explicitworkspace but cannot lease hiddenBLASallocations. Perophandle ownership+warmup+SetWorkspace are necessary, not alone sufficient proofs; capturednodecounts/replaystability/destructiontest on actualprovider must close thisgap.",
+    "changes_to_Common_or_existing_classlayout": 0,
+    "new_private_translation_units": 2,
+    "ABI_effect": "Adds privateCABI only; no replacementexistingclasses/vtablelayout and no relinkcurrentNative. Newprivate DSO links currentSDK/Runtime dependencies and private compiledproviderinlinecode; exactMD/header/providerhash closure needed. If publicOpsfactoryregistration is desiredlater, affectedgeneratedexplicitinstantiationTUs must berecompiledconsistently; thisproposalavoids that broadrebuild."
+  },
+  "fixed_component_scope": {
+    "candidate": "OriginalHCprefix geometry BF16[32,16384] Cast->F32[32,16384], F32 GEMM timesfn.T[16384,24]->F32[32,24] (source7371); this tests SDKcapturecapability only. No HCpostnorm/Modelqualityclaim and no changedmatrixalgorithm.",
+    "first_device_judgment": "One GPU noModelload, same fixedbufferstaged once, explicitprepare, eager vsactualRuntimegraph withchangedvalues/zero/adversarialfinite patterns, readonly/canary/owner/close checks; devicegraph2ops/host0 and immutableworkspace lifetime. Performancewarmup/capturecost separately fromsteadystate completewall. No sourceGPUclaim inthisaudit.",
+    "CPU_compile_boundary": "TwoisolatedprivateTUs only (oneDTKnvcc GPUprovider, oneHOST Runtimebridge), compileagainstcurrentpinnedOpssource/Runtimeheaders andalreadyqualifiedDSO. CheckMD/DT_NEEDED/exports andCPUcontract invalid-statecases withoutdevice. Compilecannotprove capture; actualdevicefunctionqualification must be separatepublishedboundedclaim. Provisional4c8GiB<=300s CPU and1GPU<=180s functiononly requireconcreteclaim/rootselection, notlaunched.",
+    "Model_and_mode2": "ActualMode2 changingN/R/past/packedbuffers andfirstcapturemetadata needdistinctpersistentbindings; noonecaptureperforward amortizationclaim. Wholelayer/currentwallcriticalfraction remainsUNKNOWN."
+  },
+  "why_no_source_toggle_landed": "A bool-onlypatch would notcloseBLAShiddenworkspace/firstinitialization, and currentvendorheaders do notprove capture-safecontract. The actionable2TUprivate design is specified beforeimplementation; no unqualifiedcaptureflag orsharedheader edited. This is not a STOPonthe mechanism: nextnecessarywork is implementation+explicitresourcepreparation thenactualproviderqualification, not repeatingoldhostreplay.",
+  "input_SHA256": {
+    "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Deep/InfiniOps/src/native/cuda/hygon/ops/gemm/cublas.h": "8701eb47fb5b1e363ebe3d3b2b8e36fcd41a62a5a43461707624072df04393fa",
+    "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Deep/InfiniOps/src/native/cuda/hygon/blas.h": "d2e6dba471777cf29e19b9de37b17bb109b530bf550da916458c50859912c059",
+    "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Deep/InfiniOps/src/native/cuda/ops/gemm/blas.h": "9d9e424fc6e890fe6dad857e44c44cc072b0e2f7bc9fa635023c1a5aa20012a4",
+    "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Deep/InfiniOps/src/native/cuda/hygon/ops/cast/kernel.h": "95e72f39d136216331064e21782c509283ebd0f84d6ea70fa2259d896a8fb4eb",
+    "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Deep/InfiniOps/src/base/gemm.h": "cc907bda54c5bc79f7808e0fe2e52328ea61c74d8fe12fd6060c8a03bfd742d1",
+    "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Deep/InfiniOps/src/native/cuda/hygon/ops/gemm/handle_owner.h": "488389e28cdfd302659de414c2caa4c11a91aca61c82570a70e23155a8dc0b6e",
+    "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Deep/InfiniOps/src/base/cast.h": "864f425febd0986d2ececb5826d20cb3b2c1c3a1b7169b78257669b89e93781e",
+    "/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/Deep-C1-current-profile-r353/repair-r1/controller-v2/resource_wave_host_alias_outer.sh": "b6cd3ac7aa1829a39434d8dc186deed6c993323d1ac894727072701570c0825d",
+    "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Deep/InfiniOps/src/native/cuda/hygon/ops/gemm/hip_handle_owner.h": "d26a4820a7d0c40b67501404ef6b504653f5dc2fe1188be745590b41aff8528f",
+    "/public/home/aclsylqidf/hygon-inference-refactor-20261014/containers/dtk26-sandbox-r1/opt/dtk/cuda/cuda/include/cublas_v2.h": "bd5fd2dcc25e0692914924a9eecb13a0997cb3ebf788e43011d0161a332d6d31",
+    "/public/home/aclsylqidf/hygon-inference-refactor-20261014/containers/dtk26-sandbox-r1/opt/dtk/cuda/cuda/include/cublas_api.h": "639540f36d29a824d9a9cb74dbf2f29fbfb6fea93848b7310f86509e3f37014a",
+    "/public/home/aclsylqidf/hygon-inference-refactor-20261014/containers/dtk26-sandbox-r1/opt/dtk/include/hipblas/hipblas.h": "13e05befd863239791527b20389a90911e75f675be3ff71fbbe564b325ffbc49",
+    "/public/home/aclsylqidf/hygon-inference-refactor-20261014/containers/dtk26-sandbox-r1/opt/dtk/include/rocblas/internal/rocblas-functions.h": "e2ad3eab82bd50693d876a38c199bffaf8979c5340787a2ad13c3a5ea6aa2720",
+    "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\InfiniLM-hygon-test\\analysis\\bw1000\\deep-graph-feasibility\\Deep-mode2-graph-feasibility-r9010.json": "336bbd2e1ce1a85b392004a0718f165efa79d292c40ac2c694292bbadea71dbd",
+    "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\InfiniLM-hygon-test\\analysis\\bw1000\\deep-graph-feasibility\\Deep-graph-current-source-r9010.json": "240c2ffa44312a4fdc832d42969c2f61a445893cad68e7aee81de38ebee45e0a",
+    "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\InfiniLM-hygon-test\\evidence\\bw1000\\Deep-HC-prefix-graph-CLOSED-r7371.json": "f722f50f35601f43335eb26b83c839d5dc8843cd42d51eb57755bd8483d9514e",
+    "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\public_gemm_capture_r2762.cpp": "c7cadedcb5bc48f248f4a7ff76e5aa170ac8d7f037bd436a9c04655dbb3790dd",
+    "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\audit_public_gemm_capture_r2785.py": "7f0beaec3000f0375e7a4500a3df1267e4c381c3a8588b0d1f319e8f053bf522",
+    "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\Deep397-current-SDK-graph-source.json": "552c41f75b0aad6a655fc7686abc6f828e096a5282200468f36a937dd1c7220c",
+    "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\Deep397-vendor-header-evidence.json": "4073d929e9ad4d629567ef6e8f294b132217c0b01498a6f2202258ba2bf2219f",
+    "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\Deep397-owner-wrapper-evidence.json": "1abc963959013ca0df933f4b1be6f3911d794722a4270ac2d34b2a223306ce94",
+    "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\Deep397-actual-container-header-evidence.json": "e6fc929572b7ed9eb78c7b53313adc0c9c73c7093ef3ad94abf0ab9599a5b4fa",
+    "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\Deep397-vendor-graph-contract.json": "bf1cec1f23a27a2f66c567679d3f8d5c1d24bc17afa82778a0818a8403ddf162"
+  },
+  "new_GPU": 0,
+  "Slurm": 0,
+  "compile": 0,
+  "Git": 0,
+  "performance_result": "UNKNOWN"
+}
