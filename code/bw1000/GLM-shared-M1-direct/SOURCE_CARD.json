@@ -1,0 +1,212 @@
+{
+  "schema": 1,
+  "state": "SOURCE_LOCAL_LAYOUT_READY_CPU_CLAIM_ONLY_GPU_GO_FALSE",
+  "mechanism": "M1 shared-expert three FP8 projection providers replaced by existing raw_r19 paired gate/up + down. No new HIP, no routed8 provider/selector/activation/reduce/TP change.",
+  "baseline_Native_SHA256": "038d4ff2e7aee2e6db80f691dd885222f3e3160e25ae9d0e269296daf9596c00",
+  "current_call_chain": [
+    "DecoderProjectedR22 forward -> FeedForwardR19::forward(c716...) -> shared_->forward_local",
+    "shared M1: gate_->Fp8Projection and up_->Fp8Projection each original per128 BlockQuant; fp8_cached rejects M1, originalSDK Fp8BlockLinear fallback",
+    "BF16 SiLU then BF16 Mul -> original down quant local_scale[1,2] + original global_scale[1,16] assembly -> SDK down Fp8BlockLinear -> BF16 shared output",
+    "routed8 contributions + shared cast/add + original TP F32 allreduce + BF16 output unchanged"
+  ],
+  "current_storage": {
+    "gate_up_W": [
+      256,
+      6144
+    ],
+    "gate_up_WS": [
+      16,
+      48
+    ],
+    "X": [
+      1,
+      6144
+    ],
+    "XS": [
+      1,
+      48
+    ],
+    "down_W": [
+      6144,
+      256
+    ],
+    "down_WS": [
+      48,
+      16
+    ],
+    "down_X": [
+      1,
+      256
+    ],
+    "down_XS": [
+      1,
+      2
+    ]
+  },
+  "quantization": "Checkpoint E4M3 uint8 and F32 global per128x128 scales; activation original BlockQuantF8E4m3; no weight conversion/new precision",
+  "provider_proof": {
+    "read_only": true,
+    "GPU": 0,
+    "Native_dlopen": false,
+    "objects": [
+      {
+        "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/glm-grouped-native-r5123/scalar.o",
+        "SHA256": "e10632453a7b950afd3078076da7f2a68e0828436ee2d5c725045c30e4a4ef69",
+        "symbols": [
+          "0000000000000450 T glm_routed_down_r19",
+          "0000000000000180 T glm_routed_gate_r19"
+        ]
+      },
+      {
+        "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/glm-grouped-native-model-r5117/helpers/routed.o",
+        "SHA256": "e10632453a7b950afd3078076da7f2a68e0828436ee2d5c725045c30e4a4ef69",
+        "symbols": [
+          "0000000000000450 T glm_routed_down_r19",
+          "0000000000000180 T glm_routed_gate_r19"
+        ]
+      }
+    ],
+    "current_Native_symbols": [
+      "00000000000cbe50 T glm_routed_down_r19",
+      "00000000000cbb80 T glm_routed_gate_r19"
+    ],
+    "incoming_source_SHA256": "c9b899fbf5a6f8eb715d806bc592e79b8b738b4334dd938d83e6f1e40f4e326a"
+  },
+  "public_wrapper_refusal": "glm_grouped_*r5123 validate routes%8 rejects1; unchanged. Candidate calls actual exported raw_r19 route0 only with shared singletonexpert weight view; never pads8/expert-routes or rewrites routed selections.",
+  "raw_source_SHA256": "c9b899fbf5a6f8eb715d806bc592e79b8b738b4334dd938d83e6f1e40f4e326a",
+  "raw_source_formula": "route0->token0; expert0 offsets are zero. Gate scale[(tpOffset+localRow)/128,blockK]; down scale[outRow/128,tpOffset/128+blockK]; down local activation scales exactly original global_scale slice.",
+  "source_change": "one FFN HOST TU; public state_dict().at(name).tensor() alias views; no header/class layout changes; oldsource byte-recovery assertion passes",
+  "original_FFN_SHA256": "c716b37fd3fe786cece00a5b4a309d9eb13b76e4bbdb8cc8843be936c708e64b",
+  "candidate_FFN_SHA256": "7d45fc69c1322aab7b57c5836469b6092e9e42541b22505e134a4fb10a3cc3a7",
+  "compile_recipe_source": {
+    "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/glm-vector-model-r8542/CPU-build.json",
+    "SHA256": "39f873bffae4750a514ff958d9eb411fdfa6f8258901015b40761ed72b5212f4",
+    "actual_command": [
+      "/usr/bin/g++",
+      "-I/refactor/candidates/glm-vector-model-r8542/src",
+      "-I/refactor/candidates/glm-transient-layer-r5681/src",
+      "-I/refactor/candidates/glm-transient-layer-r5681/src",
+      "-std=c++17",
+      "-O2",
+      "-fPIC",
+      "-D_GLIBCXX_USE_CXX11_ABI=1",
+      "-I/refactor/candidates/glm-deferred-attention-model-5f91ad7-r5096/src",
+      "-I/refactor/incoming",
+      "-I/refactor/candidates/rebased-5f91ad7-r3668/Model/GLM/InfiniLM/csrc",
+      "-I/refactor/install/hygon-glm-5f91ad7-r3672/include",
+      "-I/refactor/install/hygon-glm-5f91ad7-r3672/include/infiniccl",
+      "-I/refactor/candidates/rebased-5f91ad7-r3668/Model/GLM/InfiniLM/third_party/json/include",
+      "-I/refactor/candidates/rebased-5f91ad7-r3668/Model/GLM/InfiniLM/third_party/spdlog/include",
+      "-I/opt/dtk/cuda/cuda/include",
+      "-pthread",
+      "-MD",
+      "-MF",
+      "/refactor/candidates/glm-vector-model-r8542/vector-0.d",
+      "-c",
+      "/refactor/candidates/glm-vector-model-r8542/src/glm_moe_dsa_routed_ffn_r19.cpp",
+      "-o",
+      "/refactor/candidates/glm-vector-model-r8542/vector-0.o"
+    ]
+  },
+  "local_CPU_layout": {
+    "completed": true,
+    "passed": true,
+    "CPU_only": true,
+    "GPU": 0,
+    "Native_dlopen": false,
+    "actual_kernel_source_bound": true,
+    "checks": 196642,
+    "TP_offsets_checked": 8,
+    "public5123_route1_refused": true,
+    "raw_r19_route0_addressing_fits_single_shared_view": true,
+    "FP8_layout": "original E4M3 uint8 payload + F32 per128x128 checkpoint scales",
+    "shapes": {
+      "gate_up_W": [
+        256,
+        6144
+      ],
+      "gate_up_WS": [
+        16,
+        48
+      ],
+      "X": [
+        1,
+        6144
+      ],
+      "XS": [
+        1,
+        48
+      ],
+      "down_W": [
+        6144,
+        256
+      ],
+      "down_WS": [
+        48,
+        16
+      ],
+      "down_X": [
+        1,
+        256
+      ],
+      "down_XS": [
+        1,
+        2
+      ]
+    },
+    "numerical_GPU_or_Model_qualification": false
+  },
+  "wall_evidence": {
+    "current_component367": "same038d full layer TP8/M1 fixedprefix512 OFF complete driver ~2.53-2.61ms; no exclusive FFN split",
+    "historical787_only": "oldPP2 C1 representative shared projections N256/K6144 quant+projection ~0.106ms each, twice per layer; FFN inclusive ~1.17-1.25ms. Different topology/load, not current361 budget and never multiplied by78.",
+    "370": "existing hook has15.44percent complete-wall overhead; STOP quantitativebudget, do not reuse as unbiased fractions",
+    "current_Model_shared_exclusive_wall": "UNKNOWN",
+    "hypothesis": "Direct GEMV avoids full SDK weight conversion/projection path and duplicate shared input quantization; targets entire three-projection shared branch inside major FFN path, not a20us primitive. Size/layout alone cannot predict gain."
+  },
+  "dedup": {
+    "not_reopened": [
+      "341 BF16activation fusion",
+      "367 routed8 M1 gate-widefetch",
+      "370 profiling hook",
+      "RMS descriptor cache",
+      "664 naive perexpertINT8",
+      "prepare terminalfence negative"
+    ],
+    "not_same_as549": "549 reused attention qa/ka inputquant only, 1.76percent wholelayer component; candidate changes all three shared-expert projection providers and quant reuse, not just shared activation fusion.",
+    "exact_same_negative_found": false
+  },
+  "CPU_claim": {
+    "parent": 910407,
+    "node": "a14r2n20",
+    "CPU": 4,
+    "memory_MiB": 8192,
+    "Slurm_s": 300,
+    "inside_s": 270,
+    "GPU": 0,
+    "HOST_compile": 1,
+    "GPU_compile": 0,
+    "Native_dlopen": false,
+    "Model_load": false,
+    "actual_step": null
+  },
+  "shortest_GPU_card_after_CPU_and_root_GO": {
+    "resource_proposal": {
+      "parent": 910371,
+      "node": "a02r3n16",
+      "GPU": 8,
+      "TP": 8,
+      "GPU_measurement_s_max": 600
+    },
+    "no_current_GPU_claim_or_launch": true,
+    "scope": "One real checkpoint layer38 complete component, sameimage OFF/ON, two fixed changed BF16 M1 inputs and identical prefixrestore512. No target Model load, allvisibleattention limitation explicit.",
+    "plan": "profileOFF; eachfixture2warm OFF/ON;4ABBA blocks perfixture=8ABBA total,3measurements/arm; original complete-layer outerwall includes entireFFN/router/shared/TP and all provider/aliaslookup costs",
+    "first_ON_warm": "Set mode in actual owning process/device. For each8owner eligibleM1 observed deltas selected/gateup/down>0 and fallback0 before formal; dladdr raw/new setter/count to actually loaded candidate, ldd samefa7 dependency. Prefixrestore mode/counters excluded from eligibleM1 delta only. Never rely on parent-thread TLS.",
+    "checks": "finite/input-readonly/canaries/tailbounds and changedinput, outputrelativeNR vs baseline+ownrepeat reported; exactbits diagnostic not acceptance; original8router ids/weights androuted providercounter path retained, rawshared gateup/down hits independent. Unsupported M8/dense shapes remain fallback.",
+    "primary": "Aligned trial max8 full complete-layer driverwall, not primitive. No event hook or nested timing subtraction. FullFFN exclusive cost remains UNKNOWN.",
+    "stop": "Any wronghit/nonfinite/OOB/cleanup failure stops. Need >=5percent median completewall rate gain and >=3of4positive paired blocks perfixture with OFFdrift<=5percent; otherwiseSTOP/no parametergrid. Positive component only qualifies a later separatelyplanned Model check, not Modelgain.",
+    "cleanup": "all8normal Runtime destroy/Torchafterclose and Slurm+srun0 plus independent ownerPID/KFD post, originaldeadline no autoretry"
+  },
+  "GPU_GO": false,
+  "Slurm_started": false,
+  "Git_stage_or_push": false
+}
