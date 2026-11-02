@@ -1,0 +1,143 @@
+{
+  "review": 173,
+  "state": "COMPLETE_RECOMMENDATIONS_FOR_ROOT_ADOPTION",
+  "scope": {
+    "trigger": "Kimi401完整组件严重性能负结果及baseline精度解释矛盾，提前审核",
+    "basis": "coordination/ASTRA_REVIEW.zh-CN.md；复用前轮规则与已读实际证据",
+    "causal_rounds_since_172": 2,
+    "causal_events": ["GLM400 GPU735 完整prefill U32768", "Kimi401 GPU741 两fixture完整routedFFN"],
+    "excluded_rounds": ["CPU802/804及其他编译/recording", "401 GPU732/738零call入口错误", "精度解释源读核"],
+    "actions": "仅阅读现有源、根原reader复算结果和实际回执；只写本报告，未运行测试、GPU、Git或新框架",
+    "cutoff": "r404仍由原owner准备最小入口；本审未看到已冻结r404源码/最终claim，不称完整入口已通过",
+    "independent_r404_source_work_continues": true,
+    "not_an_additional_permission_gate": true
+  },
+  "previous_followthrough": {
+    "172": "root正在登记落实；已知fixture封包修复最终在741完成实际68call，原732缺metadata和738 stream-handle零call错误独立保留。无需为本报告重复检查或重编801。",
+    "400": "802精确两W例外复用800库后，735已完成原6query/384seed/1diag scope；不再停留在CPU或metadata状态。",
+    "403": "一次必要Model caller HOST替换已804完成，28对象复用/29最终对象；这是真实工程闭合，不是Model装载或fit。"
+  },
+  "four_questions": {
+    "Model_or_service_gain": "这两轮新增Model/真实服务提升为NONE。735完整attention数值和生命周期通过但更慢，741完整routedFFN数值/状态通过且约59%速率倒退。潜在16卡容纳价值尚未验证，不能写成已节省一半服务卡或提高每卡吞吐。",
+    "time_cost": {
+      "GLM735_GPU_seconds": 123,
+      "GLM735_allocated_card_seconds": 984,
+      "Kimi741_GPU_seconds": 87,
+      "Kimi401_three_GPU_attempts_allocated_seconds": 250,
+      "Kimi741_CPU_weight_loading_seconds": 41.30722942203283,
+      "Kimi741_all68_CAPI_wall_ms": 6047.877621371299,
+      "Kimi741_first_OFF_warm_ms": 5663.990393280983,
+      "GLM804_CPU_seconds": 21,
+      "interpretation": "401总尝试成本包括两次零call工程失败，不能隐藏为单次87s。401首warm与735首shape成本均单列，不当正式收益基线。804仅替换必要caller，继续复用成功对象可减少准备。排队、人工等待及GPU busy时间UNKNOWN，驻留card-seconds不当利用率。"
+    },
+    "bottleneck_evidence": "735已证完整union重算增加attention完成wall，未分解provider、copy、allocator或通信占比。401已证当前I192 BF16-storage候选更慢，未证vendor算法/ISA/带宽具体原因。403只证明HOST接口/生命周期合同。不能用dense GEMM峰值、旧I384/T8倍率或逻辑字节减少预测Model。",
+    "direction": "401停止，不做16rank/Model/profile/grid；399既有scoped graph能力保留不扩卡；GLM只推进一次r404实际16卡容量+两完整请求，保持原floor和全32768。当前无有据Deep新卡。"
+  },
+  "GLM735": {
+    "root_recomputed": "L/GLM400-root-735-recomputed.json",
+    "root_reader_passed": true,
+    "sealed_original_SHA256": "9282ddfea25debf66f5d1b8bef6a3144298e084c61908ce3afd283376d6f4691",
+    "actual": "GPU910371.735 / keeper803 / post736均正常；8owner正常destroy与独立post clean",
+    "scope": "真实layer38 TP8 attention权重，synthetic hidden/selection，prefill512/U32768；无indexer/FFN/完整Model",
+    "records": "8owner各6query，16warm+32formal，384seed/owner、8个untimed directV diagnostic",
+    "formal_max8_native_ms_OFF_ON_ON_OFF": [264.682767, 276.421253, 277.889634, 260.291505],
+    "ON_over_OFF": {
+      "Native": 1.0558820052042475,
+      "dispatch": 1.0558825738091102,
+      "checked": 1.0349254093482185,
+      "seed_plus_checked": 1.015502834912213
+    },
+    "Native_OFF_endpoint_drift_fraction": 0.016590660773922017,
+    "Native_adjacent_ratios": [1.0443492643402807, 1.067609309800564],
+    "hidden_attention_and_directV_max_NRMSE": 0.0,
+    "memory": {
+      "logical_persistent_V_saved_bytes_perrank_layer": 134217728,
+      "conditional_tail40layers_saved_GiB": 5,
+      "formal_ON_free_after_output_less_than_OFF_bytes": 373293056,
+      "allocator_or_Work_peak": "UNKNOWN",
+      "interpretation": "ON去持久bank同时持有selected latent、chunk K/V和fullV等临时张量；after-output快照仍在Work生命周期，不能当释放后稳态或峰值。逻辑5GiB不能与395free直接相加宣布fit；也不能仅因该快照更低断言累计40层持久节省无效。"
+    },
+    "decision": "保留正确性/完整geometry/生命周期和成本证据。速度路线不晋级；容量换重算路线可进入唯一必要的实际Model容量检验，不重复735或chunkgrid。"
+  },
+  "Kimi741": {
+    "result": "results/bw1000/2026-11-03/Kimi401-741-complete-routedFFN-numeric-PASS-performance-FAIL-STOP-clean.json",
+    "actual": "910371.741 COMPLETED0/srun0，742 post PID/KFD clean，guardian退出；实际Runtime正常close及Torch-after-close通过",
+    "calls": 68,
+    "scope": "单卡Runtime world1，logical TP16 rank0，当前I192完整routedFFN；两历史16行扩展512 geometry，无CCL/完整MoE/Model",
+    "fixture_summary": [
+      {"fixture": 0, "OFF_median_block_ms": 3.2582595013082027, "ON_median_block_ms": 7.929198676720262, "median_paired_rate_gain": -0.5894947936229266, "OFF_endpoint_drift": 0.010349418530599674, "positive_blocks": 0},
+      {"fixture": 1, "OFF_median_block_ms": 3.241979400627315, "ON_median_block_ms": 7.912620436400175, "median_paired_rate_gain": -0.5904915266686743, "OFF_endpoint_drift": -0.01840849260351729, "positive_blocks": 0}
+    ],
+    "numeric": "68call finite/NRMS/maxabs/canary/readonly/计数均由原consumer通过，记录NRMS/maxabs0；没有raw-output归档，不能称独立原tensor复算或广泛逐位等价。",
+    "decision": "16/16配对块均负且远大于OFF漂移，STOP当前I192候选。无16rank fullMoE、Model重载、重新profile、重编或参数grid。精度解释更正不改变实际负性能决定。",
+    "why_slow": "UNKNOWN；不能把本结果归因为新增SITU舍入、硬件无BF16能力或某vendor算法而无证据。"
+  },
+  "precision_correction": {
+    "source": "analysis/bw1000/Kimi-I192-BF16-FP32-storage-rounding-source-correction-r401.json",
+    "SHA256": "a34140e8b72db242f1cc8321e83caea1615b2f2a2c531ebada89a856f78f1ec4",
+    "retained_sibling_source_SHA256": "d4ffaaaf85b58c01194d2e04cd995b2458184fc211d2cbfcba3b3c5ce7fe9ed8",
+    "reused_grouped_object_SHA256": "5a653bbf75252d66f372197d618b79ffda88ddc9e69864a64fea56c159b14fcb",
+    "observed_source_semantics": "activate_f32_r21实际执行SITU→BF16 round→F32 storage；decode_batch_f32亦先BF16 round解码权重再F32 storage，gather把原BF16 X精确扩展为F32。候选使用BF16 operand/intermediate storage、同SITU BF16 round边界和F32 GEMM输出，可能改变GEMM累加结合顺序。",
+    "correction_to_prior_reviews": "本审明确更正171/172及此前相关卡中‘candidate额外新增SITU BF16舍入’的表述；FP32 storage不能直接等同全F32值精度。保留原已发布报告/卡，追加本更正，不倒改历史源码。",
+    "provenance_limit": "保留sibling源快照、实际object SHA及strong symbol resolution，但旧grouped.o原MD/source-byte-at-build receipt缺失。因而是有根据的源语义解释，不是完整编译来源证明；不为此重建已停止的候选。",
+    "scope_limit": "当前rank0权重scale W13[110,122]/W2[119,122]非零解码权重落在normal BF16范围；其他中间值FTZ/vendor ISA仍UNKNOWN。当前consumer数值0不提升为Model质量保证。"
+  },
+  "GLM403_actual_CPU": {
+    "root_recomputed": "L/GLM403-root-804-recomputed.json",
+    "actual_CPU": "910407.804 COMPLETED0 / 21s",
+    "receipt_SHA256": "241c1af8a7ff7c7f689ea7e14cc32971beed70aced62e37413c60648400ddc32",
+    "manifest_SHA256": "e55fe87d2fa283d0829cb78b36f61831e20b91fcb392c3785012e9520cf24930",
+    "library_SHA256": "9520769d28742aba489b38ecbd1e1692f6830168c699d7111f1e0c2ae4cd598b",
+    "members": 15,
+    "object_graph": "当前038d原29对象，28精确复用、1真实caller HOST替换；0 GPU TU",
+    "actual_contract": "所有原exports保留、ldd-r等价、strict0/1 defaultOFF constructor-frozen、C1 guard、原batchflag1对C1不活跃、owned host ID跨异步源生命周期与异常drain、8192顺序通过",
+    "source_review": "caller中Work保有HOST ID容器直到既有drain，nullableV分配/写入和selectedV接回原fullModel indexer/selection/state路径；原类布局、权重loader、8GiB preweight与512MiB forward floor不变。",
+    "scope": "未dlopen/weights/GPU/Model。CPU804无需重做；Model caller实际路由、加载staging与峰值仍需真实检验。"
+  },
+  "r404_route_decision": {
+    "decision": "支持一次有界16卡C1/TP8/PP2/full32768容量+两完整工具history验证；不是performance ABBA或Model已fit声明",
+    "why_worth_one_residency": "395拒绝源于同拓扑/ctx尾stage容量，403针对持久V提供具体约5GiB条件节省且735已证明重算数学/geometry，形成可证伪容量假设。代价是组件约5.59%更慢；若能稳定把同模型容纳到16卡，资源价值与单layer加速目标不同，值得一次实际容量验证。",
+    "fixture_correction": "撤销最初‘8K/16K’误读。原349真实输入是479/8900/9741；本卡选原8900 anchor-calculate与9741 long-write，不合成/截短/重编码新16K输入。",
+    "actual_fixtures_read": [
+      {"id": "anchor-calculate", "tokens": 8900, "request_SHA256": "5ee8ea9cc99e12969d4b0505d4dd70f50e6436079206e8de5a6e908c5854c9dd", "prepared_IDs_SHA256": "c0c4f97b19cf58227e9ef8b60c17520cb2b44e8337c1c1805d96b9aab7ee16fe", "gold": "calculate(a=94200,b=70238)，由原完整read_file记录独立ID lookup"},
+      {"id": "long-write", "tokens": 9741, "request_SHA256": "7bd96701903c9811fe6a221cfc9e2921b073d9fbce24038d514986cceff8306c", "prepared_IDs_SHA256": "a62f52366eb32a270197a6bd83e0533253514ab547fdeb7513db495b6600a148", "gold": "write_file(result.json)，内容JSON nonce630b27f7f3c52777、first_sum164438、second_sum84428；按原records及任务独立复算，不逐位限定文本"}
+    ],
+    "scope": "C1、W2、capacity32768、原cut0/38/78、每请求4096输出预算并自然EOS；4096不是强迫输出长度。两请求保留完整history/工具结果，序列间原reset。不是128/64题quality重跑，也不是实际16K输入。",
+    "minimal_remaining_chain": [
+      "将395 create/partition/census与349原load/finish接在同一个已创建ctx和同一次驻留内。原395 body的finally会destroy且注释禁止load，不能简单顺序调用两个原main导致destroy/recreate或二次加载。",
+      "403 policy与lib9520769d在所有16owner create前固定；census确认rows1/cap32768、PP2/cut、nullableV类别。由全16owner通过原8GiB preweight条件后才进入原349 loader，任一不满足即清理并报告capacity FAIL，禁止降floor。",
+      "同ctx完成原checkpoint load/finish、真实349 prepare/client到两请求、逐forward原512MiB guard、原reset和最终normal destroy/shutdown/CCL/join/post。加载staging峰值与首forward峰值必须由这次执行回答，不能从8GiB gate推出足够。",
+      "只对这些changed glue做一次实际入口CPU：使用最终staged文件、原fixture/ID/gold资产、生产loader到记录叶子的同ctx传递，覆盖gate拒绝、load/finish失败和finally清理。复用804/349/395已过合同，不另建框架或重复编译。"
+    ],
+    "result_interpretation": "若两请求完整正确/EOS、16owner正常并post clean，只可称该实际16卡配置与两history容量/功能通过；不能据两单次请求或历史32卡结果宣称加速/稳定>15/在线SLO。报告prefill/decode/总wall、逐用户first-last/TTFT/ITL和全部16卡成本，但无同口径配对就不算gain。"
+  },
+  "next_cards_at_most_two_per_model": {
+    "GLM": [
+      {
+        "priority": 1,
+        "card": "r404单驻留16卡容量与两完整工具history",
+        "owner": "/root/kimi_operator_tuning",
+        "hypothesis": "403去持久V后能在原8GiB preweight/512MiB forward约束下完成C1PP2全32768的真实加载及两请求",
+        "minimal_change": "395同ctx census接349原load/finish/entry，绑定804库与原8900/9741资产；无新Native/math/layout",
+        "resources": "原GLM独立parent910376两节点各8卡，TP8/PP2共16卡；最终节点/绝对截止与CPUkeeper由既有claim明确，本审不虚构已冻结claim",
+        "first_verdict_estimate": "原395 constructor实际96s提供分钟级初始capacity判定量级，非新配置保证。通过后同驻留加载+两请求仍可能需数十分钟；精确总时限尚待r404最终claim，不能拿735毫秒或CPU804的21s作Model预估。用现有349加载/请求历史校准并保留清理余量，绝对deadline不滑动。",
+        "samples": "仅原两完整history，各一次、W2/4096预算；本卡是capacity/功能而非performance paired样本，故不添加ABBA/quality64/warm请求",
+        "necessary_checks": "原完整prepare ID与tool gold、finite/完整token自然EOS/reset、实际16owner身份/partition/census与原floor、正常生命周期/post；不新增逐位token门槛",
+        "expected_Model_wall_gain": "UNKNOWN；潜在是16卡容纳而非已测加速，实际重算/indexer/PP/通信/allocator影响待本次",
+        "exit": "preweight gate失败不加载；加载或forward出现floor/数值/语义/生命周期失败保存原阶段并清理，不缩ctx/换W1/降floor/重复驻留。若正常通过，仅准备后续有必要的比较，不能自动扩卡。",
+        "fallback": "若不能在既有原链和一次changed glue内收束，就明确缺失同ctx交接/资产/claim，不用更多组件或新框架替代；资源目标未实现则PARK该16卡路线"
+      }
+    ],
+    "Kimi": [],
+    "Kimi_reason": "401已给强负结果，保留实际功能与精度更正但停止；当前没有证据充分的新卡，不追加16rank、profile或Model。",
+    "Deep": [],
+    "Deep_reason": "397原因仍UNKNOWN/393FAIL保持，399组件能力不自动Model迁移；没有新的已闭合可测假设，不填机器重载。"
+  },
+  "root_adoption_items": [
+    "按173更正401 baseline精度描述，并在原已发布卡/报告旁追加引用；不改原源码，不假称grouped.o编译来源已完整证明。",
+    "401 STOP，保存68功能/生命周期与16负配对；不为解释负结果重编/profile。",
+    "735保留完整component PASS与+5.59%成本/快照限制；不称Model fit或速度提升。",
+    "r404使用实际8900 calculate和9741 write完整history；16K误读已撤回，4096预算/W2/full32768及原floor保持。",
+    "唯一必要入口CPU只验证同ctx create→census→gate→load/finish→两请求→cleanup与最终资产交接；804不重做，独立源准备不等审核。"
+  ]
+}

@@ -1,0 +1,131 @@
+{
+  "review": 172,
+  "state": "COMPLETE_RECOMMENDATIONS_FOR_ROOT_ADOPTION",
+  "scope": {
+    "basis": "coordination/ASTRA_REVIEW.zh-CN.md；复用既有约定并核对171落实",
+    "trigger": "Kimi401 GPU overlay迁移后漏封装fixture metadata，再次可避免entry packaging错误提前触发",
+    "causal_rounds_since_171_at_review_cutoff": 0,
+    "not_performance_rounds": ["400 CPU802 gate-only通过", "401 GPU732在首次helper CAPI前失败", "gpu-v2本地实际文件交接验证"],
+    "actions": "只读源/实际回执及既有本地检查结果，仅写本文件；无测试、作业、GPU、Git或新框架",
+    "independent_work_continues": true,
+    "not_an_additional_GO_gate": true
+  },
+  "171_followthrough": {
+    "evidence": "analysis/bw1000/reviews/astra-review-171-implementation.json",
+    "state": "COMPLETE_ADOPTED",
+    "400": "精确两W符号例外已由实际802闭合，复用800产物且没有重编/重链；原800FAIL保持。现已进入原r400唯一执行准备，不重原398 decode。",
+    "401": "801编译/recording复用有效，但最终GPU overlay独立目录缺FIXTURE_PINS，未由原CPU调用链覆盖；当前补实际staged文件交接，避免重复编译无关C++。",
+    "retained_results": "3991332仅private graph组件资格；398729仅U2048部分结果且整计划FAIL；393质量FAIL、395 admission拒绝及已停止的源假设不变。"
+  },
+  "Kimi401_original_failure": {
+    "result": "results/bw1000/2026-11-03/Kimi401-732-pre-CAPI-fixture-metadata-missing-FAILED-post733-clean.json",
+    "original_observation": "L/Kimi401-GPU-first-observed.json",
+    "observation_SHA256": "8f4637c6852e386b66eb85c1dee458a83a8767f77be5809d7bf2f4794b3420b7",
+    "source_publication": "7983b5a1c0c1940634eca1d8106faefb1a911d18",
+    "failed_GPU_manifest_SHA256": "366951003eed1dd787b2dcb338b29b5273bce0b1429b1a6972bda6dab5458d2c",
+    "actual": "910371.732 FAILED1 / 88s，srun1；独立post733 KFD/PID空，guardian退出",
+    "exact_error": "GPU_run.py从独立overlay目录D读取FIXTURE_PINS.json；GPU最终manifest漏附该原元数据。FileNotFoundError发生在Torch权重加载与scale检查/devicecopy之后，首次helper CAPI之前。",
+    "retained_actual_facts": {
+      "weight_load_seconds": 52.80600542621687,
+      "logical_checkpoint_slice": "TP16 rank0，非16rank执行/非完整Model加载",
+      "all_loaded_scale_count": 57802752,
+      "W13_scale_range": [110, 122],
+      "W2_scale_range": [119, 122],
+      "attempted_helper_CAPI": 0,
+      "completed_helper_CAPI": 0,
+      "Runtime_forward": 0,
+      "numeric_or_performance_result": false
+    },
+    "cleanup_boundary": "外部独立post clean成立。worker Runtime pool尚未创建，空pool shutdown返回0不能称actual Runtime owner正常销毁；也不能将Torch加载叫成未碰GPU。",
+    "classification": "确定封包错误，不是候选数值负结果、vendor不支持或完整routedFFN失败。原732 FAIL与sealed原件永久保留，不倒改为修复后PASS。"
+  },
+  "gpu_v2_minimal_repair": {
+    "directory": "code/bw1000/Kimi-I192-bounded-BF16-r401/gpu-v2",
+    "manifest_SHA256": "7de3b1d76766316457610f46dc2a21ec6343f72f552c374f3d5b29768ef131e5",
+    "manifest_members": 16,
+    "FIXTURE_PINS_SHA256": "f56e1ae032ac7575a45449bc0897095c9abc4560797023fba4d2d1920f69d6f6",
+    "source_review": [
+      "GPU_SOURCE_MANIFEST包含原FIXTURE_PINS精确字节；GPU_entry实际先核manifest成员，再调用共用load_prepared_assets。",
+      "load_prepared_assets在Torch/device/weights之前读取三份原raw bytes，验证每份SHA和bytes，按原dtype/shape构造arrays并检查router ID范围/scale finite。",
+      "GPU_entry把asset_preflight写入既有runtime记录，缓存的arrays传给main使用；main直接调用时也先走同一函数。避免先检查A文件、昂贵加载后再读取另一份文件。",
+      "只增加这次实际目录交接与前置小资产消费；原801C++、libd89、CPU source07655、数学、68call计划与资源预算不变。"
+    ],
+    "existing_local_evidence_read": {
+      "asset_result": "gpu-v2/local-actual-main-assets-CPU.json",
+      "actual_asset_checks": ["真实staged目录defaultD读取metadata", "三份真实原raw bytes及SHA", "缓存校验后的arrays", "实际main在Torch边界前读完资产", "缺metadata在Torch/device/weights前拒绝"],
+      "scope": "实际GPU_run main消费到明确拒绝的device/weights边界；仅把远端raw root映射到本地原件。不是替换成synthetic fixture，不是实际设备/Native资格。",
+      "overlay_result": "gpu-v2/local-overlay-filesystem-CPU.json",
+      "overlay_cases": ["success", "bad_numeric", "bad_counter", "nonfinite", "primary_plus_save_error"],
+      "controller_result": "gpu-v2/local-controller-recording-CPU.json",
+      "new_Slurm_CPU_or_compile_required": false
+    },
+    "judgment": "针对这次已知缺文件故障，上述最小修复与真实文件消费充分。无需再造通用部署框架、更多mock、AST等值或额外SlurmCPU；不等待本审核重复GO。",
+    "execution_boundary": "root已授权新immutable source+claim发布/fresh n16后原单卡600s、68完整call一次changed-package范围。新actual receipt到来前仍无数值、性能或Runtime正常owner资格；不扩大为Model。"
+  },
+  "GLM400_actual_gate_closure": {
+    "evidence": "L/GLM400-gate-CPU-first-observed.json",
+    "actual_CPU": "910407.802 COMPLETED0 / 9s",
+    "receipt_SHA256": "895304d5617b8bc01cfd291c9ce6165733385ee7d000f2e085561a226b7a2064",
+    "gate_source_manifest_SHA256": "228f44719936ed966ceecfc678e976b40179b74e48e8d461609df46cb3521553",
+    "same_library_SHA256": "a116adc27d070aea76c65b54527118f0653461620e55d1224c63d0d430f300e7",
+    "HOST_TUs_compiled": 0,
+    "GPU_TUs_compiled": 0,
+    "link_invocations": 0,
+    "exact_removed_private_weak_count": 2,
+    "all_other_parent_weak_retained": true,
+    "all_parent_strong_and_CABI_retained": true,
+    "ldd_r_parent_equal": true,
+    "all_parent_exports_retained": false,
+    "interpretation": "精确两私有模板例外，不伪称所有export保留；实际依赖/原产物provenance已闭合。继承800已过共享chunk和consumer，不重复。",
+    "execution": "只跟root已启动/准备的唯一r400 keeper与新label，不能因陈旧RUNNING或本审再提作业；保持一geometry6query/384seed/1diag。",
+    "unknown": "U32768完整设备数值、重算成本、临时空间和正常8owner生命周期待原执行结果；不存在新增Model收益。"
+  },
+  "four_questions": {
+    "Model_or_service_gain": "171后目前无新增性能因果轮或Model/服务收益。732仅取得加载scale范围，802是工程闭合；不能拿这些当速度或质量通过。",
+    "time_and_wait": "732占用88s，其中权重加载52.806s，发生在可用小文件预检避免的失败之前；新共用资产函数前移直接消除此浪费。802只用9s消费既有产物，验证了不重编的必要性。排队/人工等待/GPU busy缺完整时间线，UNKNOWN；不为统计另建框架。",
+    "hardware_bottleneck": "本次已证打包路径问题，不是硬件性能瓶颈。401实际scale范围落在声明区间但FTZ/新增SITU舍入与完整FFN成本仍未测；400的空间/重算权衡亦待实际结果，不用dense峰值外推。",
+    "direction": "仅推进原401修正package与原400在途卡，其他无新有据候选就保持停止；不为填机器添加Model加载。"
+  },
+  "next_cards_at_most_two_per_model": {
+    "Kimi": [
+      {
+        "priority": 1,
+        "card": "401原I192完整routedFFN，gpu-v2正确封包",
+        "hypothesis": "BF16 operand/selected decode节省能否超过完整materialization及转换成本，并维持声明数值范围",
+        "change": "仅补metadata与前置真实资产消费；复用801库，不改数学/计划",
+        "owner": "/root/glm_operator_tuning",
+        "resource": "910371/a02r3n16单卡，GPU600s/worker540s/keeper900s；Runtime world1、logical TP16 rank0、无CCL/Model",
+        "first_verdict": "小资产交接本地已PASS；后续原有界设备驻留内得首数值/完整成本结论，排队未知，不为审核等待",
+        "samples": "两原fixture各2warm+8ABBA，共68完整call；不是额外重测原失败中的性能样本（原0call）",
+        "numeric": "原finite/NRMS/maxabs/canary/readonly、dtype/W13W2计数和实际scale检查不变；SITU新BF16舍入继续明示",
+        "wall_scope": "完整routedFFN per-call，加载、准备与guard分列；不以权重scale范围或CPU能力替代Model收益，Model影响UNKNOWN",
+        "exit": "首语义/数值/生命周期失败保存后停；每fixture收益不超过OFF漂移则不晋级，不放宽阈值/扩grid",
+        "fallback": "PARK该候选；只有真正组件净收益才考虑必要fullMoE，不自动32target加载"
+      }
+    ],
+    "GLM": [
+      {
+        "priority": 1,
+        "card": "消费原400唯一8卡prefill union结果",
+        "hypothesis": "四块合法8192原provider可完成U32768 V重算并保留可用空间/成本权衡",
+        "change": "无新改动，802精确gate修复已完成",
+        "owner": "/root/kimi_operator_tuning",
+        "resource": "现有唯一keeper4095527及新r400label，910371/a02r3n03八卡/原600s预算",
+        "first_verdict": "跟原实际handle至终态，不重新申请或提交；原设备预算内",
+        "samples": "一geometry，6query/384seed/1diag；不重复398 decode",
+        "numeric": "原directV/attention/hidden及保存先于诊断失败、正常8owner/post要求不变",
+        "wall_scope": "完整attention、四块重算/copy/held K/V/TP/drain成本；Model及peak UNKNOWN",
+        "exit": "失败保存首错停；结果无空间价值或代价不合理则PARK，不降8GiB floor/扩chunkgrid",
+        "fallback": "保留395拒绝与398局部证据，当前无第二有据可测卡"
+      }
+    ],
+    "Deep": [],
+    "Deep_reason": "397原因未定且不重载；399仅scoped能力保留；已否决all-selected/latent-absorption源假设不恢复。"
+  },
+  "minimum_process_change": [
+    "CPU源通过不等于迁移后的最终GPU目录自足；本次只补最终D/FIXTURE_PINS与三真实raw消费者这一断点，不重跑未变编译/数学测试。",
+    "小而必需的metadata/raw先在实际入口读取、校验并传递同一缓存结果，再进入昂贵Torch设备/权重阶段；不只验证清单里碰巧已有的文件。",
+    "空pool shutdown、外部KFD clean和实际Runtime owner正常销毁分字段；零call保持零，不用未来修复覆盖原FAIL。",
+    "现有source/receipt/claim直接复用，root逐项登记采纳即可；本审不是后续独立工作等待条件。"
+  ]
+}
