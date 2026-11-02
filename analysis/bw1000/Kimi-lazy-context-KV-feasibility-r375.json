@@ -1,0 +1,123 @@
+{
+  "UTC": "2026-11-02T03:36:37.736552+00:00",
+  "state": "READ_ONLY_FEASIBLE_SMALL_CPU_CANDIDATE_NO_IMPLEMENTATION_OR_GPU",
+  "scope": "15minute source/actualcost/geometry feasibility only. No cache implementation, CPU job, GPU claim, targetreload or performance qualification.",
+  "source_SHA256": {
+    "code/bw1000/Kimi-long-draft-RPC-CPU-r333/long_context_r323.py": "e036ba78288a5b8b10f2b9b22a0658adb3a79aafd71dee397ccd25e8850af55a",
+    "code/bw1000/Kimi-long-draft-RPC-CPU-r333/long_rpc.py": "af5d54d878dcf56378fba1c48084368377b4bf600c2747b4a547fb82d955a603",
+    "code/bw1000/Kimi-long-draft-RPC-CPU-r333/projected_context_r9200.py": "ffb84bf4c4818f3f925ff9c589fc3049037182945ec0e6fdb5a1dbb20d592fa5",
+    "code/bw1000/kimi-dflash2-trained-worker/r9000_torchspec_dspark.py": "0794d502e5be22cacd7bdc27cdf128107a1d35b2303da8de204a1422b6eb6382"
+  },
+  "geometry": {
+    "basis": "Pinned actual configuration + K3DSparkMLAAttention attrs: num_heads64,qk_head_dim192,v_head_dim128,kv_lora_rank512,hidden7168,layers5; consistent with697 actualQ_B12288,KV_A576,SDPAoutput64x8x128.",
+    "dtype": "BF16",
+    "L": 32638,
+    "K_per_layer": [
+      1,
+      64,
+      32638,
+      192
+    ],
+    "V_per_layer": [
+      1,
+      64,
+      32638,
+      128
+    ],
+    "all5_postRoPE_context_KV_bytes": 6684262400,
+    "all5_postRoPE_context_KV_GiB": 6.2252044677734375,
+    "capacity32768_all5_KV_bytes": 6710886400,
+    "harvest_views_retaining_original8draft_storage_extra_bytes": 1638400,
+    "cache_KVA_plus_norm_plus_KVB_bytes": 5702511360,
+    "compact_KVB_plus_shared_rotated_rope_head_bytes": 5368298240,
+    "accepted8_new_payload_all5_bytes": 1638400,
+    "lazy8_append_all5_dense_cat_output_bytes": 6685900800,
+    "atomic_old_and_staged_new_KV_live_bytes": 13370163200
+  },
+  "memory_screen": {
+    "actual697_Torch_peak_allocated": 20408989696,
+    "actual697_Torch_peak_reserved": 64598573056,
+    "actual697_device_total": 68702699520,
+    "actual697_trimmed_free": 53258223616,
+    "original_floor_bytes": 4294967296,
+    "conservative_arithmetic_observed_peak_plus2caches_plusfloor": 38072481792,
+    "interpretation": "Capacity screen permits exploration: ~6.23GiB live cache, potentially ~12.45GiB old+staged append storage. Sum is conditional arithmetic, NOT an actual newpeak/allocator/workspace qualification. Original4GiB guard unchanged; cat temporaries/externalworkspace/fragmentation need later actualmemory measurements."
+  },
+  "minimum_call_chain": [
+    {
+      "at": "LongCommittedFeatureContext._append/append_committed",
+      "change": "NONE. Keep existing projectedcontext publish/fence and target_commit validation untouched. Cache stays atcached_length while acceptedfeatures append."
+    },
+    {
+      "at": "private Context.query -> plan_query",
+      "change": "Firstquery/miss: original fullM=L+8 graph and shapes, harvest only postRoPE contextK/V perlayer as readonly views, exclude8draft keys. Firstquery cost retained. ARtail returns original mode without cachework."
+    },
+    {
+      "at": "sameContext subsequent query",
+      "change": "Check owner/epoch/request/modeltag/device/dtype and cached_length. If0<=delta<=8, use newprojectedrows[cached_length:L] plus current8draftrows forperlayer KV_A/norm/KV_B; contextcache reused. Original Q path/fullSDPA keylengthL+8/perquery mask/5layers/head/selector unchanged. No localcrop."
+    },
+    {
+      "at": "incremental KV/RoPE",
+      "change": "Only newacceptedcontext positions rotate at original absolutecp; draft8always recomputed atdp=L..L+7; original rotaryspanL+8 and dtype. Cached contextkeys already rotated. Stage all5 updatedcache views/tensors, no draftproposals enter contextcache."
+    },
+    {
+      "at": "original codec.fence after query",
+      "change": "Minimal private cache-aware codec delegates unchanged GuardedCodec.fence, then atomically publishes pendingcache if fence succeeds. Before-query/append fences see no pendingquerycache. Exception leaves pendingunpublished; sessionpoison/close clears it. No additional sync or wire/Native change."
+    },
+    {
+      "at": "retire/close/begin/new epoch",
+      "change": "Clear everycache/pendingref with existingraw/projected cleanup. Newrequest/newweights creates newcache. Runtimeclose releases cache beforeloaded/head close and empty_cache. No shared/globalcache framework."
+    }
+  ],
+  "invalidation": [
+    "Foreignthread/epoch/request rejected by existing_check; cache keyed to sameC1 owner and modelinstance/source/weighttag/device/dtype.",
+    "ExistingProjectedContextStore guard checks only contextprojection/norm: add readonlyKVweight/RoPE config identity/version signature for5layers. Inferenceweights may lack versioncounters; strictRuntime immutableweight contract remains required, nohotreload support.",
+    "gap>8 or cached_length>length => dropcache and execute original fullquery once to refresh, no extrarequest/retry; RPC permits multipleacceptedappend frames beforequery although currentbridge sendsone.",
+    "Rejected/uncommitted targetfeatures neverenterappend: retain exacttarget_commit complete/capture_epoch/past/accepted_inputs checks. Newanchor alone doesnotinvalidate contextK/V.",
+    "Any partialprojection/finite/fencefailure poisons/closes session and discards pendingcache. ARtail/capacity and retiredcontext neverreusecache."
+  ],
+  "numerical_scope": {
+    "initialization": "Original fullM concat(ctx,draft) projections are unchanged, so firstcache contextvalues can be harvested fromsameoriginal tensors rather than reprojectingctx-only.",
+    "later": "Incremental rows plus8draft haveMdelta+8<=16 versus originalM=L+8. Oldcontextvalues camefrom earlierM. Real-number dependency is valid but finiteprecision/oldM/newM differences remain; sameSDPA shape removescrop attention change, not projection-shape differences.",
+    "evidence371": "Observed firstlayer KV_A aggregatecontext+draft NR1.12e-5 and fixedQKV crop attention NR2.81e-5 are small/finite; neither explains6904.513% hidden nor certifies futurecache. No rawreconstruction/bitwisegate."
+  },
+  "actual_cost": {
+    "source_report": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Kimi-long-pair-r346-longpair-20261102-d-node0.json",
+    "source_SHA256": "db44b895b386bd6d37094f3f90b03b13a7d8298adfe1a9f258b31aecd5af3ff7",
+    "backend_scope": "node0emitter; not HTTP/online",
+    "query_RPC_s": [
+      0.5921919569373131,
+      0.12738023791462183,
+      0.12740716896951199,
+      0.12679349398240447,
+      0.1262513310648501,
+      0.12726100673899055,
+      0.12767432117834687,
+      0.12795055331662297
+    ],
+    "query_RPC_sum_s": 1.4829100701026618,
+    "first_full_query_s": 0.5921919569373131,
+    "later7_sum_s": 0.8907181131653488,
+    "first_last_s": 4.912162126973271,
+    "visible_tokens": 58,
+    "baseline_decode_tok_s": 11.603851527417257,
+    "cold_first_preserved_zero_later7_saving_fraction": 0.6006555158828238,
+    "required_query_saving_strict15_s": 1.1121621269732715,
+    "required_query_saving_fraction": 0.7499862259997173,
+    "conditional_best_first_last_if_later7zero_s": 4.021444013807923,
+    "conditional_best_backend_tok_s_if_later7zero": 14.17401306701929,
+    "conditional_tok_s_improvement_fraction": 0.22149210833397226,
+    "per_card_first_request": "r368 unchanged: even ALLquery0 insufficient tobeat32cardAR percard generation fororiginalfirstrequest; lazycache alone preservesmorecost.",
+    "interpretation": "Hold firstRPC and everyotherduration/acceptance fixed. Later7zero is a conditional maximumsaving, not an achievedrate or globalarchitecturebound. Below15 is not a rejection of a potential~20%decode improvement. Cacheharvest/update/cat/guards and realcoldfirst+8cycles MUST all count; no steadystate-only claim."
+  },
+  "feasibility_decision": {
+    "small_CPU_prototype_within90min": "Engineering-feasible scope, not guarantee: private Context+cached attention branch+thin codec pendingcommit adapter; actualtinyfactory/RPC lifecycle/numerics/poison/epoch/retire/tail/gapfallback tests. NoCPUcheckpoint or Native.",
+    "performance_case": "Concreteopportunity removes5layers fullcontext KVprojection recompute, but KVcat/fullattention/head/selector/pack/finite/fence stay. Existingisolatedtime doesnotseparateprojection fraction, so >75%saving is UNKNOWN; no extrapolation of onefirstlayer or8kcrop25%.",
+    "current_action": "Read-only finding only; rootdecides whether this boundedCPUprototype merits nextscope. Do not implement/GPU merely tokeepcardsbusy. Do not discard potentialpartialbenefit solelybecause this singlemechanism cannotcross15 inconditionalbound."
+  },
+  "separate_warmup_hypothesis": "Rootproposed overlapdraftsyntheticinitialization with existingtargetprefill; this canchangefixedfirstcost assumption, but warmup/cachebuild startup33cardcost and deadlines mustremain explicit. No combinedgain bysimply addingindependentsavings; needs source/criticalpath evidence.",
+  "new_CPU_jobs": 0,
+  "new_GPU": 0,
+  "GPU_GO": false,
+  "Model_gain": "UNKNOWN"
+}
