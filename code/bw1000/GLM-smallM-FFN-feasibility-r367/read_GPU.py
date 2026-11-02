@@ -10,4 +10,10 @@ if p.exists():
  except json.JSONDecodeError:q['watch_partial_JSON']=True
 q['log_tails']={str(p):p.read_text(errors='replace')[-2200:]for p in (R/'logs').glob('GLM*r367*.log')}
 q['controller_log_tail']=(R/'logs/GLM367-controller-r1.log').read_text(errors='replace')[-2000:]
+if q.get('watch',{}).get('actual_step'):
+ step=q['watch']['actual_step'];q['owner_progress']=[]
+ for p in(R/'results').glob('GLM367-'+step+'-*.json'):
+  try:
+   a=json.loads(p.read_bytes());q['owner_progress'].append(dict(path=str(p),**{k:a[k]for k in ['rank','PID','parent_PID','completed','normal','error','traceback','create_seconds','weight_load_seconds','free_after_load','measurement_calls','warm_calls']if k in a},saved_warm=len(a.get('warm',[])),saved_trials=len(a.get('trials',[]))))
+  except json.JSONDecodeError:pass
 print(json.dumps(q))
