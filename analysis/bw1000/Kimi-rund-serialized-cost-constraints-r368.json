@@ -1,0 +1,63 @@
+{
+  "UTC": "2026-11-02T01:20:52.122914+00:00",
+  "state": "READ_ONLY_COST_CAUSAL_CONSTRAINTS_NO_NEW_RUN_NO_SPEEDUP",
+  "source_report": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Kimi-long-pair-r346-longpair-20261102-d-node0.json",
+  "source_report_SHA256": "db44b895b386bd6d37094f3f90b03b13a7d8298adfe1a9f258b31aecd5af3ff7",
+  "source_code": "code/bw1000/Kimi-long-draft-RPC-CPU-r333/long_context_r323.py",
+  "source_code_SHA256": "e036ba78288a5b8b10f2b9b22a0658adb3a79aafd71dee397ccd25e8850af55a",
+  "workload": "Fixednear32638 prompt,59generated/58visible,32target+1draft; sameolder327DSO",
+  "measured": {
+    "AR_TTFT_s": 282.8149628411047,
+    "spec_TTFT_s": 290.9572368077934,
+    "TTFT_delta_s": 8.142273966688663,
+    "AR_generation_s": 294.73138378513977,
+    "spec_generation_s": 295.871714620851,
+    "spec_first_last_s": 4.912162126973271,
+    "synchronous_query_RPC_sum_s": 1.4829100701026618,
+    "append_prompt_RPC_sum_s": 6.320313550531864,
+    "first_append_RPC_s": 2.642897557001561,
+    "remaining63_append_RPC_sum_s": 3.6774159935303032,
+    "one_time_draft_connect_load_handshake_s": 99.30045078322291
+  },
+  "query_only_conditional_analysis": {
+    "assumption": "Hold every other observed duration/acceptance/ordering fixed; synchronousquery RPCs fall afterfirstemit andbeforelastemit; remove onlythese serial intervals, not a physical/Model maximum",
+    "observed_query_share_of_first_last": 0.3018854084558457,
+    "zero_query_hypothetical_backend_tok_s": 16.621700316778636,
+    "required_query_RPC_saving_for_strict_gt15_must_exceed": 1.1121621269732715,
+    "required_fraction_of_observed_query_RPC_saving_must_exceed": 0.7499862259997173,
+    "strict_gt15_backend_does_not_establish_online_or_full_request_gain": true
+  },
+  "per_card_generation_constraint": {
+    "AR_cards": 32,
+    "spec_cards": 33,
+    "AR_wall_s": 294.73138378513977,
+    "spec_wall_s": 295.871714620851,
+    "spec_wall_needed_to_beat_AR_per_card_s": 285.80012973104465,
+    "current_wall_excess_over_that_s": 10.071584889806331,
+    "even_zero_query_wall_s": 294.3888045507483,
+    "query_only_change_insufficient_for_this_first_request_per_card_gain": true,
+    "scope": "Equal58usefultokens, per-arm generationcards only; separatefullallocation/inits inrootresult; no counterfactual whole-serviceARtotal"
+  },
+  "source_geometry": {
+    "prompt_append_chunks": 64,
+    "rows": 32638,
+    "raw_width": 35840,
+    "projected_width": 7168,
+    "raw_dtype": "BF16",
+    "raw_concat_output_bytes_excluding_first_direct_assignment": 76290314240,
+    "projected_concat_output_bytes_excluding_first_direct_assignment": 15258062848,
+    "not_actual_HBM_traffic": "Outputwrite geometry only, excludesreads/caches/allocator/kernelbehavior; not a bandwidthmeasurement",
+    "actual_raw_and_projected_cat_time": "UNKNOWN",
+    "copy_elimination_gain": "UNKNOWN; do not equateallRPCdurationwithcat orrepeatmemoryallocationgrid"
+  },
+  "rejected_unverified_hypotheses": [
+    "No CPUfinitecast candidate: activeTorchFeatureCodec movespart.to(device)beforetorch.isfinite; finitecheckalreadydevice-side",
+    "Do not call99.3second initialconnect/load a per-query cost",
+    "No layer-count or componentratio extrapolation",
+    "Do not blameTIME_WAIT: originalTCPstate at719postnotrecorded"
+  ],
+  "next_card_for_review160": "Only ifprioritized: inspect exact pinnedfive-layer context K/V producer dependency to see ifcommittedcontext cancacheperlayer withoutanchor dependence, state/reject/retire/mathchanges. Require single-draft completecost/finite/numerical/state evidence beforeanytargetload. Atleast~75%queryRPCreduction needed forstrict15nearifallotherobservationsfixed; first-request33cardcost stillneedsTTFT/capturecostwork. No new implementation/GPU scheduled bythisread-onlydiagnosis; standinguserauthorizationcontinues.",
+  "new_GPU": 0,
+  "new_CPU_job": 0,
+  "performance_round": false
+}

@@ -1,0 +1,116 @@
+{
+  "review": 160,
+  "date_Asia_Shanghai": "2026-11-02",
+  "reviewer": "/root/astra_review_147",
+  "state": "COMPLETE_STOP_NEGATIVE_ROUTES_RETAIN_SCOPED_EVIDENCE",
+  "scope": "只读最新保存的终态、root独审、少量现有源码；仅写本报告，不运行测试/CPU/GPU/Slurm，不Git/stage/status，不改在途源，不新增框架或无关门禁。",
+  "rounds_since159": ["GLM361实际静态C2调度配对", "Kimi364/365 run-d真实四arm", "Deep359/684当前C4组件", "GLM367/682完整layer gate-only候选"],
+  "round_count": 4,
+  "round_policy": "每次驻留多arm/多rank/多个fixture合为一轮，CPU730入口失败不计性能；160后从下一已完成真实因果实验重新累计。",
+  "review159_followthrough": {
+    "evidence": "analysis/bw1000/reviews/astra-review-159-implementation.json",
+    "GLM361": "按原6pair完成且root独审全部时间线，没有在途改调度；warm tradeoff已由正式结果确认。",
+    "Kimi": "362b一次trim/原floor进入新run-d；四arm完成真实capture/query/commit，但原719post失败不能被延迟清理覆盖。",
+    "Deep359": "原objects/CPU700依赖环境复用后CPU720通过；723adapter与725consumer闭合，已完成684真实组件，不再停留于ldd阶段。",
+    "Deep366": "既定最短Model卡独立推进；CPU724新Native与172真实HC oracle通过。CPU730漏keyword失败保留；owner-v2修exact49后CPU731又在FakeChild.poll重复运行client撞目录处失败，CPU-entry-v3修替身returncode幂等短路在途。owner-v2/976f Native未变，整入口CPU尚未PASS、尚未GPU。"
+  },
+  "question1_actual_Model_vs_component": {
+    "GLM361": {
+      "evidence": "results/bw1000/2026-11-02/GLM361-root-audited-tail-tradeoff-NO-PROMOTION-clean.json",
+      "actual": "12HTTP gold、32owner签名与正常退出、原四GPU/keeper COMPLETED0及post clean。固定两请求C2/M1，2warm+1ABBA。",
+      "whole_pair": "OFF444.10677→ON445.38300秒，latency增加0.2874%、rate降低0.2865%，OFF端点漂移0.7512%；无稳定完整pair收益。",
+      "short": "first-last decode均值0.68731→0.68687tok/s，TTFT约12.475→12.484秒；maxITL256.225→61.576秒，但P99从0.4522→57.6961秒，P95约0.2761→0.2801秒。",
+      "long": "TTFT268.348→269.716秒，first-last约4.15865→4.16081tok/s，基本持平。",
+      "decision": "STOP此W4组间插shortdecode调度grid。保留最大停顿减少这一具体分布变化，不晋级吞吐/first-last/online或>15，不追加频率/窗口网格。"
+    },
+    "Kimi_run_d": {
+      "evidence": "results/bw1000/2026-11-02/Kimi-rund-root-audited-long-spec-observations-controller-FAIL-delayed-clean.json",
+      "functional": "实际四arm各59含EOS/58visible，工具gold与四leader签名通过；32target owners正常销毁、draft normalclose。每spec 56proposals/50accepted useful、8cycles，是真实目标feature的功能/接受率证据，区别于先前synthetic压力验证。",
+      "backend": "8635输入AR4.90346→spec17.95310tok/s；32638输入AR4.86702→spec11.60385tok/s，均为实际完整first-to-last emitter。8K一次观察严格>15成立，不能说所有case都未超过15，也不能推广泛服务达标。",
+      "generation": "near32k294.73138→295.87171秒，约+0.387%无益；8K116.13924→80.32278秒有观察差异，但首AR coldprefill33.812对spec4.696秒与固定arm顺序混杂，不能宣称稳定整请求因果增益。",
+      "initialization": "一次draft connect/load/handshake99.30045秒发生在首spec request_start之前，单列且计服务成本；不能混入每query，也不能伪造初始化前用户admission再计算TTFT。prompt capture/append/seal、verify/commit在请求内。",
+      "controller_and_cleanup": "target550 COMPLETED0/46分11秒，draft672 COMPLETED0/7分13秒；keeper719 FAILED1/46分28秒，原即时post node0端口39947不可bind、无final_evidence。失败时TCP/owner未采到，原因UNKNOWN，不推TIME_WAIT。延迟554/680五节点PID/KFD/四端口/TCP全净仅证明后来释放，原FAIL原样保留。",
+      "scope": "旧327DSO单scope四arm诊断；无HTTP/online/latest99、稳定ABBA或广泛benchmark资格。保留功能、接受率与窄范围backend观察，不全面晋级。"
+    },
+    "Deep359": {
+      "evidence": "results/bw1000/2026-11-02/Deep359-GPU684-component-audit.json",
+      "execution": "684/727 COMPLETED0约59/62秒，52trial/416owner，候选hit和canary、8Runtime/CCL正常销毁，独立688/729 clean；真实小参数/合成hidden与q_lora，无Model加载。",
+      "numeric_established": "各trial针对自身cache field6重算独立CPU FP8 score，NRMSE最高8.4164e-8；TopK512合法唯一，与原baseline快照overlap511至512；commit字段0/1/2/3/7逐字节比较成立。",
+      "numeric_unknown": "field6没有跨original/private/重置后逐字节比较且未保存；crossbaseline score相对RMS/scale/cutoff tie margin UNKNOWN。重复original本身也score drift，因此不能把差异单独归候选算术，也不能断言reset未初始化。same-cache原候选等价尚未知。48次nextstep仅CAPI/canary成功，没有独立输出数值对照。",
+      "timing": "两个past各5ABBA：max8 CAPI ratio0.86538/0.88994，Cpp prepare+commit0.84062/0.86365；包含H2D/clone/validation/调度skew的checked enclosure1.04463/0.99075，不稳定。原prefix reset/reseed在单token计时外，单独保留，不藏进组件收益。",
+      "decision": "保留有界组件timing阳性与上述数值证据；暂停Model晋级、重复GPU或reset replay。缺失raw无法靠推测补全，不声明same-cache bitwise/nextstep numeric通过。先完成已更接近Model的366，不另启359模型加载。"
+    },
+    "GLM367": {
+      "evidence": "results/bw1000/2026-11-02/GLM367-final-decision.json",
+      "actual": "current038d layer38 TP8完整layer含FFN/router/shared/TP，真实checkpoint+两合成changed-input、相同prefix512；384formal+32warm，relativeRMS0、canary/state/hit、8normal及post686所有PID/KFD空。",
+      "performance": "gate/up-only M1 widefetch两输入pairedmedian rate分别+0.7586%/+0.2339%，OFF漂移3.9365%/2.0237%；原每输入>=5%且>=3positivepairs门槛均未达，第二输入只有2/4positive。",
+      "decision": "STOP gate-only widefetch候选，不扩大grid或n07。数值PASS不等于性能PASS；旧primitive gain不继承到当前完整layer或Model。"
+    },
+    "retained_previous": "GLM349长prefill及355当前C2defer窄范围收益、Deep1257固定8K收益继续保留；这轮不重复计为新收益。"
+  },
+  "question2_time_and_preparation": {
+    "GLM361": "原四stage约53分39至41秒，keeper53分49秒；完整ABBA已支付，负结果足够停止，不再做不同调度频率整模型驻留。",
+    "Kimi": "target32卡2771秒、draft1卡433秒，共89105card-seconds；四arm232有效输出约0.002604token/allocation-card-second。此混合AR/spec实耗不是反事实全AR基线。99.3秒一次初始化、请求prefill/capture、first-last分别保留。",
+    "GLM367": "CPU19秒，GPU148秒；各owner layer权重加载约23.8至24.5秒，正式完整layer约2.5毫秒/次，profileOFF。GPU驻留不是pure GPUbusy，不把8owner加载相加当wall。",
+    "Deep359": "GPU59秒、keeper62秒、driver50.545秒，真实8卡约472card-seconds；原cold prefix与warm reset/reseed独立记录。相比整Model加载，已以有限成本获得组件方向和数值未知范围，无需重复同scope。",
+    "Deep366": "CPU724已产出新Native976f…并完成172实际HC oracle。CPU730漏dict(linked_objects=48)关键字、且新总对象49，是入口/schema错误；CPU731已过实际bootstrap49→worker六reports→真实client六HTTP替身及identity负例，但最后FakeChild.poll重复client撞目录失败。root报告CPU-entry-v3仅修poll幂等returncode短路在途；两失败保留，不计性能轮，不能因部分胶水已走通宣称整入口PASS。不重复Native编译或已通过oracle。",
+    "parallelism": "366可独立继续；本审核不把已结束负路线转成占位GPU任务，也不为维持机器繁忙虚构新候选。现有资源隔离及真实freshidle/claim沿用，无额外全局审批或48卡上限。"
+  },
+  "question3_Kimi_cost_constraints_and_bottlenecks": {
+    "evidence": "analysis/bw1000/Kimi-rund-serialized-cost-constraints-r368.json",
+    "measured_near": "near spec first-last4.912162秒，同步queryRPC累计1.482910秒约30.19%；append_prompt累计6.320314秒，其中首次2.642898秒、其余63次3.677416秒。AR→spec TTFT增加8.142274秒。",
+    "conditional_query_bound": "固定其余时长/接受率/顺序，完全消除queryRPC得到backend约16.6217tok/s；严格>15需至少节省超过1.112162秒，即queryRPC超过约75%。这只是条件分析，不是物理上限或已实现速度。",
+    "per_card_constraint": "相同58有效token，AR32卡generation294.7314秒；spec33卡需要<285.8001秒才赢per-card generation成本，当前295.8717秒超约10.0716秒。仅query归零后仍294.3888秒，不能解决该首请求per-card收益。",
+    "geometry_not_measurement": "raw/projected cat输出写出几何约76.29/15.26GB，合计约91.55GB；这不是实测HBM traffic、bandwidth或cat时长。不能把全部appendRPC归cat，也不能据此直接启动allocation grid。",
+    "source_read": "已读long_context_r323与query_long_projected_r323：projected context已随append发布；每query把它放入features，固定8position并把同ctx传入五层，前四层local mask末层global。是否可缓存每层context K/V仍取决于精确layer实现及position/mask/anchor依赖，外层函数不足以证明。",
+    "rejected": "active codec finite检查已在device，无CPU finitecast新优化根据；99.3秒不是每query成本；719post原因无原TCP证据，不能强推TIME_WAIT；不以层数/组件倍率/原权重替换预测收益。",
+    "other_models": "361证明分布重排而非总等待消除；367完整layer已否定本gate-only小机制。359两种计时范围不同且cache对照缺失，不能把CAPI比率乘到Model。"
+  },
+  "next_cards_max_two_per_model": [
+    {
+      "model": "Deep", "priority": 1, "card": "继续366既定最短Model验证",
+      "hypothesis": "T1 HC融合在真实全模型参数/激活/状态下能降低完整decode/HTTP且保留质量和正常生命周期。",
+      "minimum_change": "只完成owner-v2 actual49对象身份/required字段整入口；新Native仅原HC unit3+HIP514f，其他47对象字节保留。direct libgalaxyhip依赖复用原已传递加载provider，准确核验实际loader身份，不新增重编/依赖框架。",
+      "owner_resources": "原Deep agent；既定parent/node a02r4n01 TP8/PP1八卡，GPU2700秒/CPU3000秒，一次新source/CPU/claim后6请求。当前尚未GPU。",
+      "reuse": "CPU724新Native976f…、86HC参数x2的172oracle、358/363组件、348r2真实worker→identity→client→cleanup胶水。",
+      "necessary_CPU": "实际binding receipt/49object producer结果直接进入真实worker/client入口；检查linked_objects字段来自当前receipt而非旧48手写fixture。保留730负例，不做第二套平行测试框架。",
+      "quality_samples": "原8489输入/chunk1024/128输出/context32768，2warm+1ABBA共6HTTP，原数学T>1prefill保持，actualT1hit、任务gold/EOS、8normal/post；prefill/TTFT/HTTP/decode独立报告。",
+      "potential_Model_wall": "UNKNOWN；不引用363组件比例预测。",
+      "first_decision_ETA": "当前CPU修复正在执行，回执后source/claim按原计划；GPU条件满足后约6分钟加载、20至22分钟六请求驻留为历史量级，实际准备/排队未知。",
+      "exit_upgrade": "CPU胶水仍失败只修准确边界，不启动GPU发现schema问题；真实质量或生命周期失败停；Model无稳定收益则封存，不追加68/103或同组件重测。",
+      "fallback": "保留1257窄收益；359暂停晋级而非作为立即新Model替补。"
+    },
+    {
+      "model": "Kimi", "priority": 1, "card": "r368指向的固定五层context K/V依赖只读判定",
+      "hypothesis": "已提交context在每层的某些K/V变换与当前anchor/八query positions无关，可在不改数学/接受率的前提下增量复用；该命题尚未证实。",
+      "minimum_change": "先读取严格pinned五层实际forward、normalization、RoPE、mask与context producer，画出数据依赖并核对append_committed/reject/retire语义；不改权重、head、算法、输出预算或已发布run-d。",
+      "owner_resources": "root/原Kimi执行者；首阶段只读source和CPU小fixture，0GPU、0target加载。",
+      "reuse": "run-d真实phase成本/56proposal50accepted、r333 context和query、严格draft checkpoint/loader与362b一次trimfloor。",
+      "quality_samples": "若依赖证明成立，现有CPU录制/小张量比较须覆盖完整query输出、append后新增行、拒绝不提交、retire/rebegin失效、position/mask；先证明缓存不改变原语义。只有形成具体可测源和完整单draft成本卡才考虑一张draft组件试验，不能直接32target。",
+      "potential_Model_wall": "UNKNOWN；>75%query节省才可能令near backend>15，而单query优化仍不足近32k首请求33卡成本门槛。若主要目标是每卡整请求收益，应在source判定时明示还需TTFT/capture减少，不能掩盖。",
+      "first_decision_ETA": "source依赖判定目标20至40分钟，缺实际pinned layer则写UNKNOWN并停止，不无限收集；当前无GPU启动卡或时间承诺。",
+      "exit_upgrade": "若K/V依赖anchor/未来query/跨row状态或可省部分明显不够，拒绝该缓存候选且不做allocation grid。若可行先单draft完整成本/数值/状态，收益足够后再决定是否值得target加载。",
+      "fallback": "封存真实功能与窄backend观察；不重跑未改四arm来消除既有顺序混杂。"
+    }
+  ],
+  "GLM_next_card_decision": {
+    "active_new_cards": 0,
+    "decision": "STOP361调度grid和367M1 gate-only widefetch；不补n07、不把失败门槛降到局部0.2至0.8%。保留349长prefill、355defer已审收益，341/重复descriptor缓存继续STOP。",
+    "shortest_replacement": "目前没有由已读真实成本支持且去重后的新GLM机制，因此不凭空指定GPU替补。若原agent有现成不同机制，先用已保存current038d源码/完整layer成本提出一张明确改变已测瓶颈的CPU源码卡；本审核不要求为填卡数新增profile或整Model加载。",
+    "release": "已终态资源释放给独立有具体候选的任务；最多两卡不意味着必须填满。"
+  },
+  "Deep359_hold_conditions": {
+    "decision": "PAUSE_PROMOTION_RETAIN_COMPONENT_EVIDENCE_NO_NEW_GPU",
+    "what_can_be_done_without_run": "可只读追踪field6 producer与reset/seed来源，检查是否已有未导出的原始缓存/分数证据；没有就保持UNKNOWN，不复造数据或宣称补齐。",
+    "future_if_reselected": "若以后确需继续，单次可审计same-cache原/候选及nextstep数值边界应与具体新源码一并设计；当前不因此自动再跑组件或Model，也不新增通用门禁。"
+  },
+  "root_adoption_actions": [
+    "立即登记STOP361和367，不扩窗口/频率/输入/节点grid；保留其真实质量与负性能证据。",
+    "Kimi记录真实功能/接受率和8K一次backend>15，同时保留近32k整请求无益、顺序混杂、初始化成本和719原FAIL；不全面晋级。",
+    "采纳Kimi source-only K/V依赖判定作为唯一下一调查，先成本约束，不以91.55GB几何启动allocation优化网格。",
+    "Deep359保留组件阳性和数值未知范围，暂停Model/重复GPU；优先366独立完成既定ownerCPU与一次6请求条件验证。",
+    "本审核结束释放slot，不开启第二并发周期审核；不要求独立366等待本报告发布。"
+  ],
+  "latest_root_update": "367最终metadata已由原agent普通push至5cdc832316c8add8f41fd3794418c1ff4e5b7faa；本复核不执行Git。366 CPU731失败细节与v3在途为root增量报告，未冒称本审核独立读取该实际回执或整入口通过。",
+  "limits": "本报告所说PASS限定到各证据边界。root audit passed与原controller failed可同时成立；delayedclean不改即时post。Deep359不要求bitwise作为通用质量门槛，但现有same-cache/crossscore/nextstep证据缺失仍必须准确限制晋级。"
+}
