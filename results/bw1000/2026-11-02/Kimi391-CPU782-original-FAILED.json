@@ -1,0 +1,139 @@
+{
+  "completed": false,
+  "passed": false,
+  "CPU_only": true,
+  "Native_dlopen": false,
+  "GPU_initialized": false,
+  "Runtime_created": false,
+  "weights_opened": false,
+  "HOST_TUs_compiled": 1,
+  "GPU_TUs_compiled": 0,
+  "Native_rebuilt": false,
+  "actual_CPU": "910407.782",
+  "commands": [
+    [
+      "python3",
+      "-B",
+      "/refactor/incoming/Kimi-MoE-prefill512-micro64-r391/check_CPU.py"
+    ],
+    [
+      "g++",
+      "-std=c++17",
+      "-O2",
+      "-fno-omit-frame-pointer",
+      "-fPIC",
+      "-shared",
+      "-D_GLIBCXX_USE_CXX11_ABI=1",
+      "-I/opt/dtk/cuda/cuda/include",
+      "-I/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc",
+      "-I/refactor/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/csrc",
+      "-I/refactor/install/hygon-kimi-5f91ad7-r3672/include",
+      "-I/refactor/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/third_party/json/include",
+      "-I/refactor/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/third_party/spdlog/include",
+      "-MMD",
+      "-MF",
+      "/refactor/candidates/Kimi-MoE-prefill512-micro64-r391/adapter.d",
+      "/refactor/incoming/Kimi-MoE-prefill512-micro64-r391/adapter.cpp",
+      "-Wl,--no-as-needed",
+      "/refactor/candidates/Kimi-append512-r247/libKimi_append512_r247.so",
+      "/refactor/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/python/_infinilm.cpython-310-x86_64-linux-gnu.so",
+      "-Wl,--as-needed",
+      "-L/refactor/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/python/infinilm/_lib",
+      "-linfinilm_runtime",
+      "-L/refactor/install/hygon-kimi-5f91ad7-r3672/lib",
+      "-linfiniops",
+      "-linfinirt",
+      "-linfiniccl",
+      "-ldl",
+      "-Wl,-rpath,/refactor/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/python/infinilm/_lib:/refactor/install/hygon-kimi-5f91ad7-r3672/lib",
+      "-o",
+      "/refactor/candidates/Kimi-MoE-prefill512-micro64-r391/libKimi_MoE512_micro64_r391.so"
+    ],
+    [
+      "readelf",
+      "-d",
+      "/refactor/candidates/Kimi-MoE-prefill512-micro64-r391/libKimi_MoE512_micro64_r391.so"
+    ],
+    [
+      "ldd",
+      "-r",
+      "/refactor/candidates/Kimi-MoE-prefill512-micro64-r391/libKimi_MoE512_micro64_r391.so"
+    ],
+    [
+      "nm",
+      "-D",
+      "--defined-only",
+      "/refactor/candidates/Kimi-MoE-prefill512-micro64-r391/libKimi_MoE512_micro64_r391.so"
+    ]
+  ],
+  "Python_entry_contract": {
+    "completed": true,
+    "passed": true,
+    "CPU_only": true,
+    "GPU": 0,
+    "Native_dlopen": false,
+    "Runtime": false,
+    "weight_payload": false,
+    "recording_leaf": true,
+    "cases": [
+      {
+        "name": "balanced_fixed_three_arm_two_fixture_plan",
+        "passed": true
+      },
+      {
+        "name": "same_global_rows_distinct_frozen_order",
+        "passed": true
+      },
+      {
+        "name": "actual_dispatch_encodes_complete_payload_once_recording_leaf",
+        "passed": true
+      },
+      {
+        "name": "badnode_before_Native_leaf",
+        "passed": true
+      },
+      {
+        "name": "badpointers_before_Native_leaf",
+        "passed": true
+      },
+      {
+        "name": "expired_before_Native_leaf",
+        "passed": true
+      },
+      {
+        "name": "relativeoutput_before_Native_leaf",
+        "passed": true
+      },
+      {
+        "name": "duplicateweight_before_Native_leaf",
+        "passed": true
+      },
+      {
+        "name": "badweightdtype_before_Native_leaf",
+        "passed": true
+      },
+      {
+        "name": "failure_no_retry_1",
+        "passed": true
+      },
+      {
+        "name": "failure_no_retry_0",
+        "passed": true
+      },
+      {
+        "name": "production_owner_TLS_and_public_observer_source_boundary",
+        "passed": true
+      },
+      {
+        "name": "CPU_import_no_torch_Native_dlopen_or_Runtime",
+        "passed": true
+      }
+    ],
+    "actual_CAPI_payload_scope": "Realbuild_payload+dispatch through recording CAPI leaf only; no Native numerical/path/owner claim",
+    "planned_warm": 6,
+    "planned_formal": 96
+  },
+  "error": "KeyError('/refactor/candidates/Kimi-append512-r247/libKimi_append512_r247.so')",
+  "traceback": "Traceback (most recent call last):\n  File \"/refactor/incoming/Kimi-MoE-prefill512-micro64-r391/CPU_build.py\", line 41, in <module>\n    try:main()\n  File \"/refactor/incoming/Kimi-MoE-prefill512-micro64-r391/CPU_build.py\", line 35, in main\n    paths=set(re.findall(r'=>\\s+(/\\S+)',unresolved));resolved={p:sha(p)for p in paths};assert resolved[str(native)]==base['native_SHA256']\nKeyError: '/refactor/candidates/Kimi-append512-r247/libKimi_append512_r247.so'\n",
+  "elapsed_s": 25.93681709608063
+}
