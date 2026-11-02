@@ -1,0 +1,109 @@
+{
+  "review": 163,
+  "reviewer": "/root/astra_review_147",
+  "date": "2026-11-02",
+  "state": "COMPLETE_PD_FIRST_ACTUAL_RESULT_PRIORITY_ONE_CONCRETE_RECEIPT_SEAM_FOUND",
+  "scope": "约10分钟只读当前证据/源码，仅写本报告；不Git/status、不开测试/CPU/GPU、不改实现源。382仍在准备且未完全冻结，源码观察不是actual Native资格。root和原实现者独立继续，不等待审核。",
+  "rounds_since162": ["Deep375四副本128真实题配对", "Kimi380/707 guardedFP16完整wrapper配对", "Kimi379/710四freshprocess priming成本配对"],
+  "round_count": 3,
+  "round_policy": "四副本/各shape/四进程分别并入各自一因果轮；382工程/CPU/transport尚非PD性能轮。root逐项落实后重置，不由本报告提前宣布GPU执行或资格。",
+  "review162_followthrough": {
+    "evidence": "analysis/bw1000/reviews/astra-review-162-implementation.json",
+    "376": "当前cat实现STOP保持，未重复GPU/target；fixedbuffer保持源级备选，不能因空闲机器抢占用户新PD优先级。",
+    "379": "四预声明freshprocess实际完成，完整priming/startup成本保留，得出首query可回收但单独串行集成无益的结论；按结果PARK，不能只拿-78.86%报Modelwarm收益。",
+    "380": "四实际KV权重、同卡完整guarded FP16 wrapper实际完成，40/40更慢；按162退出条件STOP，不删guards/改dtype或size网格重试。",
+    "375": "继续原四句柄完成264请求，不重载。root实际执行wire/gold汇总，128pairs/all32owner及post闭合。",
+    "377378": "a314 fullpre Native功能资格保留，未混入375的976f对照；不为组件小收益单独Model重载。"
+  },
+  "question1_real_model_gain_and_scope": {
+    "Deep375": {
+      "evidence": "results/bw1000/2026-11-02/Deep375-root-audited128-paired-quality-and-cost-PASS-clean.json",
+      "original_audit_SHA256": "09671c90e2782e808741be5f7a42d12d29bbf34a6855b4554b4e93d2d3dd010e",
+      "actual": "976f HC epilogue OFF/ON，同源码每副本内配对，4x8卡；264完成=256正式+8warm，128题全部双方自然EOS，无missing/cap/parsefailure；all32正常退出/postclean。",
+      "quality": "历史固定custom0shot64GSM+64MMLU。GSM62/64→62/64；MMLU57/64→58/64，paired gain1/loss0。可表述此集合未观察到总正确数下降；不是heldout/官方全量、未预声明noninferiority margin，不能证明全局无回归或事后补margin。",
+      "performance": "逐用户backend emitter rate中位3.0862057→3.5521306tok/s，128逐对ratio中位1.14922425，128/128更快；不是中位时长下降14.92%，也不是两中位数之比替代逐对统计。",
+      "limits": "输出ID仅22/128对完全同hash，输出长度不同允许且披露；HTTP累计6997.929→6343.190s不能解释为固定输出长度latency或并行makespan。异质相邻配对没有同质端点漂移估计，不能编造ABBA稳定性。所有用户严格>15为0，client增量流TTFT/ITL未验，不是客户端SLO。a314 fullpre没有参与。",
+      "decision": "保留扩展历史题集上的scoped opt-in Model收益与质量观察，不重跑375，不把质量范围限制变成阻塞PD首测的额外审批门。"
+    },
+    "Kimi380": {
+      "evidence": "results/bw1000/2026-11-02/Kimi380-GPU707-guarded-FP16-negative-STOP-clean.json",
+      "result": "实际四KV投影、两个owner、40/40完整wrapper配对更慢；主M32646约4.47–6.34倍慢，完整输出NR约0.00145。数值/生命周期PASS不是性能PASS。",
+      "decision": "STOP当前guarded FP16路线；无fullquery/head/Model，不做裸GEMM宣传、移除fallback/同步或新dtype/shapegrid来改口径。"
+    },
+    "Kimi379": {
+      "evidence": "results/bw1000/2026-11-02/Kimi379-GPU710-first-query-warm-cost-actual-PASS-clean.json",
+      "root_followthrough": "root本轮告知已实际调用audit_terminal.audit消费原sup/四child SHA并PASS；本审核读正式audit，不冒称自身重跑reader。",
+      "actual": "4freshPID同PCI、4trained draft+4borrowed target head加载，0target Model；OFF/ON/ON/OFF，6query/412cmd，Runtime/session正常，710/764及711clean。",
+      "query": {"OFF_s":0.5982498610392213,"ON_s":0.1264570343773812,"saved_s":0.4717928266618401,"ratio":0.21137829293886068},
+      "whole_cost": "OFF完整prefix/query phase4.661094s；ON两phase5.661782s，串行反多1.000688s。OFF首末load/fixture49.34278→39.30381s漂移，不能把wholechild均值差归warm；四进程不能控制物理GPU/OS缓存冷态。",
+      "decision": "PARK standalone集成。保留将来其他必要target驻留可检验真实重叠的证据；当前没有实际target overlap、8cycle之后吞吐或Model收益，不新加载target来证明已知冷成本。"
+    }
+  },
+  "question2_time_critical_path": {
+    "completed_cost": "379 GPU203s/keeper206s，wholechild合189.9457s、driver201.3497s；380 GPU58s/2卡、keeper61s。375四副本并发真实运行已完成；请求wall求和不是墙钟总耗时/利用率。",
+    "PD_delay": "用户约05:30提出PD最高优先级，到本审阅root报约07点仍0PDGPU，超过90分钟。不能把接口报告/CPU测试数量当性能进展；后续报告应围绕首个actual co→PD结果预计时间和剩余一个具体阻塞，而非继续扩展审核框架。",
+    "necessary_engineering": "当前私有Native没有可用的完整state导出，标准Mooncake不覆盖rolling压缩器/写标记/cursor/revision/poison；真实接口实现是必要工作，D重算prompt不构成PD。CPU765 const错误、766弱fmt导出遗漏是实际工程失败，保留；不因其余objects成功而全量重编。v3仅同头弱模板retainer+复用成功objects重link是合理最短修复。",
+    "remaining_order": [
+      "原v3 CPU收束，保留实际library/objects/dependencies/link/archive/lifecycle receipt；已知fix不等审核。",
+      "执行消费者读取这份真实v3 receipt，闭合本次指出的compiled schema不匹配；同一次既定LinuxCPU入口完成真实pins/fixture编码/loader前置，Native/weights叶子仍诚实标recording。",
+      "冻结实际源/DSO/CPU receipt/15请求/两node原时限并普通发布具体claim，再按原freshidle一次启动。复用832资源、833/834真实hostTCP与已有socket闭包，不另起重复带宽/资格卡。",
+      "一驻留两模型：既定coP/coD并行warm、PDwarm完成actual Native首个完整handoff/continuation资格，成功后直接接原C1和capacity ABBA，不再插独立GPU认证或新增跨边界请求。"
+    ],
+    "first_result_time": "下一次v3及LinuxCPU实际回执后应直达首测，不能再留一个无具体原因的90分钟准备窗。准备剩余时长目前UNKNOWN，以实际编译/receipt接缝为准。历史8489 prefill约100秒、decode约30秒、两节点并行load约6–10分钟仅作排程参照：launch后约15–25分钟可望出现首个warm及co/PD完整对照，非承诺；final15请求仍受3600s/node含load、3900s keeper原界。首PD迁移成功/首pair/最终ABBA分阶段实报，不等最终报告才承认首次实际结果。"
+  },
+  "question3_current_bottleneck_scope": {
+    "confirmed": "375证明同model调用范围HC epilogue有实际收益；380证明完整dtype wrapper代价大于收益；379证明进程首次query成本可被显式priming转移，但完整串行phase反增。都不能推出所有模型或PD瓶颈。",
+    "PD_unmeasured": "8.39MB单TCP/IPoIB八shard host票据PASS是可达性/协议事实，不是KV带宽。四400G link存在不能线性换算实际单socket带宽。372,424,784B/8owner live-state是源码几何公式，非实测传输字节/wall，不能估算为已获PD加速。",
+    "PD_hypothesis": "P完成prefill并释放snapshot后可在D decode1期间进入prefill2，可能改善请求队列隔离/容量；单请求增加export D2H、checksum、socket、import H2D/fence，通常会形成P第一token到D下一token间隔。CPU因果barrier只证明调度可达，不证明设备实际overlap或净收益。",
+    "measurement": "同controller monotonic客户端tokenID时间线保留P-D gap/reorder；stage本机clock仅各自duration，不跨机器相减。输出per-user TTFT、(visible_n-1)/(last-first)、P95/P99/maxITL、组makespan/完成吞吐、所有16卡卡秒和>15达标吞吐；这是私有token client，不是public HTTP/SSE或online SLO。"
+  },
+  "PD_source_findings": {
+    "reviewed_revision_scope": "本次实读382 native/v2 codec/CAPI/lifecycle、native/v3 CPU_build/retainer、execution当前未完全冻结源、state_wire/native_stages和frozen BENCHMARK_PLAN。没有实际dlopen/GPU state验证。",
+    "positive": [
+      "codec明确枚举每owner167tensor、105written、171length、83revision、106poison，加LE control合273blocks；包含SWA/temporal rolling、压缩页、C4indexer与外层长度。保存完整livepage不是只搬普通KV。",
+      "RESET_CACHE通道识别DeepPDControl后先codec并早return，不落入原reset；原owner线程执行、validate后H2D/fence再publish控制状态。跨owner失败令整个context不可继续。",
+      "generation-bound poison可在commit已消耗session后处理ACK发送异常；不能把旧ticket poison施加到新generation。CPU recording已覆盖此接口，但实际错误路径资格仍属于首驻留和原清理。",
+      "P在export前emit y0；D构造request不带prompt IDs，第一次forward输入[y0]、position/past8489；不重复emit y0，不重算prompt。原完整fixture C128余数41加实际decode会自然覆盖8576边界，无需新请求。",
+      "scheduler只有P完成transfer ACK并reset后释放P，因此可将P2与D1重叠；capacity co按两副本分P/D同资源，避免拿16卡PD对8卡单co冒充容量优势。",
+      "全部arm同新DSO及固定flags；当前runtime_leaf显式HC epilogue0，不将375的ON收益混入PD/co差别。"
+    ],
+    "confirmed_blocker_at_read": {
+      "where": "execution/dso_binding.py::derive 与 native/v3/CPU_build.py receipt schema",
+      "problem": "derive使用build['compiled']，要求每条replaces/object/object_SHA256/source/source_SHA256/dependencies_SHA256。v3 result只写reused_CPU765_766_objects_SHA256、retainer_*、all_objects_SHA256，没有compiled；直接用实际v3回执会在加载前KeyError。当前整入口CPU用recording loader，不能覆盖该真实接缝。",
+      "minimal_fix": "保留成功v3产物与原receipt，使用真实v1/v2/v3 reuse证明给消费者明确的replacement/additional objects和源/依赖映射，或形成固定adapter receipt满足同一schema；不重编成功对象、不合成无证据的compiled名单。让既定LinuxCPU预检实际调用derive读取真实receipt，未需GPU/Native dlopen。已即时通知root。",
+      "scope_limit": "这是已读版本的确定源码问题，不代表最终实现仍未修复；root收束时以修复后源与真实CPU回执登记。"
+    },
+    "remaining_actual_unknowns_not_extra_gates": "最终DSO实际owner dispatch、真实rolling/page字节恢复、D continuation质量、实际网络/设备copy成本、load时间、实际CPUaffinity/provider和16owner destroy尚待原单次驻留。不能说CPU PASS等于Native/Model PASS，也不为这些未知另加一套前置GPU流程。",
+    "weak_export_check": "当前retainer仅6行、同fmt12头保留原弱符号，继续既定修复即可。不要因此扩成所有无关C++弱模板兼容工程或全量重编；实际public ABI/loader consumer和原对象来源才是本次加载闭包重点。"
+  },
+  "next_cards_by_model": {
+    "Deep": [
+      {
+        "priority": 1,
+        "name": "382 同16卡真实state迁移与co-location首次配对",
+        "hypothesis": "完整Native state从P8迁移至D8无需D prompt重算，且两请求PD管线在同16卡成本下存在可测容量/延迟取舍。",
+        "minimum_change": "只收束已实现export/import与真实receipt入口接缝；保持当前冻结15请求、完整8489/输出128/ctx32768、C1、sameDSO/flags，不加新优化。",
+        "owners_resources": "GLM agent独占native、Kimi agent独占execution、root wire/stages/claim；parent910376 n12P8+n13D8，3600s/node含load、CPU3900s，一驻留2model无reload。",
+        "reuse": "832资源、833/834host票据、53b280 state_wire及zero-live修正、a7f037 native_stages、13case原generate记录对照、真实socket wholeentry15req/22stage/44reset/7transfer与causalbarrier；都不冒称actualNative资格。",
+        "samples": "coP/coD并行warm2+PDwarm1；C1 co/PD/PD/co4请求；capacity每组2请求 co/PD/PD/co8请求。首PDwarm校验完整任务/EOS与D0prompt，再继续formal；无需新warm或额外跨8576。",
+        "necessary_quality": "保留完整gold工具nonce/整数、自然EOS/预算截止、每请求full tokens/actual first input和allshard identity/checksum/commit证据；不同token只作诊断，不能用checksum代替任务质量。任何state/Native/transport异常原scope停止不重试。",
+        "wall_expectation": "单请求可能因handoff变慢，收益UNKNOWN；容量必须对两co副本、完整P/D gap及所有16卡成本。静态2请求cohort不外推online arrival稳定性。",
+        "first_result": "CPU收束后立即原scope启动；历史参照launch后约15–25分钟首co/PD对照，具体由实际load/transfer决定，持续记录阶段耗时。",
+        "exit": "首warm迁移/质量/生命周期失败则保留partial并正常destroy/post，停止余下请求，不重载或把D重算prompt降级成PD。若完成但容量/每用户指标无益则报告真实负结果并停此单形状方案，不自动扩TP/传输/grid。"
+      }
+    ],
+    "Kimi": [],
+    "Kimi_reason": "379 standalone PARK、380 STOP、376cat STOP；fixedbuffer仍有区别但非当前最高优先级，暂不实施/GPU。只保留将来其他必要target驻留验证真实overlap的379证据，不凑卡占机器。",
+    "GLM": [],
+    "GLM_reason": "没有本周期新增足够证据支持新性能卡，既有hook/grid STOP保持；该执行者当前负责Deep382 Native，不将人员分工混成模型路线。"
+  },
+  "root_actions": [
+    "登记三轮真实结果和162落实；保持375收益的历史题/opt-in/backend范围。",
+    "立刻把实际v3 receipt到derive的schema接缝交execution所有者修，Native已知retainer fix独立继续。",
+    "以实际CPU闭包回执与冻结claim收束，不增加独立GPU ABI/重复网络卡、第二套报告/审批或额外模型请求；准备完成直接执行原15请求。",
+    "PD首warm、首co/PDpair与最终ABBA分阶段报真实结果及失败；无实际GPU时继续诚实报0，勿用源码/CPU性能词代替。"
+  ],
+  "new_jobs_by_review": 0,
+  "new_GPU_by_review": 0,
+  "PD_actual_performance_at_review": "UNMEASURED"
+}

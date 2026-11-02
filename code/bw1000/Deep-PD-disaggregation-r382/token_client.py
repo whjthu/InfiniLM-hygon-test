@@ -104,6 +104,7 @@ class TokenClient:
                         client_token_ID_ITL_p50_s=percentile(gaps, .50),
                         client_token_ID_ITL_p95_s=percentile(gaps, .95),
                         client_token_ID_ITL_p99_s=percentile(gaps, .99),
+                        client_token_ID_ITL_max_s=max(gaps) if gaps else None,
                         token_ID_completion_wall_s=self.complete_tick - self.admitted
                         if self.complete_tick is not None else None,
                         finish_reason=self.finish['reason'] if self.finish else None,

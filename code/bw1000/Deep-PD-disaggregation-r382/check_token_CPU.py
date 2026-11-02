@@ -33,6 +33,7 @@ def main():
     s = c.summary()
     assert s['completed'] and s['visible_tokens'] == 2 and s['client_token_ID_TTFT_s'] == 1
     assert s['client_token_ID_decode_tok_s'] == .25 and s['client_token_ID_ITL_p95_s'] == 4
+    assert s['client_token_ID_ITL_max_s'] == 4
     assert s['token_ID_completion_wall_s'] == 7 and not s['out_of_order_buffered']
     checks.append('Pfirst token immediate; four-secondhandoff gap retained; EOSexcluded')
     c = client([11, 12, 15, 16, 17])
