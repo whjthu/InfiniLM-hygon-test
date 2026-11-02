@@ -1,0 +1,75 @@
+{
+  "schema": 1,
+  "completed": true,
+  "passed": false,
+  "actual_CPU": "910407.790",
+  "accounting": "910407.790|Deep399-private-prepared-graph-CPU|FAILED|1:0|00:00:07",
+  "original_source_manifest_SHA256": "314a774726d893dccce688c72a8e34d8c478ae985949fac95b2a59b3fb478387",
+  "original_CPU_receipt": {
+    "path": "/refactor/candidates/Deep-fixed-Gemm-Cast-graph-r399-cpu-v1/CPU-build.json",
+    "SHA256": "8d8f76098048ab2098f3b71f73c38a3b728f870ffb7e27fdcfa757484e533f08"
+  },
+  "original_full_observed_local": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\Deep399-CPU-first-observed.json",
+  "original_full_observed_SHA256": "3606938550a1fff5251803c6b5fad1aa0d575cda34328b4ea6d05d6526859ef2",
+  "cause": "Compiler error: launch_gemm() const exposes y_.data() as constvoid*, vendor cublasGemmStridedBatchedEx argument17 requires mutablevoid*. CurrentGeneric takes outputTensor byvalue. Explicit cast is only for owned mutable outputbuffer; no inputs cast or math change.",
+  "success_subscope": "Source/dependency pins and provider-M succeeded. No provider object, HOST compile/link/nm/recording test attempted after provider compile failure.",
+  "CPU_seconds": 6.689569533336908,
+  "GPU": 0,
+  "Native_dlopen": false,
+  "Runtime_created": false,
+  "Model_loaded": false,
+  "commands": [
+    {
+      "label": "provider.cu-M",
+      "argv": [
+        "/opt/dtk/cuda/cuda/bin/nvcc",
+        "-std=c++17",
+        "-O3",
+        "-arch=gfx936",
+        "-Xcompiler=-fPIC",
+        "-Xcompiler=-fvisibility=hidden",
+        "-D_GLIBCXX_USE_CXX11_ABI=1",
+        "-I/refactor/candidates/rebased-5f91ad7-r3668/Ops/Deep/InfiniOps/src",
+        "-I/refactor/install/hygon-deep-5f91ad7-r3672/include",
+        "-I/opt/dtk/cuda/cuda/include",
+        "-I/refactor/incoming/Deep-fixed-Gemm-Cast-graph-r399",
+        "-M",
+        "-MF",
+        "/refactor/candidates/Deep-fixed-Gemm-Cast-graph-r399-cpu-v1/provider.cu.M",
+        "-MT",
+        "/refactor/candidates/Deep-fixed-Gemm-Cast-graph-r399-cpu-v1/provider.cu.o",
+        "/refactor/incoming/Deep-fixed-Gemm-Cast-graph-r399/provider.cu"
+      ],
+      "rc": 0,
+      "log": "/refactor/candidates/Deep-fixed-Gemm-Cast-graph-r399-cpu-v1/provider.cu-M.log",
+      "SHA256": "3a7c8aed8d68de8d75b9aa5c4c623d308c3311a4fc8a22cb452473ddfc8ee3c7"
+    },
+    {
+      "label": "provider.cu-compile",
+      "argv": [
+        "/opt/dtk/cuda/cuda/bin/nvcc",
+        "-std=c++17",
+        "-O3",
+        "-arch=gfx936",
+        "-Xcompiler=-fPIC",
+        "-Xcompiler=-fvisibility=hidden",
+        "-D_GLIBCXX_USE_CXX11_ABI=1",
+        "-I/refactor/candidates/rebased-5f91ad7-r3668/Ops/Deep/InfiniOps/src",
+        "-I/refactor/install/hygon-deep-5f91ad7-r3672/include",
+        "-I/opt/dtk/cuda/cuda/include",
+        "-I/refactor/incoming/Deep-fixed-Gemm-Cast-graph-r399",
+        "-MD",
+        "-MF",
+        "/refactor/candidates/Deep-fixed-Gemm-Cast-graph-r399-cpu-v1/provider.cu.d",
+        "-c",
+        "/refactor/incoming/Deep-fixed-Gemm-Cast-graph-r399/provider.cu",
+        "-o",
+        "/refactor/candidates/Deep-fixed-Gemm-Cast-graph-r399-cpu-v1/provider.cu.o"
+      ],
+      "rc": 1,
+      "log": "/refactor/candidates/Deep-fixed-Gemm-Cast-graph-r399-cpu-v1/provider.cu-compile.log",
+      "SHA256": "6e1094a86c08e10289233314159a11b3d1384f5ef2db0997a068b8cb0a929ce3"
+    }
+  ],
+  "next": "Newimmutablev2 fixes only outputconst access plus unique deployment/output labels; same2privateTUs andCPU300s. Originalsource/receipt untouched."
+}

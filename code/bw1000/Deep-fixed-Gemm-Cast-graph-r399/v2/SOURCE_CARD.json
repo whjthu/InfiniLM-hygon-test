@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "scope": "Private defaultOFF fixedbuffer2D F32 PV GEMM16x2048x512 + exact currentCast BF16; oneindependentRuntime, noModel/TP/collectiveclaim.",
+  "GPU_GO": false,
+  "default_OFF": true,
+  "explicit_optin": 1,
+  "fixed_math": {
+    "A": [
+      16,
+      2048
+    ],
+    "B": [
+      2048,
+      512
+    ],
+    "Y": [
+      16,
+      512
+    ],
+    "Z": "BF16",
+    "A_B_Y": "F32",
+    "alpha": 1,
+    "beta": 0,
+    "batch": 1,
+    "algorithm": "currentBlas<kHygon>::BLAS_GEMM_DEFAULT samecompute/dtype/source rowmajor exchange; no mathmode change",
+    "F64_execution": false
+  },
+  "resources": {
+    "CPU_parent": 910407,
+    "CPU_node": "a14r2n20",
+    "CPU_cores": 4,
+    "CPU_memory_MiB": 8192,
+    "CPU_seconds": 300,
+    "GPU_count": 0,
+    "private_implementation_TUs": 2,
+    "additional_CPU_recording_test_TU": 1,
+    "Native_or_SDK_rebuild": false,
+    "dlopen_or_deviceinit_in_CPU": false
+  },
+  "future_device_provisional": {
+    "parent": 910374,
+    "node": "a02r4n07",
+    "GPUs": 1,
+    "seconds_max": 600,
+    "Model_loaded": false,
+    "needs_final_driver_receipt_root_consumption_new_claim": true,
+    "not_collective_graph_qualification": true
+  },
+  "lifecycle": "Dedicated BLAShandle and constHOSTscalars perPreparedOps, explicit Runtime8MiBworkspace+512guard, suppliedvalidinputs, eagerprepare+syncbeforecapture, fixedpointers/generation, actualGraphTensor/RecordedCall/stopGraphRecording PinLease. Graph dies beforepreparedhandle/workspace/tensor/Runtime. Anyownerexecutionfailure retires; foreignthreaderror does not mutate/drain owner.",
+  "no_false_vendor_guarantee": "Explicitworkspace andwarmup are necessary notproof vendorhasnohiddenallocation. Currentvendor actualgraphcreation/replay/changedinputs/numeric/guards/normaldestroy must qualify beforeanygraphbenefit. Old7371hostreplay orold2762rawcapture notinherited.",
+  "shared_runtime_recording_transaction": "record_two callbacks incontract.hpp used unchanged byrealRuntimebridge andCPUrecordingleaf; CPU does not createRuntime/vendor/device.",
+  "planned_device_checks": "Publishedlateronecardonly: deterministic finitechangedvalues/zeros, independentF32dot/CPUfloat64 permittednoGPUF64; originaleagerVsgraph wholecompletedwall, prepare/capturecostseparate; explicitcheckCABI outsideclock, immutableinput/tensortails/workspaceguards; 2capturedops/1devicesegment/0hostsegments; wrongowner/refusal andcapture/replayfailstop, normalclose. No GPU driver/go inthisCPUsourcecard.",
+  "analysis_reference": "analysis/bw1000/Deep-private-fixed-Gemm-Cast-Runtime-graph-feasibility-r399.json",
+  "analysis_SHA256": "c3a138dc14a4ed6a8e8ec49f040139d5a9f4b69e8cbb73b4a42b47e833479201",
+  "repair": {
+    "original_CPU": "910407.790 FAILED1/7s",
+    "original_receipt_SHA256": "8d8f76098048ab2098f3b71f73c38a3b728f870ffb7e27fdcfa757484e533f08",
+    "only_implementation_change": "Owned output y_.data() const qualification -> explicit const_cast<void*> for vendor mutableC output. Inputs/scalars/math/workspace/lifecycle/plan unchanged.",
+    "deployment_changes": "Newimmutablev2 source/output/intent/log/label paths only; no retryoldintent."
+  }
+}
