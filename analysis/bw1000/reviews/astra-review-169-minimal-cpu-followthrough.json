@@ -1,0 +1,141 @@
+{
+  "review": 169,
+  "state": "COMPLETE_RECOMMENDATIONS_FOR_ROOT_ADOPTION",
+  "scope": {
+    "trigger": "重复 CPU 实际入口错误，提前审核；不是达到三轮后的性能审核",
+    "cutoff": "读取至 Deep397 CPU792 与 Deep399 v2 CPU793 原终态回执",
+    "prior_review_168": "COMPLETE_ADOPTED；391 组件负结果、393 工具质量 FAIL 均保持",
+    "causal_rounds_since_168": 1,
+    "round": "GLM395 实际 16 owner constructor / capacity 诊断",
+    "engineering_failures_not_performance_rounds": [788, 790, 791, 793],
+    "review_actions": "仅阅读已有源和实际回执、写本报告；没有运行测试、reader、GPU、Git 或作业",
+    "not_a_permission_gate": true
+  },
+  "decision": {
+    "Deep397": "v3 最小修复合理，实际 CPU792 已闭合，不重复 CPU；其后仅按原 teacher-forced 数值因果范围推进",
+    "Deep399": "v2 修复原 vendor 输出 seam 有效，但实际 CPU793 暴露另一个相同 constness seam，整卡 CPU 尚未通过；最小修 HOST canary destination，不改变 Runtime/数学或重建 SDK",
+    "GLM398": "CPU789 已通过，复用已产出库及依赖闭包；继续既定设备消费者准备，不等待 Deep 两组修复或本报告",
+    "new_Model_performance_gain": "NONE；当前源、CPU 和 constructor 结果不能算 Model / 用户服务改善",
+    "extra_framework_or_unrelated_gate": "不需要"
+  },
+  "Deep397": {
+    "source": "code/bw1000/Deep-HC-teacher-forced-logits-r397/source-v3",
+    "source_manifest_SHA256": "d3493e9f6ff56072564f78c9fe5f3b06176f2eb2be0ce532b2180ccd19be04df",
+    "unchanged_owner_manifest_SHA256": "66e93d47f89d9f8c7645d41427e1ae264e59ddeb3a2cc400abd6aa68db8ccfa6",
+    "original_failures": {
+      "CPU788": "空 BasicLLMProcessor 替身缺真实调用链必需的 __call__；FAILED / 3s",
+      "CPU791": "Python 3.12 与容器 3.10 的 ast.dump 表示不同，冗余 AST hash 等值断言在实际入口前失败；FAILED / 1s",
+      "preserve": ["L/Deep397-CPU788-root-original-failure.json", "L/Deep397-CPU791-terminal-local.json"]
+    },
+    "minimal_fix_review": "实际 Basic 源完整 SHA 仍固定，抽取并执行原 __call__，真实 tokenizer.json 执行编码；AST hash 与 Python 版本仅诊断。删除跨版本 AST 等值要求不削弱源码身份，不必另建 AST 归一化框架或强制登录 Python 版本一致。",
+    "actual_followthrough": {
+      "evidence": "L/Deep397-CPU792-terminal-local.json",
+      "step": "910407.792",
+      "state": "COMPLETED 0:0 / 40s",
+      "publication": "0a646647cd6b5b8ae0b60d6d604dc8087f1e5ee9",
+      "CPU_entry_SHA256": "e4cac684955ae2d6ccffabe5a77e5723b556601e824c8d8753ce204751bce65b",
+      "CPU_whole_SHA256": "fb1789e0cfb0a4f05d9a7160de9f02981585a9fc78328cc66fa4f3c059e1f682",
+      "cases": 10,
+      "successful_forward_leaf_calls": 368,
+      "successful_reset_leaf_calls": 4,
+      "Basic_original_body_executed": true,
+      "Basic_source_SHA256": "c1578883410b66565628f1405f4d78b315cf1640fe594d838a881b5a8f1b18a3",
+      "container_python": "3.10.12",
+      "prompt_count": 8489,
+      "prompt_IDs_SHA256": "681977ee292994eac340bae5c1aadf7a6b136890df725d02bb75fc8f31ecf0df",
+      "teacher_count": 83,
+      "teacher_IDs_SHA256": "596df3e1131e55184edc034f57f8447e025b91a38c7d6a20a69eaa8b61f39513",
+      "boundary": "实际 bootstrap→callback / prepare 编码和清理路径；Native 为明确 recording 叶子及八 CPU owner 线程。不是设备数学、Native ABI 或质量通过。",
+      "GPU": false,
+      "Native_dlopen": false,
+      "weights_opened": false
+    },
+    "next_scope": "原 4 序列 HC 0/1/1/0、83 固定 teacher prefix、368 forward；比较相同 prefix 的 logits / argmax tie / margin 及同 arm 重复差异。保留旧 393 FAIL，不把 teacher forcing 当自然 EOS、工具答案或性能验证。",
+    "interpretation": "可区别同 prefix 下 HC 差异与重复执行变化；不能凭单个 logit 差或本卡正常就宣称已解释、修复全部旧自由生成质量失败。"
+  },
+  "Deep399": {
+    "source": "code/bw1000/Deep-fixed-Gemm-Cast-graph-r399/v2",
+    "CPU790": "FAILED / 7s；provider Y_.data() 的 const void* 与 vendor mutable output void* 不匹配，未完成两 TU 编译",
+    "v2_source_review": "仅对自有可写 Y 输出使用 const_cast<void*>，输入不变；数学、精度、geometry、eager prepare / stream / workspace 生命周期不变。此修复适当。",
+    "latest_actual_receipt": {
+      "evidence": "L/Deep399-v2-CPU-first-observed.json",
+      "step": "910407.793",
+      "state": "FAILED 1:0 / 20s",
+      "elapsed_seconds": 19.64635701989755,
+      "receipt_SHA256": "32bd4d2d2fb051b61558b98b315c671261ea545b8c7f41213f8c1cdce506fae2",
+      "source_manifest_SHA256": "3fc3364f3db27b58b6d637d8337325635b197cb22627d4c60589c9a3c9294afc",
+      "provider_compiled": true,
+      "provider_source_SHA256": "0706d61629e05cba5f413a902ee1f74df52978ba61d638a8d91914faf6d96c23",
+      "provider_object_SHA256": "7bf044a870085f9e51bb4ccd13b3674c8eab57fe5454fee4bb538829363f9462",
+      "failure": "runtime_fixed_graph.cpp:83：for(const auto& store : {...}) 取得 const data()，canary memcpyH2D destination 需要 void*",
+      "link_or_contract_pass": false,
+      "GPU_initialized": false,
+      "Native_dlopen": false
+    },
+    "smallest_remaining_fix": "仅把 canary 初始化中的持有句柄改为非 const 值副本 auto store，或对确属本 Context 自有可写 allocation 的 destination 显式转换；不要更改 SDK const API、输入精度或增加 permissive 编译选项。复用源码/依赖未变且 SHA 固定的 provider.o，只编变更 HOST TU、链接并完成原 CPU consumer。",
+    "source_only_capability": "源通过原 Runtime 录制两 RecordedCall、保活 Tensor/PreparedOps/workspace，要求 device graph segment=1、host segment=0、无 fallback；prepare 在录制前，close 先 drain。它与旧 host replay 不同，但 CPU 不能证明 vendor 真可捕获、设备图正确或收益。",
+    "device_unknown": ["实际 capture 与 replay", "变化输入 / canary / 数值", "完整 eager 对 graph wall", "prepare / capture / drain 成本及 Model 可迁移性"],
+    "stop": "793 原 FAIL 保留；不自动提交 GPU，不因修编译错误重建成功 provider、整套 Native 或 SDK。"
+  },
+  "GLM395_and_398": {
+    "395_evidence": "results/bw1000/2026-11-02/GLM395-root-audited-C1-PP2-constructor-PASS-tail-admission-blocked.json",
+    "395_actual": "GPU839 COMPLETED 0 / 96s，16 owner 正常销毁，post840 clean；无 checkpoint load / finish / forward",
+    "395_tail_free_min_bytes": 4127195136,
+    "395_decision": "尾 stage 小于 4 GiB，原 loaded-service 8 GiB floor 明确不满足；停止 unchanged loaded Model，不能降 floor 或缩上下文假通过。1536 card-seconds 为驻留成本，不是 busy 利用率。",
+    "398_source": "code/bw1000/GLM-V-on-demand-r398",
+    "398_actual": {
+      "evidence": "L/GLM398-CPU-terminal-observed.json",
+      "step": "910407.789",
+      "state": "COMPLETED 0:0 / 32s",
+      "receipt_SHA256": "399f26b7668f3fa21a22ab81a041cb5b1b1835aad50a3d18fa6a6ae8196f311b",
+      "manifest_SHA256": "6b085d827ecaf8c2a66d7e808a25f50926f078f70e06b61001e70a64ca53f2bc",
+      "library_SHA256": "431c5b85730549861202ed9aff1b479fa3d23727a1af575777b2c6fc915f88bc",
+      "HOST_TUs_compiled": 2,
+      "original_exports_retained": true,
+      "ldd_r_parent_equal": true,
+      "actual_parent_selection_map": true,
+      "U": [2048, 32768],
+      "recording_consumer_cases": 12,
+      "query_calls": 12,
+      "seed_calls": 774,
+      "partial_failure_and_normal_error_close": true,
+      "GPU_initialized": false,
+      "Native_dlopen": false,
+      "checkpoint_IO": false
+    },
+    "benefit_and_cost": "去持久 V bank 的约 5 GiB 是特定 stage 的逻辑空间潜力；selected latent/rotary gather、原 kv_b 重算及未用 K、临时 Tensor 和原 attention scratch 仍有成本。不能把 395 free 加逻辑节省直接称 loaded Model 已容纳。",
+    "next": "复用 431c5b 库，完成原 attention-only checkpoint consumer 的确切 loader / selectedV 数值 / full-attention wall 消费，再按既定有界设备卡判断；不是再编库或先载完整 Model。",
+    "scope_limits": "synthetic hidden 和 selection geometry 不是实际 Model routing；未测设备数学、allocator peak、正常 loaded Model 或端到端收益。原 plan 中 actual CPU receipt 待办已经完成，应作为已满足条件登记，不再次等待。"
+  },
+  "why_repeated_entry_errors": [
+    "788 的局部替身删掉生产继承链必需行为；实际 prepare 调用未在前一替身边界消费完整。v3 用原方法体解决，不应再复制维护另一份 Basic 行为。",
+    "791 对相同 source bytes 加了与语义无关的跨版本 AST 表示 gate。更多 hash 不自动增加正确性；完整源码 SHA 加实际目标解释器执行已经是更直接证据。",
+    "790/793 都是 Tensor const handle 与可写 output seam，CPU 假 provider 无法证明实际 vendor/Runtime C++ 签名；首处失败又遮住第二 TU。修已知错误时应顺读同文件所有 mutable destination，避免逐处盲提交。",
+    "本轮已记录失败的 CPU wall 为 3+1+7+20 秒，主要额外成本还包括生成、上传、等待和人工交接；没有完整时间线不能造工程等待或 GPU 利用率百分比。优先复用成功对象和 CPU 回执，停止与本次判断无关的 metadata 等值要求。"
+  ],
+  "next_cards_at_most_two_per_model": {
+    "Deep": [
+      {"priority": 1, "card": "397 原 teacher-forced 因果诊断", "owner": "deep_operator_tuning", "first_result": "CPU792 已给入口结论；真实数值首判需原有界 8-owner 诊断驻留，加载时间保留，不能承诺秒级", "potential_Model_wall_gain": "本卡不测收益；先解决当前工具质量可解释性", "exit": "原 4 序列结束或首个 Native / finite / reset / 覆盖失败即保存终态；不扩成 6 HTTP 重跑"},
+      {"priority": 2, "card": "399 仅剩 HOST const destination 修复及原 CPU 消费", "owner": "当前 r399 owner", "first_result": "一次原 4 CPU / 8 GiB / <=300s changed CPU 内；已有 provider.o 复用", "potential_Model_wall_gain": "UNKNOWN，先验证真正 Runtime device graph 能力而非强 flag 或 host replay", "exit": "若原 CPU 链仍失败先保存定位；未通过时不提 GPU，不新增图框架或完整 Model 加载"}
+    ],
+    "GLM": [
+      {"priority": 1, "card": "398 V-on-demand 既定 attention-only 消费者", "owner": "当前 r398 owner", "resource_option": "原计划 910371/a02r3n03，TP8，设备 <=600s；当前 GPU_GO=false，本审核未启动或授予设备资格", "first_result": "CPU789 已有；设备首判取决于剩余 loader / consumer 闭合，不能把 CPU32s 当设备完整耗时", "potential_Model_wall_gain": "UNKNOWN；主要是约 5 GiB 逻辑空间换重算，先取完整 attention 成本", "exit": "任一数值 / 状态 / loader 失败停；若临时空间或重算成本抵消价值则 PARK，不扩 allocation grid 或绕过原 8 GiB floor"}
+    ],
+    "Kimi": [],
+    "Kimi_reason": "本轮没有新的、有证据支撑的独立 Kimi 卡；不以重复 391 裸 MoE、旧 cache 或已有负路线填 GPU。"
+  },
+  "root_followthrough_at_close": {
+    "source": "root 当轮回信；与本审已读实际回执一致",
+    "397": "root 已重构 whole / entry 原字节 SHA fb1789 / e4cac、26 v3 源和全部未变 owner，并核对原 393 prefix provenance 30e44；最终 controller 准备中，GPUfalse，不重复 CPU。",
+    "399": "v3 已明确仅 auto store 写入修复，复用 793 成功 provider.o 及 MD / deps / source，只做 HOST + link / recording 一次；未把待完成 v3 当 PASS。",
+    "398": "root 已实际运行原 read_CPU 核对 789 / 431c5b；下一真实 loader / device entry 由原执行者接续。",
+    "review_wait_required": false
+  },
+  "root_adoption_items": [
+    "把 397 v3 CPU792 记录为实际 CPU PASS，保留 788/791 原 FAIL；不再重复其入口 CPU。",
+    "把 399 状态更新为 793 provider 修复已编成但 HOST canary const seam FAIL；采用最小自有 mutable destination 修复并复用 provider.o。",
+    "登记 398 CPU789 与 431c5b 已可复用，原 plan 中 CPU 待办视为已闭合；设备数学 / loader / wall 未测继续明确。",
+    "395 loaded admission 仍拒绝，393 整体质量 FAIL、391 STOP 不变；这些工程修复均不充性能轮。",
+    "独立已知修复与 source 工作无需等待本审核签字；只把会改变本次执行结果的缺口列为剩余事项。"
+  ]
+}

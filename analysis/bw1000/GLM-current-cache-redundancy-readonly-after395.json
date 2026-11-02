@@ -1,0 +1,87 @@
+{
+  "schema": 1,
+  "scope": "Read-only source feasibility after actual r395 C1/TP8/PP2 constructor. No source implementation, GPU, Slurm, Native compilation, checkpoint load, or Model qualification.",
+  "decision": "STOP_AT_READONLY_BOUNDARY: no >=4GiB free redundant-storage deletion established. One conditional V-on-demand mechanism exceeds the logical-byte threshold, but reverses an existing measured memoization benefit and is not a qualified capacity/performance solution.",
+  "Model_GO": false,
+  "GPU_GO": false,
+  "identity": {
+    "Native_SHA256": "038d4ff2e7aee2e6db80f691dd885222f3e3160e25ae9d0e269296daf9596c00",
+    "actual_build_receipt": "/refactor/candidates/GLM-PP4-registry-repair-r184b/CPU-build.json",
+    "actual_build_receipt_SHA256": "6aa62f788aad6080027d665f30d7c9824c07cb1866de905397fef15c56b26529",
+    "binding_evidence": "analysis/bw1000/GLM-r354-current-rows-memory-readonly.json",
+    "binding_evidence_SHA256": "018627219d29cb9ff879198fd681487719fe31744ab3f500396bca71acf8f0e6",
+    "caller": "code/bw1000/agent-context-32k/GLM-PP4-registry-repair-private-r184b/resident_caller_registry_r184b.cpp",
+    "caller_SHA256": "8aa1de7218120cc8d6687fbc3110c419d8651028f6cac92982b03fd5e7578dcd",
+    "prepare": "code/bw1000/resume-20261026/glm-critical-observer-r131/glm_prepare_observer_r131.cpp",
+    "prepare_SHA256": "2fa890bcb80c4accd41a7d09a658d557535c4922a6d6dea3b672dcec904f972c",
+    "prepare_object_SHA256": "1a4f6054ef8552726b892a132bc6a394a2a678df14f99173a73d55613be550c7",
+    "prepare_MD_SHA256": "e1a19c270e1736498c6bf8f30b5da0699a6e895ab4baf6c0358adf4bf8b9f0e8",
+    "header_local_inspection": "code/bw1000/GLM-shared-M1-direct/glm_moe_dsa_attention_prepare.hpp",
+    "header_local_SHA256": "79b5d89e96cc8b2d236bc21bbecd307c03f9ab14ce22d85cbb8c16e223fa32dc",
+    "header_caveat": "Local interface inspection supplements the actual object/source binding; no new header or ABI qualification claimed.",
+    "capacity_evidence": "results/bw1000/2026-11-02/GLM395-root-audited-C1-PP2-constructor-PASS-tail-admission-blocked.json",
+    "capacity_evidence_SHA256": "d8ed27c9faf63920692e2c980d22a0a9b93c7ee7523d1c306c596c9a86dcd69e",
+    "capacity_handles": {"GPU": "910376.839", "keeper": "910407.787", "post": "910376.840"}
+  },
+  "actual_call_chain": [
+    "Caller constructor lines69..76 allocates BF16 latent[C,32768,512], rotary[C,32768,64], projected K/V[C,32768,8,256], with C=1 here.",
+    "forward_latent computes query and fresh BF16 RMS-normalized 512-channel latent plus absolute-position RoPE 64-channel rotary key. Fresh tensors remain necessary.",
+    "Caller line120 expand_cached computes kv_b only for arriving tokens, then line162 writes persistent latent/rotary and lines163 onward writes projected K/V.",
+    "Current normal attention consumes projected banks. Lines208..229 map source-ordered unique selected positions, borrow full-prefix projected views or IndexSelect K/V, then existing 256-dimension sparse attention. No normal-path read of persistent latent_/rotary_ was found in this exact caller; public getters/census and compatibility remain separate obligations.",
+    "Lengths publish only after successful output and stream sync; exceptions poison and drain. Any alternate bank policy must retain these publication/reset/owner semantics."
+  ],
+  "math_and_layout": {
+    "local_heads": 8,
+    "kv_latent_channels": 512,
+    "rotary_channels": 64,
+    "kv_b_local_weight_shape": [3584, 512],
+    "kv_b_output_per_head": "192 key-noPE + 256 value = 448; concatenate the already rotated shared64 key across8 heads",
+    "projection_path": "BF16 latent -> BlockQuantF8E4m3 row/block128 -> original FP8 weight/scales projection -> BF16 output. Nominal precision is fixed.",
+    "redundancy": "Projected noPE K and V are functions of normalized latent and fixed kv_b weights; repeated rotary key channels are functions of the separately retained rotated key. This is functional memoization, not proof that removing it preserves current execution rounding or latency.",
+    "tail_layers": 40,
+    "per_TP_rank_tail_bytes": {
+      "latent_plus_rotary": 1509949440,
+      "one_projected_K_or_V_bank": 5368709120,
+      "both_projected_banks": 10737418240,
+      "drop_latent_and_compact_K_rotary_theoretical_saving": 2684354560
+    },
+    "formulas": [
+      "latent+rotary = 40*32768*(512+64)*2 = 1,509,949,440B = 1.40625GiB",
+      "one projected bank = 40*32768*8*256*2 = 5,368,709,120B = 5GiB",
+      "drop latent512 and seven duplicate rotary64 copies = 40*32768*(512+7*64)*2 = 2,516,582,400B; additionally dropping the separate rotary cache after retaining one key copy yields 2,684,354,560B = 2.5GiB. All variants remain below4GiB."
+    ]
+  },
+  "existing_paths_and_dedup": {
+    "host_flag": "projected_host_r4504 changes projected bank rows to1. For C1 rows already1, GPU bank size is unchanged; it adds host storage/transfers. No flag-only C1 capacity gain.",
+    "borrowed_views": "Current complete_prefix path already avoids gathering projected banks where possible. It retains persistent storage.",
+    "small_capacity_multirow_paths": "Resident/shared/transient shortcuts have small-capacity and/or multirow predicates. No full32768 C1 ready replacement established.",
+    "historical_evidence": "L/glm-projected-cache-hardware-accounting-r22.json",
+    "historical_evidence_SHA256": "409990cf4af6a64e1787dc5433339a3593f4074afa4f1d228e91a85cbac89992",
+    "historical_scope": "Historical component sources3798d884... and32e56ede..., layers2/3,48 samples/case. Not current038d Model timing or a transferable speedup.",
+    "historical_observation": "Incremental projected-cache attention medians2.63..4.41ms versus original22.67..81.62ms at selected lengths512/2048. It documents why repeated selected-prefix kv_b projection was cached; undoing it is an explicit memory/compute tradeoff.",
+    "unqualified_alternatives": "Absorbed MLA/latent-only changes attention dimensions and contraction order; existing attention expects K/V256. No qualified current public switch found. Lower precision changes the stated precision scope. Old PP3/C64/cap640 evidence does not establish current C1/32K capacity."
+  },
+  "single_conditional_mechanism": {
+    "name": "Drop persistent projected V only; retain projected K and latent/rotary; regenerate V for selected logical positions using existing expand_cached",
+    "logical_tail_saving_bytes": 5368709120,
+    "why_not_free": "Existing expand_cached emits both K and V, and kv_b is private. Reusing this API discards extra recomputed K; a value-only projection would require another consumer/API/source modification. This read-only card implements neither.",
+    "projection_work": {
+      "formula_FLOPs_per_layer": "2*U*512*3584 (nominal multiply-add count; not a latency/roofline claim)",
+      "current_decode_arriving_M1": 3670016,
+      "selected_U2048": 7516192768,
+      "tail40_U2048": 300647710720,
+      "prefill_union": "For count512, union of selections across queries may cover the whole32768 prefix; topk2048 is per query and is not a bound on union U."
+    },
+    "temporary_bytes_U32768": {
+      "expanded_K_plus_V": 268435456,
+      "raw_kv_b_output": 234881024,
+      "additional_quant_scale_latent_gather_attention_scratch": "UNKNOWN; allocations can overlap and require actual lifecycle accounting"
+    },
+    "traffic": "Removing V saves4096B per arriving token/layer of persistent writes, but adds latent gathers, quantization, kv_b weight/output traffic and selected temporary writes each query. These are logical source bytes, not measured HBM traffic.",
+    "numerical_unknown": "Recomputing at U rather than original arriving M1/512 can change GEMM/kernel shape and BF16 rounding. Same nominal FP8/BF16 precision and real-arithmetic dependence are insufficient to claim current finite-precision equivalence, task quality or exact tokens. No new numeric validation performed.",
+    "lifecycle_work_required": "DefaultOFF guarded nullableV allocation plus selected-V assembly/read replacement, current caller getters/census contracts, all owner/row/past rejection, poison/reset/destroy behavior. No shared source edits made.",
+    "capacity_limit": "r395 tail free4,127,195,136..4,227,858,432B was a constructor snapshot. Adding logical5GiB saving is only a conditional ledger; it does not prove allocator release, W4 temporary peak, checkpoint loading or original8GiB loaded-service admission. Native live/reserved remain UNKNOWN.",
+    "next_option_only_if_separately_chosen": "A source-first fixed-input current projection/attention consumer could compare same selected positions and current original output against regenerated V, measure complete phase including gathers/quant/projection/scratch and error summaries, before considering any capacity probe. This is not a GPU claim or approval to load Model."
+  },
+  "final_boundary": "No one-line safe deletion reaches4GiB. A5GiB logical V-cache tradeoff exists, but current code intentionally memoizes that work and historical measurements warn of substantial regression. No implementation/GPU/Model route is selected by this analysis; original8GiB admission and all395 conclusions remain unchanged."
+}
