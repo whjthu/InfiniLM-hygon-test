@@ -1,0 +1,88 @@
+{
+  "method": "same perrowFP8 quantization, ownedF32 dequant viaoriginalidentitylinear, F32aggregation+Vprojection",
+  "default_OFF": true,
+  "source_ready_not_compiled": true,
+  "GPU_GO": false,
+  "Model_GO": false,
+  "exact_inputs": {
+    "layer": 38,
+    "TP": 8,
+    "rank": "0..7",
+    "context": 32768,
+    "count": 1,
+    "U": 2048,
+    "original_K_QK256_scale_round_F32softmax_BF16prob": true,
+    "NoV": true,
+    "projection_input": [
+      2048,
+      512
+    ],
+    "weight_local": [
+      3584,
+      512
+    ],
+    "scales": [
+      224,
+      4
+    ],
+    "global_row_offset": "rank*3584",
+    "head_V_columns": "h*448+192..h*448+447"
+  },
+  "dtype": {
+    "original_BF16selectedlatent_BlockQuant": "UInt8FP8payload[2048,512]+F32rowScale[2048,4]",
+    "F32identity_roundtrip": "F32[2048,512]",
+    "probability": "originalBF16 thenCastF32",
+    "aggregation": "F32[8,512], 8x2D fullF32 GEMM",
+    "V_weight": "8ownedcontiguousF32[512,256]",
+    "projection": "F32[8,256], 8x2D fullF32 GEMM",
+    "final": "CastBF16[1,8,256] thenoriginalO/TP",
+    "GPU_F64": false,
+    "aggregate_BF16_or_requant": false,
+    "Gemm_policy": "GemmConfig::FullFp32; ifcurrentproviderdoesnotsupportmustreject,neverfallthroughFast"
+  },
+  "math": "Original pBF16 quantized probability values retained; newA_h=F32(p_h)@Decode(Xu8)*Xscale; outputF32=A_h@Decode(Wv)*Wscale, CastBF16 once. Removes baselineperrowBF16Vround andchangesF32association/scalemultiplyorder; notbitexact orqualityqualified.",
+  "source": "attention_component_r433.cpp +value_roundtrip_r433.hpp +geometry_r433.hpp only; oldNoV OFFbranch/keys/load/control/reset/close preserved. PublicModelWeightsstate_dict strongTensorownership; nonewSharedSDK/Native/Common/RuntimeABI.",
+  "original_helper": "currente32 dtype2/mode1 staticbinaryability proven; no claimfullreproduciblebuildMD/deviceidentityqualification",
+  "setup": "FirstactualONquery lazilyallocates I512/scale1, originalhelper producesF32Wtranspose[512,3584], copies8headVweights, drains/releases fulltranspose. ALL setup is INSIDE firstON complete_attention_CAPI_ms, alsoreportedsetupms/calls. Retain immutable Vhead/identityuntilsameContextdestroy. No perrequestweightreload andnoglobalcache.",
+  "cost": {
+    "setup_nominal_FLOPs": 1879048192,
+    "eachquery_identity_nominal_FLOPs": 1073741824,
+    "F32aggregation_nominal_FLOPs": 16777216,
+    "F32projection_nominal_FLOPs": 2097152,
+    "persistent_Vhead_bytes": 4194304,
+    "identity_bytes": 262144,
+    "identity_Xscale_bytes": 8192,
+    "identity_Wscale_bytes": 64,
+    "Wtranspose_temporary_bytes": 7340032,
+    "setup_r776_scratch_bytes": 18874368,
+    "query_roundtrip_F32_bytes": 4194304,
+    "query_r776_scratch_bytes": 4718592,
+    "meaning": "Logicalbuffers/FLOPledger only, notpeak/currenthardwaretime. Firstwarmsetup/coldcost andlatersteadycompleteCAPI BOTHretained. FinalownedState/drain/destruction insequenceenvelope, nothidden."
+  },
+  "lifetime": "OriginalF32Plan ownsnoRuntimebuffer; create/run/destroy sameowner/device/stream, destroy synchronizes onnormal+exception beforeinput/outputTensorhandles release. HostH2Didentity stagingmembers persist throughsuccess/error; constructorcatchdrain beforemembersunwind. PreparedstateownsoriginalweightTensorhandles+newF32V, cannotborrowr807scratch. ClearedbeforeRuntime/oldmodule destruction; noHTTP/threads launched.",
+  "first_device_remaining": [
+    "Typedidentityroundtrip/realweightF32rows andsameoriginalBlockQuantscale checks in boundedfirstON, not CPUproxy",
+    "ActualFullFp32providerdispatch support",
+    "Actualfinite/canary/output/attention/taskdiagnostics withpersistedtypedintermediates asallowed; notjusthashes",
+    "Fullmax8ABBAcomponentwall/OFFdrift/coldplan/setup/normal8post iffirstONpasses"
+  ],
+  "CPU_claim": {
+    "parent": 910407,
+    "node": "a14r2n20",
+    "cores": 4,
+    "mem_MiB": 8192,
+    "total_s": 300,
+    "inside_s": 270,
+    "attempts": 1,
+    "production_HOST_TUs": 1,
+    "pure_CPU_geometry_executable": true,
+    "GPU_TUs": 0,
+    "Native_dlopen": false,
+    "Runtime": false,
+    "checkpoint_payload_IO": false
+  },
+  "CPU_old_suites_rerun": false,
+  "actual_device": false,
+  "Model_quality": "UNKNOWN",
+  "Model_speed": "UNKNOWN"
+}

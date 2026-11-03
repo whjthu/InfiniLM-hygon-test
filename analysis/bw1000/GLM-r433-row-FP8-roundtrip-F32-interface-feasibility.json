@@ -1,0 +1,235 @@
+{
+  "method": "r433 preserve originalrowFP8roundtrip thenF32valueassociation",
+  "state": "SOURCE_INTERFACE_FIRST_JUDGMENT_NO_DEVICE_CLAIM",
+  "review184": {
+    "path": "analysis/bw1000/reviews/astra-review-184-value-reassociation-numeric-boundary.json",
+    "SHA256": "eba740cd0afe74daa5a75f2af750f8e3417f45448ed43c1e47114320ef36e7f5",
+    "accepted": true
+  },
+  "scope": {
+    "only_source_read": true,
+    "Slurm": 0,
+    "GPU": 0,
+    "Native_dlopen": false,
+    "compile": 0,
+    "CPU_geometry_job": 0,
+    "Model": false,
+    "old864_repeated": false,
+    "old1361_replayed": false
+  },
+  "prior": {
+    "GPU": "910374.1361",
+    "result": "diagnostic .02STOP/0formal, not usertaskqualityFAIL",
+    "Model_quality": "UNKNOWN",
+    "Model_speed": "UNKNOWN",
+    "original_final_commit": "5782cab72cf7dee43ffc84fb6d28f52f6d8f00eb",
+    "raw_intermediates_not_saved": true
+  },
+  "exact_current_dispatch": {
+    "source": {
+      "path": "/refactor/incoming/GLM-M15-oproj-Model-r125/glm_fp8_runtime_oproj_r125.cpp",
+      "SHA256": "cdbfda3c1ebf919793ea38d590dad10dced8972e4703a032965a4a5a3242b6b2",
+      "lines": {
+        "struct Owner": 12,
+        "bool fp8_cached_r809": 48,
+        "if(m>=32)": 50,
+        "glm_fp8_cache_run_r807": 69,
+        "modern_glm_fp8_runtime_stats_r809": 75,
+        "modern_glm_fp8_runtime_clear_r809": 90
+      }
+    },
+    "object": "/refactor/candidates/GLM-M15-oproj-Model-r125/glm_fp8_runtime_oproj_r125.cpp.o",
+    "object_SHA256": "7fec9aabafcfe329a4dad5e7cb3cb810654448d5d45809d9820c9df171d529ff",
+    "MD_SHA256": "605fc2a4b6b2e8c6048333699a34cba1ebd6f60ba41e8823670647b6735fc099",
+    "receipt_SHA256": "83bd99026decb9f7b38acd4301506854288bfe2887c3265e32b3051f3813c009",
+    "nm_defines_fp8_cached_and_runtime_stats": true,
+    "body": "r125 defines current r809 symbol; legacyincomingr809.cpp is not currentbody. Store is Runtime*/device/stream and807/119handles pluscounters. No ownedWf32 or outputXdequant API."
+  },
+  "cache807": {
+    "source": {
+      "path": "/refactor/incoming/glm_fp8_cache_r807.cpp",
+      "SHA256": "98499bc7dc070801ddaca969e947fb36ed16ece2c602b46aa86812b7b24e3c50",
+      "lines": {
+        "struct Entry": 18,
+        "struct Cache": 19,
+        "size_t geometry": 28,
+        "Every invocation supplies": 64,
+        "glm_fp8_cache_run_r807": 47
+      }
+    },
+    "API": {
+      "path": "/refactor/candidates/glm-M16-r8861/tree/candidates/glm-PP2-B32-r8843/tree/candidates/glm-deferred-attention-model-5f91ad7-r5096/src/glm_fp8_cache_r807.hpp",
+      "SHA256": "54a0f4e858408300a62029187df66f9287ef439f349820f732d41fdddacb080f",
+      "lines": {
+        "glm_fp8_cache_create_r807": 5,
+        "glm_fp8_cache_run_r807": 6
+      }
+    },
+    "scope": "geometry scratch/handle only; currentowner/invocation X/W/scales supplied eachrun. No dequant tensor/view may be borrowed."
+  },
+  "public_weight_access": {
+    "source": {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/glm-M16-r8861/tree/candidates/rebased-5f91ad7-r3668/Model/GLM/InfiniLM/csrc/weights/weights.hpp",
+      "SHA256": "1056d753a7c5be68ef493b547062eea63a48bb218d710b2616aeac60ca379cca",
+      "lines": {
+        "const Tensor &tensor()": 53,
+        "state_dict() const": 79,
+        "children() const": 86
+      }
+    },
+    "prepare_header": {
+      "path": "/refactor/candidates/glm-M16-r8861/tree/candidates/glm-PP2-B32-r8843/tree/candidates/glm-deferred-attention-model-5f91ad7-r5096/src/glm_moe_dsa_attention_prepare.hpp",
+      "SHA256": "79b5d89e96cc8b2d236bc21bbecd307c03f9ab14ce22d85cbb8c16e223fa32dc",
+      "lines": {
+        "class Fp8Projection": 9,
+        "weight_,scale_": 14,
+        "expand_cached": 23
+      }
+    },
+    "route": "AttentionPrepare.state_dict().at(kv_b_proj.weight).tensor() and kv_b_proj.weight_scale_inv are owned sharedTensor handles via publicModelWeights; retain handles under sameRuntimeowner/readyweights generation. No private-field offset/reinterpret cast or borrowedPlan buffer required.",
+    "geometry": {
+      "full_local_W": [
+        3584,
+        512
+      ],
+      "W_storage": "UInt8 E4M3FN",
+      "global_scale": [
+        224,
+        4
+      ],
+      "scale_dtype": "F32",
+      "global_row": "rank*3584 +head*448+192+v",
+      "weight_scale_row": "floor(global_row/128)",
+      "columns": "k0..511/globalcolumnOffset0",
+      "V_head_rows": "head*448+192..head*448+447",
+      "all8_heads_cover_V_rows": 2048
+    }
+  },
+  "SDK_available": {
+    "BlockQuant": {
+      "path": "/refactor/install/hygon-glm-5f91ad7-r3672/include/base/block_quant_f8_e4m3.h",
+      "SHA256": "c120893260ca200840c18eec8e49133a22f126b7edfa543fc97b320e7fcfc772",
+      "lines": {
+        "class BlockQuantF8E4m3": 4,
+        "scale.shape()": 14
+      }
+    },
+    "Fp8BlockLinear": {
+      "path": "/refactor/install/hygon-glm-5f91ad7-r3672/include/base/fp8_block_linear.h",
+      "SHA256": "42fdbf8fd12e44be2e6e49d5c743973877a786e34ac9e97b3e108825beb684db",
+      "lines": {
+        "class Fp8BlockLinear": 7,
+        "output.dtype()==DataType::kFloat32": 23,
+        "row_offset<=rows": 29
+      }
+    },
+    "Cast": {
+      "path": "/refactor/install/hygon-glm-5f91ad7-r3672/include/base/cast.h",
+      "SHA256": "864f425febd0986d2ececb5826d20cb3b2c1c3a1b7169b78257669b89e93781e",
+      "lines": {
+        "class Cast": 8
+      }
+    },
+    "IndexSelect": {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/install/hygon-glm-5f91ad7-r3672/include/base/index_select.h",
+      "SHA256": "7003ab35d8a46d686e341b59c95cfa6adf76e3441761605d28d641cb56c6189e",
+      "lines": {
+        "class IndexSelect": 8
+      }
+    },
+    "Mul": {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/install/hygon-glm-5f91ad7-r3672/include/base/mul.h",
+      "SHA256": "954eaa5d56238ed207da92dc4902eeb442d1ab361e4762cd5ea270b63fa3cc82",
+      "lines": {
+        "BroadcastStrides": 23,
+        "requires all input and output": 34
+      }
+    },
+    "direct_gap": "No public E4M3 dequant operator enumerated. Packed type is UInt8; Cast UInt8->F32 is integer conversion, not FP8decode. PerTensorDequantI8 is not FP8. Cast/IndexSelect declarations do not prove exact HygonUInt8->Int64/gather support, so lookupcomposition is not qualified and not implemented."
+  },
+  "one_minimal_private_wrapper_option": {
+    "state": "PRIVATE_SOURCE_IMPLEMENTED_NOT_COMPILED_OR_DEVICEQUALIFIED",
+    "basis": "Reuse originalr776 math with exact encodedidentity and F32 output, not newdequant kernel/cache/RuntimeABI. This is a costly identity GEMM, not freeownedWdequant interface.",
+    "source": {
+      "path": "code/bw1000/GLM-value-latent-reassociation-r431/parent/glm_fp8_batched_r776.cu",
+      "SHA256": "56f3e4b7a7c85a8a73ca8ab586348bb0ea897007f75fc7eb8de200c0ef93faac",
+      "remote_path": "/refactor/incoming/glm_fp8_batched_r776.cu",
+      "lines": {
+        "struct Plan": 12,
+        "glm_fp8_create_r776": 23,
+        "glm_fp8_run_r776": 26,
+        "if(p.dtype==2)": 30,
+        "glm_fp8_destroy_r776": 38
+      },
+      "qualified_loaded_library": "/refactor/candidates/glm-grouped-native-model-r5117/helpers/libglm_fp8_batched_r776.so",
+      "loaded_library_SHA256": "e32b4dc2749b4012efbf4322d334b6460dd091190bca78bb8f41e4384f09a7e8",
+      "qualification_boundary": "Currente32 actualbinarydtype2/mode1 floatdispatch proven; noactualF32identitydevicecall, nooldcb28substitution",
+      "current_binary_source_scope": "Exactcurrentbinaryfloatdispatchverifiedbyaddresses; completehistoricalMD stillUNKNOWN"
+    },
+    "ABI": "create_r776(device,dtype2,M,N,K,scaleRows,scaleCols,rowOffset,colOffset,Runtime.stream); run_r776(plan,mode1,outF32,Xu8,XscaleF32,Wu8,WscaleF32); destroy_r776(plan)",
+    "original_provider_math": "PlanBF16 unpack of representable E4M3 codes -> BF16 GEMM withF32partial -> combine scales inF32 -> dtype2 writesfloat (no aggregate BF16/requant). Owner thread,deviceGuard,streamsync/destroy already inoriginalhelper.",
+    "steps": [
+      "Afterrealweightsfinish, own encodedI512 UInt8[512,512], identityXscaleF32[512,4]=1 andidentityWscaleF32[4,4]=1. Expected E4M3FN1code0x38/zero0 must be checkedagainst exactcurrentDecode header/domain before codefreeze; do not assume metadata-onlyPASS.",
+      "One setup originalhelper call M512,N3584,K512,sr224,sc4,rowOffsetrank3584,colOffset0,dtype2: X=identity, W=originalKVb; producesownedF32 [512,3584]=dequantW transpose. Preserveglobal128scales; do not cutWv as a contiguousglobalrowblock.",
+      "Copy eachhead columnrange h448+192:h448+448 to ownedcontiguousF32[512,256]; retain8headW buffers. Free fulltransposedW afterdrain; cachelifetime strictlythisreadyContext andsameimmutableweightgeneration.",
+      "Everyquery originalBlockQuant(selectedBF16latent[2048,512])->U8packed[2048,512]+F32scale[2048,4]. Originalhelper M2048,N512,K512,sr4,sc4,ro0,co0,dtype2 withW=identity producesF32rowroundtriplatent[2048,512]. No originalrawBF16latent aggregation and no aggregateFP8quant.",
+      "Cast originalBF16prob toF32; eight existing2D F32GEMMs P_h[1,2048]@Xdequant[2048,512]->aggregateF32[1,512]; eight F32GEMMs aggregate_h@VheadF32[512,256]->attentionF32[1,256]. Cast finalattention toBF16 once and useoriginalO/TP. No aggregateBF16cast.",
+      "Wrappermustassert owner/runtime/device/stream/readyweights, retain allRuntimeTensor inputs/output andhost identity staging throughdrain; onerror synchronise/release onlyownplan andfailstop. Noescape of r776scratch, no borrowedweights. Graph/capture/defaultON unsupported. Fullcostcounts allsetup/quant/identitycalls/casts/pack/copies/alloc/destruct/drain."
+    ],
+    "math": {
+      "X": "Xq[t,k]=F32(Decode(packed[t,k]))*Sx[t,floor(k/128)]",
+      "W": "Wq[j,k]=F32(Decode(Wpacked[j,k]))*Sw[floor((rank*3584+j)/128),floor(k/128)]",
+      "new": "CastBF16(F32(P_BF16) @ Xq @ transpose(Wq[Vhead]))",
+      "remaining_difference": "Originalhelper formsper128block dot then scales beforeV_BF16, andoriginalPV usesBF16V. Reassociation changesF32accum/scalemultiply order and removes original perrowBF16V rounding; not bitexact, output/taskquality stillUNKNOWN."
+    },
+    "nominal_cost": {
+      "X_identity_perquery_FLOPs": "2*2048*512*512 =1073741824",
+      "W_identity_setup_FLOPs": "2*512*3584*512 =1879048192",
+      "F32_aggregation_FLOPs": "2*8*2048*512 =16777216",
+      "F32_Vprojection_FLOPs": "2*8*512*256 =2097152",
+      "meaning": "nominalmultiplyaddledger; not hardwaretime orspeed. Setupidentity potentiallyhighcost; no expectedgain claimed."
+    },
+    "logical_bytes": {
+      "persistent_Vhead_F32": 4194304,
+      "persistent_identity_U8": 262144,
+      "persistent_identity_Xscale": 8192,
+      "persistent_identity_Wscale": 64,
+      "W_setup_fullF32": 7340032,
+      "W_setup_r776_scratch": 18874368,
+      "query_rowroundtrip_F32": 4194304,
+      "query_r776_scratch": 4718592,
+      "peak": "UNKNOWN; logicalowned buffers plusoperator/vendorworkspace, not devicepeak or32KModel fit."
+    },
+    "engineering_scope": "At mostone privateHOST wrapper if reusingr776 dtype2 andpublicweights. No sharedSDK/Native/Common edit or classlayout ABI. CPUcompile/dtype2actualdevicequalification onlyafterexplicit implementation/claim; none authorized inthissourcefirstjudgment."
+  },
+  "conclusion": {
+    "direct_owned_dequant_interface": "ABSENT inactualr809/r807",
+    "simple_lookup_composition": "NOT_READY: exactcurrentbackendUInt8Cast/IndexSelect dispatch notread",
+    "private_original_math_wrapper": "ImplementeddefaultOFFprivateHOSTsource/currentbinaryfloatability, boundedCPUcompilepending; noactualdeviceclaim",
+    "decision": "ONE_HOST_SOURCE_AND_CPU_CLAIM_READY_GPU_FALSE",
+    "Model_quality": "UNKNOWN",
+    "component_speed": "UNKNOWN",
+    "noGPU": true
+  },
+  "evidence": [
+    {
+      "path": "L/GLM433-actual-interfaces.json",
+      "SHA256": "4726ed1c2a65e5867123841a424e67d9849c74a4909899242a1192c684a298f6"
+    },
+    {
+      "path": "L/GLM433-SDK-cast-gather.json",
+      "SHA256": "b9d2e9cbef3b808fef7aa999b67a58280ec4313a62e0ccd8ba81bd94160facfc"
+    }
+  ],
+  "current_binary_F32_proof": {
+    "create_dtype2_allowed": "1135d cmp2;11360 unsignedja rejects>2",
+    "dtype_stored": "11465 stores toPlan+4",
+    "mode1": "run11a66 modeESI->EBX,11af4 accepts0/1,11b3e mode0jump1231f,mode1unpackBF16",
+    "mode1_GEMM": "11e3a cublasGemmStridedBatchedEx",
+    "dtype2_float_combine": "11e4d readsPlan+4/11e5a cmp2,11fcd combine<float>14b00->cudaLaunchKernel11fe4"
+  },
+  "current_binary_proof_reference": {
+    "path": "L/GLM433-current-float-dispatch.json",
+    "SHA256": "15cda2ffb7e041aefa2110b6faeffeb0835be534e56874777f6ad59917fc046f"
+  }
+}
