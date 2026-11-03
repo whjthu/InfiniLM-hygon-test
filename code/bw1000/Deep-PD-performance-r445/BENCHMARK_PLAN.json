@@ -1,0 +1,179 @@
+{
+  "schema": 1,
+  "GPU_GO": false,
+  "context": 32768,
+  "prefill_chunk": 1024,
+  "fixtures": {
+    "L": {
+      "path": "/refactor/incoming/Deep-prefill-chunk-pair-r348/repair-r2/owner/frozen-toolprompt.json",
+      "SHA256": "43377e6a70efdf8960989559c957241f9e725f8a2c2a55b9bf438c331275cb6d",
+      "actual_prompt_tokens": 8489,
+      "actual_prompt_token_ids_SHA256": "681977ee292994eac340bae5c1aadf7a6b136890df725d02bb75fc8f31ecf0df",
+      "prompt_crop": false,
+      "same_full_messages_tools_and_opaqueIDs": true,
+      "quality": "Parse complete final object using existing content_json policy, exact fixture tool nonce/integer results, natural EOS separately from length. This fixed historical request does not establish broad benchmark quality.",
+      "output_budget": 128
+    },
+    "S": {
+      "path": "/refactor/results/Deep-latest-full-owner-r287-910374.1221/quality/MMLU/30/request-001.request.json",
+      "SHA256": "33d2f8c70c967e10177f03eb1b44ff81e2f5629e5aec44650450e98d466ef37e",
+      "actual_prompt_tokens": 150,
+      "actual_prompt_token_ids_SHA256": null,
+      "output_budget": 1024,
+      "quality": "Original last #### [ABCD] parser, answer0=A; prior1221 correct naturalEOS312, not candidate qualification"
+    }
+  },
+  "planned_external_requests": 22,
+  "planned_role_request_lifecycles": {
+    "total_stage_lifecycles": 32
+  },
+  "planned_groups": [
+    {
+      "id": 0,
+      "phase": "warm",
+      "mode": "co",
+      "requests": 2,
+      "fixtures": [
+        "L",
+        "S"
+      ],
+      "arrival_offsets_s": [
+        0.0,
+        0.0
+      ],
+      "co_nodes": [
+        "P",
+        "D"
+      ]
+    },
+    {
+      "id": 1,
+      "phase": "warm",
+      "mode": "co",
+      "requests": 2,
+      "fixtures": [
+        "S",
+        "L"
+      ],
+      "arrival_offsets_s": [
+        0.0,
+        0.0
+      ],
+      "co_nodes": [
+        "P",
+        "D"
+      ]
+    },
+    {
+      "id": 2,
+      "phase": "warm",
+      "mode": "PD",
+      "requests": 1,
+      "fixtures": [
+        "L"
+      ],
+      "arrival_offsets_s": [
+        0.0
+      ]
+    },
+    {
+      "id": 3,
+      "phase": "warm",
+      "mode": "PD",
+      "requests": 1,
+      "fixtures": [
+        "S"
+      ],
+      "arrival_offsets_s": [
+        0.0
+      ]
+    },
+    {
+      "id": 4,
+      "phase": "capacity",
+      "mode": "co",
+      "requests": 4,
+      "fixtures": [
+        "L",
+        "S",
+        "S",
+        "L"
+      ],
+      "arrival_offsets_s": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "co_nodes": [
+        "P",
+        "D",
+        "P",
+        "D"
+      ]
+    },
+    {
+      "id": 5,
+      "phase": "capacity",
+      "mode": "PD",
+      "requests": 4,
+      "fixtures": [
+        "L",
+        "S",
+        "S",
+        "L"
+      ],
+      "arrival_offsets_s": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "id": 6,
+      "phase": "capacity",
+      "mode": "PD",
+      "requests": 4,
+      "fixtures": [
+        "S",
+        "L",
+        "L",
+        "S"
+      ],
+      "arrival_offsets_s": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "id": 7,
+      "phase": "capacity",
+      "mode": "co",
+      "requests": 4,
+      "fixtures": [
+        "S",
+        "L",
+        "L",
+        "S"
+      ],
+      "arrival_offsets_s": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "co_nodes": [
+        "P",
+        "D",
+        "P",
+        "D"
+      ]
+    }
+  ],
+  "scope": "External mixed C4 queue, activeC1 per replica, two fair coTP8 replicas vs P8+D8; no batch2/batch4 Native claim",
+  "formal_order": "one four-cohort ABBA, co/PD/PD/co; two fixed row orders; no repeated grid",
+  "transport": "ordinary host staged Native snapshot + TCP/IPoIB; internal pin UNKNOWN; no RDMA"
+}
