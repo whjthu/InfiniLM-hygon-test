@@ -1,0 +1,90 @@
+{
+  "state": "GPU765_FAIL_PRESERVED_SOURCE_CAUSE_CLOSED_NO_NEW_GPU",
+  "original_GPU": {
+    "757": "FAILED6/71s;0fullforward;immediatepostRuntime mask assertion too early",
+    "765": "FAILED6/67s;0fullforward;manual pin before first originalsubmit caused r2392 narrowmask rejection"
+  },
+  "original_keepers": {
+    "891": "FAILED1/129s",
+    "897": "FAILED1/124s"
+  },
+  "post": {
+    "758": "COMPLETED0/46s;clean",
+    "766": "COMPLETED0/51s;clean;node03passiveTIME_WAIT49.883s"
+  },
+  "forced_cleanup_not_normal": true,
+  "CPU894": {
+    "state": "COMPLETED0/21s",
+    "receipt_SHA256": "0571e534902603c4ebb9dd11a15c198564388ff015b75910d73c1e76c090fdea",
+    "scope": "actual purePOSIX8threads+normal/errorrestore only, does not validate downstream SDK ownerpolicy",
+    "library_SHA256": "6adbea52e48b0c34580afee530778443686d0d9c673a7038acf6afff8a0b247c"
+  },
+  "cause": {
+    "Runtime_create": "DeviceGuard/runtime stream setup; does not pin",
+    "first_original_submit": "execution::detail::RuntimeWorkspaceHandle constructor lines29-33 assertOwnerThread then actual affinity_r2392::apply_once(device.index), then set_stream",
+    "apply_once": "Threadlocal width4 and applied_device; requires input allowedmask>=32, selects allowed[device*4:device*4+4], subsequent submit same device is no-op",
+    "incorrect_v4": "Before Runtime manually shrunk mask to4 but did not initialize original submit ownerpolicy; later first submit rejects4<32",
+    "mistake": "I inspected Runtimecreate and purePOSIX tests without following the already-pinned submit.hpp/ownerpolicy; existing9233 negative had exactly this doublebinding failure."
+  },
+  "actual_source": {
+    "owner_header": {
+      "path": "code/bw1000/resume-20261026/Kimi-MoE-first-submit-CPU-private-r9233/actual_owner_affinity_r2392.hpp",
+      "SHA256": "de2ffe645329558634740ed6b8a9ac7c70030160786eab38d065ce513afce71d",
+      "matches_actual894_MD": true
+    },
+    "submit_header": {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/execution/submit.hpp",
+      "SHA256": "8c0bd70a372b0017bca78e54f037493fe79918f97b5fed6d885f5b5d8eb0c20d",
+      "matches_actual894_MD": true
+    },
+    "old_actual_runner": {
+      "path": "code/bw1000/resume-20261026/Kimi-MoE-event-profile-private-r9220e/kimi_TP16_event_runner_r9220.cpp",
+      "SHA256": "8b09ec11d9fbf4dfc76508101946c3cddf88367e169cade18b089dd3146673b6",
+      "maskcheck_phase": "line52 after first full originalforward+completion, no manual prepin"
+    },
+    "existing_negative": {
+      "path": "code/bw1000/resume-20261026/Kimi-MoE-first-submit-CPU-private-r9233/CPU_contract.cpp",
+      "SHA256": "892b3b73394b19e82fce1a929bcd7574992ec7a92dfd0c46c37264342d740add",
+      "scope": "8realpthreads actualheader firstapply/policyidempotence; separate premature4mask thread rejected"
+    }
+  },
+  "proposed_minimal_delta": {
+    "unchanged": "width4/guard/NNmath/SDK/class/header/clone/GPUobject/33originalobjects/TP16PP1",
+    "remove": "manual Pin beforeDeviceGuard/Runtime",
+    "retain": "entrymask32+ through original firstsubmit; entry/pinexpected recorded before create",
+    "move": "Strict owneractual==entry[4rank:4rank+4] to after first original OFF forward+completion, verify everyarm; 32unique and actual4 mandatory",
+    "restore": "Only restore originalmask after normalRuntimeclose or unwind; no prepin",
+    "not_allowed": "Do not call a separate DSO inlineTLS or disable width4 to fake closure",
+    "CPU_if_continued": "1changedconsumerHOST+tiny32core pure actualheader contract with known prematurepin negative; old clone/GPU/33objects all reused; no GPU until changedsource/receipt/claim closed"
+  },
+  "evidence_L": {
+    "Kimi437-GPU-v1-terminal-observed.json": {
+      "SHA256": "d5d5581b7206ce0a47f34b48fb7d1b9c7738f9ade1d4c88fd10bf6aed9f4da27",
+      "bytes": 3920945
+    },
+    "Kimi437-GPU757-original-rank-partials.json": {
+      "SHA256": "45c072925b027874c9412d9cc23545cd3626471b8992580d444f6e17bb7b61d5",
+      "bytes": 3533
+    },
+    "Kimi437-GPU-v2-HOST-preflight.json": {
+      "SHA256": "56fabd1c08a1da6312d002c08a4e56482621eb8af7690bfba18545969c298911",
+      "bytes": 2832
+    },
+    "Kimi437-CPU-owner-v4-first-observed.json": {
+      "SHA256": "846bff10a29bce1be684040a89636b989113c4ef3de6893c7b2dc74666fb7997",
+      "bytes": 386854
+    },
+    "Kimi437-GPU765-terminal-and-source.json": {
+      "SHA256": "317d4e218af4c97fe5ca848edf0d2e15489bd5cd50981c9868c93c345881d779",
+      "bytes": 3959499
+    },
+    "Kimi437-exact-submit-source.json": {
+      "SHA256": "25d77b969170e6105422a4c658cee00f7a711bfc6bc5e4a98512772562f516ee",
+      "bytes": 7957
+    }
+  },
+  "GPU_GO": false,
+  "Model_GO": false,
+  "full_MoE_numerical_and_gain": "UNKNOWN; no measurement exists",
+  "component_parent_SHA256": "0e2c1022e485acb2a910579eee897640b896d56300c47a77c0267ab4f1b7f508"
+}
