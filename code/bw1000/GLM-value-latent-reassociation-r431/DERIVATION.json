@@ -1,0 +1,37 @@
+{
+  "parent_source": "code\\bw1000\\GLM-value-latent-reassociation-r431\\parent\\attention_component_r398.cpp",
+  "parent_original_SHA256": "fcf8441fd5effc8fb1a8397868c02c15ba69ac9471e0ba8b62fe986dedfb6c97",
+  "parent_normalized_SHA256": "fcf8441fd5effc8fb1a8397868c02c15ba69ac9471e0ba8b62fe986dedfb6c97",
+  "exact_replacements": [
+    {
+      "before": "#include \"selected_values_r400.hpp\"",
+      "after": "#include \"selected_values_r400.hpp\"\n#include \"value_reassociate_r431.hpp\""
+    },
+    {
+      "before": "size_t seeded=0;int device=-1;bool ready=false,poison=false,closing=false;",
+      "after": "size_t seeded=0;int device=-1;bool ready=false,poison=false,closing=false;bool value_reassociate=false;"
+    },
+    {
+      "before": "if(!c->value)v=m::v_on_demand_r400::selected_values(*c->prep,*c->r,c->latent,c->rotary,ids,w.held);",
+      "after": "if(!c->value&&!c->value_reassociate)v=m::v_on_demand_r400::selected_values(*c->prep,*c->r,c->latent,c->rotary,ids,w.held);"
+    },
+    {
+      "before": "if(count==1)attn=m::sparse_attention_all_selected_decode_r601(*c->r,a.query,k,v,1.f/16);",
+      "after": "if(c->value_reassociate){\n  if(count!=1||U!=2048||c->value)throw std::invalid_argument(\"r431 only NoV C1/U2048\");\n  auto latent=w.alloc({U,512},rt::DataType::kBFloat16),rotary8=w.alloc({8,64},rt::DataType::kBFloat16);auto first8=ids->narrow({{0,0,8}});w.held.push_back(first8);\n  infinilm::execution::submit<infini::ops::IndexSelect>(*c->r,infini::ops::IndexSelect::DefaultConfig(c->r->device().type()),c->latent,ids,int64_t{0},latent);\n  infinilm::execution::submit<infini::ops::IndexSelect>(*c->r,infini::ops::IndexSelect::DefaultConfig(c->r->device().type()),c->rotary,first8,int64_t{0},rotary8);\n  attn=m::value_r431::attention(*c->r,*c->prep,a.query,k,latent,rotary8,1.f/16);\n }else if(count==1)attn=m::sparse_attention_all_selected_decode_r601(*c->r,a.query,k,v,1.f/16);"
+    },
+    {
+      "before": "{{\"complete_attention_CAPI_ms\",ms},",
+      "after": "{{\"value_reassociate\",c->value_reassociate},{\"r431_chosen\",m::value_r431::counts.chosen},{\"r431_aggregation_Gemm_submits\",m::value_r431::counts.aggregation_Gemm_submits},{\"r431_M8_expand_completed\",m::value_r431::counts.M8_expand_completed},{\"r431_diagonal_copies\",m::value_r431::counts.diagonal_copies},{\"complete_attention_CAPI_ms\",ms},"
+    }
+  ],
+  "append": "one defaultOFF (void*,int) context policy; explicit typed Python binding required",
+  "Native_or_Common_header_layout_changed": false,
+  "SDK_changed": false,
+  "new_GPU_kernel": false,
+  "baseline": "NoV fixed in both arms; original U2048 kv_b materialization is OFF, not cachedV",
+  "all_other_source_statements_preserved": true,
+  "additional_geometry_guards": [
+    "candidate count must1 before query work",
+    "deduplicated selected U must2048 before cache mutation"
+  ]
+}

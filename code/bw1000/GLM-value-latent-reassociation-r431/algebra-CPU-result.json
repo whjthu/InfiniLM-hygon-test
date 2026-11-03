@@ -1,0 +1,73 @@
+{
+  "completed": true,
+  "passed": true,
+  "source_SHA256": "65ae49ad07c255062e5089b0fcd7747e818edf20a68a8181e0bc6cc8edacbee9",
+  "actual_rank0_checkpoint_slice_verified": true,
+  "checkpoint_global_weight_shape": [
+    28672,
+    512
+  ],
+  "rank0_weight_shape": [
+    3584,
+    512
+  ],
+  "global_scale_shape": [
+    224,
+    4
+  ],
+  "scale_min": 8.392334711970761e-05,
+  "scale_max": 0.0005384173127822578,
+  "all_rank_value_scale_addresses_checked": 65536,
+  "head_value_rows": "rank*3584+head*448+192+[0..255], then floor(globalrow/128)*4+Kblock",
+  "M8_output_diagonal_flat_rows": [
+    0,
+    9,
+    18,
+    27,
+    36,
+    45,
+    54,
+    63
+  ],
+  "results": [
+    {
+      "pattern": "smooth",
+      "F32_linear_reassociation": {
+        "finite": true,
+        "NRMSE": 4.1863555111376627e-07,
+        "maxabs": 2.7939677238464355e-09
+      },
+      "aggregate_BF16_rounding_only": {
+        "finite": true,
+        "NRMSE": 0.001619672984816134,
+        "maxabs": 6.8481313064694405e-06
+      }
+    },
+    {
+      "pattern": "peaked",
+      "F32_linear_reassociation": {
+        "finite": true,
+        "NRMSE": 4.111367672976485e-07,
+        "maxabs": 4.470348358154297e-08
+      },
+      "aggregate_BF16_rounding_only": {
+        "finite": true,
+        "NRMSE": 0.0017520737601444125,
+        "maxabs": 0.00014835037291049957
+      }
+    }
+  ],
+  "math_dtype": "float32; BF16 RNE simulated explicitly",
+  "activation_FP8_quantization_emulated": false,
+  "Native": false,
+  "GPU": 0,
+  "Model_READY": false,
+  "scope": "Index/algebra diagnostic on real checkpoint; not current vendor finite-precision correctness, latency, or task quality",
+  "unqualified": [
+    "baseline per-row FP8 activation quantization",
+    "new aggregate M8 FP8 quantization",
+    "GPU block/GEMM accumulation association",
+    "complete QK/softmax/attention/O/TP",
+    "state/owner/device lifecycle"
+  ]
+}

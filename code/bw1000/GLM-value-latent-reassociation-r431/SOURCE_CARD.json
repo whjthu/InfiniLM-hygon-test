@@ -1,0 +1,173 @@
+{
+  "decision": "MINIMAL_PRIVATE_CANDIDATE_SOURCE_IMPLEMENTED_CPU_LINK_PENDING",
+  "scope": "C1/U2048/layer38/TP8 complete attention operator, not absorbed-QK576 or Model",
+  "dedup": {
+    "prior395": "analysis/bw1000/GLM-current-cache-redundancy-readonly-after395.json",
+    "prior395_SHA256": "5f97b8f9a25de5efb1cfe98db0f7c0282045f206172d590608013df286773b2e",
+    "review171": "analysis/bw1000/reviews/astra-review-171-implementation.json",
+    "review171_SHA256": "60afb94bb50bf33e0515999ef849826f39e255d5d34f1121045bde56d2d74543",
+    "distinction": "Prior STOP required new576QK/512V selected primitive. This candidate retains exact originalQK256/scale-round/F32softmax/BF16prob; existing2D GEMM forms per-head latent512 then existing M8 fullprojection yields diagonalV. No same-composition measured negative found."
+  },
+  "baseline": {
+    "Native": "9520769d28742aba489b38ecbd1e1692f6830168c699d7111f1e0c2ae4cd598b",
+    "component_CPU802": "895304d5617b8bc01cfd291c9ce6165733385ee7d000f2e085561a226b7a2064",
+    "component_library": "a116adc27d070aea76c65b54527118f0653461620e55d1224c63d0d430f300e7",
+    "NoV_fixed": true,
+    "plan426_OFF": true,
+    "unchanged": "selectedK192+RoPE64, original256QK, sourceordered validunique selection, scale1/16 withBF16round beforeF32softmax, castprobBF16, freshappend/cache/reset/Oprojection/TP"
+  },
+  "mechanism": {
+    "old": "selected latent U2048 -> perrow activationFP8 -> originalkv_b -> BF16V[2048,8,256]; BF16prob@V",
+    "new": "same BF16prob @ rawselectedBF16latent[2048,512] -> BF16aggregates[8,512]; originalexpand_cached M8/FP8 usesall3584localrows thenV[row=head,head,:]",
+    "aggregation_Gemm_calls": 8,
+    "aggregation": "Eight explicit2D GEMMs, no unproven batch-broadcast adapter",
+    "original_M8_expand_calls": 1,
+    "diagonal_rows": [
+      0,
+      9,
+      18,
+      27,
+      36,
+      45,
+      54,
+      63
+    ],
+    "source_geometry_guard": "C1/U2048/8heads/BF16/eager; beforecachemutation reject othergeometry; defaultOFF contextpolicy",
+    "new_GPU_kernel": false,
+    "SharedSDK_changed": false,
+    "Common_changed": false,
+    "Native_changed": false,
+    "production_HOST_TUs": 1,
+    "M8_rotary_input": "Original rotary cache gathered at first8 source-ordered logical selection IDs; used only by discardedK assembly, V is independent. No synthesizedzeroRotary."
+  },
+  "precision": {
+    "exact_finite_precision_equivalence": false,
+    "changes": [
+      "original per-selected-rowFP8quantize\u2192project\u2192BF16V beforeprob multiplication removed",
+      "rawBF16latent aggregation givesnewBF16round thenM8FP8requantize",
+      "F32accum association andtwoGEMM/backendshapes differ"
+    ],
+    "CPU_scope": "realcheckpoint+global128scaleaddress/diagonalindex; F32linear algebraproxy andaggregateBF16roundonly, notactivationFP8/devicequalification",
+    "GPU_f64": false,
+    "Model_quality": "UNKNOWN"
+  },
+  "checkpoint": {
+    "config.json": {
+      "path": "/public/home/aclsylqidf/hygon-inference-20261013/models/ZhipuAI-GLM-5.3/config.json",
+      "SHA256": "3ac72612095574542f7fff847ada8e59d9199dd8af44bdf625d7e02615572e69"
+    },
+    "model.safetensors.index.json": {
+      "path": "/public/home/aclsylqidf/hygon-inference-20261013/models/ZhipuAI-GLM-5.3/model.safetensors.index.json",
+      "SHA256": "e0fe7f28c1f853d4824e4d796374e3dacf1fe470988773952c79b063768134bf"
+    },
+    "model.layers.38.self_attn.kv_b_proj.weight": {
+      "shard": "/public/home/aclsylqidf/hygon-inference-20261013/models/ZhipuAI-GLM-5.3/model-00057-of-00141.safetensors",
+      "header_SHA256": "cefedaf9781aec46c99976be93c58166a2b4e3cba115390a0f454a7f73625e33",
+      "tensor": {
+        "dtype": "F8_E4M3",
+        "shape": [
+          28672,
+          512
+        ],
+        "data_offsets": [
+          734818432,
+          749498496
+        ]
+      },
+      "full_payload_SHA256": "NOT_REHASHED",
+      "stride": "safetensors row-major contiguous"
+    },
+    "model.layers.38.self_attn.kv_b_proj.weight_scale_inv": {
+      "shard": "/public/home/aclsylqidf/hygon-inference-20261013/models/ZhipuAI-GLM-5.3/model-00057-of-00141.safetensors",
+      "header_SHA256": "cefedaf9781aec46c99976be93c58166a2b4e3cba115390a0f454a7f73625e33",
+      "tensor": {
+        "dtype": "F32",
+        "shape": [
+          224,
+          4
+        ],
+        "data_offsets": [
+          179328,
+          182912
+        ]
+      },
+      "full_payload_SHA256": "NOT_REHASHED",
+      "stride": "safetensors row-major contiguous",
+      "scale_min": 8.392334711970761e-05,
+      "scale_max": 0.0005384173127822578
+    }
+  },
+  "numeric_CPU": {
+    "path": "algebra-CPU-result.json",
+    "SHA256": "88f70629775e51381b11ac056ec1149917f8559962da30dab1913f579e9db95b",
+    "actual_GPU_qualified": false
+  },
+  "nominal_FLOPs": {
+    "old_selected_kv_b": 7516192768,
+    "old_PV": 8388608,
+    "new_aggregation": 16777216,
+    "new_M8_kv_b": 29360128,
+    "meaning": "Algebraicmultiply-addledger only; notspeed/hardwarebusy/Modelbudget. QK/freshprojections/O/TP/quant/copies/alloc/drain remain."
+  },
+  "logical_bytes": {
+    "selectedK": 8388608,
+    "old_selectedV": 8388608,
+    "selectedlatent": 2097152,
+    "rotary8": 1024,
+    "aggregate": 8192,
+    "M8raw": 57344,
+    "M8unusedK": 32768,
+    "M8allV": 32768,
+    "existing_M8_plan_workspace": 4136960,
+    "actual_peak": "UNKNOWN; SDK GEMM workspace/Runtimeallocations not derivable as devicepeak"
+  },
+  "complete_cost": "Same freshQ/KV generation, append, position+selectedD2H/remap/IDsH2D, selectedK/latent/rotarygathers, unchangedQKscale/softmax, aggregation, M8FP8/decode/unpackGEMM/combine, allunusedK/allheadVmaterialization+diagonalcopy, O/TP/outputcopy/alloc/tempdestruction/finaldrain. Initialload/prefixseed/reset/coldplan and checkeddriver wall separated.",
+  "planned_device": {
+    "parent": 910374,
+    "node": "a02r4n07",
+    "cards": 8,
+    "TP": 8,
+    "wholeModel": false,
+    "HTTP": false,
+    "profile": 0,
+    "GPU_seconds": 600,
+    "worker_seconds": 540,
+    "keeper_seconds": 900,
+    "weights_loaded_once": true,
+    "fixtures": [
+      "same synthetic32768hidden/periodic16 selectedU2048",
+      "same hidden/contiguous tailU2048"
+    ],
+    "perfixture_schedule": [
+      0,
+      1,
+      0,
+      1,
+      1,
+      0
+    ],
+    "perfixture_warm": 2,
+    "perfixture_formal": 4,
+    "total_complete_queries": 12,
+    "innerloops": 1,
+    "firstON": "persistactualnumeric/canary/readonly/branch+M8cachecounters beforefailstop; no automaticretry/reload/grid",
+    "result": "max8owner same-trialfullCAPI/driver withOFFdrift, normal8/destroy/Torchafter/KFD/PID/portpost",
+    "total_complete_queries_per_owner": 12,
+    "actual_CAPI_total_across8_if_complete": 96
+  },
+  "CPU_claim_pending": {
+    "parent": 910407,
+    "node": "a14r2n20",
+    "CPUs": 4,
+    "MiB": 8192,
+    "seconds": 300,
+    "production_HOST_TUs": 1,
+    "pure_geometry_contract_executable": true,
+    "GPU_TUs": 0,
+    "Native_dlopen": false,
+    "Runtime": false,
+    "Native_weights_loaded": false
+  },
+  "GPU_GO": false,
+  "Model_GO": false
+}
