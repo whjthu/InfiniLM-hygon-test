@@ -1,0 +1,126 @@
+{
+  "task": "GLM-W4-fewshot-quality-r444",
+  "purpose": "Quality coverage of real multi-group W4 control on new full few-shot public benchmark inputs; not repetition of418 onechunk screen",
+  "stage": "SOURCE_AND_BOUNDED_CPU_ENCODING_ONLY",
+  "GPU_GO": false,
+  "Model_GO": false,
+  "datasets": {
+    "GSM8K_test": 128,
+    "GSM8K_train_shots": 8,
+    "GSM_train_indices": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "MMLU_test": 128,
+    "MMLU_dev_shots_same_subject": 5,
+    "seed": 20261104,
+    "selection": "Fixed full-source random order, exclude44SHA-bound prior fixtures by normalized question hash; no target answer or length selection, no padding/truncation",
+    "full_benchmark": false,
+    "lm_eval_exact_harness_reproduction": false
+  },
+  "requests": {
+    "HTTP": 512,
+    "Native": 512,
+    "same_body_each_arm": true,
+    "windows": [
+      2,
+      4
+    ],
+    "warmups": 0,
+    "ordinary_output_budget": 4096,
+    "context": 32768,
+    "greedy": true,
+    "naturalEOS_required_for_completion_metric": true,
+    "paired_order": "ordinal even W2/W4, odd W4/W2",
+    "replica_sharding": "Final typed replica count2or4. (selected_ordinal//2)%replicas keeps each same-question pair on one replica and balances W2-first/W4-first within each suite. No request/body change."
+  },
+  "exposure": {
+    "actual_prompt_tokens": "UNKNOWN until this exact official CPU encoding",
+    "planned_group_definition": "ceil(prompttokens/512), split into groups2vs4; <=2chunks are control-equivalent and must not qualify long W4",
+    "live_counter": "New pure HOST delegated execute_plan callback counter. Original forward/vote/sample/discard count/order unchanged. It is not a GPU hardware counter.",
+    "all_question_denominator": "All256 kept; separate preregistered actualmultigroup subset, never filter by gold/result"
+  },
+  "source": {
+    "Native_SHA256": "9520769d28742aba489b38ecbd1e1692f6830168c699d7111f1e0c2ae4cd598b",
+    "parent414_owner_SHA256": "5e944fb676f15022f1387d936cc9286c00953f0ca6884ef79b12979b4bca8ac4",
+    "public425_parent_manifest_SHA256": "f5015c22a4434576a9b4cf00708dbe19594b70598a6b3e004410bfc63dbd9858",
+    "no_Native_recompile_or_math_change": true,
+    "no_universal_default_change": true,
+    "current_private_owner_delta": "Four trace-only edits; not applied to425/live package",
+    "future_necessary_entry_delta": "Private425 CLI budget whitelist must be28800/28200 instead of fixed5100/4500, new packageMF; source412/provider identity/role/env constraints remain exact"
+  },
+  "CPU_claim": {
+    "parent": 910407,
+    "node": "a14r2n20",
+    "cores": 4,
+    "mem_MiB": 8192,
+    "max_s": 300,
+    "inside_s": 270,
+    "one_attempt": true,
+    "GPU": 0,
+    "Model": 0,
+    "Native_dlopen": false,
+    "Native_constructed": false,
+    "weights_loaded": false,
+    "compile": false,
+    "label": "GLM-r444-fewshot-checkpoint-CPU-v1",
+    "output": "/refactor/candidates/GLM-W4-fewshot-quality-r444-CPU-v1",
+    "scope": "Actual256checkpointCPUencoding and changedpurecontrol/scoring leaves only. No old844 questions/old64HTTP suite, no actualservice or Model quality qualification."
+  },
+  "future_GPU_proposal": {
+    "replicas": null,
+    "cards_total": null,
+    "TP_per_replica": 8,
+    "PP_per_replica": 2,
+    "C_per_replica": 1,
+    "NoV": true,
+    "preweight_floor_bytes": 8589934592,
+    "perforward_floor_bytes": 536870912,
+    "GPU_s": 29400,
+    "Native_s": 28800,
+    "service_s": 28200,
+    "keeper_s": 32400,
+    "Native_cleanup_reserve_s": 600,
+    "common_original_epoch": true,
+    "active_claim": false,
+    "nodes": null,
+    "old_n12_n13_reserved_for_PD445": true,
+    "n14_n15_not_claimed": true,
+    "remaining_sources_not_yet_closed": [
+      "new private full provider sourceMF/time policy",
+      "512HTTP client main+actualRun/ready/file identity with newencoder receipt",
+      "finalwholeCLI/freshactualresources/normal32owner/fullpost"
+    ],
+    "no_automatic_Model_authorization": true,
+    "allowed_replica_counts": [
+      2,
+      4
+    ],
+    "cards_for2replicas": 32,
+    "cards_for4replicas": 64,
+    "resource_assignment_pending": true,
+    "estimate_required_after_real_encoding": true,
+    "notes": "512 full few-shot requests may exceed8h with2 replicas. Do not reduce dataset or shots. Root may freeze4 independent16card replicas, two copies of proven2-replica launcher on disjoint parents, before any device claim. PD445 n12/n13 excluded."
+  },
+  "quality_policy": {
+    "raw_answer_score": "Final GSM numeric or MMLU letter versus gold; no target gold in prompt builder",
+    "completion_adjusted_score": "Also requires naturalEOS/no cap/no unexpectedtool; report both",
+    "wrong_cap_parse_continue": true,
+    "uncompleted_kept_in_planned_denominator": true,
+    "infrastructure_numeric_state_failure_stop": true,
+    "intervals": [
+      "perarmWilson95 planned completion score",
+      "complete-observed-pair Hoeffding95/McNemar exact",
+      "allplanned missing-outcome deterministic differencebounds"
+    ],
+    "noninferiority_proven": false,
+    "noninferiority_margin": null,
+    "no_allcorrect_earlystop": true
+  }
+}
