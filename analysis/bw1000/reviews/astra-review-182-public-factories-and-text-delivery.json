@@ -1,0 +1,97 @@
+{
+  "review": 182,
+  "date": "2026-11-03",
+  "reviewer": "/root/astra_review_147",
+  "state": "COMPLETE_READONLY_TWO_SMALL_SOURCE_FIXES",
+  "trigger": "重复public STOP/配置入口接缝风险提前审核，不是三轮或重大数值失败。",
+  "scope": {"tests_or_readers_executed": false, "jobs_or_Slurm_polling": false, "Git": false, "new_framework_or_gate": false, "425_862_and_keeper857_untouched": true, "only_write": "analysis/bw1000/reviews/astra-review-182-public-factories-and-text-delivery.json"},
+  "snapshots": {
+    "428": {"manifest": "2888c6a74c2c04171594a61b2c4f7279a5bf3a2ea84162a0b3d48dbeb515cb68", "members": 41, "all_member_hashes_readonly_match": true},
+    "427_published": {"manifest": "f3f8a3c31d78ee39a81c14a6cc7b016023f165d2a00b7ae5ce86a7a6821bd847", "members": 25, "all_member_hashes_readonly_match": true},
+    "427_changed_snapshot": "读取source-v2/public_deep_native/cli.py、actors.py、worker.py、native_context.py、native_decode.py及stop-CPU-result.json。读取时该子目录没有SOURCE_MANIFEST.json；不能把未冻结STOPv2归到已发布f3f8。",
+    "429": {"manifest": "259b74c8887e5c59624dae5d564f15683e5096b2fcd665e9d275eb73bd9f42c9", "members": 9, "all_member_hashes_readonly_match": true},
+    "425_inflight": "根已发布6d109899、provider MF122b69d7c1571f1523e15c672839e2d4479e91863e80018b4a8bb60c2ce93724；status最后观察为862/857原加载。未自行读取远端或推定已READY。"
+  },
+  "181_implementation": {
+    "evidence": "analysis/bw1000/reviews/astra-review-181-implementation.json",
+    "state": "COMPLETE_ADOPTED",
+    "outcome": "851有效产物复用、1348 sentinel门禁及状态晚写修复、426零编译consumer链接、425 POSIX路径最小修复均已根采纳；实际Deep1351与GLM426终态消费形成两轮。429 CPU与418质量不计本次性能轮。",
+    "causal_rounds_after_181": 2
+  },
+  "actual_results": {
+    "Deep1351": {
+      "evidence": "analysis/bw1000/Deep419-root-1351-independent-raw-and-scope-decision.json",
+      "root_reader_output": "ee70d3c995ec0d60f4af3c31a6000f496cc4942d7edf14da358fa307062a9c5f",
+      "actual": "1351 COMPLETED0/100s、keeper8540/112s、1352 clean；228原文件/368 typed arrays根独审，8同logits、80 T1及T2、8正常退出。",
+      "timing": "完整MoE max8 CPP约-14.02%，4/4邻对；CAPI约-13.60%但第二block OFF漂移-18.72%；含proof仅2/4且约-3.22%；oracle/archive checked约+8.14%且无邻对更快。",
+      "decision": "保留限定layer16/合成固定activation/TP8完整MoE CPP信号，不改默认、不单为ms组件重载Model。不是公共服务收益，HC1母库质量边界不改变HC0正式基线。"
+    },
+    "GLM426": {
+      "evidence": "analysis/bw1000/GLM426-root-751-full-attention-and-wholephase-decision.json",
+      "actual": "751 COMPLETED0/114s、keeper8560/137s、752 clean；8正常退出。",
+      "timing": "max rank-local八query完整attention CAPI约-9.57%、checked query sum约-8.58%；whole checked phase约+1.27%、八query checked sequence约+2.40%。各rank OFF漂移大，不能改写为所有rank或全局关键路径提速。",
+      "numerics": "原数值摘要NR0/768 finite summaries及哈希记录通过；没有归档完整typed tensor，不冒称根独立重算数组。",
+      "decision": "defaultOFF限定plan信号保留，无wholephase/Model晋级，不开grid或单独Model加载；425继续固定Native952。"
+    }
+  },
+  "definite_findings": [
+    {
+      "id": "D427_ACTIVE_STOP_HANDOFF",
+      "file": "code/bw1000/public-Deep-native-provider-r427/source-v2/public_deep_native/cli.py",
+      "function": "watch_public_shutdown",
+      "problem": "合法STOP只令http.should_exit=True。worker.serve只在请求之间读run.stop_requested，active native_decode.generate只读req.cancel_event及absolute_deadline。watcher没有停止admission、设置stop_intent或mark_abort。因此活动请求不能因这个STOP立即在下一Native边界取消；HTTP若等待活动请求结束才进入lifespan.stop，会拖到自然完成/原时限。",
+      "minimal_fix": "把Actors.stop前的同admission锁关闭入队+stop_intent+逐未完req.mark_abort提为幂等、非阻塞request_stop；watcher在STOP/截止路径先调用，再置http.should_exit。stop复用同函数后保持原owner join/destroy。不要在watcher join Native或提前req.finish。",
+      "existing_CPU_limit": "现stop-CPU-result两个案例只断HTTP should_exit与foreign STOP trip，未消费活动请求的cancel_event；修复只需同一changed consumer体现这次缺口，不重原组合或新建矩阵。",
+      "scope": "未冻结source-v2源码问题，尚无新GPU；425原862不改。"
+    },
+    {
+      "id": "K428_PRESERVE_REQUEST_PRIMARY",
+      "file": "code/bw1000/public-Kimi-native-provider-r428/public_kimi_native/request_loop.py",
+      "lines": [80, 84, 91, 93, 99, 107],
+      "problem": "请求generate/Native异常已存failure后重新raise，但finally的native.reset/control.collect再失败会直接raise覆盖原异常；保存record或最外层native.arm/save也可能覆盖正在传播的primary。外层owner因此可能只看到cleanup异常，虽然item.error保留了原文。",
+      "minimal_fix": "保持原reset/drain次数和failstop语义；有primary时将reset/drain/save/arm失败记cleanup字段并add_note，无primary才提升cleanup失败。请求结束后若failure存在仍抛原failure，不在失败后req.finish正常。可直接采用427 worker现有failure变量保primary形式。",
+      "scope": "诊断/生命周期错误传播修复，不改数学、四leader集体顺序、正常计时或重跑设备。"
+    }
+  ],
+  "factory_review": {
+    "Kimi428": {
+      "decision": "源码实际连接普通InferenceServer→KimiProvider→qualified owner，不是recording构造器冒充生产入口。除上述primary保存问题，未发现另一确定需要新框架的源码阻塞。",
+      "baseline": "严格8df/TP16PP2/C1/32768；四leader各Native内部8workers，共32卡，PP[0,46)/[46,93)，采样node2/queue node0；不是6eb TP8PP4，不启draft。",
+      "identity": "POSIX路径提前检查；各leader独占claim；原StageControl nonce/四参与方及admit核source/config/epoch/modelmanifest；public425 MF122b、Kimi Common extension2e145860与runtime04a6身份分离，不使用GLM扩展。",
+      "math_input": "原静态create六参/layout/capabilities/keys/93层覆盖、4GiB所有owner guard、2GiB staging、finish、W512真实input append和width1 greedy；GROUPED/MOE_EXEC固定0。queue只在node0同进程线程，跨control仅prompt/token/标量JSON，不pickle NativeRequest。",
+      "ready_stop": "加载后四leaderweights-ready集体点完成才on_ready；public持有HTTP，Native不join HTTP。watch_shutdown合法STOP先request_stop关闭admission并mark_abort，原request reset及四leaderdestroy ACK后才join/完成pending；卡住线程由原界内整leaderfailstop。StageControl固定7200操作超时不等于整个部署硬界，最终外层需用实际claim原epoch兜底，不能从CPU九项推出真实退出。",
+      "unknown": "实际部署public/Common导入、32设备新public constructor/load/请求/客户端时间线/终态清理未执行；旧Model资格不能晋级新公共入口。"
+    },
+    "Deep427": {
+      "baseline": "afc6 HC0/TP8PP1/C1/32768，单Python同进程owner线程，Native内部八workers。不能把419 HC1组件或976f历史结果混入此普通baseline。",
+      "chain": "真实public factory→原prepare/history→同queue→NativeContext固定provider/HC0与完整keys载入→原chunk1024/generate/自然EOS→每request reset→destroy。读取源码ready严格loaded_key_count67569、8owner width4互斥、postload>=16GiB；实际设备资格仍UNKNOWN。",
+      "primary": "worker已把request错误、reset/floor/save错误分层保primary，NativeContext最终销毁也保primary；当前确定缺口是STOP通知active request，不是缺新Native wrapper。",
+      "unknown": "真实installed imports、Common/SDK动态映射、实际public请求与reset/threadgone/进程端口清理；source-v2尚未冻结不写通过发布。"
+    }
+  },
+  "429_text_review": {
+    "evidence": ["code/bw1000/public-native-incremental-text-r429/incremental_text.py", "code/bw1000/public-native-incremental-text-r429/CPU_decode.py", "code/bw1000/public-native-incremental-text-r429/local-CPU-result.json", "analysis/bw1000/Native429-root-CPU-consumption-and-GLM425-live-start.json"],
+    "decision": "当前未见确定文本前缀错误；默认OFF保留，不能直接给Kimi/Deep或在途425接入。",
+    "prefix": "每次完整prefix decode、暂缓末尾U+FFFD、已发布prefix发生改写立即显式失败；final冲洗保留真实replacement character。不声称任意tokenizer都prefix稳定。CPU858实际GLM tokenizer131序列/30317prefix最终拼接等于P0是这一范围的真实证据。",
+    "timeout_abort": "absolute request deadline不被progress刷新，decode后再次检查禁止迟到正常文本；timeout/error只发abort意图，不替Native reset/finish；finally取消未完请求并以对象身份保护请求表retire。局部8case的Native emit/finish/fail仍录制。",
+    "measurement_limit": "progress时间在consumer处理事件时更新，代表消费事件进展而非硬件新token时间；prefill heartbeat和coalesced事件可能没有新visible token。text_publish_records是实际文本chunk发布时刻，不能展开成伪逐token客户端时刻或把它当Native速度。",
+    "shortest_remaining": "原root已定下一步仅显式prepared factory/mixin与真实public parser消费增量delta，检查普通text/reasoning/tool流的既有语义；不改Native、不再跑tokenizerCPU、不新GPU为本审验证、不热改862。",
+    "not_qualified": "实际Native/publicHTTP/SSE、Kimi/Deep tokenizer、线上SLO均UNKNOWN；14.17秒CPU处理不是Model性能收益。"
+  },
+  "four_questions": {
+    "gain": "两轮都是组件：419限定CPP正信号但checked负，426局部attention正信号但wholephase无益；没有新增整Model或真实公共服务收益。418质量不是配对性能轮。",
+    "time": "修正POSIX/STOP及primary传播可避免加载后才暴露入口错误；继续复用已有CPU/对象，尽快消费具体公共入口，不增加文档/矩阵。1351驻留100s与426驻留114s不等于持续GPU忙碌；加载/排队/全局利用率缺精确分解即UNKNOWN。",
+    "bottleneck": "419组件不是Model关键路径证明；426 rank-local CAPI不能代表critical servicewall；429针对缓冲文本交付，不加速Native。公共STOP是生命周期接缝，不是数学或硬件瓶颈。Dense峰值外推不成立。",
+    "next": "每模型最多两项，优先当前具体public链和原句柄；不单为组件ms收益加载大Model。"
+  },
+  "next_cards": {
+    "GLM": [
+      {"priority":1,"owner_resource":"原425执行者，862/keeper857，原两节点16卡与epoch预算","hypothesis":"普通public入口可在相同baseline完成既定请求与正常生命周期","minimal_change":"无在途变更","reuse":"MF122b及实际已准备客户端","samples":"原两请求/全部16owner/post；不加请求","first_result_time":"剩余UNKNOWN，原界不重置","Model_wall":"未知新public服务，不借414倍率","exit":"消费原终态；失败不盲重载"},
+      {"priority":2,"owner_resource":"root429仅现有源组合工作，无本审新GPU","hypothesis":"同一Native输出可通过原public parser及时交付稳定文本","minimal_change":"显式mixin接prepared factory，保持P0默认OFF","reuse":"CPU858原GLM tokenizer与8请求桥case","samples":"只实际改变的parser/delta消费，不重复131prefix矩阵","first_result_time":"源接缝首判UNKNOWN","Model_wall":"不提升Native wall；客户端交付改善UNKNOWN","exit":"parser或prefix失败保留，不向Kimi/Deep自动传播，不动862"}
+    ],
+    "Deep": [{"priority":1,"owner_resource":"原427执行者，当前源/changed消费者范围","hypothesis":"基线HC0普通public请求能在STOP后保持合作取消及正常reset/destroy","minimal_change":"watcher调用非阻塞request_stop，再原lifespan join","reuse":"现25成员及原生产owner/CPU，不新增wrapper","samples":"本次实际STOP到active req.cancel_event交接，原完整数值不重跑","first_result_time":"确定源码修复可立即收束；实际部署首判UNKNOWN","Model_wall":"UNKNOWN，不把419组件提升接入HC0","exit":"源修后按具体已准备claim继续；不单独为review启动GPU"}],
+    "Kimi": [{"priority":1,"owner_resource":"原428执行者；无本审新32卡加载","hypothesis":"qualified8df普通public入口保留原输入/数学与生命周期","minimal_change":"请求finally保primary及cleanup附注；不变四leader控制顺序","reuse":"原41成员/CPU9/旧qualified Model语义，均不冒新public设备通过","samples":"只changed异常消费者；正常旧case不重跑","first_result_time":"源码修复可立即判定；真正部署/加载时间UNKNOWN","Model_wall":"UNKNOWN，无draft或新性能承诺","exit":"修复后具体部署独立准备，不因评审等GO；未知Common/设备错误停定位"}]
+  },
+  "root_acknowledgment_before_close": "根已把两项确定修复发427/428原执行者，设备包前仅单changed消费者，不重原3/9套、不GPU、不加GO。425原862保持两请求结束后normal STOP的具体范围；不能把这次在途正常请求结束当作一般active STOP设备验证。429 CPU858实际17秒、producer14.166秒仍只是GLM tokenizer证据，不热接P0。",
+  "root_actions": ["采纳427非阻塞STOP交接与428保primary最小修，不宽化数学或正常退出条件。", "冻结427实际新MF时记录与本审未冻结source-v2的区别；不冒用f3f8。", "原425和其他具体claim独立继续；工程错误/CPU/轮询不计性能轮，根负责采纳登记。"]
+}
