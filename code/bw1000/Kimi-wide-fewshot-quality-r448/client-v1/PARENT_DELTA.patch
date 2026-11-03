@@ -1,0 +1,211 @@
+--- qualified434/controller.py
++++ wide448/client-v1/controller.py
+@@ -1,11 +1,11 @@
+ from pathlib import Path
+ import argparse,datetime,hashlib,json,os,re,signal,socket,subprocess,sys,time,traceback
+ R=Path('/public/home/aclsylqidf/hygon-inference-refactor-20261014')
+-D=R/'incoming/Kimi-public-incremental-API-pair-r434'
++D=R/'incoming/Kimi-wide-fewshot-quality-r448/client-v1'
+ PACKAGE=R/'incoming/Kimi-public-incremental-text-r434'
+ PARENT=R/'incoming/public-Kimi-native-provider-r428/runtime-v2'
+-RUN='public-kimi-text-20261103-a'
+-LABEL='Kimi-r434-public-text-pair'
++RUN='public-kimi-wide-20261104-a'
++LABEL='Kimi-r448-wide-quality'
+ NODES=['a14r2n08','a14r2n09','a14r2n10','a14r2n12']
+ TERMINAL={'COMPLETED','FAILED','CANCELLED','TIMEOUT','OUT_OF_MEMORY','NODE_FAIL','PREEMPTED','BOOT_FAIL','DEADLINE','REVOKED'}
+ sha=lambda p:hashlib.sha256(Path(p).read_bytes()).hexdigest()
+@@ -29,10 +29,10 @@
+  assert NODES==config['nodes']==m['resource_claim']['nodes'],'Controller/config/claim node identity mismatch'
+  claim=m['resource_claim'];assert claim['parent']==910380 and claim['cards']==len(NODES)*8==32
+  assert (claim['TP'],claim['PP'],claim['cores_per_node'],claim['host_mem_MiB_per_node'])==(16,2,64,128000)
+- assert (claim['GPU_max_s'],claim['Native_max_s'],claim['service_s'],claim['CPU_keeper']['max_s'])==(4200,4140,3540,4500)
+- assert (claim['HTTP'],claim['Native_requests'],claim['warm'])==(6,6,2)
++ assert (claim['GPU_max_s'],claim['Native_max_s'],claim['service_s'],claim['CPU_keeper']['max_s'])==(29400,28800,28200,32400)
++ assert (claim['HTTP'],claim['Native_requests'],claim['warm'])==(256,256,0)
+  assert claim['original_epoch_only']and not claim['retry']and not claim['reload']
+- assert PACKAGE==D.parent/'Kimi-public-incremental-text-r434'
++ assert PACKAGE==R/'incoming/Kimi-public-incremental-text-r434'
+  assert sha(PARENT/'SOURCE_MANIFEST.json')==m['qualified_parent_SHA256']
+  for n,h in json.loads((PARENT/'SOURCE_MANIFEST.json').read_bytes())['files_SHA256'].items():assert sha(PARENT/n)==h,n
+  assert config['model_manifest'].startswith('/refactor/incoming/public-Kimi-native-provider-r428/runtime-v2/')
+@@ -51,7 +51,13 @@
+  for field in ['initial_module_maps','final_module_maps']:
+   assert not q[field]['project_Native_maps']
+  assert config['qualified_parent_root']=='/refactor/incoming/public-Kimi-native-provider-r428/runtime-v2'
+- assert (config['Native_seconds'],config['service_seconds'])==(4140,3540)
++ assert (config['Native_seconds'],config['service_seconds'])==(28800,28200)
++ enc=host(m['encoding_CPU_receipt']);assert sha(enc)==m['encoding_CPU_receipt_SHA256'];q=json.loads(enc.read_bytes())
++ assert q['passed']and q['completed']and q['actual_CPU']=='910407.937'and len(q['cases'])==256
++ assert q['actual_Kimi_codec']and q['actual_public_protocol']and q['actual_prepared_FIFO']and not q['GPU']and not q['Native_dlopen']
++ pins=json.loads((D/'INPUT_PINS.json').read_bytes());assert pins['encoding_SHA256']==m['encoding_CPU_receipt_SHA256']
++ assert sha(host(pins['requests_path']))==pins['requests_SHA256']==q['requests_file_SHA256']
++ assert sha(host(pins['cases_path']))==pins['cases_SHA256']
+  return m
+ 
+ def close_owned(label,proc,recorded,exact,cleanup_limit,term_s=20.,kill_s=20.):
+@@ -99,7 +105,7 @@
+ 
+ def gpu_environment(base,epoch,m,nonce):
+  env=clean_environment(base)
+- env.update(WAVE_INSIDE_R2323='Kimi-public-incremental-API-pair-r434/inside.sh',
++ env.update(WAVE_INSIDE_R2323='Kimi-wide-fewshot-quality-r448/client-v1/inside.sh',
+   KIMI_R428_RUN=RUN,KIMI_R428_GPUSTART=str(epoch),KIMI_R428_CONFIG_SHA=m['config_SHA256'],
+   KIMI_R428_SOURCE_SHA=m['provider_source_SHA256'],KIMI_R428_NONCE=nonce,
+   KIMI_USE_RAMCACHE_R3679='0',KIMI_REDUCE_POLICY='0',
+@@ -109,44 +115,37 @@
+ 
+ def gpu_command():
+  return ['srun','--jobid=910380','--overlap','--exact','--immediate=30','--cpu-bind=none','--kill-on-bad-exit=1',
+-  '-N4','-n4','--ntasks-per-node=1','-c64','--gres=dcu:8','--mem=128000M','-w',','.join(NODES),'-t','01:10:00',
++  '-N4','-n4','--ntasks-per-node=1','-c64','--gres=dcu:8','--mem=128000M','-w',','.join(NODES),'-t','08:10:00',
+   '--job-name='+LABEL+'-'+RUN,'--export=ALL','--output='+str(R/'logs'/(LABEL+'-'+RUN+'-%J-%t.log')),
+   'bash',str(D/'resource_wave_host_alias_outer.sh'),'probe']
+ 
+ def client_command(actual,m,epoch):
+- output=R/'results'/(LABEL+'-'+RUN+'-client')
++ output=R/'results'/(LABEL+'-'+RUN+'-client');pins=json.loads((D/'INPUT_PINS.json').read_bytes())
++ config=json.loads((D/'config.json').read_bytes())
+  return ['srun','--jobid=910380','--overlap','--exact','--immediate=30','--cpu-bind=none','-N1','-n1','-c2',
+-  '--gres=none','--mem=8192M','-w',NODES[0],'-t','00:59:00','--job-name='+LABEL+'-'+RUN+'-client',
++  '--gres=none','--mem=8192M','-w',NODES[0],'-t','07:50:00','--job-name='+LABEL+'-'+RUN+'-client',
+   '--output='+str(R/'logs'/(LABEL+'-'+RUN+'-client-%J.log')),'python3','-B','-u',str(D/'client_launch.py'),
+   '--identity',str(output.with_name(output.name+'-identity.json')),'--client',str(D/'client.py'),'--client-sha',m['files_SHA256']['client.py'],
+   '--base-url','http://127.0.0.1:43844/v1','--runtime-dir',str(R/'results/public-Kimi-text-provider-r434'),
+   '--run',RUN,'--expected-step',actual,'--source-sha',m['provider_source_SHA256'],'--config-sha',m['config_SHA256'],
+-  '--fixtures',str(D/'FIXTURE_CARD.json'),'--output-dir',str(output),'--deadline-unix',str(epoch+3540)]
++  '--model-sha',config['model_manifest_SHA256'],'--cases',str(host(pins['cases_path'])),
++  '--requests',str(host(pins['requests_path'])),'--encoding-receipt',str(host(pins['encoding_path'])),
++  '--output-dir',str(output),'--deadline-unix',str(epoch+28200),'--gpu-start-epoch',str(epoch)]
+ 
+ def scope_contract():
+- """Consume real final command builders before any path read or submission."""
+- assert D==R/'incoming/Kimi-public-incremental-API-pair-r434'
+- assert PACKAGE==R/'incoming/Kimi-public-incremental-text-r434'
+- assert RUN=='public-kimi-text-20261103-a'and LABEL=='Kimi-r434-public-text-pair'
+- assert NODES==['a14r2n08','a14r2n09','a14r2n10','a14r2n12']and len(set(NODES))==4
+- gpu=gpu_command()
+- for key,value in [('-N4',None),('-n4',None),('--jobid=910380',None),('--gres=dcu:8',None),('--mem=128000M',None)]:assert key in gpu
+- assert gpu[gpu.index('-c64')]=='-c64'and gpu[gpu.index('-w')+1]==','.join(NODES)
+- assert gpu[gpu.index('-t')+1]=='01:10:00'and '--job-name='+LABEL+'-'+RUN in gpu
+- expected=R/'logs'/(LABEL+'-'+RUN+'-%J-%t.log')
+- assert '--output='+str(expected)in gpu
+- # These are recording-only identity strings, never a Native/Slurm callback.
+- m=dict(files_SHA256={'client.py':'CPU-contract-client'},provider_source_SHA256='CPU-contract-source',config_SHA256='CPU-contract-config')
+- client=client_command('910380.0',m,100.)
+- assert '--jobid=910380'in client and '--gres=none'in client
+- assert client[client.index('-w')+1]==NODES[0]
+- assert client[client.index('--base-url')+1]=='http://127.0.0.1:43844/v1'
+- assert client[client.index('--deadline-unix')+1]=='3640.0'
+- assert client[client.index('--client')+1]==str(D/'client.py')
+- assert client[client.index('--expected-step')+1]=='910380.0'
+- return dict(directory=str(D),provider=str(PACKAGE),run=RUN,label=LABEL,nodes=NODES,
+-  actual_GPU_argv=gpu,actual_client_argv=client,external_requests=6,cards=32,
+-  Native_or_Slurm_executed=False)
++ assert D==R/'incoming/Kimi-wide-fewshot-quality-r448/client-v1'
++ assert PACKAGE==R/'incoming/Kimi-public-incremental-text-r434'and len(set(NODES))==4
++ assert RUN=='public-kimi-wide-20261104-a'and LABEL=='Kimi-r448-wide-quality'
++ gpu=gpu_command();assert all(v in gpu for v in ['--jobid=910380','-N4','-n4','-c64','--gres=dcu:8','--mem=128000M','08:10:00'])
++ assert gpu[gpu.index('-w')+1]==','.join(NODES)
++ m=dict(files_SHA256={'client.py':'CPU-contract-client'},provider_source_SHA256='CPU-source',config_SHA256='CPU-config')
++ argv=client_command('910380.0',m,100.)
++ assert argv[argv.index('--deadline-unix')+1]=='28300.0'and argv[argv.index('--gpu-start-epoch')+1]=='100.0'
++ assert argv[argv.index('--expected-step')+1]=='910380.0'and argv[argv.index('--client')+1]==str(D/'client.py')
++ assert '--gres=none'in argv and argv[argv.index('-w')+1]==NODES[0]
++ return dict(nodes=NODES,cards=32,TP=16,PP=2,C=1,external_requests=256,warm=0,
++  GPU_s=29400,Native_s=28800,service_s=28200,keeper_s=32400,original_epoch=True,
++  actual_GPU_argv=gpu,actual_client_argv=argv,Slurm_executed=False,Native=False)
+ 
+ def main(argv=None):
+  p=argparse.ArgumentParser();p.add_argument('--manifest-sha',required=True);p.add_argument('--publication-commit',required=True);p.add_argument('--preflight-only',action='store_true');a=p.parse_args(argv)
+@@ -155,11 +154,11 @@
+  proof=check(D,PACKAGE,m)
+  if a.preflight_only:print(json.dumps(dict(passed=True,source_only=True,GPU=0,Slurm=0,proof=proof)));return 0
+  assert m['GPU_GO']and m['Model_GO']and os.environ['SLURM_JOB_ID']=='910407'and socket.gethostname().split('.')[0]=='a14r2n20'
+- cleanup_limit=time.monotonic()+4480;watch=R/'results'/(LABEL+'-'+RUN+'-watch.json');folder=R/'results/public-Kimi-text-provider-r434'
++ cleanup_limit=time.monotonic()+32380;watch=R/'results'/(LABEL+'-'+RUN+'-watch.json');folder=R/'results/public-Kimi-text-provider-r434'
+  assert not list(folder.glob('*'+RUN+'*')),'Existing run artifacts: follow original, never replay'
+  w=dict(completed=False,passed=False,publication_commit=a.publication_commit,deployment_source_SHA256=a.manifest_sha,
+   provider_source_SHA256=m['provider_source_SHA256'],CPU_keeper=os.environ['SLURM_JOB_ID']+'.'+os.environ['SLURM_STEP_ID'],
+-  HTTP_planned=6,warms=2,retry=False,reload=False,forced_cleanup=False,actual_GPU=None,actual_client=None)
++  HTTP_planned=256,warms=0,retry=False,reload=False,forced_cleanup=False,actual_GPU=None,actual_client=None)
+  publish(watch,w);gpu=client=None;epoch=None;stop_sent=False;visibility={};expected_pids={}
+  def save():
+   w['observed_UTC']=datetime.datetime.now(datetime.timezone.utc).isoformat();t=watch.with_suffix('.tmp');t.write_text(json.dumps(w,indent=2,allow_nan=False)+'\n');t.replace(watch)
+@@ -191,7 +190,7 @@
+    try:known.add(json.loads(claim.read_bytes())['PID'])
+    except(FileNotFoundError,json.JSONDecodeError,KeyError):pass
+    expected_pids[node]=sorted(known)
+-  env=dict(clean_environment(os.environ),KIMI_R428_EXPECTED_PIDS=json.dumps(expected_pids),KIMI_R428_POST_DEADLINE_UNIX=str(min(time.time()+90,epoch+4380 if epoch else time.time()+90)))
++  env=dict(clean_environment(os.environ),KIMI_R428_EXPECTED_PIDS=json.dumps(expected_pids),KIMI_R428_POST_DEADLINE_UNIX=str(min(time.time()+90,epoch+32280 if epoch else time.time()+90)))
+   cmd=['srun','--jobid=910380','--overlap','--exact','--immediate=30','--cpu-bind=none','-N4','-n4','--ntasks-per-node=1','-c1','--gres=none','--mem=512M','-w',','.join(NODES),'-t','00:02:00','--job-name='+LABEL+'-'+RUN+'-'+phase,'python3','-B',str(D/'idle.py')]
+   z=subprocess.run(cmd,env=env,capture_output=True,text=True,timeout=min(115,max(1,cleanup_limit-time.monotonic())))
+   w.setdefault('CPU_idle_observations',[]).append(dict(phase=phase,returncode=z.returncode,stdout=z.stdout,stderr=z.stderr));save()
+@@ -209,13 +208,13 @@
+    assert not row[1].startswith(LABEL+'-'+RUN),'Existing label: reconcile original, no replay'
+    if re.fullmatch(r'910380[.]\d+',row[0])and row[2].split()[0].rstrip('+')not in TERMINAL:
+     assert not set(hosts(row[4]))&set(NODES),'Live overlapping step'
+-  w['fresh_before']=idle('before');nonce=__import__('secrets').token_hex(24);w['nonce_SHA256']=hashlib.sha256(nonce.encode()).hexdigest();epoch=time.time();w.update(original_GPU_start_unix=epoch,service_deadline_unix=epoch+3540,Native_deadline_unix=epoch+4140,GPU_deadline_unix=epoch+4200,keeper_deadline_unix=epoch+4500);save()
++  w['fresh_before']=idle('before');nonce=__import__('secrets').token_hex(24);w['nonce_SHA256']=hashlib.sha256(nonce.encode()).hexdigest();epoch=time.time();w.update(original_GPU_start_unix=epoch,service_deadline_unix=epoch+28200,Native_deadline_unix=epoch+28800,GPU_deadline_unix=epoch+29400,keeper_deadline_unix=epoch+32400);save()
+   with(R/'logs'/(LABEL+'-'+RUN+'-srun.log')).open('x')as log:
+    gpu=subprocess.Popen(gpu_command(),env=gpu_environment(os.environ,epoch,m,nonce),stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+   w.update(GPU_srun_PID=gpu.pid,GPU_owned_PGID=gpu.pid);save()
+   client_output=R/'results'/(LABEL+'-'+RUN+'-client');identity=client_output.with_name(client_output.name+'-identity.json')
+   done_since=None
+-  while time.time()<epoch+4200:
++  while time.time()<epoch+29400:
+    try:
+     gr=exact(LABEL+'-'+RUN);cr=exact(LABEL+'-'+RUN+'-client')if client is not None else None
+    except(subprocess.TimeoutExpired,subprocess.CalledProcessError,OSError)as error:
+@@ -228,26 +227,20 @@
+    if gpu.poll()not in(None,0):raise RuntimeError('Owned GPU srun nonzero')
+    if client is not None and client.poll()not in(None,0):raise RuntimeError('Owned public client srun nonzero')
+    if client is None and w['actual_GPU']:
+-    reports=[]
+-    for node_index in range(4):
+-     path=folder/('Kimi-public-r428-'+RUN+'-node%d.json'%node_index)
+-     if not path.exists():break
+-     value=visible(path)
+-     if value is None or value.get('phase')!='weights_ready':break
+-     assert value['public_source_manifest_SHA256']==m['provider_source_SHA256']
+-     assert value['library_sha256']=='8df87f0741b13c90f658174a793f0068efb4eb8097eddf1d5f44edb4d208e1a2'
+-     assert value['node']==node_index and value['run']==RUN
+-     reports.append(value)
+-    if len(reports)==4:
+-     # Client passively proves PID-owned HTTP LISTEN on node0 before either POST.
++    from handoff import ready_handoff
++    config=json.loads((D/'config.json').read_bytes())
++    ready=ready_handoff(folder,RUN,w['actual_GPU'],m['provider_source_SHA256'],m['config_SHA256'],config['model_manifest_SHA256'])
++    if ready is not None:
++     w['actual_ready_handoff']=ready;save()
++     # Client proves PID-owned HTTP LISTEN; firstPOST is part of the fixed256.
+      env=clean_environment(os.environ)
+      with(R/'logs'/(LABEL+'-'+RUN+'-client-srun.log')).open('x')as log:client=subprocess.Popen(client_command(w['actual_GPU'],m,epoch),env=env,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+      w.update(client_srun_PID=client.pid,client_owned_PGID=client.pid,client_result=str(client_output/'result.json'),all4_weights_ready=True);save()
+    if client is not None and(client_output/'result.json').exists():
+     value=visible(client_output/'result.json')
+     if value is not None and value['completed']:
+-     w['client_result_SHA256']=sha(client_output/'result.json');w['client_passed']=value['passed'];stop()
+-     assert value['passed']and value['attempted_HTTP']==value['completed_HTTP']==6,'Public request/gold failure retained'
++     w['client_result_SHA256']=sha(client_output/'result.json');w['client_passed']=value['execution_passed'];stop()
++     assert value['execution_passed']and value['attempted_HTTP']==value['completed_HTTP']==256,'Public infrastructure failure retained, wrong/cap/parse outcomes do not stop quality plan'
+    if client is not None and client.poll()==0 and gpu.poll()==0:
+     done_since=time.monotonic()if done_since is None else done_since
+     if gr and cr and gr[2:4]==cr[2:4]==['COMPLETED','0:0']and stop_sent:break
+@@ -255,12 +248,12 @@
+    elif gpu.poll()==0:
+     done_since=time.monotonic()if done_since is None else done_since
+     if time.monotonic()-done_since>90:raise RuntimeError('GPU exited before complete public plan')
+-   save();time.sleep(min(15,max(0,epoch+4200-time.time())))
+-  else:raise TimeoutError('Original GPU4200 deadline; no retry/reload')
++   save();time.sleep(min(15,max(0,epoch+29400-time.time())))
++  else:raise TimeoutError('Original GPU29400 deadline; no retry/reload')
+   from collect import collect
+-  summary=collect(R,RUN,w['actual_GPU'],m['provider_source_SHA256'],client_output/'result.json',min(time.time()+90,epoch+4380))
++  summary=collect(R,RUN,w['actual_GPU'],m['provider_source_SHA256'],client_output/'result.json',min(time.time()+90,epoch+32280))
+   expected_pids=summary['expected_node_PIDs'];w.update(summary)
+-  w['post']=idle('post');w.update(completed=True,passed=True,state='QUALIFIED_KIMI_PUBLIC_SIX_THINKING_SSE_P0_P1_NORMAL32')
++  w['post']=idle('post');w.update(completed=True,passed=True,state='KIMI_PUBLIC_SINGLE_BASELINE256_COMPLETE_NORMAL32_QUALITY_RETAINED')
+  except BaseException as error:
+   w.update(completed=True,passed=False,error=repr(error),traceback=traceback.format_exc(),state='FAILED_OR_UNKNOWN_NO_RETRY')
+   try:stop()
