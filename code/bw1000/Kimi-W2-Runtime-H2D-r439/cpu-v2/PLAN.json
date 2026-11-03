@@ -1,0 +1,94 @@
+{
+  "arms": {
+    "OFF": "installed04a Runtime original, env0",
+    "ON": "isolated5b8 Runtime only, env1; no shared install replacement"
+  },
+  "geometry": [
+    {
+      "local": [
+        3584,
+        96
+      ],
+      "CPU_global": [
+        3584,
+        1536
+      ],
+      "bank": [
+        896,
+        3584,
+        96
+      ],
+      "H2D_bytes_per_sample": 308281344
+    },
+    {
+      "local": [
+        3584,
+        6
+      ],
+      "CPU_global": [
+        3584,
+        96
+      ],
+      "bank": [
+        896,
+        3584,
+        6
+      ],
+      "H2D_bytes_per_sample": 19267584
+    }
+  ],
+  "check": "one baseline check and one candidateON check, each all16 TPoffsets for bothwidths+fallback/nonunitstride/dtype/shape/wrongowner=36 checks; actualdevice D2H allbytes; no oldCPU243/878 suite",
+  "modes": [
+    "OFF",
+    "ON",
+    "OFF",
+    "ON",
+    "ON",
+    "OFF",
+    "OFF",
+    "ON",
+    "ON",
+    "OFF",
+    "OFF",
+    "ON",
+    "ON",
+    "OFF",
+    "OFF",
+    "ON",
+    "ON",
+    "OFF"
+  ],
+  "geometries": 2,
+  "benchmark_processes": 36,
+  "semantic_processes": 2,
+  "expert_copy_calls_per_benchmark": 896,
+  "total_timed_expert_copy_calls": 32256,
+  "main_timer": "CPU narrow+temporary allocation+gather+syncH2D+Weight-style final sync; preallocated bank target and registered views; no D2H validation inside timer",
+  "separate_costs": [
+    "process launch/ELF initializer inclusive parentwall",
+    "Runtime create",
+    "warmRAM source init",
+    "GPU bank allocation",
+    "896target view registration",
+    "all896 D2H bytevalidation",
+    "Runtime drain/destroy"
+  ],
+  "synthetic_warmRAM": true,
+  "checkpoint": false,
+  "whole_loader": false,
+  "Model": false,
+  "scope": "one actual Hygon GPU, logicalTP16 rank0 benchmark, all16offset correctness only; not TP16/CCL qualification",
+  "gate": "both widths complete fullwall mean gain exceeds absolute OFF endpoint drift; perABBA preserved; byte/owner/stats/chosen failure STOP",
+  "GPU_claim": {
+    "parent": 910371,
+    "node": "a02r3n16",
+    "cards": 1,
+    "cores": 4,
+    "memory_MiB": 8192,
+    "hard_s": 300,
+    "shell_s": 285,
+    "worker_s": 270,
+    "keeper_s": 480
+  },
+  "GPU_GO": false
+}
