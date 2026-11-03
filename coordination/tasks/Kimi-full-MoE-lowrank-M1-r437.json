@@ -1,7 +1,7 @@
 {
   "owner": "bw1000/kimi_operator_tuning",
   "task": "Kimi-full-MoE-lowrank-M1-r437",
-  "state": "CPU_QUALIFIED_GPU_NOT_STARTED",
+  "state": "EXACT_GPU_COMPONENT_SOURCE_CLAIM_READY_NOT_STARTED",
   "source_manifest_SHA256": "2f526581acd9ba12815387e2bb476ff4f15265c017344a4210c9f2c14d4ede3a",
   "CPU_claim": {
     "parent": 910407,
@@ -21,7 +21,7 @@
     "unique_label": "Kimi-r437-full-MoE-lowrank-CPU-v1",
     "new_artifact": "/refactor/candidates/Kimi-full-MoE-lowrank-M1-r437-CPU"
   },
-  "GPU_GO": false,
+  "GPU_GO": true,
   "Model_GO": false,
   "mechanism": "Only two resident BF16 lowrank C1 projections, F32 accumulation, BF16 output. Reuse CPU869 fixed256-thread GPU object; private MoE class only, not shared library or public class/SDK hot patch",
   "PP_boundary": "Actual PP1 group, long_factory=false. Original padded scales remain. Not current32card PP2 exact-scale allocation, Model state/performance/memory qualification is UNKNOWN; never fake RankInfo or change Scope guard",
@@ -29,7 +29,7 @@
   "actual_GPU": null,
   "parent_432": "754 component ratio-of-means gate retained; not replaying two matrix microbench",
   "running_public_434": "576/880 owned and observed only by root; no source/dependency changes here",
-  "next": "Prepare thin actual layer1 checkpoint/full16owner TP16 PP1 component loader/controller; no original CPU/TU/primitive replay, no Model loading. Actual source/numeric/wall/resource claim must publish before fresh03+07 one GPU card.",
+  "next": "Ordinarypush exact GPUsource/claim, upload onlysource, actual HOST wholelauncher/Bash+policy preflight, freshallocation/de-dup/16PCI/KFD/PID/port then one2nodeTP16PP1 fullMoE card. Follow originalhandle/epoch only; preserve883/885FAIL.",
   "CPU_v2_source_manifest_SHA256": "a327e706f473a59f7d6e10566d53e9e85a5470ada8d94cfd2aa8a28205b77ed9",
   "CPU_v2_claim": {
     "parent": 910407,
@@ -74,5 +74,39 @@
   "qualified_CPU_receipt_SHA256": "00d74be5558d141d87e7cc598e7eaa10ef60e0d8ade1bb6f9e5387940c6571c2",
   "qualified_library": "/refactor/candidates/Kimi-full-MoE-lowrank-M1-r437-CPU-link-v2/libKimi_full_MoE_lowrank_M1_r437.so",
   "qualified_library_SHA256": "f5b99922693fe4463a00066379afdb16d259a552c13700163be2975064d6882f",
-  "CPU_delivery": "results/bw1000/2026-11-03/Kimi437-CPU887-qualified-private-full-MoE-delivery.json"
+  "CPU_delivery": "results/bw1000/2026-11-03/Kimi437-CPU887-qualified-private-full-MoE-delivery.json",
+  "GPU_source_manifest_SHA256": "555cd03cbef7ce4cc6cd907e63dec80d8f5dad6be17639c1031812532c0579de",
+  "GPU_resource_claim": {
+    "parent": 910371,
+    "nodes": [
+      "a02r3n03",
+      "a02r3n07"
+    ],
+    "cards": 16,
+    "TP": 16,
+    "PP": 1,
+    "C": 1,
+    "layer": 1,
+    "cores_per_node": 64,
+    "mem_MiB_per_node": 128000,
+    "GPU_max_s": 600,
+    "worker_admission_until_s": 540,
+    "shell_hard_s": 570,
+    "shell_KILL_grace_s": 15,
+    "keeper_max_s": 900,
+    "keeper_parent": 910407,
+    "keeper_node": "a14r2n20",
+    "keeper_cores": 2,
+    "keeper_mem_MiB": 2048,
+    "per_owner_forwards": 6,
+    "global_forward_calls": 96,
+    "warms_per_owner": 2,
+    "formal_per_owner": 4,
+    "master_port": 40917,
+    "reload": false,
+    "retry": false,
+    "Model": false,
+    "HTTP": 0,
+    "active_claim": true
+  }
 }
