@@ -1,0 +1,121 @@
+{
+  "review": 189,
+  "date": "2026-11-04",
+  "reviewer": "/root/astra_review_147",
+  "state": "COMPLETE_MINIMAL_HEADER_FIX_CONTINUE_EXISTING_BOUNDED_CPU",
+  "scope": {
+    "only_write": "analysis/bw1000/reviews/astra-review-189-TP-row-consumer-build-followthrough.json",
+    "read": "最新AGENTS、ASTRA、QUALITY_POLICY、188落实、440 source-span-v2/cpu-repair-v3/header-fix-v4、905依赖引用和909/910原结果",
+    "tests_readers_jobs_remote_polling_Git": false,
+    "new_framework_or_approval_gate": false,
+    "independent_Deep_and_entry_source_continues": true
+  },
+  "188_followthrough": {
+    "implementation": "analysis/bw1000/reviews/astra-review-188-implementation.json",
+    "state": "COMPLETE_ADOPTED",
+    "unchanged_decisions": [
+      "Deep1374真实质量FAIL保留；根已实际复算22原files，measurement未完成ABBA、quality错误、run强清理和postclean分开，不重载或补请求。",
+      "437775完整MoE无益PARK；439772实际copy正结果保留为私有加载候选，不外推整Model。",
+      "442精确TEXT_MF已修，CPU908根审ddf1a06a已交付；不为约39%copy收益专门载32卡。",
+      "440不同TP工作分配机制仅推进源/CPU，不继承432裸投影或PP2 Model资格。"
+    ],
+    "current_independent_work": "Deep诊断源f6aa01e23efaab2793d98e8d6bc653d9910cde6f/MFcf570e36已发布，原执行者跟唯一4core8GiB300s、2HOST/49link/0GPU；本审不等待或重复其结果。"
+  },
+  "round_accounting": {
+    "performance_or_causal_rounds_after188": 0,
+    "trigger": "连续可避免CPU入口错误提前审，不等待第三轮",
+    "zero_round_events": ["909纯合同-Werror失败", "910真实pre-MD头路径失败", "纯合同27case通过", "900/905历史资格复用", "908源胶水", "新构建/发布/轮询"]
+  },
+  "failure_facts_and_minimum_repairs": {
+    "CPU909": {
+      "result": "results/bw1000/2026-11-03/Kimi440-CPU909-pure-contract-Werror-FAIL-no-production-compile.json",
+      "actual": "910407.909 FAILED1/3s，production HOST0/GPU0",
+      "receipt_SHA256": "1582913be2eb683a5869c7ff57d453880d04989d8b2ee02b0ffc91e1c06fa9f0",
+      "cause": "check_contract.cpp一行if之后++cases触发-Werror=misleading-indentation",
+      "repair": "cpu-repair-v3只给该if加花括号，保留-Wall/-Wextra/-Werror；没有数学或生产行为改变。"
+    },
+    "CPU910": {
+      "result": "results/bw1000/2026-11-03/Kimi440-CPU910-preMD-header-path-FAIL-pure-27-PASS.json",
+      "actual": "910407.910 FAILED1/3s，实际source合同和纯lease/span27case通过；private_moe pre-MD失败，production HOST0/GPU0",
+      "receipt_SHA256": "87bad72f360e2aa56344dc35f07857758246efe5291399bfbe825a8f6d869c67",
+      "cause": "新增lease_scope.hpp引用不存在的tensor/tensor.hpp；不是SDK数学或Runtime失败",
+      "minimum_fix": "改为原905实际MD中的runtime/tensor.hpp。该头路径/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/runtime/tensor.hpp，SHA256 dfc787f233bef2fb5888d0954440746334386023bad3f6207164024b377eb658。复用27case，不再重900/905。"
+    },
+    "current_header_fix_v4": {
+      "path": "code/bw1000/Kimi-lowrank-TP-rowshard-r440/source-span-v2/header-fix-v4",
+      "manifest_SHA256_read": "ba0a985b647443c725f51ef5ead0fb8fa8e57b08619c5bf05e222c521fa51470",
+      "production_diff_verified_read_only": "本地逐字比较lease_scope.hpp等于旧源仅替换tensor/tensor.hpp→runtime/tensor.hpp；DERIVATION列出的component/privateMoE/projection/pending/single-row/geometry/owner源保持原字节。",
+      "build_source_review": "v4平铺完整包，源读取与source_SHA均指D/name；每TU先实际-M依赖再编译-MD且核集合/hash；复用910正式receipt与纯合同同源hash，不重编/执行纯27case。",
+      "resource": "原910407/a14r2n20，4core8GiB≤300s/inside270s；2尚未成功生产HOST+isolated link，0新GPU TU/0dlopen/0weights/0Runtime",
+      "qualification": "本审只确认源修和计划边界，没有新实际编译/链接回执；不得将准备包或旧910局部PASS写为新库PASS。"
+    }
+  },
+  "full_consumer_and_dependencies": {
+    "math_and_consumer": "private_moe保留原完整body，五处语法projection调用改project_scoped；C1实际只down/up两处。router、expert、routed TP allreduce、norm、shared及combine不改。仍TP16/PP1/long_factory=false/padded scales，不是当前32卡PP2 Model。",
+    "single_row": "physical_single_row只接受2D/M1/K匹配/positive rowpitch/inner1；允许775实际down[1,7168] stride[14336,1]。单行第二行偏移不参与访问；仍保原Tensor owning/view合同及input.contiguous成本。weight要求完整[N,K]、原[K,1]不放宽，未泛放任意strided layout。",
+    "lease_source_evidence": "LEASE_SOURCE_EVIDENCE引用原Common eager AllGather只持Tensor至native enqueue返回；Runtime释放本身不sync，故原projection函数局部变量生命周期不足。当前不是拿FIFO当所有权证明。",
+    "lease_repair": [
+      "每full-forward的ProjectionLeaseScope验证相同Runtime/真实global rank/comm16/ownerdevice，启用时预留14handles。",
+      "每投影保存input/fullweight/shard/preparedinput/preparedweight/local/output七个强引用，两个投影总14；AllGather enqueue后不提前释放。",
+      "component主计时包住scope构造、candidate完整forward、scope.complete_original_forward、原r.syncStream、clear/容量释放和scope析构；baseline空scope执行相同原完成点。没有新增成功路径同步或移走release成本。",
+      "异常路径helper FailureDrain在局部Tensor析构前sync，fullscope再次保证未完成refs不提前释放；sync失败failstop，不能把异常清理说正常Runtime结束。",
+      "910纯27case实际证明标准库generic lease成功/异常持有顺序和singleton地址包络；它不执行SDK/CCL，不能冒实际设备完成资格。"
+    ],
+    "original33": {
+      "Native": "8df87f0741b13c90f658174a793f0068efb4eb8097eddf1d5f44edb4d208e1a2",
+      "parent_build_receipt_SHA256": "21fc8ed69c6db1ec3a3c8925e61dc5f73112b5fea596a8caef977008da57046b",
+      "count_read_from_contract": 33,
+      "reuse": "原33对象逐hash保留；从905真实link argv仅替换新privateMoE/component两个HOST对象，显式移除432 gemv.cu.o；不重编Native、GPU、helper或Common。",
+      "isolation": "继承精确7个clone C wrapper localize且textSHA不变、Bsymbolic/no-undefined、原strong/CABI保留；不放宽全部weak符号或所有provider。",
+      "provider": "实际Common2e145的AllGather export及原helper、Runtime、SDK依赖按原receipt核；已有ldd箭头与helper绝对DT_NEEDED分别消费，完整Torch路径保留。",
+      "remaining": "当前新两个TU的实际compileMD、新DSO link/relocation结果仍待一次原boundedCPU。源闭包方案已明确，不代表实际设备Dense/CCL或新数学通过。"
+    },
+    "determinate_additional_blocker": "在已读header-fix-v4快照未发现需要扩框架或重复旧资格的新确定阻塞；已知include修复可独立继续。未知编译/链接失败保留实际部分结果后定位，不自动无变化重试。"
+  },
+  "four_questions": {
+    "1_actual_improvement": "188后没有新Model/服务/设备性能证据。909/910是工程失败；纯CPU合同和依赖通过不称加速。1374质量FAIL、775PARK、772限定copy正结论照旧。",
+    "2_time_spent": "两次各3s CPU执行虽短，额外封包/提交/诊断轮转造成可避免延迟；问题在新增标准库合同格式和新include没有直接复用真实MD，不在GPU计算。复用910纯结果与900/905成功对象，把剩余工作压到两个生产TU/一次link，而非再造测试矩阵。准备/排队总耗时未完整记录，UNKNOWN。",
+    "3_bottleneck": "当前工程阻塞为头路径，确定可修。未来性能风险是两Dense小row计算、input.contiguous、两AllGather与scope分配/释放；旧完整MoE约0.9ms，不可从逻辑矩阵bytes除16推Model。实际通信代价、Dense精度和完整wall未知；full权重仍驻留，无容量收益。",
+    "4_direction": "完成唯一include-fix boundedCPU后只准备一张完整MoE组件因果卡，不再裸GEMV或grid；其他独立Deep诊断/GLM入口源继续。无更多Model加载建议。"
+  },
+  "next_cards": {
+    "Kimi": [
+      {
+        "priority": 1,
+        "id": "440_HEADER_FIX_TO_ONE_FULL_MOE_PAIR",
+        "hypothesis": "原Dense按TP16输出行分片的收益在两AllGather、完整MoE和lease完成成本之后仍可见。",
+        "owner": "原Kimi执行者",
+        "minimum_next": "继续已具体准备的v4两HOST/isolatedlink CPU，复用910纯27和900/905全部未变资格。成功后固定这一个DSO/源与CPU回执到原完整组件driver，精确claim/fresh后一次实测；本审核不新增逐项GO。",
+        "device_resource": "原n03/n07两节点16卡TP16/PP1，建议原GPU600s/worker540/keeper900；不载32卡Model。实际source/CPU尚未完成时保持GPUfalse。",
+        "single_geometry": "layer1/C1/原保留BF16 teacher row、原完整checkpoint/flags，OFF原same-peer完整MoE vs ON两rowshard+AllGather；不改权重/采样/量化，不混432kernel或439加载候选。",
+        "sufficient_samples": "原2warm+OFF/ON/ON/OFF，matched max16完整forward到原完成/lease释放；不加shapegrid。",
+        "necessary_existing_consumer_evidence": "实际同输入/权重身份、真实TP16参与、首submit后精确owner mask、down/up counts1/1及14lease、raw BF16 finite/canary和正常join/group/Runtime关闭。由本卡真实消费者记录，不另造GPU探针。",
+        "timing": "包含input准备、Dense、两collective、所有forward分配、完成及lease释放；D2H/原件保存另列checkedwall，warm排除，漂移保留。",
+        "first_result_time": "CPU现有≤300s界内；包ready后≤600s组件驻留内首配对。发布/排队准备UNKNOWN，不等待独立Deep。",
+        "potential_Model_wall": "UNKNOWN；组件完整收益不能按层乘法变Model收益，PP1不继承PP2。",
+        "exit": "真实数学/状态/collective未知失败停止保存，非用户质量阈值不放宽；完整收益未超过同次OFF漂移则PARK；有稳定完整收益才源审后续必要Model消费者，不自动追加样本或Model驻留。"
+      }
+    ],
+    "Deep": [
+      {
+        "priority": 1,
+        "id": "EXISTING_438_DIAGNOSTIC_SOURCE_CPU",
+        "decision": "FOLLOW_ORIGINAL_UNIQUE_CPU_NO_NEW_CARD",
+        "owner_resource": "原Deep执行者；已发布f6aa/MFcf570e36，唯一4core8GiB300s、2HOST49link0GPU",
+        "purpose": "按188保存真实Model窄窗口pointwise因果数据的源与消费者闭合；本审不重新设计诊断、重载1374或增质量请求。",
+        "first_result": "跟原CPU终态；时间/实际结果以原句柄为准，本文未轮询。",
+        "potential_gain": "UNKNOWN，质量根因仍UNKNOWN；任何CPU通过不改写1374 FAIL。"
+      }
+    ],
+    "GLM": [],
+    "GLM_note": "433仍PARK；独立入口源按原任务继续，无新GPU或数学路线。"
+  },
+  "minimum_process_correction": [
+    "写新增include时直接取当前成功父MD的实际路径与SHA，不凭记忆拼tensor路径；不把局部pure合同当生产TU语法闭合。",
+    "新增-Werror合同保持清楚花括号，修源码而非禁warning；已实际通过的27case以相同源/头hash复用。",
+    "在同一次原boundedCPU顺序消费实际production preMD→compileMD→原对象link→已有exports/provider/ldd，不增加第二套构建框架或CPU-hidden运行。",
+    "只有实际新回执能把新库标PASS；没有回执不猜step/成功。已知修复不让所有独立工作等待审核。"
+  ],
+  "goal_complete": false,
+  "limits": "全部Model宽质量、实际硬件可达性能和逐用户严格>15目标仍未证明；不引入GPU F64，不以组件/CPU代整目标。"
+}
