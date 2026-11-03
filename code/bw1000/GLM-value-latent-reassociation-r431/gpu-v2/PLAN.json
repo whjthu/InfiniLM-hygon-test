@@ -1,0 +1,96 @@
+{
+  "method": "NoV value-only latent reassociation",
+  "layer": 38,
+  "context": 32768,
+  "count": 1,
+  "past": 32767,
+  "U": 2048,
+  "fixtures": [
+    "periodic16 IDs0..32736 +32767",
+    "contiguous IDs30720..32767"
+  ],
+  "synthetic_hidden": {
+    "shape": [
+      32768,
+      6144
+    ],
+    "dtype": "BF16",
+    "seed": 398038,
+    "scale": 0.1,
+    "Model_activation": false
+  },
+  "perfixture_modes": [
+    0,
+    1,
+    0,
+    1,
+    1,
+    0
+  ],
+  "warms_per_owner": 4,
+  "formal_per_owner": 8,
+  "complete_query_CAPI_per_owner": 12,
+  "total_query_CAPI_across8": 96,
+  "seed_calls_per_owner": 780,
+  "profile": 0,
+  "NoV_fixed": true,
+  "difference": "OriginalQK256/scale-round/F32softmax/BF16prob unchanged; ON8BF16prob@rawBF16latent 2D GEMMs +originalM8FP8expand+8diagonalVcopies. Actual first8selectedrotary used only for discardedK.",
+  "approximation": "Baseline perrowFP8quant-W-BF16V-PV vs aggregateBF16round-newM8FP8quant-W; not finiteprecision equivalent or taskquality qualified.",
+  "counters": "ONchosen1/aggregationGemm_submits8/M8completed1/diagonal8/cacheRunDelta1; OFF0/0/0/0/cacheRunDelta0, selectedExpand1",
+  "timing": {
+    "primary": "same-trialmax8 complete_attention_CAPI_ms including freshQKV/selectionD2H-unionH2D/gather/QK/softmax/VA/FP8expand/Oprojection/TP/copies/tempdestruction/finaldrain",
+    "checked_driver": "additional producer tensors/D2H diagnostic outputs/canaries/CPU numeric metrics",
+    "excluded_reported": [
+      "checkpointload",
+      "Contextcreate",
+      "reset/bankallocation",
+      "prefixseed",
+      "coldplan",
+      "readonlyfullhiddenhash",
+      "Torchpostclose"
+    ]
+  },
+  "metric_policy": {
+    "alert_NRMSE": 0.005,
+    "diagnostic_stop_NRMSE": 0.02,
+    "finite_and_canary_required": true,
+    "quality_policy": "coordination/QUALITY_POLICY.zh-CN.md",
+    "GPU_F64": false,
+    "task_quality": false
+  },
+  "performance": "OFFendpoint drift +two adjacent opposite-order pair ratios perfixture/max8; only complete attention component, no Modelgain claim",
+  "memory": "actualfree snapshots/highwater runtime workspace only; not allocatorpeak",
+  "cleanup": "8normaldestroy/weakRuntimeexpired/cacheclosed/Torchafter, Slurm+srunCOMPLETED0; independent CPU KFD/PID/DRMinventory; no serving port or listener opened by this component; no allhostportbindability claim",
+  "resource": {
+    "parent": 910374,
+    "node": "a02r4n07",
+    "cards": 8,
+    "TP": 8,
+    "PP": 1,
+    "cores": 32,
+    "host_mem_MiB": 64000,
+    "GPU_max_s": 600,
+    "worker_max_s": 540,
+    "shell_max_s": 570,
+    "CPU_keeper": {
+      "parent": 910407,
+      "node": "a14r2n20",
+      "cores": 2,
+      "mem_MiB": 2048,
+      "max_s": 900
+    },
+    "active_claim": true,
+    "no_retry": true,
+    "no_reload": true,
+    "Model": false,
+    "HTTP": false
+  },
+  "affinity_fix": {
+    "old_source_MF": "8ec1360c3ded961b549cb9c123f10857c1b3ea7ef8fadf826fc6e2a63d291c57",
+    "old_GPU": "910374.1358",
+    "old_keeper": "910407.867",
+    "old_post": "910374.1359",
+    "old_result": "FAILbeforectx/load/query; noalgorithmnegative",
+    "current": "Keep inherited>=32CPU mask through factory. Runtimewidth4 apply_once sees8x4; entry/aftercreate/afterload snapshots; strict actualfirstsuccessfulseed +final maskstable, max8rank masksdisjoint. No manualaffinity/no widthdisable."
+  }
+}
