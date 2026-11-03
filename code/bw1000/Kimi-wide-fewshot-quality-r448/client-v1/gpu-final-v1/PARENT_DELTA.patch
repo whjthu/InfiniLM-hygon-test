@@ -1,0 +1,77 @@
+--- frozen-a77/controller.py
++++ separate-GPU-final/controller.py
+@@ -2,6 +2,8 @@
+ import argparse,datetime,hashlib,json,os,re,signal,socket,subprocess,sys,time,traceback
+ R=Path('/public/home/aclsylqidf/hygon-inference-refactor-20261014')
+ D=R/'incoming/Kimi-wide-fewshot-quality-r448/client-v1'
++FINAL=D/'gpu-final-v1'
++sys.path.append(str(D))
+ PACKAGE=R/'incoming/Kimi-public-incremental-text-r434'
+ PARENT=R/'incoming/public-Kimi-native-provider-r428/runtime-v2'
+ RUN='public-kimi-wide-20261104-a'
+@@ -25,7 +27,7 @@
+  for n,h in json.loads((PACKAGE/'SOURCE_MANIFEST.json').read_bytes())['files_SHA256'].items():assert sha(PACKAGE/n)==h,n
+  assert sha(D/'config.json')==m['config_SHA256']
+  config=json.loads((D/'config.json').read_bytes())
+- assert Path(__file__).resolve().parent==D.resolve(),'Controller path is not frozen deployment directory'
++ assert Path(__file__).resolve().parent==FINAL.resolve(),'Final controller path mismatch'
+  assert NODES==config['nodes']==m['resource_claim']['nodes'],'Controller/config/claim node identity mismatch'
+  claim=m['resource_claim'];assert claim['parent']==910380 and claim['cards']==len(NODES)*8==32
+  assert (claim['TP'],claim['PP'],claim['cores_per_node'],claim['host_mem_MiB_per_node'])==(16,2,64,128000)
+@@ -147,18 +149,39 @@
+   GPU_s=29400,Native_s=28800,service_s=28200,keeper_s=32400,original_epoch=True,
+   actual_GPU_argv=gpu,actual_client_argv=argv,Slurm_executed=False,Native=False)
+ 
++def verify_execution(expected,m):
++ assert re.fullmatch('[0-9a-f]{64}',expected)
++ assert sha(FINAL/'GPU_MANIFEST.json')==expected;go=json.loads((FINAL/'GPU_MANIFEST.json').read_bytes())
++ assert go['GPU_GO']and go['Model_GO']and not go['reload']and not go['retry']
++ assert go['production_source_manifest_SHA256']==sha(D/'SOURCE_MANIFEST.json')
++ assert not m['GPU_GO']and not m['Model_GO'],'Original CPU-only claim must remain false'
++ assert sha(FINAL/'SOURCE_MANIFEST.json')==go['final_source_manifest_SHA256'];mf=json.loads((FINAL/'SOURCE_MANIFEST.json').read_bytes())
++ for n,h in mf['files_SHA256'].items():assert sha(FINAL/n)==h,n
++ assert go['resource_claim']['cards']==32 and go['resource_claim']['nodes']==NODES and go['HTTP']==256
++ assert (go['resource_claim']['Native_max_s'],go['resource_claim']['service_s'],go['resource_claim']['GPU_max_s'],go['resource_claim']['CPU_keeper']['max_s'])==(28800,28200,29400,32400)
++ cpu={}
++ for name,pin in go['actual_CPU_receipts'].items():
++  path=host(pin['path']);assert sha(path)==pin['SHA256'];cpu[name]=json.loads(path.read_bytes())
++ assert cpu['937']['passed']and cpu['937']['completed']and cpu['937']['actual_CPU']=='910407.937'and len(cpu['937']['cases'])==256
++ assert not cpu['942']['passed']and cpu['942']['completed']and cpu['942']['error']=="KeyError('node')"and cpu['942']['phases']==['actual_controller_verify_scope_source937_and_parent_metadata_bytes','actual_final_Bash_exports_typedCLI4roles_noServe']
++ assert cpu['943']['passed']and cpu['943']['completed']and cpu['943']['production_manifest_SHA256']==go['production_source_manifest_SHA256']
++ assert [r['actual_local_HTTP']for r in cpu['943']['actual_changed_entry']['scenarios']]==[256,1,0,0]
++ assert all(not q['GPU']and not q['Native_dlopen']for q in cpu.values())
++ assert cpu['943']['inherited942_source_and_actualBash4role_proof']['receipt_SHA256']==go['actual_CPU_receipts']['942']['SHA256']
++ return go
++
+ def main(argv=None):
+- p=argparse.ArgumentParser();p.add_argument('--manifest-sha',required=True);p.add_argument('--publication-commit',required=True);p.add_argument('--preflight-only',action='store_true');a=p.parse_args(argv)
+- assert re.fullmatch('[0-9a-f]{40}',a.publication_commit);m=verify(a.manifest_sha)
++ p=argparse.ArgumentParser();p.add_argument('--manifest-sha',required=True);p.add_argument('--publication-commit',required=True);p.add_argument('--preflight-only',action='store_true');p.add_argument('--execution-manifest-sha',required=True);a=p.parse_args(argv)
++ assert re.fullmatch('[0-9a-f]{40}',a.publication_commit);m=verify(a.manifest_sha);go=verify_execution(a.execution_manifest_sha,m)
+  from preflight import check
+  proof=check(D,PACKAGE,m)
+  if a.preflight_only:print(json.dumps(dict(passed=True,source_only=True,GPU=0,Slurm=0,proof=proof)));return 0
+- assert m['GPU_GO']and m['Model_GO']and os.environ['SLURM_JOB_ID']=='910407'and socket.gethostname().split('.')[0]=='a14r2n20'
++ assert go['GPU_GO']and go['Model_GO']and os.environ['SLURM_JOB_ID']=='910407'and socket.gethostname().split('.')[0]=='a14r2n20'
+  cleanup_limit=time.monotonic()+32380;watch=R/'results'/(LABEL+'-'+RUN+'-watch.json');folder=R/'results/public-Kimi-text-provider-r434'
+  assert not list(folder.glob('*'+RUN+'*')),'Existing run artifacts: follow original, never replay'
+  w=dict(completed=False,passed=False,publication_commit=a.publication_commit,deployment_source_SHA256=a.manifest_sha,
+   provider_source_SHA256=m['provider_source_SHA256'],CPU_keeper=os.environ['SLURM_JOB_ID']+'.'+os.environ['SLURM_STEP_ID'],
+-  HTTP_planned=256,warms=0,retry=False,reload=False,forced_cleanup=False,actual_GPU=None,actual_client=None)
++  execution_manifest_SHA256=a.execution_manifest_sha,final_source_manifest_SHA256=go['final_source_manifest_SHA256'],HTTP_planned=256,warms=0,retry=False,reload=False,forced_cleanup=False,actual_GPU=None,actual_client=None)
+  publish(watch,w);gpu=client=None;epoch=None;stop_sent=False;visibility={};expected_pids={}
+  def save():
+   w['observed_UTC']=datetime.datetime.now(datetime.timezone.utc).isoformat();t=watch.with_suffix('.tmp');t.write_text(json.dumps(w,indent=2,allow_nan=False)+'\n');t.replace(watch)
+@@ -185,6 +208,12 @@
+   publish(path,dict(identity=identity,action='stop'));stop_sent=True;w['normal_STOP_published']=True;save()
+ 
+  def idle(phase):
++  client_id=R/'results'/(LABEL+'-'+RUN+'-client-identity.json')
++  if phase!='before'and client_id.exists():
++   v=json.loads(client_id.read_bytes());assert v['client_SHA256']==m['files_SHA256']['client.py']and v['client']==str(D/'client.py')and v['node']==NODES[0]
++   if w['actual_client']:assert v['actual_CPU']==w['actual_client']
++   assert type(v['PID'])is int and v['PID']>0
++   expected_pids.setdefault(NODES[0],[]).append(v['PID']);w['actual_client_process_identity']=v
+   for node_index,node in enumerate(NODES):
+    known=set(expected_pids.get(node,[]));claim=folder/('claim-'+RUN+'-node%d.json'%node_index)
+    try:known.add(json.loads(claim.read_bytes())['PID'])
