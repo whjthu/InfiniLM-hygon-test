@@ -59,6 +59,20 @@ def prepare_public(config):
     assert hashlib.sha256(Path(_infinilm.__file__).read_bytes()).hexdigest() == config['Common_extension_SHA256']
 
 
+def watch_public_shutdown(provider, http, done, service_deadline):
+    """Public-layer stop handoff; Native never holds or joins HTTP."""
+    while not done.wait(.2):
+        try:
+            stop = provider.group.run.stop_requested()  # validates run identity/peer failure
+            if stop or provider.group.failed.is_set() or time.time() >= service_deadline:
+                http.should_exit = True
+                return
+        except BaseException as error:
+            try:provider.group._trip(error)
+            finally:http.should_exit = True
+            return
+
+
 def main(argv=None):
     p = argparse.ArgumentParser()
     p.add_argument('--config', type=Path, required=True)
@@ -140,12 +154,8 @@ def main(argv=None):
         import uvicorn
         http = uvicorn.Server(uvicorn.Config(app, host=config['host'], port=config['port'], log_level='info'))
         done = threading.Event()
-        def stop_http_on_failure_or_deadline():
-            # Frontend lifecycle only; Native owners never hold/join HTTP.
-            while not done.wait(.2):
-                if provider.group.failed.is_set() or time.time() >= a.gpu_start_epoch + config['service_seconds']:
-                    http.should_exit = True
-        watcher = threading.Thread(target=stop_http_on_failure_or_deadline,
+        watcher = threading.Thread(target=watch_public_shutdown,
+            args=(provider,http,done,a.gpu_start_epoch+config['service_seconds']),
                                    name='GLM-public-HTTP-lifecycle', daemon=False)
         watcher.start()
         primary = None
