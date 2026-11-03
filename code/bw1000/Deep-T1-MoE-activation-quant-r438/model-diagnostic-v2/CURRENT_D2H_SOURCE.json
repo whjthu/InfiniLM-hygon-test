@@ -1,0 +1,30 @@
+{
+  "read_only": true,
+  "GPU": 0,
+  "Slurm": 0,
+  "compile": 0,
+  "files": [
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Common/Deep/InfiniLM/csrc/runtime/runtime.hpp",
+      "SHA256": "c127b4cf91ab3b64721efe7c9a3e90a84cca9e35dc004ddb6abd9c5e067896d4",
+      "bytes": 3017,
+      "D2H_sections": [
+        {
+          "line": 60,
+          "text": "    bool retainGraphMemory(const std::shared_ptr<Memory> &memory);\n\n    void memcpyH2D(void *dst, const void *src, size_t size, bool async = true);\n    void memcpyD2H(void *dst, const void *src, size_t size);\n    void memcpyD2D(void *dst, const void *src, size_t size, bool async = true);\n\n    void setDeviceMemory(void *ptr, int value, size_t count);\n    void setDeviceMemoryAsync(void *ptr, int value, size_t count, infini::rt::runtime::Stream stream);\n\n    // Graph\n    ::infinilm::execution::graph::GraphManager::CaptureState graphCaptureState() const;\n    bool isGraphRecording() const;\n    void startGraphRecording(bool require_device_graph = false);\n    void addGraphOperator(std::shared_ptr<::infinilm::execution::graph::RecordedCall> op);\n    std::shared_ptr<::infinilm::execution::graph::Graph> stopGraphRecording();\n    void cancelGraphRecording() noexcept;\n\n    friend class ::infinilm::execution::graph::Graph;\n};\n} // namespace infinilm::runtime"
+        }
+      ]
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Common/Deep/InfiniLM/csrc/runtime/runtime.cc",
+      "SHA256": "a4742905290618c740bc81f4e0316b289de86819ece50d7a95da62652bb0a4e9",
+      "bytes": 17296,
+      "D2H_sections": [
+        {
+          "line": 326,
+          "text": "    }\n}\n\nvoid Runtime::memcpyD2H(void *dst, const void *src, size_t size) {\n    try {\n        infini::rt::DeviceGuard device_guard{device_.type(), device_.index(), true};\n        if (device_.type() == Device::Type::kCpu) {\n            INFINILM_CHECK_ERROR(infini::rt::runtime::Memcpy(dst, src, size, infini::rt::runtime::kMemcpyDeviceToHost));\n            return;\n        }\n\n        const auto current_stream = stream();\n        INFINILM_CHECK_ERROR(\n            infini::rt::runtime::MemcpyAsync(dst, src, size, infini::rt::runtime::kMemcpyDeviceToHost, current_stream));\n        syncStream();\n    } catch (...) {\n        drainBeforeHostCopyUnwind(); // before deep host buffer destructors\n        throw;\n    }\n}"
+        }
+      ]
+    }
+  ]
+}

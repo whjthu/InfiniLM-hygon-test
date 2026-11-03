@@ -1,0 +1,68 @@
+{
+  "root_cause": "UNKNOWN",
+  "original_failed_model": "910374.1374/1375/906; forced cleanup,4requests only, no retroactivePASS",
+  "source_audit": {
+    "actual_Model_parent": "original902 e3e39",
+    "Model_source_SHA256": {
+      "model_moe.cpp": "7b89c6e38f67c51b296b6ad1c124812690ebcd32e3534847b87f0f3f40eb161a",
+      "model_bank.cpp": "43ebc70365e415d18aaf546fa796a3e035d1707587e6ae6108c0e4488294dd0e",
+      "routed_model.hpp": "f0d4bae6871410b51ffaf537d3efc52ba00b6605bd99fab8a397af33d92d6ab8",
+      "model_scope.hpp": "23794595f4c8adab70093cb13de7034518fdec22edad3e3036c447763cb4469d",
+      "activation_quant.hpp": "7270da1763145e5e49f7a6e731c239dd6c5a86fd7b726a7a0b7d597829c58c51"
+    },
+    "unchanged_math_sources": {
+      "activation_quant.cu": "7ac9bc3729b0e883455e89b08ef00f0da0d7aebdaedf3f47e98128fd14cf21bb",
+      "original/silu_kernel.cuh": "d54a84fc0953ee9cb0582b259c0dd8ecc3257935a71e10c0a8f874c558b45c63",
+      "original/quant_kernel.cu": "78a9b8a0a9b0ab2d6263d65f6cf2a74bb08774a6a3406e36e0e358b2ed811c4d"
+    },
+    "findings": [
+      "Pinned originalSDK and reusedHIP express BF16 Clamp stores, F32 exp/reciprocal/two multiplies, BF16 activation store, Quant0 256max tree,epsilon1e-8 and half-awayI8. No proven math-source bug from this audit.",
+      "Original routed Work destructor/final role sync and shared owners vector/catch sync retain submitted operands. No proven new alias or early-free defect found in the reviewed r438 hook.",
+      "Removing old intermediate allocations changes pool history/scheduling; this is not evidence of an allocator/state cause.",
+      "Mode HostReturned/activefalse is not GPU completion. Reused QuiescentMode uses original successful fullforward/reset-drain boundaries; raw1374 has no actual GU, hidden or final logits, so actual numeric cause remains unknown."
+    ]
+  },
+  "new_capture": {
+    "default_OFF": true,
+    "primary_math_output_selection": "unchanged; independently allocated shadow only",
+    "new_HOST_TUs": 2,
+    "new_GPU_TUs": 0,
+    "retained_original_objects": 46,
+    "reused_HIP_same": true,
+    "ownerGPU_handles": "Actual Runtime owner local Work/owners/Scope leases only; no GPU Tensor retained by parent/global CPU store",
+    "copy_boundary": "After existing original routed/shared role r.syncStream; no added normal-path wholeNative barrier. Parent CPU-byte read only after actual wholeNative return. Each Runtime::memcpyD2H itself performs MemcpyAsync followed by syncStream before returning; these per-field completion syncs and copies are diagnostic cost, not free. No new whole-engine barrier.",
+    "extra_work": "Diagnostic-only D2D snapshots, originalSDK Clamp/Silu/Quant shadow plus reusedfused shadow, owner-thread D2H and CPU storage; no performance interpretation.",
+    "roles_per_owner_layer": 2,
+    "layers": 43,
+    "owners": 8,
+    "captured_outputs": [
+      82,
+      83
+    ],
+    "modes": [
+      0,
+      1,
+      0,
+      1
+    ],
+    "role_raw_upper_bytes": 91938816,
+    "raw_total_hard_bytes": 134217728,
+    "logs": "All84 decisions observed BF16 uint16→exactF32 representation top8/ties/margins; fullBF16logits only82/83; rawL/Ronly",
+    "source_to_layer": "actualEntered ordinal f=(entered-1)//43+1,layer=(entered-1)%43,checked against forward91/92 tag; no handcoded past counter",
+    "D2H_actual_source": {
+      "source": "CURRENT_D2H_SOURCE.json",
+      "SHA256": "89b9f73ec58f008871ed6ae62549167961823761b6a6eaa31afd7ebf6cddd1a2",
+      "runtime_header_SHA256": "c127b4cf91ab3b64721efe7c9a3e90a84cca9e35dc004ddb6abd9c5e067896d4",
+      "runtime_source_SHA256": "a4742905290618c740bc81f4e0316b289de86819ece50d7a95da62652bb0a4e9",
+      "method_line": 326
+    },
+    "all_metadata_and_partial_failure_storage_bounded": true,
+    "report_and_input_metadata_reserved_bytes": 2097152
+  },
+  "future_execution_gaps": [
+    "New2HOST/49object Native must actually compile/link and pass strict dependency/export/needed closure; this source is not a Runtime qualification.",
+    "Future thin diagnostic bootstrap must bind the new produced Native exactSHA/49object receipt and preserve qualified create/load/finally/HC0. Current frozen fa63/e3e39 public binder cannot be silently changed or reused with an arbitrary new DSO.",
+    "Real prepared8489 prompt must be reconstructed using qualified actualDeep processor and verified against frozen IDs hash before Native; CPU shape witness is not that input.",
+    "GPU_GO remains false until specific entry/source/CPU/teacher/storage/resource claim root read; no Model reload from this CPU result alone."
+  ]
+}
