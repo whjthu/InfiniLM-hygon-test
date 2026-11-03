@@ -1,0 +1,52 @@
+{
+  "UTC": "2026-11-03T15:03:27.321583+00:00",
+  "owner": "/root",
+  "state": "DEFAULT_OFF_SOURCE_CPU_FEASIBILITY_ONLY",
+  "hypothesis": "C1 currently repeats both unquantized BF16 lowrank projections on all16TP owners. Row-sliced compute plus originalAllGather can remove redundant matrix work; communication and low smallN occupancy may absorb the benefit.",
+  "distinct_from432437": "Same Dense/GEMM provider, altered TP work distribution and two actual collectives; not another kernel tile/grid or the same GEMV replay. Dedup tasks/reviews found no existing lowrank TP-row candidate; old vocab AllGather is distinct and its throughput is not inherited.",
+  "actual_shapes": [
+    {
+      "N": 3584,
+      "K": 7168,
+      "local_N": 224
+    },
+    {
+      "N": 7168,
+      "K": 3584,
+      "local_N": 448
+    }
+  ],
+  "physical_cost_reference": {
+    "replicated_two_matrix_weight_bytes_per_rank": 102760448,
+    "row_slice_bytes_per_rank": 6422528,
+    "allgather_assembled_vector_bytes_per_rank_total": 21504,
+    "collectives_added": 2,
+    "label": "Logical work if weights read once; not measured HBM traffic, physical roofline upper bound, Model speed or memory savings. Existing full weight allocations are retained."
+  },
+  "source_binding": "Parent exact no-bias ReplicatedLinear roles/alpha1 and NONE forward use same dense_projection. Actual AllGather uses Runtime stream/strong leases. C1 rank-major ordering exactly [1,N]; M>1 fallback avoids required row reorder.",
+  "CPU_claim": {
+    "parent": 910407,
+    "node": "a14r2n20",
+    "cores": 4,
+    "memory_MiB": 8192,
+    "max_s": 300,
+    "inside_s": 270,
+    "work_s": 255,
+    "attempts": 1,
+    "GPU": 0,
+    "Native_dlopen": false,
+    "SDK_or_Runtime_execution": false,
+    "new_HOST_TUs": 2,
+    "new_GPU_TUs": 0,
+    "weights": false
+  },
+  "CPU_checks": "Oneactualproductioninline-Dense/AllGather syntax TU compile-only withMD snapshot; puregeometry35cases; actualTorchCPU F32 evaluation of syntheticBF16 fullshape row slicing+concatenation and wrong-order negative. Not GPU math, actualCCL, owner qualification or speed.",
+  "GPU_GO": false,
+  "Model_GO": false,
+  "remaining_before_device": [
+    "Bind actualprivateMoE consumer with exactlytwo projectionroles/noBias and actualRankInfo/comm16; no interface abuse or fakeCPP proof",
+    "Reuse corrected original2392first-submit affinity boundary; no prematurepin or newinlineTLS workaround",
+    "Actualsameinput/weightidentity across16, completeMoE baseline+candidate fullytimed includesallgathers/alloc/drain; concretepublishedsource/resourceclaim+freshidle onlyafterCPU/sourceclosure"
+  ],
+  "decision": "Only consider a bounded fullMoE device comparison after current437 integration/source outcome and necessarysourceclosure; no newModel or GPU by this CPU card. Native quality/performance/attainable maximum remainUNKNOWN."
+}
