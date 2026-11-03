@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "parent_Native_CPU825": "910407.825",
+  "Native_SHA256": "6eb2bd61b5bfc0c5df3fe809bf37f065de2832be07765554db86e512cb6cd1ba",
+  "r179_receipt_SHA256": "37ac44052ffb3b0e43cf7e440178aad4096f09dcd97a8b12d6eca6fc65cd827d",
+  "MD_byte_verified_sources": {
+    "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/execution/submit.hpp": {
+      "SHA256": "8c0bd70a372b0017bca78e54f037493fe79918f97b5fed6d885f5b5d8eb0c20d",
+      "MD_unit": "delta"
+    },
+    "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/execution/owner_affinity_r2392.hpp": {
+      "SHA256": "de2ffe645329558634740ed6b8a9ac7c70030160786eab38d065ce513afce71d",
+      "MD_unit": "delta"
+    }
+  },
+  "trigger": {
+    "submit_header": "RuntimeWorkspaceHandle ctor lines29..32: runtime.assertOwnerThread(); Hygon apply_once(device)",
+    "callsite": "submit.hpp lines147..152: actual Ops submission creates the handle",
+    "lazy": "Runtime::create / model construction does not constitute an Ops submit",
+    "strict": "apply_once width4 OS set/readback; one change per owner, no cross-owner CPU overlap; original verifier unchanged"
+  },
+  "original_346": {
+    "path": "code/bw1000/Kimi-long-target-bootstrap-r346/bootstrap.py",
+    "SHA256": "b74deca1b5ffea7932aacab47885d4ccf1f331273749d79dbdaef077f450c68d",
+    "line": 121,
+    "when": "after all requests/head_after_pair, not preweight"
+  },
+  "failure566": {
+    "actual": "910380.566",
+    "weight_payload_loaded": false,
+    "forward_calls": 0,
+    "normaldestroy32": true,
+    "raw_affinity": "Only first failing device0 changes0/maskempty was retained by old premature verifier; no invented full raw report or CPU mask"
+  },
+  "source_archives": [
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\Kimi410-affinity-current-submit.json",
+      "SHA256": "8fdbcaa26ec49f9360d57e596f1371a804b745b06970451f9dd83749b7e7801c"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\Kimi410-affinity-current-parent-source.json",
+      "SHA256": "27bbb9c50b076e01964a5420eb94efdbc708e4052d25690969cb57c7317389e1"
+    }
+  ],
+  "fix": "Prework rawsnapshot+mainallowedmask observation only; first successful forward strictverify+persist, then original strictverify after requests; no early manual bind/no native change"
+}
