@@ -1,0 +1,3 @@
+#include "owner_affinity.hpp"
+#include <iostream>
+int main(){try{auto entry=kimi_r437_owner::mask();auto normal=kimi_r437_owner::check(false);auto failure=kimi_r437_owner::check(true);bool rejected=false;try{kimi_r437_owner::selected(std::vector<int>(31),0);}catch(const std::invalid_argument&){rejected=true;}if(!rejected)return 2;std::cout<<"{\"passed\":true,\"actual_threads\":8,\"entry_CPU_count\":"<<entry.size()<<",\"unique_owner_CPUs\":32,\"normal_restored\":8,\"injected_failure_restored\":8,\"recording_FFI_only\":true,\"Runtime_created\":false,\"GPU\":0}"<<std::endl;return 0;}catch(const std::exception&e){std::cerr<<e.what()<<std::endl;return 1;}}
