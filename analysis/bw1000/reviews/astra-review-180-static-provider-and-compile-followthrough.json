@@ -1,0 +1,144 @@
+{
+  "review": 180,
+  "reviewer": "/root/astra_review_147",
+  "date": "2026-11-03",
+  "state": "COMPLETE_READONLY_REVIEW_PENDING_ROOT_IMPLEMENTATION",
+  "trigger": "反复可避免编译/入口错误；不是新增三轮性能完成",
+  "scope": {
+    "only_written_file": "analysis/bw1000/reviews/astra-review-180-static-provider-and-compile-followthrough.json",
+    "tests_or_readers_executed": false,
+    "jobs_started": false,
+    "Git_used": false,
+    "new_framework_or_approval_gate": false,
+    "cutoff": "包含审阅时已落本地的 Deep419 CPU850 v5 终态；GLM418 仍采用根提供的 856/857、keeper849 在途观察，不自行轮询或重提。"
+  },
+  "previous_179_followthrough": {
+    "source": "analysis/bw1000/reviews/astra-review-179-implementation.json",
+    "state": "COMPLETE_ADOPTED",
+    "accepted": [
+      "843 guard 身份错误保留；844 原673逐name guard与64真实checkpoint编码成功复用，不重跑编码。",
+      "原client实际64 HTTP/4 preHTTP负例复用，recording Native叶子不等于设备资格。",
+      "执行包使用实际新loader身份，不冒用历史父manifest。418与419独立推进。"
+    ]
+  },
+  "findings": [
+    {
+      "id": "D419_COMPILE_AND_NEW_LOADER_BOUNDARY",
+      "evidence": [
+        "code/bw1000/Deep-learned-router-suffix-r419/cpu-v3/router_suffix.hpp",
+        "code/bw1000/Deep-learned-router-suffix-r419/cpu-v5/adapter.cpp",
+        "code/bw1000/Deep-learned-router-suffix-r419/cpu-v5/build_CPU.py",
+        "code/bw1000/Deep-learned-router-suffix-r419/cpu-v5/CPU_inside.sh",
+        "code/bw1000/Deep-learned-router-suffix-r419/CPU_V5_LOCAL_STATIC_RECEIPT.json",
+        "../Deep419-CPU-v3-original-observation-local.json",
+        "../Deep419-CPU-v4-original-observation-local.json",
+        "../Deep419-CPU-v5-original-observation-local.json"
+      ],
+      "decision": "两处确定编译修复合理且已实际越过；v5整体仍FAIL，不能写CPU闭合或仍在途。",
+      "details": [
+        "v3目的缓冲是本调用分配的可写Tensor，显式目的指针转换不改输入数学或阈值；v5在实际adapter中显式包含nlohmann/json.hpp，避免依赖偶然传递include。",
+        "v5逐SHA/MD核验并复用private_moe.o及997依赖，重新编译只有必要adapter HOST与HIP；原语义/数学/kernel/PARENT_PINS不因修复改变。",
+        "最新实际910407.850 completed=true、passed=false，23.891089s；HOST_compile_attempts=1、HIP_compile_attempts=1、reused_TU_not_recompiled=true。CPU-build.json原件SHA838e736cc5487ece09aa111718e10c883f0aaae78389e428169bce972bde0b23。",
+        "失败发生已链接CPU-router-math-and-metadata执行：flash_attn静态初始化调用at::cuda::getCurrentDeviceProperties，经c10 HIP报告noDevice；没有到共享CXX后置数值消费者及最终私有DSO闭合。不是router数值负结果，也不是GPU试验。",
+        "报表GPU_initialized=false只表示未成功初始化；不能扩大为未尝试设备查询，实际依赖静态初始化确实触发了查询。",
+        "845失败、846逐case因果分类保留；13原验证PASS加1冻结underflow分类，不改称14项无条件原验证PASS，不放宽数学阈值。"
+      ],
+      "minimal_next": "原执行者消费保存的ldd与运行环境，分清额外preload还是实际DT_NEEDED拉入设备初始化链。纯host_suffix数值消费者可从现有router_math头形成不链接设备SDK的最小HOST入口；需要SDK的真实metadata保留为设备依赖边界，不能用stub冒充。复用850成功adapter/HIP及848 private_moe和MD，不原样重试GPU-hidden程序，不为该失败单独启动provider-only GPU；后续如何消费设备边界由原已准备卡决定，不新增本审核门禁。"
+    },
+    {
+      "id": "G418_OWNED_CLEANUP",
+      "evidence": [
+        "code/bw1000/GLM-NoV-W4-quality-r418/execution-v2/controller.py",
+        "../GLM418-execution-v2-changed-cleanup-and-actual-preflight.json",
+        "../GLM418-execution-v2-changed-cleanup-CPU-v2.json",
+        "../GLM418-execution-v2-actual-host-preflight-first.json"
+      ],
+      "decision": "TERM无KILL的确定缺陷已修；CPU替身时间窗修正不改真实20秒宽限，已有三分支证据足够复用。",
+      "details": [
+        "close_owned只向本keeper已知精确Slurm step和start_new_session拥有的PGID发TERM，再在边界内发KILL；不会取消父allocation。",
+        "closed要求终态记账、srun退出和PGID消失共同成立；记账未知即使进程已消失也保留terminal_unknown_or_unclosed=true。",
+        "三个实际POSIX子进程分支覆盖TERM正常、需KILL、记账持续未知；Slurm命令是recording叶子，不能说真实GPU强制清理已经验证。",
+        "初次CPU grace .08s短于1秒观察造成失败保留；第二次成功与actualhostCLI通过不覆盖原失败，也不需要重跑旧编码/全部HTTP CPU。",
+        "已发布GPUMF6fa5706e9d5ccb0852a1ae270e0566c1f880bc2a31268a9ba8a5b0e4cade0275；原856/857+849、epoch1793682572.873715继续，同两个16卡replica各64请求，禁止重提或热改。"
+      ],
+      "unknown": "真实128请求质量、全服务计时、32 owner正常退出及最终post尚待原运行终态，CPU清理通过不替代这些事实。"
+    },
+    {
+      "id": "PUBLIC_PROVIDER_COMPOSITION",
+      "evidence": [
+        "analysis/bw1000/GLM422-root-static-resident-context-consumption.json",
+        "code/bw1000/GLM-resident-context-r422/resident_context.py",
+        "code/bw1000/GLM-native-queue-owner-r423/native_owner.py",
+        "code/bw1000/GLM-native-queue-owner-r423/local-CPU-result.json",
+        "analysis/bw1000/public-prepared-native-queue-r424-root-implementation.json"
+      ],
+      "decision": "方向服务于正常公共入口，尚未形成最终public provider链；下一步直接接薄组合，不再扩独立模块或边界矩阵。",
+      "qualified": [
+        "422静态每rank context复用真实layout/create参数与完整checkpoint loader，保持线程拥有关系、reset/destroy/shutdown；16 CPU案例有录制Native/Torch/storage叶子，无实际载权重。",
+        "423把原W2/W4实际队列、typed wire及Native请求循环接到422 context，刻意不启动或join HTTP；本地案例含drain/取消/failstop/非emitter和context退出顺序，但Native/collective/tokenizer等仍录制。读取时不把未冻结工作目录当发布产物。",
+        "424保存prepared_chat/history和NativeRequest/bridge原语义，factory接受调用者拥有的processor与FinishReason，去掉private HTTP依赖；5 changed CPU证明准备队列接缝，不证明实际checkpoint编码、public HTTP或Native设备。"
+      ],
+      "remaining_exact_chain": "普通public入口拥有HTTP生命周期并绑定实际prepared processor/queue；静态all-rank provider负责launch、affinity/floors、完整load与全体ready，再把同线程Native actor交423，emitter只消费424队列。关闭顺序为停止public admission→所有rank drain→reset/destroy→join，避免HTTP与owner互等。",
+      "minimal_next": "原owner将422+423+424接在一个最终普通public provider调用点，复用已过叶子，仅核实际变更组合和错误传播；不能以各模块CPU PASS相加宣布READY，也不因这条新组合改动正在运行的418。实际device/public API与请求时序尚未通过，后续必要运行的范围由根另行收束，审核不增加重复CPU或Model加载。"
+    }
+  ],
+  "four_questions": {
+    "real_model_or_service_gain": "本轮只有工程落实，没有新整模型收益。此前414在16卡固定六请求W4范围HTTP约-14.83%、TTFT约-16.12%、decode约2.86tok/s的结论保持原范围；418扩大质量仍在途，不能先称广泛质量或公共服务通过。419与422–424均不能记性能轮；Kimi本轮没有新增可晋级结果。",
+    "time_and_iteration_cost": "时间损耗来自419连续HOST编译接缝及设备依赖构造、418清理替身时间窗，而非新的性能因果。复用848的997依赖对象与850成功对象，复用844编码/既有HTTP消费者及418三分支清理，可避免再次全编译和全测试。418两replica同时在途，不得为review等待；当前整体busy、队列/加载/有效计算占比无新实测，均UNKNOWN。",
+    "bottleneck_evidence": "目前确定的是CPU构建/loader环境与入口组合阻塞，不是设备算力或带宽瓶颈。419 learned-router suffix潜在整模型占比及设备收益UNKNOWN；host数值underflow分类不能预测GPU排序/权重结果。GLM已有W4 scoped prefill收益但decode低速仍在；NoV容量与公共服务组合不自动提升decode。不得用大GEMM峰值、编译成功或队列结构推算Model提速。",
+    "routes": "保留418原运行与普通public provider薄组合；419只解决本次确定边界并复用成功构建，不增加kernel grid或更宽数值例外；Kimi不为填机器新增卡。"
+  },
+  "next_cards": {
+    "GLM": [
+      {
+        "priority": 1,
+        "hypothesis": "NoV16/W4原profile在冻结64题双配置质量范围可正常完成且质量无明显回退。",
+        "owner_resource": "原418执行者；只跟856/857及849，两个独立16卡replica。",
+        "change": "无运行中变更。",
+        "reuse": "844编码、client CPU、execution-v2已发布源码与清理证据。",
+        "samples_and_numerics": "既定128 HTTP/Native任务与各题金标、EOS/截断/失败、真实tokenclock；不添请求。",
+        "first_result_time": "剩余时间UNKNOWN；原共同epoch及service13500/Native14100/GPU14400/keeper15000秒不变。",
+        "potential_Model_wall": "新增质量证据，不承诺新倍率；真实全成本待原终态。",
+        "exit": "原终态独审质量/计时/清理；未知失败保留，不自动重播。"
+      },
+      {
+        "priority": 2,
+        "hypothesis": "已验证的静态resident与Native循环、prepared queue可在普通public server拥有关系下组合，去掉私有HTTP启动链。",
+        "owner_resource": "root与423原执行者源/CPU组合工作；本审核不新增设备资源。",
+        "change": "只做最终public provider薄组合，绑定真实factory/processor、all-rank ready、drain与退出。",
+        "reuse": "422的16 CPU、423原循环案例、424的5 changed CPU及Native952；不重复这些叶子。",
+        "samples_and_numerics": "仅实际新增调用交接与原请求/异常消费者；设备数学、真实公共API性能仍未知。",
+        "first_result_time": "组合源完成时间UNKNOWN；优先形成一个可调用最终入口，停止继续拆更多未连接模块。",
+        "potential_Model_wall": "UNKNOWN；主要目标为普通服务可用性与复用已有Model收益。",
+        "exit": "调用链未闭合则明确缺口，不能发布Model_READY；不影响418。"
+      }
+    ],
+    "Deep": [
+      {
+        "priority": 1,
+        "hypothesis": "850失败来自host元数据程序的设备依赖初始化，可在不改router数学的情况下分离纯CPU数值与真正设备边界。",
+        "owner_resource": "原419执行者；复用原有bounded工程范围，不由review启动任务。",
+        "change": "先消费已有ldd/环境证据，最小切开纯math与SDKmetadata；复用成功HOST/HIP和997MD，不重编全部Native。",
+        "reuse": "845/846数学诊断、847/848失败及成功对象、850终态/日志与当前源码。",
+        "samples_and_numerics": "原14固定case按13原PASS+1underflow分类保留；不加阈值、不伪称实际设备数学通过。",
+        "first_result_time": "证据已在本地可立即判定环境边界；修复到可运行组件时间UNKNOWN。",
+        "potential_Model_wall": "UNKNOWN，尚无该候选设备/完整MoE收益。",
+        "exit": "禁止原样hidden重试、stub SDK资格或单独provider-only GPU；未知语义/生命周期错误停定位。"
+      }
+    ],
+    "Kimi": [],
+    "Kimi_reason": "本轮没有比已有结论更有依据的新性能卡；不以419/公共入口工程充Kimi性能，不重复32卡Model驻留。"
+  },
+  "late_root_followthrough": {
+    "source": "根在本报告完成前的增量消息；与本审核读取850原件一致，未重新执行reader。",
+    "Deep850": "根已核原件text SHA、命令、stack、CPU_inside及ldd；CPU_inside没有显式LD_PRELOAD，仍需用有效环境与readelf区分注入和实际NEEDED。若实际NEEDED导致初始化，则复用三个成功对象/MD，只做link-only而不dlopen，纯router_math采用1 HOST标准库原14 case/CXX8thread；设备DefaultConfig/activeindices留真实context，不能冒称CPU动态通过。不是重跑850，不改kernel或阈值。",
+    "r424": "已普通发布1ff62870，最终MF b59eb2e2930bd693de36fa2699b6885d170941a462fe5051cd053256be366027；仅去obsolete app分隔尾空行，NativeRequest/Bridge class AST不变，原5 CPU复用。",
+    "r423": "原执行者已完成并释放槽，尚未发布；不再等待其另造模块，根接续最终组合。"
+  },
+  "root_actions_requested": [
+    "将419当前状态从v5在途更新为实际CPU850 FAIL，并保留两个已修编译错误与新设备初始化失败的分层事实。",
+    "采纳418原句柄继续与三分支清理CPU复用，不重复验收已通过叶子。",
+    "把422–424下一步收束为最终普通public provider薄组合，停止以分散模块PASS代替调用链闭合。",
+    "以上采纳/拒绝由根登记；本审核不改status、不发布Git、不阻独立已授权工作。"
+  ]
+}

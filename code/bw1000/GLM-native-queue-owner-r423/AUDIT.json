@@ -1,0 +1,239 @@
+{
+  "task": "GLM-native-queue-owner-r423",
+  "status": "STATIC_NATIVE_REQUEST_LOOP_IMPLEMENTED_ORCHESTRATOR_NOT_COMPLETE",
+  "Model_READY": false,
+  "GPU": false,
+  "Native_dlopen": false,
+  "new_jobs": 0,
+  "compiled": false,
+  "HTTP_imported_or_started": false,
+  "Git_operations": false,
+  "installed_or_frozen_sources_modified": false,
+  "implemented": [
+    "static original service loop without HTTP/frontend lifetime",
+    "real r422 contextmanager composition, environment policy set after load as original",
+    "same C1 TP8 PP2/32768 full prompt 512 chunks and W2/W4 votes/decodeW1",
+    "same finite/logits and 512MiB service free-memory floor",
+    "same cancellation/normal STOP drain; Native error propagates without extra WORLD drain",
+    "normal_shutdown only after original context lifecycle record confirms cleanup",
+    "partial actual call RC/finite diagnostics preserved; persistence does not mask primary"
+  ],
+  "explicit_inputs": [
+    "lib/ctx/stage/rank/control/check/ptr/stream/vocab/torch",
+    "report/report_path/queue_path",
+    "emitter engine, FinishReason, prepared identity, EOS",
+    "run identity, default profile, profile source manifest SHA",
+    "original absolute monotonic deadline and external stop callback"
+  ],
+  "queue_interface": {
+    "compatible_with": "r424 engine/FinishReason/identity; parser/sampling remain frontend",
+    "required_binding": "original bind_prequeue(engine,default_profile) before accepting requests",
+    "emitter": "stage1 rank0",
+    "nonemitters": "engine=None"
+  },
+  "not_implemented": [
+    "actual allrank launch/preload/admission/global ModelReady",
+    "public CLI/factory construction/HTTP ownership wiring",
+    "full original allowner hardware/memory/affinity/provider/head gates and postcleanup",
+    "whole-job fail-stop propagation from owner exception to peers/frontend; must remain with orchestrator"
+  ],
+  "behavior_delta": [
+    "remove Uvicorn/server/app/HTTP thread startup, ready file and HTTP cleanup/join",
+    "replace absolute paths/env lookups with explicit paths/identity/deadline/stop",
+    "after-load Native environment mutation moved into explicit actual-process helper in composition",
+    "record actual call return/finite status before failure; preserve error if report write fails",
+    "borrowed loop drain does not claim context destruction; outer actual cleanup proves it"
+  ],
+  "CPU": {
+    "passed": true,
+    "cases": [
+      {
+        "case": "actual_queue_W2_full_prompt_decode_EOS_STOP_drain",
+        "passed": true
+      },
+      {
+        "case": "actual_queue_W4_full_prompt_decode_EOS_STOP_drain",
+        "passed": true
+      },
+      {
+        "case": "cancel_after_W2_whole_group_no_sample",
+        "passed": true
+      },
+      {
+        "case": "cancel_after_W4_whole_group_no_sample",
+        "passed": true
+      },
+      {
+        "case": "pending_canceled_only_after_global_drain",
+        "passed": true
+      },
+      {
+        "case": "STOP_pending_canceled_only_after_global_drain",
+        "passed": true
+      },
+      {
+        "case": "WAIT_preserves_sequence_and_does_not_admit_request",
+        "passed": true
+      },
+      {
+        "case": "original_deadline_votes_after_group_then_normal_reset_STOP",
+        "passed": true
+      },
+      {
+        "case": "Native_failstop_preserves_first_call_no_next_request_or_WORLD_drain",
+        "passed": true
+      },
+      {
+        "case": "finite_failstop_preserves_first_call_no_next_request_or_WORLD_drain",
+        "passed": true
+      },
+      {
+        "case": "floor_failstop_preserves_first_call_no_next_request_or_WORLD_drain",
+        "passed": true
+      },
+      {
+        "case": "report_write_failure_does_not_mask_Native_primary",
+        "passed": true
+      },
+      {
+        "case": "nonemitter_uses_received_typed_wire_no_queue_no_HTTP",
+        "passed": true
+      },
+      {
+        "case": "actual_owner_composition_context_exit_before_shutdown_flag",
+        "passed": true,
+        "constructor_leaf": "recording; actual r422 cases not repeated"
+      }
+    ],
+    "actual_new_loop": true,
+    "actual_existing_queue_request_policy_wire_execute_plan": true,
+    "GPU": false,
+    "Native_executed": false,
+    "HTTP_imported_or_started": false,
+    "new_jobs": 0,
+    "Model_READY": false,
+    "recording_leaves": [
+      "Native/Torch/device storage",
+      "collective peers",
+      "official tokenizer/history",
+      "constructor leaf only in composition case; r422 not requalified"
+    ],
+    "all_16_owner_execution": false
+  },
+  "reuse_byte_identical": [
+    {
+      "local": "longcontext_wire_r204.py",
+      "parent": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\InfiniLM-hygon-test\\code\\bw1000\\GLM-NoV-16card-W4-pair-r414\\owner\\longcontext_wire_r204.py",
+      "SHA256": "ec574e394f3942fc16e4cfe8bb3faeb592a94a0d04cfa044fe1aa9be9abee0f4",
+      "scope": "production protocol helper"
+    },
+    {
+      "local": "glm_prefill_execute_r236.py",
+      "parent": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\InfiniLM-hygon-test\\code\\bw1000\\GLM-NoV-16card-W4-pair-r414\\owner\\glm_prefill_execute_r236.py",
+      "SHA256": "1bcb37ddcb25593ed64ac9309749d013f07b9c469d426446e1a9211c53a4f402",
+      "scope": "production protocol helper"
+    },
+    {
+      "local": "service_queue_bridge_r268.py",
+      "parent": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\InfiniLM-hygon-test\\code\\bw1000\\GLM-NoV-16card-W4-pair-r414\\owner\\service_queue_bridge_r268.py",
+      "SHA256": "5ee77c0fed66c8ef0e4279157292239d036d7c51709985f9370ed1c03b069bfc",
+      "scope": "old actual queue CPU consumer fixture; production accepts r424 engine"
+    },
+    {
+      "local": "native_engine_bridge_r268.py",
+      "parent": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\InfiniLM-hygon-test\\code\\bw1000\\GLM-NoV-16card-W4-pair-r414\\owner\\native_engine_bridge_r268.py",
+      "SHA256": "66f9b9f715d77bc70a209cbdf5580d94750eb90ee3da30289c3ae73d4f52c14b",
+      "scope": "old actual queue CPU consumer fixture; production accepts r424 engine"
+    },
+    {
+      "local": "prepared_family_entry_r268.py",
+      "parent": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\InfiniLM-hygon-test\\code\\bw1000\\GLM-NoV-16card-W4-pair-r414\\owner\\prepared_family_entry_r268.py",
+      "SHA256": "c70073494809ecef6a4d1ba14913efe0ced962fd6825381a4c25f494a8f821a6",
+      "scope": "old actual queue CPU consumer fixture; production accepts r424 engine"
+    },
+    {
+      "local": "prepared_chat.py",
+      "parent": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\InfiniLM-hygon-test\\code\\bw1000\\GLM-NoV-16card-W4-pair-r414\\owner\\prepared_chat.py",
+      "SHA256": "e970d55f102aca517ae0086e18a6147ba070f06a62697d44ab587d5c90e68882",
+      "scope": "old actual queue CPU consumer fixture; production accepts r424 engine"
+    },
+    {
+      "local": "prepared_history.py",
+      "parent": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\InfiniLM-hygon-test\\code\\bw1000\\GLM-NoV-16card-W4-pair-r414\\owner\\prepared_history.py",
+      "SHA256": "472e44f36b3aa9e8446cd4ef558234d1b019ab69846e02913c2397cc1c41a4d6",
+      "scope": "old actual queue CPU consumer fixture; production accepts r424 engine"
+    },
+    {
+      "local": "service_policy.py",
+      "parent": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\InfiniLM-hygon-test\\code\\bw1000\\GLM-NoV-W4-normal-profile-r417\\service_policy.py",
+      "SHA256": "392128dbdbf45749ee9bd46a977d267bf042e68d62e71b4c5e62b6ca86bb1f47",
+      "scope": "original typed profile wire and frontend profile binding"
+    }
+  ],
+  "refs": [
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\InfiniLM-hygon-test\\code\\bw1000\\GLM-NoV-W4-normal-profile-r417\\service_owner.py",
+      "SHA256": "aefda89044a6fc009bc59213cfa146997bc4528cf68fbf1dd2ceb0d49b00853d",
+      "scope": "actual r417 original request loop/HTTP ownership source"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\InfiniLM-hygon-test\\code\\bw1000\\GLM-resident-context-r422\\resident_context.py",
+      "SHA256": "ae67a06e021a474ff85612a53825f079c234bca6b7f2b40f0c3a24c13ef4ebf4",
+      "scope": "actual composition dependency, not modified or requalified"
+    }
+  ],
+  "files": [
+    {
+      "path": "check_CPU.py",
+      "SHA256": "5d10b9d774493fdf0a8bbdaebcc4775e7621fcd704edaa7b2054f04cc5f413fa"
+    },
+    {
+      "path": "glm_prefill_execute_r236.py",
+      "SHA256": "1bcb37ddcb25593ed64ac9309749d013f07b9c469d426446e1a9211c53a4f402"
+    },
+    {
+      "path": "local-CPU-result.json",
+      "SHA256": "a3b13708ef93ad47a2b686a0e4125a0053bf202a9e98ad75b58f54594b0328a5"
+    },
+    {
+      "path": "longcontext_wire_r204.py",
+      "SHA256": "ec574e394f3942fc16e4cfe8bb3faeb592a94a0d04cfa044fe1aa9be9abee0f4"
+    },
+    {
+      "path": "native_engine_bridge_r268.py",
+      "SHA256": "66f9b9f715d77bc70a209cbdf5580d94750eb90ee3da30289c3ae73d4f52c14b"
+    },
+    {
+      "path": "native_owner.py",
+      "SHA256": "49523138e436d73a2656834922bf14319ec168b025278befa8baf8d6996d1b35"
+    },
+    {
+      "path": "prepared_chat.py",
+      "SHA256": "e970d55f102aca517ae0086e18a6147ba070f06a62697d44ab587d5c90e68882"
+    },
+    {
+      "path": "prepared_family_entry_r268.py",
+      "SHA256": "c70073494809ecef6a4d1ba14913efe0ced962fd6825381a4c25f494a8f821a6"
+    },
+    {
+      "path": "prepared_history.py",
+      "SHA256": "472e44f36b3aa9e8446cd4ef558234d1b019ab69846e02913c2397cc1c41a4d6"
+    },
+    {
+      "path": "r417-to-static-loop.diff",
+      "SHA256": "cdfa21540a06f713518939d335fe014b957e111e21d9aba24652fcf82e3b43a7"
+    },
+    {
+      "path": "README.md",
+      "SHA256": "c66661b8a6a16a8c5bac73af71d49ac5fabc75539dc8636b158d529c874e3224"
+    },
+    {
+      "path": "service_policy.py",
+      "SHA256": "392128dbdbf45749ee9bd46a977d267bf042e68d62e71b4c5e62b6ca86bb1f47"
+    },
+    {
+      "path": "service_queue_bridge_r268.py",
+      "SHA256": "5ee77c0fed66c8ef0e4279157292239d036d7c51709985f9370ed1c03b069bfc"
+    }
+  ]
+}
