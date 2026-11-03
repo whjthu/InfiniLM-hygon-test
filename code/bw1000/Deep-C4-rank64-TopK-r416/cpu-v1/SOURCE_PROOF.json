@@ -1,0 +1,52 @@
+{
+  "source_parent_C4_SHA256": "7f2ffe0395475a98be8723bf434aa9f4944cb5336656b6d57de0f93fc6d1187e",
+  "source_parent_C4_header_SHA256": "b97c99c824fdb46a55fc90295c03cb7e2e588bd6d0175f55846facba10dbc2b6",
+  "Native49objects_unchanged": true,
+  "SDK_unchanged": true,
+  "private_namespace": "infinilm::models::deepseek_v4::rank64_topk_r416",
+  "transform": "Original defaultOFF TopK-only dispatch and pairedvalues retained. Private read-only boundary_revision getter guards actual prefix lengths, no metadata mutation. Thin adapter saves/restores valid raw and actual BF16state only, old Model/Native49/public ABI untouched.",
+  "kernel": "One CTA256,4096 uint64 encoded ranks in32KiB. Encode validfloat key+inverseID once,78round integer64 compares/swaps, original valuebits; no F64/blockgrid.",
+  "non_target_shape": "Original actual Torch Topk fallback, no alternative math.",
+  "ordering": "Real lanes precede padding even for real-inf; allNaNs highest equivalent class, signedzero equal, lowerID tie only; need actual TorchCPU reference before compile.",
+  "proof_copy_cost": "Additional2KiB values D2H per query in botharms, queued after original indices Runtime D2H/drain and before original following explicit drain. One extra asynccopy, same sync call count but added existing-drain work/wait. CompleteCAPI+proof and checked include it.",
+  "phase_observer": "Not included; original main status body copied unchanged, no status/phase clock scope. Existing wholeprepare/commit chrono only.",
+  "freeze_protocol": {
+    "validraw_bytes": 280368,
+    "state_bytes": 8192,
+    "state_shape": [
+      8,
+      512
+    ],
+    "state_dtype": "BF16 actualmetadata dtype9",
+    "D2D_segments": [
+      [
+        0,
+        0,
+        278784
+      ],
+      [
+        278784,
+        278784,
+        1536
+      ],
+      [
+        286976,
+        280320,
+        48
+      ]
+    ],
+    "state_copy_bytes": 8192,
+    "snapshot_survives_reset": true,
+    "length_revision_written_flags_epoch_not_restored": true,
+    "restore_sync_added": 1,
+    "freeze_once_sync_added": 1,
+    "signature_proof": "Full originalraw D2H but hash only effective2124key/scale slots; allBF16statebits. Invalidpadding not compared or restored. Complete CAPI/outer counts newproof/copy/wait."
+  },
+  "actualstate_provenance": {
+    "local_readonly_receipt_SHA256": "c5a233c152580cfbea1d230975308f91a4cf3d020124503eb38e24dca42a165b",
+    "actual_temporal_header_SHA256": "1b5de31aa0b27e28bb96f41cf68ee52ee58a4784e5ea3bf5e347b0c6e22b157a",
+    "original415_field7_NPY_payload_bytes": 8192
+  },
+  "inherited_415_result": "Negative_STOP, crosscache30/40. No gain or cacheequivalence inherited.",
+  "future_GPU": "Conditional only after actualCPU/finalsourceclaim/freshidle. No Model."
+}
