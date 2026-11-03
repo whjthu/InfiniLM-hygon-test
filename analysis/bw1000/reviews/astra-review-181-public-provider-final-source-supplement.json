@@ -1,0 +1,58 @@
+{
+  "review": 181,
+  "kind": "final425_source_followthrough_supplement_not_new_cycle",
+  "reviewer": "/root/astra_review_147",
+  "date": "2026-11-03",
+  "state": "COMPLETE_ONE_DEFINITE_CONFIG_DEPLOYMENT_BLOCKER",
+  "frozen_main_report_modified": false,
+  "scope": {"source_readonly": true, "tests_or_readers_executed": false, "jobs_or_polling": false, "Git": false, "418_untouched": true, "new_framework_or_gate": false},
+  "reviewed_snapshot": {
+    "directory": "code/bw1000/public-GLM-native-provider-r425",
+    "SOURCE_MANIFEST_SHA256": "3c09c165dc1f037ecce2059094e767eb76f52b1f2449de960f091fae042cdf08",
+    "members": 113,
+    "all_member_bytes_SHA256_checked_readonly": true,
+    "member_mismatches": [],
+    "AUDIT_SHA256": "4f09d7743529e0b2d97f6f3e0bcc98e83ba66c257c19bc33b10d57bd2168be64",
+    "replaces_interim_snapshot_in_181": "4866a92150a808b6f620135b67eb259c0d090337e175b2fd416e1dd83f51306a",
+    "core_read": ["public_glm_native/cli.py", "public_glm_native/protocol.py", "public_glm_native/provider.py", "public_glm_native/actors.py", "public_glm_native/worker.py", "public_glm_native/owner_gates.py", "public_glm_native/resident_context.py", "public_glm_native/owned_context_r404.py", "public_glm_native/native_owner.py", "public_glm_native/checkpoint_loader.py", "public_glm_native/prepared_queue.py", "public_glm_native/service_policy.py", "public_glm_native/service_queue_bridge_r268.py", "public_glm_native/native_engine_bridge_r268.py", "public-python/infinilm/server/inference_server.py", "config.template.json", "SOURCE_MANIFEST.json", "DERIVATION.json", "integration-deltas.diff", "AUDIT.json", "local-CPU-result.json", "README.md"]
+  },
+  "definite_findings": [
+    {
+      "priority": "P1_BEFORE_DEPLOYMENT",
+      "file": "code/bw1000/public-GLM-native-provider-r425/config.template.json",
+      "lines": [14, 17, 18],
+      "problem": "Common_python_root及FP8_helpers_SHA256的两个路径键使用Windows反斜杠。Linux上反斜杠不是目录分隔符。",
+      "actual_consumers": [
+        "cli.prepare_public把Common_python_root传给Path.resolve再插sys.path，Linux将其视为当前目录下包含反斜杠的相对名称，不能作为所需Common模块搜索目录。若外部路径恰好让import成功，也不代表此配置正确。",
+        "owner_gates.after_load从/proc/self/maps读取真实POSIX路径，随后actual==config['FP8_helpers_SHA256']精确比较；两个反斜杠key必然与正常/refactor/...映射不同。这会在权重加载后才失败。"
+      ],
+      "minimal_fix": "模板与最终部署config把这三个值/键写为明确/refactor/... POSIX绝对路径；生成器用PurePosixPath或原始POSIX字面量，不用Windows Path字符串化。保留原helper SHA和严格等值；更新配置/源清单身份即可，不重编Native、不扩大门禁、不新增GPU。",
+      "why_CPU_missed": "五个changed CPU只录制Native owner body/进程执行，未在Linux消费该配置的真实import和/proc映射；source-only CLI目前只核schema而不使用这些路径。",
+      "boundary": "这是最终模板的确定问题。若根制作的实际运行配置已逐项改为正确POSIX路径则该配置阻塞解除；本审未见该后续部署配置，不假定已修。已在途418不受影响。"
+    }
+  ],
+  "connected_chain_assessment": {
+    "decision": "最终包确实实现普通public provider调用链，不再缺一个新wrapper或抽象层；修上面配置后保留实际部署资格UNKNOWN。",
+    "CLI_settings_and_import": "python -m public_glm_native验证113源成员/config SHA和明确Native952/TP8PP2/C1/32768/5100/4500；stage1建真实AutoInfinilmProcessor、原prepared queue，再将GLMProvider作为InferenceServer.engine_factory。public副本路径置前，Common extension绝对路径及SHA严格核对。provider核对公共构造settings，无第二scheduler。Python3.10可用所见标准库语法；真实安装import、扩展构造与依赖仍未执行，不能由静态阅读保证。",
+    "spawn_and_UID": "stage0 parent生成world、两TP及control UID，通过带run/step/source/config/epoch身份的完成后原子文件发布；worker验证base64长度和实际Native id_size。stage0生成8个spawn，stage1生成7个spawn加rank0 emitter线程。spawn参数只有rank与JSON config；prepared processor/NativeRequest/queue只在public进程与emitter线程内共享，不被multiprocessing pickle。子进程继承parent准备的sys.path，但真实spawn启动尚未验。",
+    "admission_and_ready": "实际ResidentContext依次原create→registry全16票→partition/keys/trim/census→TP8及WORLD16 warm→全16 preweight>8GiB→完整load/finish及keys闭合→affinity/provider/helper核对→全16已加载且free>4GiB票。随后原service agreement和policy barrier后才owner_ready，各ready记录由Run.all_ready复核16个身份和每node 8×4无重叠CPU mask；public lifespan等待后才写MODEL_READY并yield。不存在仅构造queue就宣布Model ready的源码路径。",
+    "422_delta": "新增强制owner_gates串在原context生命周期中；正常退出先reset，再before_destroy/destroy/after_destroy/shutdown/Torch-after。OwnedContext只尝试一次destroy/shutdown，错误路径保留primary并补清理；失败不写正常closed。未动Native952数学。",
+    "sampling_and_public_routes": "424原prepare/history与NativeRequest保持原语义，公共实例绑定strict sampling；完整history重新编码、原EOS、temperature0、n1、无stopstring、上下文总量及显式profile4096上限在入队前核对。ignore_eos明确拒绝，不静默违背。W2/W4 profile来自原header/body协议，public routes仍由真实InferenceServer注册。公共timeout以实例传入3600/7200，未全局替换模块。请求budget较长也不延长4500服务epoch。",
+    "stop_and_cancel": "public生命周期拥有provider.stop；admission RLock下停止新入队、设置emitter stop并对所有未完请求mark_abort，实际Native循环在完整W组边界投票取消/reset/finish；STOP后全局drain才finish未进入Native的排队请求。随后context destroy/shutdown、closed文件、join，owner不join HTTP，避免原循环依赖。失败标记由全局namespace传递，监控只终止本组Process对象；卡住的同进程Native线程最终整leader fail-stop，不能标正常销毁。",
+    "absolute_deadline": "配置沿唯一原gpu_start_epoch计算4500服务和5100 Native；load检查不延时重置，正常join最多剩余600秒、已失败group最多20秒本地展开。若线程卡住则退出leader，实际硬界仍需README所述单fail-stop Slurm step外层兜底；这是部署范围，不是本地CPU已证明实际集群终态。"
+  },
+  "existing_CPU_scope": {
+    "cases": ["实际public lifespan/Actor supervisor/同queue/有界stop", "duplicate intent拒绝且不污染原run", "actor失败标记与frontend fatal传播", "ready身份拒绝source变化", "postdestroy保留evictions但拒绝active byte leak"],
+    "reuse": "五项已有CPU足够说明新增Python组合接缝，不重复422/423/424全套，也不因本审新增矩阵。",
+    "recording_leaves": ["实际Native owner body", "spawn Process执行", "FastAPI构造/routes叶子", "16 ready测试输出"],
+    "not_qualified": ["实际部署Python/import/Common extension", "设备Native constructor/完整checkpoint载入与16owner", "真实public HTTP/SSE请求及客户端tokenclock", "真实取消/Slurm终态/PID/KFD/端口清理"],
+    "new_GPU_or_Model_PASS": false
+  },
+  "root_acknowledged_before_close": "根已把确定POSIX路径缺陷发原425执行者最小修复：PurePosix/实际provider严格等值、源校验早拒反斜杠，仅changed消费者；原3c09/AUDIT/CPU历史保留，不重五项组合、不GPU。本审未把尚未读到的修复结果写成PASS。",
+  "minimal_followthrough": [
+    "根在最终配置生成处修三个POSIX路径；保留原3c09/AUDIT历史，changed配置/源码明确新身份，避免加载后才因路径字符串失败。",
+    "无需新增wrapper：沿已有普通CLI和实际public lifespan消费最终部署配置，实际import/device资格如实保持UNKNOWN，后续必要范围按根具体认领推进。",
+    "复用Native952、原数学/对象、旧已过叶子；不动418，不为本审新起GPU/测试或等待另一次review。",
+    "根逐项登记采纳/拒绝；181主报告保持冻结，本补充不增性能轮。"
+  ]
+}
