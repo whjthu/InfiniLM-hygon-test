@@ -1,0 +1,13 @@
+{
+  "source_parent_C4_SHA256": "7f2ffe0395475a98be8723bf434aa9f4944cb5336656b6d57de0f93fc6d1187e",
+  "source_parent_C4_header_SHA256": "b97c99c824fdb46a55fc90295c03cb7e2e588bd6d0175f55846facba10dbc2b6",
+  "Native49objects_unchanged": true,
+  "SDK_unchanged": true,
+  "private_namespace": "infinilm::models::deepseek_v4::fixed_topk_r415",
+  "transform": "Only original TopK submit wrapped with fixedshape defaultOFF dispatch and symmetric Pending topk_values proof retention. Original query/status/SUM/prepare/commit/reset/poison maths and sync positions preserved.",
+  "kernel": "One CTA256 explicit launch_bounds256,4096 padded bitonic total order,shared32KiB,no GPU FP arithmetic/F64; values raw input[id] bits copy.",
+  "non_target_shape": "Original actual Torch Topk fallback, no alternative math.",
+  "ordering": "Real lanes precede padding even for real-inf; allNaNs highest equivalent class, signedzero equal, lowerID tie only; need actual TorchCPU reference before compile.",
+  "proof_copy_cost": "Additional2KiB values D2H per query in botharms, queued after original indices Runtime D2H/drain and before original following explicit drain. One extra asynccopy, same sync call count but added existing-drain work/wait. CompleteCAPI+proof and checked include it.",
+  "phase_observer": "Not included; original main status body copied unchanged, no status/phase clock scope. Existing wholeprepare/commit chrono only."
+}
