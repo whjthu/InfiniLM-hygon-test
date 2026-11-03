@@ -1,0 +1,37 @@
+{
+  "retained_AllGather_header": {
+    "path": "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/engine/distributed/communication_group.hpp",
+    "SHA256": "4ca95d8824deda71d98f104ac63681d92c35a4dff045aaedbb61818f401ec585"
+  },
+  "retained_AllGather_source": {
+    "path": "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/engine/distributed/communication_group.cpp",
+    "SHA256": "0e1a0c59dffc0eb55bf1bbb98e1a623e5a3f2369253e7f178e16b74fd1fcdf6e",
+    "lines": "125-154 eager submitNow/submitCollective,329-342 allgather_",
+    "conclusion": "args hold Tensor refs only until native enqueue callback returns, no completion sync/lease container"
+  },
+  "Runtime_source": {
+    "SHA256": "a4742905290618c740bc81f4e0316b289de86819ece50d7a95da62652bb0a4e9",
+    "syncStream_lines": "135-144 StreamSynchronize + owner failstop",
+    "releaseDeviceMemory_lines": "178-198 owner-thread allocator deallocate without sync",
+    "memory_deleter_lines": "206-214 captures Runtime; does not prolong collective output lifetime"
+  },
+  "old775_actual_down": {
+    "shape": [
+      1,
+      7168
+    ],
+    "strides": [
+      14336,
+      1
+    ],
+    "data_displacement_from_strong_storage_bytes": 0,
+    "strong_storage_bytes": 28672,
+    "address_span_formula": "[Tensor::data,Tensor::data+2*K) for M1/inner1, positive rowpitch unused",
+    "Runtime_pool_offset": "UNKNOWN"
+  },
+  "actual_provider": {
+    "path": "/refactor/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/python/_infinilm.cpython-310-x86_64-linux-gnu.so",
+    "SHA256": "2e1458609cc81a31351c451004c045b8e84f7581844afedf1a577df2c940ccb2"
+  },
+  "distinct_scope": "pure source/CPU lifecycle evidence only; future native collective behavior/performance not qualified"
+}

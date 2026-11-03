@@ -1,0 +1,53 @@
+{
+  "task": "Kimi-lowrank-TP-rowshard-r440/source-span-v2",
+  "stage": "source-and-CPU-only",
+  "default": "OFF",
+  "GPU_GO": false,
+  "Model_GO": false,
+  "scope": {
+    "input": "layer1 actual retained 7168 BF16 teacher row replicated across actual TP16 PP1 owners; source file identity inherited437",
+    "weights": "full original layer1 checkpoint independently loaded by each module/owner, both ReplicatedLinear remain resident; unchanged original loader",
+    "candidate": "original Dense BF16/F32-accum provider for exact local output rows224/448 then native rank-major AllGather; input preparation retained",
+    "shared_and_routed": "original router+FP4 expert+TP allreduce+norm+shared+combine complete body",
+    "layout": "PP1 padded scales, long_factory=false. Not current PP2 Model identity or quality."
+  },
+  "lease": {
+    "source": "old eager submit retains only during native enqueue; owning Tensor deallocation does not itself synchronize",
+    "completion": "original Runtime.syncStream after full-MoE return, same one successful completion baseline/candidate",
+    "new_refs": 14,
+    "release": "clear, capacity release and scope destruction before main full-MoE timer ends",
+    "failure": "original per-helper FailureDrain plus full-scope completion before refs release; sync failure failstops",
+    "no_added_success_sync": true
+  },
+  "CPU": {
+    "new_HOST": 2,
+    "pure_shared_lease_span_contract": 0,
+    "old35geometry_and_fullshape_reference_replayed": false,
+    "old905_suite_replayed": false,
+    "reuse": "qualified8df original33 objects/deps, original helper/Common; r432 GPU object explicitly removed",
+    "checks": [
+      "actual copied consumer body/5 exact calls",
+      "same generic pending-lease success/error lifetime logic",
+      "strict 2D physical singleton address/rejection envelope",
+      "actual preMD+compileMD and all external pins",
+      "exact7 duplicate C wrapper localize/textSHA unchanged",
+      "isolated Bsymbolic/no-undefined full Native link",
+      "original qualified strong/CABI/deps/actual AllGather provider"
+    ],
+    "pure_lease_span_actual_CPU910_reused_without_recompile_or_reexecution": true
+  },
+  "UNKNOWN": [
+    "actual device Dense small-row cost",
+    "two full-output AllGather cost/TP execution",
+    "device numeric drift",
+    "complete MoE performance",
+    "source snapshots are not full historical binary build attestation"
+  ],
+  "no_claims": [
+    "HBM traffic divided16",
+    "16x speed",
+    "capacity saving",
+    "Model gain",
+    "actual SDK completion tested on CPU"
+  ]
+}
