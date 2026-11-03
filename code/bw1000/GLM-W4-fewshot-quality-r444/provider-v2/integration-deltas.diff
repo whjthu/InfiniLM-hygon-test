@@ -1,0 +1,255 @@
+--- a/resident_context.py
++++ b/public_glm_native\resident_context.py
+@@ -10,10 +10,10 @@
+ from pathlib import Path
+ import threading
+ 
+-from checkpoint_loader import load_checkpoint
+-from model_admission_r404 import constructor_snapshot, actual_providers, NATIVE_SHA
+-from owned_context_r404 import OwnedContext
+-from topology_r404 import create_context, validate_layout
++from .checkpoint_loader import load_checkpoint
++from .model_admission_r404 import constructor_snapshot, actual_providers, NATIVE_SHA
++from .owned_context_r404 import OwnedContext
++from .topology_r404 import create_context, validate_layout
+ 
+ 
+ class ResidentContext:
+@@ -25,7 +25,7 @@
+     def __init__(self, binding, *, model_path, layout, rank, stage, comm_ids,
+                  environ, hostname, torch, safe_open, deadline_check,
+                  phase_marker, lifecycle_path, constructor_record_path,
+-                 report, provider_reader=actual_providers, maps_text=None):
++                 report, owner_gates, provider_reader=actual_providers, maps_text=None):
+         self.binding = binding
+         self.model_path = Path(model_path)
+         self.layout, self.rank, self.stage = dict(layout), rank, stage
+@@ -36,6 +36,7 @@
+         self.lifecycle_path = Path(lifecycle_path)
+         self.constructor_record_path = Path(constructor_record_path)
+         self.report, self.provider_reader, self.maps_text = report, provider_reader, maps_text
++        self.gates = owner_gates
+         self._ctx = None
+         self._owned = None
+         self._thread = None
+@@ -96,6 +97,7 @@
+             raise
+         try:
+             self.phase_marker("create.return", self.rank)
++            self.gates.after_create(self.binding, self._ctx, self.report)
+             lib.modern_glm_partition_report_r3854.argtypes = [ctypes.c_void_p]
+             lib.modern_glm_partition_report_r3854.restype = ctypes.c_char_p
+             part = json.loads(lib.modern_glm_partition_report_r3854(self._ctx))
+@@ -117,6 +119,7 @@
+             self.report["idle_constructor_trim_r5394"] = list(trim)
+             constructor_snapshot(lib, self._ctx, self.stage, self.rank, self.report,
+                 report_path=self.constructor_record_path, provider_reader=self.provider_reader)
++            self.gates.before_load(self.binding, self._ctx, self.report)
+             self.phase_marker("load.enter", self.rank)
+             load_checkpoint(self.binding, self._ctx, model_path=self.model_path,
+                 torch=self.torch, safe_open=self.safe_open, stage=self.stage, rank=self.rank,
+@@ -129,9 +132,13 @@
+                 all_local_Native_keys_loaded=True,
+                 non_layer_Native_keys=sorted(k for k in keys if not k.startswith("model.layers.")),
+                 local_constructor_load_finish_completed=True, global_Model_READY=False)
++            self.gates.after_load(self.binding, self._ctx, self.report)
+             self._entered = True
+             return self
+         except BaseException as error:
++            try:self.gates.publish_failure(error)
++            except BaseException as publication_error:
++                if hasattr(error,'add_note'):error.add_note('Constructor failure publication: '+repr(publication_error))
+             self._close(type(error), error, error.__traceback__)
+             raise
+ 
+@@ -149,14 +156,23 @@
+         # The original helper always attempts destroy then shutdown, preserving
+         # the primary and refusing duplicate calls. Reset failure cannot skip it.
+         effective = error if error is not None else reset_error
++        if effective is None:
++            try:
++                self.gates.before_destroy(self.binding, self._ctx, self.report)
++                self.binding.check(self._owned.destroy(self._ctx))
++                self.gates.after_destroy(self.binding, self.report)
++                self.binding.check(self._owned.shutdown())
++                self.gates.after_shutdown(self.report)
++            except BaseException as failure:
++                effective = failure
+         try:
+             self._owned.__exit__(type(effective) if effective is not None else kind,
+                                  effective, effective.__traceback__ if effective is not None else tb)
+         finally:
+             self._closed = True
+             self._ctx = None
+-        if error is None and reset_error is not None:
+-            raise reset_error
++        if error is None and effective is not None:
++            raise effective
+         return False
+ 
+     def __exit__(self, kind, error, tb):
+--- a/native_owner.py
++++ b/public_glm_native\native_owner.py
+@@ -1,9 +1,9 @@
+ """Static r417 Native service loop, without HTTP ownership or source execution."""
+ import ctypes,copy,hashlib,json,os,queue,time,traceback
+ from pathlib import Path
+-from glm_prefill_execute_r236 import execute_plan
+-from longcontext_wire_r204 import WIRE,CONTEXT,OUTPUT_MAX,WAIT,BEGIN,STOP,prefill_chunks
+-from service_policy import encode_profile_wire as encode_wire,decode_profile_wire as decode_wire,select
++from .glm_prefill_execute_r236 import execute_plan
++from .longcontext_wire_r204 import WIRE,CONTEXT,OUTPUT_MAX,WAIT,BEGIN,STOP,prefill_chunks
++from .service_policy import encode_profile_wire as encode_wire,decode_profile_wire as decode_wire,select
+ 
+ NATIVE_ENVIRONMENT={
+  'GLM_SHARED_PREFIX_VALIDATE_R5814':'0','GLM_CROSSREQUEST_PREFILL_R7328':'0',
+@@ -20,7 +20,7 @@
+ def serve_requests(*,lib,ctx,stage,rank,control,check,ptr,stream,vocab,torch,
+                    report,report_path,queue_path,engine,FinishReason,
+                    prepared_identity,eos_token_ids,run_identity,default_profile,
+-                   profile_manifest_SHA256,deadline,should_stop,
++                   profile_manifest_SHA256,deadline,should_stop,owner_ready,owner_failure,
+                    clock=time.monotonic,event_clock=time.perf_counter):
+     # This function borrows an already loaded same-thread ctx. No HTTP lifecycle.
+     PP=2;CARDS=16;is_emitter=stage==PP-1 and rank==0
+@@ -67,6 +67,7 @@
+         check(lib.modern_glm_model_batch_cache_policy_r3068(ctx,1));check(lib.glm_reduced_output_policy_r9032(rank,0));check(lib.glm_attention_cohort_policy_r9054(rank,1));check(lib.glm_ragged_policy_r9136(rank,1))
+         barrier()
+         report.update(planned_HTTP=None,planned_Native=None,attempted_Native=0,completed_Native=0,prepared_entry_identity=prepared_identity,thinking_template_policy='Actual pinned template unchanged; no new toggle qualification',Native_SHA256=report['library_sha256'])
++        owner_ready(report)
+         while True:
+             req=None;wire=None
+             if is_emitter:
+@@ -165,6 +166,11 @@
+             report['queue_journal']=engine.journal_snapshot()
+         barrier();check(lib.glm_ragged_policy_r9136(rank,0));check(lib.glm_attention_cohort_policy_r9054(rank,0));check(lib.modern_glm_model_reset(ctx));check(lib.modern_glm_vector_policy_r8540(rank,0));report.update(cohort_phases_completed=True,normal_reset_close=True,native_service_loop_completed=True,normal_shutdown=False,native_loop_drained=True,global_Model_READY=False,full_requests_completed=request_index,measured_pairing_qualified=False);save()
+     except BaseException as error:
++        # Publish global fail-stop before unwinding into Native context cleanup;
++        # peers may otherwise wait in a collective while local destroy drains.
++        try:owner_failure(error)
++        except BaseException as publication_error:
++            if hasattr(error,'add_note'):error.add_note('Owner failure publication: '+repr(publication_error))
+         report.update(normal_reset=False,normal_shutdown=False,normal_reset_close=False,service_error=repr(error),service_traceback=traceback.format_exc())
+         if is_emitter and req is not None:
+             try:req.fail(error)
+--- a/prepared_queue.py
++++ b/public_glm_native\prepared_queue.py
+@@ -79,6 +79,8 @@
+         checked = dict(data)
+         checked["max_tokens"] = budget
+         params = original_sampling(checked)
++        if getattr(params, "ignore_eos", False):
++            raise ValueError("This Native provider always honors natural EOS; ignore_eos is unsupported")
+         check_sampling(data, params)
+         engine.validate_data(data, params)
+         return params
+@@ -91,9 +93,9 @@
+     if family not in {"GLM", "Deep"}:
+         raise ValueError("Unsupported Native family")
+     FinishReason = finish_reasons
+-    from prepared_chat import make_prepared_encode_chat
+-    from prepared_history import make_prepared_history_prequeue
+-    from native_engine_bridge_r268 import NativeEngineBridge
++    from .prepared_chat import make_prepared_encode_chat
++    from .prepared_history import make_prepared_history_prequeue
++    from .native_engine_bridge_r268 import NativeEngineBridge
+     processor_path = pathlib.Path(processor_path or model_path)
+     tokenizer = processor.get_tokenizer()
+     if family == "GLM":
+@@ -151,7 +153,7 @@
+                 return super().add_chat_request(**kwargs)
+ 
+     if family == "GLM":
+-        from service_queue_bridge_r268 import ServiceQueueBridge
++        from .service_queue_bridge_r268 import ServiceQueueBridge
+         bridge_class, parser, timeout = ServiceQueueBridge, "glm5", 3600.0
+     else:
+         bridge_class, parser, timeout = DeepBridge, "deepseek_v4", 1800.0
+--- a/latest99/python/infinilm/server/inference_server.py
++++ b/public-python/infinilm/server/inference_server.py
+@@ -147,6 +147,9 @@
+         enable_prefix_caching: bool = True,
+         pre_transpose: bool = False,
+         tool_call_parser: str = "none",
++        engine_factory=None,
++        stream_timeout_s: float = DEFAULT_STREAM_TIMEOUT,
++        request_timeout_s: float = DEFAULT_REQUEST_TIMEOUT,
+     ):
+         """Initialize inference server.
+ 
+@@ -212,6 +215,16 @@
+             raise ValueError("Unsupported tool call parser")
+         self.tool_call_parser = tool_call_parser
+ 
++        # Trusted application configuration, never a request-body/import string.
++        # A Native provider must own real construct/load/finish before returning
++        # a ready engine. This callback itself grants no model qualification.
++        if engine_factory is not None and not callable(engine_factory):
++            raise TypeError("engine_factory must be callable or None")
++        self.engine_factory = engine_factory
++        self.stream_timeout_s = float(stream_timeout_s)
++        self.request_timeout_s = float(request_timeout_s)
++        if not 0 < self.stream_timeout_s <= self.request_timeout_s < float("inf"):
++            raise ValueError("Invalid finite stream/request timeout bounds")
+         self.engine: AsyncLLMEngine = None
+ 
+     def start(self):
+@@ -226,7 +239,9 @@
+ 
+         @asynccontextmanager
+         async def lifespan(app: FastAPI):
+-            self.engine = AsyncLLMEngine(
++            factory = (AsyncLLMEngine if self.engine_factory is None
++                       else self.engine_factory)
++            self.engine = factory(
+                 model_path=self.model_path,
+                 device=self.device,
+                 dtype=self.dtype,
+@@ -255,11 +270,20 @@
+                 enable_prefix_caching=self.enable_prefix_caching,
+                 pre_transpose=self.pre_transpose,
+             )
+-            self.engine.start()
+-            logger.info(f"Engine initialized with model at {self.model_path}")
+-            logger.info(f"  enable_graph: {self.enable_graph}")
+-            yield
+-            self.engine.stop()
++            try:
++                self.engine.start()
++                logger.info(f"Engine initialized with model at {self.model_path}")
++                logger.info(f"  enable_graph: {self.enable_graph}")
++                yield
++            except BaseException:
++                # Cleanup must not replace the startup/request primary error.
++                try:
++                    self.engine.stop()
++                except BaseException:
++                    logger.exception("Engine cleanup failed after primary error")
++                raise
++            else:
++                self.engine.stop()
+ 
+         app = FastAPI(lifespan=lifespan)
+         self._register_routes(app)
+@@ -454,8 +478,8 @@
+ 
+             async for token_output in self.engine.stream_request(
+                 req,
+-                timeout=DEFAULT_STREAM_TIMEOUT,
+-                request_timeout=DEFAULT_REQUEST_TIMEOUT,
++                timeout=self.stream_timeout_s,
++                request_timeout=self.request_timeout_s,
+             ):
+                 # Check client disconnect
+                 if await http_request.is_disconnected():
+@@ -581,8 +605,8 @@
+             output_text = ""
+             async for token_output in self.engine.stream_request(
+                 req,
+-                timeout=DEFAULT_STREAM_TIMEOUT,
+-                request_timeout=DEFAULT_REQUEST_TIMEOUT,
++                timeout=self.stream_timeout_s,
++                request_timeout=self.request_timeout_s,
+             ):
+                 # Check client disconnect
+                 if await http_request.is_disconnected():
