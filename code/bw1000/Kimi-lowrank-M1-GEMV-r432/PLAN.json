@@ -1,0 +1,160 @@
+{
+  "task": "Kimi-lowrank-M1-GEMV-r432",
+  "decision": "SOURCE_READY_DISTINCT_MECHANISM_DEVICE_PERFORMANCE_UNKNOWN",
+  "default_OFF": true,
+  "GPU_GO": false,
+  "Model_GO": false,
+  "current_identity": {
+    "Native": "8df87f0741b13c90f658174a793f0068efb4eb8097eddf1d5f44edb4d208e1a2",
+    "SDK": "6d5a6204f7eef70e84deb9cc737a36c6ae2c1fbc75a0f70645557c8441ed85ca",
+    "Common": "2e1458609cc81a31351c451004c045b8e84f7581844afedf1a577df2c940ccb2"
+  },
+  "current_call_chain": [
+    "r201 MoE routed_expert_down_proj_->forward(flattened[T=1,7168])",
+    "routed expert selection/FP4 math/allreduce/routed_norm unchanged and not measured by this component",
+    "r201 MoE routed_expert_up_proj_->forward(routed[T=1,3584])",
+    "ReplicatedLinear alias nn::Linear -> BaseLinear::compute_linear -> NoneQuantization::forward -> dense_projection -> SDK HygonGemm/BlasGemm -> cublasGemmStridedBatchedEx"
+  ],
+  "dispatch_scope": "No source M1-specialized lowrank branch. Vendor BLAS internal M1 kernel/ISA is UNKNOWN; generic API alone does not prove an inefficient selected kernel.",
+  "checkpoint": {
+    "index_SHA256": "a1c5210650ce71d2d3ae9ec5a101ac4afd3cf4b10091be589853437eb967febd",
+    "shard": "model-00002-of-000096.safetensors",
+    "layer": 1,
+    "keys": [
+      "language_model.model.layers.1.block_sparse_moe.routed_expert_down_proj.weight",
+      "language_model.model.layers.1.block_sparse_moe.routed_expert_up_proj.weight"
+    ],
+    "dtype": "BF16",
+    "down_shape_NK": [
+      3584,
+      7168
+    ],
+    "up_shape_NK": [
+      7168,
+      3584
+    ],
+    "bytes_each": 51380224,
+    "bytes_both": 102760448
+  },
+  "mechanism": "One fixed block256 threads per output row, BF16 loads expanded exactly to F32, fmaf F32 lane accumulation + F32 shared tree reduction, BF16 RNE output. Resident unchanged row-major checkpoint weights; no quantization, fusion or caching.",
+  "guard": "Default mode0 invokes original nn::Linear::forward. Explicit mode1 exact two M1 shapes only; stride K, device0/owner thread, eager single Context; no model flags changed. Candidate exception poisons Context and drains before buffer release; destroy remains allowed.",
+  "CPU_resource": {
+    "parent": 910407,
+    "node": "a14r2n20",
+    "cores": 4,
+    "mem_MiB": 8192,
+    "max_s": 300,
+    "inside_s": 270,
+    "build_budget_s": 260,
+    "attempts": 1,
+    "production_HOST_TUs": 1,
+    "GPU_TUs": 1,
+    "necessary_pure_contract_HOST_TUs": 1,
+    "GPU_device_execution": 0,
+    "Native_dlopen": false,
+    "weights": false
+  },
+  "conditional_device_scope": {
+    "GPU_GO": false,
+    "parent": 910371,
+    "node": "a02r3n03",
+    "cards": 1,
+    "GPU_max_s": 600,
+    "CPU_keeper_max_s": 900,
+    "Model": false,
+    "current_Kimi572_nodes_untouched": true,
+    "weights_load_once": true,
+    "projection_cases": 2,
+    "modes": [
+      0,
+      1,
+      0,
+      1,
+      1,
+      0
+    ],
+    "warm_indices": [
+      0,
+      1
+    ],
+    "formal_ABBA_indices": [
+      2,
+      3,
+      4,
+      5
+    ],
+    "timed_projection_calls": 12,
+    "untimed_guarded_ON_diagnostic_calls": 2,
+    "no_grid": true,
+    "input": "Frozen deterministic BF16 synthetic M1, independent down/up vectors; actual checkpoint weights. Not actual Model activations or acceptance.",
+    "state": "All input/weight bytes immutable across arms; include fresh output allocations, launch, final owner drain, release. Record H2D seed, output D2H, complete call, setup/load separately. No elimination of harness observer costs.",
+    "metrics": [
+      "HOST complete_call includes input allocation/H2D/dispatch/outputD2H/drain/releases",
+      "HOST allocation+dispatch+drain",
+      "GPU stream event interval (includes HOST submission gaps), not pure kernel busytime",
+      "finite/relative RMS/maxabs/output hashes vs OFF and independent F32 CPU dot; BF16 output diagnostic",
+      "candidate canary/owner-device/boundary/rejection counters",
+      "OFF endpoint drift and adjacent formal pairs",
+      "actual normal close and independent PID/KFD/post"
+    ],
+    "numerical_stop": "Any nonfinite, invalid geometry/state/canary/owner stops after saving fields. Predeclared relative RMS>0.02 vs OFF stops this component as diagnostic threshold, not general Model quality rule. No GPU F64 or token bitexact requirement.",
+    "performance_decision": "Only if both projections improve complete dispatch and inclusive call beyond observed OFF endpoint drift continue to a full routed/shared/down/up/TP MoE card. Otherwise PARK; no 32target load.",
+    "CPU_affinity_envelope": "NOT_FROZEN: must source-read actual single Runtime affinity before device claim; clear inherited model env. CPU4-core build performs no Runtime/device. No 8owner qualification is inherited."
+  },
+  "conditional_reference": {
+    "weight_read_reference_Bps": 1237110000000,
+    "assumption": "Every logical weight byte read from HBM each call; LLC/actual traffic UNKNOWN.",
+    "weight_only_us_each": 41.53246194760369,
+    "useful_FLOPs_each": 51380224,
+    "arithmetic_intensity_FLOP_per_weight_B": 1,
+    "not_physical_lower_bound": true,
+    "not_Model_speedup_or_utilization": true
+  },
+  "dedup": [
+    {
+      "prior": "r8653",
+      "scope": "layer0 dense down33792->7168/TP8 localK4224/M512 or2048, not replicated lowrank M1; not replayed"
+    },
+    {
+      "prior": "r401 boundedBF16 experts",
+      "scope": "Packed FP4 expert replacement and routing, not resident BF16 down/up; not replayed"
+    },
+    {
+      "prior": "KDA405/345 or RMSfactory341",
+      "scope": "Different attention/state/norm mechanisms; not reused as new performance result"
+    },
+    {
+      "prior": "coldbank/FP4 MMAC",
+      "scope": "Different expert precision/materialization; no decoded weight cache or kernel grid"
+    }
+  ],
+  "evidence": {
+    "Kimi432-current-linear-dispatch-readonly.json": {
+      "SHA256": "d0a930e51e879724488779fd3a01da527621a43150647f240921708de75fc084",
+      "bytes": 100614
+    },
+    "Kimi432-current-linear-leaves-readonly.json": {
+      "SHA256": "b241c72ef0aaf5dc083843fe87b793a186356c146094866e37a05345ae540c17",
+      "bytes": 11162
+    },
+    "Kimi432-current-SDK-Gemm-readonly.json": {
+      "SHA256": "f2a4e0476495d2d704e9bdbdf55bf62be1ceb1bb69d29420ed5c16c9e900360e",
+      "bytes": 29395
+    },
+    "Kimi432-current-component-link-ABI-readonly.json": {
+      "SHA256": "564f330981b088e8fe5d3346bb797c58c030971b4a7a8a9fbf18900e96f3a382",
+      "bytes": 2338
+    },
+    "Kimi432-current-BF16-accum-readonly.json": {
+      "SHA256": "d6e37cc4b03e7f710603aeb37acf15d438494457c97ab8d7c112640870cac43a",
+      "bytes": 950
+    }
+  },
+  "limitations": [
+    "No current Model lowrank-exclusive enclosing wall; no percentage Model upper-bound or inference from BF16 GEMM peak.",
+    "No vendor internal BLAS algorithm/ISA proof from source API.",
+    "No prior actual device numerical/performance qualification for this new kernel.",
+    "Thin component reuses actual Common nn::Linear strong exports; full qualified8df links its own hidden methods, so component gain would still require full-MoE integration/call-chain qualification."
+  ],
+  "baseline_accumulator": "Actual SDK Hygon BlasUtils::GetComputeType returns CUBLAS_COMPUTE_32F; BF16 input/output GetDataType CUDA_R_16BF. New dot remains F32 accumulation, BF16 RNE output; reduction order not bitexact policy."
+}
