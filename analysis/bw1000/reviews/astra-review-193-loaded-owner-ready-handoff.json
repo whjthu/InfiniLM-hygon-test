@@ -1,0 +1,97 @@
+{
+  "review": 193,
+  "state": "SOURCE_REVIEW_COMPLETE_ACTUAL_BLOCKING_POINT_UNKNOWN",
+  "reviewer": "/root/astra_review_147",
+  "date_local": "2026-11-04",
+  "scope": "只读当前provider1183/deployment b56及已保存metadata，写本报告；没有运行test/job/Git、远端轮询、发送进程信号、修改在途源码或制造ready。不是新增审批门槛。",
+  "trigger": "128卡已加载但无请求，真实生产ready交接长时间不前进；属于工程停滞，不是性能或质量轮。",
+  "evidence_cutoff": {
+    "metadata": "L/GLM444-original-phases-observed-20261104-0553.json",
+    "UTC": "2026-11-03T21:53:53.139808+00:00",
+    "provider_manifest_SHA256_read": "1183b8e6166afaefc319a528e6a0f7ce95a0a22a8b4215adf597c2912866df68",
+    "deployment_manifest_SHA256": "b56fc770fa2e4a466a732718d51dfe734ba17bc0e8f70e9fb33f8e427b498833",
+    "observed": "8组GPU/keeper RUNNING，各16 load.return及ready文件存在，COMMUNICATORS/PREPARED存在，MODEL_READY/FAILED/STOP不存在，actual_client=null。slot0最后load.return距快照约25分钟，slot7约9分钟。",
+    "limits": "文件存在与load.return不等于all_ready身份/affinity已通过，不等于public lifespan已yield，也不是当前线程栈或GPU busy证据。root后续实际小文件/线程证据优先于本快照。"
+  },
+  "late_actual_read": {
+    "artifact": "L/GLM444-ready-handoff-original-20261104-0600.json",
+    "SHA256": "e954c4d619f3ad41f1fa47a4df35403309f3af115b08914651712432e14f1080",
+    "UTC": "2026-11-03T21:59:41",
+    "scope": "实际小原件覆盖slot0及slot7，不冒充全8组逐字段核验。",
+    "facts": "两slot16ready同identity，loaded/postload/service为真、每stage32mask互斥；actors-1存在、leader/FRONTEND PID一致，无writing临时文件；日志只含WEIGHTS_READY，无Traceback或Uvicorn startup。",
+    "implication": "这两组的缺ready文件/显见identity冲突假设进一步削弱；主线程实际停点仍UNKNOWN。root/原agent正只读slot0 /proc/wchan/已有py-spy能力，不发signal或热改。先消费这次实际栈/外部条件证据，再决定恢复或有界结束，不能因源码猜测立即停8组。"
+  },
+  "first_conclusion": {
+    "circular_readiness": "未发现源码中的循环ready依赖。不能把无client解释为解除ready的条件。",
+    "source_chain": [
+      "cli.main(stage1)准备实际processor/queue，写PREPARED，构造GLMProvider并启动原uvicorn app。",
+      "真实public lifespan调用factory获得同一provider，再同步self.engine.start()；必须其返回才yield启动HTTP服务。",
+      "GLMProvider.start先prepared.engine.start，再Actors.start，再Actors.wait_ready，再Run.write MODEL_READY，最后_ready=True。",
+      "prepared.engine.start只有停止状态检查，无阻塞等待或请求依赖。",
+      "Actors.start生成15子进程及同进程emitter线程；其启动本身不等待权重完成，然后写actors-stage并启动monitor。",
+      "worker在真实load、service agreement、reset/policy/barrier后发布ready-stage-rank，再进入queue.take(.5)/WAIT控制循环。",
+      "Run.all_ready只等待16个固定ready文件，核同run/step/source/config/epoch、Native、loaded/floor/service及32独占CPU masks，不读MODEL_READY、不等HTTP或client。"
+    ],
+    "implication": "若stage1所见相同namespace的16份ready均有效且main能够执行，则正常路径应很快发布MODEL_READY。现长时间无标记需要定位实际main所处位置；不能由源码单独断言死锁、NFS、GIL、affinity错误或factory未调用。",
+    "what_is_not_proved": "CDLL本身通常释放GIL，源用ctypes.CDLL；这不能证明所有Torch/pybind/FS调用都不阻塞。无实际栈不得归因GIL，也不得为此替换线程/Native。"
+  },
+  "minimal_actual_disambiguation": {
+    "owner": "root与原实现agent已有只读诊断，复用其正在收集的小证据，不重复大raw或模型读取。",
+    "items": [
+      "核精确leader-1与actors-1的PID/子PID及run identity。actors-1存在能排除group.start的部分前段，但不能单凭文件证明monitor_thread.start返回。",
+      "核实际16ready的完整identity、stage/rank、Native/config、loaded/floor/service及affinity masks；用其实际父目录与stage1 config runtime_directory关联，不能只列文件名。",
+      "核MODEL_READY.json.writing-PID是否存在及已保存log尾；能区分进入publish_once前、写/fsync、link/unlink阶段。临时文件不手工rename成ready。",
+      "从既有leader/owned线程的只读栈或waitchannel辨main、emitter、monitor的等待点；这是收束当前故障，不是新测试框架。source未注册faulthandler/SIGUSR handler，不能直接用默认终止型SIGUSR求栈。"
+    ],
+    "bounded_decision": "已有9–25分钟无请求足以启动限时定位；建议root现有只读诊断用一个约5分钟窗口优先取得正在收集的实际栈/外部条件证据，再明确下一行动，不每次看到RUNNING就续等。不是到5分钟自动取消，更不是据源码猜测立即停8组；保留已loaded上下文的合法恢复机会。窗口不覆盖原绝对deadline，也不授权本审核者操作进程。",
+    "no_false_promotion": "若all_ready assert真正失败，原provider except应_trip发布FAILED；FAILED缺失并不能证明assert通过，主线程也可能尚未到达或卡于I/O。必须保持UNKNOWN直到实际证据。"
+  },
+  "preserve_loaded_context_or_stop": {
+    "recover_in_place_condition": "仅当找到具体可恢复的外部等待条件，恢复不改变Python/Native/配置/UID/queue/epoch/请求计划，并让原provider自己走完all_ready和MODEL_READY发布、原keeper自己启动一次client，才可保留本驻留继续。实际恢复动作与耗时单列。",
+    "not_allowed_as_recovery": [
+      "手工制造MODEL_READY、绕过all_ready或把ready文件存在当public ready",
+      "直接启动另一frontend/provider/Native或跨进程接管现有NativeContext/queue",
+      "修改在途源、替换导入模块、改GIL/同步/线程策略后宣称同scope继续",
+      "启动client向尚未yield的服务注入请求以尝试解环",
+      "刷新epoch、缩256题/512arm请求、减少4096预算来伪装完成"
+    ],
+    "if_no_legal_recovery": "将实际loaded-no-public-ready工程失败封存，保留0请求与原计划分母；通过原精确Run identity的STOP路径请求owner drain/reset/destroy，观察已知owner与leader的原有限清理。若主线程/Native等待不响应，执行既有owned fail-stop和独立post；不能继续占128卡等满8h，也不能虚报normal128。",
+    "STOP_boundary": "controller.stop已用HOST对应runtime_directory和精确run/step/source/config/epoch发布STOP；emitter.should_stop读取该文件，原控制协议传播STOP。watch_public_shutdown只设置http.should_exit；由于lifespan当前同步阻在provider.start，仅设置http.should_exit不保证中断start。不能将其视为唯一取消保证。",
+    "new_scope_if_code_fix_required": "若实际根因必须修改provider/Actors/Run等待逻辑，只做新的immutable最小source，保失败源与原runtime证据，改动对应真实producer→consumer的有界入口消费后，再用具体资源/原256题与512请求的未来claim；不得在当前已加载进程热补或自动重复8副本加载。无需新增用户逐次GO，但由root按具体根因选择是否支付下一驻留。"
+  },
+  "question1_gain_and_quality": "本事件0实际请求，无性能/质量结果；128owner loaded仅资格局部。191/192的446整体PARK、PD负结果、Kimi负MoE与1374质量FAIL均不因此改变。全目标未完成。",
+  "question2_time_and_cost": "多副本并行已真实付出加载和驻留成本，却未产生质量样本；当前瓶颈是public readiness交接。slot0约25分钟×16卡即约6.67 card-h的加载后无请求驻留，非GPU busy。应先在已有运行收束阻塞点并决定原路径恢复/停止，不能用更多文档或全deadline等待代替。",
+  "question3_hardware": "没有计算/内存带宽/专家负载/网络瓶颈证据。ready之后无HTTP的症状不能归因为硬件峰值不足；线程/文件系统/身份验证实际阻塞点UNKNOWN。",
+  "next_cards_by_model": {
+    "GLM": [
+      {
+        "priority": 1,
+        "card": "Current444 loaded-context readiness recovery-or-bounded-stop",
+        "owner": "root+原444实现agent",
+        "resource": "仅原8GPU步骤与keepers及已存在128owner，不新job/不重载；原每slotepoch及29400/28800/28200/32400预算保留。",
+        "hypothesis": "原provider存在一个可定位的ready交接阻塞；不是请求驱动的循环等待。",
+        "minimum": "消费现有小metadata/ready/actors/实际等待点，只有真实外部条件可恢复时沿原路径继续。",
+        "first_result": "建议当前只读判别窗口约5分钟；恢复到首实际pair还需实际耗时，UNKNOWN。",
+        "wall_impact": "直接避免剩余128卡无请求驻留；没有Model加速预测。",
+        "exit": "无合法原路径恢复则本scopeFAIL/按原有界清理/post；实际normal证据不足则明示forced或UNKNOWN。",
+        "fallback": "只在根因证实后考虑一个最小新source scope，不预先开第二设备卡或修改题目。"
+      }
+    ],
+    "Deep": [],
+    "Kimi": []
+  },
+  "independent_work": "独立原作业与已授权source工作继续；本次不要求全体等review、不增加通用ready框架或重复918/922/926。",
+  "followthrough_20261104_0602": {
+    "passive_observation": "root报告实际CPU876：py-spy不存在，kernel stacks PermissionDenied/wchan0，没有取得Python阻塞点。不能把该观察当死锁/GIL根因证据；不重复无信息探测。",
+    "decision": "root已选择无合法恢复证据后的有界收束，不是把源码猜测当已知rootcause。保原0请求/512计划与loaded证据，不假ready、不重载。",
+    "causal_round_increment": "root已独立消费447/1384原131files/184forward，晚两窗口L3attn_value为首差，rootcause仍UNKNOWN；计一个真实因果轮，源码/CPU不计。该结果不证明1374融合无责，不自动增加设备卡。",
+    "cleanup_source_review": {
+      "source": "code/bw1000/GLM444-owned-ready-cleanup/stop_original.py",
+      "submitted_SHA256": "5008867854899bc2b93b5a542453bfc5883c03fefb6339055793ca249db94630",
+      "boundary": "只读脚本及CLAIM；未执行cleanup，具体结果待root原件。精确8GPU白名单、8keeper UID/cmdline/slot/MF/startticks/listpids匹配；STOP identity复用原Run，不发parent信号。",
+      "one_blocking_fix_sent": "SIGSTOP之后才frozen.append存在异常/信号窗口：若期间中断，finally遗漏已暂停keeper。same校验后先登记frozen，再SIGSTOP，失败时原身份CONT回滚；无需新测试框架或CPU重跑。",
+      "after_fix": "STOP前失败只回滚已登记keeper；STOP已commit后不得CONT导致lateclient。GPU drain/TERM/KILL与独立post、keeper终态均需实际记录，不能从脚本或CPU exit0声称normal128/clean。"
+    }
+  },
+  "final_decision": "源码审查没有确证循环ready或可安全注入的恢复入口。实际被动观察未取得阻塞点；root已选择有界结束。落实上述唯一暂停登记异常窗口修复后沿精确原scope清理，保完整256/512目标与失败原件；不伪ready、不宣称已知rootcause或正常128销毁。"
+}
