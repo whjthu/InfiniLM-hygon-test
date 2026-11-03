@@ -1,0 +1,33 @@
+{
+  "UTC": "2026-11-03T13:16:56.230159+00:00",
+  "owner": "/root",
+  "task": "Kimi-loader-row-copy-Runtime-r436",
+  "state": "SOURCE_READY_CPU_CLAIM_NO_EXECUTION",
+  "hypothesis": "Exact W2 private CPU row specialization remains useful through actual CPU Runtime/Tensor allocation+contiguous caller, not only raw helper. Full loading exclusive CPU fraction and H2D critical path remain UNKNOWN.",
+  "baseline_Runtime_SHA256": "04a6a1a86c97d176e4304b9bb4c1d6fcb8550784beaa47e0f5841fb7603ffabf",
+  "change": "One private copy.cc HOST TU, original full Tensor gather/scatter/owner/drain/H2D source unchanged; optin INFINILM_CPU_ROW_COPY_R436=1/defaultOFF; exact earlier row helper reused; twelve Runtime objects reused and old strong ABI preserved; separate actual CPU Tensor caller TU. No install replacement.",
+  "CPU_claim": {
+    "parent": 910407,
+    "node": "a14r2n20",
+    "cores": 4,
+    "memory_MiB": 8192,
+    "hard_s": 300,
+    "inside_s": 270,
+    "work_s": 255,
+    "attempts": 1,
+    "GPU": 0,
+    "GPU_compile": 0,
+    "Native_dlopen": false,
+    "CPU_Runtime_dlopen": true,
+    "weights": false,
+    "Model_loads": 0
+  },
+  "validation": "Actual installed04a vs isolateddefaultOFF vs optinON: 32 real W2 rankoffset Tensor cases; strong owner retain/release; padding/overlap gather/scatter/unsupported stride/shape rejection/thread owner; old stats equal/newcandidate chosen. GPU hidden; no accelerator FD.",
+  "performance": "Installed04a original vs actualcandidateON; widths96/6 each2warm+4ABBA,128 full contiguous calls/sample including allocation/destruction; process launch/runtimeinit and verification excluded+separately recorded. One fixed CPU affinity; synthetic warm RAM bytes, not checkpoint or loader. Original rollout criterion means ON/OFF caller wall below1 by more than same-run baseline endpoint drift for both shapes; all raw samples retained.",
+  "provenance_limit": "Current header MD snapshots recorded; not historical build attestation. Actual old Runtime is independent semantic/performance baseline. Not Model gain, device H2D, physical bandwidth, checkpoint faulting, full-loader validation or permanentdefault enable.",
+  "decision": "Positive actualCPU caller result can justify a next source-backed necessary loading cost card; negative result stops this specialization route. Never reload Model solely for report metadata.",
+  "GPU_GO": false,
+  "Model_GO": false,
+  "isolated_result_directory": "/refactor/candidates/Kimi-loader-row-copy-r436-Runtime-CPU-v4",
+  "original_878_result": "results/bw1000/2026-11-03/Kimi436-CPU878-exact-W2-geometry-paired-PASS-no-Model.json"
+}
