@@ -1,0 +1,1 @@
+One original Context, two OFF teacher passes and184 forwards maximum. Fixed real8489 prompt and83 frozen teacher tokens; only outputs82/83 save7 actual boundaries across8owners. Raw limit32MiB. Diagnostic only, no quality/performance repair claim. Inherited2700s GPU including loading/3000s keeper, n01TP8PP1, original normal8owner cleanup and KFD/PID/43882 post. No retry/reload.
