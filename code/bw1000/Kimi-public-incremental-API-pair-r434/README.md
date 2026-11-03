@@ -1,0 +1,9 @@
+# Kimi public incremental SSE pair
+
+Explicit P0/P1 text-delivery comparison on one original complete 9613-token thinking history. Six SSE requests: P0/P1 warm, then P0/P1/P1/P0 formal. Every request retains the 8192 output budget, tool history, exact prompt IDs, and natural EOS requirement. No extra requests or warm loads.
+
+The new public CLI is frozen r434/f082; the owner, Native8df, checkpoint, TP16/PP2 four-node layout, W512 prefill, and model math remain the qualified r428/runtime-v2/fc7e parent. CPU876 is real K3 codec/parser/prepared/FIFO proof, not device/HTTP qualification. The six-client local test uses real HTTP/SSE and recorded Native/owner output leaves, not new model quality evidence.
+
+GPU4200/Native4140/service3540/keeper4500 seconds are absolute offsets from one fresh original epoch; no retry/reload or deadline reset. 32 cards and all loading/startup/cleanup costs are reported. Client channels, SSE lines and data-frame arrivals remain distinct from Native token timestamps. Warm0/1 are excluded from formal ABBA2..5. Variable token counts remain in the denominator. No public token SLO or Native throughput gain is inferred from early text delivery.
+
+Full bodies, IDs, outputs and raw SSE stay on the original R/L. This package carries only exact source paths/hashes and metadata. Whole HOST launcher preflight executes actual Bash exports into the actual typed CLI for four roles, with explicit HOST-only /refactor read-path, hostname/Slurm, and container setup leaves. No serving imports, CUDA, Native dlopen, or Slurm submission in preflight. The once keeper then checks current parents, same-label absence, all 32 DRM PCI identities, KFD/PID emptiness and three passive port binds before one actual GPU launch. TERM/KILL cleanup is bounded and can never qualify as normal.
