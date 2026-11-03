@@ -1,0 +1,13 @@
+# Actual C1 full MoE pair, not Model
+
+One isolated library f5b999, qualified by actual CPU887, with original qualified8df33 objects, original strong r201 MoE OFF, private cloned ON and existing compiled432 GPU object. No source/compiler/kernel/SDK rebuild on device. TP16 actual2nodes, each8 Runtime owners, PP1/long_factory=false and old padded scales. This differs from current PP2 exact-scale Model residency; no Model/memory-fit/TPS qualification.
+
+The original layer1 full checkpoint is read once per node and kept strongly alive through the synchronous CAPI; original and candidate module instances receive identical values. CPU load/two GPU module builds and double residency are recorded. Input is exactly row0 from both retained6110 teacher files, same current hidden geometry; original router, FP4 experts, routed/shared TP, norm and add execute for each call. Down and up consume distinct actual tensors.
+
+Six per-owner forwards: OFF/ON warm then OFF/ON/ON/OFF, total96 native full forwards. The first two numerical/hit checks run before formal. Full BF16 outputs and rank reports persist before classification. Finite/canary/state/shape/hit are mandatory; .02 NRMS is diagnostic alert, .10 is unexplained-drift STOP, not a quality acceptance threshold. No bitwise gate or GPU F64. No warm samples removed from card-cost accounting.
+
+Primary timing is maximum16 rank-local full MoE forward+completion per synchronized arm, including original routing/FP4/shared/TP/norm/add/allocations. Full checked call additionally includes output readback/save/validation/release; never sum nested fields. Cold/checkpoint/dualmodule init/seed/finalclose/full process and observer costs are separate. Device memory snapshots are not peaks. Gains must exceed OFF endpoint drift; no layer multiplication or automatic Model load.
+
+Fresh two-node parent/label/PID/KFD/16unique node+PCI/passive port40917 checks precede one GPU epoch. Final actual HOST launcher preflight runs Bash exports into the actual pure entry policy for both roles, without serving/device imports. Known process/Slurm cleanup uses bounded TERM then KILL; forced cleanup never passes normal qualification. GPU600, shell570+15grace, worker admission540, keeper900 seconds do not slide.
+
+V2 preserves757FAIL/0forward and758clean. Exact per-owner pin is now explicit before DeviceGuard/Runtime; CPU894 actual32core8thread success+failure restore PASS. No private MoE/GPU/math change. Early same-CABI pure sched check precedes checkpoint payload.
