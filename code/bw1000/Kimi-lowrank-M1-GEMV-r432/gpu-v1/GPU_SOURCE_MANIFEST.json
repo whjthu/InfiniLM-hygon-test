@@ -1,0 +1,99 @@
+{
+  "GPU_GO": true,
+  "Model_GO": false,
+  "final_root_read_pending": false,
+  "CPU_receipt": "/refactor/candidates/Kimi-lowrank-M1-GEMV-r432-CPU/CPU-build.json",
+  "CPU_receipt_SHA256": "99b3723b72c04c392dae061ab8ebe89754e97dd12e91062539c0021fc9155a48",
+  "CPU_source_SHA256": "c8556c9d4f291a6eb3429af57afb491e16bad03e99dde5ee3005f8b38580acb2",
+  "library_SHA256": "a431011ac89f009dca15b029191007a29eae13b126ac56ff94e463b2c5623489",
+  "BLAS_policy": {
+    "path": "/refactor/candidates/blas-policy-r271/libblas_policy_r271.so",
+    "SHA256": "7d3a235f5576adeafbf1ead1aa3443bfa6f5d2b108944a954b7a487301256a45",
+    "contract": "Qualified original CUBLAS_ATOMICS_NOT_ALLOWED kept both arms; actual policy counters must verify."
+  },
+  "checkpoint_index_SHA256": "a1c5210650ce71d2d3ae9ec5a101ac4afd3cf4b10091be589853437eb967febd",
+  "resource_claim": {
+    "parent": 910371,
+    "node": "a02r3n03",
+    "cards": 1,
+    "cores": 4,
+    "mem_MiB": 8192,
+    "TP": "none, independent replicated projection",
+    "GPU_max_s": 600,
+    "driver_deadline_s": 540,
+    "shell_deadline_s": 570,
+    "CPU_keeper": {
+      "parent": 910407,
+      "node": "a14r2n20",
+      "cores": 2,
+      "mem_MiB": 2048,
+      "max_s": 900
+    },
+    "port": "none: no HTTP/CCL/TCP listener",
+    "active_claim": true,
+    "no_target_or_draft": true,
+    "attempts": 1,
+    "reload": false,
+    "grid": false
+  },
+  "modes": [
+    0,
+    1,
+    0,
+    1,
+    1,
+    0
+  ],
+  "warm_indices": [
+    0,
+    1
+  ],
+  "formal_ABBA_indices": [
+    2,
+    3,
+    4,
+    5
+  ],
+  "timed_projection_calls": 12,
+  "guarded_diagnostics": 2,
+  "actual_expected_call_counters": [
+    3,
+    4,
+    3,
+    4
+  ],
+  "cases": [
+    {
+      "name": "replicated_down",
+      "N": 3584,
+      "K": 7168,
+      "weight_key": "language_model.model.layers.1.block_sparse_moe.routed_expert_down_proj.weight"
+    },
+    {
+      "name": "replicated_up",
+      "N": 7168,
+      "K": 3584,
+      "weight_key": "language_model.model.layers.1.block_sparse_moe.routed_expert_up_proj.weight"
+    }
+  ],
+  "single_Runtime_affinity": {
+    "actual_source": "/refactor/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/csrc/runtime/runtime.cc",
+    "source_SHA256": "a4742905290618c740bc81f4e0316b289de86819ece50d7a95da62652bb0a4e9",
+    "source_enclosure": "Runtime::create lines60..79 device-count/DeviceGuard + ReusableMemoryPool/stream; no model8owner r2392 path. Not calling modern_create.",
+    "entry_mask": "Actual Slurm c4 mask recorded before/after create/final, must stay same. All inherited model env cleared, r2392 flag explicitly absent."
+  },
+  "measurement": "Complete native call includes input/output allocation/copies, dispatch, final drain and release. GPU event is stream interval with HOST gaps. CPU ref/rawfile observer outside CAPI separate; processwall includes them; no observer-free Model rate.",
+  "numeric_policy": "Record every output BF16 rawbytes/shape/endianness/SHA + actual input and independent CPU F32 matmul/reference outside timing. Finite/canary/state mandatory; NRMS .02 a predeclared component diagnostic stop, not global quality acceptance. No bitexact requirement or GPU F64.",
+  "lifecycle": "one create/load,14 total calls(12schedule+2guard), owner rejection negative has0projection; destroy once; one GPU process/srun+Slurm0; independent PID/KFD post. Error preserves fields and stops original job; bounded owned TERM/KILL only on failure.",
+  "files_SHA256": {
+    "controller.py": "5dcba4e2d1092d9e24e612d0cb0c0b78939bc9e2eb81858d0580c58c929d3c00",
+    "CPU869-result.json": "fa3c3986567e56d48f3d809f7fdc95760c552fd19fae2fb8d0b2b81c7faf088e",
+    "GPU_inside.sh": "47eecb6dfdd2c8c8858ee667cbed65e4d526fb79aa1cd79cb6e6773cb929a600",
+    "GPU_run.py": "a396e1e334d9827ba216979e6c546d78f8834fb95a81ebfc36173c4b40fced9b",
+    "launch_once.py": "476a6443c38f615789c884106649a541eee6d73abf1fedd25ca02f1adda786ac",
+    "local-entry-check.json": "39e456c64f17cc8bef377765ab5b84dc73e154475d06094def61a3a98de20d41",
+    "read_CPU.py": "1fee26cdd4d9179d9669cbc4e00fbb496890469e98ca772d3173aee89a324e71",
+    "resource_probe.py": "84a6f8294158ed971fc842d26b72bcc8696a94917613ca6247812b69e4c69c96",
+    "resource_wave_host_alias_outer.sh": "b6cd3ac7aa1829a39434d8dc186deed6c993323d1ac894727072701570c0825d"
+  }
+}
