@@ -1,0 +1,2 @@
+Actual TP16 PP1 layer1 C1 complete MoE. Only two lowrank projections differ.
+V4 preserves757/765FAIL and clean758/766. CPU898 changedconsumer removes premature pin; original r2392 firstsubmit selects four CPUs. Entry/Runtime-created mask before firstsubmit, actualfour after everyforward,32unique and restore after close are all required. No extra purePOSIX preflight is invoked; legacy CABI retained only for strongABI compatibility. CPU894 purepolicyPASS is not SDKqualification. Same 96forwards/600GPU/900keeper/noModel.
