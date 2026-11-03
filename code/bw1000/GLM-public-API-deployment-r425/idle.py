@@ -14,7 +14,7 @@ while True:
   if not proc.name.isdigit()or int(proc.name)==os.getpid():continue
   try:args=(proc/'cmdline').read_bytes().split(b'\0')
   except OSError:continue
-  if any(b'public_glm_native'in a or b'/GLM-public-API-deployment-r425/client.py'in a for a in args):matching.append(int(proc.name))
+  if any(b'public_glm_native'in a or (b'/GLM-public-API-deployment-r425'in a and a.endswith(b'/client.py')) for a in args):matching.append(int(proc.name))
  with socket.socket()as s:
   try:s.bind(('0.0.0.0',43843));available=True
   except OSError:available=False

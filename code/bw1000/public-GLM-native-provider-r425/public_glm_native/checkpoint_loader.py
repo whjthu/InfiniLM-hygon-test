@@ -50,6 +50,16 @@ def declare(lib):
                                           ctypes.c_void_p, ctypes.c_void_p]
     lib.modern_glm_model_reset.argtypes = [ctypes.c_void_p]
     lib.modern_glm_model_destroy.argtypes = [ctypes.c_void_p]
+    # The qualified model_entry also declares these before the service loop.
+    # ctx is a Python integer returned by c_void_p: without argtypes libffi
+    # converts it to the default c_int and truncates the actual 64-bit handle.
+    for name in ['modern_glm_model_owned_prefix_policy_r1669',
+                 'modern_glm_model_feature_bypass_r1406',
+                 'modern_glm_model_indexer_policy_r998',
+                 'modern_glm_model_decode_leases_policy_r1356']:
+        function = getattr(lib, name)
+        function.argtypes = [ctypes.c_void_p, ctypes.c_int]
+        function.restype = ctypes.c_int
     return Binding(lib)
 
 

@@ -12,7 +12,7 @@ LM=/refactor/candidates/rebased-5f91ad7-r3668/Common/GLM/InfiniLM
 SDK=/refactor/install/hygon-glm-5f91ad7-r3672
 export TORCH_LIB_DIR="$(python -c 'import pathlib,torch;print(pathlib.Path(torch.__file__).parent / "lib")')"
 export LD_LIBRARY_PATH="/refactor/candidates/latest-family-native-r269/GLM/python:/refactor/candidates/glm-hybrid-decode-r5386:$SDK/lib:$LM/python:$LM/python/infinilm/_lib:/refactor/candidates/glm-grouped-native-model-r5117/helpers:$TORCH_LIB_DIR:/opt/dtk/cuda/cuda/lib64:/opt/dtk/cuda/lib64:${LD_LIBRARY_PATH:-}"
-export PYTHONPATH="/refactor/incoming/public-GLM-native-provider-r425:/refactor/candidates/latest-family-native-r269/GLM/python:/old/offline-deps"
+export PYTHONPATH="/refactor/incoming/public-GLM-native-provider-r425-ffi-v4:/refactor/candidates/latest-family-native-r269/GLM/python:/old/offline-deps"
 export LD_PRELOAD=/refactor/candidates/blas-policy-r271/libblas_policy_r271.so
 unset RDMAV_DRIVERS NCCL_ALGO NCCL_PROTO NCCL_MIN_NCHANNELS NCCL_MAX_NCHANNELS
 test "${GLM_EXACT_BANKS_R4188:?}" = 0 -o "$GLM_EXACT_BANKS_R4188" = 1
@@ -41,8 +41,8 @@ fi
 echo "GLM_NETWORK_R3573 actualrequested=$GLM_NETWORK_TRIAL interface=$NCCL_SOCKET_IFNAME backend=$NCCL_NET"
 
 export LD_LIBRARY_PATH="/refactor/candidates/latest-family-native-r269/GLM/python:$LD_LIBRARY_PATH"
-SOURCE=/refactor/incoming/public-GLM-native-provider-r425
-DEPLOY=/refactor/incoming/GLM-public-API-deployment-r425
+SOURCE=/refactor/incoming/public-GLM-native-provider-r425-ffi-v4
+DEPLOY=/refactor/incoming/GLM-public-API-deployment-r425-ffi-v2
 ARGS=(--config "$DEPLOY/config.json" --config-sha "${GLM_R425_CONFIG_SHA:?}" --source-sha "${GLM_R425_SOURCE_SHA:?}" --stage "$SLURM_PROCID" --run "${GLM_R425_RUN:?}" --actual-step "$SLURM_JOB_ID.$SLURM_STEP_ID" --gpu-start-epoch "${GLM_R425_GPUSTART:?}")
 python3 -B -m public_glm_native "${ARGS[@]}"
 LEFT=$(python3 -B -c 'import os,time;print(max(0,int(float(os.environ["GLM_R425_GPUSTART"])+5100-time.time())))')

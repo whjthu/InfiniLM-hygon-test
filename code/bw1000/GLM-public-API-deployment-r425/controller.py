@@ -1,8 +1,8 @@
 from pathlib import Path
 import argparse,datetime,hashlib,json,os,re,signal,socket,subprocess,sys,time,traceback
 R=Path('/public/home/aclsylqidf/hygon-inference-refactor-20261014')
-D=R/'incoming/GLM-public-API-deployment-r425';PACKAGE=R/'incoming/public-GLM-native-provider-r425'
-RUN='public-api-20261103-a';LABEL='GLM-r425-public-API';NODES=['a02r4n12','a02r4n13']
+D=R/'incoming/GLM-public-API-deployment-r425-ffi-v2';PACKAGE=R/'incoming/public-GLM-native-provider-r425-ffi-v4'
+RUN='public-api-20261103-b';LABEL='GLM-r425-public-API';NODES=['a02r4n12','a02r4n13']
 TERMINAL={'COMPLETED','FAILED','CANCELLED','TIMEOUT','OUT_OF_MEMORY','NODE_FAIL','PREEMPTED','BOOT_FAIL','DEADLINE','REVOKED'}
 sha=lambda p:hashlib.sha256(Path(p).read_bytes()).hexdigest()
 def clean_environment(base):
@@ -60,7 +60,7 @@ def close_owned(label,proc,recorded,exact,cleanup_limit,term_s=20.,kill_s=20.):
 
 def gpu_environment(base,epoch,m):
  env=clean_environment(base)
- env.update(WAVE_INSIDE_R2323='GLM-public-API-deployment-r425/inside.sh',
+ env.update(WAVE_INSIDE_R2323='GLM-public-API-deployment-r425-ffi-v2/inside.sh',
   GLM_R425_RUN=RUN,GLM_R425_GPUSTART=str(epoch),GLM_R425_CONFIG_SHA=m['config_SHA256'],
   GLM_R425_SOURCE_SHA=m['provider_source_SHA256'],GLM_SOURCE_MANIFEST_SHA=m['provider_source_SHA256'],GLM_RUN_R5040=RUN,
   GLM_PP_SIZE_R3603='2',GLM_CACHE_ROWS_R3627='1',GLM_CACHE_CAP_R3627='32768',GLM_NETWORK_TRIAL='shca',
