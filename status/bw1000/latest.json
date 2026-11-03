@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-11-02T23:36:22.073303+00:00",
+  "updated_at_utc": "2026-11-03T00:12:43.266735+00:00",
   "owner": "bw1000-agent",
   "hardware": "BW1000",
   "goal_complete": false,
@@ -17,22 +17,15 @@
     "InfiniOps": "1ca4777610d77e9063fffdb975ab35da8466104d",
     "InfiniCCL": "51cc9db31d58aac21643d72f0f77cf5c9ecfaee5"
   },
-  "current_actual_GPU_jobs": [
-    {
-      "actual_GPU": "910376.850",
-      "keeper": "910407.822",
-      "state": "RUNNING_LOADING_WEIGHTS",
-      "last_observed_UTC": "2026-11-02T23:15:14.619601+00:00",
-      "no_restart_from_stale_state": true
-    }
-  ],
+  "current_actual_GPU_jobs": [],
   "latest_review": {
-    "id": 175,
-    "state": "COMPLETE_ADOPTED",
-    "report": "analysis/bw1000/reviews/astra-review-175-production-entry-and-topology-followthrough.json",
-    "implementation": "analysis/bw1000/reviews/astra-review-175-implementation.json",
-    "performance_rounds_after": 1,
-    "inflight_review": null
+    "id": 176,
+    "state": "RUNNING",
+    "agent": "/root/astra_review_147",
+    "report_expected": "analysis/bw1000/reviews/astra-review-176-normal-16card-and-entry-followthrough.json",
+    "trigger": "Two new actual rounds plus repeated827/828 avoidable entry errors; errors are not performance rounds",
+    "performance_rounds_after175": 2,
+    "inflight_review": 176
   },
   "Kimi": {
     "current_Model_result": "results/bw1000/2026-10-31/Kimi252508-full-agent-history-multicall-paired-gain-and-cleanup-PASS.json",
@@ -314,17 +307,17 @@
     "retained_gain_result": "results/bw1000/2026-10-28/glm781-qualified-deferred-feedback-ABBA.json",
     "C1_C8_chunk_result": "results/bw1000/2026-10-28/glm784-C1-C8-and-chunk-ABBA-qualified.json",
     "chunk_default": "STOP",
-    "next": "coordination/tasks/glm-progress-write-throttle.json",
+    "next": "176 route choice; preserve prior32card W4 scoped gain separately; no automatic replay",
     "CPU_observer": "results/bw1000/2026-10-28/glm524-C1-observer-CPU-qualified.json",
     "runtime_source": "code/bw1000/resume-20261026/GLM-C1-decode-Model-r169b",
-    "phase": "787_COMPLETED_OFFLINE_REANALYSIS_QUALIFIED",
+    "phase": "16CARD_C1_32K_NOV_TWO_TOOLS_NORMAL_SCOPE_PASS",
     "probe_limits": "T1actualDECODEonly,ONnotcleanTPS,nestedstreamnotGPUbusy,TPonlyUNKNOWN",
-    "actual_GPU": "910376.787",
-    "CPU_keeper": "910407.529",
-    "observed_UTC": "2026-10-28T17:26:07.512899+00:00",
-    "result": "results/bw1000/2026-10-28/glm787-C1-profile-offline-recovered.json",
+    "actual_GPU": "910376.850 COMPLETED0",
+    "CPU_keeper": "910407.822 COMPLETED0",
+    "observed_UTC": "2026-11-03T00:12:43.266735+00:00",
+    "result": "results/bw1000/2026-11-03/GLM404-850-scoped-C1-PP2-two-tool-Model-PASS.json",
     "offline_CPU": "910407.532 COMPLETED0",
-    "quality": "All3arms4/4correct4EOS0cap;16owner3actualT1windows;noalgorithmgain",
+    "quality": "Two complete existing tool-history requests gold/EOS/reset pass; broader benchmark unproven",
     "diagnosis": "analysis/bw1000/GLM-C1-787-diagnosis-r170.json",
     "CPU_filesystem_probe": "results/bw1000/2026-10-28/glm789-790-progress-file-CPU-latency.json",
     "candidate_status": "DEFAULT_OFF_SOURCE_CONTRACT_ONLY; complete runtime not ready; Model gain UNKNOWN",
@@ -657,7 +650,11 @@
     "quality": "Tokenidentitydiagnosticsonly;realQA/EOS/caps+laterbenchmarknoobviousdrop",
     "Slurm_liveness": "squeue--stepsomittedknownrunningnumericsteps;verifyexacthandlewithscontrol/sacct,notabsenceinlisting"
   },
-  "current_priority": "ExecutealreadyreviewedGLM404one16cardC1full32KModelcapacity/2fulltools afterfinalpublishedsourceclaim/freshidle; parallelKimiTP8PP4andGLMNoKsourcefeasibility only.406statusrouteSTOP/405noqualifiedgain/401STOP.",
+  "current_priority": [
+    "Kimi410 actual32card topology qualification via original bounded finalcontroller; no duplicate Model",
+    "Deep413 measured existing completion phase costs after exact known entry repair",
+    "176 review consumes actual GLM850 capacity/cost and decides next useful card; no filler negative reruns"
+  ],
   "performance_GPU_scheduling": {
     "updated_UTC": "2026-11-02T13:51:13.837357+00:00",
     "known_running_GPU": [],
@@ -742,7 +739,7 @@
     "live807_clock_transfer": false,
     "certified_deployed_BF16_peak_and_Model_maximum_TPS": "UNKNOWN"
   },
-  "UTC": "2026-11-02T21:52:38.732079+00:00",
+  "UTC": "2026-11-03T00:12:43.266735+00:00",
   "Kimi_append512_actual_Model_r252": {
     "state": "SCOPED_MATCHED_GAIN_AND_FULL_SAME_RESIDENCY_AGENT_PASS_CLEAN",
     "task": "coordination/tasks/Kimi-append512-actual-Model-r252.json",
@@ -1309,7 +1306,7 @@
     "new_speedup_claim": false
   },
   "Deep_next_performance_task": "coordination/tasks/Deep-C1-prefill-2048-pair-r151.json",
-  "current_actual_GPU_jobs_basis": "1336/745verifiedterminalandpostclean; r404finalonceModelclaimactivating, actualhandlepending. NotallGPUcurrentutilizationclaim.",
+  "current_actual_GPU_jobs_basis": "Root known handles850/822 normal terminal and851 postclean; Kimi410 final controller not yet submitted, Deep413 CPU-only repair. Not a cluster GPUbusy snapshot; new actual agent handles supersede this timestamp.",
   "Kimi_long_target_publisher": {
     "source": "code/bw1000/Kimi-long-target-publisher-r335",
     "manifest_SHA256": "5e14dfd4945987141b9da42b3733fbae7e75aae277f9854b0c755e7ffd8e4ab8",
@@ -3252,7 +3249,7 @@
     "next": "r404 source+necessarychangedentryCPU; oneconditional residency actualfit+2requests, exactclaim beforeGPU"
   },
   "GLM404": {
-    "state": "LIVE16_CONSTRUCTOR_NOV_CENSUS_AND_ORIGINAL_8GiB_PREWEIGHT_GUARD_PASSED_LOADING_NOT_FINISHED",
+    "state": "SCOPED_MODEL_C1_TP8_PP2_NO_RESIDENT_V_TWO_COMPLETE_TOOLS_NORMAL_PASS",
     "owner": "/root/kimi_operator_tuning",
     "GPU_GO": false,
     "proposed_nodes": "910376/a02r4n12,n13 subjectfreshactualallocation/idle",
@@ -3270,30 +3267,37 @@
     "W": 2,
     "same_context_lifecycle": "census->admission->load->2requests/reset->destroy",
     "unchanged_guards": "8GiBpreweight/512MiBforward",
-    "actual_GPU": "910376.850 RUNNING at 2026-11-02T23:15:14.619601+00:00",
+    "actual_GPU": "910376.850 COMPLETED0/2396s",
     "CPU": "910407.813 COMPLETED0/24s",
     "CPU_receipt_SHA256": "6f9972f0651b51b4923b0180f3abf3eb35b1313ac9c1a457be29eeaa9de22ffe",
     "CPU_receipt_path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/GLM-V-on-demand-Model-r404-CPU-v3/CPU-result.json",
-    "root_consumption": "analysis/bw1000/parallel406-405-and-GLM813-root-consumption.json",
-    "actual_keeper": "910407.822 RUNNING at 2026-11-02T23:15:14.619601+00:00",
+    "root_consumption": "analysis/bw1000/GLM850-root-capacity-quality-lifecycle-and-cost-consumption.json",
+    "actual_keeper": "910407.822 COMPLETED0/2439s",
     "library_SHA256": "9520769d28742aba489b38ecbd1e1692f6830168c699d7111f1e0c2ae4cd598b",
     "source_manifest_SHA256": "a3de385519b8e5ce238d08dcd2ae2ad153c8ac5d42fbeb925164bbb36c408477",
-    "owner_manifest_SHA256": "c57fcf4929391d0bde21e1cdf176c6da65787cd48230c2973c36814f4d5fe3fa",
+    "owner_manifest_SHA256": "8180a28a6bb7b5097a99d068fa08c7f880e0f347f5ae93a0a69c8e9b51aae5dc",
     "CPU_source_manifest_SHA256": "8fa913f13fd177953b75c8bbda96372df778f25aca72797ace8338e50988e70c",
-    "Model_qualified": false,
+    "Model_qualified": "Only actual16card/C1/32K allocation/two existing full tool histories/gold/EOS/reset/normal lifecycle",
     "task": "coordination/tasks/GLM-V-on-demand-Model-r404.json",
-    "next": "Onlyfolloworiginal850/822/watch;loadingnotfinalfit/quality/perf. NoNoKModeluntilrootconsumesrealNoVterminal. NoGPUrepeat/secondtimer.",
+    "next": "Retain scoped capacity result; no850 replay/automatic NoK Model.176 route review selects useful workload/quality or W4 extension from actual timing; no32card-paired/onlineSLO claim.",
     "final_GPU_source_publication": "34f2d36ce12a7f16c3075acc683381cc12f3e936",
     "GPU_manifest_SHA256": "7bc63bf491a54ce527f48191fb4710f41a23f12f9032f670e07e55c2ceb54739",
     "controller_entry_SHA256": "f9626f5f11174a7d6423d6d506fa713a11a53959afef0b5054f40960046da85e",
     "prelaunch_namespace_fix": "Caughtbeforeintent/keeper/GPU;privatesys.pathroot+isolatedrunpycollectfilequalified; no813repeat",
-    "post": "Notterminal;run-cpostpending,prior847post848cleanretained",
-    "result": "results/bw1000/2026-11-03/GLM404-run-c-root16-constructor-NoV-and-loading-observed.json",
+    "post": "910376.851 COMPLETED0/35s clean",
+    "result": "results/bw1000/2026-11-03/GLM404-850-scoped-C1-PP2-two-tool-Model-PASS.json",
     "actual_GPU_original_epoch": 1793660940.5002456,
     "Native_dlopen": true,
     "actual_constructor_calls": 16,
     "constructor_snapshot_owners": 16,
-    "weights_loading_finished": false
+    "weights_loading_finished": true,
+    "result_SHA256": "ee046cf76a0e1627d6940f7df2275733232a41ad30db4de664e62388cbb95540",
+    "root_consumption_SHA256": "cfbe8bbf02bfe06dfa6a20c098ccb6a28653a4457b7f864eb68b31c640dc94c9",
+    "Model_GO": false,
+    "backend_decode_tok_s": [
+      2.874214909653035,
+      2.8706895490363524
+    ]
   },
   "Kimi405": {
     "state": "FULL_PLAN_MEASUREMENT_TIMEOUT_FAIL_PARTIAL_PREFIX_BELOW_DRIFT_CLEAN",
@@ -3354,7 +3358,7 @@
     "GPU_qualified": "OnlythinLayer38component/syntheticselection/noIndexerFFN",
     "Model_GO": false,
     "original_CPU816_environment_FAIL_retained": true,
-    "next": "RetaindefaultOFFcomponentcapacityfallback,sourceonlyNoKModelfiveleafbindingauditdone. Noresetpolicytoggle/samectxOFFONpair;futureseparatelifecycleonlyif850resultjustifiesneed. No748replay.",
+    "next": "Keep defaultOFF qualified thin component fallback; NoV850 has now passed16card originalmemoryfloors/2tools. NoKModel not automatically justified by7.71%synthetic decode; longprefillflat and noactiveprefill freesnapshotgain. No748repeat.",
     "actual_GPU": "910371.748 COMPLETED0/105s",
     "keeper": "910407.821 COMPLETED0/112s",
     "post": "910371.749 clean",
@@ -3369,31 +3373,66 @@
   },
   "Kimi410": {
     "owner": "/root",
-    "state": "CPU819_AND_CPU825_HEAD_ADMISSION_HOST_LINK_PASS_ACTUAL_RUNTIME_CPU_PREPARING",
+    "state": "CPU819_825_826_PASS_FINAL_BOUND32CARD_CONTROLLER_PREPARING",
     "task": "coordination/tasks/Kimi-TP8PP4-ordinary-r410.json",
     "source": "code/bw1000/Kimi-TP8PP4-ordinary-r410",
     "source_manifest_SHA256": "6a2b330b9908592ecf191a5623b02a1b1ecb1bfa2287fe19162bbd54e6398def",
     "new_HOST_TUs": 3,
     "CPU_claim": "4cores8GiB300s,910407/a14r2n20,oneattempt",
-    "GPU_GO": false,
+    "GPU_GO": "Conditional final controller/source/claim push+actualshell-toSettings/ABI+fresh4nodeidle then once within delegated5400s; not yet submitted/qualified",
     "Model_GO": false,
     "performance": "UNKNOWN",
     "scope": "TP8PP4 ordinaryC1 full32768, current8dfmath/providers. New factory avoids H6 pairedstate/capture; originalTP16factoryunchanged.",
     "actual_CPU": "910407.819 COMPLETED0/51s",
     "CPU_receipt_SHA256": "a6994b7f65394b749bd5f9cd33c642fedf17ad873664adb89750de69499e8d75",
-    "library_SHA256": "63dedec813349d204d3eceea0db17d5b318941e170c40ce97606c34585438b3e",
+    "library_SHA256": "6eb2bd61b5bfc0c5df3fe809bf37f065de2832be07765554db86e512cb6cd1ba",
     "result": "results/bw1000/2026-11-03/Kimi410-CPU819-ordinary-TP8PP4-HOST-link-PASS-no-device.json",
     "runtime_owner": "/root/glm_operator_tuning",
-    "next": "Originalglmagentpublishesruntime-v1actualmain/ordinarybinding/TCP4leaders/2inputs/loader/head/keys/deadlinefinallyCPU. Reuse825DSO,noHOSTrepeat. Needrealdevice12head/fit/qualitylater; no32cardGOyet.",
+    "next": "Originalglmagent finishes final boundcontroller and pre-submit actual shell/Settings/ABI, then directly executes one32card scope. No further per-run approval/CPU825826 replay.",
     "head_CPU": "910407.825 COMPLETED0/23s",
     "head_CPU_receipt_SHA256": "cb3f1db0e0cd9578c77581a379d35f6683d91d6cfdb7556365a97b28ae16ed80",
     "candidate_head_library_SHA256": "6eb2bd61b5bfc0c5df3fe809bf37f065de2832be07765554db86e512cb6cd1ba",
     "candidate_full_private_HOST_TUs": 5,
     "final_objects": 33,
-    "preserved_head_failures": "823stats-onlyHOSTPASSnotconstructor;8240compilemetadataFAIL;825finalchecked_runtimeguardHOSTPASSnotdevice"
+    "preserved_head_failures": "823stats-onlyHOSTPASSnotconstructor;8240compilemetadataFAIL;825finalchecked_runtimeguardHOSTPASSnotdevice",
+    "original819_library_SHA256": "63dedec813349d204d3eceea0db17d5b318941e170c40ce97606c34585438b3e",
+    "runtime_source": "code/bw1000/Kimi-TP8PP4-ordinary-r410/runtime-v1",
+    "runtime_manifest_SHA256": "25b27e9714843b87cc708eb35ee6d895fabe17b46d3ae93f206ee23e701f8a69",
+    "runtime_CPU": "910407.826 COMPLETED0/83s",
+    "runtime_receipt_SHA256": "d89eee95fce8a5322781087202abec482e1576e79908349c22bc9e861d1eb9b9",
+    "runtime_root_consumption": "analysis/bw1000/Kimi410-CPU826-root-original-receipt-and-runtime-consumption.json",
+    "actual_GPU": null,
+    "conditional_once_GPU_delegation": {
+      "target_cards": 32,
+      "draft_cards": 0,
+      "TP": 8,
+      "PP": 4,
+      "nodes": [
+        "a14r2n08",
+        "a14r2n09",
+        "a14r2n10",
+        "a14r2n12"
+      ],
+      "parent": 910380,
+      "GPU_seconds_including_load": 5400,
+      "Native_seconds": 5100,
+      "inside_seconds": 5280,
+      "kill_grace_seconds": 20,
+      "CPU_keeper_seconds": 6000,
+      "inputs": [
+        8635,
+        32638
+      ],
+      "output_budget_each": 128,
+      "context": 32768,
+      "required_before_submit": "frozen controller/source/resource claim ordinarypush, final actual shell exports to same Settings/typed ABI, allocation+labels+fresh four-node KFD/PID/ports/32 uniquePCI",
+      "original_epoch_not_sliding": true,
+      "no_retry_reload": true,
+      "no_additional_per_run_user_or_root_GO": true
+    }
   },
   "latest_peer_check": {
-    "UTC": "2026-11-02T22:37:22.630076+00:00",
+    "UTC": "2026-11-03T00:08:58.217362+00:00",
     "pending": [],
     "peer_branch_present": false,
     "peer_status_present": false
@@ -3403,7 +3442,20 @@
     "state": "COMPLETE_ADOPTED",
     "report": "analysis/bw1000/reviews/astra-review-175-production-entry-and-topology-followthrough.json",
     "implementation": "analysis/bw1000/reviews/astra-review-175-implementation.json",
-    "performance_rounds_after": 1,
+    "performance_rounds_after": 2,
     "inflight_review": null
+  },
+  "Deep413": {
+    "owner": "/root/deep_operator_tuning",
+    "task": "coordination/tasks/Deep-C4-phase-enclosures-r413.json",
+    "state": "CPU827_828_ENTRY_FAIL_ZERO_COMPILE_MINIMAL_IMMUTABLE_PARENT_PIN_REPAIR_PREPARING",
+    "actual_CPU": [
+      "910407.827 FAILED1/0s",
+      "910407.828 FAILED1/0s"
+    ],
+    "GPU_GO": false,
+    "Model_GO": false,
+    "failure": "827 build inherited DEEP406 env keys;828 global sourcepath replacement incorrectly altered inherited r366 parent path. Both precompile, not phase/math result.",
+    "next": "v3 directly inherits original406 PARENT_PINS bytes/49objects/actual successful env; only ownpath/env keys changed. Freeze/publish exact source, once4core8GiB300s changedCPU; unknownfailure stop. Final180s8card conditional component phase diagnostic afterCPU+claim/freshidle, noModel."
   }
 }
