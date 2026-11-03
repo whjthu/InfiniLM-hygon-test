@@ -1,0 +1,55 @@
+{
+  "updated_at_UTC": "2026-11-03T18:58:55.640924+00:00",
+  "owner": "/root/glm_operator_tuning",
+  "coordinator": "/root",
+  "state": "RESERVED_TWO_NODES_SOURCE_IMPLEMENTATION",
+  "user_request": "Dedicate part of the machines to measure prefill/decode disaggregation performance",
+  "GPU_GO": false,
+  "actual_GPU": null,
+  "model": "DeepSeek-v4",
+  "resources": {
+    "parent": 910376,
+    "nodes": {
+      "P": "a02r4n12",
+      "D": "a02r4n13"
+    },
+    "cards_each": 8,
+    "total_cards": 16,
+    "TP_each": 8,
+    "PP": 1,
+    "rows_per_instance": 1,
+    "context": 32768,
+    "CPU_keeper_parent": 910407,
+    "CPU_keeper_node": "a14r2n20"
+  },
+  "resource_coordination": "Reserved for this PD line; GLM r444 source work continues without using these nodes. No GPU occupied merely for reservation.",
+  "fresh_snapshot": "results/bw1000/2026-11-04/PD445-two-node-reservation-fresh-snapshot.json",
+  "source": "code/bw1000/Deep-PD-performance-r445",
+  "source_state": "IN_IMPLEMENTATION_NOT_FROZEN",
+  "previous_result": "results/bw1000/2026-11-02/Deep382-PD836-root-audited15-comparison-negative-clean.json",
+  "previous": {
+    "actual_GPU": "910376.836",
+    "external": 15,
+    "all_correct_EOS": true,
+    "C1_PD_over_co_wall": 1.0140405024196992,
+    "two_request_PD_over_two_co_per_card_throughput": 0.5588063278055057,
+    "normal_entire_run": false,
+    "post_clean": true
+  },
+  "changed_hypothesis": "Test genuinely different mixed prefill/decode demand and queued stage overlap with per-request complete inputs; C1 Native/codec cannot be called concurrent batched decode. Retain all-card fair two-colocated-instance comparator.",
+  "implementation_scope": [
+    "per-request prepared input identity and actual input past, without changing original Native mathematics",
+    "bounded report-reference shutdown frames reuse original repaired path",
+    "finite C2/C4 external cohorts only if justified by available genuine workloads; freeze exact plan before costly run"
+  ],
+  "required_measurements": [
+    "each request actual prompt/output/EOS/quality/reset/state identity",
+    "admission queue/TTFT/ITL P95 P99/decode and group completed tokens per second",
+    "all16card throughput and resident cardseconds including idle role",
+    "snapshot/D2H/TCP/import/H2D enclosures without adding overlapping clocks",
+    "normal16owner exits, original Slurm/srun/keeper, independent KFD/PID/ports post"
+  ],
+  "transport": "Existing host-staged TCP/IPoIB; no pinned memory or device RDMA claim",
+  "run_bounds": "Freeze exact request/forward/time budgets and source/CPU receipts in this claim before actual GPU submission; no unchanged15 replay or automatic reload.",
+  "next": "Finish source and real whole-entry CPU fixture binding, publish exact claim, fresh admission then execute one residency."
+}
