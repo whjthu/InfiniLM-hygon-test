@@ -1,0 +1,84 @@
+{
+  "UTC": "2026-11-03T12:13:46.157625+00:00",
+  "owner": "/root",
+  "hypothesis": "At exact existing W2 packed96byte and scale6byte row copies, eliminate per-row suffix scans/recursion and use compile-time-width memmove. Original current helper already bulk-coalesces; it is the baseline, never obsolete scalar.",
+  "baseline_header_SHA256": "0381c2635110bc40c99ccf026a1dc678aad934ddca34aa571e844a3f942b38dc",
+  "prior_874_scope": "32/64/128byte synthetic patterns only;2.30..2.47x not inherited for6/96 or Model.",
+  "producer_evidence": {
+    "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\Kimi-native-install-binding-private-r9275\\next-single-layer-install-r9275.json",
+    "SHA256": "701926519a73e8263b9b4d7285e04edf1017d68155fa258b458782bbda8b6c31",
+    "geometry": {
+      "dtype": "uint8/MXFP4 already packed, no dequantization in copy path",
+      "packed_global_shape": [
+        3584,
+        1536
+      ],
+      "packed_local_shape": [
+        3584,
+        96
+      ],
+      "packed_source_strides": [
+        1536,
+        1
+      ],
+      "packed_destination_strides": [
+        96,
+        1
+      ],
+      "scale_global_shape": [
+        3584,
+        96
+      ],
+      "scale_local_shape": [
+        3584,
+        6
+      ],
+      "scale_source_strides": [
+        96,
+        1
+      ],
+      "scale_destination_strides": [
+        6,
+        1
+      ],
+      "experts": 896,
+      "TP": 16,
+      "source": "actual r9129 register_mxfp4_experts tp_dim1 and required checkpoint headers in r9264",
+      "suffix_helper_static_prediction_per_owner_expert_only": {
+        "copy_calls": 1792,
+        "bulk_blocks": 6422528,
+        "bulk_bytes": 327548928,
+        "scalar_leaves": 0,
+        "scalar_bytes": 0
+      },
+      "prediction_not_actual_counter_measurement": true
+    },
+    "binding_evidence_SHA256": "c4454aeb4f124c814011b2316b94e13a149515e39cb386f6a61fd9afeebe78b9",
+    "current_Runtime_SHA256": "04a6a1a86c97d176e4304b9bb4c1d6fcb8550784beaa47e0f5841fb7603ffabf"
+  },
+  "current_572_count_correspondence": {
+    "PP0_static_W2_bulk_blocks_45layers_8owners": 2312110080,
+    "PP0_observed_all_bulk_blocks": 2317385728,
+    "PP1_static_W2_bulk_blocks_47layers_8owners": 2414870528,
+    "PP1_observed_all_bulk_blocks": 2420260864,
+    "scope": "Static source prediction matches nearly all observed block counts, not an actual callsite histogram, timed CPU fraction or critical-path attribution."
+  },
+  "change": "Same private row specialization, add fixed6/96 cases; no shared Runtime/Native/SDK change. Unsupported geometries use identical original0381 helper.",
+  "CPU_claim": {
+    "parent": 910407,
+    "node": "a14r2n20",
+    "cores": 1,
+    "memory_MiB": 4096,
+    "hard_s": 180,
+    "inner_s": 150,
+    "attempts": 1,
+    "GPU": 0,
+    "weights": false,
+    "Native_dlopen": false
+  },
+  "verification": "Only new exact6/96 geometry/all16 TPsource offsets32guardcases; preserve full destination/source/copy stats, old243matrix not rerun.",
+  "performance": "Exactly2 shapes/strides, rank0 warm RAM synthetic byte arrays;2warm+4ABBA,32calls/sample; report cold/cache/actual-loader limitations.",
+  "GPU_GO": false,
+  "Model_GO": false,
+  "next": "If actual-geometry private CPU benefit exceeds same-run drift, retain source and only close actual Runtime integration/loader exclusive-cost evidence on a separately justified scope; no Model reload or physical-bandwidth inference."
+}

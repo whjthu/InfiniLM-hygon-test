@@ -1,0 +1,102 @@
+{
+  "review": 185,
+  "date": "2026-11-03",
+  "reviewer": "/root/astra_review_147",
+  "state": "COMPLETE_RETAIN_SCOPED_GAINS_PRIORITIZE_REAL_GEOMETRY_AND_SERVICE_DELIVERY",
+  "scope": {"tests_or_readers_executed": false, "new_jobs_or_remote_polling": false, "Git": false, "new_framework_or_gate": false, "only_write": "analysis/bw1000/reviews/astra-review-185-service-delivery-and-loader-cost.json"},
+  "184_followthrough": {
+    "evidence": "analysis/bw1000/reviews/astra-review-184-implementation.json",
+    "state": "COMPLETE_ADOPTED",
+    "outcomes": [
+      "431首ON中间诊断作为一轮原审核消费；原0.02未抬高、不当用户质量门槛、未原样重跑。",
+      "433当前e32 provider能力先静态核，不继承oldcb28资格；owned Wf32不存在的缺口已明确，改用具体私有roundtrip/F32路径继续。",
+      "Deep866 metadata闭合，原863 FAIL及九功能记录复用；原430六请求后续已正常结束。",
+      "Kimi572原公共scope正常结束，432已完成一张独立组件卡，不重复Model。"
+    ]
+  },
+  "round_accounting": {
+    "after184_completed_distinct_rounds": 3,
+    "rounds": [
+      {"id":"Kimi432-754","kind":"真实单Runtime单卡M1组件数值和ABBA性能"},
+      {"id":"Deep430-1364","kind":"真实公共P0/P1文本交付因果比较，不是Native加速"},
+      {"id":"Kimi436-CPU874","kind":"真实目标CPU上的私有算法对照成本轮，合成几何"}
+    ],
+    "CPU436_count_reason": "874确实在目标CPU比较两种完整copy实现、冻结字节/guard/stats和四ABBA成本，能证伪一个明确算法假设，因此可计独立CPU成本因果轮；不是把CPU构建/校验当性能。必须标CPU synthetic，不能计GPU或Model收益。",
+    "zero_rounds": ["873环境入口失败0compile", "875 endpoint定位失败0defaultcases", "434源/CPU准备", "433 CPU构建", "轮询和报告"]
+  },
+  "actual_usable_results": {
+    "Kimi432": {
+      "evidence": "results/bw1000/2026-11-03/Kimi432-754-lowrank-M1-component-numeric-PASS-mean-gain-drift-clean.json",
+      "plan_read": "code/bw1000/Kimi-lowrank-M1-GEMV-r432/PLAN.json",
+      "actual": "754/871/755正常；原20小raw由根reader复算，真实layer1两BF16 checkpoint矩阵、合成M1输入，No MoE/TP/Model。",
+      "formal_complete_call": "down OFF214.165→ON163.8705us，-23.484%；up188.790→163.920us，-13.173%。",
+      "predeclared_decision": "原ratio-of-means完整dispatch/drain与complete call各两shape，共四项均超过对应OFF端点绝对漂移；按原PLAN通过限定组件判定。较小邻pair未都超漂移是敏感性/不确定性，不可事后改成更严门槛永久否定。",
+      "numeric": "root原raw复算vs原OFF最大NRMSE约9.93e-5、vs未舍入CPU F32约0.001678；限两矩阵/两合成M1向量。",
+      "action": "保留正组件及原判定，不改默认Model；完整MoE source消费者可作为后续最小集成，不经完整消费者不得直接载32卡Model。不能把两投影微秒节省乘层数当Model收益。"
+    },
+    "Deep430": {
+      "evidence": "results/bw1000/2026-11-03/Deep430-root-formal-SSE-delivery-and-normal-lifecycle-PASS.json",
+      "actual": "1364/870/1365及1366全0，6正确任务/自然EOS、2554forward、8internalowners正常，根27原件独审。",
+      "comparison": "相同8490 thinking输入/8192预算，2warm后P0P1P1P0。first semantic/reasoning P0[260.932,277.046]s，P1[107.932,107.346]s，两个邻对均大幅提前。",
+      "limits": "first content[260.932,277.046]→[242.553,272.755]s未稳定超过漂移；wholewall P1约279.757/308.184s比P0更慢，正式生成长度408/450/531/450不同。不是Native速度对照，不构成整请求加速、逐token客户端>15或广泛benchmark质量。",
+      "action": "可用的实际提升是此scope的增量语义尤其reasoning提前送达。435只改变stream默认选择，修CPU路由定位后交付新selector，不为这一确定默认策略重新加载六个Model请求。新默认策略本身仍注明未新设备运行，复用430底层P1机制资格。"
+    },
+    "Kimi436": {
+      "evidence": "results/bw1000/2026-11-03/Kimi436-CPU874-synthetic-row-copy-paired-PASS.json",
+      "source_read": ["code/bw1000/Kimi-loader-row-copy-r436/SOURCE_CARD.json", "code/bw1000/Kimi-loader-row-copy-r436/row_copy.hpp", "code/bw1000/Kimi-loader-row-copy-r436/cpu_strided_copy_r2515.hpp", "../Kimi-native-install-binding-private-r9275/producer-source-binding-r9275.json", "../Kimi-native-install-binding-private-r9275/next-single-layer-install-r9275.json"],
+      "actual": "CPU874 COMPLETED0/2s，原243语义/guard/stats通过，32768rows×32/64/128B三合成几何四ABBA分别2.3046/2.4685/2.3391x且各block超过端点漂移。873原env失败保留，不重判通过。",
+      "baseline_correction": "当前Runtime04a已有r2515共同连续suffix coalesce，原0381头作为OFF，不能以逐元素scalar实现作基线或宣称首次消除scalar拷贝。当前方案减少每row递归/几何检查，并可能利用固定memmove大小。",
+      "true_geometry": "旧r9275实际source/安装binding给出W2 packed local[3584,96] uint8，srcstride[1536,1]/dst[96,1]；scale[3584,6] uint8，src[96,1]/dst[6,1]，896experts/TP16。这不是874的32768row与32/64/128B。",
+      "count_interpretation": "静态W2预测PP0 2312110080、PP1 2414870528 blocks，与572实际2317385728/2420260864接近约99.77%。这是block来源相符的强线索，不是实际callsite直方图、全部bytes比例或exclusivecopy wall占比。每个block成本不同，不能把计数比例当加载时间比例。",
+      "decision": "值得一次真实6/96B geometry CPU卡；优先于旧单layer安装GPU读数。874不能外推2.4x到真实加载，原r9275 next-single-layer文件是计划而非既有测量。"
+    }
+  },
+  "engineering_decisions": {
+    "Deep435": {
+      "read": ["code/bw1000/Deep-public-default-incremental-r435/CPU_entry.py", "code/bw1000/Deep-public-default-incremental-r435/PLAN.json", "code/bw1000/Deep-public-default-incremental-r435/public_deep_default_text/prepared_factory.py"],
+      "actual875": "FAILED11s、0defaultcases；三import/maps stage通过不追认功能case。",
+      "determinate_fix": "actual_public_route错误在_create_app.body寻找chat_completions，真实endpoint在_register_routes。只改CPU AST定位到真实_register_routes，保原endpoint/sampling/parser/codec与production selector不变，新CPU目录/label/MF保原失败。",
+      "root_followthrough": "根已读actual58b8源并准备immutable cpu-v2一行修复及一次原4c8G180秒CPU，不等本审。成功后可交付stream=true缺省P1、显式P0和非stream原行为；不重六Model，不添加新框架。",
+      "unknown": "新CPU尚未见实际回执，不能写已通过；若新的实际endpoint暴露未知语义错误则保留诊断，不自动放宽。"
+    },
+    "GLM433": {
+      "read": "code/bw1000/GLM-row-FP8-roundtrip-value-r433/PROVIDER_BINDING.json及当前目录结构",
+      "current": "实际e32反汇编dtype2与combine<float>静态支持；当前完整source/MD仍UNKNOWN，不继承oldcb28。CPU872一HOST+29复用/991共享依赖通过，只构建与接口，不是设备math。",
+      "decision": "具体diagnostic-v2组件继续：私有HOST强引用快照、首geometry OFF/ON暖身rank0 query外读约24MiB中间量与每rank小输出bytes；正式阶段禁arm/D2H，不将额外snapshot混正式计时。此改动针对431无raw不可归因的缺口，不是重复431。",
+      "exit": "实际F32 identity roundtrip/FullFp32支持或owner/numeric失败即停并保原数据；不新Model、共享SDK或kernel。0.02仍是登记诊断线，不用来替代任务质量，也不抬线追PASS。"
+    },
+    "Kimi434": {
+      "read": "code/bw1000/Kimi-public-incremental-text-r434/README.md及原任务scope",
+      "state": "实际K3 codec/parser CPU尚未通过；私有fixture上传曾被自动审核在0exec/upload/Slurm前拒绝，不作为运行失败或CPU结果。",
+      "minimal_safe_path": "继续原R就地构造fixture，仅传源码及原R七文件路径/SHA；已核与572 seal字节一致。无需重新传私有payload、询问重复GO或改变原输出。",
+      "priority": "CPU胶水闭合后，优先一张必要32卡增量服务paired scope，因为当前P0缓冲问题已有真实公共链，直接回答用户可感知交付。它不等待432完整MoE适配；同一次驻留保持Kimi Native/数学与输入预算不变，不同时混入432或加载器候选。",
+      "cost": "历史572最慢leader加载约1740秒/29分钟，服务正式结果还需请求时间；新scope首判不能承诺几分钟。完整MoE source可在434CPU等待时少量只读准备，但不是先支付Model成本的理由。"
+    }
+  },
+  "436_next_exact_card": {
+    "worth_doing": true,
+    "hypothesis": "既有suffix coalesce的真实W2 6/96B拷贝仍受逐row重复检查/动态memmove成本影响，私有固定row循环可减少完整copy wall。",
+    "scope": "仅两实际几何，各3584rows，element uint8：96B/srcstride1536/dst96，6B/srcstride96/dst6。沿原共同header与实际CPU/优化编译方式，同输入/guard/stats；不碰Runtime/Native/H2D或权重payload。",
+    "source_change": "如新增rows<6>/rows<96>固定分支，必须新immutable候选source和claim；原874仅代表原32/64/128范围，不能拼接成新分支已测。原动态fallback、重叠caller责任、正stride和溢出拒绝不宽化。",
+    "measurement": "复用原四ABBA和warm方案，不重243完整矩阵；只消费新增6/96路径的实际字节、guard/stats与完整copy成本。两个几何分别报告，不以平均53B造一个假case，也不将32条重复的hot-cache速度当整加载。",
+    "time": "原1core4GiB≤180秒范围即可，第一次判定在单次CPU内；准备/排队UNKNOWN，历史2秒不能当承诺。",
+    "exit": "实际6或96无稳定超漂移收益则停相应固定分支；有收益只允许后续最小实际caller集成/拥有关系可行性，不直接共享Runtime替换或报告型Model重载。",
+    "old_install_readout": "r9275现有source/ELF/几何证据先复用。单layer真实安装计时尚未发生，不能假称能读回exclusivecopy；当前不为它启动GPU。未来有必要正常安装时再复用既有边界记录，不使434等待。"
+  },
+  "four_questions": {
+    "real_usable_gain": "Deep430提供已实测限定公共SSE首语义提前，主要reasoning；全请求wall/Native throughput未提升。432提供符合原PLAN的两M1组件完整call均值提升。436提供三合成几何CPU copy提升，尚未代表真实6/96或加载。三者都不是fullbenchmark/>15客户端token SLO。",
+    "time_cost": "Kimi572 26–29分钟load、native_load inclusive约1211–1331秒是真实大成本，但包含gather/同步/H2D/pagefault，exclusivecopy未知。Deep430 load407.12秒已计成本；不重六Model验证一个默认selector。873/875是可避免工程等待，分别用实际srun env与真实route消费最小修。不要串行等评审冻结GLM433/Kimi434。",
+    "bottleneck_scope": "计数与静态几何指出W2 row-copy很高频，未证明其独占wall主导；现baseline已coalesce。432真实M1帮助但MoE其他算子/TP占比未知。430解决客户端缓冲不是GPU吞吐。433仍数值/成本待测。不得由dense峰值、bulkbytes或组件倍数推Model。",
+    "direction": "立即完成435最小CPU并交付；GLM433原组件包继续；Kimi两优先卡为真实6/96 CPU与434必要增量public paired。432完整MoEsource保留为后续候选，不后加严淘汰也不另开Model加载。"
+  },
+  "next_cards": {
+    "Deep": [{"priority":1,"owner_resource":"root接435 cpu-v2，原4c8GiB180秒，无GPU","hypothesis":"缺省stream选择P1与已实测430一致，同时保显式P0/非stream/取消语义","minimal_change":"唯一endpoint容器定位改_register_routes，新CPU产物身份","reuse":"原430真实6scope/27原件和435三import stage，生产selector/Native不变","samples":"原changed公共route功能范围，不加套件","first_result_time":"原有界CPU一次，结果尚UNKNOWN","wall":"不重Model；复用限定first-semantic交付改善，不承诺Native加速","exit":"成功后交付新默认stream；未知route语义失败保原诊断，不扩大门禁"}],
+    "GLM": [{"priority":1,"owner_resource":"原433执行者，既定必要HOST闭包和独立8卡≤600秒组件","hypothesis":"保row FP8 roundtrip并去aggregate再量化可改善431差异且减少完整attention成本","minimal_change":"已准备diagnostic-v2 warm-only snapshot强引用，不改共享库/kernel","reuse":"CPU872/实际e32静态支持与原成功对象","samples":"既定两fixture12query；暖身保小raw，正式无arm；身份F32/FullFp32先实际消费","first_result_time":"准备/排队UNKNOWN，设备原600秒内首判","wall":"组件/Model收益UNKNOWN","exit":"实际支持/数值/生命周期失败停，不Model重载或抬诊断阈值"}],
+    "Kimi": [
+      {"priority":1,"owner_resource":"root，436私有CPU一核4GiB≤180秒","hypothesis":"真实W2 6/96B几何比原r2515共suffix copy更快","minimal_change":"只新增固定6/96可选分支与对应两geometry消费者","reuse":"原0381header/243语义证据/r9275真实geometry/572计数","samples":"两个3584row精确stride，各原warm+四ABBA及bytes/guard/stats","first_result_time":"一次有界CPU内；最快可证伪","wall":"加载影响UNKNOWN，不能2.4x外推","exit":"未超漂移停相应分支；成功不自动Runtime或Model晋级"},
+      {"priority":2,"owner_resource":"原434执行者，现CPU安全替代路径闭合后唯一必要32卡public范围","hypothesis":"同原Kimi Native输出的P1公共增量交付减少P0完成前等待","minimal_change":"显式prepared文本策略，数学/加载器保持原baseline，不混432/436","reuse":"572普通public链与R内原fixture/真实codec/parserCPU；无私有payload重传","samples":"原固定输入/预算的warm与成对P0/P1 scope，完整parser/gold/EOS和chunk时钟/正常32owner","first_result_time":"CPU一次≤300秒；设备加载参考历史约26–29分钟，首formal再加请求成本，实际UNKNOWN","wall":"首语义交付改善待实测，不承诺Native或全wall","exit":"只一次具体claim驻留，不重572两请求验收，不要求先432完整MoE；数值/生命周期未知停定位"}
+    ],
+    "retained_not_extra_active_card": "432正组件保留，允许最小完整MoE source可行性读取；排在当前434/436之后，不安排第三张Kimi设备卡、不因未有完整消费者否定原组件。"
+  },
+  "root_actions": ["保432原ratio-of-means判定通过，邻pair只敏感性。", "采纳435一行CPU修复后交付，不重六Model。", "采纳436真实6/96 CPU短卡，原874与新范围分开；计CPU874为一真实成本轮而非GPU/Model。", "434使用原R就地fixture安全替代，CPU闭合后独立必要public paired；433独立继续，不逐条等待review GO。"]
+}
