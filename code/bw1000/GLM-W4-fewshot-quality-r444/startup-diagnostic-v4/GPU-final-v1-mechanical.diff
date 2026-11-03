@@ -1,0 +1,73 @@
+--- CPU939-frozen/controller.py
++++ GPU-final-v1/controller.py
+@@ -44,7 +44,7 @@
+ 
+ def verify_gpu(digest,m):
+  assert digest
+- paths=[p for p in [D/'GPU_MANIFEST-wave1.json',D/'GPU_MANIFEST-wave2.json']if p.is_file()and sha(p)==digest]
++ paths=[p for p in [D/'GPU_MANIFEST-slot0-CPU939.json']if p.is_file()and sha(p)==digest]
+  assert len(paths)==1
+  q=json.loads(paths[0].read_bytes())
+  assert q['GPU_GO']and q['Model_GO']and q['deployment_source_SHA256']==sha(D/'SOURCE_MANIFEST.json')
+@@ -56,7 +56,12 @@
+  for p,h in q['CPU_receipts_SHA256'].items():
+   relative=Path(p).relative_to('/refactor');raw=(R/relative).read_bytes();assert hashlib.sha256(raw).hexdigest()==h
+   result=json.loads(raw);assert result['passed']and result['completed']
+- assert len(q['CPU_receipts_SHA256'])==3
++ assert len(q['CPU_receipts_SHA256'])==4
++ path='/refactor/candidates/GLM444-startup-diagnostic-v4-CPU/CPU-result.json'
++ assert q['CPU_receipts_SHA256'][path]=='0ee1db3bb566f297528574ed3c4d2d2c04800800071ac7223e14344c8b0370c2'
++ result=json.loads((R/Path(path).relative_to('/refactor')).read_bytes())
++ assert result['actual_CPU']=='910407.939'and result['source_manifest_SHA256']=='831609820dff256dbc64107d571bea0cb5568cbdf89320c8d099a447ac1d8fbe'
++ assert result['GPU']==0 and not result['Native_dlopen']and not result['SDK_executed']
+  return True
+ def close_owned(label,proc,recorded,exact,cleanup_limit,term_s=20.,kill_s=20.):
+  """TERM then KILL only this keeper's known srun PGID/Slurm step, bounded."""
+@@ -103,7 +108,7 @@
+ 
+ def gpu_environment(base,epoch,m):
+  env=clean_environment(base)
+- env.update(WAVE_INSIDE_R2323='GLM-W4-fewshot-quality-r444-startup-diagnostic-v4/deployment/inside.sh',GLM_R444_SLOT=str(SLOT['slot']),
++ env.update(WAVE_INSIDE_R2323='GLM-W4-fewshot-quality-r444-startup-diagnostic-v4/GPU-final-v1/inside.sh',GLM_R444_SLOT=str(SLOT['slot']),
+   GLM_R425_RUN=RUN,GLM_R425_GPUSTART=str(epoch),GLM_R425_CONFIG_SHA=m['config_SHA256'],
+   GLM_R425_SOURCE_SHA=m['provider_source_SHA256'],GLM_SOURCE_MANIFEST_SHA=m['provider_source_SHA256'],GLM_RUN_R5040=RUN,
+   GLM_PP_SIZE_R3603='2',GLM_CACHE_ROWS_R3627='1',GLM_CACHE_CAP_R3627='32768',GLM_NETWORK_TRIAL='shca',
+@@ -221,7 +226,7 @@
+     if value is not None:
+      expected=dict(run=RUN,actual_step=w['actual_GPU'],source_manifest_SHA256=m['provider_source_SHA256'],provider_config_SHA256=m['config_SHA256'],gpu_start_epoch=epoch,Native_seconds=28800)
+      assert value['identity']==expected and value['Model_READY']and value['actual_owner_count']==16
+-     env=gpu_environment(os.environ,epoch,m);env.update(WAVE_INSIDE_R2323='GLM-W4-fewshot-quality-r444-startup-diagnostic-v4/deployment/client_inside.sh',GLM_R444_ACTUAL_GPU=w['actual_GPU'],GLM_R444_DEPLOY_MF=a.manifest_sha,CUDA_VISIBLE_DEVICES='-1',HIP_VISIBLE_DEVICES='-1',ROCR_VISIBLE_DEVICES='-1')
++     env=gpu_environment(os.environ,epoch,m);env.update(WAVE_INSIDE_R2323='GLM-W4-fewshot-quality-r444-startup-diagnostic-v4/GPU-final-v1/client_inside.sh',GLM_R444_ACTUAL_GPU=w['actual_GPU'],GLM_R444_DEPLOY_MF=a.manifest_sha,CUDA_VISIBLE_DEVICES='-1',HIP_VISIBLE_DEVICES='-1',ROCR_VISIBLE_DEVICES='-1')
+      with(R/'logs'/(LABEL+'-'+RUN+'-client-srun.log')).open('x')as log:client=subprocess.Popen(client_command(w['actual_GPU'],m,epoch),env=env,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+      w.update(client_srun_PID=client.pid,client_owned_PGID=client.pid,client_result=str(client_output/'result.json'));save()
+    if client is not None and(client_output/'result.json').exists():
+--- CPU939-frozen/inside.sh
++++ GPU-final-v1/inside.sh
+@@ -52,7 +52,7 @@
+  exit 0
+ fi
+ SOURCE=/refactor/incoming/GLM-W4-fewshot-quality-r444-startup-diagnostic-v4/provider
+-DEPLOY=/refactor/incoming/GLM-W4-fewshot-quality-r444-startup-diagnostic-v4/deployment
++DEPLOY=/refactor/incoming/GLM-W4-fewshot-quality-r444-startup-diagnostic-v4/GPU-final-v1
+ ARGS=(--config "$DEPLOY/config-slot${GLM_R444_SLOT:?}.json" --config-sha "${GLM_R425_CONFIG_SHA:?}" --source-sha "${GLM_R425_SOURCE_SHA:?}" --stage "$SLURM_PROCID" --run "${GLM_R425_RUN:?}" --actual-step "$SLURM_JOB_ID.$SLURM_STEP_ID" --gpu-start-epoch "${GLM_R425_GPUSTART:?}")
+ python3 -B -m public_glm_native "${ARGS[@]}"
+ LEFT=$(python3 -B -c 'import os,time;print(max(0,int(float(os.environ["GLM_R425_GPUSTART"])+28800-time.time())))')
+--- CPU939-frozen/client_inside.sh
++++ GPU-final-v1/client_inside.sh
+@@ -2,4 +2,4 @@
+ set -euo pipefail
+ export CUDA_VISIBLE_DEVICES=-1 HIP_VISIBLE_DEVICES=-1 ROCR_VISIBLE_DEVICES=-1 PYTHONDONTWRITEBYTECODE=1
+ unset LD_PRELOAD
+-exec python3 -B -u /refactor/incoming/GLM-W4-fewshot-quality-r444-startup-diagnostic-v4/deployment/client_dispatch.py
++exec python3 -B -u /refactor/incoming/GLM-W4-fewshot-quality-r444-startup-diagnostic-v4/GPU-final-v1/client_dispatch.py
+--- CPU939-frozen/client_dispatch.py
++++ GPU-final-v1/client_dispatch.py
+@@ -10,7 +10,7 @@
+ def quality_args(slot,m,actual,epoch):
+     # These paths intentionally address /refactor INSIDE the same established
+     # container as CPU922. The keeper never runs this client on HOST paths.
+-    root=Path('/refactor');deploy=root/'incoming/GLM-W4-fewshot-quality-r444-startup-diagnostic-v4/deployment'
++    root=Path('/refactor');deploy=root/'incoming/GLM-W4-fewshot-quality-r444-startup-diagnostic-v4/GPU-final-v1'
+     provider=deploy.parent/'provider';folder=root/'results/GLM-W4-fewshot-quality-r444'/slot['run']
+     return ['--base-url','http://127.0.0.1:43843/v1','--provider-root',str(provider),
+         '--provider-source-sha',m['provider_source_SHA256'],'--audited-owner-sha',m['audited_owner_SHA256'],
