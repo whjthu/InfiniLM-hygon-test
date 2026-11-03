@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-11-03T23:01:19.385778+00:00",
+  "updated_at_utc": "2026-11-03T23:17:34.796710+00:00",
   "owner": "bw1000-agent",
   "hardware": "BW1000",
   "goal_complete": false,
@@ -17,7 +17,85 @@
     "InfiniOps": "1ca4777610d77e9063fffdb975ab35da8466104d",
     "InfiniCCL": "51cc9db31d58aac21643d72f0f77cf5c9ecfaee5"
   },
-  "current_actual_GPU_jobs": [],
+  "current_actual_GPU_jobs": [
+    {
+      "family": "GLM",
+      "cards": 16,
+      "nodes": [
+        "a02r4n14",
+        "a02r4n15"
+      ],
+      "actual_GPU": "910376.879",
+      "CPU_keeper": "910407.941",
+      "actual_client": null,
+      "original_GPU_start_unix": 1793747525.260628,
+      "service_deadline_unix": 1793775725.260628,
+      "Native_deadline_unix": 1793776325.260628,
+      "GPU_deadline_unix": 1793776925.260628,
+      "keeper_deadline_unix": 1793779925.260628,
+      "observed_UTC": "2026-11-03T23:13:52.472974+00:00",
+      "GPU_accounting": [
+        "910376.879",
+        "GLM-r444-startup-diagnostic-v4-startupdiag-20261104-v4-s0",
+        "RUNNING",
+        "0:0",
+        "00:01:47",
+        "a02r4n[14-15]"
+      ],
+      "keeper_accounting": [
+        "910407.941",
+        "GLM-r444-startup-diagnostic-v4-startupdiag-20261104-v4-s0-keeper",
+        "RUNNING",
+        "0:0",
+        "00:01:48",
+        "a14r2n20"
+      ],
+      "phase": "Communicator/startup observation; no Model READY or HTTP completion certified",
+      "Model_READY_qualified": false,
+      "quality_qualified": false,
+      "performance_gain": null,
+      "no_retry": true,
+      "no_reload": true
+    },
+    {
+      "family": "Deep",
+      "cards": 8,
+      "nodes": [
+        "a02r4n04"
+      ],
+      "actual_GPU": "910374.1392",
+      "CPU_keeper": "910407.940",
+      "actual_client": null,
+      "original_GPU_start_unix": 1793747385.9875135,
+      "service_deadline_unix": 1793749785.9875135,
+      "Native_deadline_unix": 1793749965.9875135,
+      "GPU_deadline_unix": 1793750085.9875135,
+      "keeper_deadline_unix": 1793750385.9875135,
+      "observed_UTC": "2026-11-03T23:14:19.377702+00:00",
+      "GPU_accounting": [
+        "910374.1392",
+        "Deep-r449-HC-fullpre-pair-fullpre-pair-20261104-a",
+        "RUNNING",
+        "0:0",
+        "271",
+        "a02r4n04"
+      ],
+      "keeper_accounting": [
+        "910407.940",
+        "Deep-r449-HC-fullpre-pair-fullpre-pair-20261104-a-keeper",
+        "RUNNING",
+        "0:0",
+        "273",
+        "a14r2n20"
+      ],
+      "phase": "Pre-client model startup; no Model READY or HTTP completion certified",
+      "Model_READY_qualified": false,
+      "quality_qualified": false,
+      "performance_gain": null,
+      "no_retry": true,
+      "no_reload": true
+    }
+  ],
   "latest_review": {
     "review": 193,
     "id": 193,
@@ -668,7 +746,7 @@
     "quality": "Tokenidentitydiagnosticsonly;realQA/EOS/caps+laterbenchmarknoobviousdrop",
     "Slurm_liveness": "squeue--stepsomittedknownrunningnumericsteps;verifyexacthandlewithscontrol/sacct,notabsenceinlisting"
   },
-  "current_priority": "Publish exact startup failure/cleanup; independently prepare GLM bounded singleton diagnostic, Deep fullpre public pair and Kimi current-public wide quality encoding.",
+  "current_priority": "Follow original GLM879 startup diagnostic and Deep1392 fullpre pair; Kimi current-public256 wide-client changed CPU in parallel. No model loading waits or repeat admission.",
   "performance_GPU_scheduling": {
     "updated_UTC": "2026-11-02T13:51:13.837357+00:00",
     "known_running_GPU": [],
@@ -1340,7 +1418,7 @@
     "new_speedup_claim": false
   },
   "Deep_next_performance_task": "coordination/tasks/Deep-C1-prefill-2048-pair-r151.json",
-  "current_actual_GPU_jobs_basis": "results/bw1000/2026-11-04/GLM444-zero-request-startup-FAIL-normal-GPU-owned-keeper-stop-clean.json",
+  "current_actual_GPU_jobs_basis": "analysis/bw1000/GLM879-Deep1392-root-original-ownership-consumption.json",
   "Kimi_long_target_publisher": {
     "source": "code/bw1000/Kimi-long-target-publisher-r335",
     "manifest_SHA256": "5e14dfd4945987141b9da42b3733fbae7e75aae277f9854b0c755e7ffd8e4ab8",
@@ -4184,7 +4262,7 @@
     "performance_rounds_after": 0,
     "inflight_review": null
   },
-  "current_actual_GPU_jobs_scope": "No active GPU jobs in tracked project work after original eight cleanup. Future claims need fresh idle checks; this is not a fresh whole-cluster utilization sample.",
+  "current_actual_GPU_jobs_scope": "Last actual original-handle observations; 24 compute cards in two disjoint jobs, not a whole-cluster GPU-busy measurement.",
   "next_parallel_work": {
     "root": "PD terminal/920 publication; next bound r447 actual Context/controller and quality replica allocation",
     "GLM_agent": "r446 eightcard complete attention component driver; noModel",
@@ -4546,7 +4624,8 @@
       "GPU_busy": null,
       "new_performance_round": false,
       "decision": "Current single-ticket route remains parked; queue/ownership change required before any future PD experiment. No unchanged22 replay or new GPU claim."
-    }
+    },
+    "D_service_demand_conditional_analysis": "results/bw1000/2026-11-04/PD445-root-original-D-service-demand-conditional-limit.json"
   },
   "Deep438_fixed_prefix_diagnostic": {
     "state": "COMPLETE_NORMAL_CLEAN_ROOT_CAUSE_UNKNOWN",
@@ -5013,15 +5092,125 @@
     "decision": "ActQuantModelpromotionSTOP; noadditionaluncontrolledtraceGPU"
   },
   "active_parallel_owners": {
-    "/root/kimi_operator_tuning": "GLM startup-diagnostic-v4 source1e1b83c6 published, unique changed CPU preparation/observation; no GPU",
-    "/root/deep_operator_tuning": "Deep449 CPU938 raw passed, exactaccounting pending; thin public six-request deployment preparation, no GPU",
-    "/root/glm_operator_tuning": "Kimi448 fixed256 complete public wideclient/controller source preparation; CPU937 retained, no GPU"
+    "/root": "Original GLM879/941 and Deep1392/940 root followthrough and evidence consumption",
+    "/root/kimi_operator_tuning": "Read-only current GLM952 hardware-work gap dedup/inventory; original879 handed to root",
+    "/root/deep_operator_tuning": "Original1392 bounded terminal reader preparation; no duplicate work",
+    "/root/glm_operator_tuning": "Kimi448 complete256 public driver changed pureHOST CPU, no GPU"
   },
   "Kimi448": {
     "state": "CPU937_ENCODING256_PASS_NO_MODEL_RESULT",
     "source_commit": "009a82e03ba5873b1c6d0959f7c8048f7b9ca3ef",
     "actual_CPU": "910407.937 COMPLETED0/9s",
     "result": "results/bw1000/2026-11-04/Kimi448-CPU937-current-public-256-fewshot-encoding-PASS.json",
-    "GPU_GO": false
+    "GPU_GO": false,
+    "next": "Current-public complete256 driver source83f0314 changed pureHOST CPU preparation; original937 encoding reused, no GPU yet"
+  },
+  "GLM444_startup_v4": {
+    "actual": {
+      "family": "GLM",
+      "cards": 16,
+      "nodes": [
+        "a02r4n14",
+        "a02r4n15"
+      ],
+      "actual_GPU": "910376.879",
+      "CPU_keeper": "910407.941",
+      "actual_client": null,
+      "original_GPU_start_unix": 1793747525.260628,
+      "service_deadline_unix": 1793775725.260628,
+      "Native_deadline_unix": 1793776325.260628,
+      "GPU_deadline_unix": 1793776925.260628,
+      "keeper_deadline_unix": 1793779925.260628,
+      "observed_UTC": "2026-11-03T23:13:52.472974+00:00",
+      "GPU_accounting": [
+        "910376.879",
+        "GLM-r444-startup-diagnostic-v4-startupdiag-20261104-v4-s0",
+        "RUNNING",
+        "0:0",
+        "00:01:47",
+        "a02r4n[14-15]"
+      ],
+      "keeper_accounting": [
+        "910407.941",
+        "GLM-r444-startup-diagnostic-v4-startupdiag-20261104-v4-s0-keeper",
+        "RUNNING",
+        "0:0",
+        "00:01:48",
+        "a14r2n20"
+      ],
+      "phase": "Communicator/startup observation; no Model READY or HTTP completion certified",
+      "Model_READY_qualified": false,
+      "quality_qualified": false,
+      "performance_gain": null,
+      "no_retry": true,
+      "no_reload": true
+    },
+    "source_publication": "2a9ce961889629b75b031e4abdf8b628b3ef6969",
+    "root_CPU_consumption": "analysis/bw1000/GLM444-startup-CPU939-root-independent-consumption.json",
+    "result": "results/bw1000/2026-11-04/GLM444-singleton-879-first-original-handle.json",
+    "startup_epoch_s": 2700,
+    "startup_all16_ready_s": 120,
+    "STOP_drain_s": 60,
+    "HTTP": 64,
+    "planned_global_HTTP": 512,
+    "other7_started": false,
+    "root_cause": "UNKNOWN, awaiting actual diagnostic markers/stacks"
+  },
+  "Deep449": {
+    "actual": {
+      "family": "Deep",
+      "cards": 8,
+      "nodes": [
+        "a02r4n04"
+      ],
+      "actual_GPU": "910374.1392",
+      "CPU_keeper": "910407.940",
+      "actual_client": null,
+      "original_GPU_start_unix": 1793747385.9875135,
+      "service_deadline_unix": 1793749785.9875135,
+      "Native_deadline_unix": 1793749965.9875135,
+      "GPU_deadline_unix": 1793750085.9875135,
+      "keeper_deadline_unix": 1793750385.9875135,
+      "observed_UTC": "2026-11-03T23:14:19.377702+00:00",
+      "GPU_accounting": [
+        "910374.1392",
+        "Deep-r449-HC-fullpre-pair-fullpre-pair-20261104-a",
+        "RUNNING",
+        "0:0",
+        "271",
+        "a02r4n04"
+      ],
+      "keeper_accounting": [
+        "910407.940",
+        "Deep-r449-HC-fullpre-pair-fullpre-pair-20261104-a-keeper",
+        "RUNNING",
+        "0:0",
+        "273",
+        "a14r2n20"
+      ],
+      "phase": "Pre-client model startup; no Model READY or HTTP completion certified",
+      "Model_READY_qualified": false,
+      "quality_qualified": false,
+      "performance_gain": null,
+      "no_retry": true,
+      "no_reload": true
+    },
+    "result": "results/bw1000/2026-11-04/Deep449-1392-root-original-startup-observed.json",
+    "actual_CPU": "910407.938 COMPLETED0/1s",
+    "CPU_receipt_SHA256": "f7c05b962cc8e5a226725732256e54775611771872c275b5ed662f369577ed0c",
+    "Native_SHA256": "a314ae6891977316189f875b793ed3f2e2eb0898110ad0cc382d2569eaf31dc1",
+    "requests": 6,
+    "modes": [
+      0,
+      1,
+      0,
+      1,
+      1,
+      0
+    ],
+    "r366_fixed": 0,
+    "HC_mode": 0,
+    "actual_candidate_hits": "PENDING firstON actual86*T1/all8owner counters",
+    "performance": "UNKNOWN"
   }
 }
