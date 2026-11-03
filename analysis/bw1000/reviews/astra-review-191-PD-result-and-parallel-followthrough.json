@@ -1,0 +1,127 @@
+{
+  "review": 191,
+  "state": "REVIEW_COMPLETE_PENDING_ROOT_IMPLEMENTATION",
+  "date_local": "2026-11-04",
+  "reviewer": "/root/astra_review_147",
+  "scope": "只读现有源码、原件的已完成独立审计和计划；只写本报告。未重跑 reader/tests，未运行作业、轮询远端、操作 Git 或创建 agent。不是新增执行审批。",
+  "protocol": ["AGENTS.md", "coordination/ASTRA_REVIEW.zh-CN.md", "coordination/QUALITY_POLICY.zh-CN.md"],
+  "cycle": {
+    "since189": ["Kimi440 GPU778 完整 MoE 因果轮", "Deep438 GPU1378 固定 teacher 数值诊断轮", "PD445 GPU870 完整混合输入容量轮"],
+    "count": 3,
+    "excluded": "909/910/919 等 CPU 失败、912/916/918/920/921/922 工程闭合、轮询和190草稿误读均不计性能轮。",
+    "reset": "由 root 登记本次逐项落实后重置；本报告不修改周期或 status。"
+  },
+  "previous_followthrough": {
+    "189": "include-only 修复后 CPU912 复用910纯合同，实际生产编译/MD/link闭合；778完成原16卡完整MoE卡，未扩GEMV网格或晋级Model。",
+    "190": "已撤回草稿 null S hash 指控；冻结9719ae/c669 keeper实际bind_encoders，916复用，未为误报再CPU。870现完整正常退出闭合本次正常路径；不代表所有异常退出分支均已设备验证。",
+    "engineering": "919→921只解决真实metadata lookup/domain；3项既有recording未重放。成功CPU证据保持工程范围，不写成设备数值或Model结果。"
+  },
+  "question1_actual_gain_and_quality": {
+    "PD445": {
+      "decision": "STOP_CURRENT_C1_HOSTSTAGE_ONE_P_ONE_D_NO_REPEAT22",
+      "evidence": "L/PD445-870-terminal-root-independent-audit.json",
+      "seal_SHA256": "7c0baebaf26f41c6aff0a3d5ef5544b025a253a54937d1f2269587fd235d1b6e",
+      "scope": "同16卡、两个冻结完整输入、外部排队C4、每role Native active C1；不是Native batch4，也不是公共HTTP/SSE。",
+      "measurement": {
+        "formal_requests_co_PD": [8, 8],
+        "co_group_wall_s": 509.22798265889287,
+        "PD_group_wall_s": 753.9037169227377,
+        "PD_over_co_wall": 1.48048,
+        "co_visible_tokens_s_per_card": 0.2003032108868315,
+        "PD_visible_tokens_s_per_card": 0.1352957913728568,
+        "visible_per_card_change_percent": -32.4545,
+        "co_gold_EOS_tokens_s_per_card": 0.18839793425936666,
+        "PD_gold_EOS_tokens_s_per_card": 0.1352957913728568,
+        "gold_EOS_per_card_change_percent": -28.1862,
+        "same_order_PD_over_co_wall": [1.5271478877036542, 1.4337118249402268],
+        "endpoint_limit": "两端点请求顺序不同，不能把端点变化称纯同序漂移。两同序pair均负，保留该scope负结论。"
+      },
+      "quality": "全22自然EOS、21正确；正式PD8/8，co7/8。不得称全卡quality PASS或PD质量更好。两小组无质量优越性统计资格。",
+      "run_terminal": "GPU870 COMPLETED0/2443s，keeper917 COMPLETED0/2500s；srun0、16owner正常销毁、无forced_scancel。watch.completed=true但watch.passed=false，质量失败保留。",
+      "resource_clean": "独立post871 COMPLETED0/53s，KFD/PID/ports clean；与质量及性能分别报告。",
+      "generalization": "没有RDMA/网络独立带宽、在线SLO、宽质量或每用户严格>15资格。用户要求的实际PD实验已完成，结果为此实现负，不再以准备报告代替结果。"
+    },
+    "Kimi778": {
+      "evidence": "results/bw1000/2026-11-03/Kimi440-GPU778-complete-MoE-rowshard-numeric-PASS-no-CPP-gain-clean.json",
+      "decision": "PARK_DEFAULT_OFF_NO_GRID_NO_MODEL",
+      "actual": "16owner/96完整调用/normal；完整max16 CPP ON/OFF1.008954，慢0.8954%，OFF漂移15.8126%，相邻pair方向混合。",
+      "separate_interval": "checked含D2H/写盘/校验/释放快14.9067%是实际另一区间，不是Native或Model收益。NRMS0.00357846只组件诊断。"
+    },
+    "Deep1378": "已获取同mode重复也不同的固定teacher证据；最早已捕获差异在layer3 MoE输入。不是1374质量修复、不是性能轮收益。当前没有新增可用Model加速。"
+  },
+  "question2_time_and_resources": {
+    "PD": "P/D本地load522.644/504.486s并行，不能相加当wall；GPU驻留39088 card-s=10.858 card-h，warm组8889.060 card-s，正式co8147.648及PD12062.459 card-s。驻留、加载、组wall均非GPU busy。排队和独占计算比例UNKNOWN。",
+    "Kimi": "778 GPU96s/1536 card-s，keeper121s；909/910各3s、91238s的编译修复成本保留，不追加同路线测量。439真实copy收益仍只对应原warmRAM gather+H2D卡，不能外推整加载。",
+    "GLM444": "最新client-v1 PLAN与CPU922为8副本×16卡=128卡、每副本64请求、总512请求/256题；GPU29400/Native28800/service28200/keeper32400秒。八副本GPU预算合计3763200 card-s=1045.333 card-h，上界不是预计耗时或有效计算；实际完成时间及多副本共享存储加载争用UNKNOWN。第一质量pair只能在真实load后获得，不承诺固定分钟数。",
+    "schedule": "已具备条件的446小卡与447诊断独立推进；444按最终互不冲突实际节点分配启动，释放依赖节点用既定分片，不重分题/缩输出。不可声称8副本与任意其它卡天然全部同时可容纳。"
+  },
+  "question3_bottleneck_evidence": {
+    "PD_proven": "当前同16卡容量负，Pfirst到Dfirst gap中位约6.356s/最大97.088s，co maxITL约0.37–0.42s；PD gap包含排队、迁移与首D执行，不能整体归网络。",
+    "PD_unknown": "没有transfer独占带宽、CPU拷贝独占份额、GPU busy或取消排队后的可达Model上界。现证据不支持凭更快网卡或微调队列就晋级。",
+    "Deep": "原1378捕获点是attention/HC/FFN norm之后、该层routing前。layer2出口到layer3输入区间尚未完整捕获；同mode差异不支持仅归当前层融合。reset调用成立不等于reset后所有有效状态原始字节相等；raw保留不等于未初始化读取。",
+    "GLM": "446有精确静态F32 ISA/编译证据，但设备数学/完整attention wall未知。444真实918编码160题控制暴露，96短MMLU控制等价；仅19题可组成完整4chunk，不能称256题都覆盖长W4或原8K/9K性能场景。",
+    "Kimi": "rowshard名义矩阵bytes下降未形成完整MoE收益；通信、调度和复制的独占份额未知。全权重仍驻留，不推断16倍HBM收益或Model fit。"
+  },
+  "baseline_co_error_and_447": {
+    "observed": "PD445 co index20/roleP/L同681977 prompt，right275061→275062、total477137→477138，first token83 30722→28302，token93 9559→10363。与1374 ON +65不同。",
+    "inference": "baseline路径也能产生该算术任务错误，因此ON独占/融合已证根因的说法不成立；相同首分歧位置不证明同一机制。1374 FAIL和融合不晋级保持。",
+    "minimal_action": "复用已准备447，只跑固定teacher OFF/OFF两序列，最多184forward，output82/83、8owner七边界+原logits；不要补ON、自由生成质量卡或重22请求。",
+    "source_read": "cpu-v2/run_teacher.py核实际prompt/teacher SHA，mode0及43层计数、自然控制reset、绝对deadline、raw预算32MiB；仅quiescent后保存/clear。跨L2exit/L3entry异常触发early_stop。其passed仅诊断协议完成，不得掩盖early_stop/nonfinite或当quality PASS。",
+    "classification": "若L2exit已不同，原因位于更早链路/状态；若exit相同entry不同，锁定交接连续性；若entry相同而后续首次不同，定位到对应阶段。任一情况仍需按实际输入/状态判断，不能凭阶段名认定kernel错误。两OFF一致则只说明本次未复现，保持cause UNKNOWN。额外D2H/sync会改变调度，不能用其耗时作性能。",
+    "CPU921": "14s、1生产HOST/49objects/48reuse/7CABI、原919三recording复用闭合；Native/Runtime/设备激活尚未执行。无需为这些已过边界重复CPU。"
+  },
+  "next_cards_by_model": {
+    "Deep": [
+      {
+        "priority": 1,
+        "card": "447 fixed-teacher OFF/OFF layer2→3 boundary",
+        "owner": "原Deep agent与root入口/controller",
+        "resource": "一次既定8卡诊断；复用921 library8b1d1d...，final实际claim冻结时限，本文不新加请求或授权门槛。",
+        "hypothesis": "同mode分歧可被七现有边界定位，减少对融合/状态的无证归因。",
+        "minimum": "仅已准备的一个TextModel TU/getters、原teacher/184forward和既定保存点；49对象其余48复用。",
+        "checks_samples": "固定2OFF、输入ID/有效状态连续性、finite/原始BF16/logits与实际owner计数、正常退出；不要求位一致作为用户质量gate。",
+        "wall_impact": "性能收益UNKNOWN；目的为定位质量风险。",
+        "first_result": "精确UNKNOWN，至少一次实际模型load加首OFF所需时间；不得把CPU921的14s当首设备判定。",
+        "exit": "异常即保存已产生raw并按原安全清理停止；无第三序列/自动重载。未复现则park诊断，不宣称修复。",
+        "alternative": "无第二张PD设备卡；从已存trace解释调度仅只读，不另开实验。"
+      }
+    ],
+    "GLM": [
+      {
+        "priority": 1,
+        "card": "446 strictF32 complete attention component",
+        "owner": "原GLM operator agent",
+        "resource": "910374/a02r4n07，8卡TP8PP1，GPU600/worker540/shell570/keeper900s；CPU920复用。",
+        "hypothesis": "替代已实证unsupported的Cast/FullFp32 leaf后，保留rowFP8 roundtrip和F32聚合的重关联可在完整attention给可用数值与wall。",
+        "minimum": "现有3Cast/16 scalarF32 GEMV叶子，不切DefaultFast/TF32，不新共享SDK或Model。",
+        "checks_samples": "两冻结fixture，各2warm+ABBA，12query/owner；首OFF/ON finite、canary、身份/计数及已安排raw快照，正式不混D2H诊断。",
+        "wall_impact": "完整attention和Model收益均UNKNOWN；标量F32可能成本过高，静态ISA不代表设备快。",
+        "first_result": "权重/组件准备后首OFF/ON即数值首判，原GPU总上限10分钟，不承诺无排队时精确耗时。",
+        "exit": "原.02只是诊断停止线，触发保raw且不追认Model质量；完整wall无益则STOP，不换精度重跑网格。",
+        "alternative": "无证据支持新近似替补，停此组件路线，不凭密集峰值推收益。"
+      },
+      {
+        "priority": 2,
+        "card": "444 eight fixed-shard paired quality coverage",
+        "owner": "root协调与原GLM质量入口agent",
+        "resource": "最终8个互不冲突16卡TP8PP2 C1副本；每题两arm同副本，64请求/副本，512总请求；实际资源claim尚待最终包。",
+        "hypothesis": "既有W4 scoped收益在新完整fewshot输入上不出现明显任务分数回退；不是再证明旧工具卡快。",
+        "minimum": "复用Native952/NoV/floors/918真实256编码与922 changedmain；仅具体shard/controller身份/时限衔接。根旧PLAN的2/4方案是历史，最终执行只绑定已选8shard版本，不据旧文档重跑CPU。",
+        "checks_samples": "128 GSM8K八shot+128 MMLU五shot，W2/W4交替顺序，4096普通输出、32768ctx；保所有256与96控制等价题分母，同时单列160控制暴露及19完整4chunk题。错误/cap/parse按既定策略继续；基础设施/数值状态错误按原范围停。",
+        "wall_impact": "质量覆盖不是预期加速数字；实际512请求耗时UNKNOWN，上限见成本字段。",
+        "first_result": "加载后首完整pair可见个案，但完整质量结论必须消费预声明全部分母，不能因早期全对停。",
+        "exit": "报告配对得分/区间、缺失/截断/解析失败与live W4暴露，不声称全benchmark或已证明noninferiority；每副本正常owner/post独立闭合。",
+        "evidence_limit": "922真实localhost97HTTP及main/ready/CLI录制已过，但TemporaryDirectory rawwire已删除；不伪造可重建原件、不要求重CPU。未来实际512wire按现有持久化路径保存后评分。"
+      }
+    ],
+    "Kimi": []
+  },
+  "Kimi_no_new_card_reason": "775/778完整MoE路线均未给Native收益，停止低秩/rowshard网格及32卡晋级。保439 warmRAM copy正结果与442已完成源码/CPU供下一次本来必要的模型加载消费；本次不为copy倍率新加载或填设备卡。没有新依据时明确零张。",
+  "final_actions": [
+    "登记PD完整测量负、质量21/22、正常生命周期和clean四个独立结论，当前hoststage路线停止。",
+    "将co +1并入基线风险证据，不改写1374 ON +65失败；447只做已准备OFF/OFF定位。",
+    "446继续既定完整组件卡；444按最新八分片具体身份/资源收束，不重复918/922、不截短输入或输出。",
+    "Kimi停负路线，不增加Model加载。其他已具备条件的独立工作不等本报告逐项GO。",
+    "root逐项登记采纳/拒绝/暂缓；宽质量、当前硬件可达Model性能与每用户严格>15目标仍未完成。"
+  ]
+}
