@@ -1,0 +1,209 @@
+{
+  "scope": "Bounded read-only current976f evidence/source/consumer reachability review after415/416STOP. No GPU/CPU job/compile/Model/timer/Git or optimization implementation.",
+  "decision": "ONE_SOURCE_ONLY_CANDIDATE: learned T1 complete router suffix fusion; no new GPU card yet",
+  "current": {
+    "Native_SHA256": "976f97b51e9f4b11dfb2439d2c97f2a1e7788e4de05ee8a8a0138f33e38b6ed1",
+    "SDK_SHA256": "e1d9432e6de79cf09782fc3b3b332fb969d1a948dbac513b3da677d78f7f1f09",
+    "Runtime_SHA256": "c04e19df5fa07bb52c0acf7be9768d258f5e2aa706647db32761e23426b153ec",
+    "Native49_receipt": "R/candidates/Deep-HC-T1-Model-r366-cpu-v1/CPU-build.json",
+    "Native49_receipt_SHA256": "e3012f3c27c58f3c2c18f237906cd0120a4232620873cbea9b90e5012fd61152",
+    "MoE_defining_object": {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/deep-owner-device-r8918/deep_model_owner_r8900.cpp.o",
+      "SHA256": "43f97ef93315f43e5332d85d7807022d2d6065e8a46e0b33c40498d48de8ddb0",
+      "symbols": [
+        "00000000000061b0 T infinilm::models::deepseek_v4::DeepseekV4MoERoutedR20::forward(infinilm::runtime::Runtime&, infinilm::runtime::Tensor const&, infinilm::runtime::Tensor const&) const"
+      ]
+    },
+    "MoE_MD_path": "R/candidates/deep-owner-device-r8918/deep_model_owner_r8900.cpp.d",
+    "MoE_MD_SHA256": "cf8e7e60d80a922d036c1e22e341804f5e8a7d50d1beea9aac7646642949b333",
+    "MoE_actual_source": "R/candidates/deep-owner-device-r8918/src/deep_model_owner_r8900.cpp",
+    "MoE_actual_source_SHA256": "9872e3553ee22c1292637559a116fe8c0fd9726aaa1290206a3bfc6beb5117c6",
+    "local_same_source": "code/bw1000/deep-owner-device-fix/Deep-owner-device-private-r8918/deep_model_owner_r8900.cpp",
+    "MoE_header_SHA256": "b14a666b2c7d28360a678f9ac348fb10c3e3b436de833939e26b719951ea77e6",
+    "decoder_SHA256": "1886f34a86308859e521778326e3e1119d93ff8e4d85e1ff1f2a3af3b3d6dfa9",
+    "config": {
+      "path": "/public/home/aclsylqidf/shared/hygon_DeepSeek-V4-Flash-Channel-INT8-w8a8/config.json",
+      "SHA256": "fd2ad6f5dbd77e55a49e9b2ff29c89030fbe4b538e8870c183d194648767be09",
+      "routing": {
+        "hidden_act": "silu",
+        "hidden_size": 4096,
+        "moe_intermediate_size": 2048,
+        "n_routed_experts": 256,
+        "n_shared_experts": 1,
+        "num_experts_per_tok": 6,
+        "num_hash_layers": 3,
+        "num_hidden_layers": 43,
+        "num_nextn_predict_layers": 1,
+        "routed_scaling_factor": 1.5
+      }
+    }
+  },
+  "existing_cost": {
+    "source": "analysis/bw1000/Deep393-early-decode8-critical-path-only.json",
+    "source_SHA256": "3669ce204f45c6624a825a817c6145e5e9339e3d7f50419aa72a659d4a372f99",
+    "original_archive_SHA256": "66fe3753f79863405761476af918c96760d24cf3667bbe12117f85e85b3bf005",
+    "requests": [
+      3,
+      4
+    ],
+    "decode_call": 8,
+    "past": 8496,
+    "critical_owner": 6,
+    "decoder_envelope_ms": [
+      341.446186542511,
+      340.2911367416382
+    ],
+    "cache_compress_index_enclosure_ms": [
+      114.64009147882462,
+      114.50424325466156
+    ],
+    "MoE_enclosure_ms": [
+      70.88139486312866,
+      71.99035453796387
+    ],
+    "router_including_gate_GEMM_ms": [
+      21.087986946105957,
+      21.16078519821167
+    ],
+    "routed_experts_ms": [
+      22.936787128448486,
+      22.744946479797363
+    ],
+    "shared_experts_ms": [
+      17.055830001831055,
+      16.887507438659668
+    ],
+    "TP_reduction_enclosure_ms": [
+      7.558553218841553,
+      8.784798622131348
+    ],
+    "limits": [
+      "Nested sameowner siblings, not summed acrossowners/stages; router is part ofMoE, cache/index is partofattention",
+      "Original393 qualityFAIL5/6; these earlycorrect windows precede divergence but do not qualifywhole run",
+      "Observer ratio1.0599416 includes perturbation; this is not unprofiled recoverable budget or current375HC_ON cost share",
+      "Router span11 closes after whole suffix, so includes original gate GEMM, all suffix completion and observer boundary; suffix exclusivewall and exactlaunch cost UNKNOWN",
+      "ThreadCPU includes executing bookkeeping/possible busywait, not proof of CPUdispatch bottleneck; no GPUbusy/CCLonly attribution"
+    ]
+  },
+  "actual_T1_chain": {
+    "source_lines": {
+      "forward": 164,
+      "gate_GEMM": 168,
+      "softplus": 169,
+      "sqrt": 170,
+      "hash_or_learned_selection": 172,
+      "learned_TopK6": 179,
+      "gather_selected_original_scores": 181,
+      "sum_six_weights": 183,
+      "divide": 185,
+      "factor_multiply": 186,
+      "router_close_and_routed_begin": 187
+    },
+    "math": "logits_F32=Gemm(x_BF16,gate_BF16.T);scores_F32=sqrt(softplus(logits,beta1,threshold20));learned selection=scores+bias;sortedlargestTopK6 choosesIDs;gather original scores atIDs;weights=(selected/(F32sum6+F32eps1e-20))*F32factor1.5. Bias changes selection only, not normalized values.",
+    "T1_routed": "tokens<=64 calls existingrouted_r20::forward with actualINT8banks; it doesnot execute HOST stdmap/perexpertprefill upload branch",
+    "consumer": "Only route_weights_F32[1,6] andindices_I64[1,6] leave router to original routedexpert path; output retains these plus finalhidden. Intermediate soft/scores/selection/TopKvalues/sum/denominator/normalized do not escape.",
+    "hash_control": "Actual config3hashlayers,40learnedlayers; decoder line33 uses layer<num_hash_layers. Hash token validationD2H/IndexSelect and hashmath remain original.",
+    "logical_counts": "Learned suffix9 HOST submits after originalGemm:Softplus,Sqrt,Addbias,TopK,Gather,Sum,Addeps,Div,Mul. One fused suffix would remove8 submits and8 temporary outputTensor allocations perlearnedT1 layer=320 each across40layers. This is source callcount, not measured GPUkernel count.",
+    "SDK_generated_Torch_sources": [
+      {
+        "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Deep/InfiniOps/generated/torch/softplus/softplus.cc",
+        "SHA256": "57d8fb2fd228637709dad070770d116135790586b0d23a745785c8103132678d"
+      },
+      {
+        "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Deep/InfiniOps/generated/torch/sqrt/sqrt.cc",
+        "SHA256": "e3322ed41ec37cc02fc8c28435395c3ac3f2419e94a80e7f6f32b84c809f5a44"
+      },
+      {
+        "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Deep/InfiniOps/generated/torch/gather/gather.cc",
+        "SHA256": "d9de53f2416ae60db1692ea6a2359beeca4d26b7bd1cca2ca2f5667bcc669c98"
+      },
+      {
+        "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Deep/InfiniOps/generated/torch/sum/sum.cc",
+        "SHA256": "4ae3f2a03945963f4cc689d9ff675b1a6778606e2045f309fb2faf3bb8ddc93f"
+      },
+      {
+        "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Deep/InfiniOps/generated/torch/div/div.cc",
+        "SHA256": "477f232a750c8434eab1e5e387b8cd86e6f920d486a425df698025afe5715d0a"
+      },
+      {
+        "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Deep/InfiniOps/generated/torch/mul/mul.cc",
+        "SHA256": "2901d12c7e7520aaff6bd51b60826651d62f36bdf4c6569d0cd87b63d84dc1e3"
+      },
+      {
+        "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Deep/InfiniOps/generated/torch/add/add.cc",
+        "SHA256": "dabd7819a512337d77a6c0bced7083f7f03d35f6175f8713fcef6a9917f1fd34"
+      }
+    ],
+    "SDK_provider_limit": "Generated Hygon8 wrappers explicitly use ToAtenTensor/from_blob plus externalHIPStreamGuard and at::_out; Add also copy_+add_, Mul copy_+mul_. Exact percall chosenimplementation was not retained in393; available wrapper source/export is not a new backend performance qualification."
+  },
+  "dedup": [
+    {
+      "path": "coordination/tasks/lower-deep-routed-native-dot4.json",
+      "conclusion": "802 complete nativeDOT4 performance-negative/PARK; different expert INT8dot lowering, do not reopen"
+    },
+    {
+      "path": "coordination/tasks/elide-deep-moe-sum-drain.json",
+      "conclusion": "Old mode5/kind1/M32/F32 drain hypothesis, not T1router math; no deferredcontainment reuse"
+    },
+    {
+      "path": "coordination/tasks/reuse-deep-prefill-quant1.json",
+      "conclusion": "Prefill>64 quantization reuse; actualT1 cannot reach thisbranch"
+    },
+    {
+      "path": "coordination/tasks/batch-deep-prefill-bank-lease.json",
+      "conclusion": "Prefill lease/upload path; not T1"
+    },
+    {
+      "path": "coordination/tasks/Deep-C4-fixed-TopK-r415.json",
+      "conclusion": "STOP C4N2124/K512 isolatedTopK; not routerN256/K6 complete9op suffix, no kernelreuse/grid"
+    },
+    {
+      "path": "coordination/tasks/Deep-C4-rank64-TopK-r416.json",
+      "conclusion": "STOP preencodedC4TopK and restorecost/variance. Do not repairmeasurement/replay"
+    },
+    {
+      "path": "coordination/tasks/deep-csa-bank-copy-submission.json",
+      "conclusion": "1102 smallgain/PARK CSA bankcopy; currentC4gathered-to-dense duplicatecopy is different but not chosen: only2copies/2poisons and no largeexclusive budget"
+    },
+    {
+      "path": "analysis/bw1000/Deep393-early-decode8-critical-path-only.json",
+      "conclusion": "Graph Model bindingPARK, currentdynamicbuffers/hostchecks incompatible with thincapture; no graphretry"
+    },
+    {
+      "path": "code/bw1000/Deep-C4-status-enclosure-r406",
+      "conclusion": "Status enclosure6.36% STOP, allchecks retained; no containment deletion"
+    }
+  ],
+  "one_candidate": {
+    "name": "Private T1 learned-router suffix fusion, source-only proposal",
+    "guard": "tokens1,experts256,K6,F32logits,bias,epsilon,factor;!hash; sameactualowner Runtime/stream. DefaultOFF, all other shapes/hash original. No block/precision/grid variations.",
+    "change": "Retain actual gateGemm, hash branch, routedINT8expertkernel, sharedexpert, TPsum, cast, all drains/checks/lifetimes. Replace9 learned suffix submit sites with atmostoneprivateGPU kernel returning originalF32routeweights/I64IDs, keep F32 operation boundaries. One privateHOST MoE TU plus thinbridge ifrequired, one HIP object; Native49/publicclass/SDK unchanged. This is larger than standaloneTopK but not entireMoE replacement.",
+    "precision_risk": "Softplus/Sqrt libdevice behavior, F32sum6 reductionorder and cutoff ties can change routing. No proven bitexactness or Model quality. Do not substitute TopkSoftmax/TopkSigmoid. Same IDs/weights on margin-separated actualbaseline and fullMoE output/state checks are needed; ambiguoustie/margin drift cannot be waived by oldTopK legalset rules.",
+    "same_input_control": "Router has no temporalcache/length/revision transaction. Numerical suffix comparison can run bothsuffixes from exactlyone currentGemm logits buffer beforeexpert consumption, separateoutputs/samebias/eps/factor/lease/stream. FullMoE pair uses immutable realnormalizedhidden+checkpointweights; no C4prefixrestore/hash loop or393freegeneration. Gate output drift must be recorded ratherthan assumed.",
+    "needed_before_any_GPU": "Source bind actual default provider choice and reduction/activation semantics, private callclosure, independentCPU Torch cases including threshold20/NaNInf/zero/tie/margin, correctconsumer/numericfailure closure. Then explicit sourceCPU/resourceclaim; no currentexecution authorization from thisread-only proposal.",
+    "possible_future_component": "Oneactuallearnedlayer16 T1 fullMoE TP8 currentbank geometry/realcheckpoint, samehidden/selectedroutes; include originalGate/routed/shared/collective/destroy/completewall. Realfullbank load andinitialization budget must be concrete, no completeModel load. No microkernel-only promotion.",
+    "exclusive_budget": "UNKNOWN. Entire observedrouter21.1ms is an upper containing envelope including retainedGemm/3hashlayers/observer, not savings; even perfect whole-router deletion leaves~319-320ms instrumenteddecoder, farabove66.67ms.",
+    "first_decision_eta": "Source/CPU closure after newexplicitclaim could provide firstsemantic\u5224\u5b9a; actualduration/resource budget UNKNOWN until existingone-layerbridge/provider/object reuse is pinned. No job reserved now.",
+    "stop": "If exact producer/reduction semantics or thinABI/lifecycle cannot close, or margin/route/fullMoE numericfails, STOP_SOURCE. If completewall doesnotimprove beyondsamearmvariation, STOP no furthergrid/Model."
+  },
+  "local_evidence": [
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\Deep-next-current-MoE-binding-local.json",
+      "SHA256": "ceea438cf1124afb11e57ba5f8246ad21593da84a4ad227e0218e287639bf837"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\Deep-next-MoE-object-source-local.json",
+      "SHA256": "01bb585b93351359ded0476167b2132d82138dbd07b43d0b534ac4efefa91741"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\Deep-next-router-source-provider-local.json",
+      "SHA256": "e0223a37b374540b8cb851895d5263dceb731b3621e438247762e1e2ca95401f"
+    }
+  ],
+  "new_GPU": false,
+  "new_CPU_job": false,
+  "new_compile": false,
+  "new_timer": false,
+  "new_Git": false,
+  "Model_gain": "UNKNOWN"
+}
