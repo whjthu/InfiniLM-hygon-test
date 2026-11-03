@@ -1,0 +1,34 @@
+{
+  "UTC": "2026-11-03T13:36:01.124419+00:00",
+  "state": "CPU884_ENGINEERING_LDD_ENV_FAIL_AFTER_SUCCESSFUL_TWO_HOST_AND_RUNTIME_LINK",
+  "actual_CPU": "910407.884",
+  "Slurm": "FAILED1:0/8s",
+  "source_commit": "fb56942d1bb31f9683ff2240e1995bc8775108f6",
+  "source_manifest_SHA256": "89eb3bc2ae31df99cdf5ee35d648738638558bbe7906dcd1fa77608e0243ecc7",
+  "original_receipt_SHA256": "3069d817ad7fb38f9e7b21999a558ba174667aef324f75c997adf3ae93139a27",
+  "new_Runtime_SHA256": "5b8df2e6dd334b88e3a1493b928dce1a25fe2a7878c2eccdf141a74aaa3ad36b",
+  "compiled": [
+    {
+      "source": "copy.cc",
+      "object": "/refactor/candidates/Kimi-loader-row-copy-r436-Runtime-CPU-v4/copy.cc.o",
+      "object_SHA256": "9f3b77ba62b2d2ac7695c5f51f0398a3c608973fa45504c4b024d8dcebd34cb5",
+      "MD_SHA256": "2261e4bddb4d1ea074cc55f91bc37cfa82a1fb0876252f981abb728ed1dff460"
+    },
+    {
+      "source": "caller.cpp",
+      "object": "/refactor/candidates/Kimi-loader-row-copy-r436-Runtime-CPU-v4/caller.cpp.o",
+      "object_SHA256": "7c34bf8c9eb6f4b561f5708ceb828caf3a4ac1c6b44bd5440700a96913f2b928",
+      "MD_SHA256": "9a63cfd54e1c1e9d12bee4c0614acb30a57f4a33311d246ea5a5e5a914cea23e"
+    }
+  ],
+  "preserved_old_strong_exports": 149,
+  "reused_Runtime_objects": 12,
+  "error": "AssertionError()",
+  "traceback": "Traceback (most recent call last):\n  File \"/refactor/incoming/Kimi-loader-row-copy-r436/runtime-v4/run_cpu.py\", line 57, in main\n    ldd=run(['ldd','-r',str(runtime)],label+'-ldd',20);assert 'not found'not in ldd and 'undefined symbol'not in ldd\nAssertionError\n",
+  "samples": 0,
+  "actual_CPU_Tensor_checks_executed": false,
+  "original_semantic_or_Model_failure": false,
+  "causal_rounds": 0,
+  "diagnosis": "Inside environment omitted existing torch/lib lookup directory, actual baseline ldd cannot locate libtorch_python.so and three related symbols. OriginalRuntime unchanged and not numerically run; all compile and Runtime link artifacts retained.",
+  "repair": "Separate runtime-v5 source35c8ced8 adds known successful torch/lib lookup and reuses existing two objects/DSO; no recompile/Runtime relink/Model reload. New qualifier owns separate result;884FAIL retained."
+}
