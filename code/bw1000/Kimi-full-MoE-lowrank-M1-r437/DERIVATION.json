@@ -1,0 +1,55 @@
+{
+  "parent_CPP": {
+    "path": "code/bw1000/agent-context-32k/Kimi-long-scale-exact-private-r201/kimi_moe_scale_exact_r201.cpp",
+    "SHA256": "1959878b051f9ad25d60a3f17bb776a9f74623cacccf9fd7d216949addea70eb"
+  },
+  "parent_header": {
+    "path": "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/models/kimi_k3/kimi_k3_moe.hpp",
+    "SHA256": "3f415dcb1585d2236397bde988bdbbec4a0d73dc48fe2e2b371310b706ac67fd"
+  },
+  "private_class": "KimiK3MoER437",
+  "class_fields_unchanged": true,
+  "original_helpers_reused": [
+    "KimiK3MLP",
+    "KimiK3Experts",
+    "make_kimi_k3_subconfig",
+    "TopKRouter",
+    "RMSNorm",
+    "RowParallelLinear",
+    "FP4 provider",
+    "CommunicationGroup"
+  ],
+  "private_diagnostic_definitions": [
+    "modern_kimi_moe_profile_r9125",
+    "modern_kimi_I192_T_counts_r9129",
+    "modern_kimi_I192_workspace_r8669zc",
+    "modern_kimi_I192_counts_r8669y",
+    "modern_kimi_router_counts_r4635",
+    "modern_kimi_route_chunk_counts_r4435",
+    "modern_kimi_moe_aux_counts_r4430",
+    "modern_kimi_stable_down_counts_r4012",
+    "modern_kimi_set_tiled_w13_r1861",
+    "modern_kimi_tiled_calls_r1861",
+    "modern_kimi_set_grouped_prefill"
+  ],
+  "private_inline_variables": [
+    "router_counts_r4635",
+    "route_chunk_counts_r4435",
+    "aux_counts_r4430",
+    "stable_down_counts_r4012"
+  ],
+  "projection_replacements": {
+    "routed_expert_down_proj_->forward(runtime, flattened)": "kimi_r437::project(runtime, routed_expert_down_proj_, flattened, 0)",
+    "routed_expert_down_proj_->forward(runtime,input_row)": "kimi_r437::project(runtime, routed_expert_down_proj_, input_row, 0)",
+    "routed_expert_up_proj_->forward(runtime,row)": "kimi_r437::project(runtime, routed_expert_up_proj_, row, 1)",
+    "routed_expert_up_proj_->forward(runtime,routed)": "kimi_r437::project(runtime, routed_expert_up_proj_, routed, 1)"
+  },
+  "total_replaced_call_sites": 5,
+  "reachable_C1_down_up_calls_per_forward": [
+    1,
+    1
+  ],
+  "original_source_before_ctor_and_after_forward_excluded": "MLP/Experts bodies and unrelated synthetic I192 smoke remain only in reused original moe.o; never copied as a new benchmark",
+  "old_moe_object_SHA256": "db8e6363b30be629401ef4b17f8eab0fbdcdb6e7f92f3b983c8968418bca15d3",
+  "old_original_Native_SHA256": "8df87f0741b13c90f658174a793f0068efb4eb8097eddf1d5f44edb4d208e1a2"
+}

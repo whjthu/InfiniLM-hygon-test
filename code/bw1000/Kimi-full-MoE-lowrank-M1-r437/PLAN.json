@@ -1,0 +1,117 @@
+{
+  "CPU_GO": true,
+  "GPU_GO": false,
+  "Model_GO": false,
+  "CPU_claim": {
+    "parent": 910407,
+    "node": "a14r2n20",
+    "cores": 4,
+    "mem_MiB": 8192,
+    "max_s": 300,
+    "inside_s": 270,
+    "attempts": 1,
+    "CPU": true,
+    "GPU": 0,
+    "weights": 0,
+    "Native_dlopen": false,
+    "new_HOST_TUs": 2,
+    "new_GPU_TUs": 0,
+    "old_objects_rebuilt": 0,
+    "unique_label": "Kimi-r437-full-MoE-lowrank-CPU-v1",
+    "new_artifact": "/refactor/candidates/Kimi-full-MoE-lowrank-M1-r437-CPU"
+  },
+  "mechanism": "Only two resident BF16 lowrank C1 projections, F32 accumulation, BF16 output. Reuse CPU869 fixed256-thread GPU object; private MoE class only, not shared library or public class/SDK hot patch",
+  "OFF": "Exact original r201 moe.o strong KimiK3MoE.forward, original strong Linear objects within private Bsymbolic link of all33 original8df objects; no hidden-symbol interposition",
+  "ON": "Private KimiK3MoER437 with identical fields, original constructor/forward math except five syntactic projection calls; current C1 reaches one down+one up. Original expert/MLP objects/router/norm/shared/TP all retained",
+  "original_modes": {
+    "SpecMath": 0,
+    "MOE_EXECUTION": 0,
+    "MOE_WORKSPACE": 1,
+    "I192_GROUPED": 0,
+    "I192_COMPACT": 1,
+    "qualified_decode_input_flags": 3,
+    "grouped_prefill": true,
+    "tiled_W13": false
+  },
+  "shape": {
+    "T": 1,
+    "C": 1,
+    "hidden": 7168,
+    "routed": 3584,
+    "experts": 896,
+    "topk": 16,
+    "TP": 16,
+    "PP": 1,
+    "local_expert_intermediate": 192
+  },
+  "PP_boundary": "Actual PP1 group, long_factory=false. Original padded scales remain. Not current32card PP2 exact-scale allocation, Model state/performance/memory qualification is UNKNOWN; never fake RankInfo or change Scope guard",
+  "two_instances": "Original and candidate constructed/load same complete layer1 checkpoint into separate strong owned parameters; double component resident storage/coldload is explicit and not production memory saving",
+  "fixture": "Actual retained6110 L1 teacher first row [1,1,7168], two original files must match exact hash; not a new current Model capture. Router recomputes on this hidden input; up consumes actual expert reduction+norm result, not the down input",
+  "timing": {
+    "schedule": [
+      0,
+      1,
+      0,
+      1,
+      1,
+      0
+    ],
+    "warm": [
+      0,
+      1
+    ],
+    "formal": [
+      2,
+      3,
+      4,
+      5
+    ],
+    "primary": "Per-arm maximum16 rank-local original full MoE forward+Runtime completion, no cross-node clock subtraction",
+    "included": [
+      "down",
+      "original routing",
+      "original FP4 routed experts",
+      "routed TP allreduce",
+      "routed norm",
+      "up on actual distinct input",
+      "shared experts and their TP reduce",
+      "add",
+      "all forward allocations",
+      "outer original drain"
+    ],
+    "also_record": "Checked call includes full output D2H/persistence/release/drain. Input seed, full checkpoint load/two module build and cold phases/normal close/observer costs separate; no event-to-Model multiplication"
+  },
+  "numeric": {
+    "raw_output": "BF16 bytes per owner/perarm before classification, shape7168/little-endian/path+hash",
+    "finite_required": true,
+    "input_tail_canary_required": true,
+    "actual_selected_hits_per_forward": {
+      "OFF": [
+        0,
+        0
+      ],
+      "ON": [
+        1,
+        1
+      ]
+    },
+    "relative_RMS_alert": 0.02,
+    "unexplained_drift_stop": 0.1,
+    "threshold_scope": "Diagnostic/early STOP only, not a quality acceptance threshold; no bitwise gate or GPU F64"
+  },
+  "performance": "Retain only if complete paired max16 full wall beats OFF endpoint drift; no primitive extrapolation or dedicated Model load",
+  "future_GPU_candidate": {
+    "GPU_GO": false,
+    "parent": 910371,
+    "nodes": [
+      "a02r3n03",
+      "a02r3n07"
+    ],
+    "cards": 16,
+    "max_s": 600,
+    "requires": "Actual successful CPU artifact + final full attention/MoE loader/controller source claim/fresh de-dup; not authorized merely by this CPU result"
+  },
+  "no_new_GPU_provider_compile": true,
+  "no_Matrix_microgrid": true,
+  "no_full_Model_load": true
+}
