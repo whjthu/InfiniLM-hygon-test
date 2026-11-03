@@ -1,0 +1,148 @@
+{
+  "review": 187,
+  "date": "2026-11-03",
+  "reviewer": "/root/astra_review_147",
+  "state": "COMPLETE_MINIMAL_FIRST_SUBMIT_AND_TWO_PROCESS_REPAIR",
+  "scope": {
+    "read_only_source_and_existing_receipts": true,
+    "tests_readers_jobs_polling_Git_executed": false,
+    "only_write": "analysis/bw1000/reviews/astra-review-187-first-submit-and-amortized-H2D-followthrough.json",
+    "not_new_framework_or_approval_gate": true,
+    "independent_work_continues": true
+  },
+  "186_followthrough": {
+    "implementation": "analysis/bw1000/reviews/astra-review-186-implementation.json",
+    "state": "COMPLETE_ADOPTED_WITH_EXPLICIT_CURRENT_SOURCE_CORRECTIONS",
+    "outcomes": [
+      "434真实SSE首reasoning收益保留，没有把wholewall或backend说成加速，也未重六请求。",
+      "436转439真实Hygon copy_from/H2D消费者，复用04a/5b8库；763已闭合两库实际语义，但完整成本计划失败。没有继续hidden CPU重试。",
+      "437保持原PP1/padded完整MoE目标；757过早检查及765手工预pin均阻塞首forward，旧失败保留。修复应回到原RuntimeWorkspaceHandle首次submit时序，不以新的pin helper取代。",
+      "438原888缺直接头修复后CPU889/HIP与1371完成。186读取的预冻结30959不能替代后续实际冻结5e0a/947c8来源，实际1371原件为本次结论依据。",
+      "GLM433 unsupported组合仍PARK，无DefaultFast追认或新provider GPU填空。"
+    ]
+  },
+  "round_accounting": {
+    "after186_confirmed_causal_rounds": 1,
+    "round": "Deep438-1371完整MoE融合配对/同GU数值诊断",
+    "early_trigger": "437重复原owner策略时序错误，以及439已证重复startup与冻结总时限不相容；不等第三轮",
+    "not_performance_rounds": ["437757/765零forward工程失败", "439763两个真实语义check通过但0formal/完整计划FAIL", "CPU894/895及first-submit-v5构建", "440源/CPU准备", "报告/轮询"]
+  },
+  "question1_actual_gain": {
+    "Deep438": {
+      "result": "results/bw1000/2026-11-03/Deep438-GPU1371-same-GU-numeric-PASS-scoped-complete-MoE-CPP-gain-normal-clean.json",
+      "root_consumption": "analysis/bw1000/Deep438-1371-root-CPP-signal-and-Model-boundary.json",
+      "root_result_SHA256": "24db62fdfc1f9b48c05c8340474ee3cbe05588092126325ab8bf69f0026668fc",
+      "raw_archive_SHA256": "74b31b059ad531338b9774f826a041ce1fe1784bd6bfa35f4df84bfa37cf27f5",
+      "actual": "1371 COMPLETED0/95s、892 COMPLETED0/102s、1372 clean；8owners正常，每owner13次fullMoE覆盖10计划+sameGU original+两T2。根已实际消费228files/112NPZ-sidecar。",
+      "numeric": "同GU原路径与融合activation/I8/scale bits exact；warm/formal及T2输出NRMSE0，route变化0。范围是一层learned MoE、冻结synthetic hidden，不是Model质量。",
+      "CPP_complete": "matched同query max8 1.59948525→1.34902650ms，-15.6587%；四相邻对全快，两个block比值0.86315/0.82457；保留完整C++ forward+Runtime完成正信号。",
+      "forward_CAPI": "2.1931496→1.9107409ms均值-12.8769%，但第一邻对慢6.5787%、跨block OFF变化15.2245%；不能称稳定CAPI/Model提速。",
+      "outer": "with-proof和checked仅3/4邻对快，checked均值约-2.47%；不得删除外层开销或由CPP乘43层推Model。",
+      "decision": "组件证据足以推进最小真实Model接入，尚无整模型或每用户>15证明。"
+    },
+    "Kimi": {
+      "437": "757/765均没有完成完整forward；无性能或候选数学负结论。",
+      "439": "763已证明04a与5b8各36真实Tensor语义case、共66成功H2D；两个Runtime正常销毁。0benchmark完成/0formal，完整38exec计划FAIL；不能用check wall比较复制速度。",
+      "public_service": "沿用434首reasoning -21.64%限定收益，完整请求在漂移内、backend约4.81tok/s；本周期没有新的Model/服务加速。"
+    },
+    "GLM": "本周期无新收益；433缺接口支持的结论保留，不制造替补性能。"
+  },
+  "question2_time_and_iteration": {
+    "Deep438_cost": "8卡95s=760card-seconds驻留，非busy；driver88.096s，其中checkpoint读取/hash6.419s、SDK静态device-query启动32.284s。真正CPP配对为毫秒，启动成本必须保留。",
+    "Kimi439_cost": {
+      "evidence": "results/bw1000/2026-11-03/Kimi439-763-real-H2D-semantic-partial-PASS-full-plan-FAIL-clean.json",
+      "seal_SHA256": "366acba3882ad955e7c89b623899af1c604eede377eb95430633be79ec8027b9",
+      "actual": "763 FAILED1/87s、896 FAILED1/105s；实际post为767 COMPLETED0，KFD/PID空。",
+      "startup": "两check进程parent wall30.9015/30.5915s，main仅0.3260/0.3618s，Runtime create约54us；瓶颈在main之外的启动/退出包络，而非Runtime::create本身。",
+      "io": "原/proc/io窗口write_bytes增加1332043776B；目标FD未保存，不能归因具体cache、ELF文件或checkpoint。不能把一次观测机械乘38当真实总写入。",
+      "budget": "即使每次仅约30s，38次独立exec也远超270s worker。首bench25s上限早于已证约30s启动，0phase不等于copy卡死。应减少启动次数，不扩大300/270/480预算或把检查wall当样本。"
+    },
+    "avoidable_loop": "同一事实被分散到纯pin检查、Runtime构造、原submit三个边界，导致局部PASS遮蔽真实时序；构建/loader/owner已过部分必须复用，仅改确定消费者。不得再手写另一pin或让每条命令重新执行完整SDK静态初始化。",
+    "unknown": "完整准备/排队成本、GPU忙碌率、Model加载copy独占比例仍UNKNOWN；不从驻留时间和卡数造利用率。"
+  },
+  "question3_source_findings": {
+    "437_first_submit": {
+      "source": "code/bw1000/Kimi-full-MoE-lowrank-M1-r437/cpu-first-submit-v5/component.cpp",
+      "known_contract": "实际MD header de2ffe及submit.hpp 8c0bd70a372b0017bca78e54f037493fe79918f97b5fed6d885f5b5d8eb0c20d：RuntimeWorkspaceHandle首次submit才apply_once。旧9233 double-bind负例、9220首forward后检查应复用。",
+      "review": "当前源无预Pin/无跨DSO inline apply_once；入口≥32并逐thread保持完整entry，Runtime create后仍完整entry；真实首OFF forward+sync后及每arm检查entry[4rank..4rank+4]，汇总32unique；正常Runtime close后restore。对应确定错误的修复充分。",
+      "boundary": "check_order.py是源码顺序/实际pin SHA消费，不是实际GPU firstsubmit通过；旧purePOSIX preflight CABI虽仍导出，不能再由driver当SDK资格或调用它来预pin。16owner设备数学仍待原changed-source卡。",
+      "failure_handling": "原source异常failstop与现controller清理范围保留；758/766 clean不等于16正常owner退出。未知新增错误停，不重复同源。"
+    },
+    "439_bounded_protocol": {
+      "decision": "采纳固定两进程、两Runtime、有限38项work命令，另有两个close；不是永久worker框架。",
+      "required_minimal_semantics": [
+        "baseline进程只04a/env0，candidate进程只5b8/env1；各实际provider/maps/SHA与设备身份保持，不在同进程切DSO。",
+        "父按原check/两geometry/2warm+四ABBA顺序发带序号的有限命令，等待上条结果再发下一条；两进程不能并发compute。",
+        "保留原每op的bank分配/views/source强lease、896copy循环、同步、D2H校验和释放；仅Runtime与进程驻留，计数用每op前后delta而非累积总数。",
+        "原主timer仍是narrow+temporary gather+H2D+完成sync，bank allocation/registration、D2H和启动另列。新结果明确warm Runtime/allocator状态，不冒旧fresh-process或冷加载口径。",
+        "每条实际结果立即落盘；未知命令/错序/EOF/异常立即failstop，原绝对GPU epoch/worker270s不滑动。一次close drain/destroy后两weak Runtime expired，父确认两PID退出及post KFD空，才全计划PASS。"
+      ],
+      "no_extra_gate": "复用763的72语义事实/04a5b8和原copy数学；仅必要新caller HOST/两links与有限协议消费者闭合，不重Runtime/SDK编译、不另加GPU provider探针。",
+      "unknown": "原896bank benchmark从未完成，其分配/完整wall仍UNKNOWN；持久进程提案尚不是实际源码/设备通过。"
+    },
+    "438_Model_reachability": {
+      "source_snapshot": "code/bw1000/Deep-T1-MoE-activation-quant-r438/model-v1/{model_moe.cpp,model_bank.cpp,model_scope.hpp,model_api.py,build_CPU.py}",
+      "review": "private actquant_r438类不会被普通registry构造。新原namespace两HOST替换+889 HIP、其余46对象/registry/RankWorker/decoder原bytes的49对象接入是必要差分；不把d197组件DSO当Model库。",
+      "scope": "model_moe在原owner/input验证后创建Scope，以真实device index标owner、tokens==1限定；原return前HostReturned记录。默认unarmed OFF；set/clear/read/metadata四CABI及8×12counter声明清楚。",
+      "important_limit": "Scope析构/active=false/HostReturned只说明HOST返回，不能证明GPU已完成。set/clear本身只检查active，无法替代whole-engine quiescence；实际worker必须在上一请求真正完成、drain/reset后切arm/clear并持久化计数。这是已有注释要求的真实消费者，不新增框架或设备门禁。",
+      "not_blocking": "当前未见确定需要另一组件GPU的数学缺口。2HOST/原namespace绑定及原worker请求边界接通即可转一次Model配对，不再要求重复1371或先另载质量卡。"
+    },
+    "440": "不同于432/GEMV的TP工作分配机制，CPU源准备合理。102760448→6422528B是每rank逻辑矩阵访问假设；两AllGather重建21504B不是实际网络流量，更不是16x Model加速。完整权重仍驻留，不称容量收益。C1 replicated输入与权重一致、真实comm16、原2392时序和两collective完整wall尚未设备证明。"
+  },
+  "question4_next_cards": {
+    "Kimi": [
+      {
+        "priority": 1,
+        "id": "437_FIRST_SUBMIT_FIXED_FULL_MOE",
+        "hypothesis": "原owner policy在真实submit自行收窄后，两lowrank候选在包含CCL的完整MoE有可见收益。",
+        "owner_resource": "原Kimi执行者；原03/07的16卡、6forward每owner/总96，GPU600s/keeper900；只跟当前CPU后新具体claim，不重757/765。",
+        "change": "first-submit-v5唯一消费者HOST/link；复用894、原math/GPU对象/PP1 padded布局。",
+        "measurement": "原2warm+OFF/ON/ON/OFF、matched max16完整forward/Runtime完成、原raw/finite/canary/hit/精确mask/正常close；旧诊断阈值不升级为质量gate。",
+        "first_result_time": "当前CPU/发布/排队耗时UNKNOWN；包ready后≤600s驻留内首完整配对。",
+        "potential_Model_wall": "UNKNOWN；比继续裸投影更有区分力，仍不继承PP2 Model。",
+        "exit": "新owner错误立即停止定位；完整收益不超过原OFF漂移则PARK，不扩大grid/Model。"
+      },
+      {
+        "priority": 2,
+        "id": "439_TWO_FIXED_PROCESSES_38_WORK_OPS",
+        "hypothesis": "消除重复启动后，冻结两W2几何的完整gather+H2D成本能在原预算内比较。",
+        "owner_resource": "root/原439执行者；一张n16卡，GPU300/worker270/keeper480不变，不与437争节点。",
+        "change": "仅必要1HOST有限check/bench/close命令循环+2links；old04a/5b8及原每opcopy/计时不变。",
+        "measurement": "保持原38项work计划，原统计/主timer与单列allocation/D2H；两个进程最终正常close；启动包含在驻留成本但不混进复制timer。",
+        "first_result_time": "源/CPU/队列UNKNOWN；历史两个启动合计约61s，随后应在原270s内得到配对；这只是预算依据，不是完成保证。",
+        "potential_Model_wall": "UNKNOWN；先判完整caller，不能2.67x乘整加载。",
+        "exit": "若预算仍不足/未知失败保留partial并STOP，不加时凑样本；无稳定完整copy收益则PARK；正结果仅保留下一必要Model加载可集成的私有候选，不专门重载。"
+      }
+    ],
+    "Kimi440_deferred_not_third_device_card": {
+      "decision": "只做已提有界源/CPU准备；等待437/439实际成本收束后再选择后继设备路线",
+      "scope": "4core8GiB≤300s，actualsyntax/geometry/TorchF32参考，0Runtime/Native/GPU；未发布或未执行保持原状态",
+      "reason": "提供不同机制的备用源有价值，但不能无上限并行扩Kimi设备卡。CPU不会证明实际Dense舍入/CCL/复制输入；即使432437负也不自动否定该机制，设备决策依据完整消费者成本和通信风险。"
+    },
+    "Deep": [
+      {
+        "priority": 1,
+        "id": "438_REAL_FACTORY_SINGLE_RESIDENCE_MODEL_PAIR",
+        "decision": "FINISH_MINIMAL_MODEL_GRAFT_THEN_ONE_DISCRIMINATING_MODEL_PAIR",
+        "hypothesis": "当前普通Model真正进入的T1 MoE路径融合能改善decode及完整用户wall，而非仅CPP组件。",
+        "owner_resource": "原Deep执行者；先既有2HOST+pureCPU合同/49objects闭包；随后一次8卡Model，建议沿用原2700s含load/keeper3000s有界范围，由根具体claim固定。",
+        "enough_to_pay_load": [
+          "真实registry→TextModelR20→NativeDecoder→FFN→原namespace MoE符号/对象闭包成立；原Native入口与外层HC不另改。",
+          "原actualworker消费新增4CABI，强绑定候选DSO；只在完整请求quiescent/drain/reset边界切mode并记录8owner counters，default unarmed语义及异常clear不伪GPU完成。",
+          "冻结同一新库的OFF/ON、同HC/采样/输入/生成预算、同资源；必要changed-file生产入口CPU胶水闭合即可，不重复原未变套件或增加provider-only GPU。"
+        ],
+        "measurement": "一次驻留2warm+一个OFF/ON/ON/OFF正式配对，可复用完整tool history及原采样/预算而非重做质量64；单变量为actquant mode。首ON保存实际所有ownerT1 routed/shared hits/fallback，完整token/EOS/tool gold/reset/正常destroy；分别报prefill/decode/HTTP/emitter及漂移，按原数值政策不要求token逐位一致。",
+        "first_result_time": "source/CPU未完成时间UNKNOWN；历史Deep必要load约400s，仅作预算参考，第一warm后即可判实际命中/基本任务正确；正式判断在原≤2700s单驻留内，不承诺固定速度。",
+        "potential_Model_wall": "UNKNOWN；CPP单层约0.25046ms节省不能乘层数/生成步数宣称可达收益。",
+        "exit": "缺真实路径命中、数值/状态错误或未知生命周期立即停；完整Model收益未超过同次漂移则不晋级/不追加重复组件；正结果才安排后续必要真实benchmark覆盖，不将一history配对当全质量或>15。"
+      }
+    ],
+    "GLM": [],
+    "GLM_reason": "433精确拒绝Cast/FullFp32窗口未消歧，无已证安装Hygon替补；继续PARK。已有正常NoV/W4能力保留，本轮不造新Model或微grid。"
+  },
+  "final_limits": [
+    "本审未启动/取消任何任务，已知修复和独立实现不等逐条GO。",
+    "不引入GPU F64、不改变原质量政策；组件exact只说明受测边界。",
+    "真实Model跨负载质量、完整性能目标和逐用户严格>15仍未完成。"
+  ]
+}
