@@ -1,0 +1,211 @@
+--- parent1183/public_glm_native/actors.py
++++ startup-v4/public_glm_native/actors.py
+@@ -11,6 +11,7 @@
+ 
+ from .checkpoint_loader import bind_library
+ from .protocol import Run
++from .startup_diagnostic import marker, resolve
+ from .worker import owner_main, process_owner, torch_setup
+ 
+ 
+@@ -36,6 +37,7 @@
+ 
+     def start(self):
+         if self._started: raise RuntimeError('Actor group already submitted; no replay')
++        marker(self.config, 'actors.start.enter')
+         self.run.write('leader-%d.json' % self.stage, dict(stage=self.stage, PID=os.getpid()))
+         self._claimed = self._started = True
+         if self.stage == 0:
+@@ -52,23 +54,37 @@
+             if self.stage == 1 and rank == 0: continue
+             proc = context.Process(target=process_owner, args=(rank, self.config),
+                                    name='GLM-owner-%d-%d' % (self.stage, rank))
++            marker(self.config, 'actors.process_start.before', child_rank=rank)
+             proc.start()
++            marker(self.config, 'actors.process_start.return', child_rank=rank, child_PID=proc.pid)
+             self.processes.append(proc)
+         if self.stage == 1:
+             self.owner_thread = threading.Thread(target=self._emitter,
+                 name='GLM-Native-emitter-owner', daemon=False)
++            marker(self.config, 'actors.owner_thread_start.before')
+             self.owner_thread.start()
++            marker(self.config, 'actors.owner_thread_start.return')
+         self.run.write('actors-%d.json' % self.stage, dict(stage=self.stage,
+             owned_process_PIDs=[p.pid for p in self.processes],
+             emitter_same_process_thread=self.owner_thread is not None,
+             NativeRequest_serialized=False))
+         self.monitor_thread = threading.Thread(target=self._monitor,
+             name='GLM-owner-supervisor', daemon=False)
++        marker(self.config, 'actors.monitor_thread_start.before')
+         self.monitor_thread.start()
++        marker(self.config, 'actors.monitor_thread_start.return')
++        marker(self.config, 'actors.start.return')
+ 
+     def _emitter(self):
+         try: owner_main(0, self.config, self.prepared, self.stop_intent)
+-        except BaseException as error: self._trip(error)
++        except BaseException as error:
++            try: resolve(self.config, 'emitter.error')
++            except BaseException as diagnostic_error:
++                if hasattr(error, 'add_note'): error.add_note('Diagnostic cancellation: ' + repr(diagnostic_error))
++            self._trip(error)
++        else:
++            try: resolve(self.config, 'emitter.return')
++            except BaseException as error: self._trip(error)
+ 
+     def _trip(self, error):
+         if not self._claimed: return  # duplicate intent never poisons an old run
+@@ -92,6 +108,7 @@
+ 
+     def _monitor(self):
+         try:
++            marker(self.config, 'actors.monitor.enter')
+             while not self.finished.is_set():
+                 self.run.raise_if_failed()
+                 if self.run.remaining() <= 0: raise TimeoutError('Original Native residency expired')
+@@ -113,10 +130,13 @@
+         except BaseException as error: self._trip(error)
+ 
+     def wait_ready(self):
++        marker(self.config, 'actors.wait_ready.before')
+         records = self.run.all_ready()
++        marker(self.config, 'actors.wait_ready.all_ready.return', records=len(records))
+         if self.failed.is_set(): raise self.failure
+         if time.time() + 120 >= self.config['gpu_start_epoch'] + self.config['service_seconds']:
+             raise TimeoutError('Insufficient original service window after loading')
++        marker(self.config, 'actors.wait_ready.return', records=len(records))
+         return records
+ 
+     def wait_peer_node(self):
+--- parent1183/public_glm_native/native_owner.py
++++ startup-v4/public_glm_native/native_owner.py
+@@ -22,7 +22,7 @@
+                    report,report_path,queue_path,engine,FinishReason,
+                    prepared_identity,eos_token_ids,run_identity,default_profile,
+                    profile_manifest_SHA256,deadline,should_stop,owner_ready,owner_failure,
+-                   clock=time.monotonic,event_clock=time.perf_counter):
++                   startup_marker=None,clock=time.monotonic,event_clock=time.perf_counter):
+     # This function borrows an already loaded same-thread ctx. No HTTP lifecycle.
+     PP=2;CARDS=16;is_emitter=stage==PP-1 and rank==0
+     _,default_window=select({},default_profile)
+@@ -69,19 +69,28 @@
+         barrier()
+         report.update(planned_HTTP=None,planned_Native=None,attempted_Native=0,completed_Native=0,prepared_entry_identity=prepared_identity,thinking_template_policy='Actual pinned template unchanged; no new toggle qualification',Native_SHA256=report['library_sha256'])
+         owner_ready(report)
++        first_wire = True
+         while True:
+             req=None;wire=None
+             if is_emitter:
+                 if clock()>=deadline or should_stop():
+                     wire=encode_wire(seq+1,STOP)
+                 else:
++                    if first_wire and startup_marker: startup_marker('owner.first_take.before')
+                     try:req=engine.take(timeout=.5)
+                     except queue.Empty:wire=encode_wire(seq+1,WAIT)
+                     else:
+                         if req is None:wire=encode_wire(seq+1,STOP)
+                         elif req.cancel_event.is_set():engine.record_finished(req,0,True);req.finish(req.abort_reason or FinishReason.CANCELED);wire=encode_wire(seq+1,WAIT)
+                         else:engine.record_started(req);wire=encode_wire(seq+1,BEGIN,req.prompt_token_ids,req.max_new_tokens,profile=req.metadata['native_profile'])
+-            seq+=1;tensor=torch.tensor(wire if is_emitter else [0]*WIRE,dtype=torch.float32,device='cuda');control(tensor);op,prompt,limit,prefill_window=decode_wire(tensor.cpu().tolist(),seq,vocab)
++            if first_wire and startup_marker: startup_marker('owner.first_wire_prepare.before')
++            seq+=1;tensor=torch.tensor(wire if is_emitter else [0]*WIRE,dtype=torch.float32,device='cuda')
++            if first_wire and startup_marker: startup_marker('owner.first_idleControl.before', tensor_numel=WIRE)
++            control(tensor)
++            if first_wire and startup_marker: startup_marker('owner.first_idleControl.return')
++            op,prompt,limit,prefill_window=decode_wire(tensor.cpu().tolist(),seq,vocab)
++            if first_wire and startup_marker: startup_marker('owner.first_wire_cpu_decode.return', opcode=op)
++            first_wire = False
+             if op==STOP:break
+             if op==WAIT:continue
+             if is_emitter:
+--- parent1183/public_glm_native/provider.py
++++ startup-v4/public_glm_native/provider.py
+@@ -3,6 +3,7 @@
+ from pathlib import Path
+ 
+ from .actors import Actors
++from .startup_diagnostic import marker, resolve
+ 
+ 
+ class GLMProvider:
+@@ -36,15 +37,25 @@
+         if self._ready or self._stopped: raise RuntimeError('Provider cannot be restarted')
+         self.prepared['engine'].start()
+         try:
++            marker(self.config, 'provider.group_start.before')
+             self.group.start()  # actual processes + actual same-process owner
++            marker(self.config, 'provider.group_start.return')
++            marker(self.config, 'provider.wait_ready.before')
+             records = self.group.wait_ready()
++            marker(self.config, 'provider.wait_ready.return', records=len(records))
++            marker(self.config, 'provider.MODEL_READY_write.before')
+             self.group.run.write('MODEL_READY.json', dict(Model_READY=True,
+                 Native_constructed_loaded_by_provider=True, actual_owner_count=len(records),
+                 TP=8, PP=2, rows=1, capacity=32768,
+                 Native_SHA256=self.config['Native_SHA256'], prepared_identity=self.prepared['identity'],
+                 all16_loaded_postload4GiB_and_service_agreement=True))
++            marker(self.config, 'provider.MODEL_READY_write.return')
++            resolve(self.config, 'MODEL_READY_published')
+             self._ready = True
+         except BaseException as error:
++            try: resolve(self.config, 'provider.start.error')
++            except BaseException as diagnostic_error:
++                if hasattr(error, 'add_note'): error.add_note('Diagnostic cancellation: ' + repr(diagnostic_error))
+             if self.group._claimed:
+                 self.group._trip(error)
+                 try:self.group.stop()
+@@ -57,6 +68,14 @@
+ 
+     def stop(self):
+         if self._stopped: return
++        diagnostic_error = None
++        try: resolve(self.config, 'provider.stop')
++        except BaseException as error: diagnostic_error = error
+         self._stopped = True
+         self._ready = False
+-        self.group.stop()  # Native/owned process joins only; never joins HTTP
++        try: self.group.stop()  # Native/owned process joins only; never joins HTTP
++        except BaseException as error:
++            if diagnostic_error is not None and hasattr(error, 'add_note'):
++                error.add_note('Diagnostic cancellation: ' + repr(diagnostic_error))
++            raise
++        if diagnostic_error is not None: raise diagnostic_error
+--- parent1183/public_glm_native/worker.py
++++ startup-v4/public_glm_native/worker.py
+@@ -16,6 +16,7 @@
+ from .native_owner import run_resident_owner
+ from .owner_gates import NativeGates
+ from .protocol import Run
++from .startup_diagnostic import marker, arm_after_owner_ready
+ from .resident_context import ResidentContext
+ from .topology_r404 import read_layout, validated_nodes_r444
+ 
+@@ -123,13 +124,18 @@
+         identity = preparation['prepared_identity']
+         from infinilm.llm import FinishReason
+         def ready(current):
++            marker(config, 'worker.owner_ready.enter', rank)
+             assert current['all16_loaded_and_postload_4GiB_passed']
+             current['service_agreement'] = True
+             save()
++            marker(config, 'worker.ready_write.before', rank)
+             run.write('ready-%d-%d.json' % (stage, rank), dict(stage=stage, rank=rank,
+                 Native_SHA256=config['Native_SHA256'], config_SHA256=config['config_SHA256'],
+                 loaded=True, postload_4GiB=True, service_agreement=True,
+                 affinity=current['owner_affinity_after_load']))
++            marker(config, 'worker.ready_write.return', rank)
++            arm_after_owner_ready(config, rank)
++            marker(config, 'worker.owner_ready.return', rank)
+         run_resident_owner(context, torch=torch, stream=stream, environ=os.environ,
+             stage=stage, rank=rank, vocab=config['vocab_size'],
+             report_path=report_path, queue_path=run.path / 'queue.json',
+@@ -140,7 +146,8 @@
+             default_profile=config['profile'], profile_manifest_SHA256=config['source_manifest_SHA256'],
+             deadline=time.monotonic() + max(0, config['gpu_start_epoch'] + config['service_seconds'] - time.time()),
+             should_stop=lambda: bool(stop_intent is not None and stop_intent.is_set()) or run.stop_requested(),
+-            owner_ready=ready, owner_failure=fail)
++            owner_ready=ready, owner_failure=fail,
++            startup_marker=lambda event, **facts: marker(config, event, rank, **facts))
+         report.update(completed=True, worker_shutdown_completed=True, Model_READY=False)
+         save()
+         run.write('closed-%d-%d.json' % (stage, rank), dict(stage=stage, rank=rank,

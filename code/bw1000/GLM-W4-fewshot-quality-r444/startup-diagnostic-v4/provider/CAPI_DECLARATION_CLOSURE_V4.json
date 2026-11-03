@@ -1,0 +1,108 @@
+{
+  "completed": true,
+  "scope": "All actual Native ctx/pointer calls in owner/gates/resident/constructor/load/cleanup inspected; no Native execution",
+  "sources": {
+    "native_owner.py": "5c04494d4f5c81de6a16655d17ce92b70a14a0a5c4f02bf7cc7ed479d0c249a0",
+    "owner_gates.py": "9d0f6317788c219f36c0eb88531edd63d55ebbcf99603e0428ff3a17992f52aa",
+    "resident_context.py": "af36d3f614e1a95ad99e85b277568d847d017642a8844e16312092dfadf9939a",
+    "topology_r404.py": "741129641d0b53478958bb2cae6de67ff88bad8b2debb798e811603ecf531805",
+    "worker.py": "8af072731f21ba330f41dcb1e28863af8480a528179dda0752453acc052b7ca6",
+    "checkpoint_loader.py": "0b035ee79fdf303e05891061cc7f7caa966773e98e6936ce5e358d68bca2f4bc",
+    "model_admission_r404.py": "528d53c1ca61ef8066e7d89ffa9c7fb1937c84b72963003267bae87e04b29d16",
+    "model_affinity_check_r2628.py": "c439554f0e942078abdf880f3e872959389715d3650f2b894881fe942e8a36f4",
+    "owned_context_r404.py": "6e2de55af17cb8b44b2bc5be8fabda4ce4bbee9e00fa9c549475a2488e389a60"
+  },
+  "original_qualified_source": {
+    "path": "code/bw1000/GLM-NoV-W4-quality-r418/execution-v2/owner/model_entry_r290.py",
+    "SHA256": "f2dedfa54fba363c8a211c9ea6e3e71505e0043c255062a07837d0bde825b89f",
+    "lines": [
+      96,
+      97,
+      98,
+      101
+    ]
+  },
+  "four_added": [
+    "modern_glm_model_owned_prefix_policy_r1669",
+    "modern_glm_model_feature_bypass_r1406",
+    "modern_glm_model_indexer_policy_r998",
+    "modern_glm_model_decode_leases_policy_r1356"
+  ],
+  "ctx_declaration_closure": [
+    {
+      "consumer": "checkpoint_loader.declare before create/load/service",
+      "symbols": [
+        "create",
+        "keys",
+        "load_batch",
+        "finish",
+        "forward",
+        "control",
+        "reset",
+        "destroy"
+      ],
+      "basis": "actual argument/return declarations including void* ctx and size_t counts; string/ctx return types retained"
+    },
+    {
+      "consumer": "ResidentContext.__enter__ before invocation",
+      "symbols": [
+        "modern_glm_partition_report_r3854",
+        "modern_glm_unloaded_trim_r4052"
+      ],
+      "basis": "void* ctx explicit plus char* report or uint64* and size_t trim"
+    },
+    {
+      "consumer": "NativeGates.after_create before preweight/TPwarm and after_load",
+      "symbols": [
+        "modern_glm_model_tp_control",
+        "modern_glm_model_m15_oproj_policy_r125",
+        "modern_glm_model_batch_cache_policy_r3068"
+      ],
+      "basis": "explicit void* ctx signatures before all calls"
+    },
+    {
+      "consumer": "NativeGates._counts",
+      "symbols": [
+        "exact_banks",
+        "service_memory",
+        "batch_cache",
+        "m15",
+        "cache",
+        "host_counts"
+      ],
+      "basis": "ctx form void*,uint64*,size_t or rank form int,uint64*,size_t assigned to fn immediately before use"
+    },
+    {
+      "consumer": "constructor_snapshot before call",
+      "symbols": [
+        "modern_glm_constructor_census_r4158"
+      ],
+      "basis": "void* ctx argument and char* return explicitly declared"
+    },
+    {
+      "consumer": "serve_requests before call",
+      "symbols": [
+        "modern_glm_model_transient_report_r5688",
+        "modern_glm_model_batch_cache_policy_r3068"
+      ],
+      "basis": "void* ctx explicitly declared inline; new four global ctx setters now typed in actual declare"
+    },
+    {
+      "consumer": "integer-only or no-argument unchanged calls",
+      "symbols": [
+        "modern_glm_vector_policy_r8540",
+        "glm_reduced_output_policy_r9032",
+        "glm_attention_cohort_policy_r9054",
+        "glm_ragged_policy_r9136",
+        "modern_glm_cross_control_r5775",
+        "modern_glm_cross_journal_r5775",
+        "modern_owner_affinity_report_r2392",
+        "modern_glm_dense_mode_r48_set",
+        "modern_glm_model_shutdown"
+      ],
+      "basis": "No Python integer context address in these calls; int arguments/return default or explicit, char* report returns already explicit"
+    }
+  ],
+  "remaining_missing_ctx_setters": [],
+  "GPU_qualification": false
+}

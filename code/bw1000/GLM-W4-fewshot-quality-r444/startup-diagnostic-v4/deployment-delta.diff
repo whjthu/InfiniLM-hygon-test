@@ -1,0 +1,282 @@
+--- parentb56/controller.py
++++ startup-v4/controller.py
+@@ -1,14 +1,15 @@
+ from pathlib import Path
+ import argparse,datetime,hashlib,json,os,re,signal,socket,subprocess,sys,time,traceback
++from startup_gate import StartupGate, StartupTimeout, seal_startup_records, drain_after_stop
+ D=Path(__file__).resolve().parent
+ R=D.parents[2]
+-PACKAGE=D.parent/'provider-v2'
++PACKAGE=D.parent/'provider'
+ CLIENT_PACKAGE=R/'incoming/GLM-W4-fewshot-quality-r444-client-v1'
+-SLOT=None;PARENT=None;RUN=None;LABEL='GLM-r444-fewshot';NODES=None;CONFIG=None
++SLOT=None;PARENT=None;RUN=None;LABEL='GLM-r444-startup-diagnostic-v4';NODES=None;CONFIG=None
+ 
+ def configure_slot(index):
+  global SLOT,PARENT,RUN,NODES,CONFIG
+- assert type(index)is int and index in range(8)
++ assert type(index)is int and index==0, 'Only fixed slot0 startup diagnosis is admitted'
+  slots=json.loads((D/'SLOTS.json').read_bytes())['slots'];assert len(slots)==8
+  SLOT=slots[index];assert SLOT['slot']==SLOT['shard_index']==index and SLOT['shards']==8
+  PARENT=SLOT['parent'];RUN=SLOT['run'];NODES=SLOT['nodes'];CONFIG=D/('config-slot%d.json'%index)
+@@ -21,7 +22,7 @@
+  assert SLOT==m['resource_claim']['slots'][SLOT['slot']]
+  assert (config['TP'],config['PP'],config['rows'],config['context'])==(8,2,1,32768)
+  assert (config['Native_seconds'],config['service_seconds'])==(28800,28200)
+- assert CONFIG.parent==D and PACKAGE==D.parent/'provider-v2'
++ assert CONFIG.parent==D and PACKAGE==D.parent/'provider'
+  assert R in (Path('/refactor'),Path('/public/home/aclsylqidf/hygon-inference-refactor-20261014'))
+  return dict(slot=SLOT['slot'],parent=PARENT,nodes=NODES,cards=16,HTTP=64,shards=8,shard_index=SLOT['slot'],individual_original_epoch=True)
+ 
+@@ -48,6 +49,8 @@
+  q=json.loads(paths[0].read_bytes())
+  assert q['GPU_GO']and q['Model_GO']and q['deployment_source_SHA256']==sha(D/'SOURCE_MANIFEST.json')
+  assert SLOT['slot']in q['admitted_slots'], 'This fixed slot has not been admitted; no intent or job'
++ assert len(q['admitted_slots'])==1, 'Diagnostic scope permits exactly one fixed slot'
++ assert q.get('maximum_admitted_slots')==1
+  assert q['provider_source_SHA256']==m['provider_source_SHA256']and q['resource_claim']==m['resource_claim']
+  assert q['client_manifest_SHA256']==m['client_manifest_SHA256']
+  for p,h in q['CPU_receipts_SHA256'].items():
+@@ -100,7 +103,7 @@
+ 
+ def gpu_environment(base,epoch,m):
+  env=clean_environment(base)
+- env.update(WAVE_INSIDE_R2323='GLM-W4-fewshot-quality-r444-eight-slot-v1/deployment-v2/inside.sh',GLM_R444_SLOT=str(SLOT['slot']),
++ env.update(WAVE_INSIDE_R2323='GLM-W4-fewshot-quality-r444-startup-diagnostic-v4/deployment/inside.sh',GLM_R444_SLOT=str(SLOT['slot']),
+   GLM_R425_RUN=RUN,GLM_R425_GPUSTART=str(epoch),GLM_R425_CONFIG_SHA=m['config_SHA256'],
+   GLM_R425_SOURCE_SHA=m['provider_source_SHA256'],GLM_SOURCE_MANIFEST_SHA=m['provider_source_SHA256'],GLM_RUN_R5040=RUN,
+   GLM_PP_SIZE_R3603='2',GLM_CACHE_ROWS_R3627='1',GLM_CACHE_CAP_R3627='32768',GLM_NETWORK_TRIAL='shca',
+@@ -136,10 +139,10 @@
+  def save():
+   w['observed_UTC']=datetime.datetime.now(datetime.timezone.utc).isoformat();t=watch.with_suffix('.tmp');t.write_text(json.dumps(w,indent=2,allow_nan=False)+'\n');t.replace(watch)
+  def command(args,timeout=25):return subprocess.check_output(args,text=True,timeout=min(timeout,max(1,cleanup_limit-time.monotonic())))
+- def rows():return [x.split('|')for x in command(['sacct','-S','2026-10-31','-j',str(PARENT),'-n','-P','-o','JobIDRaw,JobName%180,State,ExitCode,NodeList%100']).splitlines()if'|'in x]
++ def rows(timeout=25):return [x.split('|')for x in command(['sacct','-S','2026-10-31','-j',str(PARENT),'-n','-P','-o','JobIDRaw,JobName%180,State,ExitCode,NodeList%100'],timeout=timeout).splitlines()if'|'in x]
+  def hosts(value):return command(['scontrol','show','hostnames',value]).splitlines()
+- def exact(label):
+-  values=[r for r in rows()if r[1]==label];assert len(values)<=1,'Duplicate owned label'
++ def exact(label,timeout=25):
++  values=[r for r in rows(timeout)if r[1]==label];assert len(values)<=1,'Duplicate owned label'
+   return values[0]if values else None
+  def visible(path):
+   path=Path(path)
+@@ -188,8 +191,18 @@
+    gpu=subprocess.Popen(gpu_command(),env=gpu_environment(os.environ,epoch,m),stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+   w.update(GPU_srun_PID=gpu.pid,GPU_owned_PGID=gpu.pid);save()
+   client_output=R/'results'/(LABEL+'-'+RUN+'-client');identity=client_output.with_name(client_output.name+'-identity.json')
+-  done_since=None
++  done_since=None;startup_gate=None
+   while time.time()<epoch+29400:
++   startup_allowed=False
++   if client is None:
++    if time.time()>=epoch+2700:raise StartupTimeout('Original GPUepoch startup2700 expired before client; no clock reset')
++    if w['actual_GPU']and folder.exists():
++     if startup_gate is None:
++      sys.path.insert(0,str(PACKAGE));from public_glm_native.protocol import Run
++      startup_config=json.loads(CONFIG.read_bytes());startup_config.update(runtime_directory=str(R/'results/GLM-W4-fewshot-quality-r444'),run=RUN,actual_step=w['actual_GPU'],source_manifest_SHA256=m['provider_source_SHA256'],provider_config_SHA256=m['config_SHA256'],gpu_start_epoch=epoch)
++      startup_gate=StartupGate(Run(startup_config))
++     try:startup_allowed=startup_gate.observe(time.time())
++     finally:w.update(startup_gate.state());save()
+    try:
+     gr=exact(LABEL+'-'+RUN);cr=exact(LABEL+'-'+RUN+'-client')if client is not None else None
+    except(subprocess.TimeoutExpired,subprocess.CalledProcessError,OSError)as error:
+@@ -202,12 +215,13 @@
+    if gpu.poll()not in(None,0):raise RuntimeError('Owned GPU srun nonzero')
+    if client is not None and client.poll()not in(None,0):raise RuntimeError('Owned public client srun nonzero')
+    ready=folder/'MODEL_READY.json'
+-   if client is None and ready.exists()and w['actual_GPU']:
++   if client is None and startup_allowed and ready.exists()and w['actual_GPU']:
++    assert startup_gate.observe(time.time()), 'Recheck actual STOP/FAILED before client launch'
+     value=visible(ready)
+     if value is not None:
+      expected=dict(run=RUN,actual_step=w['actual_GPU'],source_manifest_SHA256=m['provider_source_SHA256'],provider_config_SHA256=m['config_SHA256'],gpu_start_epoch=epoch,Native_seconds=28800)
+      assert value['identity']==expected and value['Model_READY']and value['actual_owner_count']==16
+-     env=gpu_environment(os.environ,epoch,m);env.update(WAVE_INSIDE_R2323='GLM-W4-fewshot-quality-r444-eight-slot-v1/deployment-v2/client_inside.sh',GLM_R444_ACTUAL_GPU=w['actual_GPU'],GLM_R444_DEPLOY_MF=a.manifest_sha,CUDA_VISIBLE_DEVICES='-1',HIP_VISIBLE_DEVICES='-1',ROCR_VISIBLE_DEVICES='-1')
++     env=gpu_environment(os.environ,epoch,m);env.update(WAVE_INSIDE_R2323='GLM-W4-fewshot-quality-r444-startup-diagnostic-v4/deployment/client_inside.sh',GLM_R444_ACTUAL_GPU=w['actual_GPU'],GLM_R444_DEPLOY_MF=a.manifest_sha,CUDA_VISIBLE_DEVICES='-1',HIP_VISIBLE_DEVICES='-1',ROCR_VISIBLE_DEVICES='-1')
+      with(R/'logs'/(LABEL+'-'+RUN+'-client-srun.log')).open('x')as log:client=subprocess.Popen(client_command(w['actual_GPU'],m,epoch),env=env,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+      w.update(client_srun_PID=client.pid,client_owned_PGID=client.pid,client_result=str(client_output/'result.json'));save()
+    if client is not None and(client_output/'result.json').exists():
+@@ -230,10 +244,20 @@
+   w['post']=idle('post');w.update(completed=True,passed=True,state='NORMAL_64_FEWSHOT_PAIRED_REQUESTS_COMPLETE_QUALITY_SCORES_RETAINED')
+  except BaseException as error:
+   w.update(completed=True,passed=False,error=repr(error),traceback=traceback.format_exc(),state='FAILED_OR_UNKNOWN_NO_RETRY')
++  startup_failed=client is None and gpu is not None
++  if startup_failed:
++   w['client_launch_blocked']=True;save()
++   if folder.exists():
++    try:w['startup_original_snapshot']=seal_startup_records(folder,watch.with_name(watch.stem+'-startup-diagnostics.json'));save()
++    except BaseException as capture:w['startup_snapshot_error']=repr(capture);save()
+   try:stop()
+   except BaseException as close:w['STOP_error']=repr(close)
++  if startup_failed and stop_sent and w['actual_GPU']:
++   try:w['startup_STOP_drain']=drain_after_stop(gpu,exact,LABEL+'-'+RUN,w['actual_GPU']);save()
++   except BaseException as close:w['startup_STOP_drain_error']=repr(close)
+   for label,proc,key in [(LABEL+'-'+RUN,gpu,'actual_GPU'),(LABEL+'-'+RUN+'-client',client,'actual_client')]:
+    if proc is None:continue
++   if key=='actual_GPU'and w.get('startup_STOP_drain',{}).get('normal_GPU_STOP_drain'):continue
+    w['forced_cleanup']=True
+    try:w.setdefault('owned_cleanup',[]).append(close_owned(label,proc,w[key],exact,cleanup_limit))
+    except BaseException as close:w.setdefault('cleanup_errors',[]).append(repr(close))
+--- parentb56/startup_gate.py
++++ startup-v4/startup_gate.py
+@@ -0,0 +1,125 @@
++"""External keeper startup bound, using real Run records, never fake READY.
++
++No thread, timer, model import, Native call or Slurm submission is created here.
++The existing keeper loop calls observe before it can start the client.
++"""
++import hashlib
++import json
++from pathlib import Path
++import subprocess
++import time
++
++
++class StartupTimeout(TimeoutError):
++    pass
++
++
++class StartupGate:
++    def __init__(self, run):
++        self.run = run
++        self.first_all16_ready_unix = None
++        self.accepted = False
++        self.blocked = False
++
++    def observe(self, now):
++        if self.blocked:
++            raise StartupTimeout('Startup failure latched: client forbidden')
++        self.run.raise_if_failed()
++        if (self.run.path / 'STOP.json').exists():
++            self.run.read('STOP.json')
++            self.blocked = True
++            raise StartupTimeout('STOP before public READY: client forbidden')
++        if self.accepted:
++            return True
++        stacks = list(self.run.path.glob('startup-stack-*.txt'))
++        assert len(stacks) <= 1, 'Only the single emitter process owns this watchdog'
++        if any(path.stat().st_size > 8 * 1024 ** 2 for path in stacks):
++            self.blocked = True
++            raise StartupTimeout('Startup diagnostic trace exceeded8MiB; preserve original and drain')
++        names = ['ready-%d-%d.json' % (s, r) for s in range(2) for r in range(8)]
++        if all((self.run.path / name).is_file() for name in names):
++            # Files are atomically published. This invokes exactly the original
++            # identity, load, config and 32-disjoint-mask checks, not mere exists.
++            records = self.run.all_ready()
++            assert len(records) == 16
++            if self.first_all16_ready_unix is None:
++                self.first_all16_ready_unix = now
++        epoch = self.run.config['gpu_start_epoch']
++        expired_epoch = now >= epoch + 2700
++        expired_ready = (self.first_all16_ready_unix is not None and
++                         now >= self.first_all16_ready_unix + 120)
++        # Evaluate before accepting a late MODEL_READY: STOP cannot unlock an
++        # already failed startup and cause the keeper to launch a client.
++        if expired_epoch or expired_ready:
++            self.blocked = True
++            raise StartupTimeout('Startup bound exceeded: epoch2700=%s all16ready120=%s' %
++                                 (expired_epoch, expired_ready))
++        ready = self.run.path / 'MODEL_READY.json'
++        if ready.is_file():
++            value = self.run.read(ready.name)
++            assert self.first_all16_ready_unix is not None
++            assert value['Model_READY'] and value['actual_owner_count'] == 16
++            self.accepted = True
++        return self.accepted
++
++    def state(self):
++        return dict(first_all16_ready_unix=self.first_all16_ready_unix,
++                    startup_accepted=self.accepted, client_launch_blocked=self.blocked,
++                    startup_epoch_deadline_unix=self.run.config['gpu_start_epoch'] + 2700,
++                    startup_ready_deadline_unix=(None if self.first_all16_ready_unix is None
++                                                else self.first_all16_ready_unix + 120))
++
++
++def seal_startup_records(folder, output):
++    """Original small diagnostics only; raw large/active model reports untouched.
++
++    Original files stay in the run directory. Capture EOF snapshots with bytes
++    and SHA; an in-progress repeating stack is explicitly a partial snapshot.
++    """
++    folder, output = Path(folder), Path(output)
++    names = sorted({*folder.glob('startup-*.jsonl'), *folder.glob('startup-stack-*.txt')})
++    assert len(names) <= 128, 'Unexpected diagnostic file count'
++    rows = []
++    total_read = 0
++    for path in names:
++        size = path.stat().st_size
++        if size > 16 * 1024 ** 2 or total_read + size > 32 * 1024 ** 2:
++            rows.append(dict(path=str(path),bytes_at_stat=size,not_read='exceeds16MiB',
++                             original_retained=True))
++            continue
++        raw = path.read_bytes()
++        total_read += len(raw)
++        rows.append(dict(path=str(path),bytes=len(raw),SHA256=hashlib.sha256(raw).hexdigest(),
++                         rawtext=raw.decode('utf-8', errors='replace'),
++                         snapshot_may_end_in_partial_line=True,original_retained=True))
++    result = dict(observed_unix=time.time(),files=rows,whole_model_reports_read=False)
++    with output.open('x') as out:
++        json.dump(result,out,indent=2);out.write('\n')
++    return dict(path=str(output),bytes=output.stat().st_size,
++                SHA256=hashlib.sha256(output.read_bytes()).hexdigest(),files=len(rows))
++
++
++def drain_after_stop(proc, exact, label, recorded_step, *, clock=time.monotonic,
++                     sleep=time.sleep):
++    """Give the original STOP a real60s idle drain before any TERM/KILL.
++
++    Unknown accounting never means normal exit; transient observations cannot
++    restart the timer. This helper sends no signal and does not create a client.
++    """
++    end = clock() + 60
++    result = dict(normal_GPU_STOP_drain=False,observations=[],signals=[])
++    while True:
++        try:
++            row = exact(label, timeout=max(1,min(5,end-clock())))
++            if row:
++                assert row[0] == recorded_step, 'Owned drain step mismatch'
++            result['observations'].append(dict(row=row,srun_rc=proc.poll()))
++            if row and row[2:4] == ['COMPLETED','0:0'] and proc.poll() == 0:
++                result['normal_GPU_STOP_drain'] = True
++                return result
++        except (OSError, TimeoutError, subprocess.TimeoutExpired,
++                subprocess.CalledProcessError) as error:
++            result['observations'].append(dict(error=repr(error),srun_rc=proc.poll()))
++        if clock() >= end:
++            return result
++        sleep(min(1,max(0,end-clock())))
+--- parentb56/inside.sh
++++ startup-v4/inside.sh
+@@ -17,7 +17,7 @@
+  export TORCH_LIB_DIR="$(python -c 'import pathlib,torch;print(pathlib.Path(torch.__file__).parent / "lib")')"
+ fi
+ export LD_LIBRARY_PATH="/refactor/candidates/latest-family-native-r269/GLM/python:/refactor/candidates/glm-hybrid-decode-r5386:$SDK/lib:$LM/python:$LM/python/infinilm/_lib:/refactor/candidates/glm-grouped-native-model-r5117/helpers:$TORCH_LIB_DIR:/opt/dtk/cuda/cuda/lib64:/opt/dtk/cuda/lib64:${LD_LIBRARY_PATH:-}"
+-export PYTHONPATH="/refactor/incoming/GLM-W4-fewshot-quality-r444-eight-slot-v1/provider-v2:/refactor/candidates/latest-family-native-r269/GLM/python:/old/offline-deps"
++export PYTHONPATH="/refactor/incoming/GLM-W4-fewshot-quality-r444-startup-diagnostic-v4/provider:/refactor/candidates/latest-family-native-r269/GLM/python:/old/offline-deps"
+ export LD_PRELOAD=/refactor/candidates/blas-policy-r271/libblas_policy_r271.so
+ unset RDMAV_DRIVERS NCCL_ALGO NCCL_PROTO NCCL_MIN_NCHANNELS NCCL_MAX_NCHANNELS
+ test "${GLM_EXACT_BANKS_R4188:?}" = 0 -o "$GLM_EXACT_BANKS_R4188" = 1
+@@ -51,8 +51,8 @@
+  for key in "${!GLM_@}" "${!SLURM_@}" "${!NCCL_@}" LD_PRELOAD LD_LIBRARY_PATH INFINILM_OWNER_CPU_WIDTH_R2392 USE_WEIGHT_CACHE_R3604; do printf '%s\0%s\0' "$key" "${!key}"; done
+  exit 0
+ fi
+-SOURCE=/refactor/incoming/GLM-W4-fewshot-quality-r444-eight-slot-v1/provider-v2
+-DEPLOY=/refactor/incoming/GLM-W4-fewshot-quality-r444-eight-slot-v1/deployment-v2
++SOURCE=/refactor/incoming/GLM-W4-fewshot-quality-r444-startup-diagnostic-v4/provider
++DEPLOY=/refactor/incoming/GLM-W4-fewshot-quality-r444-startup-diagnostic-v4/deployment
+ ARGS=(--config "$DEPLOY/config-slot${GLM_R444_SLOT:?}.json" --config-sha "${GLM_R425_CONFIG_SHA:?}" --source-sha "${GLM_R425_SOURCE_SHA:?}" --stage "$SLURM_PROCID" --run "${GLM_R425_RUN:?}" --actual-step "$SLURM_JOB_ID.$SLURM_STEP_ID" --gpu-start-epoch "${GLM_R425_GPUSTART:?}")
+ python3 -B -m public_glm_native "${ARGS[@]}"
+ LEFT=$(python3 -B -c 'import os,time;print(max(0,int(float(os.environ["GLM_R425_GPUSTART"])+28800-time.time())))')
+--- parentb56/client_dispatch.py
++++ startup-v4/client_dispatch.py
+@@ -10,8 +10,8 @@
+ def quality_args(slot,m,actual,epoch):
+     # These paths intentionally address /refactor INSIDE the same established
+     # container as CPU922. The keeper never runs this client on HOST paths.
+-    root=Path('/refactor');deploy=root/'incoming/GLM-W4-fewshot-quality-r444-eight-slot-v1/deployment-v2'
+-    provider=deploy.parent/'provider-v2';folder=root/'results/GLM-W4-fewshot-quality-r444'/slot['run']
++    root=Path('/refactor');deploy=root/'incoming/GLM-W4-fewshot-quality-r444-startup-diagnostic-v4/deployment'
++    provider=deploy.parent/'provider';folder=root/'results/GLM-W4-fewshot-quality-r444'/slot['run']
+     return ['--base-url','http://127.0.0.1:43843/v1','--provider-root',str(provider),
+         '--provider-source-sha',m['provider_source_SHA256'],'--audited-owner-sha',m['audited_owner_SHA256'],
+         '--config',str(deploy/('config-slot%d.json'%slot['slot'])),'--config-sha',m['config_SHA256'],
