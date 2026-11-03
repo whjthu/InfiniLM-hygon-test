@@ -1,0 +1,7 @@
+"""One published original-epoch quality-residency bound, not a completion guarantee."""
+PROCESS_SECONDS=14100
+NORMAL_CLEANUP_RESERVE=600
+SHELL_HARD_SECONDS=14100
+GPU_SLURM_SECONDS=14400
+KEEPER_SECONDS=15000
+SERVICE_SECONDS=13500
