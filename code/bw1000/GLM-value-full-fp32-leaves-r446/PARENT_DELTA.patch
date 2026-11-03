@@ -1,0 +1,70 @@
+--- r433/diagnostic-v2/value_roundtrip_r433.hpp
++++ r446/value_roundtrip_r446.hpp
+@@ -1,5 +1,6 @@
+ #pragma once
+ #include "geometry_r433.hpp"
++#include "fp32_owned_r446.hpp"
+ #include "diagnostic_r433.hpp"
+ #include "glm_moe_dsa_attention_prepare.hpp"
+ #include "execution/submit.hpp"
+@@ -87,10 +88,10 @@
+ inline rt::Tensor attention(rt::Runtime&r,Prepared&prepared,const rt::Tensor&q,const rt::Tensor&k,const rt::Tensor&selected_latent,float scale,Diagnostic*diagnostic=nullptr){
+  prepared.check();if(&r!=&prepared.r||!prepared.ready||!q||!k||!selected_latent||q->shape()!=rt::Shape{1,8,256}||k->shape()!=rt::Shape{2048,8,256}||selected_latent->shape()!=rt::Shape{2048,512}||!std::isfinite(scale)||scale<=0)throw std::invalid_argument("r433 C1/U2048 exact shape");
+  for(const auto&t:{q,k,selected_latent})if(t->device()!=r.device()||t->dtype()!=rt::DataType::kBFloat16||!t->is_contiguous())throw std::invalid_argument("r433 BF16 input");
+- Work w{r,{q,k,selected_latent}};auto dots=w.alloc({8,1,2048},rt::DataType::kBFloat16),logits=w.alloc({8,1,2048},rt::DataType::kFloat32),prob=w.alloc({8,1,2048},rt::DataType::kFloat32),pb=w.alloc({8,1,2048},rt::DataType::kBFloat16);
++ Work w{r,{q,k,selected_latent}};value_r446::Owned leaves{r};auto dots=w.alloc({8,1,2048},rt::DataType::kBFloat16),logits=w.alloc({8,1,2048},rt::DataType::kFloat32),prob=w.alloc({8,1,2048},rt::DataType::kFloat32),pb=w.alloc({8,1,2048},rt::DataType::kBFloat16);
+  ex::submit<infini::ops::Gemm>(r,infini::ops::Gemm::DefaultConfig(r.device().type()),q->view({8,1,256}),k->permute({1,2,0}),std::optional<rt::Tensor>{},std::optional<float>{1},std::optional<float>{0},std::optional<int>{},std::optional<int>{},dots);
+  if(glm_scale_round_r392(dots->data(),logits->data(),nullptr,8*2048,scale,r.stream()))throw std::runtime_error("r433 original scale/round");
+- ex::submit<infini::ops::Softmax>(r,infini::ops::Softmax::DefaultConfig(r.device().type()),logits,int64_t{2},std::optional<infini::ops::DataType>{},prob);ex::submit<infini::ops::Cast>(r,infini::ops::Cast::DefaultConfig(r.device().type()),prob,pb);
++ ex::submit<infini::ops::Softmax>(r,infini::ops::Softmax::DefaultConfig(r.device().type()),logits,int64_t{2},std::optional<infini::ops::DataType>{},prob);leaves.cast(prob,pb);
+  if(diagnostic&&diagnostic->detail==2){diagnostic->add("P_BF16",pb);diagnostic->add("selected_latent_BF16",selected_latent);diagnostic->phase="originalQKsoftmax";}
+  auto packed=w.alloc({2048,512},rt::DataType::kUInt8),xs=w.alloc({2048,4},rt::DataType::kFloat32);
+  ex::submit<infini::ops::BlockQuantF8E4m3>(r,ex::RecordingPolicy::HostOnly,infini::ops::BlockQuantF8E4m3::DefaultConfig(r.device().type()),selected_latent,packed,xs);++counts.rowquant_submits;
+@@ -98,14 +99,14 @@
+  auto roundtrip=original_F32_linear(r,packed,xs,prepared.identity,prepared.identity_wscale,0);w.held.push_back(roundtrip);++counts.row_roundtrip_F32_identity_calls;
+  if(diagnostic&&diagnostic->detail==2){diagnostic->add("row_roundtrip_F32",roundtrip);diagnostic->add("original_W_U8",prepared.original_weight);diagnostic->add("global_W_scale_F32",prepared.original_scale);for(size_t h=0;h<8;++h)diagnostic->add("Vhead"+std::to_string(h)+"_F32",prepared.V[h]);diagnostic->phase="F32rowRoundtrip";}
+  auto p32=w.alloc({8,1,2048},rt::DataType::kFloat32),aggregate=w.alloc({8,512},rt::DataType::kFloat32),out32=w.alloc({8,256},rt::DataType::kFloat32),out=w.alloc({1,8,256},rt::DataType::kBFloat16);
+- ex::submit<infini::ops::Cast>(r,infini::ops::Cast::DefaultConfig(r.device().type()),pb,p32);
+- // Explicit FullFp32 policy prevents silently introducing a new TF32 arm.
+- const infini::ops::GemmConfig full{infini::ops::GemmConfig::Fp32Precision::FullFp32};
++ leaves.cast(pb,p32);
++ // Private scalar F32 leaves replace the rejecting SDK FullFp32 provider.
++ // Original QK/scale-round/softmax/rowFP8roundtrip remain unchanged.
+  for(size_t h=0;h<8;++h){auto p=p32->narrow({{0,h,1}})->view({1,2048}),a=aggregate->narrow({{0,h,1}}),o=out32->narrow({{0,h,1}});w.held.insert(w.held.end(),{p,a,o,prepared.V[h]});
+-  ex::submit<infini::ops::Gemm>(r,full,p,roundtrip,std::optional<rt::Tensor>{},std::optional<float>{1},std::optional<float>{0},std::optional<int>{},std::optional<int>{},a);++counts.F32_aggregation_Gemm_submits;
+-  ex::submit<infini::ops::Gemm>(r,full,a,prepared.V[h],std::optional<rt::Tensor>{},std::optional<float>{1},std::optional<float>{0},std::optional<int>{},std::optional<int>{},o);++counts.F32_V_Gemm_submits;
++  leaves.gemv(0,p,roundtrip,a);++counts.F32_aggregation_Gemm_submits;
++  leaves.gemv(1,a,prepared.V[h],o);++counts.F32_V_Gemm_submits;
+  }
+  if(diagnostic&&diagnostic->detail==2){diagnostic->add("aggregate_F32",aggregate);diagnostic->add("attention_precast_F32",out32);diagnostic->phase="FullFp32aggregate_and_projection";}
+- ex::submit<infini::ops::Cast>(r,infini::ops::Cast::DefaultConfig(r.device().type()),out32->view({1,8,256}),out);++counts.final_BF16_cast_submits;r.syncStream();++counts.chosen;return out;
++ leaves.cast(out32->view({1,8,256}),out);++counts.final_BF16_cast_submits;leaves.finish();r.syncStream();++counts.chosen;return out;
+ }
+ }
+--- r433/diagnostic-v2/attention_component_r433.cpp
++++ r446/attention_component_r446.cpp
+@@ -1,7 +1,7 @@
+ // Private checkpoint attention consumer; no FFN, indexer or Model activation.
+ // Selection is an explicit synthetic geometry input, not recorded Model routing.
+ #include "selected_values_r400.hpp"
+-#include "value_roundtrip_r433.hpp"
++#include "value_roundtrip_r446.hpp"
+ #include "glm_moe_dsa_attention_output.hpp"
+ #include "glm_selection_map_r302.hpp"
+ #include "glm_moe_dsa_sparse_attention.hpp"
+@@ -100,7 +100,7 @@
+  w.held.push_back(attn);if(c->diagnostic)c->diagnostic->add("actual_attention_BF16",attn);auto result=c->out->forward(*c->r,attn);w.held.insert(w.held.end(),{result.local,result.hidden});if(c->diagnostic)c->diagnostic->add("actual_hidden_BF16",result.hidden);
+  y->copy_from(*c->r,result.hidden);z->copy_from(*c->r,attn);c->r->syncStream();ck(cudaMemGetInfo(&free2,&total));
+  }
+- auto ms=std::chrono::duration<double,std::milli>(Clock::now()-start).count();report398=nlohmann::json({{"value_roundtrip",c->value_roundtrip},{"r433_chosen",m::value_r433::counts.chosen},{"r433_rowquant_submits",m::value_r433::counts.rowquant_submits},{"r433_roundtrip_F32_identity_calls",m::value_r433::counts.row_roundtrip_F32_identity_calls},{"r433_F32_aggregation_Gemm_submits",m::value_r433::counts.F32_aggregation_Gemm_submits},{"r433_F32_V_Gemm_submits",m::value_r433::counts.F32_V_Gemm_submits},{"r433_final_BF16_cast_submits",m::value_r433::counts.final_BF16_cast_submits},{"diagnostic_snapshot_detail",c->diagnostic?c->diagnostic->detail:0},{"diagnostic_ticket",c->diagnostic?c->diagnostic->ticket:0},{"r433_identity_device_check_passed",c->prepared433&&c->prepared433->identity_device_check_passed},{"r433_identity_check_wall_ms",c->prepared433?c->prepared433->identity_check_wall_ms:0},{"r433_F32_weight_setup_calls",c->prepared433?c->prepared433->setup_original_F32_calls:0},{"r433_F32_weight_setup_wall_ms",c->prepared433?c->prepared433->setup_wall_ms:0},{"r433_persistent_F32_V_bytes",c->prepared433?glm_value_r433::value_weight_bytes:0},{"complete_attention_CAPI_ms",ms},{"mode",!bool(c->value)},{"past",past},{"count",count},{"union_U",U},{"seeded",c->seeded},{"persistent_V_bytes",c->value?c->value->nbytes():0},{"logical_persistent_bytes",c->latent->nbytes()+c->rotary->nbytes()+c->key->nbytes()+(c->value?c->value->nbytes():0)},{"free_entry",free0},{"free_after_selected",free1},{"free_after_output",free2},{"actual_allocator_peak","UNKNOWN; snapshots only"},{"indexer_included",false},{"profile",0},{"selectedV_HOST_completed_expand_calls",m::v_on_demand_r400::completed_expand_calls-selected_before},{"selectedV_max_block_rows",8192}}).dump();if(c->diagnostic){c->diagnostic->quiesced=true;c->diagnostic->query_completed=true;c->diagnostic->phase="complete_attention_query";}return 0;
++ auto ms=std::chrono::duration<double,std::milli>(Clock::now()-start).count();report398=nlohmann::json({{"value_roundtrip",c->value_roundtrip},{"r433_chosen",m::value_r433::counts.chosen},{"r433_rowquant_submits",m::value_r433::counts.rowquant_submits},{"r433_roundtrip_F32_identity_calls",m::value_r433::counts.row_roundtrip_F32_identity_calls},{"r446_F32_aggregation_GEMV_leaves",m::value_r433::counts.F32_aggregation_Gemm_submits},{"r446_F32_V_GEMV_leaves",m::value_r433::counts.F32_V_Gemm_submits},{"r446_final_software_BF16_cast_leaves",m::value_r433::counts.final_BF16_cast_submits},{"diagnostic_snapshot_detail",c->diagnostic?c->diagnostic->detail:0},{"diagnostic_ticket",c->diagnostic?c->diagnostic->ticket:0},{"r433_identity_device_check_passed",c->prepared433&&c->prepared433->identity_device_check_passed},{"r433_identity_check_wall_ms",c->prepared433?c->prepared433->identity_check_wall_ms:0},{"r433_F32_weight_setup_calls",c->prepared433?c->prepared433->setup_original_F32_calls:0},{"r433_F32_weight_setup_wall_ms",c->prepared433?c->prepared433->setup_wall_ms:0},{"r433_persistent_F32_V_bytes",c->prepared433?glm_value_r433::value_weight_bytes:0},{"complete_attention_CAPI_ms",ms},{"mode",!bool(c->value)},{"past",past},{"count",count},{"union_U",U},{"seeded",c->seeded},{"persistent_V_bytes",c->value?c->value->nbytes():0},{"logical_persistent_bytes",c->latent->nbytes()+c->rotary->nbytes()+c->key->nbytes()+(c->value?c->value->nbytes():0)},{"free_entry",free0},{"free_after_selected",free1},{"free_after_output",free2},{"actual_allocator_peak","UNKNOWN; snapshots only"},{"indexer_included",false},{"profile",0},{"selectedV_HOST_completed_expand_calls",m::v_on_demand_r400::completed_expand_calls-selected_before},{"selectedV_max_block_rows",8192}}).dump();if(c->diagnostic){c->diagnostic->quiesced=true;c->diagnostic->query_completed=true;c->diagnostic->phase="complete_attention_query";}return 0;
+  }catch(const std::exception&e){err398=e.what();if(own){drain(c);if(c->diagnostic){c->diagnostic->quiesced=true;c->diagnostic->query_error=e.what();}c->poison=true;}return 1;}}
+ extern "C" int glm_attention_destroy_r398(void*raw,int*expired){auto*c=static_cast<Context*>(raw);bool own=false;try{owner(c);own=true;if(!expired)throw std::invalid_argument("r398 destroy output");drain(c);std::weak_ptr<rt::Runtime>weak=c->r;c->diagnostic.reset();clear_cache(c);c->prepared433.reset();if(modern_glm_fp8_runtime_clear_r809(c->r.get()))throw std::runtime_error("r398 FP8 clear");c->closing=true;c->prep.reset();c->out.reset();drain(c);if(infinicclCommDestroy(c->comm)!=infinicclSuccess)throw std::runtime_error("r398 CCL destroy");c->comm=nullptr;c->r->trimMemory();c->r.reset();*expired=weak.expired();delete c;return *expired?0:1;}catch(const std::exception&e){err398=e.what();if(own)drain(c);return 1;}}
+ 
+@@ -150,3 +150,6 @@
+ extern "C" int glm_attention_diag_clear_r433(void*raw){auto*c=static_cast<Context*>(raw);try{
+  owner(c);drain(c);c->diagnostic.reset();return 0;
+  }catch(const std::exception&e){err398=e.what();return 1;}}
++
++// Explicit private default-OFF selector; same clean NoV epoch and owner guards.
++extern "C" int glm_attention_value_fullfp32_r446(void*raw,int mode){return glm_attention_value_roundtrip_r433(raw,mode);}
