@@ -1,0 +1,96 @@
+{
+  "qualified_native_context_G_path": "code/bw1000/public-Deep-native-provider-r427/source-v3/public_deep_native/native_context.py",
+  "qualified_native_context_SHA256": "2ba9412b5676c4b2074b4a60f2041db1023a1890c6fcd16dea659650e3d12c4d",
+  "Native_SHA256": "afc6f58b71ef7a51657deae452da86a31afbfa6e79d36d442ccdd26d56c0e6f2",
+  "component_library_SHA256": "d1974a44a3bc6276725ab55d8669fd797735e7160a06fe2c5bb1c89aa611933a",
+  "component_not_Model_reachable": true,
+  "component_private_namespace": "actquant_r438",
+  "actual_Native_RankWorker": {
+    "new_object": "/refactor/candidates/latest-family-native-r269/Deep/Native-worker.o",
+    "new_object_SHA256": "d771eae2c2e1f3f224ee1392b3f4fbc5ca180e52cf16bafd702c802142dff6f6",
+    "new_source": "/refactor/candidates/latest-family-native-r269/Deep/Native-source/engine/rank_worker.cpp",
+    "new_source_SHA256": "3d2f3e679a588d3dd2fee66355f766aeba3c9f4407a25057d1f325125e3e8f0c"
+  },
+  "current_native_object_count": 48,
+  "new_count": 49,
+  "replacements": 2,
+  "unchanged_objects": 46,
+  "reused_HIP": "7a031d5a2627650ced94da012abc7a36b867770a63d6628952d2d496b8d47c5a",
+  "class_chain": [
+    {
+      "role": "actual_registered_NativeSparseModel",
+      "source": {
+        "path": "/refactor/candidates/Deep-native-context-guard-r180d/project-mirror/candidates/rebased-5f91ad7-r3668/Model/Deep/InfiniLM/csrc/native_sparse_model_r22.cpp",
+        "SHA256": "2d68978d64c15daac6decef2d0547eee753441ff2e99d512aea08b19926572d2"
+      },
+      "source_lines": [
+        42,
+        68
+      ],
+      "object": "/refactor/candidates/Deep-native-context-guard-r180d/0.o",
+      "object_SHA256": "958f4747f21960fa12a114c8c1bf554c77103deb90386c2b844dacaeaff0e40d"
+    },
+    {
+      "role": "TextModelR20",
+      "object": "/refactor/candidates/deep-c4-projection-model-r5920/objects/unit-10.o",
+      "SHA256": "3c3d4885ebca1484a584222e70bee6f9cf3fafd6ecc26495ac139cc10eb00b72",
+      "undefined_target": "NativeDecoderR20 ctor",
+      "adjacent_MD_available": false
+    },
+    {
+      "role": "NativeDecoderR20",
+      "source_SHA256": "1886f34a86308859e521778326e3e1119d93ff8e4d85e1ff1f2a3af3b3d6dfa9",
+      "object_SHA256": "0e52e3dbe2f9552b2f4d9dc96872a271f357cca93cd3756750e4d9f90b3a6fa4",
+      "undefined_target": "DeepseekV4FFNBlockR20 ctor/forward_detailed"
+    },
+    {
+      "role": "actual_FFN",
+      "source_SHA256": "6f6320be2123e4189c2a2a535a16ec6eb66fb45a47bb7747398a30b29198ef57",
+      "object_SHA256": "7f53b4f4c8a88e7110319a52cd2a1d19d1c674a4e383e38a5d092665d347ec32",
+      "undefined_target": "Originalnamespace DeepseekV4MoERoutedR20 ctor/forward/vtable"
+    },
+    {
+      "role": "replaced_original_MoE",
+      "source_SHA256": "9872e3553ee22c1292637559a116fe8c0fd9726aaa1290206a3bfc6beb5117c6",
+      "object_SHA256": "43f97ef93315f43e5332d85d7807022d2d6065e8a46e0b33c40498d48de8ddb0"
+    }
+  ],
+  "quiescence": {
+    "Native_CAPI_reset_source": {
+      "path": "/refactor/candidates/Deep-native-context-guard-r180d/project-mirror/candidates/deep-c4-projection-model-r5920/incoming/modern_native_engine_probe_r22.cpp",
+      "SHA256": "8c82b8b6d4d4b4a37d795a7d45983331775cea2b8685961c7d16cc600cd5ff23"
+    },
+    "CAPI_reset_line": 33,
+    "InferEngine_reset": {
+      "source_SHA256": "b3594a5c8b3643690b6759e8377191a2a2b2941311b29a63c1c7390baf11491b",
+      "lines": [
+        605,
+        606,
+        621,
+        625
+      ],
+      "behavior": "submission_mutex: queue reset on all8 owners and worker.wait each"
+    },
+    "actual_owner_reset": {
+      "source_SHA256": "2d68978d64c15daac6decef2d0547eee753441ff2e99d512aea08b19926572d2",
+      "lines": [
+        39,
+        45
+      ],
+      "behavior": "r.syncStream before resetting loaded Model state and at end"
+    },
+    "actual_forward_completed": {
+      "source_SHA256": "2d68978d64c15daac6decef2d0547eee753441ff2e99d512aea08b19926572d2",
+      "line": 61,
+      "behavior": "Original owner stream sync before output return; existing Engine getoutput wait and CAPI completed output CPUcopy"
+    },
+    "consumer": "quiescent_mode.QuiescentMode actual qualified NativeContext.reset/check_thread, shared admission lock; no raw active=false/HostReturned completion inference"
+  },
+  "limits": [
+    "Some old reused Model objects have no adjacent MD; retain exact original objects and verify actual mangled consumer symbols, never claim all49 freshMD",
+    "CPU source/link/control contract only; no actual Model constructor/forward executed",
+    "Future actual Model loader must bind new Native SHA/49object receipt and route every planned request through QuiescentMode; current public afc6 provider frozen unchanged",
+    "T1 eligibility includes any one-token prefill tail; counters must be separated from decode using actual forward metadata",
+    "One experimental Engine per process/Native library; original full request admission lock required, no user arm parameter"
+  ]
+}
