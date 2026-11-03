@@ -1,0 +1,112 @@
+{
+  "arms": {
+    "OFF": "installed04a Runtime original, env0",
+    "ON": "isolated5b8 Runtime only, env1; no shared install replacement"
+  },
+  "geometry": [
+    {
+      "local": [
+        3584,
+        96
+      ],
+      "CPU_global": [
+        3584,
+        1536
+      ],
+      "bank": [
+        896,
+        3584,
+        96
+      ],
+      "H2D_bytes_per_sample": 308281344
+    },
+    {
+      "local": [
+        3584,
+        6
+      ],
+      "CPU_global": [
+        3584,
+        96
+      ],
+      "bank": [
+        896,
+        3584,
+        6
+      ],
+      "H2D_bytes_per_sample": 19267584
+    }
+  ],
+  "check": "one baseline check and one candidateON check, each all16 TPoffsets for bothwidths+fallback/nonunitstride/dtype/shape/wrongowner=36 checks; actualdevice D2H allbytes; no oldCPU243/878 suite",
+  "modes": [
+    "OFF",
+    "ON",
+    "OFF",
+    "ON",
+    "ON",
+    "OFF",
+    "OFF",
+    "ON",
+    "ON",
+    "OFF",
+    "OFF",
+    "ON",
+    "ON",
+    "OFF",
+    "OFF",
+    "ON",
+    "ON",
+    "OFF"
+  ],
+  "geometries": 2,
+  "benchmark_processes": 2,
+  "semantic_processes": "same2 resident Runtime processes",
+  "expert_copy_calls_per_benchmark": 896,
+  "total_timed_expert_copy_calls": 32256,
+  "main_timer": "CPU narrow+temporary allocation+gather+syncH2D+Weight-style final sync; preallocated bank target and registered views; no D2H validation inside timer",
+  "separate_costs": [
+    "process launch/ELF initializer inclusive parentwall",
+    "Runtime create",
+    "warmRAM source init",
+    "GPU bank allocation",
+    "896target view registration",
+    "all896 D2H bytevalidation",
+    "Runtime drain/destroy"
+  ],
+  "synthetic_warmRAM": true,
+  "checkpoint": false,
+  "whole_loader": false,
+  "Model": false,
+  "scope": "Two warm resident Runtime/allocator contexts, sequential work only; banks/source/views rebuilt/released and sync perop. Init/idle/IPC/validation/close separately recorded, no busy orwholeload claim.",
+  "gate": "both widths complete fullwall mean gain exceeds absolute OFF endpoint drift; perABBA preserved; byte/owner/stats/chosen failure STOP",
+  "GPU_claim": {
+    "parent": 910371,
+    "node": "a02r3n16",
+    "cards": 1,
+    "cores": 4,
+    "memory_MiB": 8192,
+    "hard_s": 300,
+    "shell_s": 285,
+    "worker_s": 270,
+    "keeper_s": 480
+  },
+  "GPU_GO": true,
+  "Runtime_processes": 2,
+  "work_commands": 38,
+  "close_commands": 2,
+  "persistent_same_owner": true,
+  "allocator_scope": "warm Runtime/allocator, no freshprocess claim; everyop rebuilds/releases bank/source/views under original sync",
+  "semantics_and_math": "old unchanged exactworkbody SHA inDERIVATION; no timerIO/changed896loop",
+  "CPU_actual": "910407.901",
+  "CPU_receipt_SHA256": "09fc01a855cd9ec192686e48a3c8273fc264deecf3a0f6f617c3ef64a158c18f",
+  "semantic_check_commands": 2,
+  "benchmark_commands": 36,
+  "formal_benchmark_commands": 32,
+  "ready_cap_s": 90,
+  "absolute_worker_s": 270,
+  "GPU300": true,
+  "keeper480": true,
+  "outputs": "perrole ready/19immutable work results andphases/close + stdio/stderr; fixedpaths/role/seq/width/deadline. Failed completedpayload saved before STOP.",
+  "cleanup": "On error close both stdin first; only knownowned PIDs waited/killed within originalepoch+282, outer285/300/480 unchanged. No newcommand/cancel API; incompleteEOFfailstop.",
+  "startup_diagnostic": "First baseline only16fixed samples, bounded64fd symlinktargets+1KiBfdinfo each, maps<=2MB/stat/io/wchan; not insideformalcopytimer."
+}
