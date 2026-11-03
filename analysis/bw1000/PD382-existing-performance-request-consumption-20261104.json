@@ -1,0 +1,92 @@
+{
+  "observed_UTC": "2026-11-03T17:18:55.861921+00:00",
+  "request": "Allocate part of the machines to measure prefill/decode disaggregation",
+  "state": "EXISTING_ACTUAL_PD_RESULT_RECONSUMED_NO_UNCHANGED_RERUN",
+  "actual_run": "pd-20261102-a",
+  "GPU": "910376.836",
+  "keeper": "910407.771",
+  "post": "910376.837",
+  "allocation": {
+    "P": "a02r4n12",
+    "D": "a02r4n13",
+    "cards_each": 8,
+    "total_cards": 16,
+    "TP_each": 8,
+    "current_reservation": false
+  },
+  "workload": {
+    "model": "DeepSeek-v4",
+    "prompt_tokens": 8489,
+    "output_budget": 128,
+    "actual_generated_including_EOS": 98,
+    "external_requests": 15,
+    "formal_requests": 12,
+    "complete_state_migrations": 7,
+    "state_bytes_each": 372424784,
+    "D_prompt_recomputation": 0
+  },
+  "original_result": {
+    "path": "results/bw1000/2026-11-02/Deep382-PD836-root-audited15-comparison-negative-clean.json",
+    "SHA256": "be28a83638238b8f9a7c4dad2f8075e8ca5b1ab5131f95ab3e6c44952eba8193"
+  },
+  "independent_reaudit": {
+    "local_file": "PD382-current-request-independent-audit-20261104.json",
+    "SHA256": "23ce89c88d4562209315226dbac01fb3fe3b7cc69d9d948d8551911ec1e5a21b",
+    "raw_snapshot_SHA256": "a1f05ec4d49c0b4c8c8da9751b037cf92db6d8390cbfe48d440534e269cabd4a",
+    "reader": "tools/audit_pd382.py",
+    "reader_SHA256": "5598055bc107a99929b8c79f0e469557007d5ff212d89498ed7e0cce24e4280c",
+    "correct_natural_EOS": 15,
+    "comparisons": {
+      "latency": {
+        "complete_two_pair_comparison": true,
+        "pairs": [
+          {
+            "co_group": 2,
+            "PD_group": 3,
+            "PD_over_co_group_wall_ratio": 1.016987796343054,
+            "PD_over_co_output_per_card_ratio": 0.9832959683448121
+          },
+          {
+            "co_group": 5,
+            "PD_group": 4,
+            "PD_over_co_group_wall_ratio": 1.0111142291455735,
+            "PD_over_co_output_per_card_ratio": 0.9890079391376331
+          }
+        ],
+        "co_mean_group_wall_s": 143.8116628259886,
+        "PD_mean_group_wall_s": 145.83085082587786,
+        "PD_over_co_group_wall_ratio": 1.0140405024196992,
+        "PD_over_co_aggregate_output_per_card_ratio": 0.9861539037285041
+      },
+      "capacity": {
+        "complete_two_pair_comparison": true,
+        "pairs": [
+          {
+            "co_group": 6,
+            "PD_group": 7,
+            "PD_over_co_group_wall_ratio": 1.7877464907151863,
+            "PD_over_co_output_per_card_ratio": 0.5593634249562704
+          },
+          {
+            "co_group": 9,
+            "PD_group": 8,
+            "PD_over_co_group_wall_ratio": 1.7913151509722272,
+            "PD_over_co_output_per_card_ratio": 0.5582490604499467
+          }
+        ],
+        "co_mean_group_wall_s": 145.09789666393772,
+        "PD_mean_group_wall_s": 259.65686042560264,
+        "PD_over_co_group_wall_ratio": 1.789528769166074,
+        "PD_over_co_aggregate_output_per_card_ratio": 0.5588063278055057
+      }
+    }
+  },
+  "measurement_scope": "Private token-ID client; host-staged TCP/IPoIB; not RDMA or public HTTP/SSE qualification",
+  "run_terminal": "Original shutdown control header exceeded 1MiB after all measured requests; original run FAIL retained",
+  "cleanup": "All16 owners destroyed and independent post confirms KFD/PID empty and bindable ports",
+  "decision": "Retain measured negative result and released allocation; do not restart this unchanged route. Different batching or P/D sizing needs a concrete new bottleneck hypothesis and fair all-card comparison before a new residency.",
+  "maintenance": "Corrected execution task stale in-progress/GPU_GO fields using existing terminal evidence. No source, math or past results changed.",
+  "new_CPU_runs": 0,
+  "new_GPU_runs": 0,
+  "new_model_loads": 0
+}
