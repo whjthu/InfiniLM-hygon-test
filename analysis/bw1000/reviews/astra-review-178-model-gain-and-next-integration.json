@@ -1,0 +1,207 @@
+{
+  "review": 178,
+  "state": "COMPLETE_FOR_ROOT_ADOPTION",
+  "date": "2026-11-03",
+  "scope": {
+    "trigger": "177后完成三个真实因果轮：414/853、415/1342、416/1345",
+    "real_rounds": 3,
+    "not_rounds": "CPU、发布、入口修复、Kimi569在途观察均不计新完成轮",
+    "actions": "只读实际源/原件及写本报告；未运行reader/测试/编译/GPU/Git",
+    "independent_work": "569/840跟原句柄继续；不因审核重载、增加请求或暂停独立源工作"
+  },
+  "evidence": [
+    {
+      "path": "analysis/bw1000/reviews/astra-review-177-implementation.json",
+      "state": "COMPLETE_ADOPTED"
+    },
+    {
+      "path": "analysis/bw1000/GLM414-root-audited-six-request-W4-Model-gain.json",
+      "root_reader_SHA256": "46e3e3df2be1cb91845f8d757e899184f49feb62cdc94669b7f71f9fe5fe82af",
+      "scope": "根独立消费155原文件与完整六请求"
+    },
+    {
+      "path": "analysis/bw1000/Deep415-root-CPU-semantics-and-negative-C4-consumption.json",
+      "root_reader_SHA256": "0ec0706fe33ef5b1194baa6d3339ee405d65c27b031b66c8bac239b1a78d57e4"
+    },
+    {
+      "path": "../Deep416-1345-root-independent-audit.json",
+      "SHA256": "4434ce64b0f43ce1086dfa6cda264a335c0b2e7d99628d903ef54757032656ed",
+      "reviewer_read_and_hash_checked": true,
+      "reviewer_executed_reader": false
+    },
+    {
+      "path": "analysis/bw1000/Deep393-early-decode8-critical-path-only.json",
+      "scope": "当前976f HC1、原393两decode8窗口；原质量FAIL及observer扰动保留"
+    },
+    {
+      "path": "../Kimi410-model-e-workers-observed-2.json",
+      "scope": "四leader原报告均loading_weights、各20actual_CAPI_providers；569/840原观察RUNNING"
+    },
+    {
+      "path": "code/bw1000/GLM-NoV-16card-W4-pair-r414/owner/owner_r290.py",
+      "scope": "当前服务仍依赖windows[request_index]/workload_plan/固定fixture ID与4096；不能仅改默认窗口就称通用入口"
+    },
+    {
+      "path": "code/bw1000/GLM-NoV-16card-W4-pair-r414/owner/glm_prefill_execute_r236.py",
+      "scope": "同步≤512token forward原序，prefill窗口1/2/4，decode W1；保留取消/失败/discard语义"
+    }
+  ],
+  "followthrough_177": {
+    "Kimi": "hidden-GPU不可能前置已撤销，原设备上下文严格19Native+1Runtime真实验证已通过；569四leader各20provider与constructor后loading_weights已实读。不是权重完成/数值/两请求/正常退出PASS，仍跟569/840。",
+    "GLM": "原853完成，未加样本/重载；全六正确自然EOS、16owner正常、854清理，已有真正端到端scoped收益。",
+    "Deep": "415按完整C4配对执行但负；416不同rank64表示与冻结输入也已负封存。两个家族均STOP，不用继续grid或修改测量重跑挽救。",
+    "engineering": "835/836/566等原入口失败保持；动态图provider与lazy affinity的实际生命周期已纠正，不重复825/826构建或CPUhidden。"
+  },
+  "four_questions": {
+    "real_model_gain": {
+      "GLM414": {
+        "qualification": "同16卡TP8PP2/C1/32768/NoV/Native952、单9741完整工具history，W2/W4两warm+ABBA",
+        "HTTP_W2_s": 505.25165875372477,
+        "HTTP_W4_s": 430.323393659899,
+        "HTTP_change_percent": -14.82988997574931,
+        "OFF_HTTP_drift_percent": 0.4115038228022838,
+        "TTFT_change_percent": -16.12431556652367,
+        "Native_prefill_change_percent": -16.12944895484385,
+        "serial_useful_output_per_card_ratio": 1.1741208267962406,
+        "decode": "约2.86tok/s持平，0/6严格>15",
+        "quality": "6×116含EOS、每条115可见token、工具gold/16签名/reset全通过",
+        "lifecycle": "16once normal create/destroy/shutdown；854两node PID/KFD空/43843bindable",
+        "limits": "固定一history，非广泛质量/任意32K峰值/公共流式或在线SLO；没有16vs32同期配对。"
+      },
+      "Deep415": {
+        "complete_CAPI_ratio": 1.044839889039205,
+        "CPP_ratio": 1.3193637854647067,
+        "forward_ratio": 1.3008208843303632,
+        "checked_ratio": 1.0082185177315883,
+        "decision": "STOP。两forward邻对都慢；不能用proof-inclusive CAPI漂移较大抹掉完整负结论。"
+      },
+      "Deep416": {
+        "complete_CAPI_ratio": 0.9902038799230062,
+        "max_OFF_block_drift_fraction": 0.01799107303038494,
+        "checked_ratio": 1.0022553388538273,
+        "CPP_ratio": 0.796422614994807,
+        "CPP_OFF_endpoint_drift": -0.38520844914754626,
+        "CPP_adjacent_reverse_ratio": 1.321738929919044,
+        "decision": "STOP。完整CAPI约-0.98%小于块漂移约1.8%；checked无gain。巨大CPP/forward漂移及反向邻对不能宣称稳定20%收益。",
+        "numeric": "80原记录、72/72同validcache/state、score差0、严格ranked值/bit记录通过，最大原FP8 NRMSE8.15e-8；reader核scalar/sidecar SHA，没有独立重算NPZ浮点数学。"
+      },
+      "Kimi": "当前410只有实际provider/constructor/加载进度，Model/质量/性能UNKNOWN；不能把旧run-d速度移植给TP8PP4。"
+    },
+    "time_and_cost": {
+      "GLM": {
+        "GPU_seconds": 4041,
+        "cards": 16,
+        "allocated_card_seconds": 64656,
+        "keeper_seconds": 4052,
+        "max_recorded_same_owner_load_finish_seconds": 966.852411735,
+        "six_HTTP_seconds": 2823.8065540604293,
+        "useful_tokens": 690,
+        "residency_tokens_per_second_per_card": 0.010671863400148479,
+        "GPU_busy": "UNKNOWN"
+      },
+      "Deep415": "8卡51s=408驻留卡秒、keeper62s；组件不是Model加载。",
+      "Deep416": {
+        "GPU_seconds": 57,
+        "cards": 8,
+        "allocated_card_seconds": 456,
+        "keeper_seconds": 62,
+        "driver_wall_seconds": 45.53926738211885,
+        "weight_read_input_prepare_seconds": 28.43613050179556,
+        "sum_checked_all10_seconds": 6.377415237016976
+      },
+      "interpretation": "GLM一次约67分钟取得一个可信Model正结果，值得把已验证配置接正常入口；再跑相同六条没有新增信息。Deep短组件本身便宜，但连续两家族无完整收益已足止损，不能让大量微秒kernel/计时修复消耗下一大段准备时间。",
+      "iteration_action": "一驻留承载已预先准备且有区分力的负载，质量/性能计划事先冻结；不能在运行中追加。已有源码/Native/provider/入口边界复用，CPU只覆盖改变的配置→请求消费者，不重全套。",
+      "uncertainty": "没有连续GPUbusy/排队统计，卡秒不是计算利用率。Kimi实际剩余加载时间UNKNOWN。"
+    },
+    "hardware_bottleneck": {
+      "GLM": "当前W4仍约390s TTFT+40s first-last；prefill是这条长history主要wall，decode没有改善。W4改变原分组控制频率且保持forward数学，不因此推断全部收益来自网络。sampled free最低7061110784B约6.58GiB，不是allocator peak。",
+      "Deep": "当前976f的393 early-decode8同critical owner6观察：cache/compression/index约114.5ms、MoE约71ms、两HCpre约51–52.5ms；全decoder约340–341ms、callback约345–346ms。这些是两个有约5.99%observer扰动的窗口，原393整体质量FAIL，非当前未插桩Model精确预算。",
+      "limits": "114ms包含多种cache/compress/index工作，不能把TopK一小子区域等同全部；不能用415/416 synthetic微秒乘21/43层。ThreadCPU包含SDK/校验/潜在spin，不证明GIL或CPU瓶颈；嵌套区域不能相加。",
+      "Deep_prior": "372/377完整HCpre仅组件/功能证据、外层收益弱，不为预计小增益独立重载；399固定图能力不等于动态Model指针/lease闭合。旧HC_OFF/afc6不能替代当前HC_ON976f成本。",
+      "Kimi": "TP8PP4同时改变本地head/I和TP/PP通信，尚无性能，硬件瓶颈UNKNOWN。"
+    },
+    "decision": "GLM保留NoV16/W4限定参考并接正常入口+必要质量覆盖；Deep415/416两家族停止，先从现有Model大区域选一条可达机制，没有证据就不派GPU；Kimi消费原在途结果。"
+  },
+  "GLM_normal_entry_minimum": {
+    "selected_profile": "Native9520769d…/NoV=true/residentK=true/TP8PP2/C1/32768/prefillW4/decodeW1，原8GiBpreweight/512MiBforward和group前后取消不变；作为显式可选配置，不是全局默认或publicSSE资格。",
+    "actual_gap": "owner_r290.py目前按request_index取实验windows和workload_plan，固定fixture promptSHA/len9741/limit4096，并报告paired字段。正常入口必须让typed profile决定窗口，真实队列请求决定完整prompt/预算；实验schedule留在独立benchmark客户端而不是正常请求的必需状态。",
+    "small_change": "复用prepared entry/queue、typed layout/create、真实loader/Native、execute_plan及原cleanup；新增或复用一个窄profile选择消费者即可。不建立第二引擎、通用调度框架或W grid。",
+    "identity": "ready与每request明确profileID、Native/source、TP/PP/C/context/window和真实输入/预算；设备前校验profile一致。不要继承固定9741断言到新负载，也不要删掉源/容量/预算验证来绕过它。",
+    "validation_scope": "只核最终shell/profile→实际owner请求消费的改变边界，含不同合法长度/不同预算和非法profile拒绝、取消/错误原语义；复用既有真实CPU叶子。Native952不重编，不为证明同一9741再加载。",
+    "not_public_service": "bufferedHTTP仍如实标buffered；不将backend TTFT/ITL叫客户端streamSLO。公开流式/在线并发是另一个尚未闭合能力，不能混入本次最小接入。"
+  },
+  "next_cards": {
+    "GLM": [
+      {
+        "priority": 1,
+        "id": "NoV16-W4-normal-entry-profile",
+        "owner": "根/原GLM414执行者",
+        "hypothesis": "已验证W4配置可脱离实验轮次表，被正常完整请求入口准确选择且保留既有生命周期。",
+        "change": "上述最小typed profile→真实queue/owner消费者，实验arm留客户端，执行数学不变。",
+        "resources": "先源和必要改变边界CPU，不重Native；设备验证合并卡2的下一必要16卡驻留，不单独重850/853。",
+        "reuse": "414/850 Native952、原prepared encode与typed layout/loader/execute_plan；原GPU/CPUprovider资格复用。",
+        "checks": "两个不同合法完整请求/预算消费、非法profile拒绝、真实ready/request身份、取消/错误顺序；不要求生成token等于旧样本。",
+        "samples": "CPU只消费改变边界；不新增无目的GPU样本。",
+        "affected_wall": "不预期新增速度；把已测HTTP−14.83%限定配置变成可用入口，不自动扩资格。",
+        "first_result_eta": "工程耗时UNKNOWN；建议原执行者30分钟内给出明确剩余文件/消费者而非重新搭框架。",
+        "exit": "若接入需要改核心Native/共享数学或新增不可控服务能力，保留显式private profile先不扩大；已有配置可继续复用。"
+      },
+      {
+        "priority": 2,
+        "id": "NoV16-W4-real-quality-and-workload-coverage",
+        "owner": "根/原真实benchmark准备执行者",
+        "hypothesis": "W4在不同真实请求长度/任务上维持质量，已测长history收益能否迁移且短请求不被明显拖慢。",
+        "change": "同一16卡NoV952，预先冻结未重复输入及同模板参数的W2对照；不混NoK、量化、并发调度或新kernel。",
+        "resources": "只在正常入口/数据已准备后一次必要16卡驻留；具体最大请求数/预算按真实编码长度和850/853成本冻结，不临时追加。",
+        "reuse": "已有官方/公开GSM8K、MMLU等数据准备/解析链及完整真实history；已用fixed32/旧64/74/121不简单再跑并宣称新质量。",
+        "samples": "先准备有分辨力的完整短/长真实请求和未消费题目，按任务/长度分层；准确率对照需同数据/模板/精度/预算。样本数由已准备数据与可支付wall明确，当前UNKNOWN，不编造ready。",
+        "checks": "任务金标/自然EOS/解析失败/截断/覆盖率及配对分差与区间；W2/W4完整wall与first-last分开，16卡全成本/正常退出。小样本筛查不等于证明不掉点。",
+        "affected_wall": "迁移收益UNKNOWN；decode>15仍未解决。",
+        "first_result_eta": "数据准备UNKNOWN；850/853加载约16–17分钟，单条相似长history约7分钟供预算参考而非保证；不再重复9741六次。",
+        "exit": "非重复数据或有效对照未ready则先源准备，不为了填GPU加载；质量退化停止扩量，短/长负载分别报告不做总体掩盖。"
+      }
+    ],
+    "Deep": [
+      {
+        "priority": 1,
+        "id": "current976f-large-region-source-decision-only",
+        "owner": "原Deep执行者",
+        "hypothesis": "真实Model较大cache/compress/index区间中是否存在可在当前owner生命周期复用的冗余准备/元数据或内存操作，能影响完整prepare而非仅微秒TopK。",
+        "change": "限定≤30分钟读现有393同owner字段、当前C4/C128实际调用源与历史负路线；只选一个确有重复工作的边界，保留score/TopK512/prepare-commit/errorcontainment。",
+        "resources": "源只读/必要小源码消费者准备；当前不派GPU、不加载Model、不加timer。",
+        "reuse": "393 early-decode8原证据/current976f、406/413原完成边界、359/372/377/387/399/415/416已有正负及未知；不重测已停路线。",
+        "required_output": "一个精确函数/循环/所有权生命周期、实际触发次数、可移除的工作及原边界保持方式；如果看不到可达大收益，就明确没有新卡。不能只写大区域114ms然后提出未定位kernel。",
+        "checks": "先排除动态past/cache/state不能复用、现成缓存已存在、只换host计时口径等假设；任何将来的组件必须测原完整consumer并保持当前数学质量。",
+        "samples": "本卡源判断，无GPU样本。只有出现可达且去重后的单机制，才由根另冻结有界组件卡。",
+        "affected_wall": "UNKNOWN；114.5ms是带扰动大区域观察，不是本候选可节省预算。MoE约71ms可作备选读源目标，但本卡不并行展开第二kernel家族。",
+        "first_result_eta": "≤30分钟给出具体机制或STOP；不进入第二轮报告/无期限源码整理。",
+        "exit": "无精确可达机制则STOP新增组件；不重415/416、不改测量后重跑、不拓展kernelgrid、不为弱预计HCpre收益单独Model重载。",
+        "fallback": "维持976f已有scoped正结果及393质量FAIL的真实边界；暂无第二张有依据Deep设备卡。"
+      }
+    ],
+    "Kimi": [
+      {
+        "priority": 1,
+        "id": "follow-569-840-original-ordinary",
+        "owner": "原GLM执行者",
+        "hypothesis": "既定TP8PP4/32卡普通AR实际两负载是否满足容量/质量并给完整cost。",
+        "change": "无在途变更；原runtime-v3/20provider和lazy-affinity时序已消费，不再入口试探。",
+        "resources": "569/840原32卡0draft、5400/5100/6000预算，8635+32638各128；保持原epoch。",
+        "reuse": "825/826/831及实际动态20provider/32constructor；不宣称这些等于Model PASS。",
+        "samples": "只原两完整请求，不追加/新驻留。",
+        "checks": "权重完成、首次真实forward strictaffinity、实际gold/EOS、完整emitter/请求wall、32normal与post；原失败链保留。",
+        "affected_wall": "UNKNOWN，TP/PP整包比较非通信独占归因；历史run-d只提供已知范围参考。",
+        "first_result_eta": "原观察16m19 loading_weights，剩余UNKNOWN；不假设线性加载进度。",
+        "exit": "正常终态后根消费原件再选择；未知失败按原边界停，不重复target或draft。",
+        "fallback": "无第二张Kimi卡，避免在旧驻留未判定时新增昂贵Model。"
+      }
+    ]
+  },
+  "root_actions": [
+    "将414保留为可选scoped NoV16/W4配置，接正常入口时去除实验轮次依赖而非删验证。",
+    "准备非重复真实质量/负载覆盖，按数据ready与预算冻结一次必要驻留，不重复9741六请求。",
+    "415/416两个家族STOP，原数值/冻结输入与正常清理资格保留，不能从噪声子计时晋级。",
+    "Deep下一步仅有界大区域源码决策；无具体机制就不造GPU卡。",
+    "Kimi569/840持续原句柄，实际provider/constructor已闭合但性能/终态仍UNKNOWN。"
+  ]
+}
