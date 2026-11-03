@@ -1,0 +1,181 @@
+{
+  "schema": 1,
+  "status": "FAIL_ELF_INITIALIZER_DEVICE_QUERY_UNDER_GPU_HIDDEN_STOP",
+  "actual_CPU": "910407.886",
+  "account": [
+    "910407.886",
+    "Kimi-r436-Runtime-CPU-v5",
+    "FAILED",
+    "1:0",
+    "00:00:19",
+    "a14r2n20"
+  ],
+  "original_receipt": {
+    "path": "/refactor/candidates/Kimi-loader-row-copy-r436-Runtime-CPU-v5/result.json",
+    "local": "Kimi436-CPU-v5-original-result.json",
+    "SHA256": "dac965c521c7a0ee28de6c7f638107b086862d3f6677ebbfbd5fcc31a6e65b81",
+    "bytes": 198228
+  },
+  "source_manifest_SHA256": "3aa7488b887fad79ed712b16cb7693d6b34020be186216de4883d8bdde0f42ea",
+  "original_884": {
+    "actual_CPU": "910407.884",
+    "passed": false,
+    "receipt_SHA256": "3069d817ad7fb38f9e7b21999a558ba174667aef324f75c997adf3ae93139a27"
+  },
+  "library_SHA256": "5b8df2e6dd334b88e3a1493b928dce1a25fe2a7878c2eccdf141a74aaa3ad36b",
+  "HOST_compile": 0,
+  "Runtime_relink": 0,
+  "caller_executable_links": 2,
+  "old_Runtime_and_two_objects_reused": true,
+  "actual_GPU_visibility": {
+    "CUDA_VISIBLE_DEVICES": "-1",
+    "HIP_VISIBLE_DEVICES": "-1",
+    "ROCR_VISIBLE_DEVICES": "-1"
+  },
+  "commands": [
+    {
+      "name": "baseline-ldd",
+      "argv": [
+        "ldd",
+        "-r",
+        "/refactor/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/python/infinilm/_lib/libinfinilm_runtime.so"
+      ],
+      "rc": 0,
+      "wall_s": 0.21314772684127092,
+      "stdout_SHA256": "fe4be4d122759018fab6f12ef034da9fff06a9224dfaaff84559d25b0efa961c",
+      "stderr_SHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "candidate-ldd",
+      "argv": [
+        "ldd",
+        "-r",
+        "/refactor/candidates/Kimi-loader-row-copy-r436-Runtime-CPU-v4/libinfinilm_runtime_r436.so"
+      ],
+      "rc": 0,
+      "wall_s": 0.20984755083918571,
+      "stdout_SHA256": "e7e0e0acaff5f51b5477bb550aa728940a42736e521b3845ae074a093a45d71a",
+      "stderr_SHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "baseline-caller-link",
+      "argv": [
+        "/usr/bin/g++",
+        "-m64",
+        "-pthread",
+        "/refactor/candidates/Kimi-loader-row-copy-r436-Runtime-CPU-v4/caller.cpp.o",
+        "/refactor/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/python/infinilm/_lib/libinfinilm_runtime.so",
+        "-L/refactor/install/hygon-kimi-5f91ad7-r3672/lib",
+        "-linfiniops",
+        "-linfiniccl",
+        "-linfinirt",
+        "-Wl,-rpath,/refactor/install/hygon-kimi-5f91ad7-r3672/lib",
+        "-ldl",
+        "-o",
+        "/refactor/candidates/Kimi-loader-row-copy-r436-Runtime-CPU-v5/baseline"
+      ],
+      "rc": 0,
+      "wall_s": 0.7875642119906843,
+      "stdout_SHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_SHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "baseline-caller-DT-NEEDED",
+      "argv": [
+        "readelf",
+        "-d",
+        "/refactor/candidates/Kimi-loader-row-copy-r436-Runtime-CPU-v5/baseline"
+      ],
+      "rc": 0,
+      "wall_s": 0.014996964018791914,
+      "stdout_SHA256": "172adb631b9646314061a9273de1ab8f84914c95499d824e53cb3b5c12549a5b",
+      "stderr_SHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "candidate-caller-link",
+      "argv": [
+        "/usr/bin/g++",
+        "-m64",
+        "-pthread",
+        "/refactor/candidates/Kimi-loader-row-copy-r436-Runtime-CPU-v4/caller.cpp.o",
+        "/refactor/candidates/Kimi-loader-row-copy-r436-Runtime-CPU-v4/libinfinilm_runtime_r436.so",
+        "-L/refactor/install/hygon-kimi-5f91ad7-r3672/lib",
+        "-linfiniops",
+        "-linfiniccl",
+        "-linfinirt",
+        "-Wl,-rpath,/refactor/install/hygon-kimi-5f91ad7-r3672/lib",
+        "-ldl",
+        "-o",
+        "/refactor/candidates/Kimi-loader-row-copy-r436-Runtime-CPU-v5/candidate"
+      ],
+      "rc": 0,
+      "wall_s": 0.765662076883018,
+      "stdout_SHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_SHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "candidate-caller-DT-NEEDED",
+      "argv": [
+        "readelf",
+        "-d",
+        "/refactor/candidates/Kimi-loader-row-copy-r436-Runtime-CPU-v5/candidate"
+      ],
+      "rc": 0,
+      "wall_s": 0.013012300711125135,
+      "stdout_SHA256": "5881f2abdb98f9c13321340ce1d66ae2872022e392d930a2ad31e735fea9a8b7",
+      "stderr_SHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "actual-original-semantic",
+      "argv": [
+        "/refactor/candidates/Kimi-loader-row-copy-r436-Runtime-CPU-v5/baseline",
+        "check",
+        "0"
+      ],
+      "rc": -6,
+      "wall_s": 0.7487182589247823,
+      "stdout_SHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_SHA256": "f124a95d0741372bceb431885df69cac9febcee5df8b4b5405cafd360e304243"
+    }
+  ],
+  "passed_subscope": [
+    "Original884 receipt/MF and bothobject/source/MD/dependencySHA exact",
+    "Both exact04a baseline and5b8 candidate ldd-r resolve all needed libraries, no undefined symbols",
+    "Both originalcallerobject executable links and exactRuntime absoluteDT_NEEDED passed"
+  ],
+  "first_caller_return_code": -6,
+  "actual_Tensor_cases_executed": 0,
+  "samples": [],
+  "why": "Actual baseline executable loads flash_attn_2_cuda; an ELF initializer queries at::cuda::getCurrentDeviceProperties then c10::hip::current_device/HIPKernelLaunchRegistry; GPU-hidden host has no ROCm device and aborts before main/Runtime::create(kCpu). Tensor36 semantics and benchmark not reached.",
+  "no_retry": true,
+  "no_GPU_job": true,
+  "no_Model": true,
+  "Native_dlopen": false,
+  "CPU_Runtime_semantic_passed": false,
+  "CPU_performance": "UNKNOWN",
+  "Model_loading_gain": "UNKNOWN",
+  "KFD_DRM_FD_validation": "NOT_REACHED: caller check executes after initializer; GPU visibility remained-1, but do not claim this static initializer opened no acceleratorFD",
+  "decision": "STOP new unknown dependency lifecycle; do not unhide GPU, stub FlashAttention/device API, relink Runtime, or repeat the job. Any further real CPU-only Runtime validation needs a source-backed SDK dependency/initialization plan.",
+  "elapsed_seconds": 17.386172199156135,
+  "seal": {
+    "local": "Kimi436-CPU886-terminal-sealed-v1.json.gz",
+    "remote": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/Kimi436-CPU886-terminal-sealed-v1.json.gz",
+    "SHA256": "9e48f3cfc925e70ccf0d39fca9783c79ccde7efece625fe7b762dd53d2963976",
+    "bytes": 227526,
+    "files": 20
+  },
+  "details": {
+    "baseline_executable": {
+      "SHA256": "da0d6aee45f69656d1825ae29c5cce29b4b25d4a9bbaab80421d55ffc38982be",
+      "nbytes": 53936
+    },
+    "candidate_executable": {
+      "SHA256": "56558cccd0e2c50932fa19336e978b8a08af1b6ae1abf19447a40c0afbf1b803",
+      "nbytes": 53936
+    },
+    "actual_first_caller_stderr": {
+      "SHA256": "f124a95d0741372bceb431885df69cac9febcee5df8b4b5405cafd360e304243",
+      "text": "Could not open /var/log/hylog/.\nterminate called after throwing an instance of 'c10::AcceleratorError'\n  what():  HIP error: no ROCm-capable device is detected\nSearch for `hipErrorNoDevice' in https://rocm.docs.amd.com/projects/HIP/en/latest/index.html for more information.\nHIP kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.\nFor debugging consider passing AMD_SERIALIZE_KERNEL=3\nDevice-side assertions were explicitly omitted for this error check; the error probably arose while initializing the DSA handlers.\nException raised from dsa_get_device_count at /pytorch/c10/hip/HIPDeviceAssertionHost.cpp:62 (most recent call first):\nframe #0: c10::Error::Error(c10::SourceLocation, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) + 0x99 (0x7fe2eab643e9 in /usr/local/lib/python3.10/dist-packages/torch/lib/libc10.so)\nframe #1: <unknown function> + 0x4103a (0x7fe2ea9c703a in /usr/local/lib/python3.10/dist-packages/torch/lib/libc10_hip.so)\nframe #2: c10::hip::c10_hip_check_implementation(int, char const*, char const*, unsigned int, bool) + 0x1fd (0x7fe2ea9c6b9d in /usr/local/lib/python3.10/dist-packages/torch/lib/libc10_hip.so)\nframe #3: c10::hip::HIPKernelLaunchRegistry::HIPKernelLaunchRegistry() + 0x9a (0x7fe2ea9c5bea in /usr/local/lib/python3.10/dist-packages/torch/lib/libc10_hip.so)\nframe #4: c10::hip::HIPKernelLaunchRegistry::get_singleton_ref() + 0x44 (0x7fe2ea9c5e94 in /usr/local/lib/python3.10/dist-packages/torch/lib/libc10_hip.so)\nframe #5: c10::hip::c10_hip_check_implementation(int, char const*, char const*, unsigned int, bool) + 0x4d (0x7fe2ea9c69ed in /usr/local/lib/python3.10/dist-packages/torch/lib/libc10_hip.so)\nframe #6: c10::hip::current_device() + 0x33 (0x7fe2ea9c7ae3 in /usr/local/lib/python3.10/dist-packages/torch/lib/libc10_hip.so)\nframe #7: at::cuda::getCurrentDeviceProperties() + 0x9 (0x7fe2b9bd41b9 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_hip.so)\nframe #8: <unknown function> + 0x21eaa92c (0x7fe2b68aa92c in /usr/local/lib/python3.10/dist-packages/flash_attn_2_cuda.cpython-310-x86_64-linux-gnu.so)\nframe #9: <unknown function> + 0x647e (0x7fe306d3f47e in /lib64/ld-linux-x86-64.so.2)\nframe #10: <unknown function> + 0x6568 (0x7fe306d3f568 in /lib64/ld-linux-x86-64.so.2)\nframe #11: <unknown function> + 0x202ca (0x7fe306d592ca in /lib64/ld-linux-x86-64.so.2)\n\n"
+    }
+  }
+}
