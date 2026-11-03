@@ -1,0 +1,47 @@
+{
+  "id": "Deep-T1-MoE-activation-quant-r438",
+  "owner": "BW1000-Deep-agent",
+  "state": "SOURCE_CPU_CLAIM_READY_NOT_SUBMITTED",
+  "source": "code/bw1000/Deep-T1-MoE-activation-quant-r438",
+  "source_manifest_SHA256": "5e0a12f6999954a05802c1158122ca27f4f3ea36c408230ecd170fb2bfea0626",
+  "current_Native_SHA256": "afc6f58b71ef7a51657deae452da86a31afbfa6e79d36d442ccdd26d56c0e6f2",
+  "current_HC": 0,
+  "default_mode": 0,
+  "CPU_claim": "code/bw1000/Deep-T1-MoE-activation-quant-r438/CPU_RESOURCE_CLAIM.json",
+  "source_scope": "T1 routed6rows/shared1row BF16 Clamp/Clamp/Silu/store->QuantI8-0 fused per branch; original gate/router/hash/quant1/GEMM/TP/check/drain/poison unchanged",
+  "math": {
+    "gate_clamp": "max10, no lower bound",
+    "up_clamp": "[-10,10]",
+    "BF16_boundaries": "Clamp output then final SiluAndMul BF16 before F32 quant/max",
+    "silu": "Pinned Hygon0 reciprocal(1+exp(-g)); two F32 multiplies",
+    "quant": "Pinned I8-0 max256 tree; max(maxabs/127,1e-8); half-away; [-127,127]",
+    "nonfinite_quant": "Original conversion undefined portable numeric result; NOT_QUALIFIED; actual OFF finite/reference must pass before ON"
+  },
+  "evidence": {
+    "current_MoE_source": "9872e3553ee22c1292637559a116fe8c0fd9726aaa1290206a3bfc6beb5117c6",
+    "current_Bank_source": "d0e0f5716e4e6255e5aec93be5872df61c60a517a587b7d5e27a447d08f8e976",
+    "static_submit_count": "8->2 across two branches, six fewer per T1 MoE; 258 per 43-layer token only static count",
+    "exclusive_current_HC0_cost": "UNKNOWN",
+    "profile_limit": "393 early8 is different HC1/observer~5.99%/qualityFAIL; cannot assign its MoE enclosure to current HC0 activation/quant",
+    "deduplicated": [
+      "859 prefill activation only retains separate quant2",
+      "865 prefill bundle leaves decode unchanged",
+      "877 quant1 prefill reuse does not fuse quant2",
+      "419 router9suffix distinct, no Model promotion",
+      "415/416 C4TopK stopped, no kernel grid"
+    ]
+  },
+  "future_device": {
+    "GPU_GO": false,
+    "Model_GO": false,
+    "proposed_parent": 910374,
+    "proposed_node": "a02r4n04",
+    "cards": 8,
+    "GPU_max_s": 600,
+    "keeper_max_s": 900,
+    "geometry": "TP8/T1/hidden4096/experts256/topK6/local256/layer16 original small checkpoint+immutable synthetic hidden",
+    "qualify": "Actual original SDK same-GU against independent necessary reference first; candidate same-GU, then complete MoE wall with original router/quant1/both branches/TP/validation and untimed T2 fallback",
+    "no_activation_micro_Model_claim": true
+  },
+  "unknown_failure": "Preserve original state and diagnose; no unchanged replay"
+}
