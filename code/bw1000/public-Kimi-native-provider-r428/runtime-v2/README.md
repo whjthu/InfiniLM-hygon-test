@@ -1,0 +1,7 @@
+# Kimi normal public provider runtime-v2
+
+Immutable child of published2888c6a7/d0989d33. Original9local glue cases are inherited within their explicit recording scope and are not replayed. `check_primary_CPU.py` runs only the new primary+secondary cleanup failure branch. The new public prepared binding consumes currentAPI-derived tool constraints once, and `public_history.py` retains the original r221 contribution proof body with only its encoder binding changed. All24legacy runtime modules remain unchanged from the published private import-isolated parent.
+
+`CPU_main.py` is one actual checkpoint CPU-tokenizer input-interface check for the two frozen complete qualified tool histories. It imports the actual old/current standalone agent_protocol modules and original KimiLongCodec, no Transformers/Torch/Common/Native. It records complete prompt/IDs privately and public hashes/counts. This is not a Model request, new quality result or response. An HTTP ordinary4096 and SSE thinking8192 pair is planned; actual encoded budget bounds, source identities and history proof must be satisfied before any GPU claim. The old baseline bodies/IDs are never assumed equal without this check. No checkpoint weight payload is read.
+
+No GPU/Model GO or new resource reservation is granted by this source-onlyCPU package. Future deployment keeps qualified8df/TP16PP2/C1/32768/default AR/W512 and原4GiB guards. Originald098 source/firstCPU-leaf failure and its evidence remain immutable.

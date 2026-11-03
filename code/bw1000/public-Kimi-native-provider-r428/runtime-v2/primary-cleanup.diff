@@ -1,0 +1,69 @@
+--- published2888/request_loop.py
++++ runtime-v2/request_loop.py
+@@ -17,6 +17,7 @@
+     deadline = g['service_deadline_monotonic']
+     requests = report.setdefault('agent_requests', [])
+     ordinal = 0
++    outer_failure = None
+     try:
+         while True:
+             command = req = None
+@@ -83,6 +84,7 @@
+                 if node == 0: req.fail(error)
+                 raise
+             finally:
++                cleanup_errors = []
+                 try:
+                     native.reset(False)
+                     control.collect('public-request-reset:' + ident, dict(node=node))
+@@ -90,18 +92,41 @@
+                 except BaseException as error:
+                     item['reset_error'] = repr(error)
+                     if node == 0: req.fail(error)
+-                    raise
+-                finally:
+-                    native.input_commit_progress = None
+-                    item['finish'] = ended
+-                    item['finished_monotonic'] = time.monotonic()
+-                    item['long_prefill_observations'] = getattr(native, 'long_prefill_observations', [])[observation_start:]
+-                    save()
++                    cleanup_errors.append(('request-reset', error))
++                native.input_commit_progress = None
++                item['finish'] = ended
++                item['finished_monotonic'] = time.monotonic()
++                item['long_prefill_observations'] = getattr(native, 'long_prefill_observations', [])[observation_start:]
++                item['cleanup_errors'] = [dict(phase=phase, error=repr(error)) for phase, error in cleanup_errors]
++                try: save()
++                except BaseException as error:
++                    cleanup_errors.append(('request-save', error))
++                    item['cleanup_errors'].append(dict(phase='request-save', error=repr(error)))
++                if cleanup_errors:
++                    if failure is not None:
++                        if hasattr(failure, 'add_note'):
++                            for phase, error in cleanup_errors: failure.add_note(phase + ': ' + repr(error))
++                    else:
++                        failure = cleanup_errors[0][1]
++                        if node == 0: req.fail(failure)
++                        raise failure
+             if node == 0 and failure is None:
+                 req.finish(dict(eos=reasons.EOS_TOKEN, length=reasons.LENGTH,
+                     canceled=reasons.CANCELED, timeout=reasons.TIMEOUT)[ended])
+         report['serving_protocol_complete'] = True
++    except BaseException as error:
++        outer_failure = error
++        raise
+     finally:
++        cleanup_errors = []
+         report['agent_native_forward_calls'] = len(native.calls)
+-        native.arm([], [], [], False)
+-        save()
++        try: native.arm([], [], [], False)
++        except BaseException as error: cleanup_errors.append(('capture-disable', error))
++        try: save()
++        except BaseException as error: cleanup_errors.append(('service-save', error))
++        report['service_cleanup_errors'] = [dict(phase=phase, error=repr(error)) for phase, error in cleanup_errors]
++        if cleanup_errors:
++            if outer_failure is not None:
++                if hasattr(outer_failure, 'add_note'):
++                    for phase, error in cleanup_errors: outer_failure.add_note(phase + ': ' + repr(error))
++            else: raise cleanup_errors[0][1]
