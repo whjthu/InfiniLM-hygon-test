@@ -1,0 +1,376 @@
+{
+  "schema": 1,
+  "task": "GLM-value-cast-provider-r443",
+  "decision": "PARK_CAST_ONLY_PATCH_CANNOT_CLOSE_SECOND_PRIMITIVE",
+  "new_jobs": 0,
+  "new_CPU_compile": 0,
+  "GPU": 0,
+  "Model_load": 0,
+  "Native_dlopen": false,
+  "Git_operations": 0,
+  "SDK_or_Native_modified": false,
+  "implementation_ready": false,
+  "actual_parent": {
+    "Native": {
+      "path": "/refactor/candidates/GLM-V-on-demand-Model-integration-r403-CPU/libGLM_V_on_demand_Model_r403.so",
+      "SHA256": "9520769d28742aba489b38ecbd1e1692f6830168c699d7111f1e0c2ae4cd598b"
+    },
+    "SDK": {
+      "path": "/refactor/install/hygon-glm-5f91ad7-r3672/lib/libinfiniops.so",
+      "SHA256": "0bd37990340f39bbcaf185abbc990ebeb9f56ea1b9992327eda96d627446a863"
+    },
+    "public425_config": {
+      "path": "code/bw1000/public-GLM-native-provider-r425/config.template.json",
+      "SHA256": "fc581b9f8311c7d53879ac62797e19f587a627e561d9a36c4abe65b730b2618f"
+    }
+  },
+  "prior_scope": {
+    "r431": "1361 firstON diagnosticNRMS stop; task quality UNKNOWN, no threshold relaxation",
+    "r433": "1368 STOP_UNSUPPORTED/0qualifiedON/0formal; original refusing Cast vsGemm remains UNKNOWN",
+    "source_result_SHA256": "9564fe45f7363d03f0784639401114a6e3c4eac77fb2088986d3e4d38caeaaca"
+  },
+  "two_primitive_boundary": {
+    "Cast": "BF16 probabilities[8,1,2048] ->F32, finalF32[1,8,256] ->BF16; rowFP8roundtrip and ownedWdequant were already reached/decoded at rank0, not a cache dtype assumption",
+    "required_Gemm": {
+      "order": "for h0..7: aggregation then V projection",
+      "GemmConfig": "FullFp32; no explicit implementation set (index default0, needs resolution true); requires config-aware provider",
+      "aggregation": "F32[1,2048] stride[2048,1] @ F32[2048,512] stride[512,1] -> F32[1,512] stride[512,1]",
+      "V_projection": "F32[1,512] stride[512,1] @ F32[512,256] stride[256,1] -> F32[1,256] stride[256,1]",
+      "common": "no C; alpha1 beta0; trans_a/trans_b absent; same owned Runtime/device/stream; head narrow offsets contiguous, actual device metadata not snapshotted"
+    },
+    "format": "Original resident selected latent is BF16; projection weights/checkpoint and per-query packed latent use U8 E4M3FN with F32 scales. Do not call BF16 cache itself FP8 or use E4M3FNUZ. Original1368 rank0 independent audit proves exact row roundtrip and global128/head448 V extraction only for that saved rank."
+  },
+  "decisive_actual_binary": {
+    "path": "/refactor/install/hygon-glm-5f91ad7-r3672/lib/libinfiniops.so",
+    "SHA256": "0bd37990340f39bbcaf185abbc990ebeb9f56ea1b9992327eda96d627446a863",
+    "Hygon_full_signature_implementations": [
+      0,
+      2
+    ],
+    "selector_addresses": {
+      "0": "0xcce290",
+      "2": "0xcce140"
+    },
+    "instructions": [
+      "  cce140:\t41 56                \tpush   %r14",
+      "  cce14a:\t48 8b 3f             \tmov    (%rdi),%rdi",
+      "  cce14d:\t48 8b 07             \tmov    (%rdi),%rax",
+      "  cce150:\tff 50 18             \tcallq  *0x18(%rax)",
+      "  cce153:\t84 c0                \ttest   %al,%al",
+      "  cce155:\t74 15                \tje     cce16c <_ZZZN6infini3ops8OperatorINS0_4GemmELNS_2rt6Device4TypeE10ELm0EE16SelectWithDeviceIZNS6_14MakeWithDeviceIJRKNS3_10TensorViewESB_RKSt8optionalIS9_ERKSC_IfESI_RKSC_IiESL_SB_EEESt10unique_ptrIS6_St14default_deleteIS6_EERKNS0_6ConfigES5_DpOT_EUlT_T0_T1_DpRT2_E_JSB_SB_SF_SI_SI_SL_SL_SB_EEEbSS_S5_bOSW_DpOT0_ENKUlSW_E_clINS0_8ValueTagILS5_7EEEEEDaSW_ENKUlSW_E_clINS19_ILm2EEEEEDaSW_+0x2c>",
+      "  cce157:\t48 8b 43 48          \tmov    0x48(%rbx),%rax",
+      "  cce15e:\t0f 84 d8 00 00 00    \tje     cce23c <_ZZZN6infini3ops8OperatorINS0_4GemmELNS_2rt6Device4TypeE10ELm0EE16SelectWithDeviceIZNS6_14MakeWithDeviceIJRKNS3_10TensorViewESB_RKSt8optionalIS9_ERKSC_IfESI_RKSC_IiESL_SB_EEESt10unique_ptrIS6_St14default_deleteIS6_EERKNS0_6ConfigES5_DpOT_EUlT_T0_T1_DpRT2_E_JSB_SB_SF_SI_SI_SL_SL_SB_EEEbSS_S5_bOSW_DpOT0_ENKUlSW_E_clINS0_8ValueTagILS5_7EEEEEDaSW_ENKUlSW_E_clINS19_ILm2EEEEEDaSW_+0xfc>",
+      "  cce164:\t48 83 c4 28          \tadd    $0x28,%rsp",
+      "  cce16c:\t48 8b 43 58          \tmov    0x58(%rbx),%rax",
+      "  cce1a1:\te8 ca 7b e1 ff       \tcallq  ae5d70 <std::_MakeUniq<infini::ops::Operator<infini::ops::Gemm, (infini::rt::Device::Type)7, 2ul> >::__single_object std::make_unique<infini::ops::Operator<infini::ops::Gemm, (infini::rt::Device::Type)7, 2ul>, infini::rt::TensorView const&, infini::rt::TensorView const&, std::optional<infini::rt::TensorView> const&, std::optional<float> const&, std::optional<float> const&, std::optional<int> const&, std::optional<int> const&, infini::rt::TensorView const&>(infini::rt::TensorView const&, infini::rt::TensorView const&, std::optional<infini::rt::TensorView> const&, std::optional<float> const&, std::optional<float> const&, std::optional<int> const&, std::optional<int> const&, infini::rt::TensorView const&)@plt>",
+      "  cce290:\t41 56                \tpush   %r14",
+      "  cce29a:\t48 8b 3f             \tmov    (%rdi),%rdi",
+      "  cce29d:\t48 8b 07             \tmov    (%rdi),%rax",
+      "  cce2a0:\tff 50 18             \tcallq  *0x18(%rax)",
+      "  cce2a3:\t84 c0                \ttest   %al,%al",
+      "  cce2a5:\t74 15                \tje     cce2bc <_ZZZN6infini3ops8OperatorINS0_4GemmELNS_2rt6Device4TypeE10ELm0EE16SelectWithDeviceIZNS6_14MakeWithDeviceIJRKNS3_10TensorViewESB_RKSt8optionalIS9_ERKSC_IfESI_RKSC_IiESL_SB_EEESt10unique_ptrIS6_St14default_deleteIS6_EERKNS0_6ConfigES5_DpOT_EUlT_T0_T1_DpRT2_E_JSB_SB_SF_SI_SI_SL_SL_SB_EEEbSS_S5_bOSW_DpOT0_ENKUlSW_E_clINS0_8ValueTagILS5_7EEEEEDaSW_ENKUlSW_E_clINS19_ILm0EEEEEDaSW_+0x2c>",
+      "  cce2a7:\t48 8b 43 48          \tmov    0x48(%rbx),%rax",
+      "  cce2ae:\t0f 84 d8 00 00 00    \tje     cce38c <_ZZZN6infini3ops8OperatorINS0_4GemmELNS_2rt6Device4TypeE10ELm0EE16SelectWithDeviceIZNS6_14MakeWithDeviceIJRKNS3_10TensorViewESB_RKSt8optionalIS9_ERKSC_IfESI_RKSC_IiESL_SB_EEESt10unique_ptrIS6_St14default_deleteIS6_EERKNS0_6ConfigES5_DpOT_EUlT_T0_T1_DpRT2_E_JSB_SB_SF_SI_SI_SL_SL_SB_EEEbSS_S5_bOSW_DpOT0_ENKUlSW_E_clINS0_8ValueTagILS5_7EEEEEDaSW_ENKUlSW_E_clINS19_ILm0EEEEEDaSW_+0xfc>",
+      "  cce2b4:\t48 83 c4 28          \tadd    $0x28,%rsp",
+      "  cce2bc:\t48 8b 43 58          \tmov    0x58(%rbx),%rax",
+      "  cce2f1:\te8 4a 99 e0 ff       \tcallq  ad7c40 <std::_MakeUniq<infini::ops::Operator<infini::ops::Gemm, (infini::rt::Device::Type)7, 0ul> >::__single_object std::make_unique<infini::ops::Operator<infini::ops::Gemm, (infini::rt::Device::Type)7, 0ul>, infini::rt::TensorView const&, infini::rt::TensorView const&, std::optional<infini::rt::TensorView> const&, std::optional<float> const&, std::optional<float> const&, std::optional<int> const&, std::optional<int> const&, infini::rt::TensorView const&>(infini::rt::TensorView const&, infini::rt::TensorView const&, std::optional<infini::rt::TensorView> const&, std::optional<float> const&, std::optional<float> const&, std::optional<int> const&, std::optional<int> const&, infini::rt::TensorView const&)@plt>"
+    ],
+    "observation": "Both actual selectors call virtualConfig slot+0x18 before provider construction. False branches to make_unique; true returns in nonstrict selection or reaches unsupported strictthrow.",
+    "interpretation": "Linuxx86_64 Itanium ABI inference from actual installedConfig: destructor2slots,Clone at+0x10,requires_config_aware_provider at+0x18. InstalledGemmConfig FullFp32 overrides it to true. Therefore both actual Hygon0/2 reject the requested FullFp32 contract independent of Cast input values/shapes.",
+    "not_claimed": "Does not identify the first exception in original1368, nor show hardware/vendor BLAS cannot compute F32."
+  },
+  "software_cast_assessment": {
+    "finite_BF16_to_F32": "Can be exact bit expansion; no quantization needed",
+    "finite_F32_to_BF16": "Could implement explicit RN-even with overflow/subnormal/finite refusal semantics, but original provider rounding must remain the comparison contract",
+    "FP8_dequant": "E4M3FN decode and actual F32 row/global128 scale maps are available from original data/source. A software path must keep finite/NaN/scale checks and owned GPU/stream lifetimes; no new candidate is justified while secondprimitive is rejected.",
+    "source_not_written": "No unmeasurable isolatedCast kernel or CPU bitfield suite created merely to occupy a route; complete candidate is blocked before anyGemm can be constructed."
+  },
+  "exact_next_required_scope": "A separately justified explicit config-aware Hygon FullFp32 provider contract (metadata/implementation/ABI and actualCUBLAS32F behavior) or an equivalent already-qualified strictF32 primitive is required. That changes the secondprimitive and exceeds Cast-only reuse; it is not a DefaultFast toggle. No such implementation or deviceclaim is authorized by this audit.",
+  "source_evidence": [
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/src/InfiniLM/third_party/InfiniCore/submodules/InfiniOps/src/native/cuda/hygon/ops/gemm/cublas.h",
+      "SHA256": "8701eb47fb5b1e363ebe3d3b2b8e36fcd41a62a5a43461707624072df04393fa",
+      "build_identity": "Mutable source; complete source-to-installed-SDK MD UNKNOWN, supporting only",
+      "excerpt": [
+        {
+          "line": 10,
+          "text": "template <>"
+        },
+        {
+          "line": 11,
+          "text": "class Operator<Gemm, Device::Type::kHygon>"
+        },
+        {
+          "line": 12,
+          "text": "    : public BlasGemm<Blas<Device::Type::kHygon>> {"
+        },
+        {
+          "line": 13,
+          "text": " public:"
+        },
+        {
+          "line": 14,
+          "text": "  using Parent=BlasGemm<Blas<Device::Type::kHygon>>;"
+        },
+        {
+          "line": 15,
+          "text": "  Operator(const Tensor a,const Tensor b,const std::optional<Tensor> c,"
+        },
+        {
+          "line": 16,
+          "text": "           std::optional<float> alpha,std::optional<float> beta,"
+        },
+        {
+          "line": 17,
+          "text": "           std::optional<int> trans_a,std::optional<int> trans_b,Tensor y)"
+        },
+        {
+          "line": 18,
+          "text": "      : Parent(a,b,c,alpha,beta,trans_a,trans_b,y),"
+        },
+        {
+          "line": 19,
+          "text": "        owner_(HygonGemmHandle::Acquire(y.device().index())) {}"
+        },
+        {
+          "line": 20,
+          "text": "  Operator(const Tensor a,const Tensor b,Tensor y)"
+        },
+        {
+          "line": 21,
+          "text": "      : Operator(a,b,std::nullopt,std::nullopt,std::nullopt,std::nullopt,std::nullopt,y) {}"
+        },
+        {
+          "line": 22,
+          "text": " protected:"
+        },
+        {
+          "line": 23,
+          "text": "  cublasHandle_t GetHandle() const override { return owner_->get(); }"
+        }
+      ]
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/src/InfiniLM/third_party/InfiniCore/submodules/InfiniOps/src/native/cuda/ops/gemm/blas.h",
+      "SHA256": "623df1fe1a4500c2903869e076b3901d6712e5fa5032c23a63bceb6039262e1d",
+      "build_identity": "Mutable source; complete source-to-installed-SDK MD UNKNOWN, supporting only",
+      "excerpt": [
+        {
+          "line": 55,
+          "text": "    const void* beta_ptr{GetBetaPtr(beta_value, y.dtype())};"
+        },
+        {
+          "line": 56,
+          "text": "    auto compute_type = BlasUtils<Backend::kDeviceType>::GetComputeType(y.dtype());"
+        },
+        {
+          "line": 57,
+          "text": "    if constexpr (Backend::kDeviceType == Device::Type::kNvidia) {"
+        },
+        {
+          "line": 58,
+          "text": "      compute_type = BlasUtils<Backend::kDeviceType>::GetComputeType("
+        },
+        {
+          "line": 59,
+          "text": "          y.dtype(), fp32_precision(a, b, y));"
+        },
+        {
+          "line": 60,
+          "text": "    }"
+        },
+        {
+          "line": 61,
+          "text": ""
+        },
+        {
+          "line": 62,
+          "text": "    CheckStatus(Backend::BlasGemmStridedBatchedEx("
+        }
+      ]
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/src/InfiniLM/third_party/InfiniCore/submodules/InfiniOps/src/native/cuda/hygon/blas_utils.h",
+      "SHA256": "f346e900921c0157240d9e33aff80d383ff606eb754a7fa8815f63182b64eb8b",
+      "build_identity": "Mutable source only",
+      "excerpt": [
+        {
+          "line": 20,
+          "text": ""
+        },
+        {
+          "line": 21,
+          "text": "  static auto GetComputeType(DataType dtype) {"
+        },
+        {
+          "line": 22,
+          "text": "    (void)dtype;"
+        },
+        {
+          "line": 23,
+          "text": "    return CUBLAS_COMPUTE_32F;"
+        },
+        {
+          "line": 24,
+          "text": "  }"
+        },
+        {
+          "line": 25,
+          "text": "};"
+        },
+        {
+          "line": 26,
+          "text": ""
+        }
+      ]
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/install/hygon-glm-5f91ad7-r3672/include/config.h",
+      "SHA256": "2d2468992402181880ce080a9389fcb56df77c57844b35e4ec4a5aa4479be3b3",
+      "build_identity": "Actual installed header",
+      "excerpt": [
+        {
+          "line": 14,
+          "text": " public:"
+        },
+        {
+          "line": 15,
+          "text": "  virtual ~Config() = default;"
+        },
+        {
+          "line": 16,
+          "text": ""
+        },
+        {
+          "line": 17,
+          "text": "  virtual std::unique_ptr<Config> Clone() const {"
+        },
+        {
+          "line": 18,
+          "text": "    return std::make_unique<Config>(*this);"
+        },
+        {
+          "line": 19,
+          "text": "  }"
+        },
+        {
+          "line": 20,
+          "text": ""
+        },
+        {
+          "line": 22,
+          "text": "  // during construction. Legacy configurations and providers are unchanged."
+        },
+        {
+          "line": 23,
+          "text": "  virtual bool requires_config_aware_provider() const { return false; }"
+        },
+        {
+          "line": 24,
+          "text": ""
+        },
+        {
+          "line": 25,
+          "text": "  std::size_t implementation_index() const {"
+        },
+        {
+          "line": 26,
+          "text": "    return implementation_index_.value_or(0);"
+        }
+      ]
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/install/hygon-glm-5f91ad7-r3672/include/base/gemm.h",
+      "SHA256": "cc907bda54c5bc79f7808e0fe2e52328ea61c74d8fe12fd6060c8a03bfd742d1",
+      "build_identity": "Actual installed header included in879 MD; not substituted by current mutable header",
+      "excerpt": [
+        {
+          "line": 16,
+          "text": " public:"
+        },
+        {
+          "line": 17,
+          "text": "  enum class Fp32Precision { DefaultFast, FullFp32 };"
+        },
+        {
+          "line": 18,
+          "text": ""
+        },
+        {
+          "line": 19,
+          "text": "  explicit GemmConfig(Fp32Precision precision = Fp32Precision::DefaultFast)"
+        },
+        {
+          "line": 20,
+          "text": "      : fp32_precision_{precision} {"
+        },
+        {
+          "line": 21,
+          "text": "    if (!IsValid(precision)) {"
+        },
+        {
+          "line": 41,
+          "text": ""
+        },
+        {
+          "line": 42,
+          "text": "  bool requires_config_aware_provider() const override {"
+        },
+        {
+          "line": 43,
+          "text": "    return fp32_precision_ == Fp32Precision::FullFp32;"
+        },
+        {
+          "line": 44,
+          "text": "  }"
+        },
+        {
+          "line": 45,
+          "text": ""
+        },
+        {
+          "line": 46,
+          "text": "  static bool SupportsMetadata(const Config& config, const Tensor& a,"
+        },
+        {
+          "line": 47,
+          "text": "                               const Tensor& b, const Tensor& y) {"
+        },
+        {
+          "line": 48,
+          "text": "    const auto precision = PrecisionFrom(config);"
+        },
+        {
+          "line": 49,
+          "text": "    if (precision == Fp32Precision::DefaultFast) return true;"
+        },
+        {
+          "line": 50,
+          "text": "    return a.dtype() == DataType::kFloat32 && b.dtype() == DataType::kFloat32 &&"
+        }
+      ]
+    }
+  ],
+  "raw_local_refs": {
+    "GLM443-provider-contracts-readonly.json": {
+      "path": "L/GLM443-provider-contracts-readonly.json",
+      "SHA256": "2a460ad21702afabd9889da04be3163bd139122fb4f2f9302eab7c5bef9c6f41"
+    },
+    "GLM443-exact-provider-readonly.json": {
+      "path": "L/GLM443-exact-provider-readonly.json",
+      "SHA256": "c08897e50fcda2033c737ea2fd8668ae650f8efeb3c692cd43d0b58ec5a67420"
+    },
+    "GLM443-installed-factory-readonly.json": {
+      "path": "L/GLM443-installed-factory-readonly.json",
+      "SHA256": "328630fe207b6523da4632477967e40910a5ac44abf935360f8d1a6b224aa8bb"
+    },
+    "GLM443-Hygon-selector-readonly.json": {
+      "path": "L/GLM443-Hygon-selector-readonly.json",
+      "SHA256": "6bd28b9035509d770989644088a52a41adbb8167d0b7649e278a13ebf2200611"
+    }
+  },
+  "projected_complete_attention_wall": "UNKNOWN",
+  "Model_quality": "UNKNOWN",
+  "Model_gain": "UNKNOWN",
+  "new_performance_round": false
+}
