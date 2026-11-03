@@ -1,0 +1,1 @@
+Two OFF teacher passes,184 forwards maximum; seven existing TextModel boundaries at outputs82/83. Actual Context and loader remain the original1378 source, with only Native SHA replaced. CPU claim covers changed entry/typed glue and no Model execution. GPU GO remains false until actual CPU closure and concrete bounded deployment publication.
