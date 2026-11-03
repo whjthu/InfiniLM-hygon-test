@@ -1,0 +1,100 @@
+{
+  "layer": 38,
+  "count": 1,
+  "past": 32767,
+  "context": 32768,
+  "U": 2048,
+  "profile": 0,
+  "NoV_fixed": true,
+  "inputs": {
+    "synthetic_hidden": [
+      32768,
+      6144
+    ],
+    "dtype": "BF16",
+    "seed": 398038,
+    "scale": 0.1,
+    "actual_Model_activation": false,
+    "actual_Model_router": false,
+    "actual_checkpoint_layer38": true,
+    "selected_cases": [
+      "periodic16+last32767",
+      "contiguous30720..32767"
+    ]
+  },
+  "schedule": {
+    "perfixture_modes": [
+      0,
+      1,
+      0,
+      1,
+      1,
+      0
+    ],
+    "fixtures": 2,
+    "query_perowner": 12,
+    "warm_perowner": 4,
+    "formal_perowner": 8,
+    "total_query_CAPI_across8": 96,
+    "seed_CAPI_perowner": 780,
+    "control": "one ABBA perfixture, oppositeadjacentpairs, sametrialmax8/OFFendpointdrift; not8ABBAblocks"
+  },
+  "mechanism": "OriginalQK256/scale-round/F32softmax/BF16prob/Kcache unchanged. SameperrowBlockQuant->originale32 dtype2identitylinear XqF32, F32prob aggregation +perheadownedF32Vweight projection FullFp32; finalattentionBF16 thenoriginalO/TP. NoaggregateBF16orFP8requant.",
+  "precision": "Removesoriginal perrowV BF16rounding andchanges F32association/scalemultiplyorder; approximatecandidate, notbitexact/notModelqualityqualified. DiagnosticSTOP .02 unchanged, alert.005, noGPUF64.",
+  "ownership": "Samewide>=32CPU entry throughfirst Runtime-owned submit, actualrank4slice verifiedfirstseed/finalmasknomigration/max8disjoint; sameownerconstruct/load/query/diag/destroy; no SharedSDK/Native ABI changes.",
+  "qualification": "FirstONactuale32dtype2 M8xI512 4096floats finite0/1 selfcheck insidecoldsetup, trueflagonlyaftersuccess; actualFullFp32operator support required. AnyunknownABI/provider/identity/numeric/stateerrorSTOP, no automaticretry.",
+  "full_cost": {
+    "formal": "NativecompleteattentionCAPI enclosesposition/ID D2H/hostunion/H2D/freshQKV/gather/QK/softmax/rowquant/identitydequant/all16F32GEMMs/casts/O/TP/copies/tempdestruction/drain. No snapshots in formal.",
+    "cold": "FirstONWdequant/identity/selfchecksetup includedCAPI andseparatelyreported; two firstperiodicwarm snapshots retaintemps untilpostqueryread+clear, so warmCAPI isnot completeallocatorcost. Report query+rawread+clear/IOwall separately; do not quote coldOFF/ON speedup.",
+    "outside_reported": [
+      "load",
+      "Contextcreate/startup",
+      "bankreallocation",
+      "prefixseed/restore",
+      "checkedCPUmetrics",
+      "originalCPUoutputs_rawwrite",
+      "warmdiagnosticD2H/rawIO/clear",
+      "finalfullhiddenreadonlycheck",
+      "normaldestroy/Torchafter"
+    ]
+  },
+  "raw": {
+    "all_completed_calls": "Everyrank all12query actualCPU BF16hidden/attention2files saved beforeanynumeric/counterSTOP. DatafromoriginalD2H, notregen/oracle/hashonly; failedCAPI cannotreuseprevioussample.",
+    "snapshot": "Firstperiodic OFF/ONonly: rank0fullp/latent/packed/xscale/Xroundtrip/Wpacked/globalWs/Vheads/aggregate/precast/output, other7actualoutputs+identitycheckoutput ifproduced; max2tickets/context. Actualquiescedpartialstageallowedbutquerycompletedfalse.",
+    "total_expected": "~24MiB privateR/L bound, noGit; perNative snapshot<=32MiB/24slots",
+    "dtype": [
+      "U8",
+      "BF16",
+      "F32"
+    ],
+    "formal_snapshot": false
+  },
+  "allocation": "logicalW_V_F32 4MiB +I512256KiB/scale/staging; free_snapshotsnotpeak; componentcapacitynotwholeModel fit",
+  "resource": {
+    "parent": 910374,
+    "node": "a02r4n07",
+    "cards": 8,
+    "TP": 8,
+    "PP": 1,
+    "cores": 32,
+    "host_mem_MiB": 64000,
+    "GPU_max_s": 600,
+    "worker_max_s": 540,
+    "shell_max_s": 570,
+    "CPU_keeper": {
+      "parent": 910407,
+      "node": "a14r2n20",
+      "cores": 2,
+      "mem_MiB": 2048,
+      "max_s": 900
+    },
+    "component_only": true,
+    "Model": false,
+    "HTTP": false,
+    "no_retry": true,
+    "no_reload": true
+  },
+  "Model_gain": "UNKNOWN",
+  "Model_quality": "UNKNOWN",
+  "HTTP_SLO": false
+}
