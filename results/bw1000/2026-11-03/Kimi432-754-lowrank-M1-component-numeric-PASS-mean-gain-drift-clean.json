@@ -1,0 +1,468 @@
+{
+  "state": "SCOPED_NUMERIC_AND_LIFECYCLE_PASS_MEAN_COMPONENT_GAIN_WITH_BASELINE_DRIFT_NOT_MODEL",
+  "identity": {
+    "publication": "965a19d843ce5b3808a500606919e7cedc57dda8",
+    "GPU_manifest_SHA256": "ab65b836de3711f85b805d80cfc18b1c250eda89644d75f14dfc229a2c5d4b65",
+    "actual_GPU": "910371.754",
+    "actual_keeper": "910407.871",
+    "actual_before": "910371.753",
+    "actual_post": "910371.755",
+    "original_start": 1793704088.1163511,
+    "physical_PCI": "0000:09:00.0",
+    "visible_count": 1,
+    "actual_affinity": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  "scope": {
+    "mapped_libraries": {
+      "/refactor/install/hygon-kimi-5f91ad7-r3672/lib/libinfiniops.so": "6d5a6204f7eef70e84deb9cc737a36c6ae2c1fbc75a0f70645557c8441ed85ca",
+      "/refactor/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/python/_infinilm.cpython-310-x86_64-linux-gnu.so": "2e1458609cc81a31351c451004c045b8e84f7581844afedf1a577df2c940ccb2",
+      "/opt/dtk/cuda/cuda-12/targets/x86_64-linux/lib/libcublas.so.12.6.3.3": "c06fcaa76e04342e10034e149fc14a3cef79938b6a5867c38aced26a40108c2a",
+      "/refactor/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/python/infinilm/_lib/libinfinilm_runtime.so": "04a6a1a86c97d176e4304b9bb4c1d6fcb8550784beaa47e0f5841fb7603ffabf",
+      "/refactor/candidates/Kimi-lowrank-M1-GEMV-r432-CPU/libKimi_lowrank_M1_r432.so": "a431011ac89f009dca15b029191007a29eae13b126ac56ff94e463b2c5623489",
+      "/opt/dtk/cuda/cuda-12/targets/x86_64-linux/lib/libcudart.so.12.6.77": "ac547071522961b136d7000d2268b8cb470b1f085007b3be3cb9039d50281f2e"
+    },
+    "actual_checkpoint_layer1_BF16_weights": true,
+    "input": "Two synthetic M1 vectors, not Model activations",
+    "cases": 2,
+    "timed_calls": 12,
+    "guarded_diagnostics": 2,
+    "formal_ABBA": true,
+    "No_Model": true,
+    "No_MoE_or_TP": true,
+    "actual_F32_reference_provider": {
+      "numpy_version": "1.25.0",
+      "numpy_configuration": "openblas64__info:\n    libraries = ['openblas64_', 'openblas64_']\n    library_dirs = ['/usr/local/lib']\n    language = c\n    define_macros = [('HAVE_CBLAS', None), ('BLAS_SYMBOL_SUFFIX', '64_'), ('HAVE_BLAS_ILP64', None)]\n    runtime_library_dirs = ['/usr/local/lib']\nblas_ilp64_opt_info:\n    libraries = ['openblas64_', 'openblas64_']\n    library_dirs = ['/usr/local/lib']\n    language = c\n    define_macros = [('HAVE_CBLAS', None), ('BLAS_SYMBOL_SUFFIX', '64_'), ('HAVE_BLAS_ILP64', None)]\n    runtime_library_dirs = ['/usr/local/lib']\nopenblas64__lapack_info:\n    libraries = ['openblas64_', 'openblas64_']\n    library_dirs = ['/usr/local/lib']\n    language = c\n    define_macros = [('HAVE_CBLAS', None), ('BLAS_SYMBOL_SUFFIX', '64_'), ('HAVE_BLAS_ILP64', None), ('HAVE_LAPACKE', None)]\n    runtime_library_dirs = ['/usr/local/lib']\nlapack_ilp64_opt_info:\n    libraries = ['openblas64_', 'openblas64_']\n    library_dirs = ['/usr/local/lib']\n    language = c\n    define_macros = [('HAVE_CBLAS', None), ('BLAS_SYMBOL_SUFFIX', '64_'), ('HAVE_BLAS_ILP64', None), ('HAVE_LAPACKE', None)]\n    runtime_library_dirs = ['/usr/local/lib']\nSupported SIMD extensions in this NumPy install:\n    baseline = SSE,SSE2,SSE3\n    found = SSSE3,SSE41,POPCNT,SSE42,AVX,F16C,FMA3,AVX2,AVX512F,AVX512CD,AVX512_SKX,AVX512_CLX,AVX512_CNL,AVX512_ICL\n    not found = AVX512_KNL,AVX512_KNM\n",
+      "input_dtype": "F32 expanded exactly from BF16",
+      "matmul_output_dtype": "F32",
+      "metric_reductions": "CPU F64 only, no GPU F64"
+    }
+  },
+  "numeric_max_NRMSE": {
+    "vs_rounded_CPU_F32": 9.933058676192483e-05,
+    "vs_unrounded_CPU_F32": 0.0016783591336701168,
+    "vs_original_OFF": 9.932776147717528e-05
+  },
+  "timing": [
+    {
+      "projection": 0,
+      "N": 3584,
+      "K": 7168,
+      "warmup_indices": [
+        0,
+        1
+      ],
+      "formal_indices": [
+        2,
+        3,
+        4,
+        5
+      ],
+      "warm_original_OFF": {
+        "input_seed_s": 3.559e-05,
+        "allocation_dispatch_drain_s": 2.905834554,
+        "GPU_stream_event_ms": 2905.8134765625,
+        "output_D2H_s": 3.878e-05,
+        "complete_native_call_s": 2.905928184,
+        "canary_ok": 1.0
+      },
+      "warm_candidate_ON": {
+        "input_seed_s": 3.284e-05,
+        "allocation_dispatch_drain_s": 0.00011646,
+        "GPU_stream_event_ms": 0.09824000298976898,
+        "output_D2H_s": 1.567e-05,
+        "complete_native_call_s": 0.00017439,
+        "canary_ok": 1.0
+      },
+      "guarded_first_candidate": {
+        "input_seed_s": 0.00036579,
+        "allocation_dispatch_drain_s": 0.002222001,
+        "GPU_stream_event_ms": 2.1907169818878174,
+        "output_D2H_s": 0.002988922,
+        "complete_native_call_s": 0.005596163,
+        "canary_ok": 1.0
+      },
+      "allocation_dispatch_drain": {
+        "OFF": [
+          0.00018782,
+          0.00013708
+        ],
+        "ON": [
+          0.00010783,
+          0.000108311
+        ],
+        "OFF_mean": 0.00016245000000000002,
+        "ON_mean": 0.0001080705,
+        "ON_over_OFF": 0.6652539242843951,
+        "mean_change_percent": -33.47460757156049,
+        "OFF_endpoint_signed_drift_percent": -27.01522734533063,
+        "OFF_endpoint_abs_drift_percent": 27.01522734533063,
+        "adjacent_ON_over_OFF": [
+          0.5741135129379193,
+          0.7901298511817916
+        ],
+        "adjacent_change_percent": [
+          -42.58864870620806,
+          -20.98701488182084
+        ],
+        "all_adjacent_ON_faster": true,
+        "mean_gain_exceeds_abs_endpoint_drift": true,
+        "minimum_adjacent_gain_exceeds_abs_endpoint_drift": false,
+        "units": "seconds"
+      },
+      "complete_native_call": {
+        "OFF": [
+          0.00023995,
+          0.00018838
+        ],
+        "ON": [
+          0.00016786,
+          0.000159881
+        ],
+        "OFF_mean": 0.000214165,
+        "ON_mean": 0.0001638705,
+        "ON_over_OFF": 0.7651600401559545,
+        "mean_change_percent": -23.483995984404547,
+        "OFF_endpoint_signed_drift_percent": -21.49197749531152,
+        "OFF_endpoint_abs_drift_percent": 21.49197749531152,
+        "adjacent_ON_over_OFF": [
+          0.6995624088351741,
+          0.8487153625650281
+        ],
+        "adjacent_change_percent": [
+          -30.043759116482594,
+          -15.12846374349719
+        ],
+        "all_adjacent_ON_faster": true,
+        "mean_gain_exceeds_abs_endpoint_drift": true,
+        "minimum_adjacent_gain_exceeds_abs_endpoint_drift": false,
+        "units": "seconds"
+      },
+      "GPU_stream_interval": {
+        "OFF": [
+          0.17023999989032745,
+          0.11935900151729584
+        ],
+        "ON": [
+          0.0902400016784668,
+          0.09039799869060516
+        ],
+        "OFF_mean": 0.14479950070381165,
+        "ON_mean": 0.09031900018453598,
+        "ON_over_OFF": 0.6237521520829281,
+        "mean_change_percent": -37.624784791707185,
+        "OFF_endpoint_signed_drift_percent": -29.88780451469122,
+        "OFF_endpoint_abs_drift_percent": 29.88780451469122,
+        "adjacent_ON_over_OFF": [
+          0.5300751981708265,
+          0.7573622227185434
+        ],
+        "adjacent_change_percent": [
+          -46.99248018291735,
+          -24.263777728145662
+        ],
+        "all_adjacent_ON_faster": true,
+        "mean_gain_exceeds_abs_endpoint_drift": true,
+        "minimum_adjacent_gain_exceeds_abs_endpoint_drift": false,
+        "units": "milliseconds"
+      },
+      "ctypes_complete_checked": {
+        "OFF": [
+          0.0002579200081527233,
+          0.0002052299678325653
+        ],
+        "ON": [
+          0.0001848801039159298,
+          0.00017680088058114052
+        ],
+        "OFF_mean": 0.0002315749879926443,
+        "ON_mean": 0.00018084049224853516,
+        "ON_over_OFF": 0.7809154771683691,
+        "mean_change_percent": -21.908452283163093,
+        "OFF_endpoint_signed_drift_percent": -20.428830123546838,
+        "OFF_endpoint_abs_drift_percent": 20.428830123546838,
+        "adjacent_ON_over_OFF": [
+          0.716811794633846,
+          0.8614769200050825
+        ],
+        "adjacent_change_percent": [
+          -28.318820536615398,
+          -13.852307999491753
+        ],
+        "all_adjacent_ON_faster": true,
+        "mean_gain_exceeds_abs_endpoint_drift": true,
+        "minimum_adjacent_gain_exceeds_abs_endpoint_drift": false,
+        "units": "seconds"
+      }
+    },
+    {
+      "projection": 1,
+      "N": 7168,
+      "K": 3584,
+      "warmup_indices": [
+        0,
+        1
+      ],
+      "formal_indices": [
+        2,
+        3,
+        4,
+        5
+      ],
+      "warm_original_OFF": {
+        "input_seed_s": 6.166e-05,
+        "allocation_dispatch_drain_s": 0.000321801,
+        "GPU_stream_event_ms": 0.30751898884773254,
+        "output_D2H_s": 1.828e-05,
+        "complete_native_call_s": 0.000410411,
+        "canary_ok": 1.0
+      },
+      "warm_candidate_ON": {
+        "input_seed_s": 2.849e-05,
+        "allocation_dispatch_drain_s": 0.00010992,
+        "GPU_stream_event_ms": 0.09551999717950821,
+        "output_D2H_s": 1.589e-05,
+        "complete_native_call_s": 0.00016335,
+        "canary_ok": 1.0
+      },
+      "guarded_first_candidate": {
+        "input_seed_s": 9.781e-05,
+        "allocation_dispatch_drain_s": 0.00013328,
+        "GPU_stream_event_ms": 0.10479799658060074,
+        "output_D2H_s": 0.00015864,
+        "complete_native_call_s": 0.00040858,
+        "canary_ok": 1.0
+      },
+      "allocation_dispatch_drain": {
+        "OFF": [
+          0.00012967,
+          0.00012346
+        ],
+        "ON": [
+          0.00011004,
+          0.00010956
+        ],
+        "OFF_mean": 0.00012656499999999998,
+        "ON_mean": 0.0001098,
+        "ON_over_OFF": 0.8675384189941928,
+        "mean_change_percent": -13.246158100580718,
+        "OFF_endpoint_signed_drift_percent": -4.78907997223722,
+        "OFF_endpoint_abs_drift_percent": 4.78907997223722,
+        "adjacent_ON_over_OFF": [
+          0.848615716819619,
+          0.8874129272638912
+        ],
+        "adjacent_change_percent": [
+          -15.1384283180381,
+          -11.258707273610879
+        ],
+        "all_adjacent_ON_faster": true,
+        "mean_gain_exceeds_abs_endpoint_drift": true,
+        "minimum_adjacent_gain_exceeds_abs_endpoint_drift": true,
+        "units": "seconds"
+      },
+      "complete_native_call": {
+        "OFF": [
+          0.00019986,
+          0.00017772
+        ],
+        "ON": [
+          0.00016408,
+          0.00016376
+        ],
+        "OFF_mean": 0.00018879,
+        "ON_mean": 0.00016392,
+        "ON_over_OFF": 0.8682663276656603,
+        "mean_change_percent": -13.173367233433975,
+        "OFF_endpoint_signed_drift_percent": -11.077754428099674,
+        "OFF_endpoint_abs_drift_percent": 11.077754428099674,
+        "adjacent_ON_over_OFF": [
+          0.8209746822775943,
+          0.9214494710781004
+        ],
+        "adjacent_change_percent": [
+          -17.90253177224057,
+          -7.855052892189962
+        ],
+        "all_adjacent_ON_faster": true,
+        "mean_gain_exceeds_abs_endpoint_drift": true,
+        "minimum_adjacent_gain_exceeds_abs_endpoint_drift": false,
+        "units": "seconds"
+      },
+      "GPU_stream_interval": {
+        "OFF": [
+          0.1128000020980835,
+          0.10927999764680862
+        ],
+        "ON": [
+          0.09551800042390823,
+          0.09551999717950821
+        ],
+        "OFF_mean": 0.11103999987244606,
+        "ON_mean": 0.09551899880170822,
+        "ON_over_OFF": 0.8602215319833652,
+        "mean_change_percent": -13.977846801663485,
+        "OFF_endpoint_signed_drift_percent": -3.120571264009464,
+        "OFF_endpoint_abs_drift_percent": 3.120571264009464,
+        "adjacent_ON_over_OFF": [
+          0.8467907681495611,
+          0.8740849124853339
+        ],
+        "adjacent_change_percent": [
+          -15.320923185043888,
+          -12.591508751466607
+        ],
+        "all_adjacent_ON_faster": true,
+        "mean_gain_exceeds_abs_endpoint_drift": true,
+        "minimum_adjacent_gain_exceeds_abs_endpoint_drift": true,
+        "units": "milliseconds"
+      },
+      "ctypes_complete_checked": {
+        "OFF": [
+          0.00021690037101507187,
+          0.0001941099762916565
+        ],
+        "ON": [
+          0.00018077995628118515,
+          0.0001798798330128193
+        ],
+        "OFF_mean": 0.00020550517365336418,
+        "ON_mean": 0.00018032989464700222,
+        "ON_over_OFF": 0.8774956437406956,
+        "mean_change_percent": -12.250435625930445,
+        "OFF_endpoint_signed_drift_percent": -10.507310161231453,
+        "OFF_endpoint_abs_drift_percent": 10.507310161231453,
+        "adjacent_ON_over_OFF": [
+          0.833470018677945,
+          0.926690304379534
+        ],
+        "adjacent_change_percent": [
+          -16.6529981322055,
+          -7.330969562046596
+        ],
+        "all_adjacent_ON_faster": true,
+        "mean_gain_exceeds_abs_endpoint_drift": true,
+        "minimum_adjacent_gain_exceeds_abs_endpoint_drift": false,
+        "units": "seconds"
+      }
+    }
+  ],
+  "startup_and_cardcost": {
+    "checkpoint_load_s": 0.2883267900906503,
+    "create_s": 0.04140822170302272,
+    "untimed_CPU_F32_reference": [
+      {
+        "projection": 0,
+        "F32_dot_then_BF16": true,
+        "GPU_F64": false,
+        "seconds": 0.0272868643514812
+      },
+      {
+        "projection": 1,
+        "F32_dot_then_BF16": true,
+        "GPU_F64": false,
+        "seconds": 0.026561804115772247
+      }
+    ],
+    "complete_process_wall_s": 32.69035169482231,
+    "sum_nonoverlapping_measured_checkpoint_create_CPUref_and_ctypes_s": 3.2980220494791865,
+    "remaining_processwall_validation_import_hash_SDK_observer_overhead_s": 29.392329645343125,
+    "remaining_not_attributed_to_coldkernel": true,
+    "GPU_step_allocation_s": 38,
+    "all_component_cards": 1,
+    "GPU_card_seconds": 38,
+    "keeper_CPU_elapsed_s": 42,
+    "CPU_sourcebuild_elapsed_s": 11.023776452057064,
+    "cold_first_original_OFF_down_s": 2.905928184,
+    "no_cold_cost_disappears": true
+  },
+  "lifecycle": {
+    "create_once_source_contract": true,
+    "destroy_once_rc0": true,
+    "owner_rejection_pass": true,
+    "actual_call_counters": [
+      3,
+      4,
+      3,
+      4
+    ],
+    "normal1": true,
+    "srun_and_Slurm_all0": true,
+    "post": {
+      "CPU_only": true,
+      "GPU_initialized": false,
+      "node": "a02r3n03",
+      "actual_step": "910371.755",
+      "KFD_pids": [],
+      "matching_GPU_driver_PIDs": [],
+      "expected_owner_PIDs": [
+        2771062
+      ],
+      "expected_PIDs_still_exist": [],
+      "physical_PCI": [
+        "0000:09:00.0",
+        "0000:36:00.0",
+        "0000:55:00.0",
+        "0000:77:00.0",
+        "0000:85:00.0",
+        "0000:b5:00.0",
+        "0000:d5:00.0",
+        "0000:f5:00.0"
+      ],
+      "PCI_scope": "DRM readonlyinventory;actualCUDAindexmappingvalidatedintheoriginalGPUentry",
+      "passed": true
+    },
+    "blas_policy": {
+      "failures": 0,
+      "owners": [
+        {
+          "tid": 2771062,
+          "caller": "/refactor/install/hygon-kimi-5f91ad7-r3672/lib/libinfiniops.so",
+          "created": 1,
+          "verified": 1,
+          "previously_allowed": 1
+        }
+      ]
+    }
+  },
+  "decision": {
+    "default_OFF": true,
+    "Model_GO": false,
+    "both_projection_mean_complete_gain_exceeds_endpoint_drift": true,
+    "both_projection_every_adjacent_complete_gain_exceeds_endpoint_drift": false,
+    "interpretation": "Both adjacent pairs ON faster and both ratio-of-means component gains exceed each measured OFF endpoint drift. However the smaller pair gains do not both exceed drift; few samples and down baseline warming remain. Keep source candidate, no auto full-MoE/Model/device expansion. Full MoE benefit and cold/steady amortization UNKNOWN; a future separate full-MoE card requires scope/source claim.",
+    "no_dense_peak_or_HBM_lower_bound_Model_prediction": true,
+    "no_quality_or_acceptance_claim": true
+  },
+  "raw_archive": {
+    "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\Kimi432-754-original-terminal-sealed.json",
+    "SHA256": "27baf1e82da57f6dcf666902a62589433c125447824234409b3f4c5d0cd43cf9",
+    "bytes": 355329,
+    "format": "JSON envelope of exact raw report/watch text+SHA and20 original output/input/reference byte blobs base64; no checkpoint weights/activations in Git."
+  },
+  "stdlib_reader": {
+    "path": "code/bw1000/Kimi-lowrank-M1-GEMV-r432/terminal-v1/read_GPU.py",
+    "SHA256": "343853cf58ab8920fcf4be1968c7e4ecf3e8f0109a7da296719ff41935b1c11e",
+    "actual_execution": "python -B read_GPU.py <sealed> --output <audit>",
+    "full_audit_local": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\\u6d77\u5149\u96c6\u7fa4\\Kimi432-754-stdlib-audit-final.json",
+    "full_audit_SHA256": "e00df77f070b8755e1443e7f8c69dec7cd4da20aee0cce78ab44d23ec6388446"
+  },
+  "CPU_provenance": {
+    "actual": "910407.869 COMPLETED0/11s",
+    "receipt_SHA256": "99b3723b72c04c392dae061ab8ebe89754e97dd12e91062539c0021fc9155a48",
+    "library_SHA256": "a431011ac89f009dca15b029191007a29eae13b126ac56ff94e463b2c5623489",
+    "compile": "1productionHOST+1privateGPU+1tiny pure geometry, oldNative/SDK unchanged"
+  },
+  "prior_static_rejections_preserved": [
+    "31f53fcd gpu-v1: no upload/intent/job, wrong HOST mapping for503 container system headers; gpu-v2 preserves full container check before CUDA."
+  ],
+  "remaining": [
+    "Two fixed synthetic inputs/current layer1 weights only. No actual Model activations, routing, shared experts, TP allreduce or combined MoE measurement.",
+    "Both mean inclusive gains pass the endpoint-drift arithmetic screen, but not every adjacent-pair gain beats that drift; retain scope and baseline warming evidence.",
+    "No auto fullMoE/32target reload, no Model TPS/quality/SLO inference. Existing public572/865 was not observed or modified."
+  ]
+}
