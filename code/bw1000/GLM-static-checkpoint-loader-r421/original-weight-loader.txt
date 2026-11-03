@@ -1,0 +1,18 @@
+ sdk=sorted({line.split()[-1]for line in pathlib.Path('/proc/self/maps').read_text().splitlines()if'libinfiniops.so'in line});assert len(sdk)==1 and'/install/hygon-runtime-fixes-r1/lib/'in sdk[0];report['sdk_sha256']=hashlib.sha256(pathlib.Path(sdk[0]).read_bytes()).hexdigest()
+ keys=set(json.loads(lib.modern_glm_model_keys(ctx)));mapping=json.loads((model/'model.safetensors.index.json').read_text())['weight_map'];assert keys<=set(mapping),sorted(keys-set(mapping))[:5]
+ grouped=collections.defaultdict(list)
+ for key in keys:grouped[mapping[key]].append(key)
+ pending=[];loaded=0;source_bytes=0;begin=time.perf_counter()
+ def flush():
+  nonlocal loaded
+  if not pending:return
+  desc=[{'name':name,'pointer':w.data_ptr(),'shape':list(w.shape),'dtype':{torch.float32:0,torch.bfloat16:1,torch.uint8:2}[w.dtype]}for name,w in pending];check(lib.modern_glm_model_load_batch(ctx,json.dumps(desc).encode()));loaded+=len(pending);pending.clear();print('GLM78_LOAD_PROGRESS',stage,rank,loaded,len(keys),round(time.perf_counter()-begin,3),flush=True)
+ for filename,names in sorted(grouped.items()):
+  with safe_open(model/filename,framework='pt',device='cpu')as shard:
+   for name in sorted(names):
+    w=shard.get_tensor(name).contiguous()
+    if w.dtype==torch.float8_e4m3fn:w=w.view(torch.uint8)
+    assert w.dtype in [torch.float32,torch.bfloat16,torch.uint8],(name,w.dtype);source_bytes+=w.numel()*w.element_size();pending.append((name,w))
+    if len(pending)>=2048:flush()
+   flush()
+ check(lib.modern_glm_model_finish(ctx));report.update(loaded_parameters=loaded,source_parameter_bytes=source_bytes,loading_seconds=time.perf_counter()-begin,free_total_gpu_bytes_after_loading=torch.cuda.mem_get_info());print('GLM78_WEIGHTS_READY',stage,rank,report['loading_seconds'],report['free_total_gpu_bytes_after_loading'],flush=True)

@@ -1,0 +1,312 @@
+{
+  "task": "GLM-static-checkpoint-loader-r421",
+  "status": "STATIC_LOADER_BOUNDARY_IMPLEMENTED_NOT_FULL_PROVIDER",
+  "GPU": false,
+  "Native_dlopen": false,
+  "new_CPU_jobs": 0,
+  "compiled_Native": false,
+  "Model_READY": false,
+  "installed_or_frozen_sources_modified": false,
+  "Git_operations": false,
+  "extracted": {
+    "CAPI": "original BASE prefix declarations/check/unique",
+    "weight_load": "entire original load segment incl all keys and all files, 2048 flush and per-file flush, original FP8 raw-byte view",
+    "preserved": [
+      "owner caller creates/destroys context",
+      "original Native952 model/key/metadata/head/partition semantics unchanged",
+      "original Torch thread settings retained in reference consumer delta",
+      "original source encoding dtype codes and source byte reporting",
+      "safe_open/load_batch/finish deadline boundaries",
+      "finish phase markers",
+      "caller outer load/memory markers"
+    ]
+  },
+  "source_prefix_inventory": [
+    {
+      "kind": "Import",
+      "line": 1,
+      "source": "import base64, collections, ctypes, hashlib, json, os, pathlib, time, traceback"
+    },
+    {
+      "kind": "Import",
+      "line": 2,
+      "source": "import torch"
+    },
+    {
+      "kind": "ImportFrom",
+      "line": 3,
+      "source": "from collections.abc import Mapping"
+    },
+    {
+      "kind": "Import",
+      "line": 4,
+      "source": "import torch.multiprocessing as mp"
+    },
+    {
+      "kind": "ImportFrom",
+      "line": 5,
+      "source": "from safetensors import safe_open"
+    },
+    {
+      "kind": "ImportFrom",
+      "line": 6,
+      "source": "from transformers import AutoTokenizer"
+    },
+    {
+      "kind": "Expr",
+      "line": 7,
+      "source": "torch.set_num_threads(1)"
+    },
+    {
+      "kind": "Assign",
+      "line": 7,
+      "source": "torch.backends.cuda.matmul.allow_tf32 = False"
+    },
+    {
+      "kind": "Assign",
+      "line": 7,
+      "source": "torch.backends.cuda.matmul.allow_bf16_reduced_precision_reduction = False"
+    },
+    {
+      "kind": "Assign",
+      "line": 8,
+      "source": "r = pathlib.Path('/refactor')"
+    },
+    {
+      "kind": "Assign",
+      "line": 8,
+      "source": "model = pathlib.Path('/old/models/ZhipuAI-GLM-5.3')"
+    },
+    {
+      "kind": "Assign",
+      "line": 8,
+      "source": "stage = int(os.environ['SLURM_PROCID'])"
+    },
+    {
+      "kind": "Assign",
+      "line": 8,
+      "source": "tag = os.environ['SLURM_JOB_ID'] + '.' + os.environ['SLURM_STEP_ID']"
+    },
+    {
+      "kind": "Assign",
+      "line": 9,
+      "source": "lib = ctypes.CDLL(str(r / 'build/libmodern_glm_full_model_probe.so'))"
+    },
+    {
+      "kind": "Assign",
+      "line": 9,
+      "source": "ptr = lambda x: ctypes.c_void_p(x.data_ptr())"
+    },
+    {
+      "kind": "Assign",
+      "line": 10,
+      "source": "lib.modern_glm_model_error.restype = ctypes.c_char_p"
+    },
+    {
+      "kind": "Assign",
+      "line": 10,
+      "source": "lib.modern_glm_model_id_size.restype = ctypes.c_size_t"
+    },
+    {
+      "kind": "Assign",
+      "line": 10,
+      "source": "lib.modern_glm_model_id.argtypes = [ctypes.c_void_p]"
+    },
+    {
+      "kind": "Assign",
+      "line": 11,
+      "source": "lib.modern_glm_model_create.argtypes = [ctypes.c_int] * 2 + [ctypes.c_size_t] * 2 + [ctypes.c_char_p] + [ctypes.c_void_p] * 3"
+    },
+    {
+      "kind": "Assign",
+      "line": 11,
+      "source": "lib.modern_glm_model_create.restype = ctypes.c_void_p"
+    },
+    {
+      "kind": "Assign",
+      "line": 12,
+      "source": "lib.modern_glm_model_keys.argtypes = [ctypes.c_void_p]"
+    },
+    {
+      "kind": "Assign",
+      "line": 12,
+      "source": "lib.modern_glm_model_keys.restype = ctypes.c_char_p"
+    },
+    {
+      "kind": "Assign",
+      "line": 13,
+      "source": "lib.modern_glm_model_load_batch.argtypes = [ctypes.c_void_p, ctypes.c_char_p]"
+    },
+    {
+      "kind": "Assign",
+      "line": 13,
+      "source": "lib.modern_glm_model_finish.argtypes = [ctypes.c_void_p]"
+    },
+    {
+      "kind": "Assign",
+      "line": 14,
+      "source": "lib.modern_glm_model_forward.argtypes = [ctypes.c_void_p] + [ctypes.c_size_t] * 2 + [ctypes.c_void_p] * 4 + [ctypes.c_int, ctypes.c_void_p]"
+    },
+    {
+      "kind": "Assign",
+      "line": 15,
+      "source": "lib.modern_glm_model_control.argtypes = [ctypes.c_void_p, ctypes.c_size_t, ctypes.c_void_p, ctypes.c_void_p]"
+    },
+    {
+      "kind": "Assign",
+      "line": 16,
+      "source": "lib.modern_glm_model_reset.argtypes = [ctypes.c_void_p]"
+    },
+    {
+      "kind": "Assign",
+      "line": 16,
+      "source": "lib.modern_glm_model_destroy.argtypes = [ctypes.c_void_p]"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 18,
+      "source": "def check(code):\n    if code:\n        raise RuntimeError(lib.modern_glm_model_error().decode())"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 20,
+      "source": "def unique():\n    raw = ctypes.create_string_buffer(lib.modern_glm_model_id_size())\n    check(lib.modern_glm_model_id(raw))\n    return base64.b64encode(raw.raw).decode()"
+    }
+  ],
+  "behavior_delta": [
+    "remove BASE prefix CDLL/env/import implicit execution; explicit bind_library/declare inputs",
+    "remove runtime string/AST load function construction; static function call",
+    "explicit expected library SHA verification at binding; original provider identity expected still supplied by real owner"
+  ],
+  "exact_consumer_patch": {
+    "path": "r414-static-loader-integration.patch",
+    "SHA256": "841b20bd00d8d81af684082382f09213f2ed4c1c51740e9b1e0d413c7c40bc85",
+    "applied": false,
+    "proposed_owner_SHA256": "d8998f9e02b04d0401567b5b868f8b51d77004db9edbf496b7cb8edfe880737d",
+    "grammar_checked": true,
+    "actual_owner_executed": false
+  },
+  "checkpoint": {
+    "index_SHA256": "e0fe7f28c1f853d4824e4d796374e3dacf1fe470988773952c79b063768134bf",
+    "complete_mapping_count": 118629,
+    "CPU_fixture": "three actual header records, not all-owner key list or payload"
+  },
+  "CPU": {
+    "passed": true,
+    "cases": [
+      {
+        "case": "actual_three_dtype_header_metadata_complete_static_load",
+        "passed": true,
+        "source_bytes_metadata_only": 1978681344
+      },
+      {
+        "case": "missing_key_before_any_shard_or_commit",
+        "passed": true
+      },
+      {
+        "case": "original_deadline_before_safe_open",
+        "passed": true
+      },
+      {
+        "case": "original_deadline_before_modern_glm_model_load_batch",
+        "passed": true
+      },
+      {
+        "case": "original_deadline_before_modern_glm_model_finish",
+        "passed": true
+      },
+      {
+        "case": "Native_batch_error_propagates_closes_shard_no_finish",
+        "passed": true
+      },
+      {
+        "case": "finish_error_no_false_ready_report",
+        "passed": true
+      },
+      {
+        "case": "unsupported_dtype_refused",
+        "passed": true
+      }
+    ],
+    "GPU": false,
+    "Native_dlopen": false,
+    "Model_READY": false,
+    "checkpoint_payload_read": false,
+    "actual_static_load_function_consumed": true,
+    "recording_leaves": [
+      "Torch tensor storage/value",
+      "safetensors payload get_tensor",
+      "Native keys/load_batch/finish and other CAPI functions",
+      "SDK maps/file"
+    ],
+    "actual_metadata": [
+      "lm_head.weight",
+      "model.layers.0.mlp.down_proj.weight",
+      "model.layers.0.mlp.down_proj.weight_scale_inv"
+    ],
+    "actual_all_Native_keys_or_device_weightload_qualified": false
+  },
+  "remaining": [
+    "real full provider constructor and all-owner weight-load/finish/cache agreement not run",
+    "no current installed import or DSO binding executed",
+    "actual Native device/lifecycle qualification must not be inherited from this recording CPU",
+    "r417 owner HTTP self-start/join must be separated before public-server-controlled Native join; avoid mutual join deadlock"
+  ],
+  "refs": [
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\modern_glm_full_model_probe_r2.py",
+      "SHA256": "a9b643a21e5ff5eaea021d768aa0342a155948fd2f962157c08a683647d06a05",
+      "scope": "actual BASE source; SHA matches r414 absolute source pin"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\InfiniLM-hygon-test\\code\\bw1000\\GLM-NoV-16card-W4-pair-r414\\owner\\model_entry_r290.py",
+      "SHA256": "d99f522180cbeea0102bcef499a649c6dd93d38383a06979962d82fcd5f8efee",
+      "scope": "qualified loader consumer, immutable/unmodified"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\InfiniLM-hygon-test\\code\\bw1000\\GLM-NoV-16card-W4-pair-r414\\owner\\loader_guard_r290.py",
+      "SHA256": "83c450363f614f1130359f23da8f969e3fe2ee2551a278ac01110de5cfdb29c1",
+      "scope": "original three call-boundary deadline guard"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\InfiniLM-hygon-test\\code\\bw1000\\GLM-NoV-16card-W4-pair-r414\\owner\\owned_context_r404.py",
+      "SHA256": "6e2de55af17cb8b44b2bc5be8fabda4ce4bbee9e00fa9c549475a2488e389a60",
+      "scope": "original owner-thread cleanup, unchanged"
+    },
+    {
+      "path": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\GLM421-actual-checkpoint-metadata.json",
+      "SHA256": "1679d84764476aad475a88e6dd448897d93b9a02854767c6e50a53924c55611d",
+      "scope": "read-only actual full index/header records; no tensor payload; kept L only"
+    }
+  ],
+  "files": [
+    {
+      "path": "check_CPU.py",
+      "SHA256": "c5ac678c5257396c620b960cec78ca55b594ca1d6e570f5ce47c7fdb0905c15a"
+    },
+    {
+      "path": "checkpoint-metadata.json",
+      "SHA256": "1726eecc0ef4f0c03c939acc0c8eb6a2dff24976dd3478c539208cf48b833854"
+    },
+    {
+      "path": "checkpoint_loader.py",
+      "SHA256": "19778e47bbe79fa85642aea31c45b05874b86647938f230772cb33653b422f16"
+    },
+    {
+      "path": "local-CPU-result.json",
+      "SHA256": "2acb9d032893da4a89fe36ef5345b9d36d567d681be8cd5f46c885936b0334ea"
+    },
+    {
+      "path": "original-weight-loader.txt",
+      "SHA256": "04084c84f7ff28b7daa5acbe80096c4b4163dddbd5bd506b234b3a1f32c84e60"
+    },
+    {
+      "path": "r414-static-loader-integration.patch",
+      "SHA256": "841b20bd00d8d81af684082382f09213f2ed4c1c51740e9b1e0d413c7c40bc85"
+    },
+    {
+      "path": "README.md",
+      "SHA256": "71da79317cf66f1996a77344dc8c040b1c61c49a19398555bbaff43639e150e4"
+    }
+  ]
+}

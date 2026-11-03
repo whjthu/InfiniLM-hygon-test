@@ -1,0 +1,71 @@
+--- a/owner/model_entry_r290.py
++++ b/owner/model_entry_r290.py
+@@ -6,7 +6,6 @@
+ _cache_sys.pycache_prefix=_cache_base+'/'+str(_cache_os.getpid());assert len(_cache_os.sched_getaffinity(0))>=32, 'CPU_BIND_before_Torch_and_weights'
+ from preweight_r290 import validate as _protocol_validate
+ from deadline_r290 import check as _original_deadline_check,remaining as _remaining
+-from loader_guard_r290 import guard_loader
+ from topology_r404 import read_layout as _read_layout_before_device
+ _layout_before_device = _read_layout_before_device()
+ _protocol_preweight = _protocol_validate()
+@@ -39,20 +38,21 @@
+ 
+ 
+ r = pathlib.Path('/refactor')
+-# Reuse the exact raw-checkpoint loader and CAPI signatures. Do not execute the
+-# old diagnostic worker or its __main__ block.
+-baseline_path=r/'incoming/modern_glm_full_model_probe_r2.py';assert hashlib.sha256(baseline_path.read_bytes()).hexdigest()=='a9b643a21e5ff5eaea021d768aa0342a155948fd2f962157c08a683647d06a05'
+-baseline=baseline_path.read_text()
+-baseline=baseline.replace("stage=int(os.environ['SLURM_PROCID'])","stage=int(os.environ['GLM_STAGE_R5040'])").replace("tag=os.environ['SLURM_JOB_ID']+'.'+os.environ['SLURM_STEP_ID']","tag=os.environ['GLM_RUN_R5040']")
+-MODEL_LIBRARY_METADATA=_continuous_preflight['model_library_metadata']
+-LIBRARY=pathlib.Path(MODEL_LIBRARY_METADATA['library_actual_path'])
+-ns = {}
+-exec(baseline[:baseline.index('def worker(rank,payload):')].replace("r/'build/libmodern_glm_full_model_probe.so'",repr(str(LIBRARY))),ns)
+-lib, ptr, check, unique, model, stage, tag = (ns[k] for k in ['lib', 'ptr', 'check', 'unique', 'model', 'stage', 'tag'])
++# Explicit static loader boundary; old BASE is no longer parsed or executed.
++from checkpoint_loader import bind_library, load_checkpoint
++from safetensors import safe_open
++torch.set_num_threads(1)
++stage = int(os.environ['GLM_STAGE_R5040'])
++tag = os.environ['GLM_RUN_R5040']
++model = pathlib.Path('/old/models/ZhipuAI-GLM-5.3')
++MODEL_LIBRARY_METADATA = _continuous_preflight['model_library_metadata']
++LIBRARY = pathlib.Path(MODEL_LIBRARY_METADATA['library_actual_path'])
++_binding = bind_library(LIBRARY, MODEL_LIBRARY_METADATA['library_SHA256'])
++lib, ptr, check, unique = (_binding.lib, _binding.ptr, _binding.check, _binding.unique)
+ ROWS=int(os.environ['GLM_CACHE_ROWS_R3627']);CAPACITY=int(os.environ['GLM_CACHE_CAP_R3627']);assert(ROWS,CAPACITY)==(1,32768);PP=int(os.environ['GLM_PP_SIZE_R3603']);assert PP==2;CARDS=8*PP;BOUNDS=[0,38,78]
+ cache_overlay=pathlib.Path('/dev/shm')/('iloader-r3604-'+str(os.getuid()))/('overlay-glm-pp'+str(PP)+'-s'+str(stage))
+ if os.environ.get('USE_WEIGHT_CACHE_R3604')=='1':
+- assert cache_overlay.is_dir(),str(cache_overlay);model=cache_overlay;ns['model']=model
++ assert cache_overlay.is_dir(),str(cache_overlay);model=cache_overlay
+ 
+ lib.modern_glm_model_tp_control.argtypes = [ctypes.c_void_p, ctypes.c_size_t, ctypes.c_void_p, ctypes.c_void_p]
+ lib.modern_glm_pipeline_last_profile.restype = ctypes.POINTER(ctypes.c_double)
+@@ -235,19 +235,17 @@
+             report['all_contexts_closed_after_memory_rejection'] = True
+             (r / 'results' / f'glm-large-preflight-r5394-{tag}-stage{stage}-rank{rank}.json').write_text(json.dumps(report, indent=2))
+             return
+-        loader = baseline[baseline.index(' sdk=sorted('):baseline.index(' def control(x):')].replace('hygon-runtime-fixes-r1', 'hygon-glm-5f91ad7-r3672')
+-        assert ' check(lib.modern_glm_model_finish(ctx));' in loader
+-        loader = loader.replace(' check(lib.modern_glm_model_finish(ctx));', " phase_marker('raw_weight_load.return.before_finish',rank)\n phase_marker('finish.enter',rank)\n check(lib.modern_glm_model_finish(ctx));phase_marker('finish.return',rank);")
+-        wrapped = 'def load(ctx, report):\n' + loader + '\n return report\n'
+-        loader_ns = dict(ns)
+-        loader_ns.update(stage=stage, rank=rank, report=report, ctx=ctx, phase_marker=phase_marker, __weight_deadline_check_r290__=_original_deadline_check)
+-        guarded_loader, weight_hooks = guard_loader(wrapped)
+-        report['weight_original_deadline_hooks'] = weight_hooks
+-        exec(compile(guarded_loader, '<original-guarded-GLM-loader>', 'exec'), loader_ns)
++        # Same three original call-site checks, now statically explicit.
++        report['weight_original_deadline_hooks'] = {
++            'safe_open': 1, 'modern_glm_model_load_batch': 1,
++            'modern_glm_model_finish': 1}
+         report['CPU_memory_before_weight_load'] = CPU_memory_snapshot()
+         load_begin = time.perf_counter()
+         phase_marker('load.enter', rank)
+-        loader_ns['load'](ctx, report)
++        load_checkpoint(_binding, ctx, model_path=model, torch=torch,
++                        safe_open=safe_open, stage=stage, rank=rank,
++                        report=report, deadline_check=_original_deadline_check,
++                        phase_marker=phase_marker)
+         phase_marker('load.return', rank)
+         report['actual_owner_weight_load_wall_seconds'] = time.perf_counter() - load_begin
+         report['CPU_memory_after_weight_load'] = CPU_memory_snapshot()

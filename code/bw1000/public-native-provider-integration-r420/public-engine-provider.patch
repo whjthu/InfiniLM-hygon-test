@@ -1,0 +1,60 @@
+--- a/python/infinilm/server/inference_server.py
++++ b/python/infinilm/server/inference_server.py
+@@ -147,6 +147,7 @@
+         enable_prefix_caching: bool = True,
+         pre_transpose: bool = False,
+         tool_call_parser: str = "none",
++        engine_factory=None,
+     ):
+         """Initialize inference server.
+ 
+@@ -212,6 +213,12 @@
+             raise ValueError("Unsupported tool call parser")
+         self.tool_call_parser = tool_call_parser
+ 
++        # Trusted application configuration, never a request-body/import string.
++        # A Native provider must own real construct/load/finish before returning
++        # a ready engine. This callback itself grants no model qualification.
++        if engine_factory is not None and not callable(engine_factory):
++            raise TypeError("engine_factory must be callable or None")
++        self.engine_factory = engine_factory
+         self.engine: AsyncLLMEngine = None
+ 
+     def start(self):
+@@ -226,7 +233,9 @@
+ 
+         @asynccontextmanager
+         async def lifespan(app: FastAPI):
+-            self.engine = AsyncLLMEngine(
++            factory = (AsyncLLMEngine if self.engine_factory is None
++                       else self.engine_factory)
++            self.engine = factory(
+                 model_path=self.model_path,
+                 device=self.device,
+                 dtype=self.dtype,
+@@ -255,11 +264,20 @@
+                 enable_prefix_caching=self.enable_prefix_caching,
+                 pre_transpose=self.pre_transpose,
+             )
+-            self.engine.start()
+-            logger.info(f"Engine initialized with model at {self.model_path}")
+-            logger.info(f"  enable_graph: {self.enable_graph}")
+-            yield
+-            self.engine.stop()
++            try:
++                self.engine.start()
++                logger.info(f"Engine initialized with model at {self.model_path}")
++                logger.info(f"  enable_graph: {self.enable_graph}")
++                yield
++            except BaseException:
++                # Cleanup must not replace the startup/request primary error.
++                try:
++                    self.engine.stop()
++                except BaseException:
++                    logger.exception("Engine cleanup failed after primary error")
++                raise
++            else:
++                self.engine.stop()
+ 
+         app = FastAPI(lifespan=lifespan)
+         self._register_routes(app)
