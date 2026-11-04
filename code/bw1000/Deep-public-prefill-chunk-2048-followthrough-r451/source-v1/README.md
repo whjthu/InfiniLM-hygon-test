@@ -1,0 +1,9 @@
+# Current public chunk2048 followthrough
+
+The afc6 r348 repair-r2 six-request Model result already showed a scoped positive 2048 strategy. This package does not call it new or repeat afc6. It tests that exact strategy through current a314 public Deep service, HC0/r3660/fullpre0, without changing Native/SDK/loader/cache or default entry.
+
+Plan: six complete same8489 tool-history SSE requests, 128 output budget, chunks 1024,2048,1024,2048,2048,1024 (two warm, one formal ABBA). No seventh/warm probe, extra quality suite or retries. All intermediate prefill samples are discarded; original position/past/row/offset ledger and 32768 context remain. Same complete tool integer/opaque gold, finite logits, natural EOS and all8 owner normal shutdown are required and retained. Current 2048 device memory and performance remain UNKNOWN.
+
+CPU consumes actual changed worker/descriptor/original continuation and actual client.main/SSE parser plus real fixture body and owner-file handoff; transport, generation, Native and readiness are recording leaves. It verifies both chunks including tail297, cancellation before/midprefill, strict wrong descriptor, capacity/cap/deadline rejection, actual50object source/provider metadata and unchanged non-serving public CLI. It does not execute SDK/Runtime/dlopen/weights, re-encode, repeat449/945 suites, qualify GPU memory, or establish Model quality/performance. The recording prompt IDs are not a tokenizer oracle; frozen full body/actual original8489 hash are reused.
+
+First CPU envelope: 910407/a14r2n20,4cores8GiB300s, inside270/work250, one attempt, no compilation. Future concrete GPU claim remains false pending actual CPU and final immutable deployment: 910376/a02r4n12, TP8/PP1,8GPU2700 incl load, Native2580/service2400/keeper3000, one epoch and one load. No GPU started from this source claim.
