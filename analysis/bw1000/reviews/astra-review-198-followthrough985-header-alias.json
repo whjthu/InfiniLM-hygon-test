@@ -1,0 +1,38 @@
+{
+  "review": 198,
+  "type": "minimal_build_followthrough_not_new_cycle",
+  "status": "COMPLETE",
+  "parent_report": "analysis/bw1000/reviews/astra-review-198-parallel-source-assembly-followthrough.json",
+  "parent_report_SHA256": "13a77906b646152419396015d077e859dacd1ebe594a1d5f0609ec909159c3f6",
+  "scope": "只读985原receipt/log及native-probe-v1/CPU_build.py，写本补充；未测试、编译、链接、执行作业、Git或轮询模型。原198及983补充不修改。",
+  "actual": {
+    "CPU": "910407.985 FAILED1/40s",
+    "source_manifest_SHA256": "108007a29dff5737c2746f8a97e126a7ab16d663f57828557ceb1e0757760231",
+    "observation": "L/Kimi461-probe-CPU-first-observed-original.json",
+    "receipt_SHA256": "74740ab613cf2507b1da164e0cb2da601e796b3f125727bbd30011c31540edab",
+    "receipt_bytes": 11800,
+    "actual_sidecar": "固定8个std::thread、6case通过；Runtime/Tensor/SDK/GPU未执行。",
+    "production_compiles": "pair_probe与worker两个HOST的before-M及compile日志rc均0，stderr为空。",
+    "failure": "worker old MD changed/omitted: /refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/engine/../backends/attention_backends.hpp",
+    "not_completed": "未进入private-Native-link，无新DSO、0GPU/Model；不能称生产编译失败或GPU数学负结果。",
+    "source_flow_limit": "代码在新MD与before-M完整集合及字节核对之后才做旧MD字符串包含检查；但q.compiled在整个两TU循环后才赋值，失败receipt没有序列化两.o/完整snapshot字段。控制流事实与独立归档字段区别保留。"
+  },
+  "decision": "原则上可复用985成功两HOST对象与合同，证实alias及原产物闭包后做新immutable、0compile的link-only repair；当前没有提供实际samefile/全部MD原件的新回执，因此本报告不宣称alias已经证明或链接已获通过。无需为bookkeeping重跑981/985成功compile或6case。",
+  "minimal_required_evidence": [
+    "从原985目录只读封存pair_probe.o/worker.o、各before.d及.d、实际编译argv、源字节、compiler身份和已通过日志SHA；关联原985/原source MF，不写成失败receipt本来就含完整compiled字段。",
+    "在实际编译所用文件系统/命名空间解析旧MD拼写和新MD真实拼写，保留两者原字符串、strict realpath、samefile或同dev/inode证据，以及两端当前文件SHA都等于原旧MD pinned SHA。不要只做字符串normpath，因为symlink后的..含义可能不同。",
+    "先按原raw MD集合核before/after；对旧MD包含校验仅允许有原件证明的等价路径映射。逐个旧header仍须在新依赖中找到同一文件/同SHA；不能仅basename匹配、任意同hash文件兜底、忽略带..项或整体放宽ABI头检查。",
+    "若多个拼写归并为同一文件，显式保留alias集合并拒绝同一canonical项不同SHA；新增依赖仅限当前已冻结source变化及其实际MD闭包。未解释的遗漏、字节变化或compiler/semantic argv变化仍停止。"
+  ],
+  "minimal_link_and_ELF": {
+    "reuse": "在新输出目录复用原985两个对象；从CPU981原成功link argv仅替换原pair/worker对象及输出DSO路径，保留顺序、宏/ABI语义与依赖库身份。现有设计总34objects、32复用须按实际字节核实。",
+    "closure": "继续现有原strong exports/CAPI包含、新probe两个CAPI、Bsymbolic/DT_NEEDED及真实ldd-r无missing/undefined检查；核所有复用对象和实际依赖库SHA。不执行Native dlopen/SDK/Runtime，不用GPU验证路径名。",
+    "qualification": "通过只得私有新DSO工程闭包；原985整体FAIL仍保留，sidecar合同不是实际embedding collective、floor、Model或数值资格。"
+  },
+  "why_repeat_and_small_prevention": {
+    "cause": "guard把编译器MD的原始路径字符串当文件身份，旧engine/../backends拼写与当前依赖实际拼写可能不同；CPU964类似问题已有先例，但其解决方式没有被这个新oldmd包含消费者复用。是否确属同文件须以本次原件证明，不靠历史类推。",
+    "minimal_fix": "只在现有依赖比较处加本次有证据alias等价，保存原拼写与身份；把每TU的对象/MD/source hashes在该TU编译检查后及时持久化，再进入父MD校验。后者减少下次失败后补封存，不新增构建框架或套件。",
+    "stop_condition": "原agent先完成只读alias/对象证据；若出现第三种未知头/依赖变化，停止定位，不自动重编或提交GPU。"
+  },
+  "inflight_and_count": "Deep1423/1424/982及五组GLM继续原句柄不动。198后工程错不充因果/Model轮；本补充不重置计数或新增运行授权。"
+}

@@ -1,0 +1,41 @@
+{
+  "review": 198,
+  "type": "minimal_followthrough_not_new_cycle",
+  "status": "COMPLETE",
+  "parent_report": "analysis/bw1000/reviews/astra-review-198-parallel-source-assembly-followthrough.json",
+  "parent_report_SHA256": "13a77906b646152419396015d077e859dacd1ebe594a1d5f0609ec909159c3f6",
+  "scope": "只读原983 receipt、compact及deployment-v2实际client_dispatch.py/client_inside.sh/preflight.py；仅新增本补充，原已发布198字节不改。无测试、作业、Git或轮次重置。",
+  "actual_failure": {
+    "CPU": "910407.983",
+    "terminal": "FAILED1/1s",
+    "source_manifest_SHA256": "ef3cc78168e70decd7eba9a77c98a1af6969c9cdf7a6a4cfdab9cd83d7dab439",
+    "receipt": "L/GLM466-v2-CPU-original-result.json",
+    "receipt_bytes": 1218,
+    "receipt_SHA256_independently_read": "9f886c420c32cd68cf245d33e7c7a1cc3987149d81b99963430e3bee52b3c414",
+    "compact": "analysis/bw1000/GLM466-CPU983-original-client-path-failure-compact.json",
+    "confirmed_progress": "主/二级config map与实际label一致问题已修；当前失败推进到preflight.py:42 client config/service_report交接。",
+    "not_qualified": "完整四role证明未返回/未持久化，不能把源码中位于断言之前的two-role loop当已保存的完整CPU资格；0Native/SDK/weights/compile/GPU。",
+    "retained": "980原失败和label差异、983新失败均独立保留；没有第三CPU或Model重放。"
+  },
+  "why_prior_fix_missed_it": [
+    "198定点修复解决了最早发生的两个hash视图不一致，但没有证明后续client argv生产者已迁移到新包。hash一致只说明忠实封包，不能说明包内硬编码语义正确。",
+    "实际quality_args仍固定r460/deployment-v1，真实preflight随后严拒r466 CONFIG不一致；这是有效的最终消费者拦截。",
+    "独立client_inside.sh也执行旧r460 dispatch。现有preflight仅读取inside.sh，没有读取client_inside.sh执行目标；因此即使Python argv先修，shell叶子仍可能在设备阶段走旧包。",
+    "不能把逐个最早断言通过称完整入口闭合；只有现有preflight最终返回四role与实际client路径证明，才记录该范围通过。"
+  ],
+  "minimal_v3": {
+    "change": "新immutable版修两个实际client叶子及必要版本/label/output/MF绑定；原provider/Native/输入/评分/时限与旧成功suite不动。",
+    "python_leaf": "由实际client_dispatch.__file__的父目录确定部署包；断言它与controller.__file__父目录/C.D同包，再构造config及client_launch路径。禁止只依赖可能缓存了旧module的import名称。",
+    "host_container_boundary": "quality_args也由HOST CPU preflight调用，不能把HOST的__file__绝对路径直接传入container argv。沿现有唯一HOST R→/refactor映射，用实际包相对R的位置生成container路径；不做任意字符串replace，不宽松接受旧r460路径。保留line42对config与service_report的严格等值。",
+    "shell_leaf": "修正本审核最初直接dirname建议：已实际读取原outer第25/32行，它将WAVE_INSIDE_R2323指向源复制为scratch/job-inside.sh，并在容器执行/tmp/job-inside.sh，所以此时BASH_SOURCE父目录是/tmp，不能用于定位dispatch。复制场景须用原WAVE_INSIDE_R2323恢复精确incoming下的同包client_inside.sh源路径，限定合法相对包路径/固定文件名并拒绝越界，cmp当前执行副本与源bytes一致后才取源dirname→同包dispatch；正常直接执行场景可用自身dirname。原outer不改，LF/GPUhidden/LD_PRELOAD清除保留；不新增手写旧版本目录。",
+    "real_existing_consumer": "在同一次已有preflight中消费实际client_dispatch模块位置、实际quality_args→原client parser→strict path等值，以及原outer复制执行场景下client_inside.sh恢复的真实源/dispatch是否同包。记录最终被消费路径与SHA；不要用自造argv或固定True替代真实函数。现有四role CPU继续完成未过边界，无新增测试矩阵。",
+    "manifest": "最终raw字节一次生成primary/secondary映射并断言一致，精确joblabel由最终claim消费；不得通过删除strict检查让旧路径通过。"
+  },
+  "decision": {
+    "known_fix": "按上述v3最小修复直接接续一次未完成四role CPU，不等待额外审核GO；不重968/974或原编码，不在GPU查此路径。",
+    "if_new_failure": "任何第三种未知根因先保原receipt和实际phase停止定位，不自动再提或逐flag试GPU。",
+    "no_new_GPU_claim": true,
+    "no_performance_round": true,
+    "inflight": "现有Deep1423/982及GLM Model不动；根报告Kimi981原闭包PASS作为独立工程增量，本补充不扩为新probe/GPU资格。"
+  }
+}
