@@ -1,0 +1,144 @@
+{
+  "review": 198,
+  "status": "COMPLETE",
+  "date": "2026-11-04",
+  "reviewer": "astra_review_147",
+  "trigger": "979生产Context字段遗漏与980二级config映射陈旧两个可避免入口错误；不是新增性能轮。",
+  "method": "仅读源码、已有原件/根独审与上一轮落实，仅写此报告；未运行测试、reader、GPU/CPU作业、Slurm轮询或Git。独立已授权修复/执行不等待审核。",
+  "cutoff": "含根提供07:37五组GLM进度47/42/38/37/52与15柄RUNNING，均为快照；不预测当前终态。最后增量：Kimi v2唯一srunPID408969在途、无CPU终态；Deep465最终预算MF7e6968ec2f69c915eaae95143fd5067401f9705055006862718b0a69f98d25a1已8dd2bef发布，HOST metadata rc0、唯一keeper ownedPID3556468及intent已产生，GPUepoch/实际句柄尚待原watch，不假READY。GLM466 v2仅拟定最小二级map/label/equality修复，未执行。",
+  "previous_197": {
+    "file": "analysis/bw1000/reviews/astra-review-197-implementation.json",
+    "state": "COMPLETE_ADOPTED",
+    "actual_followthrough": [
+      "Kimi589实际32owner构造成功但全部低于原4GiB floor，停在0weights/0forward；没有降floor或自动Model加载，容量反例有效。",
+      "Deep1417在同rows4 engine完成串行C1/activeC4整Model配对，真实吞吐提升伴随逐用户decode变慢，正常8owner/post。",
+      "GLM原固定512继续执行，已终态slot0不重复，五组80卡当前原句柄继续；最后slots4/5的128请求未启动。",
+      "457质量与normal STOP分离在未来消费者沿用；不以已知wrong题触发强杀或补加载。"
+    ],
+    "round_accounting": "197后两个实际因果事件：589容量负与1417完整Model批吞吐配对，其中Model性能轮1；979/980/978及观察不充轮。"
+  },
+  "evidence_read": {
+    "Deep1417": "results/bw1000/2026-11-04/Deep458-1417-root-audited-C4-throughput-gain-and-user-latency-tradeoff.json",
+    "Deep1417_archive": "a0459317d11f7668db714d9ae6d75ec67466130a13091b819a1cf88d7a551393",
+    "Deep1417_root_output": "02111e9b9d4e493a13e73395f74d1c1c188196db1a7040ed4b4d1da269c1d95c",
+    "logical_cost": "analysis/bw1000/Deep-a314-C1-C4-work-traffic-budget-r463.json",
+    "Kimi589": "results/bw1000/2026-11-04/Kimi459-589-TP32-AR-constructor-floor-FAIL.json",
+    "Kimi979": "L/Kimi461-CPU-first-observed-original.json",
+    "Kimi979_receipt": "b140d74f40afe140c5d161e4078c6cb049d9da7c7fb8df782670ceac3eed7152",
+    "Kimi_repair": "code/bw1000/Kimi-vocab-parallel-embedding-r461/cpu-repair-v2",
+    "Kimi_repair_actual_CPU_SOURCE_MANIFEST_SHA256": "ca2a05cc0e20fa7670c1609183953466d500fd74c42554d72644ef43afd2fcaf",
+    "GLM980": "analysis/bw1000/GLM466-CPU980-original-failure-compact.json",
+    "GLM980_original_receipt": "6734148ea0735dab47de49dff2578947fa5115b094a45e25472c5b095b01b28e",
+    "Deep465_source": "code/bw1000/Deep-public-fixed-cohort-profile-r465/source-v1/PILOT_PLAN.json",
+    "Deep465_controller_read": "code/bw1000/Deep-public-fixed-cohort-profile-r465/deployment-v1/controller.py",
+    "status_read": "status/bw1000/latest.json"
+  },
+  "four_questions": {
+    "real_gain": {
+      "Deep1417": "同8卡、同rows4 engine、四固定输入、2warm+1ABBA：四请求组wall224.0024→131.4684s，完成请求吞吐1.70385x、wall -41.31%；两邻对1.7013/1.7064x。是限定整Model固定cohort收益，不是PD、HTTP或在线调度收益。",
+      "latency_tradeoff": "serial逐用户decode2.530–2.598tok/s，C4为1.153–2.142，均0用户>15；C4改善后排请求等待，但用户生成更慢。visible tokens不同848→907，故1.8224x token吞吐不能替代1.70385x完整请求吞吐。",
+      "quality": "正式serial/cohort各6/8正确且全EOS，无cap/parse；只四unique题重复，不是宽质量或NI。错误答案、正确EOS goodput分别保留，不把批吞吐推为用户目标完成。",
+      "Kimi": "589实际floor负结论与461CPU是容量/工程，无新速度或Model质量；潜存储减量不能当fit。",
+      "GLM": "已完成886首64质量与正常终态保留；其余五组未terminal不提前算收益。全512分母不改。"
+    },
+    "time_cost": {
+      "Deep1417": "GPU1576s、keeper1588s、加载444.666s、CAPI sum1068.065s，post正常；8×1576驻留卡秒不等于有效计算。下一465一次装载同时检验公共开销、完整wall和质量，不能只交质量分数后再加载一次测性能。",
+      "engineering": "979约10s在pair_probe生产compile失败，980约1s在secondary map失败且0CLI；已过记录消费者可复用。只修最后实际producer/清单交接，不重复编码、旧对象或已过suite。",
+      "parallel": "五组GLM80卡已有真实请求在途，不能说全部闲置或用RUNNING作利用率；原deadline持续，最后两组只能等待相关894/896真实terminal/post释放指定资源，不重复启动。",
+      "unknown": "46532题输出长度使首完整结果耗时UNKNOWN，已冻结GPU15000s上界；Kimi新分配/collective启动额外成本UNKNOWN。"
+    },
+    "bottleneck_evidence": {
+      "proved": "589aftercreate free约2.617–2.626GB，距4GiB floor缺1.669–1.678GB。1417证实batch摊薄完整wall但牺牲用户decode，不证明某独立kernel或HBM达到峰值。",
+      "source_hypotheses": "461复制embedding2348810240B→每rank73400320B，逻辑省2275409920B；套用旧样本仅条件余量597688320–606076928B。真实driver/CCL/first collective/fence仍可能吃掉余量。",
+      "r463_scope": "dot计数、参数地址字节与collective API payload是源码预算，非实际HBM/网络交通或exclusive critical path。不得据其理论dense吞吐换算Model上限；不重开已PARK的C128 cast/TopK/小T路线。",
+      "unknown": "物理最大性能、全部关键路径占比、公共C4逐用户SLO以及Kimi实际新floor/查询成本仍UNKNOWN。"
+    }
+  },
+  "minimal_repairs": [
+    {
+      "item": "Kimi979 Context字段遗漏",
+      "cause": "文本生成needle没有实际插入私有bool；局部source契约却报告private_Context_bool_only，两个Weight/loader recording消费者没有编译使用该字段的完整pair TU。它们通过不能证明生产TU已装配完整。",
+      "actual_v2_review": "check_source.py核旧Context唯一、旧无声明，强制new==old.replace唯一struct Context插入bool vocab_embedding_r461=false，并核新pair字节SHA。CPU_build读取979失败receipt及两个已过原log SHA/rc0，不重新执行两消费者，仅续2HOST+1CUDA与31对象复用。MF已读并核ca2a05...。",
+      "decision": "该修复足以处理已知缺字段错误，继续原300s changedCPU，无需等审核或重979全部suite。未知编译/数值失败另行原样保留，不声明新DSO已过。",
+      "small_prevention": "生成器在最终真实TU检查替换命中次数和实际声明/引用，不用硬编码True证明自己的预期。生产编译仍是现有必要闭包，不新加泛化框架。"
+    },
+    {
+      "item": "GLM980两个清单视图不一致",
+      "cause": "最终LF字节写出后只刷新files_SHA256，config_files_SHA256仍是旧字节；actual controller.verify明确消费第二映射，因此0CLI失败合理。",
+      "actual_values": {
+        "config-slot4.json": "7a426b2b6a95788a3415e0a3d8b802e7951c579ca072ad2847246b99229884d8",
+        "config-slot5.json": "50b718ca646c79e058d445bd144d04a5c59afe4d7550b3085a3f72905a026fc1"
+      },
+      "decision": "新immutable版只以最终raw bytes刷新两secondary项及必要关联MF/claim；不删verify、不重新编码或改provider。用现有真实controller preflight消费原未过4role CLI即可，不重已经成功旧CPU。",
+      "label": "published last-two与actual remaining标签差异独立保留；下一新claim/intent/实际label一致，按980原句柄认定失败，不通过猜名称再跑同实验。",
+      "small_prevention": "同一组最终文件hash同时供primary与secondary，封清单前断言两个投影视图与actual bytes一致。已知修复在原bounded CPU范围接续，不逐条GO。"
+    },
+    {
+      "item": "Deep465清理绝对截止",
+      "actual_source": "当前controller.py初始化keeper_entry_monotonic+120做前置界；GPU启动时记录epoch_monotonic，cleanup_limit=epoch_monotonic+15480，并assert不超过keeper_entry_monotonic+15600；service13800/Native14400/GPU15000/cleanup15480保持明确顺序。",
+      "decision": "已读取的源码中115480已纠正；根最后消息确认预算修复最终MF7e6968ec2f69c915eaae95143fd5067401f9705055006862718b0a69f98d25a1已发布且实际HOST metadata rc0、唯一keeper/intent存在。复用CPU978，只跟原句柄，不新加suite、不热改在途源。实际GPU句柄/READY/终态仍UNKNOWN。",
+      "limit": "源码改正不等于实际清理资格；质量错应正常STOP/collect/post后独立记分，基础设施失败仍按原failstop。"
+    }
+  ],
+  "next_cards": {
+    "Deep": [
+      {
+        "priority": 1,
+        "card": "465公共固定C4 32paired pilot，一次驻留同时判交付成本与质量",
+        "hypothesis": "1417批吞吐收益进入普通公共入口后仍有价值，但可能继续损失单用户生成速度；不假设解决>15。",
+        "owner_resources": "原GLM执行线，独立n05八卡；默认OFF，a314/HC0/r3660/fullpre0/precision0/rows4/32768不变，postload16GiB floor，GPU15000/Native14400/service13800/keeper15600及cleanup15480。",
+        "reuse_and_change": "复用978真实工程闭包与945原前16GSM/16MMLU完整body/IDs，不重编码；仅最终公共部署/截止身份。sourceclaim/fresh/dedup后原唯一scope继续，不等评审。",
+        "samples": "冻结32题64HTTP、16个四请求组，偶数组serial/cohort、奇数组cohort/serial，无新增warm；全部4096预算、wrong/cap/parse保分母，不以输出结果选题。",
+        "metrics": "同时输出公共HTTP whole、实际owner token clock的逐用户decode/TTFT/ITL、cohort完成吞吐、全部8卡成本、correct-EOS goodput、缺失/拒绝/质量；HTTP chunk不是token。分别列初组与后续，不能事后把冷组删掉制造收益。",
+        "first_result_time": "首4request组后有公共交付首判，完整32paired才给pilot结果；实际耗时UNKNOWN，冻结15000s硬截止，不延时或补请求。",
+        "exit": "若公共完整吞吐不稳或用户延迟更差则限定为离线/批量实验profile，不默认推广；不因4或32题无显著差就无限NI。无在线开放到达/continuousbatch/PD资格。",
+        "fallback": "优先消费这一卡，停止追加质量-only加载和batch grid。"
+      },
+      {
+        "priority": 2,
+        "card": "以已有完整C1/C4轨迹定位>15差距，暂不新增设备路线",
+        "hypothesis": "只有明确占完整wall的可消除成本才可能缩小每用户约1–3tok/s到>15的差距；批量本身不是单用户加速。",
+        "owner_resources": "根/原Deep线，已有1417及465未来原轨迹，0额外GPU。",
+        "minimum_action": "先按实际active-row轨迹、prefill/decode调用与完整时间比较，r463仅作源码索引；若没有exclusive phase或真实expert重复证据，不新建kernel或重跑负路线。",
+        "samples_and_time": "已有76原文件与后续唯一pilot；源判定首轮建议30分钟内收束，缺证据则写UNKNOWN停止扩报告。",
+        "wall_gain": "UNKNOWN；不把理论HBM/dense峰值乘到Model。",
+        "exit": "没有新可证伪的大wall假设就不给新Model卡，而不是让全部任务等待或做无关微基准。"
+      }
+    ],
+    "Kimi": [
+      {
+        "priority": 1,
+        "card": "461最小修复闭包后准备一次新capacity加真实embedding消费者",
+        "hypothesis": "词表行分片的2275409920B逻辑减量能补589原floor缺口，并保持真实checkpoint embedding输出；额外allreduce/fence成本可能抵消后续收益。",
+        "owner_resources": "原Kimi线；当前仅4CPU/8GiB/300s剩余编译。后续具体新scope才用TP32四节点32卡，不能继承589/旧DSO资格或自动加载全模型。",
+        "minimum_action": "先完成已发布v2生产2HOST+1CUDA/31复用闭包；随后最短device scope用新factory先真实constructor/floor，再在同驻留只加载必要embedding checkpoint切片并实跑masked lookup→all32rank collective→fence→销毁，不为层/全Model权重额外加载。",
+        "necessary_numeric": "用既有455边界/33slice身份挑原词表首尾/分片边界及无local IDs rank的真实输出对照CPU checkpoint行；全局越界原CPU拒绝不冒GPU容错。复用979recording，不重复其suite；真实collective/异步lease尚待设备。",
+        "first_result_time": "当前CPU300s上界；未来constructor与最小embedding卡预算需具体冻结，未准备完整前UNKNOWN，不臆造启动。无需重复旧无变化589。",
+        "wall_gain": "容量条件margin约0.598–0.606GB仅估计；实际floor/first-use reserve、加载/查询新增allreduce耗时UNKNOWN。",
+        "exit": "原4GiB/full32K不变；constructor或embedding真实数值/生命周期不通过即停，不上全模型、不降低floor。通过只得容量/embedding资格，完整H3/I96 Model仍另判价值。"
+      }
+    ],
+    "GLM": [
+      {
+        "priority": 1,
+        "card": "五组原句柄完成固定分片，466只补未启动slots4/5",
+        "hypothesis": "已正常public/provider路线按不重叠资源完成原512，补齐质量/成本而不是重复已完成输出。",
+        "owner_resources": "根及原GLM/Deep交接线；五组80卡原句柄不动。最后两16卡需相关894/896根独审terminal/post后按新明确claim接续。",
+        "minimum_action": "466新immutable只修secondary config hash与实际label，现有4role CLI消费通过后绑定最终源；不动provider/Native/冻结分片，不将名称变化当新空闲授权。",
+        "samples": "slots4/5各64共128；原slot0及五个在途slot不重。全部256题512paired，未完成/错题留分母。",
+        "first_result_time": "五组47/42/38/37/52仅07:37快照，剩余时长UNKNOWN；466最短CPU后等待指定真实资源释放，沿各原epoch预算，不延长在途。",
+        "wall_gain": "主要减少覆盖日历时间，新W4普遍性能/NI尚未证明；合并时列各组加载与请求成本，不能按80卡驻留推busy。",
+        "exit": "未知身份/终态停止对应scope，不取消其他隔离任务；全512审计后才完成该覆盖，禁止无限加样本或allcorrect门槛。"
+      }
+    ]
+  },
+  "adoption_requests": [
+    "979保原FAIL，v2唯一bool装配断言及未完生产编译直接续，已过两消费者只核原SHA。",
+    "980保原FAIL/labeldeparture，新immutable刷新最终两config hash与exactlabel；0CLI不冒wholeentry成功，不重复旧CPU/GPU。",
+    "465当前15480清理修正绑定最终MF，978复用；一次64公共pilot同时判性能/用户延迟/质量，原scope直接继续。",
+    "Kimi新device只在新源闭包后最小capacity+embedding，不继承589fit或自动全Model加载。",
+    "GLM五组跟原、128等待指定terminal/post，不缩512、不重已执行。",
+    "1417批吞吐正但用户decode负，两者并列保留；整体严格>15/硬件最大/广泛质量目标未完成。"
+  ],
+  "goal_complete": false
+}

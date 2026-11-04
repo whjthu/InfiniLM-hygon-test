@@ -1,0 +1,87 @@
+{
+  "schema": 1,
+  "scope": "Original980 CPU metadata failure; no device or Model",
+  "actual_CPU": "910407.980",
+  "actual_job_label": "GLM466-remaining-deployment-CPU-v1",
+  "published_claim_label": "GLM466-last-two-deployment-CPU-v1",
+  "label_departure_retained": true,
+  "actual_state": "FAILED",
+  "actual_exit": "1:0",
+  "ElapsedRaw_s": 1,
+  "node": "a14r2n20",
+  "publication_commit": "ca87678298fb0b959de00dc2bde4351796a6425c",
+  "source_manifest_SHA256": "fca4d7159fce2507c1116b67a1e1eb67987db2a3f9c5319b9fccaf469eebeb9d",
+  "published_claim_SHA256": "2eeae6b2a8dfa9198197ed27ae38493b3418861b3b1ca3a28902445dcc3251ff",
+  "original_receipt": {
+    "local": "GLM466-CPU-original-result.json",
+    "bytes": 1161,
+    "SHA256": "6734148ea0735dab47de49dff2578947fa5115b094a45e25472c5b095b01b28e",
+    "remote": "/refactor/candidates/GLM466-last-two-deployment-CPU-v1/result.json"
+  },
+  "original_observation": {
+    "local": "GLM466-CPU-first-original-observed-local.json",
+    "SHA256": "5f6ef71d5f9caec2950738d0cec4dd5892f1497f8891018c71490e5d3008ed12",
+    "UTC": "2026-11-04T07:39:47.621257+00:00",
+    "all_raw_files": [
+      {
+        "path": "candidates/GLM466-last-two-deployment-CPU-v1/result.json",
+        "bytes": 1161,
+        "SHA256": "6734148ea0735dab47de49dff2578947fa5115b094a45e25472c5b095b01b28e"
+      },
+      {
+        "path": "results/GLM466-remaining-deployment-CPU-v1-intent.json",
+        "bytes": 4320,
+        "SHA256": "9d625bdc4c90126951a51d5e48b2ae9d4991c6097fccbea3057caa246a083b6e"
+      },
+      {
+        "path": "results/GLM466-remaining-deployment-CPU-v1-launch.json",
+        "bytes": 4619,
+        "SHA256": "0071a36baafc3796295f5d500cce6e808acfd22c8a822575167226698a0a9045"
+      },
+      {
+        "path": "logs/GLM466-remaining-deployment-CPU-v1-910407.980.log",
+        "bytes": 643,
+        "SHA256": "c0351a36b4d71e907e06f542cb7272d27d892db41cd3d2008932c159850e0629"
+      },
+      {
+        "path": "logs/GLM466-remaining-deployment-CPU-v1-client.log",
+        "bytes": 91,
+        "SHA256": "65f600a4811bbe5a83042a65ce5d91189b5044e0db147569b088b7507986f6c9"
+      }
+    ]
+  },
+  "actual_boundary": {
+    "completed": true,
+    "passed": false,
+    "public_nonserve_CLI_roles_completed": 0,
+    "old_suites_or_encoding_repeated": false,
+    "Native_or_SDK_executed": false,
+    "new_compiles": 0,
+    "GPU": 0,
+    "first_failure": "controller.verify line43 secondary config SHA map before nonserve public CLI",
+    "traceback": "Traceback (most recent call last):\n  File \"/refactor/incoming/GLM-W4-last-two-slots-r466/deployment-v1/check_CPU.py\", line 13, in <module>\n    with contextlib.redirect_stdout(capture):rc=C.main(['--manifest-sha',digest,'--publication-commit',os.environ['GLM466_SOURCE_COMMIT'],'--preflight-only','--slot',str(slot)])\n  File \"/refactor/incoming/GLM-W4-last-two-slots-r466/deployment-v1/controller.py\", line 159, in main\n    assert re.fullmatch('[0-9a-f]{40}',a.publication_commit);m=verify(a.manifest_sha)\n  File \"/refactor/incoming/GLM-W4-last-two-slots-r466/deployment-v1/controller.py\", line 43, in verify\n    assert sha(CONFIG)==m['config_files_SHA256'][CONFIG.name]\nAssertionError\n"
+  },
+  "source_identity_diagnosis": {
+    "all_primary_files_SHA256_match": true,
+    "conflicting_secondary_config_map": [
+      {
+        "path": "config-slot4.json",
+        "secondary_config_map_SHA256": "30dcd3ca566d51853ce48ea213626d055ba4182b6a69fd3e57a37a8376a0138f",
+        "actual_file_SHA256": "7a426b2b6a95788a3415e0a3d8b802e7951c579ca072ad2847246b99229884d8",
+        "primary_files_map_SHA256": "7a426b2b6a95788a3415e0a3d8b802e7951c579ca072ad2847246b99229884d8"
+      },
+      {
+        "path": "config-slot5.json",
+        "secondary_config_map_SHA256": "bd326f8e0f337a0e7eb9b7c19950cfe147f852d75dd60a7d4c5d8fe9737fecaf",
+        "actual_file_SHA256": "50b718ca646c79e058d445bd144d04a5c59afe4d7550b3085a3f72905a026fc1",
+        "primary_files_map_SHA256": "50b718ca646c79e058d445bd144d04a5c59afe4d7550b3085a3f72905a026fc1"
+      }
+    ],
+    "cause": "Before publication, own changed sources were written with LF; primary files map refreshed but secondary config_files_SHA256 retained two hashes from pre-LF bytes. This is packaging identity error, not Native/math/GPU failure.",
+    "original_source_or_claim_modified_after_run": false
+  },
+  "next_minimal_if_authorized": "New immutable version updates exactly secondary config_files_SHA2564/5 to pinned actual raw and uses exact published last-two joblabel; preserve980/sourcev1/receiptFAIL. Reuse same unchanged provider and fourrole consumer, newsource+claim ordinarypub before any one changedCPU. No GPU/Model and no rerun here.",
+  "new_jobs_after_failure": 0,
+  "GPU_GO": false,
+  "Model_GO": false
+}
