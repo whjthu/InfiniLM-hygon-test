@@ -1,0 +1,68 @@
+from pathlib import Path
+import base64,datetime,gzip,hashlib,json,os,subprocess
+PHASE=__PHASE__
+R=Path('/public/home/aclsylqidf/hygon-inference-refactor-20261014');P=R/'incoming/Deep-broad-fewshot-fullpre-quality-r450';D=P/'deployment-gpu-v1';S=P/'supplement-j3b-v1'
+BASE='c383fe62814f899071927dd5b1eda906166a55a3a88f81618f46d323fad2f2e7';SUP='c110e98e982a2e47c6a45b19f7cc6668bce39052afacaa17eb4f6c6beb579458';H=lambda b:hashlib.sha256(b).hexdigest()
+folder=R/'results/Deep450-terminal-parts-v1';folder.mkdir(exist_ok=True);target=folder/(PHASE+'.json.gz')
+def emit(packed,existing):
+ plain=gzip.decompress(packed);q=json.loads(plain);assert q['phase']==PHASE
+ print(json.dumps(dict(phase=PHASE,path=str(target),bytes=len(packed),SHA256=H(packed),uncompressed_SHA256=H(plain),files=len(q['files']),existing=existing,archive_gzip_base64=base64.b64encode(packed).decode(),new_jobs=0,new_HTTP=0)))
+if target.is_file():emit(target.read_bytes(),True);raise SystemExit(0)
+files={};total=0
+def add(n,p,expected=None):
+ global total
+ p=Path(p);assert n not in files and p.resolve().is_relative_to(R.resolve());raw=p.read_bytes();assert len(raw)<256*1024**2;total+=len(raw);assert total<512*1024**2;h=H(raw)
+ if expected:assert h==expected,(n,h,expected)
+ files[n]=dict(original_path=str(p),bytes=len(raw),SHA256=h,base64=base64.b64encode(raw).decode());return raw
+def data(n,q,origin):
+ raw=(json.dumps(q,indent=2)+'\n').encode();files[n]=dict(original_path=origin,bytes=len(raw),SHA256=H(raw),base64=base64.b64encode(raw).decode())
+def tree(name,path,expected):
+ m=json.loads(add(name+'/SOURCE_MANIFEST.json',path/'SOURCE_MANIFEST.json',expected))
+ for n,h in m['files_SHA256'].items():add(name+'/'+n,path/n,h)
+assert H((D/'SOURCE_MANIFEST.json').read_bytes())==BASE and H((S/'SOURCE_MANIFEST.json').read_bytes())==SUP
+base=json.loads((D/'SOURCE_MANIFEST.json').read_bytes());shards=json.loads((D/'SHARDS.json').read_bytes());changed=json.loads((S/'SHARDS.json').read_bytes());meta={}
+if PHASE=='init':
+ pins=json.loads((D/'INPUT_PINS.json').read_bytes())
+ for key,name in [('cases','cases.json'),('requests','requests-private.json'),('CPU945','encoding.json')]:
+  p=Path(pins[key]['path']);p=R/p.relative_to('/refactor')if str(p).startswith('/refactor/')else p;add('inputs/'+name,p,pins[key]['SHA256'])
+ ledger=[];labels=[];summaries=[]
+ for j,original in enumerate(shards):
+  active=changed[j]if j==3 else original;label=active['label']+'-'+active['run'];labels.append(label);w=json.loads((R/'results'/(label+'-watch.json')).read_bytes());cp=R/'results'/(label+'-client/result.json');c=json.loads(cp.read_bytes());assert w['completed']and c['completed']
+  ledger.append(dict(shard=j,source_namespace='supplement'if j==3 else'deployment',deployment_manifest_SHA256=SUP if j==3 else BASE,run=active['run'],label=active['label'],node=active['node'],parent=active['parent'],actual_GPU=w.get('actual_GPU'),actual_client=w.get('actual_client'),CPU_keeper=w.get('CPU_keeper'),original_GPU_start_unix=w.get('original_GPU_start_unix'),completed=w['completed'],passed=w['passed'],attempt='j3b'if j==3 else'original-a',observed_completed_HTTP=c['completed_HTTP']))
+  summaries.append(dict(shard=j,actual_GPU=w['actual_GPU'],CPU_keeper=w['CPU_keeper'],actual_client=w['actual_client'],HTTP=c['completed_HTTP'],passed=w['passed']))
+ original=shards[3];label=original['label']+'-'+original['run'];labels.append(label);w=json.loads((R/'results'/(label+'-watch.json')).read_bytes());path=R/'results/Deep-broad-fewshot-fullpre-quality-r450'/original['run']
+ ledger.append(dict(shard=3,attempt='j3a-original-failed-bootstrap',source_namespace='deployment',run=original['run'],label=original['label'],CPU_keeper='910407.951',actual_GPU=w.get('actual_GPU'),actual_client=w.get('actual_client'),completed=w['completed'],passed=w['passed'],runtime_directory_exists=path.exists(),observed_completed_HTTP=0,unexecuted_logical_HTTP=64,cleanup_post='910374.1402',not_retroactive_normal=True))
+ raw=subprocess.check_output(['sacct','-S','2026-11-04','-j','910374,910371,910407','-n','-P','-o','JobIDRaw,JobName%180,State,ExitCode,ElapsedRaw,NodeList%100'],text=True,timeout=30);account=[s.split('|')for s in raw.splitlines()if'|'in s and any(s.split('|')[1].startswith(v)for v in labels)]
+ data('accounting.json',account,'sacct exact original labels');data('attempt-lineage.json',ledger,'Explicit original watch source/run/handle lineage');meta['observations']=summaries
+elif PHASE=='private-inputs':
+ b=R/'candidates/Deep-broad-fewshot-fullpre-quality-r450-CPU-v1';enc=json.loads((b/'encoding.json').read_bytes())
+ for row in enc['cases']:
+  p=Path(row['private_path']);p=R/p.relative_to('/refactor')if str(p).startswith('/refactor/')else p;add('inputs/private/'+row['case_id']+'.json',p,row['private_SHA256'])
+elif PHASE=='source-base':tree('deployment',D,BASE)
+elif PHASE=='source-supplement':tree('supplement',S,SUP)
+elif PHASE=='source-provider':tree('provider',P,base['provider_source_SHA256'])
+elif PHASE=='failed-j3a':
+ original=shards[3];label=original['label']+'-'+original['run'];add('attempts/j3a/watch.json',R/'results'/(label+'-watch.json'),'42f16a77af542b53b39efa51f54cc57185dcb089d05438091d00ddcb920c33ef');add('attempts/j3a/intent.json',R/'results'/(label+'-intent.json'))
+ for p in sorted((R/'logs').glob(label+'*')):
+  if p.is_file():add('attempts/j3a/logs/'+p.name,p)
+elif PHASE in['j'+str(j)for j in range(8)]:
+ j=int(PHASE[1:]);active=changed[j]if j==3 else shards[j];key='j%d/'%j;label=active['label']+'-'+active['run'];runtime=R/'results/Deep-broad-fewshot-fullpre-quality-r450'/active['run'];wp=R/'results'/(label+'-watch.json');w=json.loads(add(key+'watch.json',wp));assert w['completed'];cp=R/'results'/(label+'-client/result.json');c=json.loads(add(key+'client.json',cp));assert c['completed']
+ for row in c['rows']:
+  stem='%04d'%row['logical_index'];add(key+stem+'.request.json',cp.parent/(stem+'.request.json'),row['request_body_SHA256']);add(key+stem+'.wire',cp.parent/(stem+'.wire'),row['wire_SHA256'])
+ for alias,name in [('owner.json','owner.json'),('ready.json','MODEL_READY.json'),('frontend.json','FRONTEND.json'),('closed.json','closed-engine.json'),('STOP.json','STOP.json')]:
+  if(runtime/name).is_file():add(key+alias,runtime/name)
+ ip=cp.parent.with_name(cp.parent.name+'-identity.json')
+ if ip.is_file():add(key+'client-identity.json',ip)
+ ip=R/'results'/(label+'-intent.json')
+ if ip.is_file():add(key+'intent.json',ip)
+ for p in sorted((R/'logs').glob(label+'*')):
+  if p.is_file():add(key+'logs/'+p.name,p)
+ for p in sorted((R/'results').glob(label+'-initial-*.json')):
+  if p.is_file():add(key+'initial/'+p.name,p)
+else:raise ValueError('Unknown fixed archive part')
+q=dict(schema_version=1,phase=PHASE,UTC=datetime.datetime.now(datetime.timezone.utc).isoformat(),provider_source_SHA256=base['provider_source_SHA256'],deployment_manifest_SHA256=BASE,supplement_manifest_SHA256=SUP,diagnostic_recording_only=False,files=files,meta=meta,new_HTTP=0,new_jobs=0,weights_or_activations_read=False,raw_total_bytes=total)
+plain=(json.dumps(q,ensure_ascii=False,separators=(',',':'))+'\n').encode();packed=gzip.compress(plain,compresslevel=9,mtime=0);tmp=folder/(PHASE+'.writing-'+str(os.getpid()))
+with tmp.open('xb')as f:f.write(packed);f.flush();os.fsync(f.fileno())
+try:os.link(tmp,target)
+finally:tmp.unlink()
+emit(packed,False)
