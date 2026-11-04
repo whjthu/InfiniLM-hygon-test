@@ -51,7 +51,7 @@
   },
   "question1_actual_gain": {
     "GLM": "879只有生产入口失败与资源清理结果，0请求，无Model性能/质量结论；446继续PARK，不恢复近似网格。",
-    "Deep449": "原执行者报告1392已636forward/6goldEOS/normalclean，decode约-15.03%/whole约-4.20%；截至本审核输入root仍在独立重算，因此列待root消费的scoped Model候选，不冒广泛晋级或已根审。root完成后纳本轮实际因果记录，无需为等审核重跑。",
+    "Deep449": "落实增量：root已实际执行原32files reader，636forward/6goldEOS同98IDs/normal8/postclean闭合；Native decode每步.3819413→.3245308s(-15.03%)，whole145.4518→139.3445s(-4.20%)，两formalpair超OFFdrift。限定scoped Model gain已根审；0/6backend>15，宽质量未知、默认不晋。结果见Deep449-1392-root-audited-scoped-Model-gain-normal-clean.json。",
     "Kimi": "585/944原32卡加载/0HTTP是当前带时间观察，不是结果；只跟原句柄，不重提。",
     "global": "879/941工程失败、CPU/path probe和source工作不充性能轮；全质量、硬件可达Model上限、严格每用户>15仍未证明。"
   },
@@ -85,12 +85,12 @@
     "Deep": [
       {
         "priority": 1,
-        "card": "Consume449 original Model pair",
+        "card": "Consume449 original Model pair — completed in root followthrough",
         "owner_resource": "root/原Deep agent，已有原件只读消费，0新GPU/0重载。",
         "hypothesis": "真实六请求pairedwall改善在任务正确、实际命中和normal生命周期同时成立。",
         "minimum": "复用正在执行的独立reader，保完整warm/formal区分、全6wire/计数/normal/post。",
-        "first_result": "当前独审收束后，剩余时间UNKNOWN；不让其它任务等。",
-        "wall_impact": "候选decode约15%/whole约4%，最终数字和scope以root原件重算为准。",
+        "first_result": "root已完成原件独审；不重复reader或GPU。",
+        "wall_impact": "实际scoped decode-15.03%/whole-4.20%，不广泛晋级。",
         "exit": "成立仅记此scope，不称宽质量；不成立保负/未知，不重加载。"
       }
     ],
@@ -106,6 +106,38 @@
         "exit": "按原具体scope的质量、错误、未完分母与清理收束；不因GLM失败中断或等待审核。"
       }
     ]
+  },
+  "followthrough_socket_source_review": {
+    "scope": "194落实增量，不新review/轮次；四HOST仍source-only/GPUfalse，审阅快照不冒充最终冻结或实际socket资格。",
+    "root_implementation": "1362b71b已发布194 COMPLETE_ADOPTED；Deep449已纳根周期并归零，此后881/882 CPU不是性能轮。",
+    "881": "同namespace32路径exists/stat/open均成功，只证明STOP后该进程视图一致；未解释879实际wait name/path。",
+    "882": {
+      "artifact": "L/GLM444-dynamic-crossnode-first-observed.json",
+      "SHA256": "105585c06c895e7e329b3512785344bd92b2acf64e0bfa628b9f3287bc8f7abc",
+      "actual": "910376.882 COMPLETED0/31s，21原文件保留。",
+      "interpretation_correction": "producer自身2–4秒发布与consumer自身30秒wait不是同一因果零点；firstmiss单向握手不能排除producer晚启动或晚看到marker。因此只支持采样时exists/stat/open均ENOENT，不证明发布后NFS传播耗30秒，更不解释879。旧reader/compact的强解释由原agent收紧，不重probe。",
+      "next_existing_CPU_contract": "整合到已准备socket必要CPU：producer真实原publish_once全部16 hardlink成功后发送身份/文件SHA绑定publishedreceipt；consumer收到后以本机时间采样相同路径stat/open并保结果。由该消息建立发布先于采样的happens-before，不跨节点直接相减monotonic。即便已收到后仍ENOENT，也只证明该视图当时未见已发布文件，不自动归因NFS具体机制。无MODEL_READY，不伪造真实owner证据。"
+    },
+    "source_root": "code/bw1000/GLM-W4-fewshot-quality-r444/verified-ready-socket-v1/public_glm_native",
+    "snapshot_SHA256": {
+      "ready_socket.py": "a52067f0a1193cb02d3830706b88391ba39b31bf05cc5549db91efdaf6179b29",
+      "protocol.py": "ffe538a75dd9b9ceb81729263d629d9ffd549abf6da61cbfa106931393347bfd",
+      "actors.py": "e854870a3e2a729e3164277605f1af723c6756f46a6253a8b81e32debbcafb53",
+      "provider.py": "5c8a0c8480a0e1132443d493c2106693bb202d92086402aaba1f7a7d132d96f9"
+    },
+    "preserved_semantics": [
+      "stage0仍先原Run.all_ready读取实际16 ready，再validate_ready_records；stage1接收同16内容后执行相同identity/Native/config/load/floor/service/32独占mask validator，才走原MODEL_READY路径。没有替代owner事实的任意ready bit。",
+      "stage1 listener在Actors.start前持有，无新线程/Native调用；stage0仅一次connect，stage1仅一次accept，无失败retry或第二provider。",
+      "frame上限256KiB，重复JSON key/nonfinite拒绝，nonce/identity/digest/ACK与额外字节检查明确；固定数字IP避免隐式DNS阻塞。",
+      "receiver context manager包围group.start/receive，异常退出关闭listener/connection；sender with关闭socket。FD不继承到spawn。接收方等sender EOF再关闭，错误不伪PASS。",
+      "原epoch2700与service余量/relay120保持，send/recv/accept循环检查STOP/FAILED/局部取消；connect最长15秒，在connect系统调用内不能宣称.25秒取消响应。",
+      "新43844必须加入既定fresh/post检查，与43843共同记录；Native/owners/math/STOP协议不变。"
+    ],
+    "minimal_required_source_close": "receiver.receive返回并退出socket上下文后、MODEL_READY.write紧前，再检查group.failed、stop_intent、owner_thread实际仍alive、Run.stop_requested和原startup/service余量。当前最后一次check在receive内，ACK/EOF/close到publish之间可已发生取消/owner错误。该检查不创造跨文件原子性，keeper原STOP/FAILED/timeout锁存与发布前重查仍必须保留。已直接发root，属于定点收口，不要求新通用门禁或重939。",
+    "authentication_boundary": "token_hex challenge+echo只绑定本次连接新鲜性；hmac.compare_digest比较nonce不是带秘密密钥的MAC。固定peer IP和完整run/config/source身份也不是进程级或密码学认证。此实现依赖原独占节点/受控同UID进程及共享ready文件的信任域，不能宣传完整认证；本次不据此强加TLS/HMAC框架。",
+    "real_ready_provenance": "生产必须传stage0从原owner ready读出的records；CPU recording文件/诊断capture只能标CPU契约，不可复制成真实ready或MODEL_READY。现四HOST遵守此调用链；最终claim需沿用其明确源身份，不用CPU成功晋级Model。",
+    "decision": "未见除此发布前取消收口外的确定权限越界、16record弱化或明显FD泄漏。可并入原必要CPU完成当前小接口，不重881/882探针、不重939，不改在途作业。它是绕开stage1目录轮询依赖的新交接候选，不是已证明NFS修复，也不能宣称879根因已知。",
+    "independent_work": "Deep450 source与原Kimi585/944/586独立继续；本增量不增加设备卡或等待GO。"
   },
   "actions": [
     "保879整体FAIL、正常GPU/post与0HTTP/64未执行四域，不把诊断更完善写成entry修复。",
