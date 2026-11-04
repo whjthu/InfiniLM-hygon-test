@@ -1,0 +1,116 @@
+{
+  "review": 194,
+  "state": "REVIEW_COMPLETE_PENDING_ROOT_IMPLEMENTATION",
+  "date_local": "2026-11-04",
+  "reviewer": "/root/astra_review_147",
+  "scope": "只读实际原件、运行源码、193落实；仅写本报告。未运行probe/test/reader/job/Git或轮询，不等独立模型加载，不新增审批。",
+  "trigger": "879再次实际生产entry失败；工程事件不计性能轮。与193相比新增真实重复Python线程栈和有界正常STOP证据，不能将观测控制有效冒充entry根因已修。",
+  "evidence": {
+    "terminal": "L/GLM444-startup-v4-root-original-observed-2337.json",
+    "snapshot_container": "L/GLM879-original-diagnostic-snapshot.json",
+    "snapshot_raw_SHA256": "64ff639e5a1430d637d491195563f67046ffbd31cd17819ffb0b8e7f4d724919",
+    "snapshot_raw_bytes": 118735,
+    "snapshot_files": 21,
+    "stack_bytes": 28302,
+    "stack_SHA256": "a2bd4198ac06efe6e919299b011cc7df6872a9190eb52f8cb7600fbe646c0fd1",
+    "source": "code/bw1000/GLM-W4-fewshot-quality-r444/startup-diagnostic-v4/provider/public_glm_native",
+    "source_collector": "code/bw1000/GLM-W4-fewshot-quality-r444/startup-diagnostic-v4/deployment/startup_gate.py"
+  },
+  "review193_followthrough": {
+    "implementation": "analysis/bw1000/reviews/astra-review-193-implementation.json COMPLETE_ADOPTED_ACTUAL_CLEANUP_VERIFIED",
+    "old8slots": "实际936清理后原8GPU正常0、128owner正常、keeper受控退出9、16node clean；0HTTP/512未执行保留。不是原quality完成。",
+    "singleton879": "GPU910376.879 COMPLETED0/18m55、keeper941 FAILED1/18m58、post880 COMPLETED0/1s；first16ready+120秒触发StartupTimeout；STOPnormal/forced_cleanup=false，0HTTP/本slot64未执行。",
+    "working_controls": "C实现faulthandler重复watchdog取到了Python线程栈；外部keeper先检查all16ready120/原epoch2700再接受晚MODEL_READY；失败锁存禁止client，原STOP60秒drain实际起效。无需重939套件证明这些既成边界。",
+    "not_fixed": "真正stage1 readiness读取问题仍UNKNOWN；正常GPU退出与post只闭合资源/生命周期，不把原keeperFAIL或请求缺失改PASS。"
+  },
+  "known_and_unknown": {
+    "main_actual": "重复栈为protocol.wait:71→all_ready:86→Actors.wait_ready→Provider.start→public lifespan。所读实际protocol.py第71行为time.sleep(.1)，处在while not (self.path/name).exists()循环内。",
+    "inference_supported": "在被采样时尚未进入该文件的read()/identity/mask断言，也没有阻在MODEL_READY写入。最窄需查实际self.path/name/底层存在性判断与该进程的文件系统视图。",
+    "other_actual": "emitter多次在queue.get；stage0有all_ready16return标记，外部keeper原all_ready16验证成功；stage1 wait_ready没有return。",
+    "not_proved": [
+      "不能从这些Python栈推断Native C/CUDA栈或GIL/CCL死锁。watchdog由C实现不等于输出是Native C栈。",
+      "不能仅因同共享根HOST可读就认定stage1容器看到相同inode/挂载/路径。",
+      "没有栈locals，不能确认具体卡在哪个ready文件、self.path是否正确或Path.exists是否被运行期改变。",
+      "不能先认定NFS负缓存、pathlib缺陷、chdir或权限问题；已读本包未发现直接替换Path.exists或chdir的源码，但未覆盖所有运行时第三方行为。"
+    ],
+    "cycle": "原provider/owner源码没有client→ownerready→client循环依赖。主动发请求、手写MODEL_READY或放宽身份并不能合法修复存在性循环。"
+  },
+  "one_minimal_CPU_probe": {
+    "owner": "已接任务的原Kimi实现agent，root协调；本审核不执行。",
+    "resource": "若现有小原件不足，至多1core/512MiB/60s、原node15、同image和原bind/工作目录，只读879原目录；0Native/SDK/Torch/权重/GPU，不新Model或重939。",
+    "consume_actual": "消费冻结v4 config、实际run/step/epoch/源SHA及原16ready，不生成替身ready；读实际protocol消费者，不另造成功模型。",
+    "necessary_outputs": [
+      "原config.runtime_directory、Run.path、16个预期name的repr/os.fspath/绝对/resolve，以及实际listdir basename；记录当前Python/模块来源/工作目录。",
+      "同一精确目标的Path.exists/is_file、os.stat与open原字节SHA/identity结果；逐项保errno/异常，不能用吞异常的false代替。记录符号链接目标、dev/inode和相关mountinfo行，不读取无关大目录。",
+      "protocol模块文件SHA、实际Path类与exists/stat callable来源；对照原HOST路径与/refactor对应路径，不全局replace。",
+      "在有界范围执行原all_ready读取16真实记录，保返回或实际缺失路径。probe自身不得写MODEL_READY/STOP或改原目录。"
+    ],
+    "interpretation": "若此新CPU进程成功，只证明该进程/时点可见，不证明879已修；若捕获确切错路径、缺挂载或API语义差异，才定点修改真实生产消费者。不得把一次成功probe自动转换成再加载资格。",
+    "minimal_source_diagnostic_if_unreproduced": "未来immutable wait仅在首次missing/有界失败时保存name/path/该次exists与stat/open异常及run身份，以补当前栈缺locals；有限小记录，无轮询大报告。不要先把exists改成open并假称修复。未知原因保持UNKNOWN，避免下一GPU只重复同样无路径信息的挂起。",
+    "exit": "60秒内不能判定就保结果与未知，不自动重probe/重GPU；源诊断与其它独立路线继续。"
+  },
+  "question1_actual_gain": {
+    "GLM": "879只有生产入口失败与资源清理结果，0请求，无Model性能/质量结论；446继续PARK，不恢复近似网格。",
+    "Deep449": "原执行者报告1392已636forward/6goldEOS/normalclean，decode约-15.03%/whole约-4.20%；截至本审核输入root仍在独立重算，因此列待root消费的scoped Model候选，不冒广泛晋级或已根审。root完成后纳本轮实际因果记录，无需为等审核重跑。",
+    "Kimi": "585/944原32卡加载/0HTTP是当前带时间观察，不是结果；只跟原句柄，不重提。",
+    "global": "879/941工程失败、CPU/path probe和source工作不充性能轮；全质量、硬件可达Model上限、严格每用户>15仍未证明。"
+  },
+  "question2_cost": "879耗GPU1135s×16=18160card-s约5.044card-h，包含加载/等待/退出，非busy。相较193，ready后120秒与STOP60已防止128卡长期空等；下一决定性信息应来自小CPU路径/语义交接，而非再次支付18分钟加载。准备/队列/精确load时间需消费原记录，不用总驻留反推。",
+  "question3_bottleneck": "当前GLM阻塞在文件存在性等待，尚未进入HTTP；没有算子/带宽/通信瓶颈证据。Deep449收益需原pairedwall独审；Kimi在途不能推瓶颈。不能用大GEMM峰值、NoV逻辑节省或fullV反事实free预测Model速度。",
+  "next_cards_by_model": {
+    "GLM": [
+      {
+        "priority": 1,
+        "card": "879 exact ready path/exists/open CPU causality",
+        "owner_resource": "原Kimi实现agent；上述原node15≤1c512MiB60s，可直接执行已授权范围，不等新增GO。",
+        "hypothesis": "生产stage1实际等待路径或存在性语义与外部keeper/同run文件不一致。",
+        "reuse": "原config/source/ready/stack与939已过watchdog和STOP合同；不重Native/旧测试。",
+        "first_result": "CPU开始后≤60秒获得可见性/异常小证据；实际排队时间UNKNOWN。",
+        "wall_impact": "不承诺加速；避免又一次无信息模型加载。",
+        "exit": "确定偏差才作对应源修；只有新进程PASS但无原因，仍不宣称修复或自动GPU。",
+        "fallback": "保有限生产wait路径诊断，不补ready、不扩大框架。"
+      },
+      {
+        "priority": 2,
+        "card": "Stage0 fullV mixed-cache source-only feasibility",
+        "evidence": "analysis/bw1000/GLM952-fullV-restoration-readonly-feasibility-after850444.json",
+        "decision": "仅保source候选，不自动GPU；在ready根因未闭合时不混入入口修复。",
+        "hypothesis": "stage0保原完整V、stage1保NoV可能避免部分重算且不破原8GiB/4GiB/512MiB条件。",
+        "minimum": "Native952原分支已有；需精确perstage typed config/constructor census/ready身份，不能将全NoV的metadata或gate复用为混合策略成功。",
+        "resource": "只读源/已有内存原件；0GPU/0新Model。",
+        "first_result": "源结论已具备；设备可达性、实际峰值、质量与收益UNKNOWN。",
+        "exit": "全16fullV不满足未改admission而停止；stage0-only尚未排除，但保反事实减法与真实分配的边界，不降floor/改ctx或称physical OOM已证明。无额外驻留。"
+      }
+    ],
+    "Deep": [
+      {
+        "priority": 1,
+        "card": "Consume449 original Model pair",
+        "owner_resource": "root/原Deep agent，已有原件只读消费，0新GPU/0重载。",
+        "hypothesis": "真实六请求pairedwall改善在任务正确、实际命中和normal生命周期同时成立。",
+        "minimum": "复用正在执行的独立reader，保完整warm/formal区分、全6wire/计数/normal/post。",
+        "first_result": "当前独审收束后，剩余时间UNKNOWN；不让其它任务等。",
+        "wall_impact": "候选decode约15%/whole约4%，最终数字和scope以root原件重算为准。",
+        "exit": "成立仅记此scope，不称宽质量；不成立保负/未知，不重加载。"
+      }
+    ],
+    "Kimi": [
+      {
+        "priority": 1,
+        "card": "Follow existing585/944 public quality run",
+        "owner_resource": "原Kimi模型任务owner，只原32卡句柄和原deadline。",
+        "hypothesis": "当前普通public baseline在预声明完整质量计划下正确交付并正常退出。",
+        "minimum": "不换源/改样本/重提；加载完消费原HTTP/实际每请求事件。",
+        "first_result": "加载及首请求结束时间UNKNOWN，不据RUNNING自动续期。",
+        "wall_impact": "本次无性能预测。",
+        "exit": "按原具体scope的质量、错误、未完分母与清理收束；不因GLM失败中断或等待审核。"
+      }
+    ]
+  },
+  "actions": [
+    "保879整体FAIL、正常GPU/post与0HTTP/64未执行四域，不把诊断更完善写成entry修复。",
+    "只收精确等待路径与exists/stat/open证据；不再盲测GIL/CCL/NFS或任意READY。",
+    "最小CPU与已知定点修复直接继续；复用939等通过边界，不追加无关门禁。",
+    "Deep449独审与Kimi585原任务并行；root逐项登记落实，源/CPU不计性能轮。"
+  ]
+}
