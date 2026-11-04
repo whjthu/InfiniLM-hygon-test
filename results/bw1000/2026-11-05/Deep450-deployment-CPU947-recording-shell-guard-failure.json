@@ -1,0 +1,15 @@
+{
+  "actual_CPU": "910407.947",
+  "accounting": "910407.947|Deep450-deployment-CPU-v1|FAILED|1:0|00:00:00|a14r2n20",
+  "raw_receipt_bytes": 1979,
+  "raw_receipt_SHA256": "f0ee28a58ecc5e3e0f8d205dd21bc2ba931be07b0bf185381241b6ecb89e9ddc",
+  "original_local_observation": "L/Deep450-deployment-CPU-v1-original-observation-local.json",
+  "observation_SHA256": "2e5db8017ef59eb7408c9f4b0312a171bc8de4c377c501688832d7b27a627ed5",
+  "passed": false,
+  "completed": true,
+  "scope": "CPU metadata only; noNative/GPU/weights/compile/encoding",
+  "error": "AssertionError('CPU must not Popen keeper/GPU')",
+  "traceback": "Traceback (most recent call last):\n  File \"/refactor/incoming/Deep-broad-fewshot-fullpre-quality-r450/deployment-v1/run_CPU.py\", line 13, in main\n    q['actual_changed_metadata_consumer']=run()\n  File \"/refactor/incoming/Deep-broad-fewshot-fullpre-quality-r450/deployment-v1/check_metadata_CPU.py\", line 44, in run\n    with patch.object(launch.subprocess,'run',child),patch.object(launch.subprocess,'Popen',side_effect=AssertionError('CPU must not Popen keeper/GPU')),contextlib.redirect_stdout(io.StringIO()):code=launch.main(['--shard',str(j),'--manifest-sha',mf,'--publication-commit','0'*40,'--preflight-only'])\n  File \"/refactor/incoming/Deep-broad-fewshot-fullpre-quality-r450/deployment-v1/launch_once.py\", line 11, in main\n    for name in ['inside.sh','resource_wave_host_alias_outer.sh']:subprocess.run(['bash','-n',str(c.D/name)],check=True,timeout=10)\n  File \"/refactor/incoming/Deep-broad-fewshot-fullpre-quality-r450/deployment-v1/check_metadata_CPU.py\", line 39, in child\n    if command[0]=='bash':return real_run(command,**kw)\n  File \"/usr/lib/python3.10/subprocess.py\", line 503, in run\n    with Popen(*popenargs, **kwargs) as process:\n  File \"/usr/lib/python3.10/unittest/mock.py\", line 1114, in __call__\n    return self._mock_call(*args, **kwargs)\n  File \"/usr/lib/python3.10/unittest/mock.py\", line 1118, in _mock_call\n    return self._execute_mock_call(*args, **kwargs)\n  File \"/usr/lib/python3.10/unittest/mock.py\", line 1173, in _execute_mock_call\n    raise effect\nAssertionError: CPU must not Popen keeper/GPU\n",
+  "known_cause": "Global recording Popen rejection also intercepted real bash -n. No Model/GPU qualification. Immutable CPU-v2 allows only exact pinned shell syntax.",
+  "source_manifest_SHA256": "33bddf617fb6a143929ce57cef46e818f9ce2ae64f5c53eb2666b1ae084f59d2"
+}
