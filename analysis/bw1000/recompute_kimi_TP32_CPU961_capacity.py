@@ -1,0 +1,53 @@
+"""Read-only, stdlib formula/archived endpoint audit. No Native/GPU/jobs."""
+from pathlib import Path
+import base64,gzip,hashlib,json,math,sys
+G=Path(__file__).resolve().parents[2];L=Path(sys.argv[1])if len(sys.argv)>1 else G.parent
+H=lambda b:hashlib.sha256(b).hexdigest()
+def pin(p):b=Path(p).read_bytes();return dict(path=str(p),bytes=len(b),SHA256=H(b))
+def pool(n,exact=False):
+ n=(n+255)//256*256
+ for c in [32768,262144,*[2**k for k in range(20,29)]]:
+  if not exact and n<=c:return c
+ return n
+def main():
+ native='fc3def9a539f3e9c9e1fc4c4ef2c2f0bbee03ddbe32300c689a8113310068056'
+ p961=L/'Kimi453-CPU961-sealed-original.json';t=json.loads(p961.read_bytes());z=base64.b64decode(t['gzip_base64']);assert H(z)=='d0527ba873ca9c63d020aa48d989b00096b492a4a2da416832dbb89936bea30a';a=json.loads(gzip.decompress(z));fs=a['files']
+ r=json.loads(fs['/refactor/candidates/Kimi-long-geometry-optin-r453-CPU-v1/CPU-result.json']['rawtext']);assert r['passed']and r['native_SHA256']==native
+ rt=r['actual_dependency_library_SHA256'];assert rt['libinfinilm_runtime.so']['SHA256']=='04a6a1a86c97d176e4304b9bb4c1d6fcb8550784beaa47e0f5841fb7603ffabf'and rt['libinfinirt.so']['SHA256']=='e78b7b4aed105e5968fc598f60a2cacafcaf7c07c13dd4a971abfbdd92d47560'
+ moep='/refactor/incoming/Kimi-long-geometry-optin-r453/native/kimi_moe_scale_exact_r201.cpp';moe=fs[moep]['rawtext']
+ assert 'auto w2 = infinilm::runtime::Tensor::empty('in moe and 'return infinilm::runtime::Tensor::empty_parameter(runtime,shape,infinilm::runtime::DataType::kUInt8)'in moe
+ assert 'mxfp4_weights_.packed_w2 = std::move(w2);'in moe and 'runtime, hidden_size, routed_hidden_size, false, dtype' in moe and 'runtime, routed_hidden_size, hidden_size, false, dtype'in moe
+ poolfile=G/'evidence/bw1000/resume-20261026/native-allocator-observed-r116.json';v=json.loads(poolfile.read_bytes());po=next(v for k,v in v['files'].items()if 'reusable_memory_pool.cc'in k and v.get('exists'))
+ assert H(po['text'].encode())==po['SHA256']=='499fc5fcb9a8f5a03fa0d64c482c95e61d05f368840def6234d3ecdf025f08ac'
+ assert '!exact && class_index < size_classes_.size()'in po['text']and 'size <= cls.block_size'in po['text']and 'block->size = cls.block_size'in po['text']
+ binaryfile=G/'analysis/bw1000/TP32-allocator-binaryclosure-r167.json';binary=json.loads(binaryfile.read_bytes());assert binary['source_and_pinned_binary_chain_closed']
+ assert {v['library_SHA256']for v in binary['functions']}=={rt['libinfinilm_runtime.so']['SHA256'],rt['libinfinirt.so']['SHA256']}
+ # Real baseline endpoints, with the archive's original raw bytes verified.
+ p585=L/'Kimi448-585-terminal-sealed-v1.json.gz';b=p585.read_bytes();assert H(b)=='b1101d7f5fdd55edcf1a4725be9e692d5aad6f05404482b643a0c1901f78cdd3';old=json.loads(gzip.decompress(b));nodes=[]
+ for n in range(4):
+  k=f'runtime/Kimi-public-r428-public-kimi-wide-20261104-a-node{n}.json';v=old['files'][k];b=base64.b64decode(v['base64']);assert len(b)==v['bytes']and H(b)==v['SHA256'];q=json.loads(b)
+  assert q['TP']==16 and q['PP']==2 and q['completed']and q['library_sha256']=='8df87f0741b13c90f658174a793f0068efb4eb8097eddf1d5f44edb4d208e1a2'
+  phases={k:q[k]for k in ['memory_before_create','memory_after_create','memory_after_finish']}
+  assert all(total==68702699520 for rows in phases.values()for free,total in rows)
+  hc=q['head_before_weights'];keep=['device','TP','tp_rank','PP','PP_stage','head_expected','head_constructed','physical_head_shape','head_parameter_bytes','global_row_begin','global_row_end_exclusive','full_GPU_head_retained']
+  nodes.append(dict(node=n,stage=q['PP_stage'],report_SHA256=v['SHA256'],memory=phases,head_census=[{k:o[k]for k in keep if k in o}for o in hc['owners']],sampled_final_minfree=q['last_memory_guard']['minimum_free_bytes']))
+ # Four unique expert banks per MoE. 5376 Weight leaves are aliases, not extra
+ # allocations. Exact scales are already enabled by the new typed geometry.
+ E,K,I,moes=896,3584,96,92
+ shapes={'W13':[E,2*I,K//2],'S13':[E,2*I,K//32],'W2':[E,K,I//2],'S2':[E,K,I//32]}
+ banks={k:dict(dtype='U8',shape=s,logical_bytes=math.prod(s),allocation='exact_parameter'if k.startswith('S')else'regular',pool_bytes=pool(math.prod(s),k.startswith('S')),expert_weight_leaf_aliases=E*(2 if k in ['W13','S13']else 1))for k,s in shapes.items()}
+ exactexpert=sum(v['logical_bytes']for v in banks.values())*moes;currentexpert=sum(v['pool_bytes']for v in banks.values())*moes
+ replicated={'router':dict(shape=[896,7168],dtype='BF16',logical_bytes=896*7168*2),'down':dict(shape=[3584,7168],dtype='BF16',logical_bytes=3584*7168*2),'up':dict(shape=[7168,3584],dtype='BF16',logical_bytes=7168*3584*2)}
+ rep=sum(v['logical_bytes']for v in replicated.values())*moes;total=68702699520;floor=4*1024**3;limit=total-floor;lower=currentexpert+rep
+ assert lower>limit
+ # This old header-classification is a conservative logical scenario, NOT used
+ # in the deterministic lower-bound proof above. Correct its head once only.
+ ledgerfile=G/'analysis/bw1000/Kimi-TP16PP2-static-memory-r8669z.json';ledger=json.loads(ledgerfile.read_bytes());cat={k:sum(s['category_bytes'].get(k,0)for s in ledger['topology']['stages'])for k in ledger['topology']['stages'][0]['category_bytes']}
+ fullhead=163840*7168*2;head32=fullhead//32
+ parts={'replicated_or_conservative_excluding_head':cat['replicated_or_conservative']-fullhead,'sharded_attention':cat['sharded_attention']//2,'shared_dense_MLP':cat['shared_or_dense_MLP']//2,'packed_experts':cat['MXFP4_experts']//2,'TP32_shard_head':head32}
+ assert parts['packed_experts']==exactexpert and sum(parts.values())==62163168060
+ cache={'MLA_layers':24,'KDA_layers':69,'MLA_each_shape':[2,260,256,3,192],'MLA_each_BF16_bytes':2*260*256*3*192*2,'MLA_all_logical_bytes':24*2*260*256*3*192*2,'MLA_regular_pool_scenario_all_bytes':24*pool(2*260*256*3*192*2),'MLA_regular_pool_scope':'Conditional until exact cached kv_cache implementation source/MD is read; not needed for current hard lower bound','KDA_recurrent_shape':[3,3,128,128],'KDA_recurrent_each_bytes':3*3*128*128*2,'KDA_conv_shape':[3,1152,3],'KDA_conv_each_bytes':3*1152*3*2}
+ cache['KDA_all_logical_bytes']=69*(cache['KDA_recurrent_each_bytes']+cache['KDA_conv_each_bytes']);cache['KDA_all_regular_pool_bytes']=69*(pool(cache['KDA_recurrent_each_bytes'])+pool(cache['KDA_conv_each_bytes']))
+ w2saving=moes*(banks['W2']['pool_bytes']-banks['W2']['logical_bytes'])
+ return dict(schema=1,scope='Existing source/CPU961/585 raw only; no Native/GPU/Slurm/weights/compile',decision='CURRENT_CPU961_TP32PP1_CANNOT_PRESERVE_ORIGINAL_4GiB_FLOOR',Native_SHA256=native,CPU='910407.961',physical_visible_bytes=total,unchanged_floor_bytes=floor,maximum_occupied_for_floor=limit,deterministic_lower_bound=dict(expert_four_banks_pool_bytes=currentexpert,replicated_router_down_up_logical_bytes=rep,subtotal_bytes=lower,subtotal_GiB=lower/1024**3,excess_over_floor_budget_bytes=lower-limit,maximum_free_before_every_other_allocation=total-lower,proof='All92 per-layer four expert banks strongly retained. W2 regular class256MiB, scales exact; router/down/up separate BF16 resident parameter children. Their physical bank+logical parameter subtotal alone exceeds actual VRAM minus4GiB. Does not rely on conservative header ledger or a measured peak.',not_included=['embedding','all attention parameters','shared/dense MLP','norms/AttnRes','MLA/KDA cache','head','CCL/driver','workspace','allocator bookkeeping']),expert_banks_per_layer=banks,expert_aliases=dict(leaves_per_layer=896*6,unique_banks_per_layer=4,all92_leaf_count=92*896*6,all92_unique_banks=368,narrow_squeeze_views_add_no_backing=True),replicated_per_layer=replicated,replicated_vs_TP16PP2=dict(stage0_MoEs=45,stage1_MoEs=47,TP32_MoEs=92,extra_vs_stage0=rep-45*sum(v['logical_bytes']for v in replicated.values()),extra_vs_stage1=rep-47*sum(v['logical_bytes']for v in replicated.values()),not_HBM_traffic=True),logical_parameter_scenario=dict(parts=parts,bytes=sum(parts.values()),GiB=sum(parts.values())/1024**3,prior_57_962321_GiB_bytes=62236568380,head_correction_bytes=-73400320,limitation='Conservative checkpoint-category model, not exact all93 unique physical allocations or peak. The old57.9623 number retained a TP16 head; TP32 head is70MiB smaller.'),cache_state=cache,expected_rank_geometry=[dict(node=n,local_rank=d,tp_rank=n*8+d,stage=0,layers=[0,93],MLA_KDA_heads=3,expert_I=96,shared_I=192,head_shape=[5120,7168],head_bytes=head32,head_global_rows=[(n*8+d)*5120,(n*8+d+1)*5120],expert_bank_shapes_ref='expert_banks_per_layer',logical_physical_state=[1,2,3],page_blocks=260,page_size=256)for n in range(4)for d in range(8)],baseline585_nodes=nodes,possible_minimal_exact_w2_fix=dict(eligible='Only selected(&runtime,this) && tp_size_==32 && local_intermediate_size_==96 in existing exact-scale constructor scope; only new optin can arm TP32 scope',change='Use existing Tensor::empty_parameter for W2 bank only; original W13, scale, dtype, shape, stride, leaf alias, loader, math and SDK unchanged; oldTP16 andTP8 remain regular W2',savings_bytes_per_rank=w2saving,savings_GiB_per_rank=w2saving/1024**3,parameter_scenario_after_fix_bytes=sum(parts.values()),source_proven_floor_after_fix='UNKNOWN; logical ledger plus3.68GB MLA plusKDA already leaves inadequate planning room, and MLA class/CCL/workspace must be closed before device claim',no_135725056_padding_readded=True),other_categories=dict(workspace='Current allocate_workspace process flag and actual model-owned scratch allocation must be read; no invented zero/upper bound',CCL='TP32 group spans4nodes; comm bytes/reserve not inferred from oldTP16 group; GPU constructor not run',loader='All parameter destinations already resident at create; old2GiB pending CPU tensor batch is host staging, not automatically2GiB GPU. Do not add checkpoint bytes a second time.',forward='No weights/forward in r455 scope; head logits/gather/prefill/activation/FP4 SDK transient peak unobserved and excluded'),source_pins=dict(CPU961_archive=pin(p961),baseline585_archive=pin(p585),current_moe={'path':moep,'SHA256':fs[moep]['SHA256']},current_allocator={'path':'/refactor/incoming/Kimi-long-geometry-optin-r453/native/kimi_compact_allocate_r4974.cpp','SHA256':fs['/refactor/incoming/Kimi-long-geometry-optin-r453/native/kimi_compact_allocate_r4974.cpp']['SHA256']},Runtime=rt['libinfinilm_runtime.so'],InfiniRT=rt['libinfinirt.so'],pool_source={'path':str(poolfile),'source_SHA256':po['SHA256'],'lines':['67..71','130..178']},binary_closure=pin(binaryfile),old_parameter_scenario=pin(ledgerfile)),GPU_GO=False,Model_GO=False)
+if __name__=='__main__':print(json.dumps(main(),indent=2)+'\n',end='')
