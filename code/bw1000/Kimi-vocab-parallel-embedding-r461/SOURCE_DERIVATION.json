@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "original_text_model": {
+    "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/models/kimi_k3/kimi_k3_text_model.cpp",
+    "SHA256": "9a8b992b6739eb39e04199aadb372bc7212a0f4489d2366e99d87679de925aef"
+  },
+  "original_pair": {
+    "path": "code/bw1000/Kimi-AR-persistent-storage-optin-r456/native/pair_probe.cpp",
+    "SHA256": "33c8c6d7ac4ae35ae15e59dda6b226c249a060fd150ef06c6ee38aaa2d8abf94"
+  },
+  "changed_shared_headers": [],
+  "changed_old_class_fields": [],
+  "private_Context_field": "One bool in anonymous pair_probe TU only; opaque CAPI pointer, no shared/public class ABI layout change",
+  "new_class": "Private final Embedding subclass. Base public/protected ABI from unchanged CPU961/966 headers; local5120 constructor and sameTensor Weight(tp_dim0,rank,32) rebind.",
+  "source_changes": [
+    "TextModel constructor one optin branch",
+    "TextModel embed_tokens dispatch and normalforward delegates to same embed_tokens (both paths exactly one lookup)",
+    "pair_probe private feature gate/propagation/one CPU ID-validation before submit",
+    "new defaultOFF4arg create+capabilities CABI",
+    "one private masked-BF16 bitcopy GPU TU and unchanged BF16 sum wrapper"
+  ],
+  "forward_lifetime": "input/weight/output strongrefs held through allreduce and explicit sync; catch drain/rethrow primary, terminate on drain failure",
+  "GPU_GO": false,
+  "Model_GO": false
+}

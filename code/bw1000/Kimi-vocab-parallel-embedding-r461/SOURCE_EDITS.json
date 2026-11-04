@@ -1,0 +1,92 @@
+{
+  "native/kimi_k3_text_model.cpp": {
+    "original": {
+      "path": "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/models/kimi_k3/kimi_k3_text_model.cpp",
+      "SHA256": "9a8b992b6739eb39e04199aadb372bc7212a0f4489d2366e99d87679de925aef"
+    },
+    "source_SHA256": "914888f78997b3af1b23f265cc158f68d8eaf3a6fe24f19bd068681c48a3430a",
+    "edits": [
+      {
+        "start_line": 0,
+        "end_line": 0,
+        "old": "",
+        "new": "#include \"vocab_parallel_embedding_r461.hpp\"\n"
+      },
+      {
+        "start_line": 47,
+        "end_line": 47,
+        "old": "",
+        "new": "            if(model_config->get_config_json().value(\"infinilm_kimi_vocab_parallel_embedding_r461\",false)) {\n                if(!model_config->get_config_json().value(\"infinilm_kimi_ar_storage_optin_r456\",false)\n                    ||model_config->get<size_t>(\"vocab_size\")!=163840||hidden_size_!=7168\n                    ||dtype_!=infinilm::runtime::DataType::kBFloat16)\n                    throw std::invalid_argument(\"r461 explicit original full vocabulary/BF16 AR storage\");\n                embed_tokens_=std::make_shared<infinilm::layers::VocabParallelEmbeddingR461>(runtime,rank_info);\n            }else {\n"
+      },
+      {
+        "start_line": 49,
+        "end_line": 49,
+        "old": "",
+        "new": "            }\n"
+      },
+      {
+        "start_line": 85,
+        "end_line": 86,
+        "old": "    return embed_tokens_->forward(runtime, input_ids);\n",
+        "new": "    return infinilm::layers::embedding_dispatch_r461(runtime,embed_tokens_,input_ids);\n"
+      },
+      {
+        "start_line": 211,
+        "end_line": 212,
+        "old": "                            ? embed_tokens_->forward(runtime, input_ids)\n",
+        "new": "                            ? embed_tokens(runtime, input_ids)\n"
+      },
+      {
+        "start_line": 261,
+        "end_line": 261,
+        "old": "",
+        "new": "\nextern \"C\" const char* modern_kimi_vocab_embedding_info_r461(){\n    static thread_local std::string result;\n    result=infinilm::layers::vocab_r461::snapshot().dump();return result.c_str();\n}\n"
+      }
+    ]
+  },
+  "native/pair_probe.cpp": {
+    "original": {
+      "path": "/refactor/incoming/Kimi-AR-persistent-storage-optin-r456/native/pair_probe.cpp",
+      "SHA256": "33c8c6d7ac4ae35ae15e59dda6b226c249a060fd150ef06c6ee38aaa2d8abf94"
+    },
+    "source_SHA256": "d037d6756ab30532b94c81ddd9af01ec845f72cdc2de67c1a45a4c9bf5c93549",
+    "edits": [
+      {
+        "start_line": 0,
+        "end_line": 0,
+        "old": "",
+        "new": "#include \"embedding_index_r461.hpp\"\n"
+      },
+      {
+        "start_line": 25,
+        "end_line": 25,
+        "old": "",
+        "new": "thread_local bool authorized_vocab_embedding_r461=false;\nstruct VocabCreateScopeR461{VocabCreateScopeR461(){if(authorized_vocab_embedding_r461)throw std::invalid_argument(\"r461 nested factory\");authorized_vocab_embedding_r461=true;}~VocabCreateScopeR461(){authorized_vocab_embedding_r461=false;}};\n"
+      },
+      {
+        "start_line": 60,
+        "end_line": 61,
+        "old": " auto cfg=nlohmann::json::parse(raw);const bool long_scope_r179=cfg.value(\"infinilm_kimi_long_agent_r179\",false);const bool geometry_r453=cfg.value(\"infinilm_kimi_long_geometry_optin_r453\",false);const bool ar_storage_r456=cfg.value(\"infinilm_kimi_ar_storage_optin_r456\",false);if(ar_storage_r456!=authorized_ar_storage_r456||(ar_storage_r456&&(!geometry_r453||tp_nodes!=4||pp_size!=1))||geometry_r453!=authorized_long_geometry_r453||long_scope_r179!=authorized_long_create_r179||(geometry_r453&&!long_scope_r179)||(long_scope_r179&&(max_rows!=(ar_storage_r456?1u:2u)||!kimi_long_geometry_r453::topology(geometry_r453,8*tp_nodes,pp_size))))throw std::invalid_argument(\"r453 explicit factory scope\");auto&text=cfg.at(\"text_config\");text[\"infinilm_kimi_long_agent_r179\"]=long_scope_r179;text[\"infinilm_kimi_long_geometry_optin_r453\"]=geometry_r453;text[\"infinilm_kimi_ar_storage_optin_r456\"]=ar_storage_r456;auto quant=text.at(\"quantization_config\");auto w=quant.at(\"config_groups\").at(\"group_0\").at(\"weights\");\n",
+        "new": " auto cfg=nlohmann::json::parse(raw);const bool long_scope_r179=cfg.value(\"infinilm_kimi_long_agent_r179\",false);const bool geometry_r453=cfg.value(\"infinilm_kimi_long_geometry_optin_r453\",false);const bool ar_storage_r456=cfg.value(\"infinilm_kimi_ar_storage_optin_r456\",false);const bool vocab_r461=cfg.value(\"infinilm_kimi_vocab_parallel_embedding_r461\",false);if(vocab_r461!=authorized_vocab_embedding_r461||(vocab_r461&&!ar_storage_r456))throw std::invalid_argument(\"r461 new typed factory scope only\");if(ar_storage_r456!=authorized_ar_storage_r456||(ar_storage_r456&&(!geometry_r453||tp_nodes!=4||pp_size!=1))||geometry_r453!=authorized_long_geometry_r453||long_scope_r179!=authorized_long_create_r179||(geometry_r453&&!long_scope_r179)||(long_scope_r179&&(max_rows!=(ar_storage_r456?1u:2u)||!kimi_long_geometry_r453::topology(geometry_r453,8*tp_nodes,pp_size))))throw std::invalid_argument(\"r453 explicit factory scope\");auto&text=cfg.at(\"text_config\");text[\"infinilm_kimi_long_agent_r179\"]=long_scope_r179;text[\"infinilm_kimi_long_geometry_optin_r453\"]=geometry_r453;text[\"infinilm_kimi_ar_storage_optin_r456\"]=ar_storage_r456;text[\"infinilm_kimi_vocab_parallel_embedding_r461\"]=vocab_r461;auto quant=text.at(\"quantization_config\");auto w=quant.at(\"config_groups\").at(\"group_0\").at(\"weights\");\n"
+      },
+      {
+        "start_line": 63,
+        "end_line": 64,
+        "old": " auto c=std::make_unique<Context>();c->stage=stage;c->pp_size=pp_size;c->tp_nodes=tp_nodes;c->tp_node_rank=node%tp_nodes;c->node=node;c->max_rows=max_rows;c->long_agent_r179=long_scope_r179;c->max_total_tokens_r179=long_scope_r179?32768:1024;c->pages_per_row_r4974=long_scope_r179?128:4;c->vocab=text.at(\"vocab_size\");c->cache=std::make_unique<infinilm::cache::PagedKVCacheConfig>(long_scope_r179?128*max_rows+4:4*max_rows+4,256,max_rows);en::distributed::DistConfig dist(8);dist.pp_size=pp_size;dist.pp_stage=stage;dist.tp_node_size=tp_nodes;dist.tp_node_rank=node%tp_nodes;dist.master_addr=address;dist.master_port=port;\n",
+        "new": " auto c=std::make_unique<Context>();c->vocab_embedding_r461=vocab_r461;c->stage=stage;c->pp_size=pp_size;c->tp_nodes=tp_nodes;c->tp_node_rank=node%tp_nodes;c->node=node;c->max_rows=max_rows;c->long_agent_r179=long_scope_r179;c->max_total_tokens_r179=long_scope_r179?32768:1024;c->pages_per_row_r4974=long_scope_r179?128:4;c->vocab=text.at(\"vocab_size\");c->cache=std::make_unique<infinilm::cache::PagedKVCacheConfig>(long_scope_r179?128*max_rows+4:4*max_rows+4,256,max_rows);en::distributed::DistConfig dist(8);dist.pp_size=pp_size;dist.pp_stage=stage;dist.tp_node_size=tp_nodes;dist.tp_node_rank=node%tp_nodes;dist.master_addr=address;dist.master_port=port;\n"
+      },
+      {
+        "start_line": 75,
+        "end_line": 75,
+        "old": "",
+        "new": "if(c->vocab_embedding_r461)kimi_vocab_r461::validate_global_ids(ids,tokens);\n"
+      },
+      {
+        "start_line": 423,
+        "end_line": 423,
+        "old": "",
+        "new": "\nextern \"C\" void* modern_kimi_engine_create_vocab_parallel_r461(const char*raw,int node,const char*address,int port){try{\n const char*opt=std::getenv(\"INFINILM_KIMI_VOCAB_PARALLEL_R461\");\n if(!opt||std::string(opt)!=\"1\"||!raw||!address)throw std::invalid_argument(\"r461 explicit defaultOFF new AR-only factory\");\n auto cfg=nlohmann::json::parse(raw);cfg[\"infinilm_kimi_vocab_parallel_embedding_r461\"]=true;\n VocabCreateScopeR461 authorization;\n return modern_kimi_engine_create_ar_storage_r456(cfg.dump().c_str(),node,address,port);\n }catch(const std::exception&e){error=e.what();return nullptr;}}\nextern \"C\" const char* modern_kimi_vocab_embedding_capabilities_r461(void*raw){try{\n auto*c=static_cast<Context*>(raw);if(!c||!c->vocab_embedding_r461||!geometry_context_r453(c)||c->max_rows!=1||c->pp_size!=1||c->tp_nodes!=4)throw std::invalid_argument(\"r461 new typed AR-only context\");\n serialized=nlohmann::json{{\"schema\",1},{\"TP\",32},{\"PP\",1},{\"logical_capacity\",1},{\"physical_rows\",1},{\"state_pool_rows\",2},{\"context\",32768},{\"num_blocks\",132},{\"vocabulary\",163840},{\"hidden\",7168},{\"local_vocabulary\",5120},{\"embedding_parameter_bytes\",73400320},{\"embedding_key\",\"language_model.model.embed_tokens.weight\"},{\"BF16_sum_collectives_per_lookup\",1},{\"capture\",false},{\"replay\",false},{\"GPU_qualified\",false}}.dump();return serialized.c_str();\n }catch(const std::exception&e){error=e.what();return nullptr;}}\n"
+      }
+    ]
+  }
+}

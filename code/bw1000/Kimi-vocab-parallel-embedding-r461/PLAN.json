@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "purpose": "Explicit defaultOFF AR TP32PP1 row-sharded input embedding with original full vocabulary/checkpoint key",
+  "new_native": "New isolated DSO, new4arg modern_kimi_engine_create_vocab_parallel_r461. Old8df and456 DSOs/headers are immutable.",
+  "mechanism": "Private Embedding subclass allocates5120rows using original base constructor, rebinds same Tensor with original Weight(tp_dim0,tp_rank,32), no GPU full-table shadow. Masked BF16 payload copy then one original BF16 AllReduce on every TP rank.",
+  "CPU": {
+    "parent": 910407,
+    "node": "a14r2n20",
+    "cores": 4,
+    "memory_MiB": 8192,
+    "hard_seconds": 300,
+    "inside_seconds": 270,
+    "new_HOST_TUs": 2,
+    "new_GPU_TUs": 1,
+    "reused_native_objects": 31,
+    "pure_source_contract_TUs": 1,
+    "execution": "Compile exact production Weight/LoadBatch/Embedding bodies with explicit recording Tensor/Runtime leaves, actual new Python loader with recording checkpoint/Native leaves; noSDK or DSO execution. Shared headers remain byte-identical to961actualheadMD. NewTU before/after completeMD pinned."
+  },
+  "source_lifetime": "Lookup keeps original input, current local weight, output through AllReduce + sync; exception drains then rethrows primary, drain failure failstop. Destructor touches only host atomic census, never Runtime/device after original close/join.",
+  "boundaries": "Global invalid token IDs rejected in original Native CPU input boundary before input packaging/engine submit. InputC1 [1,T], T1..512, I64; weight canonical5120x7168BF16. Token0 is a real row; nullpadding semantics unchanged. No negative/global-vocab overflow silently mapped to0 in typed Native path.",
+  "loader": "Original Native Weight.select_source row-slices complete CPU tensor and LoadBatch retains source/destination; private Python head geometry fixedTP32, original parameter_loader function body changed onlyexplicit import. OriginalTP16 helpers not inherited as TP32 qualification.",
+  "math": "All unchanged model/MLA/KDA/MoE/FP4/shared/head/TP operations preserved. Old full-rank embedding path remains when newfactory flag false. No capture/replay/speculation qualification.",
+  "future_device": "No device authorization in this claim. Constructor/embedding collective component/fullModel each require concrete later scope and source/claim; H3/I96 fullforward and Modelfit/numeric/latency remain UNKNOWN.",
+  "GPU_GO": false,
+  "Model_GO": false
+}

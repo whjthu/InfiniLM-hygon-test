@@ -1,0 +1,59 @@
+{
+  "schema": 1,
+  "physical_VRAM_bytes": 68702699520,
+  "unchanged_ctor_floor": 4294967296,
+  "context": 32768,
+  "logical_capacity": 1,
+  "physical_rows": 1,
+  "state_pool_rows": 2,
+  "cache_blocks": 132,
+  "original_replicated_embedding": {
+    "shape": [
+      163840,
+      7168
+    ],
+    "dtype": "BF16",
+    "parameter_bytes": 2348810240
+  },
+  "new_sharded_embedding": {
+    "shape": [
+      5120,
+      7168
+    ],
+    "dtype": "BF16",
+    "parameter_bytes": 73400320,
+    "TP": 32,
+    "parameter_key": "language_model.model.embed_tokens.weight",
+    "source_saved_bytes": 2275409920
+  },
+  "baseline589_free": [
+    2617245696,
+    2625634304
+  ],
+  "conditional_new_ctor_free_if_only_embedding_nbytes_delta": [
+    4892655616,
+    4901044224
+  ],
+  "conditional_floor_margin": [
+    597688320,
+    606076928
+  ],
+  "condition": "Source logical/exact-pool parameter delta applied to old driver samples, NOT measured allocation/peak or fit guarantee. Driver/CCL/pool changes and collective first-use allocations unknown.",
+  "original_scenario": 64055094076,
+  "new_scenario": 61779684156,
+  "scenario_kind": "Conservative category estimate, not complete physical upper/lower bound",
+  "persistent_GPU": "No added GPU metadata/mask/offset tables or full GPU embedding shadow; one73400320B parameter. Existing head/cache/MoE unchanged.",
+  "temporary_lookup": {
+    "output_formula": "T*7168*2 BF16 bytes, same logical output as original Embedding",
+    "decode1_bytes": 14336,
+    "prefill512_bytes": 7340032,
+    "input_contiguous": "Same original IDs contiguous handling, at mostT*8 bytes if a materialization is needed. Strong lease held to fence.",
+    "extra_output_or_mask_bytes": 0,
+    "collective": "One in-place BF16 sum per lookup across32rank. API payloadT*14336B/rank, not network wirebytes or HBM traffic. Backend workspace/first-use reserve UNKNOWN."
+  },
+  "collective_calls": "ceil(prompt_tokens/512)+actual_decode_forward_calls; all32rank exactly once per lookup, even no local IDs. No collective in forward_embeds alone.",
+  "host_loader": "Original full CPU checkpoint BF16 tensor2.3488GB is preserved per node process; row-slice views and pending Python/LoadBatch owners live through sync. Each rank H2D copies73400320B for this key. No host quantization or alternate vocabulary.",
+  "timing": "Added collective plus explicit completion fence wall UNKNOWN. Memory placement is not Model speed gain.",
+  "GPU_GO": false,
+  "Model_GO": false
+}
