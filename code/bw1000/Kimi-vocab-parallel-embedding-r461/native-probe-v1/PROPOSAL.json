@@ -1,0 +1,185 @@
+{
+  "schema": 1,
+  "state": "SOURCE_REVIEW_BEFORE_CPU",
+  "GPU_GO": false,
+  "Model_GO": false,
+  "CPU_execution_authorized": true,
+  "native_parent": {
+    "actual_CPU": "910407.981",
+    "SHA256": "fa1f052fa08884a397cf2236daad775f8e1390babf7127a5941edae5c96571bb"
+  },
+  "new_production_HOST_TUs": [
+    "native/pair_probe.cpp",
+    "native/worker.cpp"
+  ],
+  "new_GPU_TUs": 0,
+  "reused_objects": 32,
+  "total_linked_objects": 34,
+  "new_shared_class_fields": false,
+  "new_private_Context_fields": [
+    "epoch",
+    "embedding_only_loaded",
+    "terminal_probe_failure"
+  ],
+  "actual_call_chain": [
+    "new explicit defaultOFF CAPI validates complete global IDs/output span/epoch before mutation",
+    "fixed 8 sidecar requests bind exact worker pointer/context/epoch/device and copied IDs",
+    "original RankWorker.run asynchronously admits all eight original owners",
+    "new fixed private RUN branch on owner uses actual model.children(language_model/model/embed_tokens)",
+    "dynamic RTTI, leaf state_dict backing and original constructor census agree",
+    "all eight local metadata checks must complete before releasing local admission latch",
+    "original VocabParallelEmbeddingR461.forward_sharded: original resident parameter / masked GPU lookup / original TP32 BF16 sum / original success fence",
+    "same owner copies completed BF16 output to CPU, releases Tensor refs; original worker wait publishes completion",
+    "caller waits/drains every submitted owner then clears same-identity slots; no automatic retry"
+  ],
+  "original_nonprobe_RUN": "Exact original bytes retained as following else-if; no active worker-pointer sidecar means unchanged branch. Old class headers and source parent/DSO remain immutable.",
+  "lifetime": [
+    "No naked Tensor or model pointer stored in sidecar; fixed Request holds immutable copied CPU IDs and CPU output vector only.",
+    "Actual embedding strong shared_ptr and actual Weight backing obtained on original owner and retained through existing forward fence/D2H completion.",
+    "Local partial submit/metadata failure releases gate cancelled before any local lookup; all submitted workers are waited, original fail/drain used.",
+    "An already-running distributed collective that cannot drain is NOT assumed cancelled: external exact-step keeper failstop bounds GPU residency. No backing is retired underneath it.",
+    "CPU validation rejection before submission leaves epoch unmodified; after actual load/probe error this private Context is terminal for further probes."
+  ],
+  "loader": [
+    "Only global key language_model.model.embed_tokens.weight, BF16 fullCPU [163840,7168], true checkpoint source.",
+    "Original engine.load_params/Weight.select_source/LoadBatch copies local5120 rows into actual registry backing; no fullGPU table or fake weight.",
+    "No original full process_weights_after_loading/Ready and no fullModel forward. Only actual embedding leaf postload hook is called on owner."
+  ],
+  "source_evidence": {
+    "/refactor/incoming/Kimi-long-agent32K-r179/native/worker.cpp": {
+      "bytes": 72925,
+      "SHA256": "f24d68110788cd1d4b907f7d983ebafc1806193b00b501b8af847a507df61f89"
+    },
+    "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/engine/infer_engine.hpp": {
+      "bytes": 3737,
+      "SHA256": "5ede891e984641fbec04f909730fc89e02102022ef357175f275f41ca51f494e"
+    },
+    "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/models/kimi_k3/kimi_k3_text_model.hpp": {
+      "bytes": 3283,
+      "SHA256": "b4f6fd75297212e0b975af86aeac0be1be3b0ffc7713be6128818b0936960767"
+    },
+    "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/models/infinilm_model.hpp": {
+      "bytes": 6558,
+      "SHA256": "cec2cbdc9b96addba398435b9488709407b16550a28ad79b9695d870d33790cc"
+    },
+    "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/weights/weights.hpp": {
+      "bytes": 5054,
+      "SHA256": "1056d753a7c5be68ef493b547062eea63a48bb218d710b2616aeac60ca379cca"
+    },
+    "/refactor/incoming/Kimi-append512-r247/native/engine/rank_worker.hpp": {
+      "bytes": 10078,
+      "SHA256": "5c58ada5067b0968ee8c62240f9ff542f6f658c32bee3fbb8b52636d9d73c642"
+    },
+    "/refactor/incoming/Kimi-long-geometry-optin-r453/native/kimi_shard_model_r9183.cpp": {
+      "bytes": 10948,
+      "SHA256": "51ebaf139010e4292d6c2725bc0337c6f2bd78d7c47a1a48da1dfe8c377eed85"
+    },
+    "/refactor/incoming/Kimi-shard-only-Model-r9183/kimi_shard_model_r9183.cpp": {
+      "bytes": 10948,
+      "SHA256": "51ebaf139010e4292d6c2725bc0337c6f2bd78d7c47a1a48da1dfe8c377eed85"
+    },
+    "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/layers/causal_lm_templates/text_causal_lm.hpp": {
+      "bytes": 7704,
+      "SHA256": "cd3f2e9306e9605f1ea5540809f4cf811b42000091d91e19d25120c411dfd845"
+    },
+    "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/layers/causal_lm_templates/text_model.hpp": {
+      "bytes": 12752,
+      "SHA256": "a704e2ed309f243ad9297efa3ca9ca9f5ed1e0e5bb9b7445ccdb506643023913"
+    },
+    "/refactor/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/runtime/tensor.hpp": {
+      "bytes": 10726,
+      "SHA256": "dfc787f233bef2fb5888d0954440746334386023bad3f6207164024b377eb658"
+    }
+  },
+  "CPU_proposal": {
+    "parent": 910407,
+    "node": "a14r2n20",
+    "cores": 4,
+    "memory_MiB": 8192,
+    "hard_seconds": 300,
+    "inside_seconds": 270,
+    "production_compile": "2 changed HOST with actual CPU981 pair + CPU966 worker compile argv; before/after full MD snapshots; existing flags/SDK/libs unchanged",
+    "pure_contract": "one necessary stdlib-C++ fixed8sidecar six-case lifecycle/admission/cancel contract, no Runtime/Tensor/SDK",
+    "relink": "replace pair+worker in actual CPU981 34objects; reuse actual textModel.o, masked_embedding.o and other30; Bsymbolic/oldstrongCAPI retained/ldd-r only",
+    "forbidden": [
+      "dlopen",
+      "SDK execution",
+      "Native create",
+      "checkpoint payload",
+      "GPU",
+      "repeat CPU981 textModel/GPU/old loader contracts"
+    ]
+  },
+  "future_device_proposal": {
+    "not_an_execution_claim": true,
+    "parent": 910380,
+    "nodes": [
+      "a14r2n08",
+      "a14r2n09",
+      "a14r2n10",
+      "a14r2n12"
+    ],
+    "cards": 32,
+    "TP": 32,
+    "PP": 1,
+    "logical_C": 1,
+    "physical_rows": 1,
+    "state_rows": 2,
+    "pages": 132,
+    "context": 32768,
+    "floor_bytes": 4294967296,
+    "workspace": 0,
+    "execution": 0,
+    "GPU_hard_seconds": 600,
+    "keeper_hard_seconds": 900,
+    "checkpoint_payload": "only original fullCPU embedding key per node, sliced to actual local5120x7168 BF16 backing. All other allocated model parameters remain uninitialized and are never used.",
+    "lookups": [
+      {
+        "T": 1,
+        "ids": [
+          0
+        ]
+      },
+      {
+        "T": 1,
+        "ids": [
+          163839
+        ]
+      },
+      {
+        "T": 64,
+        "ids_formula": "[0] + each [5120*r-1,5120*r] for r1..31 + [163839]"
+      },
+      {
+        "T": 512,
+        "ids_formula": "previous fixed64 repeated8"
+      }
+    ],
+    "finite_reference": "BF16 checkpoint rows indexed on CPU -> FP32 reference. Record per-owner NRMS/maxabs and rank agreement; bitdiff diagnostic, not sole failure. Exact threshold must be frozen with final device source/claim.",
+    "capacity": "actual driver free/total beforecreate, aftercreate, after partial load, after first collective, after last Tensor clear; constructor floor required, no source saving substituted for measurement.",
+    "raw_output": "All actual BF16 output bytes/dtype/shape/endianness/SHA R/L; Git scalar metadata only.",
+    "scope_exclusions": [
+      "no full weight load",
+      "no 93-layer forward",
+      "no HTTP",
+      "no quality/throughput/fit claim before actual device result"
+    ],
+    "fresh_post": [
+      "4-node membership and label/intent dedup",
+      "32 unique physical PCI",
+      "own PID/KFD empty",
+      "all frozen communication/listener ports bindable",
+      "exact owned-step TERM then KILL bounded fallback",
+      "independent four-node post PID/KFD/ports and keeper terminal"
+    ]
+  },
+  "unknowns": [
+    "actual floor after CCL first-use and H2D",
+    "masked output plus BF16 collective device numerical behavior",
+    "first-submit affinity actual32unique masks",
+    "initialization and H2D complete wall; 600s is a cap, not a completion guarantee",
+    "new private RUN hook and symbol-provider isolation uncompiled until reviewed CPU claim"
+  ],
+  "CPU_authority": "root actual source review: one4c8GiB300s CPU; no Native/SDK execution or GPU",
+  "ABI_scope": "New pair-TU anonymous Context adds epoch/loaded/failed fields: only the new private DSO may create/use/destroy its contexts. No old Context pointer/DSO qualification is inherited; RankWorker/Runtime/model shared class headers remain byte-identical. Worker/pair are recompiled together. Original CPU981 DSO and source frozen."
+}

@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "GPU_GO": false,
+  "Model_GO": false,
+  "CPU_execution_authorized": true,
+  "source_origins": {
+    "/refactor/incoming/Kimi-vocab-parallel-embedding-r461/cpu-repair-v2/native/pair_probe.cpp": "1d94ee8b02151fe30ce0fb98fffa8b16da336b405674ebb920a6225fecfef72e",
+    "/refactor/incoming/Kimi-AR-persistent-storage-optin-r456/native/worker.cpp": "643624e85321a7cfdba947bc1d7ab090671c038939246657c36798569bd5ebd6"
+  },
+  "exact_replacements": [
+    {
+      "unit": "pair_probe.cpp",
+      "old": "#include \"embedding_index_r461.hpp\"",
+      "new": "#include \"probe_protocol.hpp\"\n#include \"embedding_index_r461.hpp\""
+    },
+    {
+      "unit": "pair_probe.cpp",
+      "old": "struct ProbeEngine:en::InferEngine{",
+      "new": "struct ProbeEngine:en::InferEngine{void embedding_probe_r461(const void*,std::uint64_t,const std::int64_t*,std::size_t,std::uint16_t*);"
+    },
+    {
+      "unit": "pair_probe.cpp",
+      "old": "struct Context{",
+      "new": "struct Context{std::uint64_t embedding_probe_epoch_r461=0;bool embedding_probe_loaded_r461=false,embedding_probe_failed_r461=false;"
+    },
+    {
+      "unit": "worker.cpp",
+      "old": "#include \"state_only_r9113.hpp\"",
+      "new": "#include \"probe_owned.hpp\"\n#include \"state_only_r9113.hpp\""
+    },
+    {
+      "unit": "worker.cpp",
+      "old": "            } else if (local_cmd == Command::RUN) {",
+      "new": "            } else if (local_cmd == Command::RUN && kimi_embedding_probe_r461::contains(this)) {\n                std::shared_ptr<kimi_embedding_probe_r461::Request> request;\n                try {\n                    request=kimi_embedding_probe_r461::acquire(this,runtime_->device().index());\n                    if(!request)throw std::logic_error(\"r461 admitted request disappeared\");\n                    kimi_embedding_probe_r461::execute(request,*runtime_,*model_,rank_info_);\n                    {std::lock_guard<std::mutex>lock(mutex_);output_=Output{};job_done_=true;}\n                    cv_.notify_all();\n                }catch(...) {\n                    kimi_embedding_probe_r461::cancel_worker(this);\n                    fail(\"embedding_probe_r461\",std::current_exception());break;\n                }\n            } else if (local_cmd == Command::RUN) {"
+    }
+  ],
+  "appended_pair_body_SHA256": "6ac31b0eec4290879b88e87a0ac179235d3bb7b6ed63a4825de403c9b05bcd89",
+  "new_pair_SHA256": "17c92773cfe9af85676aac104bb1786c7872d916f5a276629d7eef9f007523b3",
+  "new_worker_SHA256": "4479fdb19134554ed978a70cf460e4ad4a42cf4044e75904ce99dc0b8ceacbad",
+  "original_nonprobe_RUN_preserved": true,
+  "RankWorker_class_header_changed": false,
+  "TextModel_class_header_changed": false,
+  "new_runtime_or_communicator": false,
+  "new_GPU_source_or_object": false,
+  "new_private_Context_fields": [
+    "embedding_probe_epoch_r461",
+    "embedding_probe_loaded_r461",
+    "embedding_probe_failed_r461"
+  ],
+  "CPU_authority": "root actual source review: one4c8GiB300s CPU; no Native/SDK execution or GPU"
+}
