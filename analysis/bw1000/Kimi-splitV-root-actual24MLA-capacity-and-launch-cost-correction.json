@@ -1,0 +1,91 @@
+{
+  "schema": "BW1000-root-Kimi-actual24MLA-capacity-and-launch-cost-correction-v1",
+  "UTC": "2026-11-05T16:24:48.367134+00:00",
+  "actual_sources_reused": true,
+  "new_remote_reads": 0,
+  "new_GPU_or_CPU_or_compile": 0,
+  "private_source_original": {
+    "path": "Kimi643-live-tensor-source-original.json",
+    "SHA256": "1b455dc50aac630f9eb67ace04373f5dbc3407d4e24283cc7e33cebbc9d2e6b8"
+  },
+  "config": {
+    "path": "/public/home/aclsylqidf/shared/Kimi-K3/config.json",
+    "bytes": 7006,
+    "SHA256": "9710e121a58d03ac92c8d6da287a19541994319afbbe6d6202af001ffd379213",
+    "layers": 93,
+    "KDA_one_based_unique": 69,
+    "MLA_complement_one_based": [
+      4,
+      8,
+      12,
+      16,
+      20,
+      24,
+      28,
+      32,
+      36,
+      40,
+      44,
+      48,
+      52,
+      56,
+      60,
+      64,
+      68,
+      72,
+      76,
+      80,
+      84,
+      88,
+      92,
+      93
+    ],
+    "MLA_count": 24
+  },
+  "actual_allocate": {
+    "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/Kimi-AR-persistent-storage-optin-r456/native/kimi_compact_allocate_r4974.cpp",
+    "SHA256": "9646d436b0795e976ca2e1db87c61a540c25a5c877cbe901841f2b7bc51bfe9e",
+    "semantics": "is_kda.at(one_based_layer_idx-1)=true; actual local_layer range complement gets exact MLA Tensor",
+    "actual_compiled_parent": "r456 allocate source, not a new Native run"
+  },
+  "constructor": {
+    "path": "code/bw1000/Kimi-vocab-parallel-embedding-r461/full-model-v4/constructor.py",
+    "SHA256": "6174bb1eba377fdb07cbec2ccc592a9c826983756ab40af3565efed3ae0a828a",
+    "passes_original_JSON": true
+  },
+  "ModelConfig": {
+    "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/csrc/config/model_config.cpp",
+    "SHA256": "d4e480f5033c28ad15b3fe48dad30c29cb55d3257adf9cf0465845ba62ba0c0a",
+    "constructor": "json constructor copies config_json without modification"
+  },
+  "final_cpp_factory_override_confirmation": "Originalagent still checks parsehelper; actualcheckpoint/source correction is established; no runtime count claim from this read.",
+  "capacity": {
+    "pages": 132,
+    "page_tokens": 256,
+    "local_heads": 3,
+    "dtype_bytes": 2,
+    "old_K192_V192_exact_bytes_per_layer": 77856768,
+    "new_K192_V128_combined_exact_bytes_per_layer": 64880640,
+    "per_layer_logical_saved_bytes": 12976128,
+    "actual24layer_logical_saved_bytes": 311427072,
+    "old38layer_scenario_only": 493092864,
+    "actual643_floor_deficit_bytes": 295698432,
+    "pre_scratch_margin_bytes": 15728640,
+    "driver_allocation_and_Model_fit": false,
+    "scope": "Exact logical storage arithmetic. Driver granularity, BLAS/FA workspaces, module/global state, pool cached/overlap and newbackend scratch must all be measured; theoreticalmargin doesnotrepair643."
+  },
+  "launch_cost": {
+    "source_snapshot": "Initial uncompiled8x256 backend, changed candidates remain source-only",
+    "GEMM_count_full512_ctx32768_per_MLA": 49152,
+    "GEMM_count_full512_ctx32768_24MLA": 1179648,
+    "GEMM_count_decode_ctx32768_per_MLA": 768,
+    "proposed_fixed_Q32_G4096_full_per_MLA": 768,
+    "proposed_fixed_Q32_G4096_decode_per_MLA": 48,
+    "no_measured_latency": true
+  },
+  "decision": "Do not promote a capacity-only highlaunch fallback. Originalagent implementinglowerlaunch existingFlash/LSE smalltile backend withsameK192/V128exactcache, stable fullkey normalization andactualcaller. No wholeModelreload beforeboundedmemory/numeric/lifecycleevidence.",
+  "review206_correction": "206report retained. Its ~493MB was38layer scenario; actualcheckpoint24MLA logical311427072B supersedes forcurrent candidate.",
+  "default_enabled": false,
+  "whole_goal_complete": false,
+  "strict_decode_gt15_met": false
+}
