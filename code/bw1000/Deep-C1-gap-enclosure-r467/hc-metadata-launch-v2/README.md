@@ -1,0 +1,1 @@
+HOST launcher only. Same original50s absolute budget across checks; immediate persisted phases/argv/results/PID/startticks. Exact tenparent files+1048 unchanged; samecontroller/worker/probe/math/floor/120/100/180. One execution succeeds directly toexclusiveintent/keeper; unknownfailure reconcile, noautomaticreplay. NoCPUrecompile orModel.
