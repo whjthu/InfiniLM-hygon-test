@@ -1,0 +1,25 @@
+--- full-native-source-v1/build_CPU.py
++++ full-native-CPU-v2/build_CPU.py
+@@ -4,2 +4,2 @@
+-D=Path(__file__).resolve().parent
+-O=Path('/refactor/candidates/GLM-global-TP16-full-native-r470-CPU-v1')
++P=Path(__file__).resolve().parent;D=P.parent/'full-native-source-v1'
++O=Path('/refactor/candidates/GLM-global-TP16-full-native-r470-CPU-v2')
+@@ -21,2 +21,2 @@
+-  claim=json.loads((D/'CPU_RESOURCE_CLAIM.json').read_bytes());assert claim['CPU_GO']and not claim['GPU_GO']and H(D/'CPU_RESOURCE_CLAIM.json')==os.environ['GLM470_CLAIM_SHA'];assert os.environ['SLURM_JOB_ID']=='910407';assert all(os.environ.get(k)=='-1'for k in ['CUDA_VISIBLE_DEVICES','HIP_VISIBLE_DEVICES','ROCR_VISIBLE_DEVICES']);assert H(D/'SOURCE_MANIFEST.json')==claim['source_manifest_SHA256'];mf=json.loads((D/'SOURCE_MANIFEST.json').read_bytes());assert all(H(D/p)==h for p,h in mf['files_SHA256'].items())
+-  plan=json.loads((D/'BUILD_PLAN.json').read_bytes());allowed=json.loads((D/'DEPENDENCY_PINS.json').read_bytes())['dependency_SHA256'];tools=json.loads((D/'TOOLCHAIN.json').read_bytes())['tools']
++  claim=json.loads((P/'CPU_RESOURCE_CLAIM.json').read_bytes());assert claim['CPU_GO']and not claim['GPU_GO']and H(P/'CPU_RESOURCE_CLAIM.json')==os.environ['GLM470_CLAIM_SHA'];assert os.environ['SLURM_JOB_ID']=='910407';assert all(os.environ.get(k)=='-1'for k in ['CUDA_VISIBLE_DEVICES','HIP_VISIBLE_DEVICES','ROCR_VISIBLE_DEVICES']);assert H(P/'SOURCE_MANIFEST.json')==claim['source_manifest_SHA256'];repair_mf=json.loads((P/'SOURCE_MANIFEST.json').read_bytes());assert all(H(P/n)==h for n,h in repair_mf['files_SHA256'].items());binding=json.loads((P/'PARENT_SOURCE_BINDING.json').read_bytes());assert H(D/'SOURCE_MANIFEST.json')==binding['manifest_SHA256']and all(H(D/n)==h for n,h in binding['files_SHA256'].items());mf=json.loads((D/'SOURCE_MANIFEST.json').read_bytes());assert all(H(D/p)==h for p,h in mf['files_SHA256'].items())
++  plan=json.loads((P/'BUILD_PLAN.json').read_bytes());allowed=json.loads((D/'DEPENDENCY_PINS.json').read_bytes())['dependency_SHA256'];tools=json.loads((D/'TOOLCHAIN.json').read_bytes())['tools']
+@@ -25,0 +26,3 @@
++  for item in json.loads((P/'ARGV_ANCESTRY.json').read_bytes()).values():
++   assert H(item['receipt']['path'])==item['receipt']['SHA256']and H(item['old_source'])==item['old_source_SHA256']and H(item['old_object'])==item['old_object_SHA256']and H(item['MD_path'])==item['MD_SHA256']
++   ancestor=json.loads(Path(item['receipt']['path']).read_bytes());assert item['original_compile_argv']in ancestor['commands']
+@@ -28 +31 @@
+-  q.update(source_manifest_SHA256=H(D/'SOURCE_MANIFEST.json'),claim_SHA256=H(D/'CPU_RESOURCE_CLAIM.json'),parent_receipt_SHA256=r['SHA256'],parent_Native_SHA256=parent['library_SHA256'],reused_objects_SHA256=plan['retained_objects_SHA256'],verified_dynamic_dependency_SHA256=plan['actual_dynamic_dependency_SHA256']);save()
++  q.update(source_manifest_SHA256=H(P/'SOURCE_MANIFEST.json'),parent_source_manifest_SHA256=H(D/'SOURCE_MANIFEST.json'),claim_SHA256=H(P/'CPU_RESOURCE_CLAIM.json'),parent_receipt_SHA256=r['SHA256'],parent_Native_SHA256=parent['library_SHA256'],reused_objects_SHA256=plan['retained_objects_SHA256'],verified_dynamic_dependency_SHA256=plan['actual_dynamic_dependency_SHA256']);save()
+@@ -34 +37 @@
+-    stem=Path(name).stem;compiler='/usr/bin/g++'if kind=='HOST'else'/opt/dtk/cuda/cuda/bin/nvcc';flags=['-I'+str(D),*(plan['HOST_flags']if kind=='HOST'else plan['GPU_flags'])];source=D/name
++    stem=Path(name).stem;prefix=plan['HOST_prefix_by_source'][name]if kind=='HOST'else['/opt/dtk/cuda/cuda/bin/nvcc',*plan['GPU_flags']];compiler=prefix[0];flags=['-I'+str(D),*prefix[1:]];source=D/name
+@@ -48 +51 @@
+-  pos=argv.index('-o');argv[pos:pos]=[built[n]['object']for n in plan['additional_sources']];lib=O/'libGLM_global_TP16_full_native_r470.so';argv[argv.index('-o')+1]=str(lib);assert len([v for v in argv if v.endswith('.o')])==31;run(argv,'full-Native-link')
++  pos=next(i for i,x in enumerate(argv)if x.startswith('-L'));argv[pos:pos]=[built[n]['object']for n in plan['additional_sources']];assert max(argv.index(built[n]['object'])for n in plan['additional_sources'])<next(i for i,x in enumerate(argv)if x.startswith('-L'));lib=O/'libGLM_global_TP16_full_native_r470.so';argv[argv.index('-o')+1]=str(lib);assert len([v for v in argv if v.endswith('.o')])==31;run(argv,'full-Native-link')
