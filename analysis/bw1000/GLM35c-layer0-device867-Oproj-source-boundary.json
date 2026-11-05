@@ -1,0 +1,102 @@
+{
+  "scope": "Read-only source boundary after actual Layer0867 diagnostic; no new jobs/capture/math changes",
+  "actual_component_source_manifest_SHA256": "40ccf80c533a49a6be3a3d399c9d0a1f7c53d6376551edbb58e863cffeaab4ae",
+  "actual_library_SHA256": "be6920ecaf16ae2e10cc9c363ee6b91d5f7a5f8ef0cd66d543eb260676959e32",
+  "runtime_frontend_object": {
+    "path": "/refactor/candidates/GLM-M15-oproj-Model-r125/glm_fp8_runtime_oproj_r125.cpp.o",
+    "SHA256": "7fec9aabafcfe329a4dad5e7cb3cb810654448d5d45809d9820c9df171d529ff",
+    "source_observed_in_existing_CPU403_inventory": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/GLM-M15-oproj-Model-r125/glm_fp8_runtime_oproj_r125.cpp",
+    "source_SHA256": "cdbfda3c1ebf919793ea38d590dad10dced8972e4703a032965a4a5a3242b6b2",
+    "source_snapshot_L_SHA256": "55a3ba9626fb462f051a5b6eaa5ba8f2c5af9fa9b85ae183604af5f9f996e2bf",
+    "excerpts": [
+      {
+        "line": 13,
+        "text": " rt::Runtime*runtime{};int device{};void*stream{};void*handle{};bool batch_enabled{false};bool m15_enabled{false};void*m15_handle{};uint64_t m15_eligible{},m15_selected{},m15_off{},m15_rejected{},m15_errors{},m15_switches{};uint64_t batch32{},batch64{},batch_fallback{},batch_switches{};"
+      },
+      {
+        "line": 50,
+        "text": " if(m>=32){"
+      },
+      {
+        "line": 61,
+        "text": " if(m!=8&&m!=16&&m!=32&&m!=64&&!select15)return false;"
+      },
+      {
+        "line": 69,
+        "text": " if(glm_fp8_cache_run_r807(c.handle,&r,r.stream(),1,1,m,w->size(0),x->size(1),ws->size(0),ws->size(1),ro,co,const_cast<std::byte*>(out->data()),x->data(),xs->data(),w->data(),ws->data()))throw std::runtime_error(glm_fp8_cache_error_r807());"
+      }
+    ]
+  },
+  "attention_output_definition": {
+    "actual_object": "/refactor/candidates/glm-transient-layer-r5681/private-9.o",
+    "actual_object_SHA256": "7274531ec39c22651a4a6a484b5bfd12d84d3ae2839b67a0aed55d10a3ba0968",
+    "nm_T_symbol": "0000000000000d40 T infinilm::models::glm_moe_dsa::AttentionOutput::forward(infinilm::runtime::Runtime&, infinilm::runtime::Tensor const&) const",
+    "actual_MD_path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/glm-transient-layer-r5681/private-9.d",
+    "actual_MD_SHA256": "e16e7e73803d52e6d1096eb68e1e40771c3d7d492947341e0ab350fb238f877d",
+    "MD_primary_source": "/refactor/candidates/glm-transient-layer-r5681/src/glm_moe_dsa_attention_output_r809.cpp",
+    "same_named_local_source": "code/bw1000/glm-layer/src/glm_moe_dsa_attention_output_r809.cpp",
+    "local_source_SHA256": "af5c1e899eaa4236fa79e1f54e61663a5baf26b6f60b4b1cf2229f8de6c4d9e4",
+    "primary_source_bytes_fresh_bound_to_MD": false,
+    "gap": "No new RPC for primary-source bytes while r470 needs the existing session slot. The local source is explanatory and must not be mislabeled as newly verified original primary bytes.",
+    "local_excerpts": [
+      {
+        "line": 12,
+        "text": " columns_=16384/size_t(tp_);offset_=size_t(rank.tp_rank)*columns_;"
+      },
+      {
+        "line": 22,
+        "text": "glm_layer_mark_r5670(r,\"attnout.quant.begin\"); ex::submit<infini::ops::BlockQuantF8E4m3>(r,ex::RecordingPolicy::HostOnly,infini::ops::BlockQuantF8E4m3::DefaultConfig(r.device().type()),input,packed,local_scale);"
+      },
+      {
+        "line": 24,
+        "text": "glm_layer_mark_r5670(r,\"attnout.projection.begin\"); if(!fp8_cached_r809(r,local,packed,global_scale,weight_,scale_,size_t{0},offset_))ex::submit<infini::ops::Fp8BlockLinear>(r,ex::RecordingPolicy::HostOnly,infini::ops::Fp8BlockLinear::DefaultConfig(r.device().type()),local,packed,global_scale,weight_,scale_,size_t{0},offset_);"
+      },
+      {
+        "line": 25,
+        "text": "glm_layer_mark_r5670(r,\"attnout.TP.begin\"); auto hidden=local;if(tp_>1){hidden=work.alloc(local->shape(),local->dtype());hidden->copy_from(r,local);engine::distributed::allreduce_(r,hidden,hidden,infinicclSum,comm_);}glm_layer_mark_r5670(r,\"attnout.TP.end\");decode_leases_r1354::success_fence(r);return {local,hidden};"
+      }
+    ]
+  },
+  "shape_source_inference": {
+    "local_input": [
+      1,
+      2048
+    ],
+    "width8_input": [
+      8,
+      2048
+    ],
+    "packed_U8": "[M,2048]",
+    "local_activation_scale_F32": "[M,16]",
+    "global_activation_scale_F32": "[M,128] with rank-local16 blocks copied at offset=(rank*2048)/128",
+    "FP8_weight_U8": [
+      6144,
+      2048
+    ],
+    "checkpoint_scale_F32": [
+      48,
+      128
+    ],
+    "output_BF16": "[M,6144]",
+    "M1": "fp8_cached_r809 returnsfalse for M1 => ordinary SDK Fp8BlockLinear fallback",
+    "M8": "fp8_cached_r809 admits M8 => glm_fp8_cache_run_r807(mode=1), provided pinned original typed shapes pass",
+    "M8_actual_kernel_counter": "NOT_CAPTURED; this is source inference, not a hardware counter",
+    "postprojection": "Local explanatory primary returns hidden after TP BF16 sum; current capture is hidden, not the perrank local projection output"
+  },
+  "interpretation": {
+    "same_input_to_region": "Actual raw867 query0 NoV output and canonical V bits are unchanged for each owner",
+    "activation_scale_across_M_rows": "Source API/shape is per row, per128 columns; not a documented cross-row scale operation. Actual packed activations/scales were not captured, so equality remains UNKNOWN.",
+    "legitimate_numeric_difference": "Distinct M1 SDK fallback vs M8 cached FP8 paths and/or BF16 TP reduction can have different accumulation/cast order. This does not establish incorrect mathematics.",
+    "unresolved": [
+      "Exact private-9 primary current bytes binding",
+      "Actual quantized activation/scales equality",
+      "Per-rank local projection before collective",
+      "Internal SDK M1 versus cached M8 arithmetic order"
+    ],
+    "not_supported": "Do not label NoV union semantics as the cause: observed query0 commonV and NoV output are bit-identical here.",
+    "next": "First root-independent R raw reader. Bind exact original primary source when a normal metadata slot is available. No repeatLayer0/Layer1/fullModel capture is proposed solely for bit differences; any future Model/teacherblock quality must evaluate real final outputs."
+  },
+  "GPU_GO": false,
+  "CPU_GO": false,
+  "Model_GO": false
+}
