@@ -1,0 +1,5 @@
+# r470 fixed local-pipe / two-leader scalar control (CPU only)
+
+Only16 fixed child PIDs, two explicit rounds created/proved, then normal close. Original ready_socket send/receive framing is reused byte-exact with nonce/identity/phase/digest validation. Local socketpairs replace local marker polling; only leaders exchange two fixed8-record packets. No Tensor/Runtime/constructor/collective/importTorch/GPU. Early node1 listener, node0 retries only definitely refused pre-protocol connections (never accepted/protocol replay), original150epoch, bounded180CPU step; errors stop without replay.
+
+Each child's local tmpfs trace has barrier-enter(lastmissing leader GO), barrier-exit and explicit CAPI-enter-recording-leaf. Leaders log lastmissing local rank, local8ready, peerconnect, global16ready/digest and GO. Evidence is copied to shared R after control completion; it is not used as a protocol gate. Default existing device source remains unchanged. New actual Native integration/1HOST diagnostics need separate source/claim; CPU protocol success is not TP16 collective or Model qualification.
