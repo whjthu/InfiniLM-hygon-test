@@ -129,6 +129,14 @@ def assemble(parent, out, plan_path):
                   nodes=["a02r3n15", "a02r3n16"],
                   runtime_directory="/refactor/results/GLM952-prefix-continuation")
     files["config.template.json"] = (json.dumps(config, indent=2) + "\n").encode()
+    normalized_modules = (
+        "accepted_prefix_commit.py", "accepted_prefix_continuation.py",
+        "accepted_prefix_owner.py", "freeze_continuation_inputs.py",
+        "owner_compare.py", "resident_compare.py",
+    )
+    for name in normalized_modules:
+        member = prefix + name
+        files[member] = files[member].replace(b"\r\n", b"\n").rstrip() + b"\n"
     for name, raw in files.items():
         if name.startswith(prefix) and name.endswith(".py"):
             compile(raw, name, "exec")
