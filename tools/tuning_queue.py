@@ -55,6 +55,24 @@ def expand(campaign):
     require(len({r['id'] for r in out}) == len(out), 'duplicate semantic candidates')
     return sorted(out, key=lambda r: r['id'])
 
+
+def receive_snapshot(fleet, request_started_monotonic, request_id, raw_response_SHA256):
+    """Stamp the authenticated transport receipt once, never when rereading a file.
+
+    Cluster wall timestamps are descriptive only. The request roundtrip bounds
+    the oldest possible fresh remote observation; a local monotonic clock measures
+    subsequent age. A boot/clock-step anchor prevents reuse across local reboots.
+    """
+    now=time.monotonic()
+    require(0<=now-request_started_monotonic<=60, 'snapshot transport exceeded60s')
+    require(bool(request_id)and bool(raw_response_SHA256), 'original transport identity required')
+    require('local_receipt'not in fleet, 'do not restamp an old snapshot')
+    result=dict(fleet)
+    result['local_receipt']=dict(received_monotonic=now,roundtrip_s=now-request_started_monotonic,
+        boot_epoch_anchor=time.time()-now,request_id=request_id,raw_response_SHA256=raw_response_SHA256,
+        payload_SHA256=digest(fleet),clock='local monotonic; remote wall time never subtracted')
+    return result
+
 class Queue:
     def __init__(self, path):
         path = Path(path)
@@ -145,8 +163,12 @@ class Queue:
         return ident
 
     def plan(self, fleet, now=None):
-        now = time.time() if now is None else now
-        require(0 <= now-fleet['observed_epoch'] <= 60, 'fresh idle snapshot required, max60s')
+        now = time.monotonic() if now is None else now
+        receipt=fleet['local_receipt']
+        require(digest({k:v for k,v in fleet.items()if k!='local_receipt'})==receipt['payload_SHA256'], 'snapshot payload drift')
+        require(abs((time.time()-time.monotonic())-receipt['boot_epoch_anchor'])<2, 'local reboot/clock change requires fresh receipt')
+        age=now-receipt['received_monotonic']
+        require(0 <= age and 0<=receipt['roundtrip_s'] and age+receipt['roundtrip_s']<=60, 'fresh idle snapshot required, max60s from original request')
         require(fleet['complete'] is True and fleet['total_cards'] == 136, 'incomplete cluster inventory')
         seen, free = set(), {}
         for name, node in fleet['nodes'].items():

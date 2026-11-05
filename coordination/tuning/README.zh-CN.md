@@ -58,6 +58,8 @@ root串行集成、doublewhjthu/普通SSH推bw1000-experiments；默认OFF候选
 
 ## 当前实现资格
 
-18项本地队列不变量测试通过，包括并发预约、未知不重播、原身份、终态post、失败分母、不同scope不混排与已发布包准备。新GLM loader另2项CPU录制通过，只证明覆盖/强引用/64位地址，不是Native数值。Kimi12组静态成本已真实运行；0新GPU性能资格。三agent仍额度中断；当前没有持续自动填满集群的执行服务，>80%未达，root继续冻结就绪包后实际派发。
+20项本地队列不变量测试通过，包括并发预约、未知不重播、原身份、终态post、失败分母、不同scope不混排与已发布包准备。新GLM loader另2项CPU录制通过，只证明覆盖/强引用/64位地址，不是Native数值。Kimi12组静态成本已真实运行；0新GPU性能资格。三agent仍额度中断；当前没有持续自动填满集群的执行服务，>80%未达，root继续冻结就绪包后实际派发。
 
 GLM首次v1同容器HOSTpreflight90秒失败，未GPU。唯一staged owned-PGID诊断实际57.75秒通过且groupgone，Torch导入45.8秒；不能反推旧超时具体阶段。完整入口v2复用该实际环境证据，Model/math/floor/deadline原样，新命名空间先publish再preflight/fresh一次。筛选另要求完整planned分母；增加拒绝/取消或质量损失不得由快速完成子集自动晋级。
+
+首次实际队列接入在prepare后、reserve/launcher之前拒绝了快照：旧freshness错误地相减Windows与集群wall时钟。新规则以原请求的本地monotonic往返上界+一次接收回执衡量60秒新鲜度，保存原request和payloadSHA，禁止重读旧文件重新盖章；本机reboot/大clockstep使回执失效。remote wall只描述，永不作跨HOST相减。原run仍READY，不能重新prepare或假称GPU失败。

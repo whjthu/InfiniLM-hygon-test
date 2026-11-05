@@ -9,7 +9,7 @@ import time
 import unittest
 from unittest.mock import patch
 
-from tuning_queue import Queue,canonical,digest,expand,select_next_rung
+from tuning_queue import Queue,canonical,digest,expand,select_next_rung,receive_snapshot
 ROOT=Path(__file__).resolve().parents[1]
 
 class TuningTest(unittest.TestCase):
@@ -22,6 +22,8 @@ class TuningTest(unittest.TestCase):
         for i in range(17):
             zone='GLM' if i<4 else 'DeepSeek' if i<12 else 'Kimi' if i<16 else 'control'
             self.fleet['nodes']['node'+str(i)]=dict(zone=zone,PCIs=['PCI'+str(j)for j in range(8)],KFD_clean=True,PID_clean=True,ports_clean=True,membership_valid=True,active_steps=[])
+
+        self.fleet=receive_snapshot(self.fleet,time.monotonic(),'test-request','a'*64)
 
     def ready(self, suffix='', zone='GLM', count=2):
         spec=next(r for r in self.rows if r['model']==zone)
@@ -72,7 +74,7 @@ class TuningTest(unittest.TestCase):
         self.assertEqual([r['id']for r in self.rows],[r['id']for r in expand(x)])
 
     def test_stale_inventory_rejected(self):
-        self.fleet['observed_epoch']-=61
+        self.fleet['local_receipt']['received_monotonic']-=61
         with self.assertRaisesRegex(ValueError,'fresh'):self.q.plan(self.fleet)
 
     def test_unknown_and_expired_intent_still_reserves_nodes(self):
@@ -96,6 +98,7 @@ class TuningTest(unittest.TestCase):
     def test_snapshot_conflict_blocks_busy_node(self):
         self.ready();self.fleet['nodes']['node0']['active_steps']=['original.1']
         self.fleet['nodes']['node1']['KFD_clean']=False
+        self.fleet['local_receipt']['payload_SHA256']=digest({k:v for k,v in self.fleet.items()if k!='local_receipt'})
         self.assertEqual(self.q.plan(self.fleet)['jobs'][0]['nodes'],['node2','node3'])
 
     def test_concurrent_reservation_one_winner(self):
@@ -158,6 +161,18 @@ class TuningTest(unittest.TestCase):
     def test_fast_completed_subset_with_many_rejects_cannot_promote(self):
         row=dict(candidate='rejects-fast',comparison=self.comparison('service'),numeric_passed=True,post_clean=True,keeper_passed=True,planned=20,completed=5,rejected=15,canceled=0,missing=0,failed=0,baseline_completed=20,baseline_rejected=0,baseline_canceled=0,quality_correct=5,baseline_quality_correct=18,quality_screen_passed=True,warm_per_user_ratios=[3.0]*9)
         self.assertEqual(select_next_rung([row])['promoted'],[])
+
+    def test_remote_wall_clock_skew_does_not_authorize_or_block(self):
+        self.ready();self.fleet['observed_epoch']+=3600
+        self.fleet['local_receipt']['payload_SHA256']=digest({k:v for k,v in self.fleet.items()if k!='local_receipt'})
+        self.assertEqual(len(self.q.plan(self.fleet)['jobs']),1)
+        self.fleet['local_receipt']['received_monotonic']-=61
+        with self.assertRaisesRegex(ValueError,'fresh'):self.q.plan(self.fleet)
+
+    def test_snapshot_cannot_be_restamped_or_survive_boot_change(self):
+        with self.assertRaisesRegex(ValueError,'restamp'):receive_snapshot(self.fleet,time.monotonic(),'r','s')
+        self.fleet['local_receipt']['boot_epoch_anchor']-=10
+        with self.assertRaisesRegex(ValueError,'reboot'):self.q.plan(self.fleet)
 
     def test_kimi_static_baseline_geometry(self):
         p=ROOT/'code/bw1000/systematic-tuning-v1/kimi_tiling_cost.py'
