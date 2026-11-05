@@ -46,6 +46,16 @@ def main():
    if ref.get('receipt'):
     v=json.loads(Path(ref['path']).read_bytes());assert v['completed']and v['passed']==ref['passed']
   for p,h in plan['objects_SHA256'].items():assert H(p)==h,('old object bytes',p)
+  reused_dependency_bytes={}
+  reused_units=[]
+  for item in plan.get('reused_changed_units',[]):
+   assert H(item['receipt'])==item['receipt_SHA256'];prior=json.loads(Path(item['receipt']).read_bytes());assert prior['completed']and not prior['passed'];u=prior['compiled'][item['name']];fresh=prior['fresh_dependencies_SHA256'][item['name']]
+   assert u==item['compiled']and deps(u['MD'])==set(fresh)and H(u['MD'])==u['MD_SHA256']and H(u['object'])==u['object_SHA256']and H(u['source'])==u['source_SHA256']
+   for p,h in fresh.items():
+    if p not in reused_dependency_bytes:assert H(p)==h;reused_dependency_bytes[p]=h
+    else:assert reused_dependency_bytes[p]==h
+   reused_units.append(item['name'])
+  q['reused_successful_changed_TUs']=reused_units;save()
   allowed={}
   for a in plan['dependency_maps']:
    assert H(a['path'])==a['SHA256'];v=json.loads(Path(a['path']).read_bytes())
@@ -74,7 +84,10 @@ def main():
    lib=B/item['output'];lib.parent.mkdir(parents=True,exist_ok=True);args=subst(item['argv'],built,libs);args[args.index('-o')+1]=str(lib)
    objects=[a for a in args if a.endswith('.o')];assert len(objects)==item['object_count']and len(set(objects))==len(objects)
    run(args,item['name']+'-link');text=run(['nm','-D','--defined-only',str(lib)],item['name']+'-symbols')[0];old=run(['nm','-D','--defined-only',item['baseline']],item['name']+'-parent-symbols')[0];now,prior=strong(text),strong(old);assert all(now.get(k)==v for k,v in prior.items()),'parent strong export lost';assert all(now.get(n)=='T'for n in item.get('required_exports',[]))
-   elf=run(['readelf','-d',str(lib)],item['name']+'-ELF')[0];parentelf=run(['readelf','-d',item['baseline']],item['name']+'-parent-ELF')[0];assert needed(elf)==needed(parentelf),'NEEDED changed';assert 'SYMBOLIC'in elf
+   elf=run(['readelf','-d',str(lib)],item['name']+'-ELF')[0];parentelf=run(['readelf','-d',item['baseline']],item['name']+'-parent-ELF')[0];expected_needed=needed(parentelf)
+   for oldpath,newname in item.get('replace_resolution',{}).items():
+    assert expected_needed.count(oldpath)==1,('unregistered Native NEEDED replacement',oldpath);expected_needed=[libs[newname]['path']if n==oldpath else n for n in expected_needed]
+   assert needed(elf)==expected_needed,'NEEDED changed outside exact registered Native identity';assert 'SYMBOLIC'in elf
    env=os.environ.copy();env['LD_LIBRARY_PATH']=str(lib.parent)+':'+os.environ['LD_LIBRARY_PATH']
    if plan.get('ldd_preload'):env['LD_PRELOAD']=plan['ldd_preload'];assert H(env['LD_PRELOAD'])==plan['ldd_preload_SHA256']
    out,err=run(['/usr/bin/ldd','-r',str(lib)],item['name']+'-ldd',env);actual={p:H(p)for p in paths(out+'\n'+err)};expected=dict(plan['dynamic_SHA256'])
