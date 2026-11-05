@@ -1,0 +1,29 @@
+{
+  "status": "CPU_ONLY_READY; no device submission",
+  "GPU_GO": false,
+  "Model_GO": false,
+  "mechanism": "same BF16 operands, original HygonDefault/CUBLAS_COMPUTE_32F, F32sum then BF16Cast; no permanent F32weight or Runtime replacement",
+  "baseline": "actual Runtime dense_prefill_f32_r2475 and its env1 unchanged",
+  "component_geometry": [
+    [
+      4608,
+      7168,
+      1
+    ],
+    [
+      512,
+      7168,
+      3584
+    ]
+  ],
+  "owner": "one actual Runtime on same calling thread throughout both geometries and12arms; entry uses original successful singleRuntime envelope, not model8owner width4 env; actual Linux ownerTID/device/readback reported before warm and afterABBA",
+  "sequence": "geometry0 then1; modes OFF,ON warm/cold observations with component-only trim after each; formal OFF,ON,ON,OFF with no trim. Exactly12 total runs; counts3/3 each geometry",
+  "input": "explicit deterministic finite BF16 synthetic actual geometry; full guardedGPU input/weight and output backing. New inspection D2H checks every original input/weight word+16+16canary, actual shapes/strides/dtypes/address/TID/device. No original Model parameter altered.",
+  "reference": "future actual NumPy CPU F32 sample reference; agreement separate from driver.passed. Predeclare CPU-sample and ON/OFF sampled NRMS<=0.02 and maxabs/max(1,maxabs(reference))<=0.04; finite/canary/lifecycle strict. No bitexact gate.",
+  "time": "inclusive CAPI includes output guard allocation/seeding, dispatch+drain, D2H/canary, returned sum release/finaldrain. dispatch metric excludes seed and D2H separately.",
+  "memory": "cudaMemGetInfo before/afterdrain/after sum release and component-only trim pairs. Public pool has no counts/highwater API; report cached retained delta, not instantaneous driver/BLAS/pool peak. No claim643 deficit solved.",
+  "future_device": "only after actual necessaryCPU receipt and new concrete component source/resource publication/fresh; proposed one card<=180s, CPUkeeper<=240, not yet claimed",
+  "failure": "any rc/nonfinite/canary/owner/lifecycle issue stop; original destructor drains owned references; wrongthread rejected before Runtime. No retry/fullModel",
+  "old_643": "floorFAIL/history retained; no sampler reset or floor/context/math/oldNative change",
+  "weight_contract": "NoneQuant get_param_layout creates [N,K] BF16. Original pre_transpose=false keeps it; forward contiguous then dense permute[K,N] strides[1,K]. Same layout inspected dynamically; guardstorage adds only16wordoffset, no transpose policy change. Prepackedtrue is not qualified."
+}
