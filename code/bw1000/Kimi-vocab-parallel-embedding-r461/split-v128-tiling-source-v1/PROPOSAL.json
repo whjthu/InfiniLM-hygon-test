@@ -1,0 +1,67 @@
+{
+  "schema": "Kimi-two-bounded-tiling-source-only-v1",
+  "CPU_GO": false,
+  "GPU_GO": false,
+  "Model_GO": false,
+  "variants": [
+    {
+      "Q": 32,
+      "K": 6144,
+      "source": "code/bw1000/Kimi-vocab-parallel-embedding-r461/split-v128-tiling-source-v1/Q32-K6144",
+      "extra_explicit_staging_bytes": 7077888,
+      "ABBA_FA_calls_source_estimate": 600,
+      "CPU_compile_TUs": {
+        "HOST": 1,
+        "GPU": 1
+      },
+      "source_only": true,
+      "actual_CPU": null,
+      "actual_GPU": null
+    },
+    {
+      "Q": 32,
+      "K": 12288,
+      "source": "code/bw1000/Kimi-vocab-parallel-embedding-r461/split-v128-tiling-source-v1/Q32-K12288",
+      "extra_explicit_staging_bytes": 21233664,
+      "ABBA_FA_calls_source_estimate": 396,
+      "CPU_compile_TUs": {
+        "HOST": 1,
+        "GPU": 1
+      },
+      "source_only": true,
+      "actual_CPU": null,
+      "actual_GPU": null
+    }
+  ],
+  "baseline_native_SHA256": "91b761ec61cb840bca4726139bd9257302161abb1b2294186413163949c076a3",
+  "parent_fa_cpp": {
+    "path": "code/bw1000/Kimi-vocab-parallel-embedding-r461/split-v128-unpaged-CPU-v6/fa_backend.cpp",
+    "SHA256": "0abed479d35bc8780641c658764b12a3688f130114b632a6d95a066376127542"
+  },
+  "parent_fa_GPU": {
+    "path": "code/bw1000/Kimi-vocab-parallel-embedding-r461/split-v128-source-v1/fa_kernels.cu",
+    "SHA256": "bc0797adb65b632506393db7ca0f4843d037455d43bf349345ac85675521a182"
+  },
+  "SDK_base_header": {
+    "path": "/refactor/install/hygon-kimi-5f91ad7-r3672/include/base/flash_attn_with_kvcache.h",
+    "SHA256": "7eadbf8fddb83df7a1c8c4f38dcc2ee5f7eda95d6021a5ec99a85f4be2f392c3",
+    "CPU1093_MD_exact": true,
+    "source_predicate_scope": "Same BF16/H3/Q<=32/D192/outshape/int32length/unpaged/LSE; base supports49..141 no unpaged K upperbound; Hygon bound0 delegates base. Source inspection only, supports not invoked; actual vendor workspace/numerics UNKNOWN"
+  },
+  "SDK_impl16": {
+    "path": "/refactor/candidates/rebased-5f91ad7-r3668/Ops/Kimi/InfiniOps/src/linked/torch/hygon/ops/flash_attn_with_kvcache/flash_attn.h",
+    "SHA256": "a72d0184c5cad74dba8d64367975b6eb740abd73871bb39f2b50bb6a17e7cbf7"
+  },
+  "scope": "Only private fa backend/tile plan and pack count cap. Original contract.hpp/cache/class/ABI/SDK/F32LSE merge unchanged; no row/context/floor reduction.",
+  "invariants": [
+    "full32768/logical1..512/H3/K192V128/24storage/4GiB",
+    "Q tile never crosses new K boundary; previous chunks fully visible/current chunk bottom-right causal",
+    "all actual range/buffer/count checks share candidate limit",
+    "unpaged typed config/SDKsupports/ValidateLogicalBound unchanged",
+    "old664/1093 not replayed"
+  ],
+  "source_estimates_not_performance": true,
+  "observed_48MiB_component_surplus_not_Model_fit": true,
+  "next": "Read exact original1075 GPU TU compilerargv/MD and1093 HOSTargv/objects; one4CPU8GiB300s two-variant compile+Native/probe relinks requires full fresh-M closure/new exact claim/pub. No compile yet. For device eachvariant needs isolatedprocess or unique SONAME/NEEDED proof, do not assume identical-name Native libraries bind independently.",
+  "negative_baseline": "664 warmmaxpast10.66x/continuation4.84x slower preserved; defaultOFF memoryfallback"
+}

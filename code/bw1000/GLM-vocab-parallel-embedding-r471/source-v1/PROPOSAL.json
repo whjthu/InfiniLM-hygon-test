@@ -1,0 +1,40 @@
+{
+  "schema": "GLM471-vocab-parallel-embedding-source-only-v1",
+  "CPU_GO": false,
+  "GPU_GO": false,
+  "Model_GO": false,
+  "parent_actual_failure": "910371.886 FAILED1/45s, keeper1099FAILED1/47s, post887C0",
+  "parent_Native_SHA256": "22345abd96774752f5e33f048da3e4a75ff9fb54f88007d72ac2958422db295c",
+  "parent_sources": {
+    "code/bw1000/GLM952-global-TP16-component-r470/full-native-source-v1/text_tp16.cpp": "7869f428f9dbad3e9191be291c392d84f42b8a950964f33297caef1610b0c45f",
+    "code/bw1000/GLM952-global-TP16-component-r470/full-native-source-v1/full_bridge_tp16.cpp": "74cbad18d8b0ce1cedd0d2bc4c66b33fafabd3a142bea2137d7578af5bfabd8e",
+    "code/bw1000/GLM952-global-TP16-component-r470/full-native-source-v1/geometry.hpp": "19a561edafb6ce52301401d8bddd18926b5864c890628ee870ec160fb8d5bd49"
+  },
+  "actual_geometry": {
+    "vocab": 154880,
+    "hidden": 6144,
+    "TP": 16,
+    "PP": 1,
+    "rows": 1,
+    "capacity": 32768,
+    "replicated_embedding_BF16_bytes": 1903165440,
+    "cache_logical_bytes": 8355053568,
+    "free_after_constructor_range": [
+      8210350080,
+      8315207680
+    ],
+    "unchanged_floor": 8589934592
+  },
+  "hypothesis": "Shard currently replicated BF16 embedding by vocabulary rows and reconstruct existing hidden via same-stream actual TP SUM, retaining full checkpoint source selection",
+  "payload_projection": {
+    "local_rows": 9680,
+    "local_embedding_bytes": 118947840,
+    "saved_payload_bytes_per_rank": 1784217600,
+    "actual_driver_saving": "UNKNOWN; no constructor rerun or fit claim"
+  },
+  "math": "Raw BF16 copy on the single owning rank, positive zero on other15, original engine TP SUM. Exactly one owner per global ID; no multiple-nonzero rounding sum, no F64. Sign-of-zero/provider behavior and full checkpoint/numerics still need real validation.",
+  "scope": "Private TP16PP1 explicit JSON+ENV optin; TP8/default retain old allocation/IndexSelect. Existing cfg_ field used, no class size/context/CABI signature change. Original head/FFN/NoV/KV/floor/context/quality corpus unchanged.",
+  "cost": "One additional existing TP allreduce of tokens*6144 BF16 per fullforward; real latency UNKNOWN, do not assume performance win",
+  "next": "Read originalCPU1087 two HOST TU and qualified GPU compiler argv; new exact dependencies/fresh-M for2HOST1GPU then one CPUbuild+link/oldexports, no repeat1087. Independent full16-rank entry only after precise claim/pub; original886 not replayed.",
+  "qualification": "Uncompiled source proposal; no GPU/Model/numeric/fit/quality pass"
+}
