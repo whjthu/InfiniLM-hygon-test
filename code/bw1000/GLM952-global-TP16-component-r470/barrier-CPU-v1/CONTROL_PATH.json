@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "old_GPU": "910371.870",
+  "original_seal_SHA256": "cf3a5d646c0fcf68bf402f3f5006b7bfc639fc1d73d39e69b271ff22e348f8db",
+  "source_shared_SHA256": "4c14563023e21292dcadad5402a5d68c9f2c5551551f6db43e2c6aad665b872c",
+  "owner_SHA256": "ab74d3dab07ba60c63632933e251198325d4aeaf4f5e64ae1db6e978b0e49b7e",
+  "outer_SHA256": "b6cd3ac7aa1829a39434d8dc186deed6c993323d1ac894727072701570c0825d",
+  "static_findings": {
+    "same_container_R": "/refactor",
+    "same_OUT": "/refactor/results/GLM-global-TP16-comm-r470-device-v1",
+    "rank_rule": "node*8+device",
+    "all_wait_same_order": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "same_epoch": [
+      1793891658.298647
+    ],
+    "same_UID_hash_pair": true,
+    "marker_value_keys": [
+      "global_rank",
+      "epoch"
+    ],
+    "deterministic_namespace_mismatch_proven": false
+  },
+  "new_CPU_scope": "Same original shared.save/wait calls and same2node*8process/global16marker algorithm in new namespace. Per wait before/after phase recorded. No SDK/Runtime/CUDA import, no constructor/collective/Model/GPU.",
+  "original_source_unchanged": true,
+  "limitations": [
+    "A current CPU barrier PASS cannot establish original historical NFS visibility or unique CCL cause.",
+    "No CUDA scheduling contention; CPUs1/node differs from prior32/node; no performance comparison.",
+    "This does not demonstrate TP16 collective numeric or Model qualification."
+  ],
+  "source_only_next_candidate": {
+    "status": "PROPOSAL_NO_DEVICE_GO",
+    "minimal_native_change": "OneHOST-only passive file markers with rank/PID/TID/epoch/sequence at allreduce begin/return, allgather begin/return, original sync begin/return. No extra sync/math or newGPU TU. Need separate changed-source claim/CPU before device.",
+    "barrier_fix": "Do not remove current gate on speculation. Prefer exact scoped control synchronization proven by thisCPU/actual comm protocol evidence; pre-probe gate is not mathematically necessary if all live ranks call ordered same collective, but producer observability and cross-rank failure semantics must remain explicit."
+  }
+}
