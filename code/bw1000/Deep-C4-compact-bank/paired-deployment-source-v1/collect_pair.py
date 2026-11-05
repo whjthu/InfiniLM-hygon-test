@@ -58,8 +58,10 @@ def collect(output, step, epoch):
         active = [v["past"] for v in decode if r["compact"] and eligible(v["past"])]
         expected = [len(active)*LAYERS, LAYERS*sum(p//4-TOPK for p in active)]
         assert r["compact_delta_per_owner"] == [expected]*8
-        summaries.append(dict(index=i, compact=r["compact"], warm=r["warm"], visible_tokens=count,
-                              natural_EOS=eos, decode_tok_s=count/(clock[-1]-clock[0]) if count > 1 else None,
+        visible = len(ids) - int(eos)
+        emitter_tok_s = (visible-1)/(clock[visible-1]-clock[0]) if visible > 1 else None
+        summaries.append(dict(index=i, compact=r["compact"], warm=r["warm"], visible_tokens=visible,
+                              natural_EOS=eos, decode_tok_s=emitter_tok_s,
                               decoder_capi_calls=count, compact_layers_executed_per_owner=expected[0],
                               historical_rows_avoided_per_owner=expected[1]))
     assert offset == len(capi) == q["HC_dispatch_checked_forwards"] == q["layout_dispatch_checked_forwards"]
