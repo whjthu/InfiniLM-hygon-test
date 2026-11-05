@@ -1,0 +1,3 @@
+Default-OFF metadata-first HC T1 system component. CPU stage compiles exactly oneHOST TU and links one executable against unchanged Runtime/SDK; NEVER execute it onCPU. Parent1033+750 dependencies and exact84 donors bound, fresh-M=MD checked. NoModel/weights/HTTP ornewGPU TU.
+
+Device stage is proposal-only until newCPUreceipt+separateGPUclaim. Each owner records actualDefaultConfig/Make provider/workspace before original12op path; noforcedTorch8. Onecold+2warm+4measure frames, syntheticfinite sameF32 shapes/strides, completewall/finalfence, raw outputs+finiteCPUref outsidetiming and normalweakRuntimeexpired. Existing Work destruction drain remains outside sampled success wall. NoexclusiveCPU/GPU orModel speed claim.
