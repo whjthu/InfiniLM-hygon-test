@@ -1,0 +1,24 @@
+{
+  "scope": "source fact only; actual device mask remains unobserved until this new component run",
+  "submit": {
+    "path": "/refactor/candidates/GLM952-block-prefix-native-v1/mirror/candidates/glm-M16-r8861/tree/candidates/rebased-5f91ad7-r3668/Model/GLM/InfiniLM/csrc/execution/submit.hpp",
+    "SHA256": "8c0bd70a372b0017bca78e54f037493fe79918f97b5fed6d885f5b5d8eb0c20d",
+    "excerpt": [
+      {
+        "line": 29,
+        "text": "    explicit RuntimeWorkspaceHandle(infinilm::runtime::Runtime &runtime) : runtime_(runtime) {"
+      },
+      {
+        "line": 32,
+        "text": "            affinity_r2392::apply_once(runtime_.device().index());"
+      },
+      {
+        "line": 152,
+        "text": "        detail::RuntimeWorkspaceHandle handle{runtime};"
+      }
+    ]
+  },
+  "owner_header_SHA256": "de2ffe645329558634740ed6b8a9ac7c70030160786eab38d065ce513afce71d",
+  "contract": "All8 fresh process owners inherit the same >=32 CPU mask. Explicit width4 SDK apply_once at create first Cast binds rank*4 slice; no manual prepin. Same owner OS TID/device is retained through all CAPI and destroy. Driver records common/observed mask and verifies pairwise disjoint8x4. Bootstrap must keep common unchanged before spawn.",
+  "no_CPU_or_math_change": true
+}
