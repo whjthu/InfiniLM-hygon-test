@@ -1,0 +1,11 @@
+Experimental bounded physical FIFO and queue TTL, default disabled. This source is not yet a deployed service.
+
+The real r454 bridge limits _requests but has an unbounded _pending Queue. P1 cancellation can pop registry entries while accepted requests remain in the physical FIFO. The new admission mixin checks physical pending count under the existing admission lock BEFORE encoding/queue publication. It keeps the original unbounded Queue implementation only so original STOP can publish one sentinel without blocking; accepted requests are bounded, not the sentinel. No timer or second scheduler is added.
+
+At the actual original worker dequeue boundary, queued cancellation/expiry finishes only never-entered requests without context.floor/policy/Native. Active requests keep original Native cancel/reset/drain/finish. A request taken just as STOP arrives is retained, and original final successful reset precedes finite draining of pending entries even if HTTP registry already retired them. If original owner failed, these requests fail instead of inventing normal cleanup. All outcomes stay in queue_ledger and the original request/client plan denominator.
+
+build_overlay.py consumes exact r454 and published r480 manifests, then materializes the unchanged ordinary python -m public_deep_model entry plus the few new composition/worker/Ready/ledger hooks. Startup bounded_queue_enabled/physical_pending_capacity/queue_wait_seconds are engine-fixed and cannot be supplied per request. Existing a314 math, HC0/r366/fullpreOFF, full32K, budgets, body/gold and memory floor are preserved. r480 is measurement only, not a separate reload.
+
+LOCAL_RESULT records actual NativeRequest/P1.finally/Queue and actual derived worker.serve/original generate with explicit encoding/Context/Native output recording leaves. It is not real GPU/reset/quality validation. The new metadata CPU consumer builds actual immutable package and consumes its normal nonserve CLI; it does not repeat962/945/Native/encoding.
+
+SERVICE_PROPOSAL fixes two distinct paired workloads on32cards, not64 just to fill capacity: finite overload and cancellation/STOP backlog. Each instance has20 planned original requests, zero warmup, full4096 budgets. Client/controller and private full-input freeze are still pending before GPU. No GPU GO or actual Model benefit is claimed.
