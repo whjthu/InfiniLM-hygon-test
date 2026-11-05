@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "scope": "Original637 terminal/source-only diagnosis. No Model rerun or repair execution",
+  "cause": "Premature post-load affinity predicate: first-submit binding has not been required by any Model forward at failing line134",
+  "evidence": [
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/execution/submit.hpp",
+      "bytes": 7476,
+      "SHA256": "8c0bd70a372b0017bca78e54f037493fe79918f97b5fed6d885f5b5d8eb0c20d"
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/execution/owner_affinity_r2392.hpp",
+      "bytes": 2028,
+      "SHA256": "de2ffe645329558634740ed6b8a9ac7c70030160786eab38d065ce513afce71d"
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/runtime/runtime.hpp",
+      "bytes": 3017,
+      "SHA256": "c127b4cf91ab3b64721efe7c9a3e90a84cca9e35dc004ddb6abd9c5e067896d4"
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/Kimi-AR-persistent-storage-optin-r456/native/worker.cpp",
+      "bytes": 71660,
+      "SHA256": "643624e85321a7cfdba947bc1d7ab090671c038939246657c36798569bd5ebd6"
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/Kimi-AR-persistent-storage-optin-r456/native/kimi_compact_engine_r4974.cpp",
+      "bytes": 29901,
+      "SHA256": "31f5ee3e4b27d82f09a2d5694f05ac89a189a72ace4e529fc18cdc63f9c2df32"
+    }
+  ],
+  "source_order": [
+    "node.py full load_parameters (all497052 only node2)",
+    "read_head(postload)",
+    "verify_affinity at line134 requires changes1",
+    "memory_after_finish/all-four barrier/Ready (not reached)",
+    "model_driver.generate reset and first true prefill (not reached)"
+  ],
+  "binding": {
+    "actual_submit_SHA256": "8c0bd70a372b0017bca78e54f037493fe79918f97b5fed6d885f5b5d8eb0c20d",
+    "actual_header_SHA256": "de2ffe645329558634740ed6b8a9ac7c70030160786eab38d065ce513afce71d",
+    "trigger": "RuntimeWorkspaceHandle constructor submit.hpp29..32 assertOwnerThread then Hygon apply_once. Width4 TLS applied once to actual submitting thread.",
+    "worker_load": "LOAD_BATCH lines687..705: model load_no_sync + sync + clear; no unconditional RuntimeWorkspaceHandle/apply_once",
+    "worker_finish": "PREPROCESS751..770: model process_weights_after_loading + sync + trim; no unconditional owner bind",
+    "qualification": "Some preprocessing implementations may submit ops. No guarantee all owners bind during load/finish; real device0 postfinish changes0 was observed in thrown assertion. Do not infer runtime recreation."
+  },
+  "CAPI_identity": {
+    "all4_nodes_six_recorded_dladdr_b8": true,
+    "all4_maps_b8": true,
+    "constructor_affinity_32owners_zero": true,
+    "affinity_report_dladdr_not_recorded": true,
+    "post_finish_only_device0_retained": true,
+    "extra_ELF_source_read": "SSH closed; no new nm evidence, no dlopen performed"
+  },
+  "minimal_future_fix": {
+    "new_namespace_required": true,
+    "postload": "Persist raw affinity snapshot with no changes1 requirement; preserve strict create/shape/floor/loader checks",
+    "guard_point": "Within original first real prompt prefill call, after native return/finite checks and before next compute or emit. Query+persist raw affinity before strict validation, exact changes1/four CPUs/32 unique per node. all4 node packets must validate before proceeding.",
+    "no_extra_forward": true,
+    "no_calling_thread_pin": true,
+    "no_native_compile_expected": true,
+    "include_affinity_report_dladdr_in_existing_provider_check": true,
+    "original_cap_floor_and_deadline_unchanged": true,
+    "notes": "Keep one guard per first real call, subsequent original final affinity checks. Include guard cost in inclusive request time. This is source proposal only, not actual binding qualification or authorization for a new Model load."
+  },
+  "post": {
+    "original640": "FAILED1; PID/KFD/knownPID empty all4; n08:26743 bindfalse only",
+    "additional641": {
+      "observed_unix": 1793875796.8595839,
+      "node": "a14r2n08",
+      "UID": 154459,
+      "actual_step": "910380.641",
+      "port": 26743,
+      "connections": [],
+      "UID_owned_owners": [],
+      "no_bind": true,
+      "no_signal": true,
+      "GPU": 0
+    },
+    "limit": "Later tcp/tcp6 has no26743 entry/owner. Cannot reconstruct whether original640 was TIME_WAIT, LISTEN or another transient; no rebind or REUSEADDR used."
+  },
+  "unknown": [
+    "Full32 Model load/floor/Ready/normal destroy",
+    "Original26743 failure instantaneous TCP state",
+    "Postfinish raw affinity for7 owners after first assertion",
+    "Original affinity-report dladdr address (six other CABI dladdrs were recorded)"
+  ],
+  "GPU_GO": false,
+  "Model_GO": false
+}

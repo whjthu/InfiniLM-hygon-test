@@ -1,0 +1,138 @@
+{
+  "scope": "Offline original855/860 floor semantics and Layer0 owner contract; no network, compile, job, SDK or device execution",
+  "source_v1_publication": "0919a7b92ca5278a166e046188573452805d6312",
+  "source_v1_changed": false,
+  "CPU_submissions": 0,
+  "GPU_submissions": 0,
+  "primary_860_binding": {
+    "archive": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\Kimi632-GLM860-terminal-sealed-v1.tar.gz",
+    "archive_SHA256": "8f9eb998ba7a666639ad3b0dd9fbf8d8226c0d5987f1dbd151ed1cd2a16e1192",
+    "watch_member": "glm/watch.json",
+    "watch_SHA256": "765dd4d7d535b1eb0207a2008cc36484d9341f575f86a08c3b60c03d4f102526",
+    "provider_manifest": {
+      "path": "code/bw1000/GLM-C1-block-logits-verifier/logit-retention-v1/PROVIDER_MANIFEST.json",
+      "SHA256": "346714e36ccff1e39a624dfec51a6edc4ff95fdf99503e5753c14eee1277db41",
+      "excerpts": []
+    },
+    "reported_entry_source_manifest_SHA256": "346714e36ccff1e39a624dfec51a6edc4ff95fdf99503e5753c14eee1277db41",
+    "Native_SHA256": "35c08ce45814178e3692c55eb13dd5f074643993be1fbe911ecf91a2c200a0cb",
+    "actual_16owner_minimum_driver_free_bytes": 6190268416
+  },
+  "floor_sources": [
+    {
+      "path": "code/bw1000/GLM-C1-block-logits-verifier/logit-retention-v1/resident_continuation.py",
+      "SHA256": "582c8939aac3cab76b3cb4383c60629905d317e6ebb2fdc69774fe2964e0b634",
+      "excerpts": [
+        {
+          "line": 14,
+          "text": "MEMORY_FLOOR = 512 * 1024**2"
+        },
+        {
+          "line": 89,
+          "text": "                if not resident.report[\"all16_loaded_and_postload_4GiB_passed\"]:"
+        },
+        {
+          "line": 97,
+          "text": "                    # Keep the original post-forward 512 MiB floor and make a"
+        },
+        {
+          "line": 103,
+          "text": "                    floor = value.new_tensor([int(free >= MEMORY_FLOOR)])"
+        },
+        {
+          "line": 106,
+          "text": "                    if frame[-1].item() != OWNERS:"
+        }
+      ]
+    },
+    {
+      "path": "code/bw1000/GLM-W4-fewshot-quality-r444/verified-ready-socket-CPU-v1/provider/public_glm_native/owner_gates.py",
+      "SHA256": "9d0f6317788c219f36c0eb88531edd63d55ebbcf99603e0428ff3a17992f52aa",
+      "excerpts": [
+        {
+          "line": 135,
+          "text": "            self._vote(b, ctx, [float(report['loaded_parameters'] > 0), float(free > 4 * 1024 ** 3)])"
+        },
+        {
+          "line": 136,
+          "text": "            report.update(all16_loaded_and_postload_4GiB_passed=True, memory_after_load=[free, total])"
+        }
+      ]
+    },
+    {
+      "path": "code/bw1000/GLM-C1-block-logits-verifier/collect_compare.py",
+      "SHA256": "dc50f2bff86e35779fd59045618288c8535a9bcb678726ecb5138ce0f2523937",
+      "excerpts": [
+        {
+          "line": 14,
+          "text": "FORWARD_FLOOR = 512 * 1024**2"
+        },
+        {
+          "line": 15,
+          "text": "POSTLOAD_FLOOR = 4 * 1024**3"
+        },
+        {
+          "line": 162,
+          "text": "            if original[\"memory_after_load\"][0] <= POSTLOAD_FLOOR:"
+        },
+        {
+          "line": 169,
+          "text": "            if type(free) is not int or free < FORWARD_FLOOR:"
+        }
+      ]
+    }
+  ],
+  "semantics": {
+    "parent_postload": "free > 4294967296",
+    "parent_each_forward": "free >= 536870912; all16 owner agreement through control vote",
+    "v1_finish": "free >= 4294967296",
+    "v1_step": "free >= 536870912",
+    "forward_floor_has_same_scope_parent_evidence": true,
+    "forward512_not_a_new_floor_relaxation": true,
+    "postload_equality_edge_differs": true,
+    "smallest_correction": "new immutable version only: finish floor_bytes(4GiB+1) to preserve strict parent threshold; retain per-forward512MiB"
+  },
+  "owner_contract": {
+    "source": {
+      "path": "code/bw1000/GLM35c-layer0-checkpoint-component/source-v1/layer0_component.cpp",
+      "SHA256": "e2b43987bd24e3e2435749479d3219c50a5c0812f82176b865eb4634287747a6",
+      "excerpts": [
+        {
+          "line": 36,
+          "text": "void owner(Context*c){if(!c||!c->r||c->closing)throw std::invalid_argument(\"Layer0 component context\");c->r->assertOwnerThread();int d=-1;cuda_check(cudaGetDevice(&d));cudaStreamCaptureStatus s;cuda_check(cudaStreamIsCapturing(static_cast<cudaStream_t>(c->r->stream()),&s));if(d!=c->device||c->r->isGraphRecording()||s!=cudaStreamCaptureStatusNone)throw std::invalid_argument(\"Layer0 component owner/device/eager\");}"
+        },
+        {
+          "line": 44,
+          "text": "extern \"C\" void*glm_l0_create(int enabled,int device,const char*config,const void*uid,int bounded_rope){"
+        },
+        {
+          "line": 47,
+          "text": "  c=std::make_unique<Context>();c->device=device;infini::rt::DeviceGuard g{rt::Device::Type::kHygon,device,true};c->r=rt::Runtime::create({rt::Device::Type::kHygon,device});c->r->enableOwnerDrainFailStop();infinicclUniqueId id{};std::memcpy(&id,uid,sizeof(id));if(infinicclCommInitRank(&c->tp,8,id,device)!=infinicclSuccess)throw std::runtime_error(\"component genuine TP8 init\");"
+        },
+        {
+          "line": 58,
+          "text": "extern \"C\" int glm_l0_finish(void*raw){auto*c=static_cast<Context*>(raw);bool owned=false;try{owner(c);owned=true;if(c->ready||c->poison)throw std::invalid_argument(\"component finish state\");for(auto&k:c->layer->state_dict_keys())if(!c->loaded.count(k))throw std::invalid_argument(\"missing actual checkpoint key: \"+k);c->layer->process_weights_after_loading(*c->r,false);m::glm_indexer_policy_r998(*c->r,false);floor_bytes(4ull*1024*1024*1024);c->ready=true;return 0;}catch(const std::exception&e){error=e.what();if(owned){drain(c);c->poison=true;}return 1;}}"
+        },
+        {
+          "line": 71,
+          "text": " floor_bytes(512ull*1024*1024);c->past=past+n;return 0;"
+        }
+      ]
+    },
+    "create_guard_is_local_RAII": true,
+    "caller_must_set_device_before_create": true,
+    "caller_must_keep_or_reselect_rank_device_on_same_owner_OS_thread_for_every_CAPI": true,
+    "create_return_does_not_persistently_bind_caller_device": true,
+    "owner_rejects_foreign_current_device": true,
+    "subsequent_CAPI_does_not_implicitly_set_device": true,
+    "no_transfer_of_Runtime_or_Tensor_to_parent": true,
+    "future_worker": "Set the actual rank device before create on its dedicated owner thread; keep that same thread and actual current device for load/finish/step/read/reset/destroy. Any external device guard must remain valid for the complete owner lifetime, or explicitly reselect rank before each call. Do not treat create local guard as a persistent binding.",
+    "device_execution_not_verified": true
+  },
+  "secondary_855": {
+    "root_original_consumption": "C:\\Users\\WangHaojie\\Documents\\ChatGPT\\海光集群\\GLM952-GPU855-root-terminal-consumption.json",
+    "SHA256": "9eb73603c45be82fe5132953cb4a9916e4a9ae46c55f045fc074f15ba833bd43",
+    "minimum_driver_free_bytes": 5953290240,
+    "scope": "Existing root consumption only; primary direct source/MF/raw closure above is860, no855 job or raw reseal"
+  }
+}

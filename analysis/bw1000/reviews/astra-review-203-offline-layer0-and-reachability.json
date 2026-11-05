@@ -1,0 +1,96 @@
+{
+  "review": 203,
+  "date": "2026-11-05",
+  "scope": "Local read-only source/evidence review plus this report. No cluster/network access, tests, compilation, Native/SDK execution, GPU, Git, status edits or agent creation.",
+  "previous_review": "analysis/bw1000/reviews/astra-review-202-implementation.json",
+  "evidence": [
+    "status/bw1000/latest.json",
+    "code/bw1000/GLM35c-layer0-checkpoint-component/source-v1/layer0_component.cpp",
+    "code/bw1000/GLM35c-layer0-checkpoint-component/source-v1/component_scope.hpp",
+    "code/bw1000/GLM35c-layer0-checkpoint-component/source-v1/component_api.py",
+    "code/bw1000/GLM35c-layer0-checkpoint-component/source-v1/build_CPU.py",
+    "code/bw1000/GLM35c-layer0-checkpoint-component/source-v1/derive_caller.py",
+    "code/bw1000/GLM35c-layer0-checkpoint-component/source-v1/PARENT_PINS.json",
+    "code/bw1000/GLM35c-layer0-checkpoint-component/source-v1/CHECKPOINT_METADATA.json",
+    "code/bw1000/GLM35c-layer0-checkpoint-component/source-v1/CPU_RESOURCE_CLAIM.json"
+  ],
+  "external_boundary": {
+    "latest_reachability": "Coordinator's original helper ConnectionClosed at10:26, including require_escalated attempt, produced no remote JSON. This is not an automatic-approval rejection or a job terminal observation. Git reachability/publication is separate.",
+    "Kimi": "637/1047 last observed10:00:48UTC RUNNING/loading. Current execution state UNKNOWN; preserve original epoch/deadlines, no cancel/reload/replay from a lost observation channel.",
+    "Deep": "HC metadata CPU1048 completed0/10s with980 fresh-M/MD dependencies and oneHOST build; probe_executed=false at that receipt. Later v3 execution UNKNOWN. Reconcile its original intent/label/process/accounting when connectivity returns before any new submission.",
+    "GLM": "Layer0 source published0919 with MF9167f319aadb9a62d35dd315479bfdd95510b138d190d242b732c0c961a4bdf3; no upload/compile/SDK/device execution. Ordinary publication of a later immutable fix does not itself establish cluster delivery.",
+    "action": "Stop immediate identical connection retries. Continue the specific local source repairs below. At actual external recovery, one bounded read of original handles/intents takes precedence over launch. If connectivity remains unavailable, report the reachability block and preserve prepared work; never mark original jobs failed or successful without evidence."
+  },
+  "findings": [
+    {
+      "severity": "MUST_FIX_BEFORE_CLAIMING_ELF_CLOSURE",
+      "file": "code/bw1000/GLM35c-layer0-checkpoint-component/source-v1/build_CPU.py",
+      "line": 74,
+      "problem": "command('ldd-r',...) checks only process return code and discards its returned text. A missing library/undefined relocation diagnostic must not be accepted merely because ldd returns0.",
+      "minimal_fix": "In a new immutable version, retain and inspect both existing stdout/stderr for not found/undefined symbol diagnostics; require absence before marking relocation closure. Keep the actual ELF/dependency/source pins and existing2HOST build; do not execute/dlopen the library or create a new test framework."
+    },
+    {
+      "severity": "CLOSE_EXISTING_DEPENDENCY_CONSUMER",
+      "file": "code/bw1000/GLM35c-layer0-checkpoint-component/source-v1/build_CPU.py",
+      "line": 54,
+      "problem": "Preprocess -M and compile -MD are individually checked against allowed pinned paths/hashes but the two actual dependency sets are not compared. Counts alone cannot demonstrate fresh-M equals actual compiler dependencies.",
+      "minimal_fix": "Save the two sets already parsed in this existing loop and compare them, preserving original path spellings and exact hashes. If a new standard header appears, record the exact fresh-M difference and pin it under the actual toolchain before compilation; do not approve arbitrary basename/canonical substitutions or rebuild unrelated objects.",
+      "current_read": "PARENT_PINS already contains set, optional, thread, cstring, cmath, vector, memory, unordered_map and device_guard.h. No definite missing standard-header pin was found locally. Actual remote fresh-M has not run; closure is UNKNOWN, not failed."
+    },
+    {
+      "severity": "CHECKPOINT_PROVENANCE_CONSUMER_GAP",
+      "file": "code/bw1000/GLM35c-layer0-checkpoint-component/source-v1/component_api.py",
+      "line": 34,
+      "problem": "The loader verifies the index SHA and selected key set, then shape/byte count and a broad supported dtype set. It does not consume frozen per-key file, safetensors_header_SHA256/header_bytes or exact raw dtype from CHECKPOINT_METADATA. Index SHA alone does not authenticate a changed shard header; FP8 is reinterpreted before comparison to its frozen semantic dtype.",
+      "minimal_fix": "Before get_tensor, verify index mapping equals the frozen file and validate each unique shard header once against existing header size/SHA and selected key dtype/shape/data_offsets. Check the loaded original dtype against that metadata before FP8_e4m3fn to UInt8 reinterpretation. Keep the existing true21-key loader and synchronous Native load ownership; no CPU tensor-payload read, new encoding or fabricated weight fixture is needed for this source fix.",
+      "limit": "Header identity is not a full shard-payload hash. Keep that distinction explicit; this review does not invent a new full-weight hashing requirement."
+    },
+    {
+      "severity": "RECEIPT_SCHEMA_CLARITY",
+      "file": "code/bw1000/GLM35c-layer0-checkpoint-component/source-v1/build_CPU.py",
+      "line": 87,
+      "problem": "The report initializes completed=false and eventually completed=true but has no passed field. The current CPU claim does not specify an external passed-key consumer, so a present consumer failure cannot be asserted.",
+      "minimal_fix": "For the new immutable build/reader handoff, explicitly initialize passed=false and set it true only after all existing checks, including relocation checks. The downstream actual reader must consume this exact schema. Keep failures completed/phase/error distinct rather than treating file existence or exit0 as qualification."
+    }
+  ],
+  "source_boundaries_reviewed": {
+    "construction": "TwoHOST design replaces the exact r403 attention caller and adds one bridge, retains28 objects. Construction TLS capability validates layer0, C1/full32K, realTP8/world8/PP1 and comm identity; outside that capability the original registry geometry check remains. It is an isolated attention component, not a new valid wholeModel PP1 layout.",
+    "CABI": "Twelve signatures match visible C++ declaration types, including void* create and size_t/index dimensions. Existing CPU libffi check actually calls create/finish/reset only; it is high64-pointer evidence, not all12 real Native API execution. Do not rename it complete loader/step qualification.",
+    "owner_and_lifetime": "Owner/device/eager checks precede calls. Work holds tensors and attention output through stream drain; load retains the CPU tensor until synchronous Native load returns. Capture holds strong tensor handles through finish/D2H and releases them before exposing CPU-only bytes. Context release drains, clears FP8/indexer state, destroys layer before communicator, and finally releases Runtime. No clear use-after-free was identified in these paths; actual Runtime/device behavior is still untested.",
+    "capture_limit": "Capture limit64MiB perowner and CPU getters do not expose live Runtime pointers. History banks are retained views until end of forward, not immutable copies at the instant keep() is called. The future consumer must interpret them as captured post-forward bytes over the old valid prefix; source intent alone cannot prove old prefix was not mutated.",
+    "device_and_floor": "create's DeviceGuard is temporary and future worker must retain/select the actual device for owner() to accept later calls. Root subsequently verified parent provider582c8939 forward>=512MiB and owner_gates9d0f postload strictly>4GiB. Keep step512MiB unchanged; use finish minimum4GiB+1byte to preserve strict parent boundary. This is not evidence of actual fit.",
+    "numerical_scope": "Actual21 checkpoint keys include full embedding, layer0 norm and attention weights. The component replays the exact frozen2949 prefix twice with widths1/8 for the first proposal; it omits Decoder/FFN/head and does not establish Model quality, target distribution or throughput. Compare valid history and normalized input before interpreting selection/output differences. If layer0 is equal, this is evidence for later-layer divergence, not proof that860 is repaired."
+  },
+  "four_questions": {
+    "actual_gain": "No new Native performance result from this reachability/packaging interval.202 implementation records actual Deep512:226/256 each arm,3+3discordant, all512EOS, cohort throughput1.4595x with per-user median2.6576 to1.2495tok/s. Retain the throughput/latency tradeoff; no broadNI or strict>15. GLM860 numerical mechanism remains unqualified; current Kimi full run is last-observed loading only.",
+    "time": "About90min without a new Native discriminator is predominantly preparation/transport/observation wait per coordinator. Cluster outage is external; concrete local source gaps above can be fixed now. Do not mistake unreachable current32-card work for known idle hardware or extend its original deadlines.",
+    "hardware": "Actual Mul implementation/workspace remains UNKNOWN despite CPU1048 build. Cached descriptors/pool existence is known; actual hit rates/exclusive wall are not. No new physical peak, straggler or all-fleet-utilization conclusion is possible during observation loss.",
+    "next": "One concrete card per model below; no new matrix, old-suite replay, arbitrary GPU occupancy or repeated immediate network attempts."
+  },
+  "next_cards": {
+    "GLM": {
+      "action_now": "Original source owner prepares a new immutable version containing only the identified dependency/relocation, receipt and checkpoint-header consumer fixes; preserve published0919 bytes. Root can read the exact diff offline.",
+      "after_external_recovery": "One already-defined CPU4core8GiB300s twoHOST/30-object build; no835 rebuild, no Native/SDK/dlopen. Then consume the actual result before preparing the genuine single-layer device scope. No device commitment made by this review.",
+      "first_result": "Local fixes immediate; remote CPU<=300s after recovery. Recovery, queue and future device timeUNKNOWN.",
+      "exit": "Unexpected fresh dependency/ABI/link/checkpoint mismatch stops for exact diagnosis. A passing build is not device or Model qualification."
+    },
+    "Deep": {
+      "action_now": "Consume the actual CPU1048 handoff and prepare its existing metadata-first consumer/report interpretation offline; do not rebuild the already-closed980 dependencies or duplicate descriptor caching.",
+      "after_external_recovery": "First reconcile original v3 execution intent/label/receipt. If it ran, consume that actual result; if never submitted, continue its already-defined no-weight8owner GPU120/worker100/keeper180 exact scope after normal claim/fresh checks. Never resubmit an UNKNOWN execution.",
+      "first_result": "UNKNOWN until original v3 execution is reconciled; bounded metadata/device result then within existing scope.",
+      "exit": "Actual unexpected provider/math/lifetime stops attribution rather than forcing an index. No new Model load for this question."
+    },
+    "Kimi": {
+      "action_now": "Preserve637/1047 original watch identity and deadlines. Prepare only the existing terminal reader/ownership handoff offline.",
+      "after_external_recovery": "Observe those exact original handles once and consume progress or terminal artifacts; no new namespace, restart, timeout extension or extra256 run from loss of network.",
+      "first_result": "UNKNOWN; no READY/full-load/quality claim before original evidence.",
+      "exit": "Use original run cleanup/terminal rules. Communication failure is not authority to kill or replay a possibly live workload."
+    }
+  },
+  "additional_exact_deadline_fix": {
+    "files": ["code/bw1000/GLM35c-layer0-checkpoint-component/source-v1/build_CPU.py", "code/bw1000/GLM35c-layer0-checkpoint-component/source-v1/CPU_inside.sh"],
+    "observed": "claim inside_seconds=270; shell timeout280; Python deadline starts after source/parent/tool hashes. Thus the270s internal budget is not anchored to whole entry.",
+    "minimal_fix": "Anchor the Python270s deadline at run entry including verification; make the existing shell bound270s with its existing kill reserve inside300s Slurm hard limit. Do not increase hard budget or add another job/suite. Root and original owner will consolidate this with the other fixes in one immutable v2."
+  },
+  "outcome": "Concrete offline fixes identified; external cluster reachability still blocks actual delivery/observation. No new approval gate, overall goal remains incomplete."
+}
