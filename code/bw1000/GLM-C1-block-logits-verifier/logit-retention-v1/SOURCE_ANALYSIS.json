@@ -1,0 +1,64 @@
+{
+  "schema": 1,
+  "GPU_GO": false,
+  "CPU_job_submitted": false,
+  "Native_compile": 0,
+  "Native": "35c08ce45814178e3692c55eb13dd5f074643993be1fbe911ecf91a2c200a0cb",
+  "source_pins": {
+    "actual_caller_path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/GLM-V-on-demand-Model-integration-r403/caller_v_on_demand_r403.cpp",
+    "actual_caller_SHA256": "d54b80d68497c26c83a0c63fe87fbec376f4b106daa40d0da61238dfb5914be2",
+    "actual_indexer_path": "/refactor/candidates/glm-transient-layer-r5681/src/glm_moe_dsa_indexer_selection.cpp",
+    "actual_indexer_SHA256": "e9f2fdd7daad7b56ea51039514129a2b2661b6648667957aebf7de1cfc13951b",
+    "original_read_receipt_SHA256": "60d6dbc480a35eff23403fbebf6976ed52a70ce94235224a9e84000d7152ab0f"
+  },
+  "conclusions": [
+    "above has accepted=width8: original all-slot prepare proves staged_end2957 and publish writes2957, so no truncated logical length in this case; not a dynamic raw slot census",
+    "Indexer writes all8 keys before scores, but masks score columns j>past+query_offset to -INF. Each row selects min(2048,total). At past2949 both serial and block have K2048; block total2957 does not expose future keys as finite scores",
+    "Original policy indexer_policy=0, capacity32768>topk2048: above uses actual query scoring, not select_all_metadata. count1 sparse_attention_all_selected_decode_r601 means all selected keys, not all prefix keys",
+    "NoV caller count1 vs count8 uses different attention compute paths. F32 indexer score GEMM also has different T/total shapes. These are discrimination targets, not established numerical root causes",
+    "First missing observation is 8 serial proposal logits vs8 block rows, already calculated in855 but discarded; new source retains them before any continuation and keeps original4 continuation arrays"
+  ],
+  "geometry": {
+    "past": 2949,
+    "width": 8,
+    "accepted": 8,
+    "serial_effective_lengths": [
+      2950,
+      2951,
+      2952,
+      2953,
+      2954,
+      2955,
+      2956,
+      2957
+    ],
+    "block_final_total": 2957,
+    "block_query_causal_max_positions": [
+      2949,
+      2950,
+      2951,
+      2952,
+      2953,
+      2954,
+      2955,
+      2956
+    ],
+    "selected_per_query": 2048,
+    "block_masked_future_cells": 28
+  },
+  "coverage": {
+    "old855_lifecycle": "PASS",
+    "old855_numeric": "REGRESSION_UNQUALIFIED",
+    "old855_perf": "UNKNOWN",
+    "new_raw_BF16_per_tail_owner_bytes": 6195200,
+    "new_tail_owners": 8,
+    "new_raw_total_bytes": 49561600,
+    "lengths_raw_readback": "UNKNOWN; no getter/newCABI in this patch",
+    "all_length_validation": "Actual prepare/publish RC0 plus pinned predicate source, separately recorded"
+  },
+  "remaining": [
+    "Implement the one changed actual-entry CPU recording consumer and schema/retention-failure propagation with Native and GPU leaves explicit; do not run old suite",
+    "Assemble frozen private provider with these4 files and exact prior runtime/deps; one above only newrun/label and CPU claim publication before CPU",
+    "Root reviews exact CPU/newscope before ordinarypub/fresh16card once; no device submitted"
+  ]
+}

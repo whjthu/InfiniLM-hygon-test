@@ -1,0 +1,83 @@
+--- parent/accepted_prefix_continuation.py
++++ candidate/accepted_prefix_continuation.py
+@@ -16 +16 @@
+-                         sequence, prompt, chunk_widths, proposal, accepted, continuation):
++                         sequence, prompt, chunk_widths, proposal, accepted, continuation, retain=None):
+@@ -99,0 +100,10 @@
++    retained = []
++    def retain_checked(label, output, metadata):
++        error = None
++        try:
++            value = retain(label, output if stage == 1 else None, metadata) if retain else None
++            if value is not None: retained.append(value)
++        except Exception as exc: error = exc
++        if not unanimous(error is None):
++            raise RuntimeError("GLM diagnostic retention failed; no next forward") from error
++
+@@ -104,2 +114,6 @@
+-        forward(past + offset, (value,))
+-    reference = [forward(accepted_end + i, (value,)) for i, value in enumerate(continuation)]
++        output, elapsed = forward(past + offset, (value,))
++        retain_checked("serial-proposal-%d" % offset, output, dict(past=past+offset, width=1, proposal_offset=offset, CAPI_s=elapsed))
++    reference = []
++    for i, value in enumerate(continuation):
++        row = forward(accepted_end+i, (value,));reference.append(row)
++        retain_checked("serial-continuation-%d" % i,row[0],dict(past=accepted_end+i,width=1,CAPI_s=row[1]))
+@@ -108 +122 @@
+-    _, block = stage_and_commit(lib=lib, ctx=ctx, torch=torch, stage=stage, rank=rank,
++    block_logits, block = stage_and_commit(lib=lib, ctx=ctx, torch=torch, stage=stage, rank=rank,
+@@ -110,2 +124,5 @@
+-                                past=past, proposal=proposal, accepted=accepted)
+-    candidate = [forward(accepted_end + i, (value,)) for i, value in enumerate(continuation)]
++                                past=past, proposal=proposal, accepted=accepted, retain=retain_checked)
++    candidate = []
++    for i,value in enumerate(continuation):
++        row=forward(accepted_end+i,(value,));candidate.append(row)
++        retain_checked("candidate-continuation-%d" % i,row[0],dict(past=accepted_end+i,width=1,CAPI_s=row[1]))
+@@ -138,0 +156,2 @@
++        "retained_artifacts": retained,
++        "dynamic_per_slot_lengths_readback": "UNKNOWN; no getter exists in unchanged35c",
+--- parent/accepted_prefix_owner.py
++++ candidate/accepted_prefix_owner.py
+@@ -13 +13 @@
+-                     sequence, past, proposal, accepted):
++                     sequence, past, proposal, accepted, retain=None):
+@@ -76,0 +77,5 @@
++    if retain is not None:
++        retain("block-proposal", logits if stage == 1 else None,
++               dict(past=plan.past,width=plan.width,phase="after drained block forward, before prepare/publish",
++                    expected_staged_end=plan.past+plan.width,requested_published_end=plan.past+plan.accepted,
++                    dynamic_per_slot_readback="UNKNOWN"))
+@@ -81,0 +87,4 @@
++        "length_evidence": dict(prepare_and_publish_RC0=True,
++            scope="actual successful CAPI predicates bind all original text/attention/indexer slots; not raw slot readback",
++            staged_end=plan.past+plan.width, published_end=end, accepted_equals_width=plan.accepted==plan.width,
++            dynamic_per_slot_readback="UNKNOWN"),
+--- parent/resident_continuation.py
++++ candidate/resident_continuation.py
+@@ -14,0 +15,9 @@
++
++def diagnostic_claim_fields():
++    return dict(cases=1,forwards_per_owner=25)
++
++def select_above(cases):
++    selected = [c for c in cases if c['geometry']=='above']
++    if len(selected)!=1 or len(selected[0]['prompt'])!=2949 or len(selected[0]['proposal'])!=8 or selected[0]['accepted']!=8:
++        raise RuntimeError('Unexpected above diagnostic plan')
++    return selected
+@@ -100,0 +110,4 @@
++                # Validate original complete plan, then one predetermined above case only.
++                cases = select_above(cases)
++                from .retain_logits import make_retainer
++                retain = make_retainer(run,torch,stage,rank)
+@@ -109 +122 @@
+-                        continuation=case["continuation"],
++                        continuation=case["continuation"], retain=retain,
+--- parent/stage_compare.py
++++ candidate/stage_compare.py
+@@ -20 +20 @@
+-from .resident_continuation import PLAN_SHA256
++from .resident_continuation import PLAN_SHA256, diagnostic_claim_fields
+@@ -58 +58 @@
+-        "nodes": config["nodes"], "cards": 16, "cases": 3, "forwards_per_owner": 55,
++        "nodes": config["nodes"], "cards": 16, **diagnostic_claim_fields(),
