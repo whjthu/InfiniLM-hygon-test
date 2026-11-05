@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "source_only": true,
+  "compiled": false,
+  "CPU_GO": false,
+  "GPU_GO": false,
+  "Model_GO": false,
+  "Native_fixed": "b8a64e2d7fbdf19150a4ef6d6aadda051fd96fe276a2bd233f00c07f1aed12f5",
+  "Runtime_fixed": "04a6a1a86c97d176e4304b9bb4c1d6fcb8550784beaa47e0f5841fb7603ffabf",
+  "source_pins": [
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/csrc/weights/weights.cpp",
+      "bytes": 8541,
+      "SHA256": "789c8a895d21ac8e4377b785d025c0e2200b6565233de0b3916a16b891d4ea11"
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/csrc/runtime/tensor.hpp",
+      "bytes": 10726,
+      "SHA256": "dfc787f233bef2fb5888d0954440746334386023bad3f6207164024b377eb658"
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/csrc/runtime/tensor/copy.cc",
+      "bytes": 16745,
+      "SHA256": "1af399487c0ac46628b1bbe17cbfcdd7d6cab7641b21c860686c7e0c4a489a97"
+    },
+    {
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/csrc/weights/weights.hpp",
+      "bytes": 5054,
+      "SHA256": "1056d753a7c5be68ef493b547062eea63a48bb218d710b2616aeac60ca379cca"
+    }
+  ],
+  "actual_sources": {
+    "weights_cpp": "789c8a895d21ac8e4377b785d025c0e2200b6565233de0b3916a16b891d4ea11",
+    "tensor_hpp": "dfc787f233bef2fb5888d0954440746334386023bad3f6207164024b377eb658",
+    "copy_cc": "1af399487c0ac46628b1bbe17cbfcdd7d6cab7641b21c860686c7e0c4a489a97"
+  },
+  "alias_contract": "Registered Weight and its model registry never changed. Temporary local Weight receives SAME public Tensor backing, tp_size1 only for local packed input. This creates no second GPU allocation and no private-layout access.",
+  "ordinary_path": "Public copy of original Weight preserves all original private tp fields and calls Weight::load global input; no interpose or SDK replacement.",
+  "candidate_path": "Checked exact3584x(48|3) UInt8 destination + global3584x(1536|96) CPU source, actual rank0..31. Narrow uses actualTensor data offset, existingrow helper gathers into strong sharedvector; Tensor::from_blob fivearg owning overload; ephemeral localpolicyWeight loads same GPU target.",
+  "lifetime": "Global caller CPU owner lives through FFI. Selected view, packed Tensor, staging sharedvector, target and localalias all live through original Weight::load successful syncStream; errors drain while references live, failed drain terminates. No registry/cache/static callback/thread addition.",
+  "singlecaller_boundary": "Owner Runtime only, inactive capture, initial syncStream for no outstanding LoadBatch transaction. Timing must include this boundary and H2D/final sync on both arms, not CPU-only1057 speed.",
+  "limits": [
+    "No compiled/linked ABI proof yet; source public API identity only",
+    "Caller must establish real registeredr201 tp_dim1/rank32 provenance by publictree+key source contract; arbitrary Weight shape is not proof of policy",
+    "Not a fullModel LOAD_BATCH hook: private LoadBatch enqueue/drain and Weight select_source must not be bypassed silently. Existing worker scope and Engine strict duplicate/required checks remain unchanged",
+    "No Runtime replacement or current Model reload proposed. A future singlecaller component would need explicitsource/CPU/link/actualdependency/oneGPU scope separately",
+    "CPU1057 warm RAM gain is not endtoend load/Model gain"
+  ]
+}

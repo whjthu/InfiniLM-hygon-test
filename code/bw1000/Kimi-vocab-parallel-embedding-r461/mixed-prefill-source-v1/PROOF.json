@@ -1,0 +1,419 @@
+{
+  "schema": "Kimi643-source-memory-census-v1",
+  "status": "SOURCE_ONLY_UNCOMPILED_UNWIRED",
+  "CPU_job": false,
+  "GPU_GO": false,
+  "Model_GO": false,
+  "baseline_native_SHA256": "b8a64e2d7fbdf19150a4ef6d6aadda051fd96fe276a2bd233f00c07f1aed12f5",
+  "actual_643": {
+    "floor": 4294967296,
+    "after_finish_min": 4888461312,
+    "cumulative_sampled_min": 3999268864,
+    "deficit": 295698432,
+    "latest_pre_destroy_min": 4531945472,
+    "window": "after finish through codec/reset/first512/strictguard; exact lowest operation UNKNOWN",
+    "first_prefill_actual_width": 512,
+    "strict32_affinity": true,
+    "full_requests_completed": 0,
+    "planned_denominator": 256,
+    "post": "645 FAILED; preserve n08:26743 bind false"
+  },
+  "API": {
+    "current_Hygon": "BlasGemm independent A/B/Y dtype -> cublasGemmStridedBatchedEx",
+    "operands": "CUDA_R_16BF",
+    "sum": "CUDA_R_32F",
+    "compute": "CUBLAS_COMPUTE_32F",
+    "config": "original DefaultConfig(Hygon); FullFp32 metadata requires F32 operands and must not be selected",
+    "handle": "actual Hygon provider owns shared HygonGemmHandle; no raw thread_local-handle leak inference",
+    "numerics": "BF16 values are exactly representable by F32. Both paths specify F32 accumulation; different BLAS algorithm/reduction rounding remains device UNKNOWN, no bitexact claim",
+    "unsupported_claims": [
+      "no actual mixed GEMM device test yet",
+      "no physical peak saving or fit proof",
+      "no Model throughput proof"
+    ]
+  },
+  "projections": [
+    {
+      "name": "output_attn_res_projection",
+      "M": 4608,
+      "K": 7168,
+      "N": 1,
+      "actual_r2475_eligible": true,
+      "eligibility_note": "flattened token*9 residual rows",
+      "removed_logical_x32": 132120576,
+      "removed_logical_w32": 28672,
+      "retained_F32_sum": 18432,
+      "removed_slot_requests": [
+        134217728,
+        32768
+      ],
+      "physical_peak_saving": "UNKNOWN; do not add slots across sequential operations"
+    },
+    {
+      "name": "replicated_MoE_down",
+      "M": 512,
+      "K": 7168,
+      "N": 3584,
+      "actual_r2475_eligible": true,
+      "eligibility_note": "",
+      "removed_logical_x32": 14680064,
+      "removed_logical_w32": 102760448,
+      "retained_F32_sum": 7340032,
+      "removed_slot_requests": [
+        16777216,
+        134217728
+      ],
+      "physical_peak_saving": "UNKNOWN; do not add slots across sequential operations"
+    },
+    {
+      "name": "replicated_MoE_up",
+      "M": 512,
+      "K": 3584,
+      "N": 7168,
+      "actual_r2475_eligible": true,
+      "eligibility_note": "",
+      "removed_logical_x32": 7340032,
+      "removed_logical_w32": 102760448,
+      "retained_F32_sum": 14680064,
+      "removed_slot_requests": [
+        8388608,
+        134217728
+      ],
+      "physical_peak_saving": "UNKNOWN; do not add slots across sequential operations"
+    },
+    {
+      "name": "MLA_q_a",
+      "M": 512,
+      "K": 7168,
+      "N": 1536,
+      "actual_r2475_eligible": true,
+      "eligibility_note": "",
+      "removed_logical_x32": 14680064,
+      "removed_logical_w32": 44040192,
+      "retained_F32_sum": 3145728,
+      "removed_slot_requests": [
+        16777216,
+        67108864
+      ],
+      "physical_peak_saving": "UNKNOWN; do not add slots across sequential operations"
+    },
+    {
+      "name": "MLA_q_b_H3_QK192",
+      "M": 512,
+      "K": 1536,
+      "N": 576,
+      "actual_r2475_eligible": true,
+      "eligibility_note": "",
+      "removed_logical_x32": 3145728,
+      "removed_logical_w32": 3538944,
+      "retained_F32_sum": 1179648,
+      "removed_slot_requests": [
+        4194304,
+        4194304
+      ],
+      "physical_peak_saving": "UNKNOWN; do not add slots across sequential operations"
+    },
+    {
+      "name": "MLA_gate_H3_V128",
+      "M": 512,
+      "K": 7168,
+      "N": 384,
+      "actual_r2475_eligible": true,
+      "eligibility_note": "",
+      "removed_logical_x32": 14680064,
+      "removed_logical_w32": 11010048,
+      "retained_F32_sum": 786432,
+      "removed_slot_requests": [
+        16777216,
+        16777216
+      ],
+      "physical_peak_saving": "UNKNOWN; do not add slots across sequential operations"
+    },
+    {
+      "name": "shard_only_LMhead_actual_last_token",
+      "M": 1,
+      "K": 7168,
+      "N": 5120,
+      "actual_r2475_eligible": false,
+      "eligibility_note": "actual CAPI flags3/count1 gathers last token before head; M1 does not satisfy M>=512",
+      "removed_logical_x32": 0,
+      "removed_logical_w32": 0,
+      "retained_F32_sum": 0,
+      "removed_slot_requests": [],
+      "physical_peak_saving": "UNKNOWN; do not add slots across sequential operations"
+    }
+  ],
+  "simultaneously_live": [
+    {
+      "owner": "TextModel PipelineState.block_residual_storage",
+      "shape": [
+        512,
+        9,
+        7168
+      ],
+      "dtype": "BF16",
+      "logical_bytes": 66060288,
+      "pool_slot_request": 67108864,
+      "aliases": "state.hidden_states/narrow views share backing, count once",
+      "last_use": "apply_output_attn_res final score_matrix*values GEMM; cannot free before projection",
+      "next_use": "original weighted values, not normalized values"
+    },
+    {
+      "owner": "apply_output_attn_res normalized",
+      "shape": [
+        512,
+        9,
+        7168
+      ],
+      "dtype": "BF16",
+      "logical_bytes": 66060288,
+      "pool_slot_request": 67108864,
+      "last_use": "output_attn_res_proj",
+      "release": "local Tensor ref drops after enclosing function; same-stream pool lifetime rule retained",
+      "candidate": "mixed removes its x32 cast, not this required norm output"
+    },
+    {
+      "owner": "r2475 x32/w_storage32/sum32",
+      "alias": "w32 permute aliases w_storage32; count once",
+      "last_use": "GEMM consumes x32/w32; output Cast consumes sum32",
+      "release": "original local refs -> own Runtime stream-ordered pool deallocation; exception sync before unwind",
+      "next_use": "freed class slots may serve later projections"
+    }
+  ],
+  "pool": {
+    "implementation": "first fitting size class only; reuse free blocks in that class; exact allocations separate",
+    "size_classes": [
+      32768,
+      262144,
+      1048576,
+      2097152,
+      4194304,
+      8388608,
+      16777216,
+      33554432,
+      67108864,
+      134217728,
+      268435456
+    ],
+    "actual_643_class_slot_counts": "UNKNOWN; not retained",
+    "actual_643_BLAS_workspace_and_CCL_first_use": "UNKNOWN",
+    "why_no_sum": "attn-res x32 and MoE w32 both request128MiB but occur at different stages and can reuse a slot; norm/residual also occupy128MiB each. Logical removed bytes are not additive physical highwater reduction.",
+    "proven_safe_release_over_deficit": false
+  },
+  "reset": {
+    "actual_source": "worker RESET_CACHE already syncs, clears recurrent/cache metadata refs, trimMemory, reset_cache",
+    "proposal": "do not repeat trim, reset sampler, clear history, lower floor, or disable already-zero workspace"
+  },
+  "integration": {
+    "named_helper": "mixed_prefill.hpp; no existing symbol replacement",
+    "exact_call_sites": [
+      "Common layers/linear/dense.hpp line72 via NoneQuantization",
+      "actual compiled r7291 MLA gate_prefill_fp32 line75 used q_a/q_b/gate"
+    ],
+    "unresolved": "Private HOST call-site clone/symbol/MD closure must be established before integration; no assumption that reusing old Runtime classes while interposing dense symbols is safe. Existing Runtime library remains frozen.",
+    "logical_minimal_scope": "1 private helper plus owned call-site changed HOST closure; no new kernel or SDK math change required by API",
+    "next_discriminating_step": "If authorized: source-pinned isolated actual backend mixed GEMM and allocation-class/census consumer before any full Model reload; no proposal to repeat1h load merely to see peak"
+  },
+  "sources": [
+    {
+      "local_evidence": "Kimi643-GEMM-exact8-source-original.json",
+      "bytes": 32522,
+      "SHA256": "113e9f0026e7c496411a00404363602de74e7945d9fa400051a7984ac50ab4b5",
+      "source_files": [
+        {
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Kimi/InfiniOps/src/native/cuda/hygon/ops/gemm/cublas.h",
+          "bytes": 1050,
+          "SHA256": "8701eb47fb5b1e363ebe3d3b2b8e36fcd41a62a5a43461707624072df04393fa"
+        },
+        {
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Kimi/InfiniOps/src/native/cuda/ops/gemm/blas.h",
+          "bytes": 4982,
+          "SHA256": "9d9e424fc6e890fe6dad857e44c44cc072b0e2f7bc9fa635023c1a5aa20012a4"
+        },
+        {
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Kimi/InfiniOps/src/native/cuda/hygon/blas.h",
+          "bytes": 971,
+          "SHA256": "d2e6dba471777cf29e19b9de37b17bb109b530bf550da916458c50859912c059"
+        },
+        {
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Kimi/InfiniOps/src/native/cuda/hygon/blas_utils.h",
+          "bytes": 605,
+          "SHA256": "f346e900921c0157240d9e33aff80d383ff606eb754a7fa8815f63182b64eb8b"
+        },
+        {
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Kimi/InfiniOps/src/base/gemm.h",
+          "bytes": 5964,
+          "SHA256": "cc907bda54c5bc79f7808e0fe2e52328ea61c74d8fe12fd6060c8a03bfd742d1"
+        },
+        {
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Ops/Kimi/migration-manifest.json",
+          "bytes": 5293,
+          "SHA256": "26550f7aef09d255ae80d088a29123583c6b9bc5c01a14c5e442cb6be5693478"
+        },
+        {
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/csrc/layers/quantization/none_quantization.cpp",
+          "bytes": 5559,
+          "SHA256": "e97b8ba7b32ac31d91c42e154e1959b81eea8b593395d72e8a261303b763e2be"
+        },
+        {
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/csrc/layers/linear/dense.hpp",
+          "bytes": 4517,
+          "SHA256": "8b3833828db1c1c071203d2bed4381f140df151d9338402ba25422dbb3bf41ec"
+        }
+      ]
+    },
+    {
+      "local_evidence": "Kimi643-F32-and-actualMLA-source-original.json",
+      "bytes": 40236,
+      "SHA256": "793078ff6b30456c9e905a8e1a7f13980847ddbfc525987d368c6421dd8b38ea",
+      "source_files": [
+        {
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/csrc/runtime/dense_prefill_f32_r2475.cc",
+          "bytes": 5865,
+          "SHA256": "7ceedfb6c98c2f66600c51ee9fa2ddb8e21780d4863e06cc829c97fc53becad3"
+        },
+        {
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/Kimi-native-trace-CPU-r7296/src/r7291_kimi_k3_mla_attention.cpp",
+          "bytes": 25977,
+          "SHA256": "788c905159b7cba1f5db194e4f6817e452ce5fc8887f8e0516827de7bf2f4b80"
+        },
+        {
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/Kimi-native-trace-CPU-r7296/src/r7296_kimi_k3_kda_trace.cpp",
+          "bytes": 6539,
+          "SHA256": "d9af7fa0078b908573b199918c4aea5a5b761501ca724d4817fb8fcfb48973c5"
+        }
+      ]
+    },
+    {
+      "local_evidence": "Kimi643-peak-source-original.json",
+      "bytes": 216734,
+      "SHA256": "98bcd3a05c875916b085cdb3f46ec46df75eb11d70f73dc4ba79988b5cf41a6d",
+      "source_files": [
+        {
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/Kimi-vocab-parallel-embedding-r461/native-probe-v1/native/worker.cpp",
+          "bytes": 72497,
+          "SHA256": "4479fdb19134554ed978a70cf460e4ad4a42cf4044e75904ce99dc0b8ceacbad"
+        },
+        {
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/Kimi-AR-persistent-storage-optin-r456/native/worker.cpp",
+          "bytes": 71660,
+          "SHA256": "643624e85321a7cfdba947bc1d7ab090671c038939246657c36798569bd5ebd6"
+        },
+        {
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/Kimi-vocab-parallel-embedding-r461/native/kimi_k3_text_model.cpp",
+          "bytes": 13464,
+          "SHA256": "914888f78997b3af1b23f265cc158f68d8eaf3a6fe24f19bd068681c48a3430a"
+        },
+        {
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/csrc/runtime/memory.hpp",
+          "bytes": 1008,
+          "SHA256": "855379ed4d0b4663644178e1a7bfaae958861e80b39b2fdaec0df00c31baf291"
+        },
+        {
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/csrc/runtime/memory.cc",
+          "bytes": 927,
+          "SHA256": "762eb19d3c0b9ec27c87fe512d53b2c2b264851144a0280b904f819e69638479"
+        },
+        {
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/csrc/runtime/runtime.cc",
+          "bytes": 17296,
+          "SHA256": "a4742905290618c740bc81f4e0316b289de86819ece50d7a95da62652bb0a4e9"
+        },
+        {
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/csrc/runtime/runtime.hpp",
+          "bytes": 3017,
+          "SHA256": "c127b4cf91ab3b64721efe7c9a3e90a84cca9e35dc004ddb6abd9c5e067896d4"
+        },
+        {
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/runtime/runtime.hpp",
+          "bytes": 3017,
+          "SHA256": "c127b4cf91ab3b64721efe7c9a3e90a84cca9e35dc004ddb6abd9c5e067896d4"
+        },
+        {
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/runtime/memory.cc",
+          "bytes": 927,
+          "SHA256": "762eb19d3c0b9ec27c87fe512d53b2c2b264851144a0280b904f819e69638479"
+        },
+        {
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/runtime/runtime.cc",
+          "bytes": 17296,
+          "SHA256": "a4742905290618c740bc81f4e0316b289de86819ece50d7a95da62652bb0a4e9"
+        },
+        {
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/kimi-serving-MoE-5f91ad7-r4665/InfiniLM/csrc/runtime/memory.hpp",
+          "bytes": 1008,
+          "SHA256": "855379ed4d0b4663644178e1a7bfaae958861e80b39b2fdaec0df00c31baf291"
+        }
+      ]
+    },
+    {
+      "local_evidence": "Kimi643-live-tensor-source-original.json",
+      "bytes": 94664,
+      "SHA256": "1b455dc50aac630f9eb67ace04373f5dbc3407d4e24283cc7e33cebbc9d2e6b8",
+      "source_files": [
+        {
+          "path": "/public/home/aclsylqidf/shared/Kimi-K3/config.json",
+          "bytes": 7006,
+          "SHA256": "9710e121a58d03ac92c8d6da287a19541994319afbbe6d6202af001ffd379213"
+        },
+        {
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/install/hygon-kimi-5f91ad7-r3672/include/infini/rt/reusable_memory_pool.h",
+          "bytes": 1936,
+          "SHA256": "9a11965d7d2c3a0414607d86897eb32ad5046cdc9b1d2357e2a329036207c67f"
+        },
+        {
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/csrc/runtime/tensor/tensor.cc",
+          "bytes": 12077,
+          "SHA256": "b14418b342f8520e5d43c7aec7a0676a8dccf1d0133cd334d75571555f339392"
+        },
+        {
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/csrc/runtime/tensor/copy.cc",
+          "bytes": 16745,
+          "SHA256": "1af399487c0ac46628b1bbe17cbfcdd7d6cab7641b21c860686c7e0c4a489a97"
+        },
+        {
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/csrc/weights/weights.hpp",
+          "bytes": 5054,
+          "SHA256": "1056d753a7c5be68ef493b547062eea63a48bb218d710b2616aeac60ca379cca"
+        },
+        {
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/Kimi-AR-persistent-storage-optin-r456/native/kimi_compact_allocate_r4974.cpp",
+          "bytes": 5619,
+          "SHA256": "9646d436b0795e976ca2e1db87c61a540c25a5c877cbe901841f2b7bc51bfe9e"
+        },
+        {
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/Kimi-AR-persistent-storage-optin-r456/native/kimi_moe_scale_exact_r201.cpp",
+          "bytes": 41437,
+          "SHA256": "9e83d29d8f123082e6dcdc3039f2ea1e08ecf1492dda613f615f02311e39350a"
+        }
+      ]
+    },
+    {
+      "local_evidence": "Kimi1057-current-Weight-source-original.json",
+      "bytes": 27741,
+      "SHA256": "db815c0df7726879255673d9bc1e1d6008729e5a0300f645677d71e207fa5810",
+      "source_files": [
+        {
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/csrc/weights/weights.cpp",
+          "bytes": 8541,
+          "SHA256": "789c8a895d21ac8e4377b785d025c0e2200b6565233de0b3916a16b891d4ea11"
+        },
+        {
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/csrc/runtime/tensor.hpp",
+          "bytes": 10726,
+          "SHA256": "dfc787f233bef2fb5888d0954440746334386023bad3f6207164024b377eb658"
+        },
+        {
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/csrc/layers/linear/dense_prefill_f32_r2475.hpp",
+          "bytes": 994,
+          "SHA256": "4fecfa4e4586991690d426dc3a80e9a57dc134bb5b574c46cb01fbc1e786d147"
+        },
+        {
+          "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/candidates/rebased-5f91ad7-r3668/Common/Kimi/InfiniLM/csrc/layers/linear/linear.cpp",
+          "bytes": 5476,
+          "SHA256": "07b4ed6fc6d21fb25b04ecfa09c3a89e98ac9f9fa73b607b192c2c0630858e89"
+        }
+      ]
+    }
+  ]
+}
