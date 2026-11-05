@@ -1,0 +1,87 @@
+{
+  "review": 206,
+  "status": "SOURCE_AND_EXISTING_EVIDENCE_REVIEW_COMPLETE",
+  "scope": "只读现有源码/原件；仅写本报告。未运行测试、网络、作业、Git或原件导出。不是新增执行审批门槛。",
+  "previous_205": {
+    "implementation": "astra-review-205-implementation.json 已落实 manifest 精确集合/HOST 解释器兼容、1061 复用成功对象 link-only、1063 changed observer、867 原位独审。未重复成功构建或被拒的 raw 导出。",
+    "effect": "两组实际走到设备；新的限制来自 mixed 的真实收益/内存证据不足，以及 global16 分布式放行阶段不透明，不能再归为上一轮编译问题。",
+    "causal_rounds_since_205": 2,
+    "new_Model_gain": false,
+    "CPU_and_delivery_errors_are_performance_rounds": false
+  },
+  "four_questions": {
+    "usable_gain": "648 是 synthetic BF16 组件一致性与局部成本结果，无完整 Model、实际激活或补足内存缺口证明。870 全16构造标记存在，但 collective 证明和正常 close 均未完成。没有新增 Model/服务性能资格；全136卡80%与每用户严格15 token/s均未达。",
+    "time_cost": "648 GPU44s/keeper48s；870 GPU151s/keeper153s后独立清理。CPU872在33s内复现跨节点 marker 等待不对称，已比再加载模型或重试16GPU更有区分力。后续应并行做控制放行修复与一个持久内存候选，不重复1061/1063/1057或另开长加载 census。",
+    "bottleneck_evidence": "Kimi已有真实295698432B floor缺口，但648缓存trim点不是瞬时高水位；GLM已有共享文件可见性延迟证据，尚无 CCL 根因；Deep现有HC微组件不能乘比率解释完整token墙钟，客户端SLO时钟链才是尚未完成的必要交付能力。物理带宽/峰值和Model独占时间仍UNKNOWN。",
+    "direction": "优先Kimi独立K192/V128持久缓存及最薄caller/backend候选；GLM把真实16-owner放行从跨节点文件轮询中解耦并保留准确本地阶段记录；Deep只完成已准备的默认关闭SSE时钟接入，在下一本就必要的Model驻留使用。"
+  },
+  "Kimi_648": {
+    "archive_SHA256": "cb86a0fa88437cad6dd912e23853e174606ba8e0214d81836d40ac1f9c58356a",
+    "evidence_boundary": "本报告读取 actual mixed PROOF 与原缓存源码；648完整reader根消费尚待完成，数字按已到达实际终态交接记录，未冒称本审核重算原archive。",
+    "measurement": "attnres inclusive慢约6.1%，OFF漂移约42%；down点快约27.8%，OFF漂移约18.8%，仅2+2。所有OFF/ON/CPUref数值一致，不能把较小试验信号扩成Model收益。",
+    "memory": "attnres OFF128MiB/ON0、down OFF154MiB/ON8是不同顺序缓存点；不能相加、不能当高水位或已释放295698432B。",
+    "lifecycle": "GPU/keeper/fresh/post全部正常；仅该组件范围。",
+    "decision": "mixed完整Model保持PARK/defaultOFF；不再同128MiB cast微网格或一小时装载试运气。"
+  },
+  "GLM_870_and_872": {
+    "GPU_archive_SHA256": "cf3a5d646c0fcf68bf402f3f5006b7bfc639fc1d73d39e69b271ff22e348f8db",
+    "CPU_observation": "L/GLM470-barrier-CPU-v1-observed-original.json",
+    "CPU_observation_SHA256": "328df4c9d736874044a17c2b3e3978930ddeb6b4022d3c1dc185961d441e1c1f",
+    "CPU_accounting_read": "910371.872|COMPLETED|0:0|33",
+    "source_findings": [
+      "device-v1/owner.py:32 在真实create、geometry及floor后写created-N；33逐个shared.wait跨节点created文件；34才mark(one_collective_proof)并调用单个SUM+gather CAPI。没有barrier进入/退出/CAPI已进入的独立持久记录。",
+      "owner.py:16 mark本身先写共享FS report，再检查deadline；因此node1旧phase不证明其仍在create，也不证明已进入Native。",
+      "shared.py:10 wait在原epoch+150内读JSON并对ENOENT/JSONDecodeError重读；外部后见all16文件并不能证明每个owner当时已经看到。",
+      "现CAPI把SUM和rank-ordered gather合在一次调用；没有其内部阶段证据时不能给任何单个collective定责。"
+    ],
+    "CPU_fact": "同节点/容器/R/schema与原shared.wait：node1 ranks8..15等created00约30.0434至30.4456s；node0全16等待总计约0.0032至0.2485s；save约0.0073至0.0442s；全部16最终all16_read、两worker正常。",
+    "inference_limit": "支持同方向跨节点元数据可见性等待现象；没有错误计数或完整GPU阶段轨迹，不命名NFS负缓存，不声称解释870剩余全部约107s。",
+    "minimal_fix": [
+      "新immutable控制包复用已验证的两leader有界metadata socket/ACK消费模式：本节点收齐8个真实created receipt，交换并验证原epoch/source/run身份、完整rank0..15集合后才release本节点8owners。created/proved文件保留为审计，不再把远端文件逐个可见作为collective放行条件。nonce只作关联，不冒称完整认证。",
+      "直接用当前epoch剩余时间约束connect/accept/read/child poll及STOP；不加总预算、不重probe/start。异常只取消本次owned进程并按原清理。两UID和create数学不变。",
+      "在节点本地日志记录create-return、barrier-enter/release、紧邻CAPI调用的entry/return；不要用一次共享FS成功写入来定义CAPI已进入。必要时只给原probe内SUM/gather前后增加轻量HOST标记，无新collective。",
+      "CPU872已完成，勿重原wait试验；只消费新release真实producer/consumer及deadline/close这次改动。若尚无法闭合放行，停止在CPU，不重16GPU或延150s掩盖。"
+    ],
+    "scope": "870原FAILED/0proved/0normalclose保留；post净只代表资源回收，不能改成生命周期PASS。"
+  },
+  "next_cards": {
+    "Kimi": [
+      {
+        "priority": 1,
+        "card": "私有padding-free V128缓存与caller/backend，默认OFF",
+        "concrete_source": "r456/native/exact_mla_cache_r456.hpp:18要求K/V均192；27-30单Tensor形状[2,blocks,256,3,192]。必须分开K192与V128存储，原V有效128列与逻辑位置/块索引不变；不能只修改v_dim常量或越过旧backend契约。",
+        "implementation": "先查实际已装Hygon attention是否接受独立V维/stride并复用。若不支持，只做私有caller及现有GEMM+原mask/softmax语义的有界query tile替代，完整遍历有效K，保192 QK/RoPE/scale、V128、BF16边界及原输出顺序。不得缩512/32K、截key分母、GPU F64或偷偷复原全长V192临时副本。",
+        "lifetime": "split cache必须覆盖真实append/reset/page分配/读写/异常drain/销毁；K/V同一owner stream及页位置契约。只保存有效V，不改权重。物理allocator类、padding、BLASworkspace、tile并存和reset保留量一起计算。",
+        "memory_bound": "理论V尾列减项=实际MLA层数*blocks*256*3*64*2；约493MB仅源码估计。取例如querytile<=8时单F32 score在3heads*32768keys下约3MiB，但概率/转换/BLAS和池类均要另计；该逻辑上界不是实际设备峰值。净持久节省减新增同时scratch须真实超过295698432B，且仍保strict4GiB。",
+        "first_result": "先限定一次源码/CPU闭包工作窗约90分钟；首判是能否连接真实caller并给全ctx存储上界，不是Model。闭合后最小单owner组件可在1卡<=600s比较512prefill及M1续写/最大past，保存实际输出与分配证据；本审核不执行。实现时间/最终Model收益UNKNOWN。",
+        "exit": "若现有原语不能在不重建V192和不吃掉余量的条件下完成，明确缺失接口即停该prototype；数值不相同保诊断，不因中间阈值永久判用户质量。未有足够实测净余量前不重一小时Model。"
+      },
+      {
+        "priority": 2,
+        "card": "AttnRes融合仅作为源码备选，当前不排设备",
+        "reason": "PROOF实际block_residual_storage与normalized各66060288B/64MiB，前者weighted-values后续仍需；x32约132MB对应128MiB池槽可被后续投影复用。仅省norm与一次cast不足以证明>=296MB净峰值下降，不能双计alias、w32视图或跨时相槽。",
+        "exit": "只有源码证明可消除足够同时存活量且保原normalized投影/原未normalized weighted values数学时，才替补V128；不并发开第二张微测卡。现有1057rowcopy只保留未来必要load候选，不独立加载。"
+      }
+    ],
+    "GLM": [
+      {
+        "priority": 1,
+        "card": "870新有界两leader放行及本地Native阶段记录",
+        "first_result": "新控制消费者CPU应分钟级，沿已成功872资源和同节点语义，不重Native构建；不保证实际排队时间。",
+        "after_closure": "按现有授权完成新source/claim/fresh后原16卡constructor/SUM136/rankgather/close一次，原预算不延、0权重/Model；不再以审核逐层GO。",
+        "exit": "release未齐不得进入collective；若release均已证明而Native卡住，凭本地最后Native阶段收束，不自动换CCL参数或重复同卡。"
+      }
+    ],
+    "Deep": [
+      {
+        "priority": 1,
+        "card": "public-token-clock-r480已发布默认关闭SSE时钟链交付",
+        "source_read": "README及LOCAL_RESULT明确实际derived public入口/P1/NativeRequest/queue消费者，编码和owner是recording leaves，Native=false/HTTP_external=false/GPU=false。",
+        "next": "保startup flag与header双门、原data bytes、实际read1共读同timestamp不插值、clock domains不跨HOST相减，区分token receipt/semantic reasoning/content/tool与EOS。原拒绝/缺失/cap仍在分母，ASGI send不是网络flush。",
+        "first_result": "源码本地闭包已具备；不重六codec或为观察器单独装载。仅下一本就必要Model驻留接入并核observer/sink成本与覆盖缺失，时间随该必要任务、当前UNKNOWN。",
+        "exit": "observer影响调度或coverage缺失只报告事实，不把chunk/marker吞吐当每用户15token/s；已有14pins负路线不重HC融合/descriptor/grid。"
+      }
+    ]
+  },
+  "parallel_and_delivery": "Kimi V128源码/CPU、GLM控制CPU与DeepSSE交付可独立并行。manifest实际成员集合/域映射/生产CLI作为唯一交接，复用已过对象与消费者；本次不新建通用框架、不填卡制造busy、不追加全17节点扫。继续完整目标，但已有源码/CPU资格不冒称Model、宽质量或客户端SLO完成。"
+}
