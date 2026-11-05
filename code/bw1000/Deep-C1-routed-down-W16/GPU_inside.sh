@@ -12,6 +12,6 @@ SDK=/refactor/install/hygon-deep-5f91ad7-r3672
 export LD_PRELOAD=/refactor/candidates/blas-policy-r271/libblas_policy_r271.so
 export LD_LIBRARY_PATH="/usr/local/lib/python3.10/dist-packages/torch/lib:/refactor/candidates/models-5f91ad7-r3675/Deep:/refactor/candidates/models-5f91ad7-r3675/Deep/helpers:$SDK/lib:/refactor/candidates/latest-family-native-r269/Deep/python:$LM/python:$LM/python/infinilm/_lib:/opt/dtk/cuda/cuda/lib64:/opt/dtk/cuda/lib64:${LD_LIBRARY_PATH:-}"
 export PYTHONPATH="/old/offline-deps"
-D=/refactor/incoming/Deep-C1-routed-down-W16/device-v1
-O=/refactor/results/Deep-C1-routed-down-W16-device-v1
+D=/refactor/incoming/Deep-C1-routed-down-W16/device-v2
+O=/refactor/results/Deep-C1-routed-down-W16-device-v2
 exec python3 -B -u "$D/device_probe.py" "$O/GPU_ACTUAL_CLAIM.json" "$O/fixtures" "$O/component.json"

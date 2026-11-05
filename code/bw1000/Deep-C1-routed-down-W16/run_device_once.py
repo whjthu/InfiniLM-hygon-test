@@ -4,7 +4,7 @@ import json, os, re, socket, subprocess, sys, time
 
 R = Path("/public/home/aclsylqidf/hygon-inference-refactor-20261014")
 D = Path(__file__).resolve().parent
-LABEL = "Deep-C1-routed-down-W16-device-v1"
+LABEL = "Deep-C1-routed-down-W16-device-v2"
 OUT = R / "results" / LABEL
 PARENT = "910374"
 NODE = "a02r4n05"
@@ -55,7 +55,8 @@ def main(commit, expected):
         assert not row[1].startswith(LABEL)
         if re.fullmatch(PARENT + r"\.\d+", row[0]) and not terminal(row):
             assert NODE not in hosts(row[4])
-    assert not list((R / "logs").glob(LABEL + "-*"))
+    assert not any(list((R / "logs").glob(LABEL + "-" + phase + "-*.log"))
+                   for phase in ("pre", "gpu", "post"))
     OUT.mkdir()
     state = dict(state="INTENT", publication=commit, resource_claim_SHA256=expected,
                  origin_HOST=socket.gethostname(), PID=os.getpid(),
@@ -109,7 +110,7 @@ def main(commit, expected):
                 assert NODE not in hosts(row[4])
         for name in ("CUDA_VISIBLE_DEVICES", "HIP_VISIBLE_DEVICES", "ROCR_VISIBLE_DEVICES"):
             del env[name]
-        env["WAVE_INSIDE_R2323"] = "Deep-C1-routed-down-W16/device-v1/GPU_inside.sh"
+        env["WAVE_INSIDE_R2323"] = "Deep-C1-routed-down-W16/device-v2/GPU_inside.sh"
         actual = dict(c, remaining_deadline_unix=time.time() + c["max_wall_s"],
                       publication_commit=commit, resource_claim_SHA256=expected)
         with (OUT / "GPU_ACTUAL_CLAIM.json").open("x", encoding="utf8") as stream:
