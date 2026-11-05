@@ -82,6 +82,13 @@ def assemble(parent, out, plan_path):
         files[name] = pinned(src, digest)
 
     prefix = "public_glm_native/"
+    admission = prefix + "model_admission_r404.py"
+    files[admission] = derive(files[admission], (
+        ("LIBRARY='/refactor/candidates/GLM-V-on-demand-Model-integration-r403-CPU/libGLM_V_on_demand_Model_r403.so'",
+         "LIBRARY=" + repr(NATIVE_PATH)),
+        ("NATIVE_SHA='9520769d28742aba489b38ecbd1e1692f6830168c699d7111f1e0c2ae4cd598b'",
+         "NATIVE_SHA=" + repr(NATIVE_SHA)),
+    ))
     for name in ("accepted_prefix_commit.py", "accepted_prefix_owner.py",
                  "accepted_prefix_continuation.py", "freeze_continuation_inputs.py"):
         files[prefix + name] = (HERE / name).read_bytes()
