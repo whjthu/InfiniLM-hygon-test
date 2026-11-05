@@ -261,6 +261,10 @@ def select_next_rung(rows, keep_fraction=1/3, min_pairs=3):
     accepted, rejected=[],[]
     for r in rows:
         bad=[]
+        counts=[r[k]for k in ('completed','failed','rejected','canceled','missing')]
+        require(type(r['planned'])is int and r['planned']>0 and all(type(v)is int and v>=0 for v in counts)and sum(counts)==r['planned'], 'ranking denominator lost')
+        if r['completed']<r['baseline_completed'] or r['rejected']>r['baseline_rejected'] or r['canceled']>r['baseline_canceled']:bad.append('completion/reject/cancel tradeoff requires explicit service objective, no automatic speedup promotion')
+        if r['quality_correct']<r['baseline_quality_correct']:bad.append('quality loss requires prespecified statistical review')
         if not r['numeric_passed'] or not r['post_clean'] or r['keeper_passed'] is not True:bad.append('numeric/lifecycle/keeper')
         if r['missing'] or r['failed']:bad.append('incomplete/failed denominator')
         if not r['quality_screen_passed']:bad.append('quality screen')

@@ -150,10 +150,14 @@ class TuningTest(unittest.TestCase):
     def test_only_warm_resolved_winner_promotes(self):
         rows=[]
         for name,ratios in [('faster',[1.2]*9),('noise',[.9,1,1.1]*3),('slower',[.5]*9)]:
-            rows.append(dict(candidate=name,comparison=self.comparison('service'),numeric_passed=True,post_clean=True,keeper_passed=True,missing=0,failed=0,quality_screen_passed=True,warm_per_user_ratios=ratios))
+            rows.append(dict(candidate=name,comparison=self.comparison('service'),numeric_passed=True,post_clean=True,keeper_passed=True,planned=20,completed=20,rejected=0,canceled=0,missing=0,failed=0,baseline_completed=20,baseline_rejected=0,baseline_canceled=0,quality_correct=18,baseline_quality_correct=18,quality_screen_passed=True,warm_per_user_ratios=ratios))
         selected=select_next_rung(rows)
         self.assertEqual([r['candidate']for r in selected['promoted']],['faster'])
         self.assertFalse(selected['goal_qualified']);self.assertFalse(selected['formal_NI_proven'])
+
+    def test_fast_completed_subset_with_many_rejects_cannot_promote(self):
+        row=dict(candidate='rejects-fast',comparison=self.comparison('service'),numeric_passed=True,post_clean=True,keeper_passed=True,planned=20,completed=5,rejected=15,canceled=0,missing=0,failed=0,baseline_completed=20,baseline_rejected=0,baseline_canceled=0,quality_correct=5,baseline_quality_correct=18,quality_screen_passed=True,warm_per_user_ratios=[3.0]*9)
+        self.assertEqual(select_next_rung([row])['promoted'],[])
 
     def test_kimi_static_baseline_geometry(self):
         p=ROOT/'code/bw1000/systematic-tuning-v1/kimi_tiling_cost.py'
