@@ -1,0 +1,1 @@
+Newdevice-v2 only. ExactpublishedCPU1055/selfmask+GPUv2binding, originalHOSTv3 exactFSguards/50s/atomicintent/earliestphases. Commonentry32 untilSDKbind4selfrecord; GPUhost32GiB,keeper4GiB,120/100/180/floor16GiB unchanged. Old1494OOM/affinityFAIL preserved, notnormal. NoCPUrecompile/oldlabelretry/Model/HTTP.
