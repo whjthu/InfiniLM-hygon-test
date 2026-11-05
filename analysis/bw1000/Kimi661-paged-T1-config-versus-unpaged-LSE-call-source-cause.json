@@ -1,0 +1,60 @@
+{
+  "parent_failure": "910380.661 FAILED1/43s",
+  "SDK_provider_header_SHA256": "a72d0184c5cad74dba8d64367975b6eb740abd73871bb39f2b50bb6a17e7cbf7",
+  "original_source_read_SHA256": "8f32dae36334c6655880bf7de92e8c230e0db318ecb8ecb2767b26ca8084e072",
+  "parent_CPU1075_metadata_read_SHA256": "ccfe9a50123315ade4ead989da118de30535d29697aaa6bf994558be64ae278d",
+  "source_cause": "Nonzero FlashAttnWithKvcacheConfig logical bound selects an existing paged decode-T1 specialization. Caller is dense unpacked3072 tiles with Qtile<=32 and LSE needed, so actual invocation violates multiple independent supports predicates.",
+  "first_failed_component_request": {
+    "queries": 512,
+    "past": 0,
+    "first_FA_Q_shape": [
+      1,
+      32,
+      3,
+      192
+    ],
+    "K_V_shape": [
+      1,
+      3072,
+      3,
+      192
+    ],
+    "lengths_shape": [
+      1
+    ],
+    "first_logical_bound_argument": 32,
+    "block_table_present": false,
+    "num_splits": 1,
+    "return_softmax_lse": true,
+    "softmax_lse_shape": [
+      1,
+      3,
+      32
+    ]
+  },
+  "source_proven_rejects": {
+    "bound_nonzero": true,
+    "requires_block_table": true,
+    "requires_q_tokens_one": true,
+    "requires_num_splits_zero": true,
+    "requires_no_LSE": true
+  },
+  "decision": "Use existing SDK dense unpaged mode, with explicit caller packed range bounds and exact original3072physicalbuffer/32Kplan. Leave SDK supports/ValidateLogicalBound/pagedT1config untouched.",
+  "invariants": [
+    "Fulllogical32768/512prefill/4GiBfloor unchanged",
+    "Storage24x132x256x3x320 and BF16 math/F32LSEmerge/kernels unchanged",
+    "No Runtime/class/layout/ABI or globalSDK edits",
+    "All start/count/end/row bounds explicit before unpaged provider call",
+    "Complete full20ABBA remains a separate newdevice qualification, no completion from5OFF results"
+  ],
+  "diff": "--- CPU1075-fa_backend.cpp\n+++ CPUv6-fa_backend.cpp\n@@ -33,7 +33,16 @@\n    for(size_t start=0;start<end;start+=3072){\n     size_t count=std::min(size_t(3072),end-start);bool causal=start+count==end;\n     check(kimi_split_fa_pack(kt->data(),vt->data(),lengths->data(),cache->data(),table->data(),table->dtype()==DT::kInt32?32:64,start,count,r.stream()));\n-    infini::ops::FlashAttnWithKvcacheConfig cfg(count);cfg.set_implementation_index(16); // pinned real Hygon delegate/LSE copy\n+    // This is a dense unpaged packed tile, not the separate paged T1 bounded mode.\n+    // Keep the original full32K plan and explicitly bound every actual packed range.\n+    if(!rows||rows>fa_query||first+rows>p.queries||span.end!=p.past+first+rows||span.end>p.total||p.total>context\n+       ||!count||count>fa_keys||start>=end||count>end-start||start+count>end\n+       ||kt->shape()!=runtime::Shape{1,fa_keys,3,192}||vt->shape()!=kt->shape()\n+       ||partial->shape()!=runtime::Shape{1,rows,3,192}||lse->shape()!=runtime::Shape{1,3,rows})\n+      throw std::invalid_argument(\"splitFA bounded unpaged packed tile\");\n+    // Default typed config selects the SDK's existing unpaged contract (logical bound0).\n+    // The SDK's paged bounded-T1 supports/ValidateLogicalBound remain unchanged.\n+    infini::ops::FlashAttnWithKvcacheConfig cfg;cfg.set_implementation_index(16);\n     const std::optional<Tensor> none;\n     execution::submit<infini::ops::FlashAttnWithKvcache>(r,execution::RecordingPolicy::DeviceOnly,cfg,query,kt,vt,none,none,none,none,std::optional<Tensor>{lengths},none,none,none,none,std::optional<double>{scale},causal,std::vector<int64_t>{-1,-1},double{0},true,int64_t{1},true,partial,std::optional<Tensor>{lse});\n     check(kimi_split_fa_factors(state->data(),factor->data(),lse->data(),rows,start==0,r.stream()));\n",
+  "source": "code/bw1000/Kimi-vocab-parallel-embedding-r461/split-v128-unpaged-CPU-v6",
+  "CPU_claim_SHA256": "8e434dde6fade7fc0c7fe7890e94d223c14868692c50b6ad7fee3170cbc91731",
+  "source_manifest_SHA256": "d89cf81f2a95d25a4248ed861ae54b7d72cd4e504c7b2f9d7f62c9fc5178395c",
+  "actual_CPU": null,
+  "actual_GPU": null,
+  "numeric": "UNKNOWN",
+  "fit": false,
+  "Model_GO": false,
+  "scope": "Source diagnosis only, sourcepredicate counterfactual not an actual SDKsupports CPU/device invocation"
+}

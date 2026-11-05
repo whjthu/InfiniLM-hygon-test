@@ -1,0 +1,11 @@
+"""Exactly one300s singleHOST compilation+relink CPU job; HOST Python3.6 compatible."""
+from pathlib import Path
+import argparse,hashlib,json,subprocess,time,socket,os,re
+D=Path(__file__).resolve().parent;R=Path('/public/home/aclsylqidf/hygon-inference-refactor-20261014');LABEL='Kimi-splitV-unpaged-CPU-v6';H=lambda p:hashlib.sha256(Path(p).read_bytes()).hexdigest()
+def main(publication):
+ assert re.fullmatch('[0-9a-f]{40}',publication);claim=json.loads((D/'CPU_RESOURCE_CLAIM.json').read_bytes());sha=H(D/'CPU_RESOURCE_CLAIM.json');assert claim['CPU_GO']and not claim['GPU_GO'];assert H(D/'SOURCE_MANIFEST.json')==claim['source_manifest_SHA256'];mf=json.loads((D/'SOURCE_MANIFEST.json').read_bytes());assert all(H(D/n)==h for n,h in mf['files_SHA256'].items());out=R/'candidates'/LABEL;intent=R/'results'/(LABEL+'-intent.json');launch=R/'results'/(LABEL+'-launch.json');assert not any(p.exists()for p in [out,intent,launch]);z=subprocess.run(['sacct','-j','910407','-S','2026-11-05','-n','-P','-o','JobIDRaw,JobName%100,State,ExitCode,ElapsedRaw'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True,timeout=15);assert z.returncode==0 and not any(line.split('|')[1]==LABEL for line in z.stdout.splitlines()if'|'in line);a=['srun','--jobid=910407','--overlap','--exact','--immediate=20','--cpu-bind=none','-N1','-n1','-c4','--mem=8192M','--gres=none','-w','a14r2n20','-t','00:05:00','--job-name='+LABEL,'--output='+str(R/'logs'/(LABEL+'-%J.log')),'env','KIMI_V6_CLAIM_SHA='+sha,'WAVE_INSIDE_R2323=Kimi-vocab-parallel-embedding-r461/split-v128-unpaged-CPU-v6/CPU_inside.sh','bash',str(D/'CPU_outer.sh'),'probe']
+ with intent.open('x')as f:json.dump(dict(publication=publication,claim_SHA256=sha,source_manifest_SHA256=claim['source_manifest_SHA256'],once=True,HOST=socket.gethostname(),epoch=time.time(),argv=a,GPU=False),f)
+ with(R/'logs'/(LABEL+'-srun.log')).open('xb')as log:p=subprocess.Popen(a,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+ q=dict(owned_srun_PID=p.pid,PGID=p.pid,startticks=Path('/proc/'+str(p.pid)+'/stat').read_text().split()[21],HOST=socket.gethostname(),GPU=False,epoch=time.time(),intent=str(intent));launch.write_text(json.dumps(q,indent=2)+'\n');print(json.dumps(q))
+if __name__=='__main__':
+ p=argparse.ArgumentParser();p.add_argument('--publication',required=True);a=p.parse_args();main(a.publication)
