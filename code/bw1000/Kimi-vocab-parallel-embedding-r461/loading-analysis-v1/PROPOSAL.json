@@ -1,0 +1,71 @@
+{
+  "schema": 1,
+  "decision": "No new Python batching/cache production patch is justified by current timings. Reuse prior row-copy mechanism for a minimal new TP32 applicability/cost discriminator before any future Model loading change.",
+  "not_execute": true,
+  "GPU_GO": false,
+  "CPU_execution_authorized": false,
+  "live643_untouched": true,
+  "measured": {
+    "native_load_fraction": 0.7719896525024748,
+    "get_tensor_fraction": 0.22031461916633197,
+    "descriptor_json_s": 2.3281154413707554,
+    "contiguous_s": 0.4514091592282057,
+    "copy_calls": 1320400,
+    "copy_memmove_blocks": 4737646592,
+    "copy_logical_bytes": 126780702720,
+    "copy_mean_bytes_per_block": 26.760270159045245
+  },
+  "dedup": [
+    {
+      "source": "Kimi-loader-bindings-cache-private-r9130/loading-analysis-and-plan-r9130.json",
+      "SHA256": "d4952ca2447fc5e188079bde6ebe0da96b1912cd87fbf7ee92b7d5d617e5dd8d",
+      "finding": "Earlier full-state_dict rebuilding/cache hypothesis and CPU329 recording already exist; no repeated cache implementation or Native ABI patch in this card."
+    },
+    {
+      "source": "code/bw1000/Kimi-loader-row-copy-r436/runtime-v4/row_copy.hpp",
+      "SHA256": "d03749a225d07c4808151de3bf52ea38c434ed16f326b388477b37a5e570cbe7",
+      "finding": "Existing positive2D/innerstride1/nonoverlap/gather-order-preserving row loop has generic runtime-width fallback, not restricted to old6/96. No new allocator, precision or copy algorithm required."
+    },
+    {
+      "source": "code/bw1000/Kimi-private-loading-Runtime-integration-r442/DERIVATION.json",
+      "SHA256": "d066d27c843c7ff87117537fa3e7eab9db083174de3fd0212161cfa998b61cce",
+      "finding": "PrivateRuntime5b8 integration already source/CPU prepared for TP16/I192. Actual full load counter hit/gain not qualified; old6/96 component timings not inherited at new TP32/I96."
+    }
+  ],
+  "new_geometry": {
+    "TP": 32,
+    "I": 96,
+    "element_bytes": 1,
+    "W2_rows": 3584,
+    "packed_local_width": 48,
+    "packed_global_stride": 1536,
+    "scale_local_width": 3,
+    "scale_global_stride": 96,
+    "rank_begin": "rank*local_width, ranks0..31",
+    "limit": "From frozen r201/TP32 geometry and oldglobal shape; actual selected source/backing contract must remain same Weight tp_dim1. This is CPU-copy geometry, not new Model math."
+  },
+  "minimum_next_CPU_proposal": {
+    "parent": 910407,
+    "node": "a14r2n20",
+    "cores": 1,
+    "memory_MiB": 512,
+    "hard_seconds": 60,
+    "inside_seconds": 45,
+    "compile": "one pure CPU caller, existing original r2515 helper and existing r436 row_copy.hpp only; no SDK/Native load or Torch",
+    "consumer": "Only new actual width48 and3, 3584rows/globalstride1536 or96, all32 legalrank source offsets, exactbyte/canary and fallback counters; few untimed validation + fixed ABBA actualCPU time; no old6/96 suite/old Model/987/624",
+    "memory": "bounded synthetic UInt8 source/contiguous destination retained through each copy, no model weights; source6MiB/dest<1MiB plusguard buffers",
+    "purpose": "Does existing row loop remove material CPU gather recursion cost at TP32 widths? Not prove get_tensor/NFS/H2D fractions or Model speed.",
+    "existing_Runtime": "5b8df2e6dd334b88e3a1493b928dce1a25fe2a7878c2eccdf141a74aaa3ad36b remains independent and unused; future actualsingleRuntime/map/dladdr contract would need explicit b8 binding/newclaim",
+    "execution": "PROPOSAL_ONLY, not submitted or authorized by this JSON"
+  },
+  "do_not_do": [
+    "Increase2GiB cap or parallelizeH2D without measuredCPUcgroup/pending source lifetime proof",
+    "RAM cache or full checkpoint clones",
+    "SortPython byTPdim expecting Nativeunordered_map order guarantee",
+    "Call native-inclusive wall pure DMA or attribute all get_tensor wall to Python",
+    "Claim47.4b blocks as HBMtraffic or count it as atomicincrements; stats atomics update once percopycall",
+    "Hotpatch643 or add profiling/observer to live load",
+    "Automatically load a second model to test throughput"
+  ],
+  "fallback_if_CPU_not_worthwhile": "Wait for original643 terminal/fullprofiles, then reuse existing perflush/phase data; no new dense documentation or GPU fill. No extra current log sample needed because root snapshot plus frozen637 fullprofile already bounds Python path."
+}
