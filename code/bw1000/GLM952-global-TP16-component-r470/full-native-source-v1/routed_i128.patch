@@ -1,0 +1,39 @@
+--- raw-r19-c9b899.cu
++++ routed_i128.cu
+@@ -0,0 +1 @@
++// TP16 reference-tree leaf. Baseline hybrid prefill acceleration is deliberately not claimed.
+@@ -39 +40 @@
+-  if(row>=256||route>=routes)return;
++  if(row>=128||route>=routes)return;
+@@ -48,2 +49,2 @@
+-      gv[j]=__fadd_rn(a*decode(wg[(e*256+row)*6144+k]),0.f);
+-      uv[j]=__fadd_rn(a*decode(wu[(e*256+row)*6144+k]),0.f);
++      gv[j]=__fadd_rn(a*decode(wg[(e*128+row)*6144+k]),0.f);
++      uv[j]=__fadd_rn(a*decode(wu[(e*128+row)*6144+k]),0.f);
+@@ -58 +59 @@
+-  if(lane==0){gate[route*256+row]=static_cast<__nv_bfloat16>(g);up[route*256+row]=static_cast<__nv_bfloat16>(u);}
++  if(lane==0){gate[route*128+row]=static_cast<__nv_bfloat16>(g);up[route*128+row]=static_cast<__nv_bfloat16>(u);}
+@@ -66 +67 @@
+-  for(size_t b=0;b<2;++b){
++  for(size_t b=0;b<1;++b){
+@@ -71 +72 @@
+-      values[j]=__fadd_rn(decode(x[route*256+k])*decode(weight[(e*6144+row)*256+k]),0.f);
++      values[j]=__fadd_rn(decode(x[route*128+k])*decode(weight[(e*6144+row)*128+k]),0.f);
+@@ -74 +75 @@
+-    if(lane==0)result+=dot*xs[route*2+b]*scales[e*48*16+(row/128)*16+offset/128+b];
++    if(lane==0)result+=dot*xs[route+b]*scales[e*48*16+(row/128)*16+offset/128+b];
+@@ -79 +80 @@
+-extern "C" int glm_routed_validate_r19(const int64_t* ids,size_t count,size_t experts,int* status,void* stream){
++extern "C" int glm_r470_i128_validate(const int64_t* ids,size_t count,size_t experts,int* status,void* stream){
+@@ -83 +84 @@
+-extern "C" int glm_routed_gate_r19(void* gate,void* up,const void* x,const void* xs,const void* ids,
++extern "C" int glm_r470_i128_gate(void* gate,void* up,const void* x,const void* xs,const void* ids,
+@@ -85 +86,2 @@
+-  gate_up<<<dim3(64,unsigned(routes)),256,0,static_cast<cudaStream_t>(stream)>>>(
++  if(!routes||routes%8||routes>32768||offset%128||offset>1920)return 1;
++  gate_up<<<dim3(32,unsigned(routes)),256,0,static_cast<cudaStream_t>(stream)>>>(
+@@ -91 +93 @@
+-extern "C" int glm_routed_down_r19(void* output,const void* x,const void* xs,const void* ids,
++extern "C" int glm_r470_i128_down(void* output,const void* x,const void* xs,const void* ids,
+@@ -92,0 +95 @@
++  if(!routes||routes%8||routes>32768||offset%128||offset>1920)return 1;

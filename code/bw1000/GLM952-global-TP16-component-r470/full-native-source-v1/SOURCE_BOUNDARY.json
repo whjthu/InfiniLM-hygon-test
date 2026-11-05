@@ -1,0 +1,80 @@
+{
+  "scope": "Source-only partial fullNative integration core; noCPUcompile/GPU/Model",
+  "old_TP8PP2_default_unchanged": true,
+  "parent_ffn": {
+    "path": "/refactor/candidates/glm-vector-model-r8542/src/glm_moe_dsa_routed_ffn_r19.cpp",
+    "SHA256": "c716b37fd3fe786cece00a5b4a309d9eb13b76e4bbdb8cc8843be936c708e64b",
+    "provenance": "ActualoriginalNative952 vector-0.o MD source read; currentbinary/sourcebinding still requires CPUarchive/object pins before anynewbuild"
+  },
+  "parent_GPU": {
+    "path": "/refactor/candidates/glm-grouped-native-model-r5117/helpers/src/glm_routed_fp8_kernels_r19.cu",
+    "SHA256": "c9b899fbf5a6f8eb715d806bc592e79b8b738b4334dd938d83e6f1e40f4e326a",
+    "provenance": "Current exact raw_r19 source; old routed.o MD missing, so any build of new I128 is a fresh changed GPU TU, not inherited compilation qualification."
+  },
+  "new_outputs": {
+    "HOST": "02d0608d153e24776fbc3e0d0e827e1dafdcca7289a1698ef298128c254496f0",
+    "GPU": "4adb7a1c1b11b6a4434c93b8e9787966bec6a71787fa4837a5ed13e3afc128b6"
+  },
+  "math": "Original raw_r19 per128 FP8 decode, W64/W32 lane tree, F32 arithmetic and BF16 output; physical I256 becomes I128/globaloffset rank*128. Different TP partial BF16 roundings (8->16) require real quality checks.",
+  "physical_layout": {
+    "Wgate": [
+      256,
+      128,
+      6144
+    ],
+    "Wup": [
+      256,
+      128,
+      6144
+    ],
+    "Wdown": [
+      256,
+      6144,
+      128
+    ],
+    "gate_scales": [
+      256,
+      16,
+      48
+    ],
+    "up_scales": [
+      256,
+      16,
+      48
+    ],
+    "down_scales": [
+      256,
+      48,
+      16
+    ],
+    "down_input_scales_per_route": 1,
+    "expert_count": 256,
+    "selected_experts": 8,
+    "global_I": 2048,
+    "local_I": 128
+  },
+  "invariants": [
+    "No zero-padding256 workaround; live and physical128 match.",
+    "All TP8 shapes/offset256 and olddispatch untouched unless admittedprivateTP16.",
+    "Global16weightscale arrays stay replicated; eachrank addressesone128tile, lasttile15 no16overflow.",
+    "Router256experts/topK8/blockDim256/output6144 are unchanged, not blindlyreplaced.",
+    "No F64/TF32/precisionfallback/newcache.",
+    "NoModelability fromsource/localmetadata."
+  ],
+  "remaining": [
+    "Factory: newtypedglobalRank Context ownsrealTextModel; do not pass privatecomponentCtx tooldNativeAPI.",
+    "prepare/output/NativeIndexer/selector TP16head4/index2 deriveexactcurrent guards; NoV constructor and PP1registry scoped.",
+    "CurrentfullNative29object/MD/currentCommon/runtime/header/toolchain exactclosure;4groupedhelperMDmissing staysUNKNOWN, no false reuse.",
+    "Globalcheckpointloader ranks0..15/scale128/PP1all78keys andactualconstructor allocator+cachefloor beforeweightload.",
+    "One fullNativeforward/reset/rootoutput/globalowner16 cleanup on realcheckpoint afterCPU/preciseclaim/fresh; not anothercommunication/oldLayer0benchmark."
+  ],
+  "dispatch": {
+    "old_TP8": "Exact original vector/grouped dispatch untouched in its branch. Current public policy0 actually selects hybrid5386 grouped; routes>=4096 uses original-tree-certified accelerated prefill, smaller uses raw_r19.",
+    "new_TP16": "I128 raw reference tree for ALL routes, explicit independent helper. No claim to inherit original grouped prefill speed or row2/vector qualification.",
+    "provider_DSO": "/refactor/candidates/glm-hybrid-decode-r5386/libnative.so",
+    "provider_SHA256": "f35956f532833ce964bf766c8a61b44b56fe79042921d86710ccd075101705d2",
+    "provider_build_SHA256": "60d05b13db6ba7f463548563282ac8b0819dab52c8327d1cfebcbd4d69d91682",
+    "provider_source_SHA256": "d1b7b39996e11675fb998f555fce63329cf76f0fb1efc66eaa02f3b439210100",
+    "tradeoff": "Correctness-first source route; full prefill wall may be much slower, and no Model speed claim is made."
+  }
+}

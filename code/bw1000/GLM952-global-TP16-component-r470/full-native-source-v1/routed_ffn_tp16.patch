@@ -1,0 +1,46 @@
+--- original-FFN-c716.cpp
++++ routed_ffn_tp16.cpp
+@@ -0,0 +1,2 @@
++#include "geometry.hpp"
++#include "routed_i128.hpp"
+@@ -58 +60 @@
+- r.assertOwnerThread();if(r.isGraphRecording()||r.device().type()!=rt::Device::Type::kHygon||rank.device!=r.device()||(rank.tp_size!=1&&rank.tp_size!=8)||rank.tp_rank<0||rank.tp_rank>=rank.tp_size||!intermediate||intermediate%size_t(rank.tp_size)||intermediate/size_t(rank.tp_size)%128)throw std::invalid_argument("GLM MLP requires block-aligned TP1/8 partition");
++ r.assertOwnerThread();if(r.isGraphRecording()||r.device().type()!=rt::Device::Type::kHygon||rank.device!=r.device()||(rank.tp_size!=1&&rank.tp_size!=8&&!glm_global_tp16_r470::admitted(rank))||rank.tp_rank<0||rank.tp_rank>=rank.tp_size||!intermediate||intermediate%size_t(rank.tp_size)||intermediate/size_t(rank.tp_size)%128)throw std::invalid_argument("GLM MLP requires block-aligned TP1/8 partition");
+@@ -73 +75 @@
+- r.assertOwnerThread();if(r.isGraphRecording()||r.device().type()!=rt::Device::Type::kHygon||rank.device!=r.device()||(tp_!=1&&tp_!=8)||(tp_>1&&!comm_)||cfg.at("hidden_size")!=6144||cfg.at("hidden_act")!="silu"||(cfg.at("mlp_layer_types").at(layer)!="dense"&&!sparse_)||cfg.at("intermediate_size")!=12288||cfg.at("moe_intermediate_size")!=2048||cfg.at("n_routed_experts")!=256||cfg.at("num_experts_per_tok")!=8||cfg.at("n_shared_experts")!=1||cfg.at("n_group")!=1||cfg.at("topk_group")!=1||cfg.at("scoring_func")!="sigmoid"||!cfg.at("norm_topk_prob").get<bool>())throw std::invalid_argument("GLM FFN actual checkpoint configuration differs");
++ r.assertOwnerThread();if(r.isGraphRecording()||r.device().type()!=rt::Device::Type::kHygon||rank.device!=r.device()||(tp_!=1&&tp_!=8&&!glm_global_tp16_r470::admitted(rank))||(tp_>1&&!comm_)||cfg.at("hidden_size")!=6144||cfg.at("hidden_act")!="silu"||(cfg.at("mlp_layer_types").at(layer)!="dense"&&!sparse_)||cfg.at("intermediate_size")!=12288||cfg.at("moe_intermediate_size")!=2048||cfg.at("n_routed_experts")!=256||cfg.at("num_experts_per_tok")!=8||cfg.at("n_shared_experts")!=1||cfg.at("n_group")!=1||cfg.at("topk_group")!=1||cfg.at("scoring_func")!="sigmoid"||!cfg.at("norm_topk_prob").get<bool>())throw std::invalid_argument("GLM FFN actual checkpoint configuration differs");
+@@ -76,5 +78,5 @@
+-  else{gate_=rt::Tensor::empty_parameter(r,{256,6144},rt::DataType::kBFloat16);gate_float_=rt::Tensor::empty(r,{256,6144},rt::DataType::kFloat32);bias_=rt::Tensor::empty_parameter(r,{256},rt::DataType::kFloat32);bind_weight("gate.weight",weights::Weight(gate_));bind_weight("gate.e_score_correction_bias",weights::Weight(bias_));if(tp_!=8)throw std::invalid_argument("GPU-batched sparse GLM candidate requires TP8");
+-  routed_offset_=size_t(rank.tp_rank)*256;
+-  routed_gate_=rt::Tensor::empty_parameter(r,{256,256,6144},rt::DataType::kUInt8);
+-  routed_up_=rt::Tensor::empty_parameter(r,{256,256,6144},rt::DataType::kUInt8);
+-  routed_down_=rt::Tensor::empty_parameter(r,{256,6144,256},rt::DataType::kUInt8);
++  else{gate_=rt::Tensor::empty_parameter(r,{256,6144},rt::DataType::kBFloat16);gate_float_=rt::Tensor::empty(r,{256,6144},rt::DataType::kFloat32);bias_=rt::Tensor::empty_parameter(r,{256},rt::DataType::kFloat32);bind_weight("gate.weight",weights::Weight(gate_));bind_weight("gate.e_score_correction_bias",weights::Weight(bias_));if(tp_!=8&&!glm_global_tp16_r470::admitted(rank))throw std::invalid_argument("GPU-batched sparse GLM candidate requires TP8");
++  const size_t local_I=2048/size_t(tp_);if(local_I!=128&&local_I!=256)throw std::invalid_argument("r470 routedI128/256 only");routed_offset_=size_t(rank.tp_rank)*local_I;
++  routed_gate_=rt::Tensor::empty_parameter(r,{256,local_I,6144},rt::DataType::kUInt8);
++  routed_up_=rt::Tensor::empty_parameter(r,{256,local_I,6144},rt::DataType::kUInt8);
++  routed_down_=rt::Tensor::empty_parameter(r,{256,6144,local_I},rt::DataType::kUInt8);
+@@ -87,3 +89,3 @@
+-   bind_weight(prefix+"gate_proj.weight",weights::Weight(slice(routed_gate_,{256,6144}),0,rank.tp_rank,rank.tp_size));
+-   bind_weight(prefix+"up_proj.weight",weights::Weight(slice(routed_up_,{256,6144}),0,rank.tp_rank,rank.tp_size));
+-   bind_weight(prefix+"down_proj.weight",weights::Weight(slice(routed_down_,{6144,256}),1,rank.tp_rank,rank.tp_size));
++   bind_weight(prefix+"gate_proj.weight",weights::Weight(slice(routed_gate_,{local_I,6144}),0,rank.tp_rank,rank.tp_size));
++   bind_weight(prefix+"up_proj.weight",weights::Weight(slice(routed_up_,{local_I,6144}),0,rank.tp_rank,rank.tp_size));
++   bind_weight(prefix+"down_proj.weight",weights::Weight(slice(routed_down_,{6144,local_I}),1,rank.tp_rank,rank.tp_size));
+@@ -100 +102 @@
+- glm_vector_r8540::Frame vector_frame_r8540(r.device().index());Work work{r};work.held.push_back(x);size_t tokens=x->size(0);std::unique_ptr<ActualCaptureFrame5164>capture;auto combined=work.alloc({tokens,6144},rt::DataType::kFloat32);rt::Tensor indices,weights;
++ glm_vector_r8540::Frame vector_frame_r8540(r.device().index());Work work{r};work.held.push_back(x);size_t tokens=x->size(0);const size_t local_I=tp_==16?128:256;std::unique_ptr<ActualCaptureFrame5164>capture;auto combined=work.alloc({tokens,6144},rt::DataType::kFloat32);rt::Tensor indices,weights;
+@@ -113,2 +115,2 @@
+-  glm_layer_mark_r5670(r,"FFN.gateup.begin");auto gates=work.alloc({routes,256},rt::DataType::kBFloat16),ups=work.alloc({routes,256},rt::DataType::kBFloat16);
+-  if(glm_vector_r8540::gate(vector_frame_r8540,gates->data(),ups->data(),packed->data(),input_scale->data(),indices->data(),routed_gate_->data(),routed_gate_scale_->data(),routed_up_->data(),routed_up_scale_->data(),routes,routed_offset_,r.stream()))throw std::runtime_error("GLM routed gate/up launch failed");
++  glm_layer_mark_r5670(r,"FFN.gateup.begin");auto gates=work.alloc({routes,local_I},rt::DataType::kBFloat16),ups=work.alloc({routes,local_I},rt::DataType::kBFloat16);
++  if((tp_==16?glm_r470_i128_gate(gates->data(),ups->data(),packed->data(),input_scale->data(),indices->data(),routed_gate_->data(),routed_gate_scale_->data(),routed_up_->data(),routed_up_scale_->data(),routes,routed_offset_,r.stream()):glm_vector_r8540::gate(vector_frame_r8540,gates->data(),ups->data(),packed->data(),input_scale->data(),indices->data(),routed_gate_->data(),routed_gate_scale_->data(),routed_up_->data(),routed_up_scale_->data(),routes,routed_offset_,r.stream())))throw std::runtime_error("GLM routed gate/up launch failed");
+@@ -116 +118 @@
+-  glm_layer_mark_r5670(r,"FFN.gateup.end");auto silu=work.alloc({routes,256},rt::DataType::kBFloat16),activated=work.alloc({routes,256},rt::DataType::kBFloat16);
++  glm_layer_mark_r5670(r,"FFN.gateup.end");auto silu=work.alloc({routes,local_I},rt::DataType::kBFloat16),activated=work.alloc({routes,local_I},rt::DataType::kBFloat16);
+@@ -119 +121 @@
+-  glm_layer_mark_r5670(r,"FFN.downquant.begin");auto down_input=work.alloc({routes,256},rt::DataType::kUInt8),down_scale=work.alloc({routes,2},rt::DataType::kFloat32),local=work.alloc({routes,6144},rt::DataType::kBFloat16);
++  glm_layer_mark_r5670(r,"FFN.downquant.begin");auto down_input=work.alloc({routes,local_I},rt::DataType::kUInt8),down_scale=work.alloc({routes,local_I/128},rt::DataType::kFloat32),local=work.alloc({routes,6144},rt::DataType::kBFloat16);
+@@ -122 +124 @@
+-  glm_layer_mark_r5670(r,"FFN.down.begin");if(glm_vector_r8540::down(vector_frame_r8540,local->data(),down_input->data(),down_scale->data(),indices->data(),routed_down_->data(),routed_down_scale_->data(),routes,routed_offset_,r.stream()))throw std::runtime_error("GLM routed down launch failed");
++  glm_layer_mark_r5670(r,"FFN.down.begin");if((tp_==16?glm_r470_i128_down(local->data(),down_input->data(),down_scale->data(),indices->data(),routed_down_->data(),routed_down_scale_->data(),routes,routed_offset_,r.stream()):glm_vector_r8540::down(vector_frame_r8540,local->data(),down_input->data(),down_scale->data(),indices->data(),routed_down_->data(),routed_down_scale_->data(),routes,routed_offset_,r.stream())))throw std::runtime_error("GLM routed down launch failed");
