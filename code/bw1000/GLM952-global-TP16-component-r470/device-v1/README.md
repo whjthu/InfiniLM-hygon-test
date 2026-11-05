@@ -1,0 +1,3 @@
+Only the new explicitglobalTP16component: two nodes x8localowners, two different16rankUIDs, oneSUM136/rankorderedAllGather perowner andnormalclose. Uses exactCPU1061DSO/Common16910/group. NoNative952load, cacheallocation, weightpayload, Modelinput, forward orHTTP. Full32768 is geometrymetadata only, not a memoryfit claim.
+
+Common32CPUentry is preserved; no preexecpin4 or claimed2392firstsubmit. Original component has noEx::submit. WorkerCUDAindex andglobalrank remainseparate. Sourceverify adapts only HOSTR/containerrefactor roots; eachloadedSDKmodule isoneinode, exactSHA. OneGPUepoch180/worker150 andkeeper300; unknown failures stopwithoutrecreate/reload. PCIuniqueness is(node,PCI), notflattenedPCIstring. Actualfresh/normaldestroy/post required.
