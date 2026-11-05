@@ -1,0 +1,117 @@
+{
+  "schema": 1,
+  "scope": "Read-only exact35c width1/8 query0 at past2949, topK2048. No compile, job, GPU, capture or Model.",
+  "decision": "ROOT_CAUSE_UNKNOWN; defaultOFF, no verifier promotion",
+  "identity": {
+    "Native_SHA256": "35c08ce45814178e3692c55eb13dd5f074643993be1fbe911ecf91a2c200a0cb",
+    "CPU": "910371.835",
+    "receipt_path": "/refactor/candidates/GLM952-block-prefix-native-v1/CPU-build.json",
+    "receipt_SHA256": "6f6ff56db562391fc8003eb9fe0faab945cbded4eeff22def31c53c519be62dd",
+    "CPU_source_MF": "c7a7914c5f08632b4e0f44b71ef2bdaf4dd0cb58f42c66bcafcc3428ac3d59d0",
+    "build_recipe_SHA256": "95a34f3b9ceec6cb423c746996f4a2fe81d485794c92edca4a87208aaf9e09ff",
+    "dependency_pins_SHA256": "4c3977c9e26ee5b0c788afaaac8d50421cd1b31482178d20657a369336f8ddb3",
+    "rebuilt": 8,
+    "retained": 21,
+    "fresh_object_sources": [
+      {
+        "original_object": "/refactor/candidates/glm-transient-layer-r5681/private-11.o",
+        "original_source": "/refactor/candidates/glm-transient-layer-r5681/src/glm_moe_dsa_indexer_selection.cpp",
+        "source_sha256": "e9f2fdd7daad7b56ea51039514129a2b2661b6648667957aebf7de1cfc13951b",
+        "original_MD": "/refactor/candidates/glm-transient-layer-r5681/private-11.d",
+        "original_MD_sha256": "6da527fbe2ad51fde4c444a282d96fccdbdf4c217d4769a1690e0aa00ded7295"
+      },
+      {
+        "original_object": "/refactor/candidates/GLM-V-on-demand-Model-integration-r403-CPU/caller_v_on_demand_r403.cpp.o",
+        "original_source": "/refactor/incoming/GLM-V-on-demand-Model-integration-r403/caller_v_on_demand_r403.cpp",
+        "source_sha256": "d54b80d68497c26c83a0c63fe87fbec376f4b106daa40d0da61238dfb5914be2",
+        "original_MD": "/refactor/candidates/GLM-V-on-demand-Model-integration-r403-CPU/caller_v_on_demand_r403.cpp.d",
+        "original_MD_sha256": "8203afe8e0ec23e579afa2f33d96c35fd2e85f396c297baecac37faf53fd31ad"
+      }
+    ],
+    "retained_bounded": {
+      "object": "/refactor/candidates/glm-prefill-prefix-r8703/glm_prefill_prefix_dense_r8703.cpp.o",
+      "object_SHA256": "a33cea1a9888c5c5831591f36c5ab01ef768f788f94abf39a2ac5a317f21959a",
+      "source": "L/glm_prefill_prefix_dense_r8703.cpp",
+      "source_SHA256": "ab5829f41a5a888ed77eef2f3846118a446f2315a776614a04bb265a1e672292",
+      "link_argv_position": 36,
+      "scope": "Originalr8703 source/CPU receipt, parent952 retained-object inventory and actual835 recipe; no new nm/compile/dlopen."
+    },
+    "config_SHA256": "3ac72612095574542f7fff847ada8e59d9199dd8af44bdf625d7e02615572e69"
+  },
+  "facts": [
+    {
+      "id": "width8_above_is_not_dense_QK",
+      "source": [
+        "caller_v_on_demand_r403.cpp d54b80d68497c26c83a0c63fe87fbec376f4b106daa40d0da61238dfb5914be2 lines235-243",
+        "glm_prefill_prefix_dense_r8703.cpp ab5829f41a5a888ed77eef2f3846118a446f2315a776614a04bb265a1e672292 lines26,50-52,82-114"
+      ],
+      "predicate": "dense=trusted8703||(tokens>1 && k->size(0)==past+tokens && k->size(0)<=2048)",
+      "proof": "past2949+tokens8=2957. Requiring keysize2957 and keysize<=2048 is impossible. Proven route requires capacity<=2048, but actual capacity32768. Therefore this above case always takes the bounded per-query loop, not dense/block QK.",
+      "corrected_wording": "Entrypoints, scratch/gather and scale lowering differ for count1/count8; above, both QK and PV are per-query M=1 with BF16 dots and probability, FP32 scale/softmax. This is source branch exclusion, not an observed kernel counter."
+    },
+    {
+      "id": "NoV_union_is_a_distinct_unobserved_boundary",
+      "source": [
+        "glm_selection_map_r302.hpp 38062a1097a1194ca9721cdb4f5035f59bc3795b192d3b00f7f471c3126bc70b lines11-17",
+        "selected_values_r400.hpp 50ece2ded22ce1e70ea55947972dd3f5f17cdee2dd39f9080f1bb08a3cae0489 lines12-16",
+        "glm_prepare_observer_r131.cpp 2fa890bcb80c4accd41a7d09a658d557535c4922a6d6dea3b672dcec904f972c lines19-22,60-64"
+      ],
+      "fact": "selection_map sorts the union of all query selections. NoV selected_values gathers U latent rows and calls kb_->forward with M=U. Serial requests K2048, normally U2048; width8 actualU is unobserved and may include otherqueries, bounded above by2957. Equal query0 IDs alone do not prove equal recomputed Vbits when U/projection geometry differs.",
+      "exclusion": "chunk_geometry_r400 max_block_rows=8192: U<=2957 cannot take the multi-chunk path. No chunk-grid tuning candidate.",
+      "not_proven": "ActualU, query0 selected-set equality, prefix cache bits, projected V equality and actual SDK kernel resolution. FP8 activation scale tensor is source-shaped[M,ceil(K/128)]; do not assert a global across-token scale bug."
+    },
+    {
+      "id": "causal_owner_and_lifetime_boundaries",
+      "source": [
+        "glm_moe_dsa_indexer_selection.cpp e9f2fdd7daad7b56ea51039514129a2b2661b6648667957aebf7de1cfc13951b lines25-51",
+        "caller_v_on_demand_r403.cpp lines90-103,112-123,170,216-258"
+      ],
+      "fact": "Same owner/runtime/row and positions past+t are checked. Selector appends fresh keys, computes FP32 scores and TP sum, then future-INF Add before TopK. Query0 logical visible span0..2949. Requested K2048 both arms; score GEMM shapes differ [4,2950] versus [32,2957] at TP8/local indexerheads4.",
+      "qualification": "Future-key exclusion as finite competitors presumes finite scores; no raw indexer-score finite/tie boundary was captured. Finite final BF16 logits do not prove this.",
+      "lifetime": "Caller Work holds prepared/selection/gather tensors until original stream sync and length publication. Bounded scratch storage lives through its original final sync; per-query views are reused on the original owner stream. No definite wrong-row, off-by-one or cross-thread free is demonstrated by inspected source. Runtime/provider execution stream semantics beyond these calls remain outside this proof."
+    }
+  ],
+  "existing860": {
+    "archive_SHA256": "8f9eb998ba7a666639ad3b0dd9fbf8d8226c0d5987f1dbd151ed1cd2a16e1192",
+    "proposal_query0_BF16_NRMS": 0.18132342272599064,
+    "proposal_top1_same": true,
+    "meaning": "Mismatch is before publish. Root cause and first divergent layer remain UNKNOWN. Do not rerun860 just to change keeper status or retain the same final logits again."
+  },
+  "single_layer_feasibility": {
+    "judgment": "Plausible source route, not a CPU/device-qualified component or an unconditional GPU card",
+    "real_inputs": "Layer0 is full. TextModelstage0 performs direct BF16 embedding IndexSelect (text source lines43,66); decoder lines18-19 apply the original RMSNorm and BF16 weight. Thus Layer0 prefix/input can in principle be rebuilt from the SAME frozen above IDs, actual checkpoint embedding rows/inputnorm/attention weights, original epsilon/operations and prefix window. No previous-layer/MoE/whole78-layer dependency is needed for Layer0. This reconstruction has not been executed or bit-proved.",
+    "real_input_sources": [
+      {
+        "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/GLM-critical-observer-r131/glm_decoder_observer_r131.cpp",
+        "SHA256": "ab8ba917ca6489c34008f31ba5e9edbbb4a99a123a1c31ca0e1f099d6cbd435e"
+      },
+      {
+        "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/incoming/GLM-critical-observer-r131/glm_text_observer_r131.cpp",
+        "SHA256": "9a2e09e6d9dcd6da9587c95fdff0bb2a77b9d9a2250a173e3af2e129af683426"
+      }
+    ],
+    "existing_interface": "NativeAttentionProjectedR22(r,cfg,layer0,RankInfo,rows1,capacity32768,topk2048,originalpolicy pointers), state_dict, process_weights_after_loading, reset and forward. Constructor registers layer coordinates and accepts one layer; a standalone private caller would use this actual class, not a fake Model.",
+    "protocol": "Reset and replay the SAME original prefix to past2949, verify normalized hidden/history cache hashes, then compare first input at position2949 in width1 with the same first input plus7 frozen following inputs at positions2949..2956 in width8. Derive IDs/offsets from the original860 prepared data and driver. Inspect query0 before publish; no continuation, HTTP, full gold request or synthetic hidden substitute.",
+    "minimum_observables": [
+      "Layer0 query0 normalized input, positions, prefix indexerK/latent/projectedK hashes before append; fresh Q/KV projection bits.",
+      "Indexer query0 Q/headweights; reduced FP32 scores0..2949, future masked flags, TopK raw IDs and K2048/2049 score gap/ties.",
+      "Actual unionU/logical IDs; canonical query0 selected latent/K/V hashes plus bounded raw samples, mapped by logical key ID.",
+      "Query0 attention and Oprojection bits, before later decoder/MoE. Capture original main results; do not replace its selected path or infer first divergence from a late-layer sample."
+    ],
+    "lifecycle": "Same Runtime/owner/stream, strong Tensor leases through the original completed drains. Only owner-thread completed D2H -> CPUbytes; parent getters cannot destroy Runtime Tensor owners. No new global barrier. Actual D2H completion and high64 typed getter/member/registry closure require source/CPU proof before any device proposal.",
+    "remaining_interfaces": "No qualified real-embedding/inputnorm/one-attention thin bridge was found. Exact checkpoint tensor offsets/dtypes/scales/TP shards and original weight-load transforms need binding. Native class C++ ABI, actual stage0 registry coordinates versus a TP8-only component communicator and normal destroy/census must close; do not fake pp/world ranks, omit guards or claim TP8PP2 Model qualification. Likely private2HOST bridge, no class-layout change, but no implementation/compile qualification is asserted.",
+    "resources": "Potential single TP8 eight-card component with only real Layer0 weights and real embedding rows; not fullModel. Exact subset bytes, peak, startup wall and necessity of a world communicator are UNKNOWN. No resource/compile/GPU claim is made.",
+    "exit": "If this needs broad registry/lifecycle redesign or wholeModel capture, PARK staged verifier. If Layer0 remains equal, do not automatically expand to78-layer traces or repeated loads. DefaultOFF and target-distribution/acceptance/speed UNKNOWN remain."
+  },
+  "local_evidence": {
+    "GLM35c-query0-pinned-source-original.json": "1d03fec9dfce2567b31822f0a39e253dc88244daaf3aa0894640bec77e5bd9ab",
+    "GLM35c-query0-attention-source-original.json": "564e7cea73069e8d243df233f294d906231565b3046a6c394fd8d2556dea9c6e",
+    "GLM-block-retention-source-read-original.json": "60d6dbc480a35eff23403fbebf6976ed52a70ce94235224a9e84000d7152ab0f",
+    "GLM952-work-inventory-current-source-readonly.json": "55a3ba9626fb462f051a5b6eaa5ba8f2c5af9fa9b85ae183604af5f9f996e2bf",
+    "GLM-prefill-prefix-CPU-manifest-r8703.json": "527a4619a29702a931cea72ed82e4ff21c139157b73a5006b9f57aa34f775f2f"
+  },
+  "new_jobs": 0,
+  "new_GPU": 0,
+  "new_compile": 0,
+  "new_capture": 0
+}

@@ -1,0 +1,153 @@
+{
+  "schema": 1,
+  "scope": "Readonly feasibility/dedup of currentGLM952/eaf5 TP8PP2 C1 full32768 -> TP16PP1 on same16cards. Not35c verifier, nojob/compile/GPU.",
+  "decision": "STOP_SOURCE_AS_THIN_TOPOLOGY_CARD",
+  "reason": "Current qualified factory/topology/Native explicitly reject TP16 and do not carry globalTP16 rank+communicator+loader state. This is not a measured negative TP16performance result or a physical hardware impossibility.",
+  "baseline": {
+    "provider_MF": "eaf5ae8c5333e0601ce2bec7fdd27e41e0a110b534660e27f55c362915cb96a0",
+    "Native": "9520769d28742aba489b38ecbd1e1692f6830168c699d7111f1e0c2ae4cd598b",
+    "TP": 8,
+    "PP": 2,
+    "C1": 1,
+    "context": 32768,
+    "NoV": true
+  },
+  "barriers": [
+    {
+      "file": "public_glm_native/provider.py",
+      "SHA256": "600d34156b19c4e6831c368cc8ac27babc6e36213df563c7eb9e2a7623a3d25c",
+      "lines": "21-30,57-59",
+      "fact": "Factory requires tensor_parallel_size8/pipeline_parallel_size2/stage1; Ready reports same16owner topology."
+    },
+    {
+      "file": "public_glm_native/topology_r404.py",
+      "SHA256": "01ad9c46e142cbfb48af279518531fa5d07f9abd514e49652b4e3009b7c906c8",
+      "lines": "8,19-42",
+      "fact": "PP_SIZE2, stage0/1, partition0/38/78, rank0..7, exactly2TP IDs. Constructor has no supplied globalTP16rank offset or TPsize argument here."
+    },
+    {
+      "file": "public_glm_native/actors.py",
+      "SHA256": "91c098cda0c37ee902b961c05ea37038b13106b83e069cc56eca8a730bccb09c",
+      "lines": "46-59",
+      "fact": "Worldcomm ID is distinct from two TP group IDs; each leader spawns8 localrank actors. Existing crossnode world P2P/control does not qualify crossnode TP16 allreduce."
+    },
+    {
+      "file": "glm_text_observer_r131.cpp",
+      "SHA256": "9a2e09e6d9dcd6da9587c95fdff0bb2a77b9d9a2250a173e3af2e129af683426",
+      "lines": "37-44",
+      "fact": "Native TextModel requires tp_size1 or8. Embedding replicated on firststage; layerweights constructed only over stagepartition."
+    },
+    {
+      "file": "glm_prepare_observer_r131.cpp",
+      "SHA256": "2fa890bcb80c4accd41a7d09a658d557535c4922a6d6dea3b672dcec904f972c",
+      "lines": "25",
+      "fact": "Actual attentionprepare requires tp_size1 or8."
+    },
+    {
+      "file": "glm_moe_dsa_indexer_selection.cpp",
+      "SHA256": "e9f2fdd7daad7b56ea51039514129a2b2661b6648667957aebf7de1cfc13951b",
+      "lines": "17-18",
+      "fact": "Indexer tp_size1 or8, localheads=32/tp and realcomm required. TP16 currently rejected."
+    },
+    {
+      "file": "caller_v_on_demand_r403.cpp",
+      "SHA256": "d54b80d68497c26c83a0c63fe87fbec376f4b106daa40d0da61238dfb5914be2",
+      "lines": "74-79",
+      "fact": "Current NoV branch explicitly rejects rank.tp_size!=8, even apart from other ctor guards."
+    }
+  ],
+  "arithmetic_necessary_not_support": {
+    "config_SHA256": "3ac72612095574542f7fff847ada8e59d9199dd8af44bdf625d7e02615572e69",
+    "divisible_by16": {
+      "hidden_size": {
+        "value": 6144,
+        "quotient": 384,
+        "remainder": 0
+      },
+      "num_attention_heads": {
+        "value": 64,
+        "quotient": 4,
+        "remainder": 0
+      },
+      "index_n_heads": {
+        "value": 32,
+        "quotient": 2,
+        "remainder": 0
+      },
+      "q_lora_rank": {
+        "value": 2048,
+        "quotient": 128,
+        "remainder": 0
+      },
+      "kv_lora_rank": {
+        "value": 512,
+        "quotient": 32,
+        "remainder": 0
+      },
+      "intermediate_size": {
+        "value": 12288,
+        "quotient": 768,
+        "remainder": 0
+      },
+      "moe_intermediate_size": {
+        "value": 2048,
+        "quotient": 128,
+        "remainder": 0
+      },
+      "n_routed_experts": {
+        "value": 256,
+        "quotient": 16,
+        "remainder": 0
+      },
+      "vocab_size": {
+        "value": 154880,
+        "quotient": 9680,
+        "remainder": 0
+      }
+    },
+    "attention_heads_per_TP16": 4,
+    "indexer_heads_per_TP16": 2,
+    "fp8_examples": "Qb output4*256=1024 and Oproj localinput1024 are multiples128, routedintermediate2048/16=128. Arithmetic alone does not close actual FP8pack/transposition/SDKhelper restrictions or globalrank offsets."
+  },
+  "new_counterfactual_memory_fact": {
+    "scope": "Only four logical BF16 attention/indexer banks from exactconstructor formulas, before allocator/RoPE/CCL/scratch/weights. TP16 counterfactual is blocked by currentcode and not an observed peak/fit.",
+    "formula": "L*32768*(64/TP)*256*2 projectedK + L*32768*(512+64)*2 latent/rotary + FullIndexerCount*32768*128*2",
+    "current_TP8PP2_stage0": {
+      "projectedK_BF16": 5100273664,
+      "latent_BF16": 1275068416,
+      "rotary_BF16": 159383552,
+      "indexerK_BF16": 92274688,
+      "sum": 6627000320
+    },
+    "current_TP8PP2_stage1": {
+      "projectedK_BF16": 5368709120,
+      "latent_BF16": 1342177280,
+      "rotary_BF16": 167772160,
+      "indexerK_BF16": 83886080,
+      "sum": 6962544640
+    },
+    "hypothetical_TP16PP1_perrank": {
+      "projectedK_BF16": 5234491392,
+      "latent_BF16": 2617245696,
+      "rotary_BF16": 327155712,
+      "indexerK_BF16": 176160768,
+      "sum": 8355053568
+    },
+    "extra_vs_stage0": 1728053248,
+    "extra_vs_stage1": 1392508928,
+    "explanation": "PP1 places78layers on everyrank. TP halves projectedK head dimension but latent/rotary and indexerK are not TP-sharded, so those banks roughlydouble. Embedding on all16 firststage ranks is additional to this formula. Do not assume memory halves or waive original8GiB/4GiB floors."
+  },
+  "dedup": {
+    "search_scope": "Bounded current analysis/bw1000 and coordination/tasks GLM*.json for TP16PP1/TP16 topology evidence, plus current952 source inventory; not an exhaustive historical proof.",
+    "actual_TP16PP1_Model_result_found": false,
+    "known_irrelevant": "GLM400/Kimi401 followthrough has actual1GPU Runtimeworld1 logicalTP16rank0 FFN fixture, negative beyonddrift; not a16rank crossnode Model. GLM355 says TP16 alternatives notexcluded; current394 scope explicitly excludesTP16.",
+    "cannot_claim": "Do not call these a same16card TP16Model negative result."
+  },
+  "remaining_minimum": "Would require new nativeglobalTP/rank transport, correct crossnode TPcomm initialization and reductions, weightsharding/FP8scale offsets, cachecensus/ready/sampling/output/root ownership and normalshutdown closure, then newNative/device qualification. Not a config-only or prepared-loader reuse card; too broad for current thin scope.",
+  "affected_wall": "PP bubble may be removed but everylayer TPcollectives would crossnodes; netwall/speed, actualbusy and memoryfit UNKNOWN. No sameprompt pairedperformance claim can be authorized as an existingqualified path.",
+  "next": "No TP16PP1 GPUcard from thissource check. Keep currentTP8PP2 qualifiedbaseline; any deliberate newglobalTP implementation must be a separate source/CPU design with unchanged fullcontext/floors and actualcomm/shard proof.",
+  "GPU_GO": false,
+  "Model_GO": false,
+  "new_jobs": 0,
+  "new_compile": 0
+}
