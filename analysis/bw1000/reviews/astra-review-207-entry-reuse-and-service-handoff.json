@@ -1,0 +1,82 @@
+{
+  "review": 207,
+  "status": "COMPLETE_SOURCE_REVIEW",
+  "scope": "只读当前源码/已有交接证据，仅写本报告；0网络/Slurm/GPU/Git/新测试。独立原任务继续，不是新增执行审批。",
+  "prior_followthrough": {
+    "205_206": "完整HOST prefix与实际producer→consumer原则仍适用。GLM876已证明normal16/SUM136/order/96trace，是206后1个真实因果轮；没有Model收益。keeper1069因immediate accounting断言失败，原row未保存，后见COMPLETED不能改写原keeperFAIL。",
+    "Kimi": "1070漏DTK传递include；1071overlay的D与sys.path分离；1072纯planning可编译但TensorView非inline符号缺link。三次均0production/0GPU，属于工程失败，不充性能轮。205正确编译环境被手工裁剪，206局部语法检查未覆盖实际import与link，是重复遗漏的具体原因。",
+    "minimal_reuse": "新v4已读：includes由已验证CPU622 HOST_prefix派生；实际D进入sys.path后import；SDK planning只-c并记录MD/object，纯共享causal/LSE另执行。不能把compile-only supports调用写成已运行支持判定，不应为这个planning消费者临时增加SDK dlopen。原1070/71/72及原源码保留，已成功资格不重跑。v4当时未有实际终态，本报告不声称PASS。"
+  },
+  "four_questions": {
+    "real_gain": "新增876为构造和collective控制闭合，没有真实Model性能；Kimi内存方案还在编译闭包，r481为服务能力实现。近期没有新增每用户>15或全136卡80%实际达标证据。",
+    "time": "准备耗时集中于短CPU入口失败和部署边界，不能通过并排大模型加载补救。沿成功父argv/MD/解释器与真实包导入路径复用，先把未完成生产编译做完；无需重复旧suites。876正常设备结果与keeper观察失败分层消费。",
+    "bottleneck": "Kimi真实首prefill缺295698432B；24层V压缩仅311427072B，减显式scratch10092544B后只剩5636096B，尚未扣FA/Torch/driver及池/工作区。CPU算法通过不能证明fit。GLM此前跨节点可见性问题已通过新实际控制/collective证据推进；Deep当前用户排队/拒绝/取消/流式交付是必要未知，不能由Native微秒组件或大GEMM峰值外推。",
+    "next": "Kimi完成当前唯一编译后做最窄actualFA/scratch判定；GLM复用876推进原fullNative源，不重collective卡；Deep完成r481真实部署解释器和最终collector对接后按已有有限scope执行，不以质量错终止正常清理。"
+  },
+  "r481_source_review": {
+    "snapshot": "public-bounded-queue-r481/deployment-v1/controller/{support,controller,collect,launch_once,inside,client_launch,check_entry_local,qualified_cleanup}以及finite_client/CLIENT_INTERFACE；当前包尚未最终冻结。",
+    "confirmed": [
+      "support.hostpath将/refactor映射固定HOST R；server_config把Run.runtime_directory映射HOST但保原identity与configSHA，inside复用root alias bind。",
+      "controller在真实READY身份/HC0/a314/8owner/固定profile/queuepolicy核对后才发client；20计划行与固定输入SHA传递，未把C1误要求precision字段。",
+      "client仅实际SSE data.id关联owner；缺ID保持UNKNOWN。计划activecancel不等于Native实际取消，collect要求canceled+实际forward+reset；EOS/cap/reject/unsent/incomplete均保留。",
+      "正常STOP由client拥有；异常fallback使用原Run身份，TERM/KILL仅已知step/owned PGID。错误gold只计分、不触发强杀。",
+      "controller对成功srun后Slurm accounting传播有原90秒等待，GPU allocation cost缺失降为UNKNOWN而非洗成0；这能避免876同类即时断言，但原876失败不能追认。",
+      "collect的Native_prompt_token_ids_SHA256、legacy HC86、T1 one-token-prefill/decode分类和normal shutdown字段，已与r454 prepared_history/request_policy/native_context/worker生产源码静态对照；未发现此次明显字段名错。"
+    ],
+    "concrete_interpreter_risk": {
+      "files": ["controller/support.py:verify","controller/launch_once.py:main","controller/controller.py:main"],
+      "finding": "support.verify两处Path.is_relative_to要求Python>=3.9；launch_once的HOST预检、keeper、idle及client argv均裸python3。205已有HOST/usr/bin/python3=3.6的实际失败。controller及cleanup还使用capture_output/text，因此仅修改一处路径API不能使整链在3.6兼容。",
+      "minimal_action": "在最终package/launcher中选已成功使用、实际可解析这些源码及provider的确切解释器，HOST/keeper/client各域明确继承；子进程同环境优先sys.executable，不重新手抄猜路径。若外部已保证新版python3，明确现有实际证据而无需重复CPU。禁止在未明确解释器时把本地recording成功当HOST可启动。",
+      "classification": "确定语言版本需求与未固定argv风险；没有本次远端运行，不声称当前HOST必然解析到3.6。",
+      "root_evidence_correction_and_resolution": "根补充已有Nov5实际HOST默认python3=3.12.6、/usr/bin/python3=3.6.8，两者不能混同，原r465裸python3已实际运行。采纳在verify前明确>=3.10并记录sys.executable/version/二进制SHA；launcher预检与keeper用已核绝对解释器，复用原必要freshidle记录GPU-node实际HOST解释器后client使用该绝对路径。无额外探针或suite，不把本地版本继承到compute，不全局monkeypatch旧Python假兼容。方案合理；本报告仅确认此收束方案，不声称所有新argv已经实际执行。"
+    },
+    "qualification_limits": [
+      "check_entry_local把verify和整个collect替为recording，正常全错/延迟account/client失败三场景证明controller.main+Run/JSON控制交接，不证明真实manifest/CPU receipt或Native终态collector执行。",
+      "已静态对照真实生产字段可复用；最短闭包是最终配置/manifest消费实际verify，并把这次新queue/admission字段接真实producer记录。不得另造一套Native fixture冒设备，未来实际终态需消费原owner与完整20客户端原件。",
+      "all20_goodput保20计划分母，token ID receipt范围不是semantic输出速度；ASGI/send/read时钟不跨HOST相减。当前指标排除load，allocated cardseconds另列。取消可能发生EOS之后，实际覆盖不足保UNKNOWN而非自动补请求。",
+      "service20400/Native21000/GPU21600/cleanup22080/keeper22200原epoch边界与原STOP保持；新增source修复不延预算，不因质量错做强制回收。"
+    ],
+    "remaining_blocker_scope": "未发现需要重写FIFO/Native ABI或新增通用框架的确定问题。上述解释器和最终真实verify/collector资格边界须在当前封包交接中准确处理；不加逐层GO。"
+  },
+  "Kimi_capacity_correction": {
+    "supersedes_206_theoretical": "原38层约493MB估算不得继续使用；实际24 MLA层*12976128=311427072B。",
+    "explicit_scratch_bytes": 10092544,
+    "residual_before_unmeasured_overheads_bytes": 5636096,
+    "implementation_read": "split-v128-CPU-v4/CPU_contract.cpp使用共享tile/causal/LSE逻辑并把SDK planning置于宏分支；CPU_build只-c该分支且明确supports_dynamic UNKNOWN。原G3072/Q32全key分块合并不等于缩短logical输入，但实际FA的LSE含义、mask/累加/输出dtype、临时分配仍需实际设备验证。",
+    "decision": "保默认OFF；完成生产compile/link仅是设备组件起点。5.6MB余量不足以直接作32卡Model装载依据，也不能调低4GiB/缩512/32K。先在唯一必要小组件中保实际FA/Torch/driver分配与生命周期，若净余量不能覆盖缺口就停Model晋级，不能再用理论cache数洗floor。"
+  },
+  "next_cards": {
+    "Kimi": [
+      {
+        "priority": 1,
+        "owner": "原Kimi执行者",
+        "card": "完成当前v4未完成编译闭包，随后最窄splitV真实FA与scratch组件",
+        "reuse": "CPU622完整环境/31复用对象、v3真实prelude/import；不重1070-72或老suites，不新增SDK动态CPU链接。",
+        "first_result": "已有唯一CPU预算300s内得生产编译结论，排队UNKNOWN；通过后单owner无Model的有界组件可沿既定<=600s卡，先判支持/数值/scratch，不直接32卡装载。",
+        "metric": "logical512及完整32K、实际mask/LSE/输出/append/reset；分配高水位与持久cache分开，包含FA工作区/库首次成本；Modelwall UNKNOWN。",
+        "exit": "实际supports或数值/生命周期不成立即停；净节省不足295698432B则Model保持PARK，源码收束具体不足而非再加载验证。"
+      }
+    ],
+    "GLM": [
+      {
+        "priority": 1,
+        "owner": "原GLM执行者",
+        "card": "复用876真实global16闭包推进当前fullNative源",
+        "first_result": "源码/编译完成时间UNKNOWN，复用现有CPU对象和SUM/order，不重复16卡原控制实验。",
+        "metric": "保876真实GPU正常与keeper1069FAIL独立；下一具体模型能力/成本尚未证明。",
+        "exit": "最终collector保存第一次accounting原row或缺失事实，有界等终态传播；不即时断言后再用后见C0覆盖错误，不扩大未知Model范围。"
+      }
+    ],
+    "Deep": [
+      {
+        "priority": 1,
+        "owner": "root r481",
+        "card": "封装真实解释器/manifest/client/terminal交接后有限公开队列能力卡",
+        "first_result": "封包与实际非serve验证分钟级；实际首序列需正常Model加载，耗时UNKNOWN，原6小时GPU预算不延。按现有A/B范围和firstserial约束，不额外加载或补请求。",
+        "metric": "每instance20完整计划、0warm，服务all20可见/正确goodput、拒绝等待取消、每用户TTFT/ITL/rate和原reset/normal8；全错仍正常退出但不质量晋级。",
+        "exit": "入口失败在intent前收束；真实异常STOP后仅owned清理。质量/活跃取消未覆盖只报告，不扩大请求。新CPU recording不是实际HTTP/Native/ABI资格。"
+      }
+    ]
+  },
+  "parallel": "三线独立继续，当前无新增Model收益不等于可无限准备。减少手拼prefix/重复dict/解释器猜测，直接消费实际冻结包与父argv。无新全局门禁、无填卡制造busy；完整服务性能及80%目标仍未完成。"
+}

@@ -9,15 +9,11 @@
   "objective": "Optimize GLM-5.3,Kimi-K3,DeepSeek-v4 on pinned InfiniLM refactor and dependencies; compare real throughput/latency with hardware-aware costs.",
   "peer_last_consumed_commit": "9dd02e2a4cefc6065e77ccdf98c2e3f523f4e3b4",
   "latest_actual_fleet_utilization": {
-    "result": "results/bw1000/2026-11-05/BW1000-fleet136-utilization-1552.json",
-    "SHA256": "34fc7c49a56eefa20902471f75431c14512e730d99132ae1b00ec03f41aef07e",
-    "observed_at_utc": "2026-11-05T15:52:52.321993+00:00",
+    "result": "results/bw1000/2026-11-05/BW1000-fleet136-utilization-1820.json",
+    "SHA256": "29f3e9110e8e324d44a9540dfb963e8373c2b3c8a9ebca1899ebb713ff8e0895",
+    "observed_at_utc": "2026-11-05T18:20:26.789091+00:00",
     "cards": 136,
-    "mean_busy_percent": 0,
-    "KFD_count_range": [
-      0,
-      0
-    ],
+    "mean_busy_percent": 0.004901960784313725,
     "target_gt80_met": false
   },
   "latest_GLM_full_frozen_quality": {
@@ -533,7 +529,7 @@
     "next": "r480 token clock source publishedaa3e9a74, actual network token SLO unverified; no independent load solely for clocks."
   },
   "schema_version": 1,
-  "updated_at_utc": "2026-11-05T17:15:13.717167+00:00",
+  "updated_at_utc": "2026-11-05T18:22:10.990316+00:00",
   "owner": "bw1000-agent",
   "hardware": "BW1000",
   "goal_complete": false,
@@ -544,40 +540,44 @@
     "bytes": 413067
   },
   "latest_review": {
-    "review": 206,
-    "id": 206,
+    "review": 207,
+    "id": 207,
     "state": "COMPLETE_ADOPTED",
-    "updated_at_utc": "2026-11-05T15:53:59.524323+00:00",
+    "updated_at_utc": "2026-11-05T18:20:40.708959+00:00",
     "agent": "/root/astra_review_147",
-    "previous_completed_review": 205,
-    "report": "analysis/bw1000/reviews/astra-review-206-memory-and-global-collective-followthrough.json",
-    "report_SHA256": "c2b43122260a1ddc32046a8c5c11285ad20de973cafad36ff75c3f41dbdeeb4d",
-    "implementation": "analysis/bw1000/reviews/astra-review-206-implementation.json",
-    "implementation_SHA256": "4990567dc2ae45b26f7b5b3f4ecda1adca25a5d3f4851dadc02220d99bd8ee8d",
+    "previous_completed_review": 206,
+    "report": "analysis/bw1000/reviews/astra-review-207-entry-reuse-and-service-handoff.json",
+    "report_SHA256": "6e5d493dac247734364bd855e87717479283978ef6fcefc2c171006771cad499",
+    "implementation": "analysis/bw1000/reviews/astra-review-207-implementation.json",
+    "implementation_SHA256": "5720c5182dae5e8deb3118b97399ef9f07060f25aebea224e65b1fc81422e5da",
     "inflight_review": null,
-    "causal_rounds_since_review": 1,
+    "causal_rounds_since_review": 0,
     "completed_performance_rounds_since_review": 0,
-    "rounds": [
-      {
-        "scope": "GLM876 changedtwoleader+Nativephasemarkers global16comm",
-        "actual_GPU": "910371.876",
-        "epoch": 1793896671.652183,
-        "GPU_component_passed": true,
-        "Model_gain": false,
-        "keeper_passed": false,
-        "root_result": "analysis/bw1000/GLM470-device876-root-original-communication-and-keeper-boundary.json"
-      }
-    ],
-    "trigger": "Two truecausalrounds648/870 withoutModelbenefit;872 engineeringcausalcontrolnotModelround",
-    "reviewed_events": [
-      "Kimi648syntheticmixednumericandmemorybound",
-      "GLM870created16collectiveunproven",
-      "CPU872samecontrolwaitasymmetry"
-    ],
-    "next": "Kimi separateV128sourceCPU andGLMactualACKCPU inparallel;Deepclocknextnecessaryresidency"
+    "rounds": [],
+    "trigger": "Repeated avoidable Kimi CPU entry/link failures and GLM876 keeper accounting visibility",
+    "next": "Deep actual finite service trial; Kimi exact production FA component; GLM global TP16 implementation in parallel"
   },
-  "current_actual_GPU_jobs": [],
-  "known_GPU_handles_all_terminal": true,
+  "current_actual_GPU_jobs": [
+    {
+      "scope": "Deep481 A-OFF",
+      "GPU": "910374.1505",
+      "keeper": "910407.1077",
+      "node": "a02r4n01",
+      "cards": 8,
+      "epoch": 1793902709.1868656,
+      "state": "RUNNING_NOT_READY"
+    },
+    {
+      "scope": "Deep481 A-ON",
+      "GPU": "910374.1506",
+      "keeper": "910407.1078",
+      "node": "a02r4n04",
+      "cards": 8,
+      "epoch": 1793902709.1845336,
+      "state": "RUNNING_NOT_READY"
+    }
+  ],
+  "known_GPU_handles_all_terminal": false,
   "latest_GPU_terminal": {
     "schema": "BW1000-root-actual876-global16-communication-consumption-v1",
     "UTC": "2026-11-05T17:12:29.700157+00:00",
@@ -749,11 +749,11 @@
     "next": "RealNativefactory/PP1registry/FFNphysicalI128helper+NoVhead4/index2+correctloaderglobaloffsets. Actual952FFN256/offsetrank*256/kernelbanks mustchange together;notguard/padding-only.25of29MDfound/4helpermissingUNKNOWN, nofake reuse. No876/870/867rerun."
   },
   "Kimi_next": {
-    "state": "SPLIT_V128_CPU_SOURCE_READY_NOT_PUBLISHED_OR_EXECUTED",
+    "state": "CPU1075_ROOT_PASS_COMPONENT_CPU1076_LINK_FAILED",
     "source": "code/bw1000/Kimi-vocab-parallel-embedding-r461/split-v128-source-v1",
     "MF": "16447263b216efd81b8d0f501441319ea9f1be9031988cfd8241974cf997aaba",
     "CPU_scope": "4HOST+1GPU/31reuse/freshMD/newfactorycaps/cachefailurelease/F32LSEalgebra/high64;4c8G300/inside275, ordinarypubbeforeonce.",
-    "actual_CPU": null,
+    "actual_CPU": "910407.1075 COMPLETED0/25s",
     "actual_GPU": null,
     "capacity_correction": "analysis/bw1000/Kimi-splitV-root-actual24MLA-capacity-and-launch-cost-correction.json",
     "actual_MLA": 24,
@@ -768,16 +768,23 @@
     "math": "ExactK192|V128Tensor[132,256,3,320];smallFA192tilesG3072/Q<=32/H3,LSEstableF32merge,extraBF16partialroundingrequiresrealnumeric.176FA/full/MLA,11decode.",
     "Model_fit": false,
     "default_enabled": false,
-    "next": "Firstcompileonce thenactualboundedcomponent. Old8dfTP16quality244/256notinherited. NoModelreloaduntilrealnetsavings/numeric/lifecycle."
+    "next": "Preserve1076FAIL; new exact link-only claim reuses same successful object+MD/c78, objects before libraries, no recompilation/contracts. Actual device scope later, no Model.",
+    "Native_SHA256": "c78a27cab1cefd9385f4b423b6b45282898e641ec28efe5b52968a298bed0e21",
+    "root_consumption": "analysis/bw1000/Kimi-splitV-CPU1075-root-independent-compile-link-consumption.json",
+    "component_source_publication": "a2cda9f4a01e3f2d0605a70e820e71779e077df5",
+    "component_CPU": "910407.1076 FAILED1/12s; HOST object/MD passed, link object order after as-needed libs failed"
   },
   "Deep481": {
-    "state": "CPU1068_METADATA_PASS_CLIENT_CONTROLLER_SOURCE_PREPARING_NO_HTTP",
+    "state": "A_GPU_KEEPER_RUNNING_NOT_READY_FIRST_ORIGINAL_WATCH",
     "source_publication": "56cc4f303660034ed852b2be42a25074fec325f3",
     "sourceMF": "cf17247dfba2758b85e6e07251228a57d2814a1ecc56b5d7e3575e0f14ca834e",
     "actual_CPU": "910407.1068 COMPLETED0/1s",
     "derivedMF": "473238545ee485d1558d8c5a2b326b62298b2682004a4c28d2c6a49c778675d8",
-    "GPU_GO": false,
-    "actual_GPU": null,
+    "GPU_GO": true,
+    "actual_GPU": [
+      "910374.1505",
+      "910374.1506"
+    ],
     "source": "code/bw1000/public-bounded-queue-r481/deployment-v1",
     "root_controller_owner": "/root",
     "client_owner": "/root/deep_operator_tuning",
@@ -789,8 +796,22 @@
       "cleanup": 22080,
       "keeper": 22200
     },
-    "next": "Jointactualcontrollerentry/clientconsume,correctHOSTRunnamespace/C1schema/private20plan/MFclaimpub/fresh. AfirstfullserialEOS+ownerresetbeforeB; noextraCPUsuite/encoding/clock-onlyload.",
-    "boundaries": "BotharmscommonSTOPfix;onlyphysicalbound/TTL/skipvaries. clientplannedmarkerclose != actualNativeactivecancel; requireownerreason/forward/reset. Full20goodput/quality/reject/expiry/unsent/incomplete retained."
+    "next": "Read original handles once at normal interval, no reload. B only both A first full serial EOS+ownedfinish+reset. Complete80 planned denominator retained.",
+    "boundaries": "BotharmscommonSTOPfix;onlyphysicalbound/TTL/skipvaries. clientplannedmarkerclose != actualNativeactivecancel; requireownerreason/forward/reset. Full20goodput/quality/reject/expiry/unsent/incomplete retained.",
+    "deployment_publication": "6058a787f83e27252b740e8a38a4909046078382",
+    "deploymentMF": "714817e6428a1773bff518439721e20f8f466a9f442858ab35e1aeab5d96cf59",
+    "GPU_RESOURCE_CLAIM_SHA256": "6d2af5d763bb439a584df519438263f7ddaae14d82e95d7fbd3b69db61b24787",
+    "actual_keeper": [
+      "910407.1077",
+      "910407.1078"
+    ],
+    "actual_epochs": [
+      1793902709.1868656,
+      1793902709.1845336
+    ],
+    "READY": false,
+    "client": null,
+    "B_submitted": false
   },
   "nonrepeat": [
     "Closedfull512/867/870/876notrerun",
@@ -810,5 +831,6 @@
     "fleet_busy_gt80": false,
     "actual_client_incremental_SLO": false,
     "hardware": "gfx936/80CU/68702699520B;achieved333.752TFBF16/54.51TF32/1.237TBs only;exactSKU/manufacturerpeakUNKNOWN"
-  }
+  },
+  "Kimi1075_root_consumption": "analysis/bw1000/Kimi-splitV-CPU1075-root-independent-compile-link-consumption.json"
 }
