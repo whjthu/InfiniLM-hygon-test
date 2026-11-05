@@ -1,0 +1,21 @@
+--- /refactor/incoming/GLM-critical-observer-r131/glm_prepare_observer_r131.cpp
++++ /refactor/incoming/GLM-critical-observer-r131/glm_prepare_observer_r131.cpp.r470-candidate
+@@ -0,0 +1 @@
++#include "geometry.hpp"
+@@ -25 +26 @@
+- r.assertOwnerThread();if(r.isGraphRecording()||device_.type()!=rt::Device::Type::kHygon||rank.device!=device_||(rank.tp_size!=1&&rank.tp_size!=8)||rank.tp_rank<0||rank.tp_rank>=rank.tp_size||cfg.at("hidden_size")!=6144||cfg.at("num_attention_heads")!=64||cfg.at("q_lora_rank")!=2048||cfg.at("kv_lora_rank")!=512||cfg.at("qk_nope_head_dim")!=192||cfg.at("qk_rope_head_dim")!=64||cfg.at("v_head_dim")!=256||cfg.value("attention_bias",false))throw std::invalid_argument("GLM attention prepare checkpoint geometry/owner differs");
++ r.assertOwnerThread();if(r.isGraphRecording()||device_.type()!=rt::Device::Type::kHygon||rank.device!=device_||(rank.tp_size!=1&&rank.tp_size!=8&&!glm_global_tp16_r470::admitted(rank))||rank.tp_rank<0||rank.tp_rank>=rank.tp_size||cfg.at("hidden_size")!=6144||cfg.at("num_attention_heads")!=64||cfg.at("q_lora_rank")!=2048||cfg.at("kv_lora_rank")!=512||cfg.at("qk_nope_head_dim")!=192||cfg.at("qk_rope_head_dim")!=64||cfg.at("v_head_dim")!=256||cfg.value("attention_bias",false))throw std::invalid_argument("GLM attention prepare checkpoint geometry/owner differs");
+--- /refactor/incoming/GLM-critical-observer-r131/glm_text_observer_r131.cpp
++++ /refactor/incoming/GLM-critical-observer-r131/glm_text_observer_r131.cpp.r470-candidate
+@@ -0,0 +1 @@
++#include "geometry.hpp"
+@@ -39 +40 @@
+- if(r.device().type()!=rt::Device::Type::kHygon||rank.device!=r.device()||(rank.tp_size!=1&&rank.tp_size!=8)||rank.tp_rank<0||rank.tp_rank>=rank.tp_size||(rank.pp_size!=1&&rank.pp_size!=2&&rank.pp_size!=3&&rank.pp_size!=4)||rank.pp_stage<0||rank.pp_stage>=rank.pp_size||rank.world_size!=rank.tp_size*rank.pp_size||rank.world_rank!=rank.pp_stage*rank.tp_size+rank.tp_rank||(rank.tp_size>1&&!rank.comm)||(rank.pp_size>1&&!rank.world_comm)||cfg.at("num_hidden_layers")!=78||cfg.at("hidden_size")!=6144||vocab_!=154880||vocab_%rank.tp_size||!rows||rows>128||!capacity||capacity>size_t(cfg.at("max_position_embeddings")))throw std::invalid_argument("GLM full text stack requires actual78 layers and explicit TP1/8 PP1/2/3/4 topology");
++ if(r.device().type()!=rt::Device::Type::kHygon||rank.device!=r.device()||(rank.tp_size!=1&&rank.tp_size!=8&&!glm_global_tp16_r470::admitted(rank))||rank.tp_rank<0||rank.tp_rank>=rank.tp_size||(rank.pp_size!=1&&rank.pp_size!=2&&rank.pp_size!=3&&rank.pp_size!=4)||rank.pp_stage<0||rank.pp_stage>=rank.pp_size||rank.world_size!=rank.tp_size*rank.pp_size||rank.world_rank!=rank.pp_stage*rank.tp_size+rank.tp_rank||(rank.tp_size>1&&!rank.comm)||(rank.pp_size>1&&!rank.world_comm)||cfg.at("num_hidden_layers")!=78||cfg.at("hidden_size")!=6144||vocab_!=154880||vocab_%rank.tp_size||!rows||rows>128||!capacity||capacity>size_t(cfg.at("max_position_embeddings")))throw std::invalid_argument("GLM full text stack requires actual78 layers and explicit TP1/8 PP1/2/3/4 topology");
+--- /refactor/incoming/GLM-V-on-demand-Model-integration-r403/caller_v_on_demand_r403.cpp
++++ /refactor/incoming/GLM-V-on-demand-Model-integration-r403/caller_v_on_demand_r403.cpp.r470-candidate
+@@ -0,0 +1 @@
++#include "geometry.hpp"
+@@ -76 +77 @@
+-  if(v398&&(rows!=1||capacity!=32768||topk!=2048||rank.tp_size!=8||host4504))throw std::invalid_argument("r398 C1/full32K/TP8/device-K-only scope");
++  if(v398&&(rows!=1||capacity!=32768||topk!=2048||(rank.tp_size!=8&&!glm_global_tp16_r470::admitted(rank))||host4504))throw std::invalid_argument("r398 C1/full32K/TP8/device-K-only scope");

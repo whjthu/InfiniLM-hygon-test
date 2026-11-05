@@ -1,0 +1,5 @@
+Independent source-only globalTP16/PP1 component beside952/eaf5. Default installation, Native and public TP8PP2 remain byte-unchanged.
+
+The component creates two real16-rank communicators and RankInfo(global=node*8+localdevice), exposes exact loader/head/scale geometry, and contains one optional sum/rank-order proof and owner-scoped close. It never constructs a TextModel, allocates78layer caches, loads weights, emits requests or marks ModelREADY. Caller must select its local current device, preserve actual owner thread and coordinate all16ranks beforeclose. Peer communicator-init failure needs the later bounded job fail-stop; local CABI cleanup cannot certify peer normalshutdown.
+
+geometry.hpp and exactguard derivation are the first privateModel source slice. Only three actual952 parent hashes are locally exact; output/indexer/registry/FFN closure is explicitly pending. Do not compile a partial derived Model or infer support from replacing one8 with16. SOURCE_CONTRACT gives the next necessary CPU closure; noCPU claim is enabled and no source was compiled or device used.

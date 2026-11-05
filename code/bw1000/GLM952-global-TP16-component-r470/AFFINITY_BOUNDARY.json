@@ -1,0 +1,18 @@
+{
+  "original_submit_SHA256": "8c0bd70a372b0017bca78e54f037493fe79918f97b5fed6d885f5b5d8eb0c20d",
+  "actual_source_pins": {
+    "/refactor/candidates/glm-M16-r8861/tree/candidates/rebased-5f91ad7-r3668/Model/GLM/InfiniLM/csrc/execution/owner_affinity_r2392.hpp": "de2ffe645329558634740ed6b8a9ac7c70030160786eab38d065ce513afce71d",
+    "/refactor/candidates/rebased-5f91ad7-r3668/Model/GLM/InfiniLM/csrc/execution/owner_affinity_r2392.hpp": "de2ffe645329558634740ed6b8a9ac7c70030160786eab38d065ce513afce71d",
+    "/refactor/candidates/GLM952-block-prefix-native-v1/mirror/candidates/glm-M16-r8861/tree/candidates/rebased-5f91ad7-r3668/Model/GLM/InfiniLM/csrc/execution/owner_affinity_r2392.hpp": "de2ffe645329558634740ed6b8a9ac7c70030160786eab38d065ce513afce71d",
+    "/refactor/candidates/GLM952-block-prefix-native-v1/mirror/candidates/rebased-5f91ad7-r3668/Model/GLM/InfiniLM/csrc/execution/owner_affinity_r2392.hpp": "de2ffe645329558634740ed6b8a9ac7c70030160786eab38d065ce513afce71d",
+    "/refactor/candidates/glm-M16-r8861/tree/candidates/rebased-5f91ad7-r3668/Model/GLM/InfiniLM/csrc/execution/submit.hpp": "8c0bd70a372b0017bca78e54f037493fe79918f97b5fed6d885f5b5d8eb0c20d",
+    "/refactor/candidates/rebased-5f91ad7-r3668/Model/GLM/InfiniLM/csrc/execution/submit.hpp": "8c0bd70a372b0017bca78e54f037493fe79918f97b5fed6d885f5b5d8eb0c20d",
+    "/refactor/candidates/GLM952-block-prefix-native-v1/mirror/candidates/glm-M16-r8861/tree/candidates/rebased-5f91ad7-r3668/Model/GLM/InfiniLM/csrc/execution/submit.hpp": "8c0bd70a372b0017bca78e54f037493fe79918f97b5fed6d885f5b5d8eb0c20d",
+    "/refactor/candidates/GLM952-block-prefix-native-v1/mirror/candidates/rebased-5f91ad7-r3668/Model/GLM/InfiniLM/csrc/execution/submit.hpp": "8c0bd70a372b0017bca78e54f037493fe79918f97b5fed6d885f5b5d8eb0c20d"
+  },
+  "fact": "RuntimeWorkspaceHandle constructor calls Hygon affinity_r2392::apply_once(device). It requires common original mask>=8*4 and first bind uses localdevice*4, never globalrank*4.",
+  "component": "This component calls Runtime allocation and distributed::allreduce_/allgather_, no Ex::submit call. It does not claim that CommAPI traverses RuntimeWorkspaceHandle or provides SDK-fourcore binding. Actual4mask UNKNOWN until its own future device consumer is deliberately instrumented.",
+  "future_Model": "Keep common>=32 through first real originalEx::submit; no child preexec pin4. Validate in-process post-first-submit actualmask onowner before calling rank%8 publicmath; do not poll shortproc/zombiemask as proof.",
+  "CPU": "NoRuntime/SDKexecution, no CPUaffinity claim.",
+  "GPU_GO": false
+}
