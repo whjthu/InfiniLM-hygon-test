@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "purpose": "actual TP32 AR constructor capacity + same-Native masked BF16 embedding consumer; no fullModel",
+  "GPU_GO": true,
+  "Model_GO": false,
+  "native_parent_CPU": "910407.987",
+  "native_SHA256": "bbc2dcda0256446091ea09ee6d9cf0efde9d9e44b02e1e999d87ac58abb671f9",
+  "old589_floor_FAIL_not_reclassified": true,
+  "old985FAIL_and_986TIMEOUT_preserved": true,
+  "source_logical_parameter_saving_B_per_rank": 2275409920,
+  "source_saving_is_not_driver_or_pool_saving": true,
+  "source_tensor_bytes": 2348810240,
+  "destination_parameter_logical_bytes_per_rank": 73400320,
+  "all_other_parameter_and_cache_allocations_retained": true,
+  "checkpoint_keys_read": [
+    "language_model.model.embed_tokens.weight"
+  ],
+  "no_full_model_finish_or_forward": true,
+  "new_CAPI": [
+    "modern_kimi_embedding_probe_load_r461",
+    "modern_kimi_embedding_probe_r461"
+  ],
+  "same_context_create_destroy_once_each_node": true,
+  "same_original_owner_Runtime_stream_and_TP32_comm": true,
+  "extra_GPU_probe_or_baseline": false,
+  "query_widths": [
+    1,
+    1,
+    64,
+    512
+  ],
+  "query_epochs": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "per_owner_counters_after4": {
+    "forward": 4,
+    "BF16sum": 4,
+    "fence": 4,
+    "tokens": 578
+  },
+  "reference": "actual same checkpoint BF16 rows converted to CPU FP32; finite/NRMS/maxabs; BF16 bit differences diagnostic",
+  "timing": "within-node perf_counter only; Native inclusive/all8 scheduling+IDs H2D+masked lookup+collective+fence+D2H+CPU copy; raw writes/CPU numerical reference included in separate whole query. No cross-node absolute time subtraction.",
+  "bounds": "GPU absolute600s includes init; Native work absolute480s from same unshifted epoch; keeper hard660s with controller cleanup cap640s; no lateGPU start after40s keeper bootstrap; normal/failure post plus independent30s CPU post.",
+  "HOST_gate": "Reuse exact successful compute-node metadata CPU616 and its immutable streams. Device-v1 HOST timeout remains terminal. Separate namespace, same GPU worker and inputs.",
+  "allowed_source_reuse": "original589 environment/outer/metadata/key guard/owned TERM-KILL cleanup; newbbc strict Runtime/SDK dependency map and real dataset header/IP pins; CPU987 artifact. No SDK/Common/shared source edit.",
+  "unknown_until_actual": "physical floor/firstuse collective temporary allocation, device numerical behavior, owner affinity, complete work wall. No Model speed/quality/capacity conclusion."
+}
