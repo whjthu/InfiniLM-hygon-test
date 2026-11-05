@@ -1,0 +1,72 @@
+{
+  "native_SHA256": "a314ae6891977316189f875b793ed3f2e2eb0898110ad0cc382d2569eaf31dc1",
+  "source_SHA256": {
+    "hardware": "a3d57fe4794116af48d96e0546415658b4223f99f2fd38e5736b79419d5f496c",
+    "exact_ISA": "1374e1b113dfcb48aa0acd66e3aca8d839d6e87a4dff58a898d8ac8e0bcfc9be",
+    "matched_clock": "b0c7e1cc1cf9abe3525451bfc8aa64f04c71a505f94b05f8a405712c3ee69794",
+    "cache_sysfs": "520f97f179dd0c241d1a6dbeb6d50151df00042c7fa5a90b999e8b39a9796cb0",
+    "fixtures": "de85e0806699b422cae9cfa1beed43c84598c684a2c0ea9236dbcea29f11a6f8"
+  },
+  "fixture_geometry": {
+    "layer": 3,
+    "past": [
+      8570,
+      8571
+    ],
+    "ranks": 8,
+    "routes_per_rank": 6,
+    "input_width": 256,
+    "output_width": 4096,
+    "unique_experts_per_case": 6,
+    "ordered_routes_identical_across_ranks": true,
+    "experts_shared_between_pasts": 0
+  },
+  "one_launch_per_rank": {
+    "useful_INT8_multiply_accumulate_count": 6291456,
+    "integer_multiply_plus_add_operations": 12582912,
+    "logical_addresses_bytes": {
+      "expert_weights": 6291456,
+      "expert_scales": 98304,
+      "activations": 1536,
+      "activation_scales": 24,
+      "route_ids": 48,
+      "output": 49152
+    },
+    "launch_blocks": {
+      "32": 3072,
+      "16": 1536
+    },
+    "grid_slots_removed_if_applied_across_all43_layers": 66048,
+    "arithmetic_is_same_between_widths": true,
+    "INT8_roofline_matching_scalar_lowering": null
+  },
+  "alternating_two_cases_distinct_expert_weight_and_scale_addresses_per_rank_bytes": 12779520,
+  "standalone_streaming_reference": {
+    "achieved_read_TB_s": 1.23711,
+    "achieved_write_TB_s": 0.57279,
+    "expert_weight_and_scale_once_read_reference_us": 5.165070203943061,
+    "output_once_write_reference_us": 0.08581155397266013,
+    "scope": "Separate time conversions using historical contiguous streaming references. They do not describe actual traffic or predict isolated kernel duration."
+  },
+  "planned_node_cache_observation": {
+    "actual_step": "910374.1437",
+    "node": "a02r4n05",
+    "cards": 8,
+    "KFD_topology_entries": 16,
+    "unread_properties": 8,
+    "joined_GPU_cache_records": 0,
+    "usable_L2_size_bytes": null
+  },
+  "measured_model_context": {
+    "actual_W16_kernel_ms": null,
+    "actual_W16_routed_ms": null,
+    "strict_15_visible_interval_budget_ms": 66.66666666666667,
+    "older_same_native_OFF_interval_gap_ms_range": [
+      305.509629411002,
+      362.720153046151
+    ],
+    "scope": "Original emitter measurements at 8496 and 8575, separate from layer3 fixtures at 8570 and 8571."
+  },
+  "decision": "Compare W16 and W32 on both alternating cases. Use the isolated event span and the paired full routed enclosure separately. Effective logical bytes per second can exceed the standalone streaming reference under reuse. Keep the same-Native r467 phase diagnosis as the path to model attribution.",
+  "actual_new_GPU_tests": 0
+}
