@@ -1,0 +1,31 @@
+{
+  "mechanism": "BF16 A/B -> actual Hygon Default/CUBLAS_COMPUTE_32F -> F32 sum -> original BF16Cast",
+  "baseline": "unmodified runtime r2475, env1, exact source and Runtime04a",
+  "input_kind": "deterministic synthetic BF16 finite values in actual two geometries; never Model activations/quality/checkpoint",
+  "weight_layout": "original NoneQuant unprepacked load [N,K] contiguous; dense permute[K,N] stride[1,K]. Actual GPU inspect confirms it before and afterABBA and exact input+weight+guards readback.",
+  "sequence": "single Runtime, same owner/TID/localdevice0; geometry0 then1, each OFF/ON cold-warm observations with component-onlytrim after each then OFF/ON/ON/OFF no trim; total12GEMMs, 4readbackinspect; no alternate grids or fullModel",
+  "geometry": [
+    [
+      4608,
+      7168,
+      1
+    ],
+    [
+      512,
+      7168,
+      3584
+    ]
+  ],
+  "operational_pass": "rc0, finite alloutputs, fullcanaries/inputweightbit preservation, exactlayout/TID/device, original baseline counts, normal Runtime destroy, own Slurm+KFD/PID post",
+  "numeric_agreement": "independent boolean; NumPy actual CPU F32 sampled dot and full OFF/ON NRMS<=0.02 and maxabs/max(1,maxabs(ref))<=0.04. Do not require bitexact; numericfalse is unqualified, not hidden by operationalPASS.",
+  "memory": "driver points before/afterdrain/F32sum release, component-only trim pairs; cached retained delta, not instantaneous pool/BLAS peak; fullModel original deficit295698432 not proven solved",
+  "timing": "dispatch+drain, D2H+canary, entirecall through release/finaldrain; cold/warm formal distinct; 32card theoretical replication never multiplied",
+  "allocation": "actual one Slurm physicalGPU index required inSLURM_STEP_GPUS; setHIP mask then RuntimeCUDA logical0; assert onevisible and physicalPCI in fresh8DRM set",
+  "old_643": "keep floorFAIL/first512/0complete256missing/post645FAIL; no floor/context change or samplerreset",
+  "CPU1063": {
+    "receipt_SHA256": "7eab5226073a71ebf2ceca4df20e9d5f3669676e9cb14596cd09bbe4cc6cfac5",
+    "library_SHA256": "22121d93c0e7c8cbb16de643b86a7f44626bd51c4e8793407bfd8f86243d072a"
+  },
+  "GPU_GO": true,
+  "Model_GO": false
+}
