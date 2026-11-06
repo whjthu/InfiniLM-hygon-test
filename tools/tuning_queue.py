@@ -222,6 +222,24 @@ class Queue:
             self.db.execute('ROLLBACK')
             raise
 
+    def retire_ready(self, ident, reason, evidence_SHA256):
+        """Retire a proven prelaunch source defect; never release reserved/unknown work."""
+        require(isinstance(reason,str) and reason.strip(), 'prelaunch reason required')
+        require(len(evidence_SHA256)==64 and all(c in '0123456789abcdef' for c in evidence_SHA256), 'exact prelaunch evidence SHA required')
+        self.db.execute('BEGIN IMMEDIATE')
+        try:
+            r=self.db.execute('SELECT state,nodes,handle FROM runs WHERE id=?',(ident,)).fetchone()
+            require(r is not None and r['state']=='READY' and json.loads(r['nodes'])==[] and r['handle'] is None,
+                    'only unreserved READY may retire; reconcile original active handle')
+            result=dict(retired_before_reservation=True,reason=reason,evidence_SHA256=evidence_SHA256,
+                        GPU_submission=False,measurement_terminal=False)
+            self.db.execute('UPDATE runs SET state="RETIRED_PRELAUNCH",result=? WHERE id=?',(canonical(result).decode(),ident))
+            self.event(ident,'retired_prelaunch',result)
+            self.db.execute('COMMIT')
+        except BaseException:
+            self.db.execute('ROLLBACK')
+            raise
+
     def submission(self, ident, handle, unknown=False):
         require(bool(handle.get('request_id')) and bool(handle.get('intent')), 'original request and intent required')
         self.db.execute('BEGIN IMMEDIATE')
@@ -314,7 +332,7 @@ def main():
     sub=a.add_subparsers(dest='command',required=True)
     for name, fields in [('expand',['campaign']),('rank',['results']),('seed',['campaign']),('prepare',['binding']),
                          ('plan',['snapshot']),('reserve',['plan','snapshot']),
-                         ('submitted',['run','handle']),('unknown',['run','handle']),('finish',['run','result']),('summary',[])]:
+                         ('submitted',['run','handle']),('unknown',['run','handle']),('finish',['run','result']),('retire-ready',['run','proof']),('summary',[])]:
         p=sub.add_parser(name)
         for f in fields:p.add_argument(f)
     args=a.parse_args();read=lambda p:json.loads(Path(p).read_bytes())
@@ -328,6 +346,8 @@ def main():
         elif args.command=='reserve':q.reserve(read(args.plan),read(args.snapshot));out=q.summary()
         elif args.command in ('submitted','unknown'):q.submission(args.run,read(args.handle),args.command=='unknown');out=q.summary()
         elif args.command=='finish':q.finish(args.run,read(args.result));out=q.summary()
+        elif args.command=='retire-ready':
+            proof=read(args.proof);q.retire_ready(args.run,proof['reason'],proof['evidence_SHA256']);out=q.summary()
         else:out=q.summary()
     print(json.dumps(out,ensure_ascii=False,indent=2,allow_nan=False))
 

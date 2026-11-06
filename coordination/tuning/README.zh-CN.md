@@ -71,3 +71,11 @@ GLM首次v1同容器HOSTpreflight90秒失败，未GPU。唯一staged owned-PGID�
 共享slurm_accounting.py及独立terminal-collection-fix-v1/controller.py overlay只在实际终态state才结束观察，保留缺行/RUNNING/terminal全部记录；沿原keeper单epoch，最多30s有界重读，并留下post预算，不另起poller、不重复launch。4个CPU recording回归覆盖895竞态、FAILED不改写、deadline UNKNOWN和缺行；未声称新collector已经真实Slurm验证。895冻结源码不变，不为收集器单独重加载模型。后续新完整包必须纳入该overlay、exact MF/deps/claim和原输入预算后再派发。
 
 895两题只解除了完整入口容量/生命周期阻塞。下一优先同一次checkpoint加载里的真实forward成本/预注册3完整配对单位runtime配置，后续固定32题screen和原256题质量；按完整分母决定晋级，不由2题正确或约90MiB采样余量直接晋级。原decode时钟约94%–97%位于fullforward包围区间；其中含finite/floor读回，不能冒充独占GPU时间，剩余也不能全归日志。Deep20复用对象原5803 recipe/quoteorigin已恢复，但全50freshpreprocess/ABI仍待；Kimi更大K网格已负结论停止，下一单张V-only/pagedstride成本卡先源码支持和显存预算。
+
+## r473派发前时限一致性与准备记录退役
+
+同次checkpoint加载的r473为两完整case各自A4核/B2核预热(4请求)，然后AB/BA/AB三组完整配对(6请求)，总计划10；原完整输入/4096预算/32768容量/8GiB门槛，Native1101不变。现有六scalar TLS getter仅复制已计算的host/stream incoming/layers/outgoing窗口，不额外event/forward/sync，不叫exclusiveGPUtime。是两unique题重复的性能探针，不是32题质量或客户端SLO。
+
+v1在fresh/reserve/GPU前发现keeper shell14980s仍旧，而新GPU18000/keeper18600。原source/publication/HOST metadata资格保留，未提交GPU；新不可变paired-ownercores-v2 keeper18580s+kill10s在18600内且大于18000GPU+post。跨shared.py/claim/keeper.sh/inside.sh/controller/launch/control的check_deadlines_CPU.py已集成HOSTpreflight，同检查实际拒绝v1/通过v2。不能热改已发布v1或因本地脚本返回而重播。
+
+队列增加retire-ready：仅READY、nodes[]、handleNone时可凭原因与精确证据SHA转RETIRED_PRELAUNCH。它不是GPU实验终态/性能轮；RESERVED/SUBMITTED/UNKNOWN必须按原句柄reconcile，不能用退役释放。旧candidate/stage/rung仍不可重复prepare，修复使用新source身份。23队列不变量通过，包括退役不派发、未知/已预约不能退役、理由/证据必须齐。源/CPU错误不计性能，原审阅208待额度不假完成。

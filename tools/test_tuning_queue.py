@@ -113,6 +113,26 @@ class TuningTest(unittest.TestCase):
         for t in threads:t.join()
         self.assertEqual(sorted(results),[False,True])
 
+    def test_retire_prelaunch_blocks_dispatch_without_fake_terminal(self):
+        ident=self.ready();self.q.retire_ready(ident,'immutable source timeout mismatch','e'*64)
+        self.assertEqual(self.q.plan(self.fleet)['jobs'],[])
+        row=self.q.db.execute('SELECT state,result FROM runs WHERE id=?',(ident,)).fetchone()
+        self.assertEqual(row['state'],'RETIRED_PRELAUNCH');self.assertFalse(json.loads(row['result'])['measurement_terminal'])
+        self.assertFalse(json.loads(row['result'])['GPU_submission'])
+
+    def test_retire_cannot_free_reserved_or_unknown_work(self):
+        ident=self.ready();plan=self.q.plan(self.fleet);self.q.reserve(plan,self.fleet)
+        with self.assertRaisesRegex(ValueError,'only unreserved'):self.q.retire_ready(ident,'defect','e'*64)
+        self.q.submission(ident,dict(request_id='original',intent='original'),True)
+        with self.assertRaisesRegex(ValueError,'only unreserved'):self.q.retire_ready(ident,'defect','e'*64)
+        self.assertEqual(self.q.summary()['runs']['UNKNOWN'],1)
+
+    def test_retire_requires_reason_and_exact_evidence(self):
+        ident=self.ready()
+        with self.assertRaises(ValueError):self.q.retire_ready(ident,'','e'*64)
+        with self.assertRaises(ValueError):self.q.retire_ready(ident,'defect','short')
+        self.assertEqual(self.q.summary()['runs']['READY'],1)
+
     def test_unknown_not_replayed(self):
         ident=self.active(True)
         with self.assertRaisesRegex(ValueError,'no replay'):
