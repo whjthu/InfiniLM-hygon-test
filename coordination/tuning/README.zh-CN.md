@@ -63,3 +63,11 @@ root串行集成、doublewhjthu/普通SSH推bw1000-experiments；默认OFF候选
 GLM首次v1同容器HOSTpreflight90秒失败，未GPU。唯一staged owned-PGID诊断实际57.75秒通过且groupgone，Torch导入45.8秒；不能反推旧超时具体阶段。完整入口v2复用该实际环境证据，Model/math/floor/deadline原样，新命名空间先publish再preflight/fresh一次。筛选另要求完整planned分母；增加拒绝/取消或质量损失不得由快速完成子集自动晋级。
 
 首次实际队列接入在prepare后、reserve/launcher之前拒绝了快照：旧freshness错误地相减Windows与集群wall时钟。新规则以原请求的本地monotonic往返上界+一次接收回执衡量60秒新鲜度，保存原request和payloadSHA，禁止重读旧文件重新盖章；本机reboot/大clockstep使回执失效。remote wall只描述，永不作跨HOST相减。原run仍READY，不能重新prepare或假称GPU失败。
+
+## 895实际终态与终态记账修复（2026-11-06）
+
+最新campaign-v4为51有效spec，SQLite52含历史、5实际GPU派发均已TERMINAL、READY0；每区至少2READY目标未达到。895完整保留1249/560输入、4096输出预算、32768容量和8GiB门槛，16owner完成117060参数加载、每rank389次全78层forward/4reset/正常销毁；两题自然EOS/答案正确。后端原时钟约2.92/2.89tok/s，0>15，不是宽质量或客户端SLO。原GPU895C0/1637s，但keeper1108FAIL1/1639s：srun0后首次sacct仍RUNNING，旧控制器看到有row便退出可见性等待。后见GPU成功不清洗keeper失败。
+
+共享slurm_accounting.py及独立terminal-collection-fix-v1/controller.py overlay只在实际终态state才结束观察，保留缺行/RUNNING/terminal全部记录；沿原keeper单epoch，最多30s有界重读，并留下post预算，不另起poller、不重复launch。4个CPU recording回归覆盖895竞态、FAILED不改写、deadline UNKNOWN和缺行；未声称新collector已经真实Slurm验证。895冻结源码不变，不为收集器单独重加载模型。后续新完整包必须纳入该overlay、exact MF/deps/claim和原输入预算后再派发。
+
+895两题只解除了完整入口容量/生命周期阻塞。下一优先同一次checkpoint加载里的真实forward成本/预注册3完整配对单位runtime配置，后续固定32题screen和原256题质量；按完整分母决定晋级，不由2题正确或约90MiB采样余量直接晋级。原decode时钟约94%–97%位于fullforward包围区间；其中含finite/floor读回，不能冒充独占GPU时间，剩余也不能全归日志。Deep20复用对象原5803 recipe/quoteorigin已恢复，但全50freshpreprocess/ABI仍待；Kimi更大K网格已负结论停止，下一单张V-only/pagedstride成本卡先源码支持和显存预算。
