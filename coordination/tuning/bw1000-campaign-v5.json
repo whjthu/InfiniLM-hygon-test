@@ -1,0 +1,553 @@
+{
+  "schema": "bw1000-systematic-tuning-campaign-v5",
+  "owner": "root",
+  "model_agents": {
+    "GLM": "/root/glm_operator_tuning",
+    "DeepSeek": "/root/deep_operator_tuning",
+    "Kimi": "/root/kimi_operator_tuning"
+  },
+  "agents_observed": "all three errored usage limit; no active delegation claimed",
+  "families": [
+    {
+      "id": "glm-first-full-entry",
+      "model": "GLM",
+      "method": "globalTP16-first-full-checkpoint-entry",
+      "space": {
+        "entry": [
+          "full78layer"
+        ]
+      },
+      "baseline": {
+        "entry": "full78layer"
+      },
+      "source": {
+        "Native_SHA256": "22345abd96774752f5e33f048da3e4a75ff9fb54f88007d72ac2958422db295c",
+        "entry_source_manifest_SHA256": "171e245205ec7ce9e533b814aedd72d4fc524bef0a1e483b0582c095565a2e80",
+        "entry": "full-model-entry-v2; v1 HOST timeout retained"
+      },
+      "workload": {
+        "model": "GLM",
+        "private_plan_SHA256": "a9bde5228f9f753c37d9c54d19f39d72233260378459d2bb3219536dd47099d7",
+        "context_tokens": 32768,
+        "max_new_tokens": 4096,
+        "planned": 2,
+        "HTTP": 0,
+        "scope": "Native-entry diagnostic only, not widequality/clientSLO"
+      },
+      "max_candidates": 64,
+      "initial_stage": "model",
+      "prerequisites": [
+        "CPU1087-root-independent",
+        "new-loader-CPU-recording",
+        "original876-protocol",
+        "samecontainer-ENV-ldd"
+      ],
+      "zone": "GLM",
+      "nodes_required": 2,
+      "memory_floor_bytes": 8589934592,
+      "stage_budgets_s": {
+        "source": 120,
+        "CPU": 300,
+        "component": 600,
+        "model": 14400,
+        "quality": 29400,
+        "service": 21600
+      },
+      "hypothesis": "Actual complete16owner factory/checkpoint/fullforward/reset/destroy can fit8GiB observed floor; no performance improvement presumed"
+    },
+    {
+      "id": "glm-runtime-grid",
+      "model": "GLM",
+      "method": "globalTP16-prefill-owner-placement",
+      "space": {
+        "prefill_chunk": [
+          512,
+          1024,
+          2048,
+          4096
+        ],
+        "owner_cores": [
+          2,
+          4
+        ],
+        "affinity": [
+          "compact",
+          "local"
+        ]
+      },
+      "baseline": {
+        "prefill_chunk": 4096,
+        "owner_cores": 4,
+        "affinity": "local"
+      },
+      "source": {
+        "Native_SHA256": "22345abd96774752f5e33f048da3e4a75ff9fb54f88007d72ac2958422db295c",
+        "entry": "full-model-entry-v1 DRAFT, not published/executable"
+      },
+      "workload": {
+        "context_tokens": 32768,
+        "sampling": "fixed original greedy parameters",
+        "output_budget_policy": "original4096/EOS; never shorten output to fill rungs",
+        "weight_identity": "original fixed checkpoint, exact manifest required before READY",
+        "quality_inputs": "fixed original full fewshot corpora; no answer/latency selection",
+        "model": "GLM"
+      },
+      "max_candidates": 64,
+      "initial_stage": "source",
+      "prerequisites": [
+        "full16owner-entry-fit-and-normal-close",
+        "frozen-runtime-parameter-adapter",
+        "historical-dedup"
+      ],
+      "zone": "GLM",
+      "nodes_required": 2,
+      "memory_floor_bytes": 8589934592,
+      "stage_budgets_s": {
+        "source": 120,
+        "CPU": 300,
+        "component": 600,
+        "model": 14400,
+        "quality": 29400,
+        "service": 21600
+      },
+      "hypothesis": "FullTP16 capacity plus prefill/CPU placement may improve end-to-end latency; decoding effect UNKNOWN"
+    },
+    {
+      "id": "deep-c4-metadata-grid",
+      "model": "DeepSeek",
+      "method": "constant-slot-metadata-plus-owner-placement",
+      "space": {
+        "constant_ids": [
+          false,
+          true
+        ],
+        "owner_cores": [
+          2,
+          4,
+          8
+        ],
+        "prefill_chunk": [
+          1024,
+          2048,
+          4096
+        ]
+      },
+      "baseline": {
+        "constant_ids": false,
+        "owner_cores": 4,
+        "prefill_chunk": 4096
+      },
+      "source": {
+        "source_MF": "d6378e79863abf12c203122239aa0ced987e229b3aec6a4e3ce2f8444e48c299",
+        "baseline": "a314 current Native; exact binding required"
+      },
+      "workload": {
+        "context_tokens": 32768,
+        "sampling": "fixed original greedy parameters",
+        "output_budget_policy": "original4096/EOS; never shorten output to fill rungs",
+        "weight_identity": "original fixed checkpoint, exact manifest required before READY",
+        "quality_inputs": "fixed original full fewshot corpora; no answer/latency selection",
+        "model": "DeepSeek"
+      },
+      "max_candidates": 64,
+      "initial_stage": "source",
+      "prerequisites": [
+        "recover35missing-TU-argv",
+        "classsize-reverse-dependency-closure",
+        "CPU-and-numerics",
+        "historical-dedup"
+      ],
+      "zone": "DeepSeek",
+      "nodes_required": 1,
+      "memory_floor_bytes": 17179869184,
+      "stage_budgets_s": {
+        "source": 120,
+        "CPU": 300,
+        "component": 600,
+        "model": 14400,
+        "quality": 29400,
+        "service": 21600
+      },
+      "hypothesis": "Constant C4 IDs may remove repeated metadata allocation/H2D without causal/validation changes; end-to-end effect UNKNOWN"
+    },
+    {
+      "id": "kimi-unpaged-tiling-grid",
+      "model": "Kimi",
+      "method": "bounded-unpaged-FA-tiling",
+      "space": {
+        "Q_tile": [
+          8,
+          16,
+          32
+        ],
+        "K_tile": [
+          1536,
+          3072,
+          6144,
+          12288
+        ]
+      },
+      "baseline": {
+        "Q_tile": 32,
+        "K_tile": 3072
+      },
+      "source": {
+        "Native_SHA256": "91b761ec61cb840bca4726139bd9257302161abb1b2294186413163949c076a3",
+        "baseline_evidence": "Kimi664 reuse; do not repeat old baseline standalone"
+      },
+      "workload": {
+        "context_tokens": 32768,
+        "sampling": "fixed original greedy parameters",
+        "output_budget_policy": "original4096/EOS; never shorten output to fill rungs",
+        "weight_identity": "original fixed checkpoint, exact manifest required before READY",
+        "quality_inputs": "fixed original full fewshot corpora; no answer/latency selection",
+        "model": "Kimi"
+      },
+      "max_candidates": 64,
+      "initial_stage": "source",
+      "prerequisites": [
+        "SDK-exact-supports-per-shape",
+        "all-three-source-limit-closure",
+        "bounded-staging-and-driver-floor",
+        "CPU-and-numerics"
+      ],
+      "zone": "Kimi",
+      "nodes_required": 1,
+      "memory_floor_bytes": 4294967296,
+      "stage_budgets_s": {
+        "source": 120,
+        "CPU": 300,
+        "component": 600,
+        "model": 14400,
+        "quality": 29400,
+        "service": 21600
+      },
+      "hypothesis": "Larger bounded key tiles may reduce FA call overhead at bounded staging cost; workspace/numerics UNKNOWN"
+    },
+    {
+      "id": "glm-vocab-embedding-full-entry-r471",
+      "model": "GLM",
+      "method": "globalTP16-vocab-sharded-embedding-first-full-entry",
+      "space": {
+        "entry": [
+          "full78layer-vocab-shard"
+        ]
+      },
+      "baseline": {
+        "entry": "full78layer-vocab-shard"
+      },
+      "source": {
+        "Native_SHA256": "af4f13006dd123b62d56426d82830cae792c27a60127897b84fcf9c14c263983",
+        "entry_source_manifest_SHA256": "6371a98b16e008685931331d795b2fedcdc4e767626577e5e149f19a8a5dfde8",
+        "entry": "GLM-vocab-parallel-embedding-r471/full-model-entry-v1"
+      },
+      "workload": {
+        "model": "GLM",
+        "private_plan_SHA256": "a9bde5228f9f753c37d9c54d19f39d72233260378459d2bb3219536dd47099d7",
+        "context_tokens": 32768,
+        "max_new_tokens": 4096,
+        "planned": 2,
+        "HTTP": 0,
+        "scope": "Native-entry diagnostic only, not widequality/clientSLO"
+      },
+      "max_candidates": 64,
+      "initial_stage": "model",
+      "prerequisites": [
+        "CPU1101-exact-build-and-loader",
+        "new-loader-CPU-recording",
+        "original876-protocol",
+        "original886-terminal-and-post"
+      ],
+      "zone": "GLM",
+      "nodes_required": 2,
+      "memory_floor_bytes": 8589934592,
+      "stage_budgets_s": {
+        "source": 120,
+        "CPU": 300,
+        "component": 600,
+        "model": 14400,
+        "quality": 29400,
+        "service": 21600
+      },
+      "hypothesis": "Actual vocabulary-sharded embedding removes replicated1903165440B/rank while keepingfull32768/8GiB floor; newkernel/TPsum/Model numbers unqualified."
+    },
+    {
+      "id": "kimi-q32_k6144-component-first",
+      "model": "Kimi",
+      "method": "bounded-splitV-tiling-component-first",
+      "space": {
+        "Q": [
+          32
+        ],
+        "K": [
+          6144
+        ]
+      },
+      "baseline": {
+        "Q": 32,
+        "K": 6144
+      },
+      "source": {
+        "Native_SHA256": "14459b0e516ddcdea067e5d09ea04014daad61f2df12069d6071aea840dfd898",
+        "probe_SHA256": "9b3f3bb9b4a7f7207a3958c3b9208471d296762108a49100e9a626dc5417f50f",
+        "entry_source_manifest_SHA256": "3cb5a4d711c6a6838b525d194658394398bf99b5ebc8005eb70b7a0eff4bea33",
+        "entry": "code/bw1000/Kimi-vocab-parallel-embedding-r461/split-v128-tiling-Q32-K6144-component-device-v1"
+      },
+      "workload": {
+        "model": "Kimi",
+        "scope": "synthetic-component-fixed20ABBA-notModel",
+        "QK": 192,
+        "V": 128,
+        "H": 3,
+        "full_context": 32768,
+        "logical_prefill": 512,
+        "cache_groups": 24,
+        "cases": [
+          "512past0",
+          "512past3071",
+          "512past32255",
+          "1past32767",
+          "reset512reversedpages"
+        ],
+        "phases": [
+          0,
+          1,
+          1,
+          0
+        ],
+        "planned": 20,
+        "planned_querytokens": 8196,
+        "warm_extra": 0,
+        "output_guard_and_CPU_reference": true
+      },
+      "max_candidates": 64,
+      "initial_stage": "component",
+      "prerequisites": [
+        "CPU671-link-only-exact71lib",
+        "originalprobe-CAPI-and-geometry",
+        "original664-source-and-reference",
+        "variant-process-and-node-isolation"
+      ],
+      "zone": "Kimi",
+      "nodes_required": 1,
+      "memory_floor_bytes": 4294967296,
+      "stage_budgets_s": {
+        "source": 120,
+        "CPU": 300,
+        "component": 600,
+        "model": 14400,
+        "quality": 29400,
+        "service": 21600
+      },
+      "hypothesis": "Increasing boundedK tile reduces longcontextFAcallcount; numeric/floor/driver/all20planned/lifecycle andwarm pairedcomponentlatency must be actual, noModel extrapolation."
+    },
+    {
+      "id": "kimi-q32_k12288-component-first",
+      "model": "Kimi",
+      "method": "bounded-splitV-tiling-component-first",
+      "space": {
+        "Q": [
+          32
+        ],
+        "K": [
+          12288
+        ]
+      },
+      "baseline": {
+        "Q": 32,
+        "K": 12288
+      },
+      "source": {
+        "Native_SHA256": "f8770542683e2e31d57c98af4dd799828ed6219886ed35354e45a79f925994e4",
+        "probe_SHA256": "38eed121e7cb6b064a6bb8d709f4d065a8ca4ecfa96bccf629932a57647ac598",
+        "entry_source_manifest_SHA256": "b8fa9073d9ed654141c7ef7659d71e8cf07a41f88fde3e9f3b7aa53238f2cc1b",
+        "entry": "code/bw1000/Kimi-vocab-parallel-embedding-r461/split-v128-tiling-Q32-K12288-component-device-v1"
+      },
+      "workload": {
+        "model": "Kimi",
+        "scope": "synthetic-component-fixed20ABBA-notModel",
+        "QK": 192,
+        "V": 128,
+        "H": 3,
+        "full_context": 32768,
+        "logical_prefill": 512,
+        "cache_groups": 24,
+        "cases": [
+          "512past0",
+          "512past3071",
+          "512past32255",
+          "1past32767",
+          "reset512reversedpages"
+        ],
+        "phases": [
+          0,
+          1,
+          1,
+          0
+        ],
+        "planned": 20,
+        "planned_querytokens": 8196,
+        "warm_extra": 0,
+        "output_guard_and_CPU_reference": true
+      },
+      "max_candidates": 64,
+      "initial_stage": "component",
+      "prerequisites": [
+        "CPU671-link-only-exact71lib",
+        "originalprobe-CAPI-and-geometry",
+        "original664-source-and-reference",
+        "variant-process-and-node-isolation"
+      ],
+      "zone": "Kimi",
+      "nodes_required": 1,
+      "memory_floor_bytes": 4294967296,
+      "stage_budgets_s": {
+        "source": 120,
+        "CPU": 300,
+        "component": 600,
+        "model": 14400,
+        "quality": 29400,
+        "service": 21600
+      },
+      "hypothesis": "Increasing boundedK tile reduces longcontextFAcallcount; numeric/floor/driver/all20planned/lifecycle andwarm pairedcomponentlatency must be actual, noModel extrapolation."
+    },
+    {
+      "id": "glm-full-entry-prefill512-memory-r472",
+      "model": "GLM",
+      "method": "globalTP16-wholeprompt-prefill512-memory",
+      "space": {
+        "prefill_chunk": [
+          512
+        ],
+        "owner_cores": [
+          4
+        ],
+        "affinity": [
+          "local"
+        ]
+      },
+      "baseline": {
+        "prefill_chunk": 512,
+        "owner_cores": 4,
+        "affinity": "local"
+      },
+      "source": {
+        "Native_SHA256": "af4f13006dd123b62d56426d82830cae792c27a60127897b84fcf9c14c263983",
+        "entry_source_manifest_SHA256": "c06a5a8f7447b5725c54ce558b90471d37e44e9daccc905048abdcd32c16cd1a",
+        "entry": "GLM-prefill-memory-r472/full-model-entry-v1"
+      },
+      "workload": {
+        "model": "GLM",
+        "private_plan_SHA256": "a9bde5228f9f753c37d9c54d19f39d72233260378459d2bb3219536dd47099d7",
+        "context_tokens": 32768,
+        "max_new_tokens": 4096,
+        "planned": 2,
+        "HTTP": 0,
+        "scope": "Native-entry diagnostic only, not widequality/clientSLO"
+      },
+      "max_candidates": 64,
+      "initial_stage": "model",
+      "prerequisites": [
+        "CPU1101-exact-build-and-loader",
+        "wholeprompt-fragment-recording",
+        "original890-terminal-and-post",
+        "original876-protocol"
+      ],
+      "zone": "GLM",
+      "nodes_required": 2,
+      "memory_floor_bytes": 8589934592,
+      "stage_budgets_s": {
+        "source": 120,
+        "CPU": 300,
+        "component": 600,
+        "model": 14400,
+        "quality": 29400,
+        "service": 21600
+      },
+      "hypothesis": "Only smaller runtimeprefill block, completeoriginalIDs/context/output/floor unchanged; first1249token postforward dynamicmemory causedoriginalfloorfailure. NoactualModelpass presumed."
+    },
+    {
+      "id": "glm-resident-ownercores-r473",
+      "model": "GLM",
+      "method": "globalTP16-resident-ownerthread-affinity-paired-profile",
+      "space": {
+        "paired_trial": [
+          "cores4_vs2_threeunits"
+        ]
+      },
+      "baseline": {
+        "paired_trial": "cores4_vs2_threeunits"
+      },
+      "source": {
+        "Native_SHA256": "af4f13006dd123b62d56426d82830cae792c27a60127897b84fcf9c14c263983",
+        "entry_source_manifest_SHA256": "c7113554742daded7e3070cb38fdf10ea1d2e6f24b70149a66d788c014b1c16c",
+        "entry": "GLM-resident-runtime-r473/paired-ownercores-v1"
+      },
+      "workload": {
+        "model": "GLM",
+        "private_plan_SHA256": "a9bde5228f9f753c37d9c54d19f39d72233260378459d2bb3219536dd47099d7",
+        "trial_SHA256": "d048bc9a52f2a4a319e7a60dc12d16b8c7755da09afb6a0d317f224d9180fda9",
+        "context_tokens": 32768,
+        "max_new_tokens": 4096,
+        "planned": 10,
+        "full_warmup": 4,
+        "paired_measured_units": 3,
+        "HTTP": 0,
+        "scope": "two unique original frozen questions repeated for timing; not32screen or256quality/NI/clientSLO"
+      },
+      "max_candidates": 64,
+      "initial_stage": "model",
+      "prerequisites": [
+        "CPU1101-exact-build-and-loader",
+        "original895-owner-completion-and-post",
+        "sameimage-profile-source-symbols",
+        "resident-trial-CPU-recording",
+        "terminal-accounting-overlay-recording"
+      ],
+      "zone": "GLM",
+      "nodes_required": 2,
+      "memory_floor_bytes": 8589934592,
+      "stage_budgets_s": {
+        "source": 120,
+        "CPU": 300,
+        "component": 600,
+        "model": 18000,
+        "quality": 29400,
+        "service": 21600
+      },
+      "hypothesis": "Ownerthread allowedcores4vs2 may change fullforward latency; passiveexisting6TLSscalars divideincoming/layers/outputwindows. Onecheckpoint load andsame512/fullinput/full32768/4096budgets; actualgainUNKNOWN."
+    }
+  ],
+  "search": {
+    "method": "bounded factorial screen then retain at most top1/3 per rung and paired confirmation",
+    "rung_repeats": [
+      3,
+      9,
+      27
+    ],
+    "rung_unit": "complete fixed requests or full shape cases; never reduce context/output budgets",
+    "max_component_survivors_per_family": 2,
+    "same_weight_load": "group same Native/checkpoint/resource binding; apply only supported frozen runtime flags between quiescent/reset boundaries",
+    "quality_scope": "pilot32 screen then original256 per arm; no formalNI unless margin declared before new acceptance suite",
+    "stop": "numerical/lifecycle/floor fault stops candidate; unknown execution reconciles original; two negative causal rounds triggers review"
+  },
+  "dispatch": {
+    "proposal_count_is_ready_count": false,
+    "GPU_launches_authorized_by_this_file": false,
+    "root_prepares_exact_published_run_bundle": true,
+    "minimum_ready_queue_depth_per_zone": 2,
+    "backfill": "ready jobs fitting declared allowed_nodes only; cross-zone borrowing requires new published root claim",
+    "keep_running_handles": "never expire a lease into an automatic replay",
+    "global_busy_target_percent": 80,
+    "global_cards": 136
+  },
+  "negative_families_closed": [
+    "PD445-hoststaged",
+    "Kimi635-775-778",
+    "Deep1251",
+    "GLM341446-cache",
+    "repeated-664-component",
+    "repeated-876-comm",
+    "repeated-481-service"
+  ]
+}
