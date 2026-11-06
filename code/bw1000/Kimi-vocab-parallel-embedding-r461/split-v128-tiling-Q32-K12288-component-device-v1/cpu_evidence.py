@@ -1,0 +1,8 @@
+"""Non-executing adapter for exact CPU671 producer evidence, not qualification."""
+def normalize(raw,m,loader):
+ assert raw['completed']and raw['passed']and raw['actual_CPU']=='910380.671'and raw['CPU_only']and not raw['Native_dlopen']and not raw['Runtime']and raw['SDK_explicit_calls']==0 and not raw['GPU_job']and raw['Torch_imported']is False
+ assert raw['new_HOST']==raw['new_GPU']==0 and raw['all_fresh_M_equal_MD']and len(raw['reused_successful_changed_TUs'])==4
+ native=raw['libraries'][m['variant']+'_Native'];probe=raw['libraries'][m['variant']+'_probe'];assert native['path']==m['Native_path']and native['SHA256']==m['Native_SHA256']and probe['path']==m['probe_path']and probe['SHA256']==m['probe_SHA256']
+ assert native['strong_parent_exports_retained']==408 and probe['strong_parent_exports_retained']==13 and probe['NEEDED'].count(native['path'])==1 and len(probe['all_transitive_resolved_library_SHA256'])==71
+ r=m['reused_probe_object'];assert probe['all_linked_object_SHA256'][r['object']]==r['object_SHA256']
+ return dict(raw,probe=probe['path'],probe_SHA256=probe['SHA256'],parent_Native=dict(path=native['path'],SHA256=native['SHA256']),CAPI=m['probe_CAPI'],actual_dependency_library_SHA256={p:dict(path=p,SHA256=h)for p,h in probe['all_transitive_resolved_library_SHA256'].items()if p.startswith('/refactor/')},reused_probe_object=r,all_transitive_resolved_library_SHA256=probe['all_transitive_resolved_library_SHA256'],ENV_SHA256=loader['ENV_SHA256'],LD_LIBRARY_PATH=loader['LD_LIBRARY_PATH'],LD_PRELOAD=loader['LD_PRELOAD'],loader_ENV_fields_scope='Explicit unchanged ENV plus candidate-prefix snapshot contract; raw671 proves exact71 resolved library bytes, not recorded fullENV snapshot')
