@@ -1,0 +1,65 @@
+--- a/current_a314_C4.cpp
++++ b/deep_c4_constant_slot_metadata_r482.cpp
+@@ -1,3 +1,4 @@
++#include "slot_metadata_policy.hpp"
+ #include "deep_c4_smallt_guard_r9252.hpp"
+ #include "deep_reduce_wide_r3443.hpp"
+ #include <atomic>
+@@ -19,11 +20,36 @@
+ struct Work{rt::Runtime&r;std::vector<rt::Tensor>held;~Work(){try{r.syncStream();}catch(...){std::terminate();}}rt::Tensor alloc(rt::Shape shape,rt::DataType type){auto x=rt::Tensor::empty(r,shape,type);held.push_back(x);return x;}rt::Tensor ids(const std::vector<int64_t>&host){auto x=alloc({host.size()},rt::DataType::kInt64);r.memcpyH2D(x->data(),host.data(),host.size()*8,false);return x;}};
+ void status(rt::Runtime&r,const rt::Tensor&flag){int value=0;r.memcpyD2H(&value,flag->data(),4);r.syncStream();if(value)throw std::invalid_argument("DeepSeek C4 indexer GPU validation status="+std::to_string(value));}
+ }
+-PagedIndexerCache::PagedIndexerCache(rt::Runtime&r,size_t pages):owner_(r.shared_from_this()),pages_(pages){r.assertOwnerThread();if(r.isGraphRecording()||r.device().type()!=rt::Device::Type::kHygon||!pages||pages>65536)throw std::invalid_argument("DeepSeek indexer cache geometry differs");try{raw_=rt::Tensor::empty(r,{pages,8448},rt::DataType::kUInt8);written_.assign(pages*64,0);r.setDeviceMemory(raw_->data(),0xa5,raw_->nbytes());r.syncStream();}catch(...){try{r.syncStream();}catch(...){std::terminate();}throw;}}
++PagedIndexerCache::PagedIndexerCache(rt::Runtime&r,size_t pages):owner_(r.shared_from_this()),pages_(pages){r.assertOwnerThread();if(r.isGraphRecording()||r.device().type()!=rt::Device::Type::kHygon||!pages||pages>65536)throw std::invalid_argument("DeepSeek indexer cache geometry differs");std::vector<int64_t>constant_ids_host;try{raw_=rt::Tensor::empty(r,{pages,8448},rt::DataType::kUInt8);written_.assign(pages*64,0);r.setDeviceMemory(raw_->data(),0xa5,raw_->nbytes());
++ // Immutable address metadata only; rawcache/features/scales and checks unchanged.
++ // constant_ids_host outside try also survives the original catch drain.
++ metadata_reuse_=slot_metadata_r482::freeze()&&pages_<=128;
++ if(metadata_reuse_){
++  constant_ids_host.resize(pages_*64);std::iota(constant_ids_host.begin(),constant_ids_host.end(),int64_t{0});
++  constant_slot_ids_=rt::Tensor::empty(r,{constant_ids_host.size()},rt::DataType::kInt64);
++  r.memcpyH2D(constant_slot_ids_->data(),constant_ids_host.data(),constant_ids_host.size()*8,false);
++  slot_metadata_r482::count(r.device().index(),0,constant_ids_host.size()*8);
++ }
++ r.syncStream();}catch(...){try{r.syncStream();}catch(...){std::terminate();}throw;}}
+ void PagedIndexerCache::validate(rt::Runtime&r,const std::vector<int64_t>&slots,bool write)const{r.assertOwnerThread();if(owner_.get()!=&r||r.isGraphRecording()||slots.empty()||slots.size()>262144||(write&&slots.size()>65536))throw std::invalid_argument("DeepSeek indexer cache owner/count differs");std::set<int64_t>seen;for(auto slot:slots)if(slot<0||size_t(slot)>=written_.size()||(write&&!seen.insert(slot).second)||(!write&&!written_[size_t(slot)]))throw std::invalid_argument("DeepSeek indexer cache invalid/duplicate write or unwritten read");}
+ void PagedIndexerCache::store(rt::Runtime&r,const std::vector<int64_t>&slots,const Packed&packed){validate(r,slots,true);if(!packed.values||!packed.scales||packed.values->device()!=r.device()||packed.scales->device()!=r.device()||packed.values->dtype()!=rt::DataType::kUInt8||packed.scales->dtype()!=rt::DataType::kFloat32||packed.values->shape()!=rt::Shape{slots.size(),128}||packed.scales->shape()!=rt::Shape{slots.size(),1}||!packed.values->is_contiguous()||!packed.scales->is_contiguous())throw std::invalid_argument("DeepSeek indexer packed feature geometry differs");Work work{r};auto flag=work.alloc({1},rt::DataType::kInt32);ex::submit<infini::ops::DeepseekV4IndexerCache>(r,ex::RecordingPolicy::HostOnly,infini::ops::DeepseekV4IndexerCache::DefaultConfig(r.device().type()),raw_,work.ids(slots),packed.values,packed.scales,flag,size_t{0});status(r,flag);for(auto slot:slots)written_[size_t(slot)]=1;}
+-PagedIndexerCache::Packed PagedIndexerCache::gather(rt::Runtime&r,const std::vector<int64_t>&slots)const{validate(r,slots,false);Work work{r};auto values=work.alloc({slots.size(),128},rt::DataType::kUInt8),scales=work.alloc({slots.size(),1},rt::DataType::kFloat32),flag=work.alloc({1},rt::DataType::kInt32);
+- for(size_t begin=0;begin<slots.size();begin+=65536){size_t n=std::min(size_t(65536),slots.size()-begin);std::vector<int64_t>chunk(slots.begin()+begin,slots.begin()+begin+n);ex::submit<infini::ops::DeepseekV4IndexerCache>(r,ex::RecordingPolicy::HostOnly,infini::ops::DeepseekV4IndexerCache::DefaultConfig(r.device().type()),raw_,work.ids(chunk),values->narrow({{0,begin,n}}),scales->narrow({{0,begin,n}}),flag,size_t{1});status(r,flag);}return {values,scales};}
++PagedIndexerCache::Packed PagedIndexerCache::gather(rt::Runtime&r,const std::vector<int64_t>&slots)const{validate(r,slots,false);
++ // Host IDs outlive Work on normal status and any exception drain.
++ std::vector<int64_t>fallback_ids_host;Work work{r};auto values=work.alloc({slots.size(),128},rt::DataType::kUInt8),scales=work.alloc({slots.size(),1},rt::DataType::kFloat32),flag=work.alloc({1},rt::DataType::kInt32);
++ bool prefix=metadata_reuse_&&bool(constant_slot_ids_)&&slots.size()<=pages_*64;
++ if(prefix)for(size_t i=0;i<slots.size();++i)if(slots[i]!=int64_t(i)){prefix=false;break;}
++ slot_metadata_r482::count(r.device().index(),1);
++ for(size_t begin=0;begin<slots.size();begin+=65536){
++  size_t n=std::min(size_t(65536),slots.size()-begin);rt::Tensor ids;
++  if(prefix){
++   ids=constant_slot_ids_->narrow({{0,begin,n}});work.held.push_back(ids);
++   slot_metadata_r482::count(r.device().index(),2);slot_metadata_r482::count(r.device().index(),3,n*8);
++  }else{
++   fallback_ids_host.assign(slots.begin()+begin,slots.begin()+begin+n);ids=work.ids(fallback_ids_host);
++   slot_metadata_r482::count(r.device().index(),4);
++  }
++  ex::submit<infini::ops::DeepseekV4IndexerCache>(r,ex::RecordingPolicy::HostOnly,infini::ops::DeepseekV4IndexerCache::DefaultConfig(r.device().type()),raw_,ids,values->narrow({{0,begin,n}}),scales->narrow({{0,begin,n}}),flag,size_t{1});status(r,flag);
++ }return {values,scales};}
+ void PagedIndexerCache::reset(rt::Runtime&r){r.assertOwnerThread();if(owner_.get()!=&r||r.isGraphRecording())throw std::invalid_argument("DeepSeek indexer cache reset owner differs");r.syncStream();std::fill(written_.begin(),written_.end(),0);}
+ void C4Indexer::check_owner(rt::Runtime&r)const{r.assertOwnerThread();if(owner_!=&r||r.isGraphRecording())throw std::invalid_argument("DeepSeek C4 indexer Runtime owner differs");}
+ C4Indexer::C4Indexer(rt::Runtime&r,const nlohmann::json&cfg,size_t layer,const engine::distributed::RankInfo&rank,size_t rows,size_t capacity,size_t topk):owner_(&r),rows_(rows),capacity_(capacity),topk_(topk),heads_(0),maximum_(cfg.at("max_position_embeddings")),original_(cfg.at("rope_scaling").at("original_max_position_embeddings")),theta_(cfg.at("compress_rope_theta")),factor_(cfg.at("rope_scaling").at("factor")),beta_fast_(cfg.at("rope_scaling").at("beta_fast")),beta_slow_(cfg.at("rope_scaling").at("beta_slow")),eps_(cfg.at("rms_norm_eps")),tp_(rank.tp_size),comm_(rank.comm){
+@@ -90,3 +116,6 @@
+ 
+ extern "C" int modern_deep_c4_smallt_mode_r9252(int mode){if(mode<0||mode>1)return 1;namespace m=infinilm::models::deepseek_v4;std::lock_guard<std::mutex>lock(m::wide_r3443::policy_mutex);if(m::wide_r3443::in_flight)return 2;m::smallt_policy_r9252.store(mode);return 0;}
+ extern "C" int modern_deep_c4_smallt_stats_r9252(int d,uint64_t*out,size_t n){if(d<0||d>=8||!out||n!=8)return 1;for(size_t i=0;i<8;++i)out[i]=infinilm::models::deepseek_v4::smallt_stats_r9252[d][i].load();return 0;}
++
++extern "C" int deep_constant_slot_metadata_set_r482(int mode){return infinilm::models::deepseek_v4::slot_metadata_r482::set(mode);}
++extern "C" uint64_t deep_constant_slot_metadata_stats_r482(int device,int field){return infinilm::models::deepseek_v4::slot_metadata_r482::read(device,field);}
+--- a/current_b97_C4.hpp
++++ b/deepseek_v4_c4_indexer.hpp
+@@ -13,6 +13,8 @@
+ private:
+  void validate(runtime::Runtime&,const std::vector<int64_t>&slots,bool write)const;
+  std::shared_ptr<runtime::Runtime>owner_;size_t pages_;runtime::Tensor raw_;std::vector<uint8_t>written_;
++ // Declared after owner_: metadata Tensor is destroyed before its Runtime lease.
++ runtime::Tensor constant_slot_ids_;bool metadata_reuse_=false;
+ };
+ class C4Indexer final:public weights::ModelWeights {
+ public:

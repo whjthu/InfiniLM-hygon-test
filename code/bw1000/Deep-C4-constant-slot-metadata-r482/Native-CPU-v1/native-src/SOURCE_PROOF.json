@@ -1,0 +1,136 @@
+{
+  "schema": 1,
+  "scope": "Source-only new immutable metadata candidate; no actualNative/compile/Model/device",
+  "default_OFF": true,
+  "Native_parent": "a314ae6891977316189f875b793ed3f2e2eb0898110ad0cc382d2569eaf31dc1",
+  "source_pins": {
+    "current_C4": {
+      "path": "L/Deep463-source-cache/7f2ffe0395475a98-deep_c4_smallt_r9252.cpp",
+      "SHA256": "7f2ffe0395475a98be8723bf434aa9f4944cb5336656b6d57de0f93fc6d1187e",
+      "object_SHA256": "3ea73a4acea21b2bf7cd74a55ff6b0616b995802cf915227bd939adb4a898156"
+    },
+    "original_C4_header": {
+      "path": "code/bw1000/Deep-PD-disaggregation-r382/native/original/deepseek_v4_c4_indexer.hpp",
+      "SHA256": "b97c99c824fdb46a55fc90295c03cb7e2e588bd6d0175f55846facba10dbc2b6"
+    },
+    "Runtime_Tensor": {
+      "path": "L/Deep463-source-cache/dfc787f233bef2fb-tensor.hpp",
+      "SHA256": "dfc787f233bef2fb5888d0954440746334386023bad3f6207164024b377eb658"
+    },
+    "model_config": {
+      "path": "L/Deep463-source-cache/model-config.json",
+      "SHA256": "fd2ad6f5dbd77e55a49e9b2ff29c89030fbe4b538e8870c183d194648767be09"
+    },
+    "original_CPU377_wrapper": {
+      "path": "L/Deep377-CPU-v1-result-local.json",
+      "SHA256": "0e8edebd8b0186461ea82bf81e09b4439c157ed12c221b0f7d908a0fa917dd39"
+    },
+    "exact_small_public_source_read": {
+      "path": "L/Deep-C4-constant-slot-metadata-source-original.json",
+      "SHA256": "8da53262dfdcb726422e3aac20bc60da48658d7389824535a434420e655e6659"
+    }
+  },
+  "actual_callchain": [
+    {
+      "file": "7f2ffe0395475a98-deep_c4_smallt_r9252.cpp",
+      "line": 70,
+      "excerpt": "  auto key=work.alloc({width,128},rt::DataType::kUInt8),scale=work.alloc({width,1},rt::DataType::kFloat32);r.setDeviceMemory(key->data(),0x7f,key->nbytes());r.setDeviceMemory(scale->data(),0xff,scale->nbytes());if(before){std::vector<int64_t>slots;for(size_t i=0;i<before;++i)slots.push_back(int64_t(request.row*capacity_+i));auto old=historical_batch.values?PagedIndexerCache::Packed{historical_batch.values->narrow({{0,historical_begin,before}}),historical_batch.scales->narrow({{0,historical_begin,before}})}:cache_->gather(r,slots);historical_begin+=before;work.held.insert(work.held.end(),{old.values,old.scales});key->narrow({{0,0,before}})->copy_from(r,old.values);scale->narrow({{0,0,before}})->copy_from(r,old.scales);}if(after>before){key->narrow({{0,before,after-before}})->copy_from(r,pending.new_keys.values->narrow({{0,new_begin,after-before}}));scale->narrow({{0,before,after-before}})->copy_from(r,pending.new_keys.scales->narrow({{0,new_begin,after-before}}));for(size_t i=before;i<after;++i)pending.slots.push_back(int64_t(request.row*capacity_+i));}new_begin+=after-before;",
+      "fact": "C1 after realprepare validation, before=floor(past/4), original slots enumerate0..before-1 and callcachegather everydecode; all_selected requires tokens>=8, so T1doesnotomitthispath"
+    },
+    {
+      "file": "7f2ffe0395475a98-deep_c4_smallt_r9252.cpp",
+      "line": 25,
+      "excerpt": "PagedIndexerCache::Packed PagedIndexerCache::gather(rt::Runtime&r,const std::vector<int64_t>&slots)const{validate(r,slots,false);Work work{r};auto values=work.alloc({slots.size(),128},rt::DataType::kUInt8),scales=work.alloc({slots.size(),1},rt::DataType::kFloat32),flag=work.alloc({1},rt::DataType::kInt32);",
+      "fact": "Original gather executesvalidate first, allocates actualfeature/scales/flag outputs unchanged"
+    },
+    {
+      "file": "7f2ffe0395475a98-deep_c4_smallt_r9252.cpp",
+      "line": 26,
+      "excerpt": " for(size_t begin=0;begin<slots.size();begin+=65536){size_t n=std::min(size_t(65536),slots.size()-begin);std::vector<int64_t>chunk(slots.begin()+begin,slots.begin()+begin+n);ex::submit<infini::ops::DeepseekV4IndexerCache>(r,ex::RecordingPolicy::HostOnly,infini::ops::DeepseekV4IndexerCache::DefaultConfig(r.device().type()),raw_,work.ids(chunk),values->narrow({{0,begin,n}}),scales->narrow({{0,begin,n}}),flag,size_t{1});status(r,flag);}return {values,scales};}",
+      "fact": "Perchunk copies slots tovector, work.ids allocates INT64 Tensor andH2D uploads; this canonicalprefix is mathematically independent of cachecontents"
+    },
+    {
+      "file": "7f2ffe0395475a98-deep_c4_smallt_r9252.cpp",
+      "line": 23,
+      "excerpt": "void PagedIndexerCache::validate(rt::Runtime&r,const std::vector<int64_t>&slots,bool write)const{r.assertOwnerThread();if(owner_.get()!=&r||r.isGraphRecording()||slots.empty()||slots.size()>262144||(write&&slots.size()>65536))throw std::invalid_argument(\"DeepSeek indexer cache owner/count differs\");std::set<int64_t>seen;for(auto slot:slots)if(slot<0||size_t(slot)>=written_.size()||(write&&!seen.insert(slot).second)||(!write&&!written_[size_t(slot)]))throw std::invalid_argument(\"DeepSeek indexer cache invalid/duplicate write or unwritten read\");}",
+      "fact": "Actual owner/recording/count/written checks remain exact; no read-unwritten, mutation or causalcheck removed"
+    },
+    {
+      "file": "dfc787f233bef2fb-tensor.hpp",
+      "line": 255,
+      "excerpt": "narrow shares the same underlying storage with the original tensor; TensorData uses shared_ptr<Memory>;allocation_owner returns shared Runtime",
+      "fact": "Derived immutabletable strong owner-lifetime plusWork-heldnarrow survives through originalsync; no rawpointer orTLS tensorcache"
+    }
+  ],
+  "geometry": {
+    "TP": 8,
+    "PP": 1,
+    "rows": 1,
+    "context": 32768,
+    "C4_layers": 21,
+    "cache_capacity": 8192,
+    "pages": 128,
+    "slot_dtype": "INT64",
+    "max_constant_payload_bytes_per_C4cache": 65536,
+    "constant_payload_bytes_per_owner": 1376256,
+    "all8_constant_payload_bytes": 11010048,
+    "actual_allocator_reserved_peak": "UNKNOWN; alignment/poolreuse/remaining16GiBfloor mustbeactualverified, payloadisnotpeak"
+  },
+  "frequency": [
+    {
+      "past": 8496,
+      "C4_gathers_per_completed_T1_forward_per_owner": 21,
+      "removed_ID_uploads": 21,
+      "removed_ID_upload_logical_bytes": 356832,
+      "each_gather_original_prefix_count": 2124
+    },
+    {
+      "past": 8575,
+      "C4_gathers_per_completed_T1_forward_per_owner": 21,
+      "removed_ID_uploads": 21,
+      "removed_ID_upload_logical_bytes": 360024,
+      "each_gather_original_prefix_count": 2143
+    }
+  ],
+  "lifetimes": {
+    "created": "Sameowner originalPagedIndexerCache construction ifstartupON andpages<=128; 1table percache. constant_ids_host is declared in constructor body outside try, survives original normal andcatch r.syncStream before destruction; noaddednormal-pathsync.",
+    "reused": "Only after originalvalidate and strict slots[i]==i test; nonprefix orlargerpages fallback unchanged",
+    "reset": "Original reset sync+written flags clear unchanged. Immutableaddress table staysvalid; writtenvalidation still rejectsunwritten cacheprefix afterreset",
+    "destroy": "MemberTensor declared after originalRuntime owner lease, destroyed before owner_. Original Work/status/drains retained. No TLS object extendingRuntime lifetime.",
+    "invalid": "Differentowner/recording/unwritten/outofrange/duplicate write: unchangedthrow. Shape/pages>128/nonzero-start orpermutedslotsequence useoldpath. Newstartupmode setter rejects after firstcache construction."
+  },
+  "descriptor_dedup": {
+    "decision": "No newOps descriptorcache",
+    "evidence": "analysis/bw1000/Deep-ops-cache-source-card-r8966.json",
+    "SHA256": "88ed23634809427096a8cb38ae38fb14d2415dfbabd1dd1f4794f47962f8c438",
+    "reason": "Call already owns TLS stablegeometry cache. Current Add/Mul/Sigmoid actualhitcounts UNKNOWN; do not claim currentdescriptorcreation bottleneck."
+  },
+  "timing_boundary": {
+    "source": "analysis/bw1000/Deep-r467-post1498-main-phase-decision.json",
+    "SHA256": "7ffef1122f09ecaaf319da3f55c9e7b76d21ceaf4e086a99106a9016691c2da4",
+    "parent1476": "Instrumented Native5fd, not a314 byteidentity. About111.7ms cache/compression/index sibling is enclosing streamtime, not removablemetadata/exclusiveHOSTcost.",
+    "parent1450": "a314 existing profile supplied largeattention scope; timingdoesnotseparate this IDupload. No proposedgain/15TPSprediction.",
+    "whole_Model_gain": "UNKNOWN"
+  },
+  "negative_dedup": {
+    "compact1468": "Changescompressedbank/valuescopies; thiskeeps allcachepayload/operators and removesonlyconstantIDcreation/upload, no reusedquality/perf conclusion",
+    "weightcache216": "CachesF32 projectionweights~320MiB/rank andhadnostablegain; thiskeepsweights/math andadds<=1.3125MiB/rank addressmetadata",
+    "shortT": "No bypass ofindexerfeatures/scoring/TP/TopK orchangedGEMM shape",
+    "decoder_metadata_3ms": "Positions/decoderboundary metadata enclosure isdifferent callsite; doesnotbound C4 gatherprefix upload; neither52ms HC nor111ms attention enclosures attributed tothis fix",
+    "HC_grid": "No HC/runtimequant/sync/mathchange"
+  },
+  "minimum_build_gap": "PagedIndexerCache gets privateTensor/bool; class layout isdifferent. All actual50graph per-objectMD reverse consumers needclosed reconstruction, not assumed1HOST/49reuse. Known include chain C4header→Csaheader→routeddecoderheader reachesotherTUs. Do not compile/link/claimABIqualification fromthissource-onlypatch.",
+  "next": "Read exact frozen50graph reverseMD inventory only ifrootselects this candidate. Then exactchangedHOST set and boundedCPUclaim; noGPU/Model justified until actualCPU/observedfinite/lifetime/retained floor and fullconsumer causal scope. Do not rerun1476/1450 to remeasureenclosure.",
+  "new_compile": 0,
+  "new_CPU_jobs": 0,
+  "new_GPU": 0,
+  "new_HTTP": 0,
+  "unpublished_source_correction": "Rootcaught initialnewconstructor block-localvector lifetime beforeoriginalsync, beforepublication/compile/device. Hostvector now outside originaltry/catch tosurvive bothnormal andexceptiondrain; nooldsource/runtime changed.",
+  "precompile_lifetime_revision": {
+    "old_source_v1_MF": "d6378e79863abf12c203122239aa0ced987e229b3aec6a4e3ce2f8444e48c299",
+    "old_CPP_SHA256": "a4f2459b3f23b5f948e37d404a420f1ea7af45a086b2825db60f7a7bf8a37e92",
+    "new_CPP_SHA256": "d7d035960c9c05c9b849417fe743f300901503def01426e900d230e7dd19a5da",
+    "reason": "Fallback host vector now declared before Work, so normal status sync and Work exception drain precede its destruction. The v1 else-local chunk could die before submit/status; original parent loop-local chunk also did not outlive outerWork exception drain. No new sync/math/SDK/guard change.",
+    "old_source_never_compiled_or_device_run": true
+  }
+}
