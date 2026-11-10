@@ -1,0 +1,172 @@
+From 48dbfde46b8bdf81e4cb624039de4cc93807906b Mon Sep 17 00:00:00 2001
+From: whjthu <haojie0429@gmail.com>
+Date: Wed, 11 Nov 2026 07:33:31 +0800
+Subject: [PATCH] Compare Stable Fast 3D first updates against the frozen A100
+ policy
+
+---
+ tools/hygon_sf3d_compare_first_step.py | 137 +++++++++++++++++++++++++
+ tools/hygon_sf3d_first_step.py         |   3 +-
+ 2 files changed, 139 insertions(+), 1 deletion(-)
+ create mode 100644 tools/hygon_sf3d_compare_first_step.py
+
+diff --git a/tools/hygon_sf3d_compare_first_step.py b/tools/hygon_sf3d_compare_first_step.py
+new file mode 100644
+index 0000000..bb93c51
+--- /dev/null
++++ b/tools/hygon_sf3d_compare_first_step.py
+@@ -0,0 +1,137 @@
++"""Independently check a HIP SF3D first update against the frozen A100 policy."""
++
++from __future__ import annotations
++
++import argparse
++import json
++from pathlib import Path
++from pickle import UnpicklingError
++import sys
++
++from hygon_sdxl_compare_first_step import check_tensor, exact, relative, vector_metrics
++from hygon_sf3d_first_step import (
++    LAUNCH_SHA, POLICY_SHA, REFERENCE_SHA, SOURCE_COMMIT, SOURCE_PATCH_SHA, read_reference, require, sha,
++)
++
++
++BOUNDARY = "first_material_update_from_frozen_cache"
++REPLAY = Path(__file__).with_name("hygon_sf3d_first_step.py")
++FIELDS = {
++    "initial_trainable", "initial_optimizer", "inputs", "outputs", "loss", "albedo_loss", "scalar_loss",
++    "gradients_before_clip", "gradients_after_clip", "preclip_norm", "final_trainable", "final_optimizer",
++}
++
++
++def compare(torch, actual, reference, policy):
++    require(set(actual) == FIELDS, "SF3D observed field inventory differs")
++    limits = policy["metrics"]
++    for key in ("initial_trainable", "initial_optimizer", "inputs"):
++        exact(torch, actual[key], reference[key], key)
++    initial = reference["initial_trainable"]
++    expected = reference["final_optimizer"]
++    observed = actual["final_optimizer"]
++    require(set(observed) == {"param_groups", "state"}, "SF3D optimizer schema differs")
++    exact(torch, observed["param_groups"], expected["param_groups"], "final optimizer groups")
++    state, ref_state = observed["state"], expected["state"]
++    moments = tuple(policy["optimizer_state_tensor_keys"])
++    require(moments == ("exp_avg", "exp_avg_sq"), "SF3D AdamW moment policy differs")
++    names = list(initial)
++    require(list(state) == list(ref_state) == list(range(len(names))), "SF3D optimizer state IDs or order differ")
++    for i, fields in ref_state.items():
++        require(list(state[i]) == list(fields), f"SF3D optimizer fields differ: {names[i]}")
++        for key in fields.keys() - set(moments):
++            exact(torch, state[i][key], fields[key], f"optimizer/{names[i]}/{key}")
++
++    checks = {"exact_inputs_and_state_schema": True}
++    metrics = {}
++    for key, limit in (
++        ("loss", "loss_relative_error_max"), ("preclip_norm", "gradient_preclip_norm_relative_error_max"),
++        ("albedo_loss", None), ("scalar_loss", None),
++    ):
++        left, right = actual[key], reference[key]
++        check_tensor(torch, left, right, key)
++        require(right.is_floating_point() and right.numel() == 1, f"{key}: expected a scalar")
++        a, b = float(left), float(right)
++        error = relative(abs(a - b), abs(b))
++        metrics[key] = {"observed": a, "reference": b, "relative_error": error}
++        if limit is not None:
++            checks[key] = error is not None and error <= limits[limit]
++
++    def vectors(key, left, right, limit, start=None):
++        metrics[key] = vector_metrics(torch, left, right, key, start)
++        error = metrics[key]["relative_l2"]
++        checks[key] = error is not None and error <= limits[limit]
++
++    require(list(reference["outputs"]) == ["albedo", "roughness", "metallic"], "SF3D output names differ")
++    vectors("prediction", actual["outputs"], reference["outputs"], "prediction_relative_l2_max")
++    for key, limit in (
++        ("gradients_before_clip", "gradient_preclip_relative_l2_max"),
++        ("gradients_after_clip", "gradient_postclip_relative_l2_max"),
++    ):
++        require(list(reference[key]) == names, f"{key}: initial trainable order differs")
++        vectors(key, actual[key], reference[key], limit)
++    cosine = metrics["gradients_before_clip"]["cosine"]
++    checks["gradient_direction"] = cosine is not None and cosine >= limits["gradient_preclip_cosine_min"]
++    require(list(reference["final_trainable"]) == names, "SF3D final trainable order differs")
++    vectors("parameter_update", actual["final_trainable"], reference["final_trainable"],
++            "parameter_update_relative_l2_max", initial)
++    for key in moments:
++        vectors("optimizer_" + key, {names[i]: state[i][key] for i in ref_state},
++                {names[i]: ref_state[i][key] for i in ref_state}, "optimizer_moment_relative_l2_max")
++    checks["all_required_floating_values_finite"] = True
++    checks["nonzero_gradient_and_update"] = all(
++        metrics[key][side] > 0 for key in ("gradients_before_clip", "parameter_update")
++        for side in ("reference_l2", "observed_l2")
++    )
++    return {"passed": all(checks.values()), "checks": checks, "metrics": metrics}
++
++
++def verify_receipt(receipt, observed_sha, replay_sha):
++    required = {
++        "stage_id": "sf3d", "boundary": BOUNDARY,
++        "reference_sha256": REFERENCE_SHA, "policy_sha256": POLICY_SHA, "launch_sha256": LAUNCH_SHA,
++        "source_commit": SOURCE_COMMIT, "source_patch_sha256": SOURCE_PATCH_SHA,
++        "observed_sha256": observed_sha, "replay_source_sha256": replay_sha,
++    }
++    require(all(receipt.get(key) == value for key, value in required.items()),
++            "SF3D observed file or replay receipt differs from the frozen binding")
++    runtime = receipt["runtime"]
++    require(runtime["accelerator"] == "hip" and runtime["cuda_available"] is True
++            and runtime["cuda_count"] == 1, "SF3D receipt must record one HIP device")
++
++
++def main() -> int:
++    parser = argparse.ArgumentParser(description=__doc__)
++    for name in ("reference", "observed", "receipt", "output"):
++        parser.add_argument(f"--{name}", required=True, type=Path)
++    args = parser.parse_args()
++    if args.output.exists():
++        parser.error("--output must not already exist")
++    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "generation" / "src"))
++    from gencuda.runtime import get_torch
++
++    torch = get_torch()
++    reference, _ = read_reference(torch, args.reference)
++    policy = json.loads((args.reference / "policy.json").read_bytes())
++    observed_sha = sha(args.observed)
++    receipt_sha = sha(args.receipt)
++    replay_sha = sha(REPLAY)
++    try:
++        verify_receipt(json.loads(args.receipt.read_bytes()), observed_sha, replay_sha)
++        actual = torch.load(args.observed, map_location="cpu", weights_only=True)
++        result = compare(torch, actual, reference, policy)
++    except (KeyError, TypeError, AttributeError, ValueError, RuntimeError, EOFError, UnpicklingError) as error:
++        result = {"passed": False, "evidence_error": f"{type(error).__name__}: {error}"}
++    result.update(stage_id="sf3d", boundary=BOUNDARY, reference_sha256=REFERENCE_SHA, policy_sha256=POLICY_SHA,
++                  launch_sha256=LAUNCH_SHA, observed_sha256=observed_sha, replay_receipt_sha256=receipt_sha,
++                  replay_source_sha256=replay_sha, comparator_sha256=sha(Path(__file__)))
++    with args.output.open("x", encoding="utf-8") as stream:
++        json.dump(result, stream, indent=2, allow_nan=False)
++        stream.write("\n")
++    print(json.dumps({"passed": result["passed"], "failed_checks": [k for k, ok in result.get("checks", {}).items() if not ok],
++                      "evidence_error": result.get("evidence_error")}))
++    return int(not result["passed"])
++
++
++if __name__ == "__main__":
++    raise SystemExit(main())
+diff --git a/tools/hygon_sf3d_first_step.py b/tools/hygon_sf3d_first_step.py
+index bc4dc2b..3ac8b51 100644
+--- a/tools/hygon_sf3d_first_step.py
++++ b/tools/hygon_sf3d_first_step.py
+@@ -194,7 +194,8 @@ def replay(torch, reference, config, weights, source, output):
+             "reference_sha256": REFERENCE_SHA, "policy_sha256": POLICY_SHA, "launch_sha256": LAUNCH_SHA,
+             "observed_sha256": sha(observed), "runtime": asdict(runtime), "peak_reserved_bytes": peak,
+             "checkpoint_head_mismatches": checkpoint_head_mismatches, "source_commit": SOURCE_COMMIT,
+-            "source_patch_sha256": SOURCE_PATCH_SHA, "numerical_acceptance": "pending"}
++            "source_patch_sha256": SOURCE_PATCH_SHA, "replay_source_sha256": sha(Path(__file__)),
++            "numerical_acceptance": "pending"}
+ 
+ 
+ def main():
+-- 
+2.40.0.windows.1
+

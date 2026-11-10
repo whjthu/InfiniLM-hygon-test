@@ -1,0 +1,173 @@
+{
+  "id": "training-t11-sf3d-comparator-and-source-install-v1",
+  "training_case": "T11.material-head",
+  "state": "A100_POLICY_COMPARATOR_CPU_QUALIFIED_AND_PATCHED_SOURCE_STAGED",
+  "recorded_at_UTC": "2026-11-10T23:38:04.387940+00:00",
+  "framework_commit": "48dbfde46b8bdf81e4cb624039de4cc93807906b",
+  "framework_parent": "965017cab7404c49e9fca8b71614d339b314f32d",
+  "framework_patch": "code/bw1000/training-t11-sf3d-comparator-v1/framework.patch",
+  "framework_patch_SHA256": "2d629ce8ce7bf7c94237ec98e43c37b92748a78abce48fe52b7f27589cea55b0",
+  "qualification_source": "code/bw1000/training-t11-sf3d-comparator-v1/check_comparator.py",
+  "runtime_inventory_source": "code/bw1000/training-t11-sf3d-comparator-v1/runtime_inventory.py",
+  "CPU_comparator": {
+    "accounting": [
+      [
+        "1087656.91",
+        "t11-sf3d-comparator-qualification-v1",
+        "COMPLETED",
+        "0:0",
+        "6"
+      ]
+    ],
+    "rc": 0,
+    "source": {
+      "tools/hygon_sf3d_compare_first_step.py": "0c77541fd8dde84721b2debf4e5b9d9d5924ff093b29ffb335dc9ba0c5318b80",
+      "tools/hygon_sdxl_compare_first_step.py": "5550090fff73ffed1436b55eab9884c79984576d68d6e7dbadd98244d87b5edd",
+      "tools/hygon_sf3d_first_step.py": "2865d16cb9435922c2157b8c7d8378a905b728d1d612a9bfd15f0de3bf5605a5",
+      "tools/hygon_sdxl_first_step.py": "cdf2f908887db4163c29c32793491ed781fcafa2585a177e85f0ec4af75abded",
+      "generation/src/gencuda/__init__.py": "96e3064ca16ab05dd5664ffa026428b24455684d421f8e40305d37ca790190f5",
+      "generation/src/gencuda/runtime.py": "9516e0dfba734e2b58cd0fec18bcaa3c7e70ae32156b492df264fb0f6a87fbdf",
+      "tools/check_comparator.py": "91722652ab9962724fc82d2fcdd6ed2fe90ecfc89068aa8172e0e5d964a10582"
+    },
+    "node": "f11r2n15",
+    "output": [
+      {
+        "mode": "A100 artifact comparator qualification; CPU only",
+        "checks": {
+          "exact_inputs_and_state_schema": true,
+          "loss": true,
+          "preclip_norm": true,
+          "prediction": true,
+          "gradients_before_clip": true,
+          "gradients_after_clip": true,
+          "gradient_direction": true,
+          "parameter_update": true,
+          "optimizer_exp_avg": true,
+          "optimizer_exp_avg_sq": true,
+          "all_required_floating_values_finite": true,
+          "nonzero_gradient_and_update": true
+        },
+        "expected_rejections": [
+          "loss_above_policy",
+          "all_updates_zero",
+          "wrong_gradient_direction",
+          "optimizer_first_moment_above_policy",
+          "changed_fixed_input",
+          "nonfinite_material_output",
+          "wrong_adamw_step",
+          "missing_hip_and_provenance_receipt"
+        ]
+      }
+    ],
+    "error_tail": []
+  },
+  "CPU_runtime_inventory": {
+    "accounting": [
+      [
+        "1087656.92",
+        "t11-sf3d-runtime-inventory-v1",
+        "COMPLETED",
+        "0:0",
+        "10"
+      ]
+    ],
+    "rc": 0,
+    "source": {
+      "tools/hygon_sf3d_compare_first_step.py": "0c77541fd8dde84721b2debf4e5b9d9d5924ff093b29ffb335dc9ba0c5318b80",
+      "tools/hygon_sdxl_compare_first_step.py": "5550090fff73ffed1436b55eab9884c79984576d68d6e7dbadd98244d87b5edd",
+      "tools/hygon_sf3d_first_step.py": "2865d16cb9435922c2157b8c7d8378a905b728d1d612a9bfd15f0de3bf5605a5",
+      "tools/hygon_sdxl_first_step.py": "cdf2f908887db4163c29c32793491ed781fcafa2585a177e85f0ec4af75abded",
+      "generation/src/gencuda/__init__.py": "96e3064ca16ab05dd5664ffa026428b24455684d421f8e40305d37ca790190f5",
+      "generation/src/gencuda/runtime.py": "9516e0dfba734e2b58cd0fec18bcaa3c7e70ae32156b492df264fb0f6a87fbdf",
+      "tools/runtime_inventory.py": "28007f5b995cbcac71312e2210d471e153b3c20f23bfab627d695e87e0d3b411"
+    },
+    "node": "f11r3n02",
+    "output": [
+      {
+        "scope": "DTK package discovery; no upstream imports or execution",
+        "torch": "2.10.0",
+        "hip": "6.3.26113",
+        "visible_cards": 0,
+        "versions": {
+          "omegaconf": null,
+          "open-clip-torch": null,
+          "jaxtyping": null,
+          "einops": "0.8.2",
+          "transformers": "5.5.0",
+          "trimesh": null,
+          "safetensors": "0.8.0",
+          "torchvision": "0.25.0+das.opt1.dtk2604.torch2100.2605071719.g7ffc50"
+        },
+        "discoverable_modules": {
+          "omegaconf": false,
+          "open_clip": false,
+          "jaxtyping": false,
+          "einops": true,
+          "transformers": true,
+          "trimesh": false,
+          "rembg": false,
+          "pynanoinstantmeshes": false,
+          "gpytoolbox": false,
+          "texture_baker": false,
+          "uv_unwrapper": false,
+          "safetensors": true,
+          "torchvision": true
+        },
+        "tools": {
+          "g++": true,
+          "hipcc": true,
+          "cmake": true,
+          "ninja": true
+        }
+      }
+    ],
+    "error_tail": []
+  },
+  "patched_source": {
+    "official_commit": "ff21fc491b4dc5314bf6734c7c0dabd86b5f5bb2",
+    "patch_SHA256": "c23d6c10e7e829b712ace64f27593446cab34542c18a0ff2cf89f2ddccf47b38",
+    "critical_LF_SHA256": {
+      "sf3d/system.py": "15bac14e4eb78729aa26c9765cd6d8378ff53bf26b106f82051ffe5debc7b049",
+      "sf3d/models/image_estimator/clip_based_estimator.py": "7892c8c287acc572e099efaca9af4f014d2263c26292109e3a33e1be5a934344",
+      "sf3d/models/mesh.py": "35b1b0e6ec2c9ae9d5fa74955d2cf1cd8c014130dc2e92db415655cd9e2d3a1c",
+      "sf3d/models/tokenizers/image.py": "41ed9d88d8efa156391f266e6c2a0bf831bd8cc178dd92c837cea4f733807851",
+      "sf3d/models/utils.py": "4e388466deff154d8b641f4416711100eb944bc5317e5835b285cd971759fb7d",
+      "sf3d/utils.py": "f85d9401ad9bc61c2dad470577671f9e79a1608c5a62723c0df9f0a5353e1349"
+    },
+    "RGBA_examples": 8,
+    "verified": true,
+    "source_files": 70,
+    "source_path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/training-t11-sf3d-source-stage-v1/source",
+    "manifest_SHA256": "ba362e90a407d761a5b6fba279b5e4972684b89c33dd352400c3e7f758837acd",
+    "applied_original_patch_files": [
+      "sf3d/models/image_estimator/clip_based_estimator.py",
+      "sf3d/models/mesh.py",
+      "sf3d/models/tokenizers/image.py",
+      "sf3d/models/utils.py",
+      "sf3d/utils.py"
+    ],
+    "target_import_attempted": false
+  },
+  "source_stage_first_attempt": "First transfer extracted all 70 files and the patch. Five files remained pristine despite git apply exiting zero. Verified pristine hashes, installed exactly the five patched files and independently matched every file to the local pinned tree.",
+  "weight_location_checks": {
+    "fixed_asset_sizes": {
+      "original_baseline_mount": null,
+      "training_shared_mount": null,
+      "official_local_cache_blob": null
+    },
+    "exact_matches": {},
+    "official_repository": {
+      "model.safetensors": {
+        "error_type": "URLError"
+      },
+      "config.yaml": {
+        "error_type": "URLError"
+      }
+    }
+  },
+  "GPU_steps_created": 0,
+  "DCU_numerics": "UNRUN",
+  "restore": "UNRUN",
+  "formal_performance": "UNRUN",
+  "quality": "UNRUN"
+}
