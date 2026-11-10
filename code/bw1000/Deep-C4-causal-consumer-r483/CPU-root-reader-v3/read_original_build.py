@@ -3,6 +3,7 @@
 import math
 import re
 import hashlib
+import stat
 import json
 import shlex
 import struct
@@ -86,7 +87,7 @@ PACKAGE = "/refactor/incoming/Deep-C4-causal-consumer-r483/CPU-v2"
 OUTPUT = "/refactor/candidates/" + LABEL
 
 
-def read_build(intent, launch, accounting, expected_job, receipt_sha, read):
+def read_build(intent, launch, accounting, expected_job, receipt_sha, read, hash_provider):
     """Read exact original files through a read-bytes callback after terminal accounting."""
     if sys.flags.optimize:
         raise RuntimeError("passive ELF evidence requires assertions enabled")
@@ -183,11 +184,13 @@ def read_build(intent, launch, accounting, expected_job, receipt_sha, read):
     if len(links) != 1:
         raise ValueError("CPU-v2 exact original link invocation required")
     linkage = verify_probe_link(plan, reported, probe, chr(10).join(logs), obj, links[0])
+    project_providers = verify_project_providers(plan["dynamic_SHA256"], hash_provider)
     return dict(accounting=terminal, build_provenance_checked=True, receipt_SHA256=receipt_sha,
                 original_M_first_observed_SHA256=hashlib.sha256(before).hexdigest(),
                 MD_SHA256=unit["MD_SHA256"], object_SHA256=unit["object_SHA256"],
                 guarded_header_SHA256=deps[header], dependency_count=len(deps),
-                probe_SHA256=reported["SHA256"], **linkage, GPU_GO=False, Model_GO=False)
+                probe_SHA256=reported["SHA256"], project_provider_SHA256=project_providers,
+                **linkage, GPU_GO=False, Model_GO=False)
 
 
 def elf_bytes(b):
@@ -240,6 +243,45 @@ def verify_probe_link(plan, reported, probe_bytes, ldd_text, obj, link_argv):
                 passive_ELF_verified=True)
 
 
+
+def verify_project_providers(providers, hash_provider):
+    """Compare live project DSO bytes with the verified build plan's hashes."""
+    project = {path: digest for path, digest in providers.items() if path.startswith("/refactor/")}
+    if len(project) != 6:
+        raise ValueError("CPU-v2 frozen project provider count differs")
+    observed = {}
+    for path, expected in sorted(project.items()):
+        actual = hash_provider(path)
+        if actual != expected:
+            raise ValueError(f"CPU-v2 project provider bytes differ: {path}")
+        observed[path] = actual
+    return observed
+
+
+def hash_regular_provider(path):
+    """Read the file as bytes, without loading a DSO or invoking a tool."""
+    import os
+
+    with path.open("rb") as file:
+        before = os.fstat(file.fileno())
+        if not stat.S_ISREG(before.st_mode):
+            raise ValueError(f"CPU-v2 project provider is not a regular file: {path}")
+        digest = hashlib.sha256()
+        total = 0
+        for chunk in iter(lambda: file.read(1024 * 1024), b""):
+            total += len(chunk)
+            if total > before.st_size:
+                raise ValueError(f"CPU-v2 project provider grew while reading: {path}")
+            digest.update(chunk)
+        after = os.fstat(file.fileno())
+        with path.open("rb") as current_file:
+            current = os.fstat(current_file.fileno())
+    identity = lambda info: (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_ctime_ns)
+    if total != before.st_size or identity(before) != identity(after) or identity(after) != identity(current):
+        raise ValueError(f"CPU-v2 project provider changed while reading: {path}")
+    return digest.hexdigest()
+
+
 def main():
     """Read original CPU-v2 evidence in place on the login host."""
     import argparse
@@ -252,14 +294,17 @@ def main():
     args = parser.parse_args()
 
     root = Path(HOST_ROOT).resolve(strict=True)
-    def read_original(container_path):
+    def original_path(container_path):
         path = PurePosixPath(container_path)
         if path.parts[:2] != ("/", "refactor") or ".." in path.parts:
             raise ValueError("CPU-v2 evidence path outside the original root")
         host = root.joinpath(*path.parts[2:]).resolve(strict=True)
         if not host.is_relative_to(root):
             raise ValueError("CPU-v2 evidence target outside the original root")
-        with host.open("rb") as file:
+        return host
+
+    def read_original(container_path):
+        with original_path(container_path).open("rb") as file:
             data = file.read(32 * 1024**2 + 1)
         if len(data) > 32 * 1024**2:
             raise ValueError("CPU-v2 evidence exceeds the per-file read limit")
@@ -272,7 +317,8 @@ def main():
     intent_bytes = read_original("/refactor/results/" + LABEL + "-intent.json")
     launch_bytes = read_original("/refactor/results/" + LABEL + "-launch.json")
     result = read_build(json.loads(intent_bytes), json.loads(launch_bytes),
-                        json.loads(accounting_bytes), args.expected_step, args.receipt_sha, read_original)
+                        json.loads(accounting_bytes), args.expected_step, args.receipt_sha,
+                        read_original, lambda path: hash_regular_provider(original_path(path)))
     result["input_evidence_SHA256"] = {
         name: hashlib.sha256(raw).hexdigest() for name, raw in
         (("intent", intent_bytes), ("launch", launch_bytes), ("accounting", accounting_bytes))

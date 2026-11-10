@@ -41,7 +41,7 @@ mutations = {
 rejected = []
 for name, mutated_argv in mutations.items():
     try:
-        ns.read_build(dict(intent, argv=mutated_argv), launch, accounting, job, None, unexpected_read)
+        ns.read_build(dict(intent, argv=mutated_argv), launch, accounting, job, None, unexpected_read, unexpected_read)
     except ValueError as error:
         assert "ordered launcher argv" in str(error)
         rejected.append(name)
@@ -49,7 +49,7 @@ for name, mutated_argv in mutations.items():
         raise AssertionError(f"accepted changed launch argv: {name}")
 try:
     ns.read_build(intent, dict(launch, intent="/tmp/another-intent.json"),
-                  accounting, job, None, unexpected_read)
+                  accounting, job, None, unexpected_read, unexpected_read)
 except ValueError as error:
     assert "launch intent path" in str(error)
 else:
