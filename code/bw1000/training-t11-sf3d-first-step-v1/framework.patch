@@ -1,0 +1,353 @@
+From 965017cab7404c49e9fca8b71614d339b314f32d Mon Sep 17 00:00:00 2001
+From: whjthu <haojie0429@gmail.com>
+Date: Wed, 11 Nov 2026 07:25:28 +0800
+Subject: [PATCH] Replay the frozen Stable Fast 3D material update through
+ shared training code
+
+---
+ .../src/gencuda/backends/sf3d_training.py     |  71 +++---
+ tools/hygon_sf3d_first_step.py                | 228 ++++++++++++++++++
+ 2 files changed, 270 insertions(+), 29 deletions(-)
+ create mode 100644 tools/hygon_sf3d_first_step.py
+
+diff --git a/generation/src/gencuda/backends/sf3d_training.py b/generation/src/gencuda/backends/sf3d_training.py
+index 0afd7ec..40eb046 100644
+--- a/generation/src/gencuda/backends/sf3d_training.py
++++ b/generation/src/gencuda/backends/sf3d_training.py
+@@ -94,6 +94,20 @@ def _selected_named_parameters(model: Any) -> list[tuple[str, Any]]:
+     ]
+ 
+ 
++def _prepare_material_heads(model: Any) -> list[tuple[str, Any]]:
++    for parameter in model.parameters():
++        parameter.requires_grad_(False)
++    for module in (
++        model.decoder.heads["features"],
++        model.image_estimator.heads["roughness"],
++        model.image_estimator.heads["metallic"],
++    ):
++        module.train()
++        for parameter in module.parameters():
++            parameter.requires_grad_(True)
++    return _selected_named_parameters(model)
++
++
+ def _parameter_sha(named_parameters: list[tuple[str, Any]]) -> str:
+     digest = hashlib.sha256()
+     for name, parameter in named_parameters:
+@@ -125,6 +139,31 @@ def _beta_mean(torch: Any, head: Any, image_features: Any) -> Any:
+     return alpha / (alpha + beta)
+ 
+ 
++def _material_forward_loss(
++    torch: Any, model: Any, batch: dict[str, Any], scalar_loss_weight: float
++) -> tuple[Any, Any, Any, Any, Any, Any]:
++    albedo = torch.sigmoid(
++        model.decoder.heads["features"](batch["triplane_features"])
++    )
++    roughness = _beta_mean(
++        torch,
++        model.image_estimator.heads["roughness"],
++        batch["image_features"],
++    )
++    metallic = _beta_mean(
++        torch,
++        model.image_estimator.heads["metallic"],
++        batch["image_features"],
++    )
++    albedo_loss = (albedo.float() - batch["albedo"]).square().mean()
++    scalar_loss = (
++        (roughness.float() - batch["roughness"]).square().mean()
++        + (metallic.float() - batch["metallic"]).square().mean()
++    )
++    loss = albedo_loss + scalar_loss_weight * scalar_loss
++    return albedo, roughness, metallic, loss, albedo_loss, scalar_loss
++
++
+ def _image_features(torch: Any, model: Any, batch: dict[str, Any]) -> Any:
+     import open_clip
+ 
+@@ -1030,17 +1069,7 @@ def run_sf3d_training(
+     )
+     model.to("cuda").eval()
+     model_load_seconds = perf_counter() - load_started
+-    for parameter in model.parameters():
+-        parameter.requires_grad_(False)
+-    for module in (
+-        model.decoder.heads["features"],
+-        model.image_estimator.heads["roughness"],
+-        model.image_estimator.heads["metallic"],
+-    ):
+-        module.train()
+-        for parameter in module.parameters():
+-            parameter.requires_grad_(True)
+-    named_parameters = _selected_named_parameters(model)
++    named_parameters = _prepare_material_heads(model)
+     trainable = [parameter for _, parameter in named_parameters]
+     if not trainable:
+         raise RuntimeError("Stable Fast 3D material heads contain no trainable parameters")
+@@ -1147,25 +1176,9 @@ def run_sf3d_training(
+         step_started = perf_counter()
+         forward_started = perf_counter()
+         with autocast_bf16():
+-            albedo = torch.sigmoid(
+-                model.decoder.heads["features"](batch["triplane_features"])
+-            )
+-            roughness = _beta_mean(
+-                torch,
+-                model.image_estimator.heads["roughness"],
+-                batch["image_features"],
+-            )
+-            metallic = _beta_mean(
+-                torch,
+-                model.image_estimator.heads["metallic"],
+-                batch["image_features"],
+-            )
+-            albedo_loss = (albedo.float() - batch["albedo"]).square().mean()
+-            scalar_loss = (
+-                (roughness.float() - batch["roughness"]).square().mean()
+-                + (metallic.float() - batch["metallic"]).square().mean()
++            albedo, roughness, metallic, loss, albedo_loss, scalar_loss = _material_forward_loss(
++                torch, model, batch, float(config.get("scalar_loss_weight", 0.25))
+             )
+-            loss = albedo_loss + float(config.get("scalar_loss_weight", 0.25)) * scalar_loss
+         synchronize()
+         forward_seconds = perf_counter() - forward_started
+         backward_started = perf_counter()
+diff --git a/tools/hygon_sf3d_first_step.py b/tools/hygon_sf3d_first_step.py
+new file mode 100644
+index 0000000..bc4dc2b
+--- /dev/null
++++ b/tools/hygon_sf3d_first_step.py
+@@ -0,0 +1,228 @@
++"""Validate the frozen SF3D reference or replay its first material-head update on HIP."""
++
++from __future__ import annotations
++
++import argparse
++from dataclasses import asdict
++from hashlib import sha256
++import json
++import os
++from pathlib import Path
++import random
++import sys
++
++from hygon_sdxl_first_step import require, sha
++
++
++REFERENCE_SHA = "61087748c917db9c30eb2c9cf1a06429a39a66656af621b21de8cf6f37e00469"
++POLICY_SHA = "4338273a8f909475f96163bd04085dfc7960f4a83434b0b1b81d7260ee060860"
++LAUNCH_SHA = "a1a2c1ec43825856065600c313e148fffc23c8ff6ef97534aef8a31113529287"
++SOURCE_COMMIT = "ff21fc491b4dc5314bf6734c7c0dabd86b5f5bb2"
++SOURCE_PATCH_SHA = "c23d6c10e7e829b712ace64f27593446cab34542c18a0ff2cf89f2ddccf47b38"
++SOURCE_FILES = {
++    "sf3d/system.py": "15bac14e4eb78729aa26c9765cd6d8378ff53bf26b106f82051ffe5debc7b049",
++    "sf3d/models/image_estimator/clip_based_estimator.py": "7892c8c287acc572e099efaca9af4f014d2263c26292109e3a33e1be5a934344",
++    "sf3d/models/mesh.py": "35b1b0e6ec2c9ae9d5fa74955d2cf1cd8c014130dc2e92db415655cd9e2d3a1c",
++    "sf3d/models/tokenizers/image.py": "41ed9d88d8efa156391f266e6c2a0bf831bd8cc178dd92c837cea4f733807851",
++    "sf3d/models/utils.py": "4e388466deff154d8b641f4416711100eb944bc5317e5835b285cd971759fb7d",
++    "sf3d/utils.py": "f85d9401ad9bc61c2dad470577671f9e79a1608c5a62723c0df9f0a5353e1349",
++}
++WEIGHTS = {
++    "config.yaml": (2405, "5e880cfec3dec28d4e20afe07bfa1799c8a561f56f0532ebf1b4022ae4ddc8e4"),
++    "model.safetensors": (4024289892, "a3416e1cf654e7d4f5e75f116cec2c3f0a14501a77d30c2f6068bbda178de388"),
++}
++INPUT_SHAPES = {
++    "triplane_features": (2048, 120),
++    "image_features": (1, 512),
++    "albedo": (1, 3),
++    "roughness": (1,),
++    "metallic": (1,),
++}
++TRAINABLE_TENSORS = 36
++TRAINABLE_ELEMENTS = 2644871
++
++
++def read_reference(torch, root):
++    reference_path = root / "reference.pt"
++    policy_path = root / "policy.json"
++    launch_path = root / "a100-launch.json"
++    require(reference_path.stat().st_size == 72431563 and sha(reference_path) == REFERENCE_SHA,
++            "SF3D A100 first-step payload differs")
++    require(sha(policy_path) == POLICY_SHA and sha(launch_path) == LAUNCH_SHA,
++            "SF3D policy or A100 launch differs")
++    policy = json.loads(policy_path.read_bytes())
++    require(policy["stage_id"] == "sf3d" and policy["reference_payload_sha256"] == REFERENCE_SHA,
++            "SF3D policy does not bind this reference")
++    launch = json.loads(launch_path.read_bytes())
++    config = launch["config"]
++    require(config["precision"] == "bfloat16" and len(config["input_images"]) == 8
++            and config["query_points"] == 2048 and launch["deterministic_algorithms"] is True
++            and launch["tf32"] is False and config["source_sha"] == SOURCE_COMMIT
++            and config["source_shas"]["mlu_patch"] == SOURCE_PATCH_SHA
++            and config["model_sha"] == WEIGHTS["model.safetensors"][1], "SF3D native recipe differs")
++    reference = torch.load(reference_path, map_location="cpu", weights_only=True)
++    batches = reference["cached_batches"]
++    require(len(batches) == 8, "SF3D eight-example cache required")
++    for index, batch in enumerate([reference["inputs"], *batches]):
++        require(set(batch) == set(INPUT_SHAPES), f"SF3D cache sample {index} fields differ")
++        for name, shape in INPUT_SHAPES.items():
++            tensor = batch[name]
++            dtype = torch.bfloat16 if name == "image_features" else torch.float32
++            require(isinstance(tensor, torch.Tensor) and tuple(tensor.shape) == shape
++                    and tensor.dtype == dtype and bool(torch.isfinite(tensor).all()),
++                    f"SF3D cache sample {index} {name} differs")
++    require(all(torch.equal(reference["inputs"][name], batches[0][name]) for name in INPUT_SHAPES),
++            "SF3D first native cache sample differs")
++    initial = reference["initial_trainable"]
++    require(len(initial) == TRAINABLE_TENSORS and sum(p.numel() for p in initial.values()) == TRAINABLE_ELEMENTS
++            and all(p.dtype == torch.float32 and bool(torch.isfinite(p).all()) for p in initial.values()),
++            "SF3D initial parameter inventory or precision differs")
++    optimizer = reference["initial_optimizer"]
++    group, = optimizer["param_groups"]
++    require(optimizer["state"] == {} and group["params"] == list(range(len(initial)))
++            and group["lr"] == config["learning_rate"] and group["weight_decay"] == config["weight_decay"]
++            and group["decoupled_weight_decay"] is True, "SF3D first AdamW state or hyperparameters differ")
++    return reference, config
++
++
++def verify_source(source):
++    for name, expected in SOURCE_FILES.items():
++        raw = (source / name).read_bytes().replace(b"\r\n", b"\n")
++        require(sha256(raw).hexdigest() == expected, f"SF3D upstream source differs: {name}")
++
++
++def replay(torch, reference, config, weights, source, output):
++    from gencuda.backends.sf3d_training import _material_forward_loss, _prepare_material_heads
++    from gencuda.runtime import MEMORY_LIMIT_BYTES, inspect_runtime, validate_accelerator
++
++    runtime = inspect_runtime()
++    validate_accelerator(runtime, "hip", 1)
++    for name, (size, digest) in WEIGHTS.items():
++        path = weights / name
++        require(path.stat().st_size == size and sha(path) == digest, f"SF3D original weights differ: {name}")
++    verify_source(source)
++    for flag in ("SF3D_OFFLINE_INIT", "HF_HUB_OFFLINE", "TRANSFORMERS_OFFLINE"):
++        os.environ[flag] = "1"
++    sys.path.insert(0, str(source))
++    import sf3d.system
++    require(Path(sf3d.system.__file__).resolve() == (source / "sf3d/system.py").resolve(),
++            "SF3D imported from a different source tree")
++    SF3D = sf3d.system.SF3D
++    import numpy as np
++
++    device = torch.device("cuda", 0)
++    seed = config["seed"]
++    random.seed(seed)
++    np.random.seed(seed)
++    torch.manual_seed(seed)
++    torch.cuda.manual_seed_all(seed)
++    torch.use_deterministic_algorithms(True)
++    torch.backends.cuda.matmul.allow_tf32 = False
++    torch.backends.cudnn.allow_tf32 = False
++    capacity = torch.cuda.get_device_properties(device).total_memory
++    torch.cuda.set_per_process_memory_fraction(min(1.0, MEMORY_LIMIT_BYTES / capacity), device)
++    torch.cuda.reset_peak_memory_stats(device)
++
++    model = SF3D.from_pretrained(str(weights), config_name="config.yaml", weight_name="model.safetensors")
++    model.to(device).eval()
++    named = dict(_prepare_material_heads(model))
++    initial = reference["initial_trainable"]
++    require(list(named) == list(initial) == [name for name, p in model.named_parameters() if p.requires_grad],
++            "SF3D trainable names, order or freeze boundary differs")
++
++    def copy_tensor(tensor):
++        return tensor.detach().cpu().clone()
++
++    def capture(attribute):
++        return {name: copy_tensor(getattr(p, attribute)) for name, p in named.items()}
++
++    checkpoint_head_mismatches = []
++    with torch.no_grad():
++        for name, parameter in named.items():
++            saved = initial[name]
++            require(parameter.device == device and parameter.dtype == saved.dtype and parameter.shape == saved.shape,
++                    f"SF3D head schema or device differs: {name}")
++            if not torch.equal(parameter.cpu(), saved):
++                checkpoint_head_mismatches.append(name)
++            parameter.copy_(saved)
++            require(torch.equal(parameter.cpu(), saved), f"SF3D initial head copy differs: {name}")
++    actual_initial = {name: copy_tensor(p) for name, p in named.items()}
++    optimizer_state = reference["initial_optimizer"]
++    group, = optimizer_state["param_groups"]
++    options = {key: value for key, value in group.items()
++               if key not in ("params", "decoupled_weight_decay", "initial_lr")}
++    optimizer = torch.optim.AdamW(list(named.values()), **options)
++    optimizer.load_state_dict(optimizer_state)
++    actual_optimizer = optimizer.state_dict()
++    batch = {name: tensor.to(device) for name, tensor in reference["inputs"].items()}
++    optimizer.zero_grad(set_to_none=True)
++    with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
++        albedo, roughness, metallic, loss, albedo_loss, scalar_loss = _material_forward_loss(
++            torch, model, batch, config["scalar_loss_weight"]
++        )
++    outputs = {"albedo": albedo, "roughness": roughness, "metallic": metallic}
++    require(all(t.device == device and bool(torch.isfinite(t).all()) for t in (*outputs.values(), loss)),
++            "SF3D nonfinite or non-device forward")
++    loss.backward()
++    preclip = capture("grad")
++    norm = torch.nn.utils.clip_grad_norm_(list(named.values()), config["max_grad_norm"])
++    require(bool(torch.isfinite(norm)) and float(norm) > 0, "SF3D invalid gradient norm")
++    postclip = capture("grad")
++    optimizer.step()
++    torch.cuda.synchronize(device)
++    peak = torch.cuda.max_memory_reserved(device)
++    require(peak <= MEMORY_LIMIT_BYTES, "SF3D reserved memory exceeds framework limit")
++    final = {name: copy_tensor(p) for name, p in named.items()}
++    require(any(not torch.equal(actual_initial[name], final[name]) for name in named), "SF3D zero parameter update")
++    final_optimizer = optimizer.state_dict()
++    for state in final_optimizer["state"].values():
++        for key, value in state.items():
++            if isinstance(value, torch.Tensor):
++                state[key] = copy_tensor(value)
++    output.mkdir()
++    observed = output / "observed.pt"
++    torch.save({
++        "initial_trainable": actual_initial, "initial_optimizer": actual_optimizer,
++        "inputs": {name: copy_tensor(t) for name, t in batch.items()},
++        "outputs": {name: copy_tensor(t) for name, t in outputs.items()},
++        "loss": copy_tensor(loss), "albedo_loss": copy_tensor(albedo_loss),
++        "scalar_loss": copy_tensor(scalar_loss), "gradients_before_clip": preclip,
++        "gradients_after_clip": postclip, "preclip_norm": copy_tensor(norm),
++        "final_trainable": final, "final_optimizer": final_optimizer,
++    }, observed)
++    return {"stage_id": "sf3d", "boundary": "first_material_update_from_frozen_cache",
++            "reference_sha256": REFERENCE_SHA, "policy_sha256": POLICY_SHA, "launch_sha256": LAUNCH_SHA,
++            "observed_sha256": sha(observed), "runtime": asdict(runtime), "peak_reserved_bytes": peak,
++            "checkpoint_head_mismatches": checkpoint_head_mismatches, "source_commit": SOURCE_COMMIT,
++            "source_patch_sha256": SOURCE_PATCH_SHA, "numerical_acceptance": "pending"}
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--reference", required=True, type=Path)
++    parser.add_argument("--validate-only", action="store_true")
++    parser.add_argument("--weights", type=Path)
++    parser.add_argument("--source", type=Path)
++    parser.add_argument("--output", type=Path)
++    args = parser.parse_args()
++    if not args.validate_only and any(path is None for path in (args.weights, args.source, args.output)):
++        parser.error("--weights, --source and --output are required for a device replay")
++    if args.output and args.output.exists():
++        parser.error("--output must not already exist")
++    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "generation" / "src"))
++    from gencuda.runtime import get_torch
++
++    torch = get_torch()
++    reference, config = read_reference(torch, args.reference)
++    if args.validate_only:
++        print(json.dumps({"stage_id": "sf3d", "reference_sha256": REFERENCE_SHA, "policy_sha256": POLICY_SHA,
++                          "launch_sha256": LAUNCH_SHA, "cache_examples": 8, "trainable_tensors": TRAINABLE_TENSORS,
++                          "trainable_parameters": TRAINABLE_ELEMENTS, "reference_loss": float(reference["loss"])}))
++        return
++    summary = replay(torch, reference, config, args.weights, args.source, args.output)
++    (args.output / "summary.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
++    print(json.dumps(summary))
++
++
++if __name__ == "__main__":
++    main()
+-- 
+2.40.0.windows.1
+
