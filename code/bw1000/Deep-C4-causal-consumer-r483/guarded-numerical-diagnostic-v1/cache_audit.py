@@ -1,6 +1,8 @@
 """Independent byte check for a single-row full-context C4 cache transaction."""
 
 from hashlib import sha256
+import math
+import struct
 from time import monotonic
 
 from score_reference import compare_t1_scores
@@ -12,6 +14,19 @@ SCALE_BYTES = 4
 SLOTS_PER_PAGE = 64
 PAGE_BYTES = SLOTS_PER_PAGE * (KEY_BYTES + SCALE_BYTES)
 CACHE_BYTES = CONTEXT // COMPRESS_RATIO // SLOTS_PER_PAGE * PAGE_BYTES
+
+
+def check_packed_keys(first_slot, slot_count, values, scales):
+    """Check every new E4M3FN key and its little-endian FP32 scale."""
+    if len(values) != slot_count * KEY_BYTES or len(scales) != slot_count * SCALE_BYTES:
+        raise ValueError("wrong pending packed key or scale byte count")
+    for offset, (scale,) in enumerate(struct.iter_unpack("<f", scales)):
+        slot = first_slot + offset
+        if not math.isfinite(scale) or scale <= 0:
+            raise ValueError(f"invalid packed C4 key scale at slot {slot}")
+        row = values[offset * KEY_BYTES:(offset + 1) * KEY_BYTES]
+        if 0x7F in row or 0xFF in row:
+            raise ValueError(f"nonfinite E4M3FN C4 key at slot {slot}")
 
 
 def audit_cache_transition(past, tokens, committed, before, after, values, scales):
@@ -86,6 +101,8 @@ class CacheCapture:
         if count:
             values = self._copy("new_key_values", [count, KEY_BYTES], 4, count * KEY_BYTES, "pending")
             scales = self._copy("new_key_scales", [count, 1], 10, count * SCALE_BYTES, "pending")
+            self.deadline("cache_diagnostic.check_packed_keys")
+            check_packed_keys(past // COMPRESS_RATIO, count, values, scales)
             self.packed = values, scales
         else:
             self.packed = b"", b""
@@ -114,5 +131,7 @@ class CacheCapture:
             self.before, after, *self.packed,
         )
         self.deadline("cache_diagnostic.complete")
-        report.update(copy_bytes=self.copy_bytes, copy_seconds=self.copy_seconds, score=self.score_report)
+        report.update(copy_bytes=self.copy_bytes, copy_seconds=self.copy_seconds,
+                      finite_packed_key_rows=len(self.packed[1]) // SCALE_BYTES,
+                      score=self.score_report)
         return report
