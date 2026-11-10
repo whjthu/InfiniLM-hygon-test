@@ -1,7 +1,7 @@
 {
   "id": "deep-i03-http-first-requests-32k-v1",
   "owner": "/root",
-  "state": "HOST_INPUTS_VERIFIED_CLIENT_LOCAL_LOOPBACK_PASS",
+  "state": "CLAIMED_PRELAUNCH_R454_HTTP_PILOT",
   "source": "code/bw1000/deep-i03-http-first-requests-32k-v1",
   "previous_terminal_step": "1087656.54",
   "previous_terminal_commit": "16ae82ae75fc160f3dabd9daa53b92d7f880c8d8",
@@ -20,7 +20,7 @@
     "load_passes_planned": 1,
     "original_budget_per_request": 4096,
     "GPU_step": null,
-    "GPU_dispatch_ready": false
+    "GPU_dispatch_ready": true
   },
   "input_selection": "First frozen R450 mode-0 case of each suite; indices 0 and 256 selected without using observed scores.",
   "files_SHA256": {
@@ -39,5 +39,54 @@
     "full_context_workload_qualified": false,
     "broad_quality_qualified": false
   },
-  "next": "Integrate the fixed R454 service lifecycle, private output and one bounded Slurm epoch; verify exact container mounts before a unique GPU dispatch."
+  "next": "Dispatch once after publication and fresh allocation/idle checks; reconcile original GPU step and independent post snapshot.",
+  "CPU_container_preflight_step": "1087656.56",
+  "claim": {
+    "label": "i03-deep-r454-http-first2-v1",
+    "parent": "1087656",
+    "node": "f12r3n12",
+    "gpu_step_count_max": 1,
+    "deadline": {
+      "seconds": 5400,
+      "Native_seconds": 5310,
+      "service_seconds": 5190
+    },
+    "srun_options": [
+      "--jobid=1087656",
+      "--job-name=i03-deep-r454-http-first2-v1",
+      "--exact",
+      "--cpu-bind=none",
+      "--nodes=1",
+      "--ntasks=1",
+      "--cpus-per-task=64",
+      "--nodelist=f12r3n12",
+      "--gres=dcu:8",
+      "--mem=128000M",
+      "--immediate=5",
+      "--input=0",
+      "--time=01:30:00"
+    ],
+    "source_manifest_SHA256": "bc7541b86afd15894d374c774ca3ed5093c623134bc493467518e4b7b3a2a98a",
+    "input_binding_SHA256": "b46fef73d462455f65b4c29aa1a85cbc0a8aa065f3c3d197d491d761065f47fb",
+    "port": 43882,
+    "private_results": "results/i03-deep-r454-http-first2-v1-private",
+    "original_requests": 2,
+    "original_generation_budget_each": 4096,
+    "load_passes": 1,
+    "scope": "32K configured, 1242/538 actual prompt tokens, same-node loopback P1, serial C1 two-case pilot",
+    "files_SHA256": {
+      "pilot_dispatch_remote.py": "8f31130182c2c035a1332269c06ba7965ba8f3ceb1aeca51ca65aed6a35b0231",
+      "pilot_host_gate.py": "5695fecbdcba1acf88b05b21e59771ee707b2a52a97a521a7544ad55d0cb2639",
+      "pilot_inside.sh": "a33ae023463b3fbfa365d2a2ec501c11ab900c2358fa8185360518727c8eae1e",
+      "pilot_run.py": "48d48f58ee7eccb214c7daf3c355e3f4c40a9359f658f7221f56f9d147a6b575",
+      "pilot_observation.py": "6a3db88416787f793c499c770b6f3abeec9286bd4b33958a758019ffbaa98df3",
+      "pilot_inputs.py": "21fd99d114c8ff48c2d27c4a4207ec007275cfc5b991ffbc68130871c0267cad",
+      "input_binding.json": "b46fef73d462455f65b4c29aa1a85cbc0a8aa065f3c3d197d491d761065f47fb",
+      "service_config.json": "9e6d11ca8eba639ee253aae4a42cffa8c4d78f1e05a2a37c78589b4de0db614b",
+      "wire_client_r290.py": "045ea460cd6a95277ae60fe787860960160b9eae4537dcafe02ee2a34dd3af14",
+      "scoring.py": "5965c7282e005f60c12cc0f2f719bafa9a87f084e748eb2d148e7ad27d53428d",
+      "split_admission.py": "5f79d2607f2b6d54e80f1589db01d107e0c6af17ffad0727e094913fb6fa1462",
+      "container-preflight-first.json": "755a30b960c24ceadafc3bfc5f7369611fb5fa8e1ad334611dd902f9005ace9d"
+    }
+  }
 }
