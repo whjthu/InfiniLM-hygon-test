@@ -1,0 +1,98 @@
+{
+  "schema": 1,
+  "route": "Bounded impl16 paged decode T1, hypothetical persistent padded V192 paired with K192, one source cost card",
+  "source": {
+    "base_SHA256": "7eadbf8fddb83df7a1c8c4f38dcc2ee5f7eda95d6021a5ec99a85f4be2f392c3",
+    "hygon_impl16_SHA256": "a72d0184c5cad74dba8d64367975b6eb740abd73871bb39f2b50bb6a17e7cbf7",
+    "delegate_SHA256": "a5a01e11fdaad55480c5f6ae0e116e9938b9fdf20ce226ddebb1f384b8684de6",
+    "base_wrapper_SHA256": "fce3e31b1bfb3a0f32cc1d1e15c700d5ddf00611c190b4211ea426fabeffd375",
+    "impl_wrapper_SHA256": "8f32dae36334c6655880bf7de92e8c230e0db318ecb8ecb2767b26ca8084e072",
+    "capacity_analysis": "analysis/bw1000/Kimi-splitV-root-actual24MLA-capacity-and-launch-cost-correction.json",
+    "capacity_analysis_SHA256": "056cdd904a876be6b13772b12ff78cf2f6dfbb65e51f199bdc810e592f818160"
+  },
+  "scope": {
+    "context": 32768,
+    "physical_pages": 132,
+    "page_tokens": 256,
+    "heads": 3,
+    "dtype": "BF16",
+    "fixed_driver_floor_bytes": 4294967296,
+    "compile_or_SDK_calls": 0,
+    "actual_GPU_steps": 0,
+    "new_cluster_reads": 0
+  },
+  "compact_cache_view": {
+    "physical_width": 320,
+    "strides_elements": [
+      245760,
+      960,
+      320,
+      1
+    ],
+    "key_width": 192,
+    "value_width": 128,
+    "base_predicate": "reject unequal K/V shapes",
+    "invalid_shape_only_V192_final_address_overruns_elements": 64
+  },
+  "hypothetical_padded_cache_view": {
+    "physical_width": 384,
+    "strides_elements": [
+      294912,
+      1152,
+      384,
+      1
+    ],
+    "KV_shape": [
+      132,
+      256,
+      3,
+      192
+    ],
+    "K_V_offsets_elements": [
+      0,
+      192
+    ],
+    "Q_and_output_shape": [
+      1,
+      1,
+      3,
+      192
+    ],
+    "logical_output_slice_channels": 128,
+    "lengths_and_block_table": {
+      "dtype": "Int32",
+      "lengths_shape": [
+        1
+      ],
+      "block_table_shape": [
+        1,
+        128
+      ]
+    },
+    "logical_bound": 32768,
+    "causal": true,
+    "window": [
+      -1,
+      -1
+    ],
+    "softcap": 0,
+    "num_splits": 0,
+    "LSE": false,
+    "append_arguments": false,
+    "adapter_metadata_predicate": "satisfiable from the pinned source",
+    "vendor_stride_acceptance_numeric_workspace": "UNKNOWN"
+  },
+  "cost": {
+    "per_cache_extra_persistent_payload_bytes": 12976128,
+    "24_cache_extra_persistent_payload_bytes": 311427072,
+    "24_cache_extra_persistent_payload_MiB": 297,
+    "bounded_adapter_explicit_per_call_stream_sync": 1,
+    "bounded_adapter_explicit_per_call_D2H_copies": 2,
+    "bounded_adapter_explicit_per_call_D2H_payload_bytes": 516,
+    "driver_peak_allocator_and_wall": "UNKNOWN"
+  },
+  "decision": "Defer. The persistent pad removes the compact payload saving, the bounded route adds host validation to each T1, and it has no prefill or LSE coverage. The vendor body and actual full workload floor and speed remain unqualified.",
+  "CPU_GO": false,
+  "GPU_GO": false,
+  "Model_GO": false
+}
