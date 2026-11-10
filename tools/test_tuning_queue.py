@@ -159,6 +159,21 @@ class TuningTest(unittest.TestCase):
         r=self.result();r.update(promote=True)
         with self.assertRaisesRegex(ValueError,'cannot promote'):self.q.finish(ident,r)
 
+    def test_failed_request_cannot_promote_but_terminal_can_release(self):
+        ident = self.active()
+        result = self.result()
+        result.update(passed=True, keeper_passed=True, promote=True, completed=19,
+                      failed=1, rejected=0, canceled=0, missing=0)
+        with self.assertRaisesRegex(ValueError, "cannot promote"):
+            self.q.finish(ident, result)
+        self.assertEqual(self.q.summary()["runs"], {"SUBMITTED": 1})
+
+        result.update(passed=False, promote=False)
+        self.q.finish(ident, result)
+        self.assertEqual(self.q.summary()["runs"], {"TERMINAL": 1})
+        saved = self.q.db.execute("SELECT result FROM runs WHERE id=?", (ident,)).fetchone()[0]
+        self.assertEqual(json.loads(saved), result)
+
     def test_prepare_rejects_unpublished_before_launch(self):
         spec=self.rows[0]
         binding=dict(root_reviewed=True,candidate=spec['id'],stage='component',rung=0,workload_SHA256=digest(spec['workload']),memory_floor_bytes=spec['memory_floor_bytes'],deadline_s=600,nodes_required=spec['nodes_required'],zone=spec['zone'],prerequisites_closed=spec['prerequisites'],prerequisite_evidence=['exact-prior-receipt'],artifacts=[dict(role=k,path='code/bw1000/example/'+k,SHA256='b'*64)for k in ['source','deps','claim','launcher']],publication_commit='a'*40)

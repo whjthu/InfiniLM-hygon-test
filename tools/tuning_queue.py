@@ -270,7 +270,8 @@ class Queue:
             require(result['qualification'] in STAGES, 'explicit qualification scope required')
             require(result['keeper_passed'] in (True, False, None), 'keeper outcome absent')
             if result.get('promote'):
-                require(result['passed'] is True and result['keeper_passed'] is True and result['missing'] == 0, 'failure/unknown cannot promote')
+                require(result['passed'] is True and result['keeper_passed'] is True
+                        and result['missing'] == 0 and result['failed'] == 0, 'failure/unknown cannot promote')
                 require(result['qualification'] == r['stage'], 'component result cannot promote model/service')
             self.db.execute('UPDATE runs SET state="TERMINAL",result=? WHERE id=?', (canonical(result).decode(),ident))
             self.event(ident, 'terminal', result)
