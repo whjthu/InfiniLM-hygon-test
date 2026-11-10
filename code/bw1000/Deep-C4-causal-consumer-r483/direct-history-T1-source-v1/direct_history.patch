@@ -1,0 +1,26 @@
+--- a/code/bw1000/Deep-C4-constant-slot-metadata-r482/Native-CPU-v1/native-src/deep_c4_constant_slot_metadata_r482.cpp
++++ b/code/bw1000/Deep-C4-constant-slot-metadata-r482/Native-CPU-v1/native-src/deep_c4_constant_slot_metadata_r482.cpp
+@@ -93,7 +93,22 @@
+    for(size_t i=before;i<after;++i)pending.slots.push_back(int64_t(request.row*capacity_+i));
+    begin+=request.tokens;new_begin+=after-before;continue;
+   }
+-  auto key=work.alloc({width,128},rt::DataType::kUInt8),scale=work.alloc({width,1},rt::DataType::kFloat32);r.setDeviceMemory(key->data(),0x7f,key->nbytes());r.setDeviceMemory(scale->data(),0xff,scale->nbytes());if(before){std::vector<int64_t>slots;for(size_t i=0;i<before;++i)slots.push_back(int64_t(request.row*capacity_+i));auto old=historical_batch.values?PagedIndexerCache::Packed{historical_batch.values->narrow({{0,historical_begin,before}}),historical_batch.scales->narrow({{0,historical_begin,before}})}:cache_->gather(r,slots);historical_begin+=before;work.held.insert(work.held.end(),{old.values,old.scales});key->narrow({{0,0,before}})->copy_from(r,old.values);scale->narrow({{0,0,before}})->copy_from(r,old.scales);}if(after>before){key->narrow({{0,before,after-before}})->copy_from(r,pending.new_keys.values->narrow({{0,new_begin,after-before}}));scale->narrow({{0,before,after-before}})->copy_from(r,pending.new_keys.scales->narrow({{0,new_begin,after-before}}));for(size_t i=before;i<after;++i)pending.slots.push_back(int64_t(request.row*capacity_+i));}new_begin+=after-before;
++  rt::Tensor key, scale;
++  const bool direct_history = requests.size() == 1 && request.tokens == 1 &&
++                              before != 0 && before == after;
++  if (direct_history) {
++   // A positive no-append T1 has exactly one full gathered history operand.
++   std::vector<int64_t> slots(before);
++   std::iota(slots.begin(), slots.end(), int64_t(request.row * capacity_));
++   auto history = cache_->gather(r, slots);
++   key = history.values;
++   scale = history.scales;
++   work.held.insert(work.held.end(), {key, scale});
++  } else {
++   key=work.alloc({width,128},rt::DataType::kUInt8);
++   scale=work.alloc({width,1},rt::DataType::kFloat32);
++   r.setDeviceMemory(key->data(),0x7f,key->nbytes());r.setDeviceMemory(scale->data(),0xff,scale->nbytes());if(before){std::vector<int64_t>slots;for(size_t i=0;i<before;++i)slots.push_back(int64_t(request.row*capacity_+i));auto old=historical_batch.values?PagedIndexerCache::Packed{historical_batch.values->narrow({{0,historical_begin,before}}),historical_batch.scales->narrow({{0,historical_begin,before}})}:cache_->gather(r,slots);historical_begin+=before;work.held.insert(work.held.end(),{old.values,old.scales});key->narrow({{0,0,before}})->copy_from(r,old.values);scale->narrow({{0,0,before}})->copy_from(r,old.scales);}if(after>before){key->narrow({{0,before,after-before}})->copy_from(r,pending.new_keys.values->narrow({{0,new_begin,after-before}}));scale->narrow({{0,before,after-before}})->copy_from(r,pending.new_keys.scales->narrow({{0,new_begin,after-before}}));for(size_t i=before;i<after;++i)pending.slots.push_back(int64_t(request.row*capacity_+i));}new_begin+=after-before;
++  }
+   std::vector<int32_t>visible(request.tokens);for(size_t i=0;i<request.tokens;++i)visible[i]=int32_t((request.past+i+1)/4);auto counts=work.alloc({request.tokens},rt::DataType::kInt32),scores=work.alloc({request.tokens,width},rt::DataType::kFloat32);r.memcpyH2D(counts->data(),visible.data(),visible.size()*4,false);ex::submit<infini::ops::DeepseekV4IndexerScores>(r,ex::RecordingPolicy::HostOnly,infini::ops::DeepseekV4IndexerScores::DefaultConfig(r.device().type()),scores,pending.query->narrow({{0,begin,request.tokens}}),pending.merged_weights->narrow({{0,begin,request.tokens}}),key,scale,counts,flag);status(r,flag);if(tp_>1)wide_r3443::reduce(r,scores,comm_,2);size_t selected=std::min(topk_,width);auto values=work.alloc({request.tokens,selected},rt::DataType::kFloat32),indices=work.alloc({request.tokens,selected},rt::DataType::kInt64);ex::submit<infini::ops::Topk>(r,infini::ops::Topk::DefaultConfig(r.device().type()),scores,int64_t(selected),int64_t{1},true,true,values,indices);pending.scores.push_back(scores);pending.indices.push_back(indices);begin+=request.tokens;
+  }
+  r.syncStream();{auto&c=smallt_stats_r9252.at(r.device().index());bool shortdecode=small_c4_r9252::decode(tokens,requests),eligible=small_c4_r9252::eligible(true,tokens,requests,topk_);c[0].fetch_add(shortdecode);c[1].fetch_add(eligible);c[2].fetch_add(shortdecode&&all_selected);c[3].fetch_add(shortdecode&&!all_selected);c[4].store(revision_);c[5].store(tokens);c[6].store(requests.size());c[7].store(eligible);}(all_selected?allselected_calls_r813:full_calls_r813).at(r.device().index()).fetch_add(1,std::memory_order_relaxed);return pending;
