@@ -1,0 +1,286 @@
+{
+  "id": "training-t06-sdxl-sdpa-pair-v1",
+  "training_case": "T06.sft",
+  "state": "TERMINAL_TWO_SDPA_ROUTES_PARAMETER_UPDATE_GATE_FAILED",
+  "claim_commit": "91de859edc360fc2956e8653207fd9a74cbf3311",
+  "framework_commit": "93edcb4c147194cd3b781bbcac197532eecb8862",
+  "observed_at_UTC": "2026-11-10T23:05:04.839147+00:00",
+  "parent_accounting": [
+    [
+      "1087656",
+      "llm-hold-long-20261111-0116",
+      "RUNNING",
+      "0:0",
+      "19591"
+    ]
+  ],
+  "accounting_columns": [
+    "JobIDRaw",
+    "JobName",
+    "State",
+    "ExitCode",
+    "ElapsedRaw"
+  ],
+  "steps": [
+    [
+      "1087656.85",
+      "t06-sdxl-sdpa-pair-v1-pre",
+      "COMPLETED",
+      "0:0",
+      "0"
+    ],
+    [
+      "1087656.86",
+      "t06-sdxl-sdpa-pair-v1",
+      "COMPLETED",
+      "0:0",
+      "135"
+    ],
+    [
+      "1087656.87",
+      "t06-sdxl-sdpa-pair-v1-post",
+      "COMPLETED",
+      "0:0",
+      "0"
+    ],
+    [
+      "1087656.88",
+      "t06-sdxl-sdpa-pair-v1-compare-default",
+      "FAILED",
+      "1:0",
+      "8"
+    ],
+    [
+      "1087656.89",
+      "t06-sdxl-sdpa-pair-v1-compare-math",
+      "FAILED",
+      "1:0",
+      "7"
+    ]
+  ],
+  "device": {
+    "step": "1087656.86",
+    "node": "f11r4n11",
+    "pci": "0000:09:00.0",
+    "hip": "6.3.26113",
+    "visible_cards": 1
+  },
+  "cleanup": {
+    "pre_step": "1087656.85",
+    "post_step": "1087656.87",
+    "same_boot_id": true,
+    "same_pci_inventory": true,
+    "visible_pci_devices": 8,
+    "pre_kfd_holder_count": 0,
+    "post_kfd_holder_count": 0
+  },
+  "arms": {
+    "default": {
+      "route": {
+        "arm": "default",
+        "selected_forward_operators": {
+          "aten::_scaled_dot_product_flash_attention": 140
+        },
+        "profiler_operator_counts": {
+          "aten::scaled_dot_product_attention": 140,
+          "aten::_scaled_dot_product_flash_attention": 140,
+          "autograd::engine::evaluate_function: ScaledDotProductFlashAttentionBackward0": 140,
+          "ScaledDotProductFlashAttentionBackward0": 140,
+          "aten::_scaled_dot_product_flash_attention_backward": 140,
+          "aten::_flash_attention_backward": 140
+        }
+      },
+      "compare_step": "1087656.88",
+      "checks": {
+        "exact_inputs_and_state_schema": true,
+        "loss": true,
+        "preclip_norm": true,
+        "prediction": true,
+        "gradients_before_clip": true,
+        "gradients_after_clip": true,
+        "gradient_direction": true,
+        "parameter_update": false,
+        "optimizer_exp_avg": true,
+        "optimizer_exp_avg_sq": true,
+        "nonzero_gradient_and_update": true,
+        "all_required_floating_values_finite": true
+      },
+      "metrics": {
+        "loss": {
+          "observed": 0.4887405335903168,
+          "reference": 0.48856455087661743,
+          "relative_error": 0.0003602036074528536
+        },
+        "preclip_norm": {
+          "observed": 0.59765625,
+          "reference": 0.59765625,
+          "relative_error": 0.0
+        },
+        "prediction": {
+          "reference_l2": 44.01533001058736,
+          "observed_l2": 44.02102358420951,
+          "relative_l2": 0.01378032866135803,
+          "cosine": 0.999905071916623
+        },
+        "gradients_before_clip": {
+          "reference_l2": 0.5975808392483847,
+          "observed_l2": 0.5983751757088719,
+          "relative_l2": 0.022971842946482662,
+          "cosine": 0.9997373797622271
+        },
+        "gradients_after_clip": {
+          "reference_l2": 0.5975808392483847,
+          "observed_l2": 0.5983751757088719,
+          "relative_l2": 0.022971842946482662,
+          "cosine": 0.9997373797622271
+        },
+        "parameter_update": {
+          "reference_l2": 0.16262293003030975,
+          "observed_l2": 0.1626242842956242,
+          "relative_l2": 0.19271900631141353,
+          "cosine": 0.9814298469834055
+        },
+        "optimizer_exp_avg": {
+          "reference_l2": 0.059756936468091375,
+          "observed_l2": 0.05983805022569048,
+          "relative_l2": 0.023090280751682783,
+          "cosine": 0.9997347008434966
+        },
+        "optimizer_exp_avg_sq": {
+          "reference_l2": 3.645868500028521e-06,
+          "observed_l2": 3.659034667790794e-06,
+          "relative_l2": 0.021701191404110032,
+          "cosine": 0.9997718735571949
+        }
+      },
+      "peak_reserved_bytes": 5840568320,
+      "observed_sha256": "f44f0d40d198699fcd3a635bb8fc744b907dcba05d8fe2284a2967f34f0192a3",
+      "reference_sha256": "c59a71095924edfdfb9ad7041b8ef32f747e7825557a313f72ad09a3b0b53036",
+      "policy_sha256": "075e86e54a3eeefb8d5aad219a23f16959d14bd42b22103cd5fe5302c823f6b5"
+    },
+    "math": {
+      "route": {
+        "arm": "math",
+        "selected_forward_operators": {
+          "aten::_scaled_dot_product_attention_math": 140
+        },
+        "profiler_operator_counts": {
+          "aten::scaled_dot_product_attention": 140,
+          "aten::_scaled_dot_product_attention_math": 140
+        }
+      },
+      "compare_step": "1087656.89",
+      "checks": {
+        "exact_inputs_and_state_schema": true,
+        "loss": true,
+        "preclip_norm": true,
+        "prediction": true,
+        "gradients_before_clip": true,
+        "gradients_after_clip": true,
+        "gradient_direction": true,
+        "parameter_update": false,
+        "optimizer_exp_avg": true,
+        "optimizer_exp_avg_sq": true,
+        "nonzero_gradient_and_update": true,
+        "all_required_floating_values_finite": true
+      },
+      "metrics": {
+        "loss": {
+          "observed": 0.4890039563179016,
+          "reference": 0.48856455087661743,
+          "relative_error": 0.0008993805229948981
+        },
+        "preclip_norm": {
+          "observed": 0.59765625,
+          "reference": 0.59765625,
+          "relative_error": 0.0
+        },
+        "prediction": {
+          "reference_l2": 44.01533001058736,
+          "observed_l2": 44.01135748725107,
+          "relative_l2": 0.013418878327749269,
+          "cosine": 0.9999099627988871
+        },
+        "gradients_before_clip": {
+          "reference_l2": 0.5975808392483847,
+          "observed_l2": 0.5982629686483847,
+          "relative_l2": 0.021968172440470793,
+          "cosine": 0.9997596255772335
+        },
+        "gradients_after_clip": {
+          "reference_l2": 0.5975808392483847,
+          "observed_l2": 0.5982629686483847,
+          "relative_l2": 0.021968172440470793,
+          "cosine": 0.9997596255772335
+        },
+        "parameter_update": {
+          "reference_l2": 0.16262293003030975,
+          "observed_l2": 0.16262546438314304,
+          "relative_l2": 0.1849689131856296,
+          "cosine": 0.9828935172902258
+        },
+        "optimizer_exp_avg": {
+          "reference_l2": 0.059756936468091375,
+          "observed_l2": 0.05982622616395065,
+          "relative_l2": 0.02207567742709298,
+          "cosine": 0.9997572859160286
+        },
+        "optimizer_exp_avg_sq": {
+          "reference_l2": 3.645868500028521e-06,
+          "observed_l2": 3.656451132897788e-06,
+          "relative_l2": 0.025455896168558045,
+          "cosine": 0.9996811368698806
+        }
+      },
+      "peak_reserved_bytes": 6037700608,
+      "observed_sha256": "d7ab6a19dca693ed5272a20fbd52577dc4f81e8e4a69aeaef08d043562dee561",
+      "reference_sha256": "c59a71095924edfdfb9ad7041b8ef32f747e7825557a313f72ad09a3b0b53036",
+      "policy_sha256": "075e86e54a3eeefb8d5aad219a23f16959d14bd42b22103cd5fe5302c823f6b5"
+    }
+  },
+  "parameter_update_relative_l2_max": 0.05,
+  "artifact_bindings": {
+    "assigned.json": {
+      "bytes": 118,
+      "SHA256": "1cd701759727b16acd881fe32fa2067fd8640125d0864885d9467deb2a12d0ef"
+    },
+    "route-decision.json": {
+      "bytes": 94,
+      "SHA256": "301fbaa23147c8a2cd4094a3ebacbd32e9b0f4dd02c207da490c64cc6fa63b49"
+    },
+    "route-default.json": {
+      "bytes": 500,
+      "SHA256": "7d4506e768063b51d5c8e7283c0f0ea5297a19bc385f0509f3da53e7938368eb"
+    },
+    "route-math.json": {
+      "bytes": 247,
+      "SHA256": "f0c7664e37dd64f362f37ba5f361b54bf6f0f75a4d2412f14ddf3ea992a9ea03"
+    },
+    "replay-default/summary.json": {
+      "bytes": 935,
+      "SHA256": "525c9fb788e06d33d70a6b34d44fd99bb8ef550f23eac295128834721830d599"
+    },
+    "replay-math/summary.json": {
+      "bytes": 935,
+      "SHA256": "1167c911628da44fd9fe8c90212b8b2920279a5166c1859727f981d9b27cd66c"
+    },
+    "compare-default.json": {
+      "bytes": 1784062,
+      "SHA256": "043356564d1801bd1d4a5688ae0811de868b5cb9ef40de071c9f0e670860a3cb"
+    },
+    "compare-math.json": {
+      "bytes": 1784046,
+      "SHA256": "93f42b3748024adbfc4df57a9852c557e76c1119fd332e4b2474bf1b0b4a1ba9"
+    },
+    "events.jsonl": {
+      "bytes": 2617,
+      "SHA256": "9697369a0906a34f56071226ce5db91a8656d91ab1c7d3b566679b3ba495d777"
+    }
+  },
+  "private_output": "results/training-t06-sdxl-sdpa-pair-v1",
+  "disposition": "Close the SDPA backend-only candidate. Distinct observed routes each fail the unchanged parameter-update gate. Common contributors remain unlocalized.",
+  "numerical_alignment": false,
+  "continuous_25_steps_qualified": false,
+  "formal_performance": false,
+  "quality_effect": false
+}
