@@ -23,7 +23,7 @@ GLM：prefill chunk512/1024/2048/4096 × owner cores2/4 × compact/local，共16
 
 先源码/静态成本筛选→必要CPU闭包→实际组件数值→固定整模型负载→宽质量→服务曲线。每个family组件最多2个首波幸存候选。Q/K成本只是FA调用和显式临时bytes，SDK workspace/driver峰未知，不能按FA次数宣称加速。当前Q32/K6144、12288的额外显式buffer约6.75、20.25MiB，均不能用组件48MiB观察余量证明整模型fit。
 
-按预注册3、9、27个完整配对测量单位分rung，最多保留top1/3；不得截短题、减少context、改变生成预算来缩rung。每次先正常reset/quiescent；同Native/权重/资源、支持切换的runtime参数尽量同一次加载跑多个arm。需要换编译实现/数学的配置另冻结库，不能热改活跃共享依赖。基线采用ABBA/交错、记录warm顺序/JIT；不挑cold baseline美化。缓存旧证据用于资格和去重，新配对如需基线只随新对照一起跑，不独立重复旧套件。
+按预注册3、9、27个完整配对测量单位分rung，最多保留top1/3。排序的 `--rung 0/1/2` 分别核对 3/9/27 对，默认第 0 轮，配对数不符的候选保留在拒绝列表；不得截短题、减少context、改变生成预算来缩rung。每次先正常reset/quiescent；同Native/权重/资源、支持切换的runtime参数尽量同一次加载跑多个arm。需要换编译实现/数学的配置另冻结库，不能热改活跃共享依赖。基线采用ABBA/交错、记录warm顺序/JIT；不挑cold baseline美化。缓存旧证据用于资格和去重，新配对如需基线只随新对照一起跑，不独立重复旧套件。
 
 晋级依据预热后同口径逐用户rate配对、质量、显存floor和生命周期；报告TTFT/ITL P95/P99、吞吐/全部卡、goodput、load/queue/测量/质量耗时。bootstrap只作筛选不代表正式NI；正式NI margin目前未预设，不能捏造。质量32题仅screen，后续沿原固定256题/臂及完整分母。component不能与model/service同排名。未知、失败、拒绝、取消、cap、未完成全部保留，失败不因后见文件可见洗PASS。
 
@@ -47,7 +47,7 @@ tools/tuning_queue.py reserve chosen-plan.json fresh-fleet-idle.json
 tools/tuning_queue.py submitted RUN original-handle.json
 tools/tuning_queue.py unknown RUN original-handle.json
 tools/tuning_queue.py finish RUN original-terminal-and-post.json
-tools/tuning_queue.py rank same-scope-paired-results.json
+tools/tuning_queue.py rank same-scope-paired-results.json --rung 0
 ```
 
 ## root集成

@@ -15,6 +15,7 @@ import subprocess
 import time
 
 ACTIVE = ('RESERVED', 'SUBMITTED', 'UNKNOWN')
+RUNG_PAIR_COUNTS = (3, 9, 27)
 STAGES = ('source', 'CPU', 'component', 'model', 'quality', 'service')
 
 def canonical(x):
@@ -293,6 +294,8 @@ def select_next_rung(rows, keep_fraction=1/3, min_pairs=3):
     import random
     import statistics
     require(0 < keep_fraction <= 1/3, 'invalid retention: maximum one third')
+    require(type(min_pairs) is int and min_pairs in RUNG_PAIR_COUNTS,
+            'registered pair budget must be 3, 9 or 27')
     for r in rows:
         require({'model','hardware','precision','scope','workload_SHA256','weights_SHA256','metric'} <= set(r['comparison']), 'incomplete comparison identity')
         require(r['comparison']['scope'] in ('component','model','service'), 'build cannot rank as performance')
@@ -312,7 +315,10 @@ def select_next_rung(rows, keep_fraction=1/3, min_pairs=3):
         if r['missing'] or r['failed']:bad.append('incomplete/failed denominator')
         if not r['quality_screen_passed']:bad.append('quality screen')
         pairs=r['warm_per_user_ratios']
-        if len(pairs)<min_pairs or any(not math.isfinite(x) or x<=0 for x in pairs):bad.append('insufficient warm paired measurements')
+        if len(pairs) != min_pairs:
+            bad.append(f'exactly {min_pairs} warm paired measurements required, observed {len(pairs)}')
+        elif any(type(x) not in (int, float) or not math.isfinite(x) or x <= 0 for x in pairs):
+            bad.append('invalid warm paired measurement')
         if bad:
             rejected.append(dict(candidate=r['candidate'],reasons=bad));continue
         rng=random.Random(digest([r['candidate'],pairs]))
@@ -326,7 +332,8 @@ def select_next_rung(rows, keep_fraction=1/3, min_pairs=3):
     accepted.sort(key=lambda r:(-r['ratio95'][0],r['candidate']))
     keep = min(len(rows) // 3, math.floor(len(rows) * keep_fraction))
     return dict(promoted=accepted[:keep],not_promoted=rejected+accepted[keep:],
-                formal_NI_proven=False,goal_qualified=False,retention=keep_fraction)
+                formal_NI_proven=False,goal_qualified=False,retention=keep_fraction,
+                required_warm_pairs=min_pairs)
 
 
 def main():
@@ -338,8 +345,10 @@ def main():
                          ('submitted',['run','handle']),('unknown',['run','handle']),('finish',['run','result']),('retire-ready',['run','proof']),('summary',[])]:
         p=sub.add_parser(name)
         for f in fields:p.add_argument(f)
+        if name == 'rank':
+            p.add_argument('--rung', type=int, choices=range(len(RUNG_PAIR_COUNTS)), default=0)
     args=a.parse_args();read=lambda p:json.loads(Path(p).read_bytes())
-    if args.command=='rank':out=select_next_rung(read(args.results))
+    if args.command=='rank':out=select_next_rung(read(args.results), min_pairs=RUNG_PAIR_COUNTS[args.rung])
     elif args.command=='expand':out=expand(read(args.campaign))
     else:
         q=Queue(args.db)

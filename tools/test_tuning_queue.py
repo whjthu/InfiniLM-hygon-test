@@ -174,7 +174,7 @@ class TuningTest(unittest.TestCase):
         rows=[]
         for name,ratios in [('faster',[1.2]*9),('noise',[.9,1,1.1]*3),('slower',[.5]*9)]:
             rows.append(dict(candidate=name,comparison=self.comparison('service'),numeric_passed=True,post_clean=True,keeper_passed=True,planned=20,completed=20,rejected=0,canceled=0,missing=0,failed=0,baseline_completed=20,baseline_rejected=0,baseline_canceled=0,quality_correct=18,baseline_quality_correct=18,quality_screen_passed=True,warm_per_user_ratios=ratios))
-        selected=select_next_rung(rows)
+        selected=select_next_rung(rows, min_pairs=9)
         self.assertEqual([r['candidate']for r in selected['promoted']],['faster'])
         self.assertFalse(selected['goal_qualified']);self.assertFalse(selected['formal_NI_proven'])
 
@@ -199,9 +199,29 @@ class TuningTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "retention"):
             select_next_rung([winning_row(0)], keep_fraction=0.5)
 
+    def test_rank_uses_exact_pair_budget_and_preserves_rejections(self):
+        def winning_row(index, pairs):
+            return dict(candidate=f"fast-{index}", comparison=self.comparison("service"),
+                        numeric_passed=True, post_clean=True, keeper_passed=True,
+                        planned=20, completed=20, rejected=0, canceled=0, missing=0, failed=0,
+                        baseline_completed=20, baseline_rejected=0, baseline_canceled=0,
+                        quality_correct=18, baseline_quality_correct=18, quality_screen_passed=True,
+                        warm_per_user_ratios=[1.2 + index / 10] * pairs)
+
+        for budget in (3, 9, 27):
+            with self.subTest(budget=budget):
+                ranked = select_next_rung([winning_row(0, budget - 1), winning_row(1, budget),
+                                           winning_row(2, budget + 1)], min_pairs=budget)
+                self.assertEqual([r["candidate"] for r in ranked["promoted"]], ["fast-1"])
+                self.assertEqual({r["candidate"] for r in ranked["not_promoted"]}, {"fast-0", "fast-2"})
+                self.assertTrue(all("exact" in r["reasons"][0] for r in ranked["not_promoted"]))
+
+        with self.assertRaisesRegex(ValueError, "registered pair budget"):
+            select_next_rung([winning_row(0, 4)], min_pairs=4)
+
     def test_fast_completed_subset_with_many_rejects_cannot_promote(self):
         row=dict(candidate='rejects-fast',comparison=self.comparison('service'),numeric_passed=True,post_clean=True,keeper_passed=True,planned=20,completed=5,rejected=15,canceled=0,missing=0,failed=0,baseline_completed=20,baseline_rejected=0,baseline_canceled=0,quality_correct=5,baseline_quality_correct=18,quality_screen_passed=True,warm_per_user_ratios=[3.0]*9)
-        self.assertEqual(select_next_rung([row])['promoted'],[])
+        self.assertEqual(select_next_rung([row], min_pairs=9)['promoted'],[])
 
     def test_remote_wall_clock_skew_does_not_authorize_or_block(self):
         self.ready();self.fleet['observed_epoch']+=3600
