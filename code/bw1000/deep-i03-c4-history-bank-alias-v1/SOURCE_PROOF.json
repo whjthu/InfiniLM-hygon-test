@@ -1,0 +1,58 @@
+{
+  "measured_parent": "results/bw1000/2026-11-10/deep-i03-c4-short-http-measurement-v1-terminal.json",
+  "measured_parent_SHA256": "d37d174f81050ee960f23fe1edb4d2319d0d7e6ffcd0c47a53ad456f6500e95f",
+  "scope": "Default-OFF candidate, source and CPU compilation gate only",
+  "removed_in_eligible_branch": [
+    "one BF16 compressed_bank allocation",
+    "one full poison fill",
+    "one full-bank Tensor copy_from"
+  ],
+  "preserved": [
+    "same TemporalCompressor gather and cache validation",
+    "same FP8 cache decoding",
+    "same index scoring, TP reduction and TopK",
+    "same attention inputs and kernel",
+    "same raw sliding-window staging",
+    "same boundary-token and multi-request paths",
+    "same commit, sync, exception drain, parameters, context and memory floor"
+  ],
+  "alias_invariants": [
+    "exactly one request and token",
+    "no compressed boundary in pending",
+    "compressed_total == floor(past/4) > 0",
+    "one gather chunk <= 65536 keys",
+    "gather returns the complete BF16[compressed_total,512] bank",
+    "Work holds the gathered tensor until original stream drain and return",
+    "attention reads the bank; no later mutation of the aliased input"
+  ],
+  "no_math_replacement": true,
+  "target_Native_build": false,
+  "GPU_GO": false,
+  "policy_update_contract": "Set only between fully completed serial owner requests; setter rejects any active CSA call.",
+  "counters": [
+    "successful_CSA_calls",
+    "successful_eligible_calls",
+    "successful_alias_calls",
+    "successful_avoided_copy_bytes"
+  ],
+  "CPU_checks": {
+    "source_restore_exact": true,
+    "declared_edits": 4,
+    "original_CSA_SHA256": "2611335a7d57ee12411f3d7d5f076bf138f6db17d8607fec184e8d209bff8c8c",
+    "candidate_CSA_SHA256": "ce08de9a8a3d61d3db2703a0c7f0d3e79b34cc59963cdda094c73dd9f6fab18e",
+    "context_positions": 32768,
+    "eligible_positions": 24573,
+    "rejected_positions": 8195,
+    "guarded_updates_while_CSA_active": true,
+    "exception_releases_policy": true,
+    "default_OFF": true,
+    "compile_rc": 0,
+    "run_rc": 0,
+    "elapsed_s": 1.6090000001713634,
+    "Native_loaded": false,
+    "GPU_initialized": false
+  },
+  "first_discriminating_GPU_experiment": "After passive build verification, compare OFF/ON, ON/OFF, OFF/ON on six complete identical original HTTP requests in one model load, observers disabled in all arms. Require guarded request lifecycle, matching full-workload semantics, all8 alias counters and independent post-clean. Numeric bank identity or exact per-prefix logits remains to be checked in the actual caller.",
+  "promotion": "First component/caller numerical and lifecycle checks, then paired complete-window timing, broad quality and actual full-context workload before promotion.",
+  "expected_wall_gain": "UNKNOWN; the 19..28ms parent enclosure includes unrelated SWA staging, compressor gather and cache validation"
+}
