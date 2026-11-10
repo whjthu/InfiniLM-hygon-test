@@ -178,6 +178,27 @@ class TuningTest(unittest.TestCase):
         self.assertEqual([r['candidate']for r in selected['promoted']],['faster'])
         self.assertFalse(selected['goal_qualified']);self.assertFalse(selected['formal_NI_proven'])
 
+    def test_retention_is_at_most_one_third_of_unique_candidates(self):
+        def winning_row(index):
+            return dict(candidate=f"fast-{index}", comparison=self.comparison("service"),
+                        numeric_passed=True, post_clean=True, keeper_passed=True,
+                        planned=20, completed=20, rejected=0, canceled=0, missing=0, failed=0,
+                        baseline_completed=20, baseline_rejected=0, baseline_canceled=0,
+                        quality_correct=18, baseline_quality_correct=18, quality_screen_passed=True,
+                        warm_per_user_ratios=[1.2] * 3)
+
+        for size in range(7):
+            with self.subTest(size=size):
+                rows = [winning_row(i) for i in range(size)]
+                ranked = select_next_rung(rows)
+                self.assertEqual(len(ranked["promoted"]), size // 3)
+                self.assertEqual(len(ranked["not_promoted"]), size - size // 3)
+
+        with self.assertRaisesRegex(ValueError, "unique"):
+            select_next_rung([winning_row(0), winning_row(0), winning_row(1)])
+        with self.assertRaisesRegex(ValueError, "retention"):
+            select_next_rung([winning_row(0)], keep_fraction=0.5)
+
     def test_fast_completed_subset_with_many_rejects_cannot_promote(self):
         row=dict(candidate='rejects-fast',comparison=self.comparison('service'),numeric_passed=True,post_clean=True,keeper_passed=True,planned=20,completed=5,rejected=15,canceled=0,missing=0,failed=0,baseline_completed=20,baseline_rejected=0,baseline_canceled=0,quality_correct=5,baseline_quality_correct=18,quality_screen_passed=True,warm_per_user_ratios=[3.0]*9)
         self.assertEqual(select_next_rung([row])['promoted'],[])

@@ -292,12 +292,15 @@ def select_next_rung(rows, keep_fraction=1/3, min_pairs=3):
     """
     import random
     import statistics
-    require(0 < keep_fraction <= 1, 'invalid retention')
+    require(0 < keep_fraction <= 1/3, 'invalid retention: maximum one third')
     for r in rows:
         require({'model','hardware','precision','scope','workload_SHA256','weights_SHA256','metric'} <= set(r['comparison']), 'incomplete comparison identity')
         require(r['comparison']['scope'] in ('component','model','service'), 'build cannot rank as performance')
     keys={digest(r['comparison']) for r in rows}
     require(len(keys)<=1, 'different hardware/workload/precision/scope comparisons')
+    candidates = [r['candidate'] for r in rows]
+    require(all(isinstance(candidate, str) and candidate for candidate in candidates)
+            and len(set(candidates)) == len(candidates), 'unique candidate IDs required')
     accepted, rejected=[],[]
     for r in rows:
         bad=[]
@@ -321,7 +324,7 @@ def select_next_rung(rows, keep_fraction=1/3, min_pairs=3):
             rejected.append(dict(candidate=r['candidate'],reasons=['speedup not resolved above1'],ratio95=[lo,hi]));continue
         accepted.append(dict(candidate=r['candidate'],median_ratio=statistics.median(pairs),ratio95=[lo,hi]))
     accepted.sort(key=lambda r:(-r['ratio95'][0],r['candidate']))
-    keep=math.ceil(len(rows)*keep_fraction)
+    keep = min(len(rows) // 3, math.floor(len(rows) * keep_fraction))
     return dict(promoted=accepted[:keep],not_promoted=rejected+accepted[keep:],
                 formal_NI_proven=False,goal_qualified=False,retention=keep_fraction)
 
