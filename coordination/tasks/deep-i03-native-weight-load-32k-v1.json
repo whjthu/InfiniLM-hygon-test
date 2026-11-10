@@ -1,0 +1,94 @@
+{
+  "id": "deep-i03-native-weight-load-32k-v1",
+  "owner": "/root",
+  "state": "CLAIMED_PRELAUNCH",
+  "source": "code/bw1000/deep-i03-native-weight-load-32k-v1",
+  "previous_construction_step": "1087656.51",
+  "previous_construction_result": "results/bw1000/2026-11-10/deep-i03-native-key-inventory-host-v3-terminal.json",
+  "allocation_observed": {
+    "at_UTC": "2026-11-10T20:25:48Z",
+    "parent": "1087656",
+    "state": "RUNNING",
+    "nodes": 40,
+    "time_left": "29-21:12:45",
+    "non_parent_steps_observed": 0
+  },
+  "claim": {
+    "label": "i03-deep-32k-native-weight-load-v1",
+    "parent": "1087656",
+    "node": "f12r3n12",
+    "gpu_step_count_max": 1,
+    "srun_options": [
+      "--jobid=1087656",
+      "--job-name=i03-deep-32k-native-weight-load-v1",
+      "--exact",
+      "--cpu-bind=none",
+      "--nodes=1",
+      "--ntasks=1",
+      "--cpus-per-task=64",
+      "--nodelist=f12r3n12",
+      "--gres=dcu:8",
+      "--mem=128000M",
+      "--immediate=5",
+      "--input=0",
+      "--time=00:30:00"
+    ],
+    "entry": {
+      "tp": 8,
+      "pp": 1,
+      "rows": 1,
+      "context": 32768,
+      "native_SHA256": "a314ae6891977316189f875b793ed3f2e2eb0898110ad0cc382d2569eaf31dc1",
+      "source_manifest_SHA256": "bc7541b86afd15894d374c774ca3ed5093c623134bc493467518e4b7b3a2a98a",
+      "loader_SHA256": "40f93b0114ecafc11ec643e99602107f94aa0bca85df38f246c54cc57ddbaef1",
+      "checkpoint_config_SHA256": "fd2ad6f5dbd77e55a49e9b2ff29c89030fbe4b538e8870c183d194648767be09",
+      "checkpoint_index_SHA256": "7e975ba3bef8947a94e7da0abd60888375b232b4dfad883d59653e65c6ba522a",
+      "required_key_count": 67569,
+      "required_keys_SHA256": "0f75a01821e63110339f40f44ff00681fc3e4e37d0c0a7bacdd1557d0ffe70c6",
+      "actual_weight_loads_requested": 1,
+      "forward_calls_requested": 0,
+      "service_requested": false
+    },
+    "deadline": {
+      "origin": "single epoch captured immediately before the GPU dispatch",
+      "seconds": 1800,
+      "inside_termination_reserve_seconds": 8,
+      "kill_after_seconds": 5,
+      "reason": "bounded initial full residency observation; no measured load duration at this geometry"
+    },
+    "memory": {
+      "floor_bytes": 17179869184,
+      "boundaries": [
+        "before create",
+        "after create",
+        "each completed load batch",
+        "after native finish"
+      ],
+      "scope": "point samples on eight visible devices; gaps are unobserved"
+    },
+    "requires_before_dispatch": [
+      "publish this exact claim and package",
+      "current running parent and assigned I03 node; no existing step or allocation with this label",
+      "same-node fresh CPU snapshot with terminal accounting, eight PCI devices and no GPU holders",
+      "host lease check for identical PCI identities, eight unique KFD IDs, clean holders and same boot within 45 seconds"
+    ],
+    "requires_after_dispatch": [
+      "persist scoped progress and actual accounting",
+      "normal native destroy with eight observed owners and none surviving",
+      "independent terminal CPU post snapshot after original GPU step",
+      "independent read_weight_result.py review"
+    ],
+    "files_SHA256": {
+      "host_load_gate.py": "f113988383e60169cca7e27a445043de46cffdd69c55cb67e1991b67bc941d9c",
+      "inside.sh": "0ee090b57ce280c5ead42b46156df19a370e9ad396cd484b3ab8bef4afe8b50a",
+      "load_probe.py": "41d1e74c0d527617179f29f488e6d48d122c9c4f20cd689f8da382fc97e7d769",
+      "read_weight_result.py": "f7c8b6933b8aaaf057e1fabdc75c00fddaec81d27dcd17cee447bc5a3e3f13bf",
+      "split_admission.py": "5f79d2607f2b6d54e80f1589db01d107e0c6af17ffad0727e094913fb6fa1462",
+      "local-qualification.json": "30dfa29ccb5a48b3eaa8a32ea9d8aed5593d9f4a308fe96042092ff202ccd0e1"
+    }
+  },
+  "GPU_step": null,
+  "full_checkpoint_loaded": null,
+  "forward_executed": false,
+  "service_started": false
+}
