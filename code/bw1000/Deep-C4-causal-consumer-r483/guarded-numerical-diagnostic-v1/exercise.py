@@ -58,6 +58,33 @@ def selected_outputs(trial,width,sink,label):
         result[name]=dict(metadata=m,SHA256=H(b))
     return result
 
+def summarize_abort_replay(records):
+    """Compare the same pinned T1 before abort and before its subsequent commit."""
+    warm, primary = [row for row in records if row["label"] in ("warm_abort", "primary")]
+    if (warm["label"] != "warm_abort" or primary["label"] != "primary"
+            or primary["step"] != warm["step"] + 1
+            or warm["past_before"] != 8496 or primary["past_before"] != 8496
+            or warm["tokens"] != 1 or primary["tokens"] != 1
+            or warm["input_pins"] != primary["input_pins"]):
+        raise ValueError("abort replay inputs or schedule differ")
+    warm_outputs, primary_outputs = warm["outputs"], primary["outputs"]
+    for field in ("scores", "indices"):
+        if warm_outputs[field]["metadata"] != primary_outputs[field]["metadata"]:
+            raise ValueError("abort replay output geometry differs")
+    scores_equal = warm_outputs["scores"]["SHA256"] == primary_outputs["scores"]["SHA256"]
+    indices_equal = warm_outputs["indices"]["SHA256"] == primary_outputs["indices"]["SHA256"]
+    if not scores_equal:
+        outcome = "score_bytes_differ"
+    elif not indices_equal:
+        # Both independently passed descending TopK against the same score bytes.
+        outcome = "same_scores_topk_ties"
+    else:
+        outcome = "identical_output_bytes"
+    return dict(steps=[warm["step"], primary["step"]], past=8496,
+                score_bytes_equal=scores_equal, topk_index_bytes_equal=indices_equal,
+                outcome=outcome)
+
+
 def _run(trial,pinned,deadline,sink,progress,numeric_audit,cache_capture_factory,input_audit):
     """Requires already verified real checkpoint load. No create/load/close or job submission."""
     start=time.monotonic()
@@ -139,6 +166,10 @@ def _run(trial,pinned,deadline,sink,progress,numeric_audit,cache_capture_factory
     if any(final.get(k)!=v for k,v in counts.items()):raise ValueError('actual Native counter mismatch')
     final_input_audit = check_audit(final)
     audit_report = {'input_audit': {'postload': initial_input_audit, 'final': final_input_audit}} if input_audit is not None else {}
+    if numeric_audit is not None:
+        replay = summarize_abort_replay(records)
+        audit_report["abort_replay"] = replay
+        progress(dict(event="abort_replay", report=replay))
     return dict(counts=counts,final_past=past,records=records,whole_schedule_wall_s=time.monotonic()-start,
                 timing='Native prepare enclosure excludes uploads/output audit; API and wholewall retain other costs; none is exclusiveGPUbusy',
                 numeric_audit=numeric_records, cache_audit=cache_records,
