@@ -1,0 +1,9 @@
+# SDXL BF16 reduction policy diagnosis
+
+One candidate on the original T06 node and fixed input. The already closed default and math-SDPA arms failed the unchanged5% update gate; original CPU diagnosis localized99% of squared update error to27690 opposite-sign gradient elements. This candidate changes only the native allow_bf16_reduced_precision_reduction flag from True to False. It records policy readback and actual SDPA/ATen operator counts; no actual accumulator precision is inferred from a flag alone.
+
+The original native BF16 model/LoRA,initial state,inputs,loss,AdamW and comparator remain byte-identical. No positive result authorizes25-step/performance/effect promotion. If the native flag is alreadyFalse,the CPU policy check stops without GPU execution. This is a numerical diagnosis,not paired performance; the earlier closed reference is reused,not replayed.
+
+One original1200second epoch covers installation,CPU policy,unique GPU dispatch,cleanup and independent CPU comparison. Native stops at epoch+660,GPU cap at epoch+780. Slurm caps shrink from the original epoch. Qualified bounded terminal accounting helper is copied unchanged. Fresh node8PCI/KFD gate,one visible GPU,independent post; record all missing/RUNNING/failed accounting without replay. Source subset7files from the unified319file framework is verified; do not claim a full319file target installation.
+
+The original GPU163 failed before model/SDK initialization on an unassigned KFD topology read; post164 was independently clean. This scope repairs only single-card admission. It preserves GPU163FAIL and reuses successful CPU161 policy/runtime; fresh provider version/source SHA checks occur inside the new native process. The assigned-KFD helper must bind one real runtime PCI and positive KFD GPU ID; unavailable assigned metadata remains fatal. Six stdlib permission/mapping boundary tests run on the host before the new finite controller.

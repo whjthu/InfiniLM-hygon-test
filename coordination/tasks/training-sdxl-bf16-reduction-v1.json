@@ -1,8 +1,8 @@
 {
   "owner": "root",
   "case": "T06.sft",
-  "CPU_GO": true,
-  "GPU_GO": true,
+  "CPU_GO": false,
+  "GPU_GO": false,
   "Model_GO": false,
   "parent": "1087656",
   "node": "f11r4n11",
@@ -31,7 +31,7 @@
   "quality_effect": false,
   "replay_allowed": false,
   "native_work_offset": 600,
-  "state": "PUBLISHED_UNIQUE_BF16_REDUCTION_CANDIDATE_NOT_EXECUTED",
+  "state": "TERMINAL_GPU_ADMISSION_FAIL_BEFORE_MODEL",
   "source": "code/bw1000/training-sdxl-bf16-reduction-v1",
   "source_SHA256": {
     "CLAIM.json": "adc4bc1e08f1cf7f970b064e8166ff124147386467b6d643fb941bbae8ee63a0",
@@ -84,5 +84,13 @@
     "SHA256": "7d59868eb8424cc96e1bd97beffccbed8c6d6f31344fae9bbde8ba675264e883"
   },
   "hypothesis": "Native BF16 reduced-precision GEMM reduction contributes to the observed gradient-sign divergence and first AdamW delta error. No improvement is assumed.",
-  "next": "Invoke this exact published one-shot controller. Fresh CPU policy/runtime gate and compute PCI/KFD snapshot must pass before the unique real GPU update. If flag alreadyFalse,stop CPU-only. Independently consume actual terminal/accounting/post and unchanged comparator; do not repeat source/default/math arms or promote before the numerical gate."
+  "next": "Preserve this failure and reuse CPU161. Newv2 implements exact runtime assigned PCI/KFD binding and does not read unrelated GPU IDs. No original163 replay or reuse of a guessed handle.",
+  "result": {
+    "path": "results/bw1000/2026-11-12/training-sdxl-original163-single-card-admission-failure.json",
+    "SHA256": "70626815bacde389849034dcb65b7ef9388f20e73aa38d9c79fa7cfcb76ada82"
+  },
+  "actual_GPU_step": "1087656.163",
+  "actual_GPU_state": "FAILED",
+  "actual_optimizer_updates": 0,
+  "post_step": "1087656.164"
 }

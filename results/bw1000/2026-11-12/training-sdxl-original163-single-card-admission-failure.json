@@ -1,0 +1,93 @@
+{
+  "state": "TERMINAL_GPU_ADMISSION_FAIL_BEFORE_MODEL",
+  "case": "T06.sft",
+  "observed_utc": "2026-11-11T23:38:43.237648+00:00",
+  "claim": "ca08790746582857f43cddb0b999c46218a203fd",
+  "original_request": "752fc745dfc24032869e30f5d63cead6",
+  "original_GPU_step": "1087656.163",
+  "original_GPU_state": "FAILED",
+  "original_GPU_exit": "1:0",
+  "original_GPU_elapsed_seconds": 1,
+  "post_step": "1087656.164",
+  "post_clean": true,
+  "pre_and_post_KFD_holders": 0,
+  "same_physical_eight_PCI": true,
+  "same_boot": true,
+  "actual_model_loads": 0,
+  "actual_optimizer_updates": 0,
+  "explicit_torch_GPU_initialization_reached": false,
+  "container_implicit_SDK_status": "UNKNOWN",
+  "original_CPU_policy_step": "1087656.161",
+  "original_policy": true,
+  "accounting_columns": [
+    "JobIDRaw",
+    "JobName",
+    "State",
+    "ExitCode",
+    "ElapsedRaw",
+    "NodeList"
+  ],
+  "accounting": [
+    [
+      "1087656.161",
+      "training-sdxl-bf16-reduction-v1-policy",
+      "COMPLETED",
+      "0:0",
+      "4",
+      "f11r4n11"
+    ],
+    [
+      "1087656.162",
+      "training-sdxl-bf16-reduction-v1-pre",
+      "COMPLETED",
+      "0:0",
+      "0",
+      "f11r4n11"
+    ],
+    [
+      "1087656.163",
+      "training-sdxl-bf16-reduction-v1",
+      "FAILED",
+      "1:0",
+      "1",
+      "f11r4n11"
+    ],
+    [
+      "1087656.164",
+      "training-sdxl-bf16-reduction-v1-post",
+      "COMPLETED",
+      "0:0",
+      "0",
+      "f11r4n11"
+    ]
+  ],
+  "error_type": "PermissionError",
+  "cause": "Old all-eight KFD topology enumeration read a GPU identity hidden by the one-card step. It failed before torch/model code.",
+  "evidence": {
+    "independent_failure_SHA256": "cf0a9decb0374899a2f0e58b3bdd1b13565d2c060d64ad9061d9900f432de856",
+    "controller_result_SHA256": "ec08884c31eb568c2fb6b27b6fa4758753a7fc4315323be01a9e10e235a9530e",
+    "logs": {
+      "training-sdxl-bf16-reduction-v1-policy.log": {
+        "bytes": 147,
+        "SHA256": "603cde3fb6156b1573795a92e1d7afcb139a86c4eec74fc60353acfb605d94db"
+      },
+      "training-sdxl-bf16-reduction-v1-pre.log": {
+        "bytes": 355,
+        "SHA256": "065eb196fe8e6002b9c329a913cccbdcc1472aa3f248e313756b9d17a04a3e65"
+      },
+      "training-sdxl-bf16-reduction-v1.log": {
+        "bytes": 1122,
+        "SHA256": "e2730d18efc603a7a91df2a6e06483fcf690a7b72d6c675fff9e17396bf3576c"
+      },
+      "training-sdxl-bf16-reduction-v1-post.log": {
+        "bytes": 355,
+        "SHA256": "8d47c3c0909e773de72db1c9e1f77f792445a749050f70f5b176753266bf44d3"
+      }
+    }
+  },
+  "numerical_result": null,
+  "causal_round_increment": 0,
+  "formal_performance": false,
+  "quality_effect": false,
+  "next": "Preserve this failure and reuse CPU161. Newv2 implements exact runtime assigned PCI/KFD binding and does not read unrelated GPU IDs. No original163 replay or reuse of a guessed handle."
+}
