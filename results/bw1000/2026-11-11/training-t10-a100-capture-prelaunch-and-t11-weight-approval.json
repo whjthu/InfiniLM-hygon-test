@@ -1,0 +1,121 @@
+{
+  "id": "training-t10-a100-capture-prelaunch-and-t11-weight-approval",
+  "claim_commit": "94f4b7f9bdf608df1bd722bf15eccb37a9ce5876",
+  "T10": {
+    "state": "PRELAUNCH_REJECTED_A100_COMPUTE_PIDS_REAPPEARED",
+    "task": "coordination/tasks/training-t10-trellis-a100-lora-operands-v1.json",
+    "transport_returncode": 1,
+    "stderr_SHA256": "d9ea0351e38468c65d13bd68ece0c8e27acb654380ffee23111f76655edf8c49",
+    "exception_classes": [
+      "AssertionError"
+    ],
+    "GPU_work_started": false,
+    "reason": "The receiver creates its intended directory before launching the child. Independent reconciliation found the intended directory absent and eight active compute-app records. The exact assertion traceback line was not retained.",
+    "original_intended_reconciliation": {
+      "SHA256": "23be8c61eaedede9f488d00b69e5fef60eebd2bb63af35248d126cbbf263f733",
+      "value": {
+        "checked_utc": "2026-11-11T01:16:47.479113+00:00",
+        "exists": false,
+        "compute_query_rc": 0,
+        "compute_rows": [
+          {
+            "pid": "2791303",
+            "memory_MiB": "5174"
+          },
+          {
+            "pid": "2791304",
+            "memory_MiB": "5168"
+          },
+          {
+            "pid": "2791305",
+            "memory_MiB": "5174"
+          },
+          {
+            "pid": "2791306",
+            "memory_MiB": "5174"
+          },
+          {
+            "pid": "2791307",
+            "memory_MiB": "5174"
+          },
+          {
+            "pid": "2791308",
+            "memory_MiB": "5168"
+          },
+          {
+            "pid": "2791309",
+            "memory_MiB": "5174"
+          },
+          {
+            "pid": "2791310",
+            "memory_MiB": "5174"
+          }
+        ]
+      }
+    },
+    "environment": {
+      "SHA256": "6760e6be338b135841f5371ceefd396e3c0d335a584274534dbe2bd04888a796",
+      "value": {
+        "python": "/usr/bin/python3",
+        "torch": "2.8.0a0+5228986c39.nv25.06",
+        "cuda": "12.9",
+        "backend_SHA256": "bef3cb4fa61e8f5631da7a0134ddd27c18ca5d5f5f945a8c17a201ed3dd19973",
+        "backend_bytes": 17425,
+        "sf3d_config_SHA256": "5e880cfec3dec28d4e20afe07bfa1799c8a561f56f0532ebf1b4022ae4ddc8e4",
+        "sf3d_weights_bytes": 4024289892,
+        "python_candidates": {
+          "env-trellis/bin/python": false,
+          "env-sf3d/bin/python": true,
+          "env/bin/python": true
+        },
+        "gpu_process_count": 8
+      }
+    },
+    "next": "Use a genuinely free A100 slot after existing process ownership is resolved. Review the original prelaunch failure before any further dispatch."
+  },
+  "T11": {
+    "state": "COPY_NOT_EXECUTED_AUTO_REVIEW_APPROVAL_PENDING",
+    "task": "coordination/tasks/training-t11-sf3d-original-weights-v1.json",
+    "transfer_executed": false,
+    "preflight": {
+      "SHA256": "90454624afd8e958065e4db2a895a9dd11a42045781792d188972b291634ead9",
+      "value": {
+        "checked_utc": "2026-11-11T01:10:21.576623+00:00",
+        "exists": false,
+        "free_bytes": 534695366361088
+      }
+    },
+    "source_exists": {
+      "trellis_original_launch": {
+        "present": true,
+        "bytes": 1735
+      },
+      "trellis_original_reference": {
+        "present": true,
+        "bytes": 4829067
+      },
+      "trellis_original_environment": {
+        "present": false,
+        "bytes": null
+      },
+      "sf3d_original_weights": {
+        "present": true,
+        "bytes": 4024289892
+      },
+      "sf3d_original_config": {
+        "present": true,
+        "bytes": 2405
+      }
+    },
+    "config_SHA256": "5e880cfec3dec28d4e20afe07bfa1799c8a561f56f0532ebf1b4022ae4ddc8e4",
+    "source_model_bytes": 4024289892,
+    "review_reason": "Automatic approval review rejected transferring the private approximately 4GB SF3D payload to the exact project cluster directory without specific user approval.",
+    "approval_question_submitted": true,
+    "next": "Wait for explicit approval for the two exact original SF3D files and intended project directory, then execute the already published transfer scope and independently verify the destination."
+  },
+  "acceptance": {
+    "T10_numeric": "FAILED_PREVIOUS_REAL_UPDATE",
+    "T11_numeric": "NOT_RUN",
+    "phase3": "NOT_ACHIEVED"
+  }
+}
