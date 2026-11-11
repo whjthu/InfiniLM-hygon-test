@@ -1,0 +1,58 @@
+{
+  "id": "training-vlm-native-dropout-HIP-v1",
+  "owner": "/root",
+  "state": "PREPARED_NOT_EXECUTED",
+  "source": "code/bw1000/training-vlm-native-dropout-HIP-v1",
+  "source_SHA256": {
+    "dropout_capture.py": "380a8b3a9afbabeaf8cb07a3da21f240c58d88856cc4fd973081ca9f22f6bd36",
+    "check_GPU.py": "14075e84bd8c4742d9c2dd33eb3a8288a65ff79736f3f9785fe32ced32d5e158",
+    "snapshot.py": "58248898af617680a162487b9b5bb03f52ff57de983c37b568b675b885a531d9",
+    "entry.py": "d812751954980ea56d709aedc34d16ede20398d02ac236bfa63d222d24d85cfd",
+    "receive_once.py": "2b6fe6462d2879b31a534351d94dddebd9a11a8614095b765331f04b19d22a1b",
+    "launch_once.py": "5c9af6f002aa1714591a7061a7af27fde983ea9989abbd02f7382303f66df5bd"
+  },
+  "remote_files": [
+    "dropout_capture.py",
+    "check_GPU.py",
+    "snapshot.py",
+    "entry.py"
+  ],
+  "framework_commit": "8a487b20318bcc2a23c1d79851b05c876561c731",
+  "parent": "1087656",
+  "node": "f11r4n09",
+  "resource_group": "T05",
+  "GPU_cards": 1,
+  "CPU_threads": 8,
+  "memory_MiB": 16000,
+  "single_epoch_seconds": 360,
+  "native_worker_seconds": 120,
+  "local_observation_seconds": 400,
+  "GPU_supervisor_seconds_max": 145,
+  "GPU_cleanup_reserve_seconds": 90,
+  "pre_post_CPU_steps": {
+    "count": 2,
+    "cores": 2,
+    "memory_MiB": 4096,
+    "seconds_max_each": 55
+  },
+  "strict_free_floor_bytes": 17179869184,
+  "peak_allocated_limit_bytes": 2147483648,
+  "planned_native_cases": 16,
+  "planned_rejections": 8,
+  "planned_A100_common_mask_cases": 1,
+  "planned_python_dropout_calls": 67,
+  "planned_real_backwards": 43,
+  "A100_reference": {
+    "bytes": 3290845,
+    "SHA256": "eaf3a5ee8e039af91c4a81a4b2c00ff162d50813a3d31451ed24d06023826978",
+    "binding": "coordination/training/vlm-native-dropout-reference-v1.json",
+    "input_kind": "Controlled synthetic FP32 operator input; actual native A100 mask/output/gradient. No model activation or weight."
+  },
+  "scope": "One fresh-admitted HIP operator qualification using the exact CUDA/CPU-qualified shared module. Preserve original native sampler, p=.05, full4096/original247 rows and actual LoRA widths1024/2048/3584, FP32/BF16, strided, zero and no-grad. Compare native capture/replay output/gradient/RNG and real GPU input canaries; replay the exact A100 FP32 mask with exact output/gradient/native HIP RNG progression. No model, weights, full training, performance or service claim. Do not terminate unrelated processes.",
+  "GPU_GO": true,
+  "conditional_fresh_admission": true,
+  "model_GO": false,
+  "formal_performance": false,
+  "required_identity": "Fresh parent and step mapping; CPU before/post boot, PCI, root+sameUID KFD holders; actual HIP libamdhip64 assigned PCI and exactly one visible device; explicit accounting columns.",
+  "failure_policy": "Preserve all planned cases and partial completed denominator; if unknown remote state reconcile exact intent/handles/result, never replay."
+}
