@@ -1,0 +1,97 @@
+{
+  "schema": 1,
+  "observed_UTC": "2026-11-11T19:49:40.240359+00:00",
+  "framework_commit": "0a3bd62c1d941f2993052eee0449fb248969177b",
+  "previous_target_CPU": "1087656.154",
+  "source_scope": {
+    "owner": "root",
+    "label": "training-minicpm-first-tail-stop-HIP-CPU-v1",
+    "framework_commit": "0a3bd62c1d941f2993052eee0449fb248969177b",
+    "source_manifest_SHA256": "c4b21a10d150a9857a1bec5860d8df0dc2b61c29573a662da06b8456bc48bcc8",
+    "framework_manifest_SHA256": "d801e4872bdb5e073e9ae51c491cc0a3ced962b236540ba0efadc9d555d88ef5",
+    "CPU_GO": true,
+    "GPU_GO": false,
+    "Model_GO": false,
+    "resources": {
+      "parent": "1087656",
+      "nodes": [
+        "f11r4n10"
+      ],
+      "CPU_cores": 4,
+      "memory_MiB": 8192,
+      "GPU_cards": 0
+    },
+    "budgets_seconds": {
+      "whole": 300,
+      "work_absolute": 220,
+      "srun_time_limit": 240,
+      "CPU_wait_cap": 250,
+      "TERM": 5,
+      "KILL": 5
+    },
+    "tests": 33,
+    "new_source_deltas": 6,
+    "complete_framework_files": 308,
+    "real_model_assets_read": false,
+    "original_CPU154_replayed": false,
+    "raw_tensor_transfer_bytes": 0,
+    "scope": "One new target CPU-only normal-stop and bound first-tail comparison qualification. No actual MiniCPM or GPU run."
+  },
+  "changed_paths": [
+    "vlm/README.md",
+    "vlm/plugins/resume_training.py",
+    "vlm/runtime/resume_entry_pair.py",
+    "vlm/runtime/resume_witness.py",
+    "vlm/tests/test_resume_entry_pair.py",
+    "vlm/tests/test_resume_witness.py"
+  ],
+  "local_five_stdlib_entry_pair_tests_passed": true,
+  "local_source_policy_files": 308,
+  "actual_target_tests_executed": 0,
+  "normal_stop": {
+    "original_max_steps": 25,
+    "entry_global_step": 20,
+    "diagnostic_stop_global_step": 21,
+    "planned_continuous_window": {
+      "restore": 10,
+      "updates": 11,
+      "forwards_per_rank": 44,
+      "saves": [
+        20
+      ]
+    },
+    "planned_restored_window": {
+      "restore": 20,
+      "updates": 1,
+      "forwards_per_rank": 4,
+      "saves": []
+    },
+    "stop_method": "Normal Trainer should_training_stop control after a complete optimizer update; no forced exception or kill",
+    "full25_completion_claim": false,
+    "original_schedule_inputs_and_accumulation_unchanged": true
+  },
+  "independent_comparison": {
+    "raw_entry_SHA_bound_to_witness": true,
+    "entry_fields": [
+      "RNG",
+      "registered frozen/trainable parameters and buffers",
+      "root context",
+      "input layouts and alignment",
+      "selected runtime attributes",
+      "loader/accelerator RNG types",
+      "runtime cursor"
+    ],
+    "complete_tail_denominator": 4,
+    "whole_recovery_qualification": false,
+    "cause_attribution": false
+  },
+  "limitations": [
+    "Actual-model native early-stop behavior remains unqualified pending a separately claimed GPU run.",
+    "Original model-specific numerical thresholds remain missing.",
+    "The pinned Trainer final speed metrics use max_steps; they are excluded from diagnostic performance claims.",
+    "Full state copies can synchronize device and perturb allocation/timing; report observer cost and preserve original151 drift regardless of a new result."
+  ],
+  "GPU_GO": false,
+  "Model_GO": false,
+  "formal_performance": false
+}

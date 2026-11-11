@@ -1,0 +1,3 @@
+# First-tail diagnostic normal-stop CPU qualification
+
+One 4-core/8GiB CPU-only Slurm step on the assigned secondary MiniCPM node. Install the complete308 source tree from qualified parent306 plus six exact deltas. Run33 tiny CPU tests covering the actual Swift callback, normal stop after a complete first-tail update with original max_steps25 unchanged, full and short paired LoRA recovery, bound entry snapshots and complete failure denominators. No actual model assets/checkpoints, GPU, full25 model replay or formal performance execution. Unknown execution must reconcile the original request, never replay.
