@@ -1,0 +1,288 @@
+{
+  "id": "training-t10-trellis-lora-projection-vjp-v1",
+  "claim_commit": "a5c6f4bc5d59d85c258e7d89f45dfff53505b618",
+  "framework_commit": "bccdd0c8b700d949ec79b0229e37276fc2ed856d",
+  "state": "TERMINAL_FIXED_OPERANDS_REPRODUCE_LORA_B_GRADIENTS",
+  "accounting": [
+    [
+      "1087656.108",
+      "t10-trellis-lora-projection-vjp-v1-pre",
+      "COMPLETED",
+      "0:0",
+      "0"
+    ],
+    [
+      "1087656.109",
+      "t10-trellis-lora-projection-vjp-v1",
+      "COMPLETED",
+      "0:0",
+      "56"
+    ],
+    [
+      "1087656.110",
+      "t10-trellis-lora-projection-vjp-v1-post",
+      "COMPLETED",
+      "0:0",
+      "1"
+    ]
+  ],
+  "assigned": {
+    "pci": "0000:09:00.0",
+    "visible_cards": 1,
+    "step": "1087656.109",
+    "node": "a14r1n20"
+  },
+  "post_cleanup": {
+    "same_boot": true,
+    "same_eight_pci": true,
+    "KFD_holders_before": 0,
+    "KFD_holders_after": 0
+  },
+  "scope": "captured native LoRA B backward at four projections; exact-operand DCU BF16/FP32 and CPU FP64 VJP; CPU-only AdamW projection",
+  "sites": {
+    "blocks.0.self_attn.to_qkv.lora_B": {
+      "input_shape": [
+        1024,
+        2
+      ],
+      "input_stride": [
+        2,
+        1
+      ],
+      "effective_saved_input_shape": [
+        1024,
+        2
+      ],
+      "upstream_shape": [
+        1024,
+        4608
+      ],
+      "upstream_stride": [
+        4608,
+        1
+      ],
+      "effective_saved_other_shapes": [
+        [
+          2,
+          4608
+        ]
+      ],
+      "native_vs_fixed_bf16": {
+        "relative_l2": 0.0,
+        "exact_fraction": 1.0
+      },
+      "native_vs_cpu_f64": {
+        "relative_l2": 0.0017800969413297645,
+        "exact_fraction": 0.0
+      },
+      "native_vs_cpu_f64_rounded_bf16": {
+        "relative_l2": 1.4337018571775897e-11,
+        "exact_fraction": 0.9998914930555556
+      },
+      "hip_fp32_vs_cpu_f64": {
+        "relative_l2": 3.559527924185574e-07,
+        "exact_fraction": 0.00021701388888888888
+      },
+      "native_vs_a100_weight_gradient": {
+        "relative_l2": 0.22490072817969656,
+        "exact_fraction": 0.022352430555555556
+      },
+      "cpu_f64_rounded_vs_a100_weight_gradient": {
+        "relative_l2": 0.22490072817982099,
+        "exact_fraction": 0.022352430555555556
+      },
+      "native_vs_a100_squared_error": 1.5383300563054596e-08
+    },
+    "blocks.0.self_attn.to_out.lora_B": {
+      "input_shape": [
+        1024,
+        2
+      ],
+      "input_stride": [
+        2,
+        1
+      ],
+      "effective_saved_input_shape": [
+        1024,
+        2
+      ],
+      "upstream_shape": [
+        1024,
+        1536
+      ],
+      "upstream_stride": [
+        1536,
+        1
+      ],
+      "effective_saved_other_shapes": [
+        [
+          2,
+          1536
+        ]
+      ],
+      "native_vs_fixed_bf16": {
+        "relative_l2": 0.0,
+        "exact_fraction": 1.0
+      },
+      "native_vs_cpu_f64": {
+        "relative_l2": 0.001705192620745317,
+        "exact_fraction": 0.009765625
+      },
+      "native_vs_cpu_f64_rounded_bf16": {
+        "relative_l2": 0.0,
+        "exact_fraction": 1.0
+      },
+      "hip_fp32_vs_cpu_f64": {
+        "relative_l2": 2.5625714180050246e-07,
+        "exact_fraction": 0.0107421875
+      },
+      "native_vs_a100_weight_gradient": {
+        "relative_l2": 0.07344896760651519,
+        "exact_fraction": 0.040690104166666664
+      },
+      "cpu_f64_rounded_vs_a100_weight_gradient": {
+        "relative_l2": 0.07344896760651519,
+        "exact_fraction": 0.040690104166666664
+      },
+      "native_vs_a100_squared_error": 6.521028499000984e-09
+    },
+    "blocks.0.cross_attn.to_kv.lora_B": {
+      "input_shape": [
+        1,
+        1029,
+        2
+      ],
+      "input_stride": [
+        2058,
+        2,
+        1
+      ],
+      "effective_saved_input_shape": [
+        1029,
+        2
+      ],
+      "upstream_shape": [
+        1,
+        1029,
+        3072
+      ],
+      "upstream_stride": [
+        3161088,
+        3072,
+        1
+      ],
+      "effective_saved_other_shapes": [
+        [
+          2,
+          3072
+        ]
+      ],
+      "native_vs_fixed_bf16": {
+        "relative_l2": 0.0,
+        "exact_fraction": 1.0
+      },
+      "native_vs_cpu_f64": {
+        "relative_l2": 0.0015258961217503044,
+        "exact_fraction": 0.0
+      },
+      "native_vs_cpu_f64_rounded_bf16": {
+        "relative_l2": 0.0,
+        "exact_fraction": 1.0
+      },
+      "hip_fp32_vs_cpu_f64": {
+        "relative_l2": 1.073370709113367e-06,
+        "exact_fraction": 0.00016276041666666666
+      },
+      "native_vs_a100_weight_gradient": {
+        "relative_l2": 0.04467103327914733,
+        "exact_fraction": 0.032552083333333336
+      },
+      "cpu_f64_rounded_vs_a100_weight_gradient": {
+        "relative_l2": 0.04467103327914733,
+        "exact_fraction": 0.032552083333333336
+      },
+      "native_vs_a100_squared_error": 3.3783279720230634e-09
+    },
+    "blocks.1.self_attn.to_qkv.lora_B": {
+      "input_shape": [
+        1024,
+        2
+      ],
+      "input_stride": [
+        2,
+        1
+      ],
+      "effective_saved_input_shape": [
+        1024,
+        2
+      ],
+      "upstream_shape": [
+        1024,
+        4608
+      ],
+      "upstream_stride": [
+        4608,
+        1
+      ],
+      "effective_saved_other_shapes": [
+        [
+          2,
+          4608
+        ]
+      ],
+      "native_vs_fixed_bf16": {
+        "relative_l2": 0.0,
+        "exact_fraction": 1.0
+      },
+      "native_vs_cpu_f64": {
+        "relative_l2": 0.0016674659715084214,
+        "exact_fraction": 0.0
+      },
+      "native_vs_cpu_f64_rounded_bf16": {
+        "relative_l2": 8.593983584642256e-10,
+        "exact_fraction": 0.9998914930555556
+      },
+      "hip_fp32_vs_cpu_f64": {
+        "relative_l2": 3.182278575934826e-07,
+        "exact_fraction": 0.0006510416666666666
+      },
+      "native_vs_a100_weight_gradient": {
+        "relative_l2": 0.07783264046492479,
+        "exact_fraction": 0.027777777777777776
+      },
+      "cpu_f64_rounded_vs_a100_weight_gradient": {
+        "relative_l2": 0.07783264046068737,
+        "exact_fraction": 0.027777777777777776
+      },
+      "native_vs_a100_squared_error": 6.724331143930468e-09
+    }
+  },
+  "captured_share_of_native_gradient_squared_error": 0.9071900236728738,
+  "full_adapter_native_relative_l2": 0.08489262292320142,
+  "full_adapter_cpu_rounded_substitution_relative_l2": 0.08489262292234102,
+  "native_cpu_projected_update_vs_a100": {
+    "relative_l2": 0.2582321094719329,
+    "exact_fraction": 0.37022107712765956
+  },
+  "four_cpu_f64_rounded_cpu_projected_update_vs_a100": {
+    "relative_l2": 0.25823210302913047,
+    "exact_fraction": 0.37022107712765956
+  },
+  "model_gradients_bitwise_to_original_hip": true,
+  "prediction_bitwise_to_original_hip": true,
+  "gpu_optimizer_updates": 0,
+  "peak_reserved_bytes": 9206497280,
+  "original_hip_SHA256": "b1acdf0b074c3c66639b566ab082544d7c8bfac63a487d05b0f4edc1a8bcd767",
+  "private_operator_artifact_SHA256": "7fad7cd06fb08ce08c5c77138a3753dbd6ff99aafd7c7dacc0cef05f016abf80",
+  "private_outcome_SHA256": "c997f38063a2ec23cd6725bc62400de300dcecd661b7314861f33ff77ca3dd6b",
+  "private_summary_SHA256": "4d3da1746146a96a880f6083afa75836abfa751b2054192bed170d979aacd0fe",
+  "private_operator_artifact": "results/training-t10-trellis-lora-projection-vjp-v1/diagnostic/lora-projection-operands.pt",
+  "interpretation": "For the captured DCU operands, standalone BF16 weight VJPs reproduce the native gradients exactly and the CPU FP64 VJPs rounded to BF16 agree to at most 8.6e-10 relative L2. Substituting those four CPU gradients does not materially change the full gradient or CPU-projected update discrepancy. The A100 saved operands are required to identify which input differences explain the cross-platform discrepancy.",
+  "next": "Obtain a source-bound A100 capture of the saved LoRA down-projection input and upstream gradient at the same four sites. Use the fixed-input CPU oracle to substitute one A100 operand at a time. Continue independent training cases while waiting for a usable A100 capture route.",
+  "acceptance": {
+    "first_update_numeric": "FAILED_PREVIOUS_REAL_UPDATE",
+    "continuous_25_step_and_resume": "NOT_RUN",
+    "formal_performance": "NOT_RUN",
+    "held_out_effect": "NOT_RUN"
+  }
+}

@@ -22,7 +22,7 @@
   "gpu_memory_MiB": 64000,
   "gpu_slurm_time": "00:07:00",
   "id": "training-t10-trellis-lora-projection-vjp-v1",
-  "state": "CLAIMED_GPU_FIXED_OPERAND_LORA_WEIGHT_VJP",
+  "state": "TERMINAL_FIXED_OPERANDS_REPRODUCE_LORA_B_GRADIENTS",
   "source": "code/bw1000/training-t10-trellis-lora-projection-vjp-v1",
   "source_SHA256": {
     "diagnose_lora_projection.py": "67fcb5393d5429446994c73fa0dba2ddfbcbe3c3dda1007a133d214b0bd939dc",
@@ -33,5 +33,8 @@
   },
   "paired_evidence": "results/bw1000/2026-11-10/training-t10-trellis-block0-sdpa-vjp-v1-terminal.json",
   "paired_evidence_SHA256": "9d58b8eec6ecc87ef3d48deef33d523afc64d210b6105cea1643d31cbce08b33",
-  "scope": "Original full BF16 forward and one backward, capture the actual saved rank-2 inputs and output gradients of the four largest contributing LoRA B projections, then compare native/standalone DCU BF16/FP32 and CPU FP64 with identical operands. Substitute rounded CPU projections in a CPU AdamW update calculation. Zero device updates; original A100 saved operands absent."
+  "scope": "Original full BF16 forward and one backward, capture the actual saved rank-2 inputs and output gradients of the four largest contributing LoRA B projections, then compare native/standalone DCU BF16/FP32 and CPU FP64 with identical operands. Substitute rounded CPU projections in a CPU AdamW update calculation. Zero device updates; original A100 saved operands absent.",
+  "terminal_evidence": "results/bw1000/2026-11-10/training-t10-trellis-lora-projection-vjp-v1-terminal.json",
+  "terminal_evidence_SHA256": "423c47cd660da18120c43e50dcdbd2fc4ebae8cfb61fe7ab6a05882a527b742c",
+  "next": "Obtain a source-bound A100 capture of the saved LoRA down-projection input and upstream gradient at the same four sites. Use the fixed-input CPU oracle to substitute one A100 operand at a time. Continue independent training cases while waiting for a usable A100 capture route."
 }
