@@ -1,0 +1,21 @@
+{
+  "id": "training-minicpm-forward-provider-counterfactual-v1",
+  "owner": "bw1000/root",
+  "state": "PREPARING_SINGLE_FORWARD_CAUSAL_DIAGNOSTIC_NO_LAUNCH_PACKAGE",
+  "case": "T05.sft",
+  "hypothesis": "The FLA-vs-Torch gated-delta provider difference contributes to the observed pre-update forward loss drift. It is not established by loaded-module metadata.",
+  "primary_variable": "Only the18linear-attention chunk_gated_delta_rule instance callables; keep causal_conv1d, gated norm, full inputs, weights, initial LoRA and all186recorded dropout masks unchanged.",
+  "planned_resource": "Original A100 eight-card topology with one original full first-forward input per rank; no optimizer update and no25-step replay. Resource and cleanup/epoch package not yet frozen, so no GPU execution is authorized by this card.",
+  "baseline_gate": "Record actual per-instance providers and executed call counts. Native-provider arm must be compared to original A100 first-forward outputs before interpreting its paired forced-Torch arm. Baseline mismatch retains failure denominator and prevents attribution.",
+  "comparison": "Compare eight native-provider vs forced-Torch outputs in place on A100; compare scalar loss changes with original Hygon first forwards. Original model tolerance and pairwise tensor criteria still apply; scalar closeness alone does not pass numerical alignment.",
+  "exit": "If native-arm reproduction or exact one-variable closure fails, stop and diagnose it; no blind rerun. If chunk switch leaves material drift, retain negative evidence and inspect gated norm/attention independently.",
+  "fallback": "Use exact observed FP32 dropout shapes for a capture/replay forward+gradient+RNG component qualification if native-arm reproduction shows observer effects. Component results do not establish Model agreement.",
+  "GPU_GO": false,
+  "CPU_GO": false,
+  "Model_GO": false,
+  "actual_run": null,
+  "evidence": {
+    "path": "results/bw1000/2026-11-11/training-minicpm-original-forward-provider-selection-and-mask-metadata.json",
+    "SHA256": "7282037ffff015532528a2ed8319d1973ef5282f056674b7b8ec3aa29cdd5d2c"
+  }
+}
