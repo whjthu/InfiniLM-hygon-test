@@ -1,0 +1,48 @@
+{
+  "id": "training-vlm-native-dropout-CPU-r2",
+  "owner": "/root",
+  "cases": [
+    "T01.sft",
+    "T02.sft",
+    "T03.sft",
+    "T04.sft",
+    "T05.sft"
+  ],
+  "state": "PREPARED_NOT_EXECUTED",
+  "source": "code/bw1000/training-vlm-native-dropout-CPU-r2",
+  "source_SHA256": {
+    "framework/README.md": "cdb19d6a0a4d0d0ed47b3b05a5217ac8e0275ed3cdd2621ca7524d83dd023984",
+    "framework/tools/hygon_vlm_recipe.py": "dddeb468ffccaf1c63eee70b3091117c125b0156ef08f1499491e3bb8ad4e63e",
+    "framework/vlm/runtime/dropout_capture.py": "380a8b3a9afbabeaf8cb07a3da21f240c58d88856cc4fd973081ca9f22f6bd36",
+    "framework/vlm/tests/test_dropout_capture.py": "0eda52cd340c8ea82a46cfa3aaed34408f43b3f07ee41c3e5450b31986b408d9",
+    "framework/vlm/tests/test_hygon_vlm_recipe.py": "dbe44a0d5697603e98e9f6f40507003a8a48e643f759dcdcd31165eed7a3a9a4",
+    "inside_CPU.py": "35d4fb8c461ce0f524e35b42b2ca99269be21c5b22f28c4fe1f4c029ef0df41a",
+    "receive_CPU_once.py": "02dfc78c4be7e384135568e38ff55ac2536f9ff50a774e319c3ef93a4c6ddab1",
+    "launch_CPU_once.py": "7f28d5342732f1bb57959595025dd523f68bcaf5905415480022af8e8d86c901",
+    "SOURCE_PROOF.json": "fcc28872ef1f3958f98ad9ed79de579be89c6a46e9c726a1a29037133482ec72"
+  },
+  "framework_commit": "8a487b20318bcc2a23c1d79851b05c876561c731",
+  "parent": "1087656",
+  "node": "f11r4n10",
+  "CPU_threads": 2,
+  "memory_MiB": 8192,
+  "GPU_allocation": 0,
+  "Slurm_seconds": 150,
+  "work_seconds": 120,
+  "single_epoch_seconds": 180,
+  "local_observation_seconds": 220,
+  "remote_files": [
+    "framework/vlm/runtime/dropout_capture.py",
+    "framework/vlm/tests/test_dropout_capture.py",
+    "inside_CPU.py"
+  ],
+  "scope": "One exact source-pinned CPU-only PyTorch2.10 DTK test step, on the owned T05 second node. Mask all accelerators. Test real delegated dropout forward/backward/RNG for FP32/BF16, contiguous/strided, zero/no-grad inputs, safe payload reload and malformed records. No checkpoint, model, Native SDK, GPU kernel, new service or poller. Preserve framework native entry and original recipe; no numerical threshold is invented.",
+  "CPU_GO": true,
+  "GPU_GO": false,
+  "model_GO": false,
+  "qualification_limit": "CPU operator semantics do not qualify GPU dispatch, common model masks or first-step numerical acceptance.",
+  "previous_claim": "39ff73c07bb908d8c6181eae2f8002285d08e114",
+  "previous_CPU_step": "1087656.120",
+  "previous_outcome_SHA256": "a7ceebc4a3bd460e4e4ed88e980bafd51d64871114ecc41bf30c5cd480e5cd88",
+  "source_correction": "Validate distribution build identity separately from module2.10.0; persist both values before checks. Original framework8a487b2/dropout implementation unchanged."
+}
