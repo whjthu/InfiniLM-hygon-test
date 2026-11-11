@@ -900,7 +900,7 @@
     "next": "r480 token clock source publishedaa3e9a74, actual network token SLO unverified; no independent load solely for clocks."
   },
   "schema_version": 1,
-  "updated_at_utc": "2026-11-11T17:41:54.721083+00:00",
+  "updated_at_utc": "2026-11-11T17:49:29.365768+00:00",
   "owner": "bw1000-agent",
   "hardware": "BW1000",
   "goal_complete": false,
@@ -2581,8 +2581,14 @@
       "source_subset_files": 12,
       "source_policy_passed": true,
       "full_framework_installed": false,
-      "target_CPU_qualified": false,
-      "Model_GO": false
+      "target_CPU_qualified": true,
+      "Model_GO": false,
+      "target_CPU_qualification_scope": "12-file subset on original target container,25 CPU tests and original checkpoint CPU loader; not full302 deployment or original-model recovery",
+      "actual_CPU_step": "1087656.148",
+      "actual_CPU_evidence": {
+        "path": "results/bw1000/2026-11-11/training-minicpm-original148-native-resume-witness-CPU-and-checkpoint20-loader.json",
+        "SHA256": "ac0a6feb39304464c564bcd152977e761eacc1fb39e772d5fd3e7188c7d5e583"
+      }
     },
     "runtime_binding": "coordination/training/unified-framework-runtime-v1.json",
     "latest_CPU_evidence": {
@@ -3165,15 +3171,32 @@
     "Model_GO": false
   },
   "minicpm_native_resume_witness": {
-    "state": "PUBLISHED_SCOPE_NOT_DISPATCHED",
+    "state": "TERMINAL_TARGET_CPU25_AND_ORIGINAL_CHECKPOINT20_CPU_LOADER_VERIFIED",
     "task": "coordination/tasks/training-minicpm-resume-witness-CPU-v1.json",
     "framework_commit": "52b4738f894678b63ace58c067c019458f679a91",
     "source": "code/bw1000/training-minicpm-resume-witness-CPU-v1",
-    "CPU_GO": true,
+    "CPU_GO": false,
     "GPU_GO": false,
     "Model_GO": false,
     "actual_original_model_recovery_executed": false,
     "planned_CPU_tests": 25,
-    "first_A100_CPU_package_FAILED_preserved": true
+    "first_A100_CPU_package_FAILED_preserved": true,
+    "actual_CPU_step": "1087656.148",
+    "actual_CPU_tests_passed": 25,
+    "result": {
+      "path": "results/bw1000/2026-11-11/training-minicpm-original148-native-resume-witness-CPU-and-checkpoint20-loader.json",
+      "SHA256": "ac0a6feb39304464c564bcd152977e761eacc1fb39e772d5fd3e7188c7d5e583"
+    },
+    "recovery_qualified": false,
+    "next": "Publish a paired native recovery scope: an observed checkpoint10-to25 continuation across checkpoint20, then a fresh-process restore of its checkpoint20 to25. Compare all8 ranks full tail-input identities, losses and complete final state. Original143 did not capture tail input identities; a standalone20-to25 arm cannot prove that missing acceptance item. Reuse the closed original25 evidence and do not rerun it for bookkeeping. Generalize the witness for10-to25/intermediate save20 and qualify that exact change before GPU. Keep max_steps25 and all original recipe/input/model fields. Fresh unique resource/owner/PCI/KFD/port admission and one immutable bounded claim are still required.",
+    "latest_actual_parent_observation": {
+      "observed_at_utc": "2026-11-11T17:46:18.115202+00:00",
+      "parent": "1087656",
+      "state": "RUNNING",
+      "nodes": 40,
+      "cards_allocated": 320,
+      "time_limit": "30-00:00:00",
+      "GPU_busy_measured": false
+    }
   }
 }
