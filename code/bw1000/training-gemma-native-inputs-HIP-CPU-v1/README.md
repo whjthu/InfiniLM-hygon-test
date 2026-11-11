@@ -1,0 +1,5 @@
+# Same shared Gemma native input capture on the target HIP container
+
+One CPU-only step on assigned T02 node a14r1n17:4 cores,8GiB,zero GPU. Retain parent1087656 and all other node groups. Reuse the qualified308-file framework and four canonical integrated deltas to install the entire311-file tree; verify every byte and mode. Use the same shared native CPU template CLI as the original A100 reference,14 exact processor assets and67 original COCO/plugin assets. Verify that the Hygon dataset differs only by the already registered path mapping. Compare all64 rows and all256 native input,label,token-type and pixel field identities. Missing,differing and failed rows stay in the denominator.
+
+Use original epoch+300 whole/epoch+220 work,240s Slurm limit and the qualified bounded terminal-accounting helper. No GPU,model weights,model forward,first update,25-step,resume or formal performance is included. The reference contains field hashes only; no raw tokens,questions,pixels or activations are transferred. A namespace,accounting label or local intent already present blocks replay; reconcile original handles after transport uncertainty.
