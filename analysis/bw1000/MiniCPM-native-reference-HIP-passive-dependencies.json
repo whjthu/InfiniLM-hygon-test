@@ -1,0 +1,88 @@
+{
+  "case": "T05.sft",
+  "state": "PASSIVE_HIP_MODEL_DEPENDENCY_EVIDENCE_ONLY",
+  "distributions": {
+    "torch": "2.10.0+das.opt1.dtk2604.2606161421.g91a580",
+    "triton": "3.6.0+dtk2604.torch2100.2606181426.ge87f7a",
+    "flash-linear-attention": null,
+    "causal-conv1d": "1.5.4+das.opt1.dtk2604.torch2100.2605141509.g11ee83",
+    "transformers": "5.12.1",
+    "ms-swift": "4.4.2",
+    "peft": "0.19.1"
+  },
+  "model_types": {
+    "outer": "minicpmv4_6",
+    "architectures": [
+      "MiniCPMV4_6ForConditionalGeneration"
+    ],
+    "text_model_type": "qwen3_5_text"
+  },
+  "model_sources": {
+    "minicpmv4_6": {
+      "SHA256": "a37ef94154e0b0ef3918ae60dfb43e871a5964d6a3cf48cd501dc36bf863119b",
+      "bytes": 40096,
+      "fast_path_lines": []
+    },
+    "qwen3_5": {
+      "SHA256": "395439341ea5ba4dd14c103e830383caa75686cfaf6b693dd7efb58622224da6",
+      "bytes": 93664,
+      "fast_path_lines": [
+        "from ...utils.import_utils import is_causal_conv1d_available, is_flash_linear_attention_available",
+        "if is_causal_conv1d_available():",
+        "from causal_conv1d import causal_conv1d_fn, causal_conv1d_update",
+        "causal_conv1d_update, causal_conv1d_fn = None, None",
+        "if is_flash_linear_attention_available():",
+        "from fla.ops.gated_delta_rule import chunk_gated_delta_rule, fused_recurrent_gated_delta_rule",
+        "chunk_gated_delta_rule, fused_recurrent_gated_delta_rule = None, None",
+        "is_fast_path_available = all(",
+        "(causal_conv1d_fn, causal_conv1d_update, chunk_gated_delta_rule, fused_recurrent_gated_delta_rule)",
+        "def torch_causal_conv1d_update(",
+        "def torch_chunk_gated_delta_rule(",
+        "def torch_recurrent_gated_delta_rule(",
+        "self.causal_conv1d_fn = causal_conv1d_fn",
+        "self.causal_conv1d_update = causal_conv1d_update or torch_causal_conv1d_update",
+        "self.chunk_gated_delta_rule = chunk_gated_delta_rule or torch_chunk_gated_delta_rule",
+        "self.recurrent_gated_delta_rule = fused_recurrent_gated_delta_rule or torch_recurrent_gated_delta_rule",
+        "if not is_fast_path_available:",
+        "mixed_qkv = self.causal_conv1d_update(",
+        "if self.causal_conv1d_fn is not None:",
+        "mixed_qkv = self.causal_conv1d_fn(",
+        "core_attn_out, last_recurrent_state = self.recurrent_gated_delta_rule(",
+        "core_attn_out, last_recurrent_state = self.chunk_gated_delta_rule("
+      ]
+    },
+    "qwen3_next": {
+      "SHA256": "6a4c87fb0a57cbb06aa05a669e1a8543069e4e7dfa796e87d9638d66498638f8",
+      "bytes": 52540,
+      "fast_path_lines": [
+        "from ...utils.import_utils import is_causal_conv1d_available, is_flash_linear_attention_available",
+        "if is_causal_conv1d_available():",
+        "from causal_conv1d import causal_conv1d_fn, causal_conv1d_update",
+        "causal_conv1d_update, causal_conv1d_fn = None, None",
+        "if is_flash_linear_attention_available():",
+        "from fla.ops.gated_delta_rule import chunk_gated_delta_rule, fused_recurrent_gated_delta_rule",
+        "chunk_gated_delta_rule, fused_recurrent_gated_delta_rule = None, None",
+        "is_fast_path_available = all(",
+        "(causal_conv1d_fn, causal_conv1d_update, chunk_gated_delta_rule, fused_recurrent_gated_delta_rule)",
+        "def torch_causal_conv1d_update(",
+        "def torch_chunk_gated_delta_rule(",
+        "def torch_recurrent_gated_delta_rule(",
+        "self.causal_conv1d_fn = causal_conv1d_fn",
+        "self.causal_conv1d_update = causal_conv1d_update or torch_causal_conv1d_update",
+        "self.chunk_gated_delta_rule = chunk_gated_delta_rule or torch_chunk_gated_delta_rule",
+        "self.recurrent_gated_delta_rule = fused_recurrent_gated_delta_rule or torch_recurrent_gated_delta_rule",
+        "if not is_fast_path_available:",
+        "mixed_qkv = self.causal_conv1d_update(",
+        "if self.causal_conv1d_fn is not None:",
+        "mixed_qkv = self.causal_conv1d_fn(",
+        "core_attn_out, last_recurrent_state = self.recurrent_gated_delta_rule(",
+        "core_attn_out, last_recurrent_state = self.chunk_gated_delta_rule("
+      ]
+    }
+  },
+  "finding": "The target has DTK causal-conv1d but no flash-linear-attention distribution. Its pinned original Qwen3.5 source selects torch_chunk_gated_delta_rule/torch_recurrent_gated_delta_rule when FLA is absent. This is static source evidence; actual provider load, numerical behavior, device execution, memory and performance are unqualified. Do not install the CUDA FLA binary on HIP or label fallback as a performance result.",
+  "model_loaded": false,
+  "Torch_imported_by_probe": false,
+  "GPU_used": false,
+  "private_original_SHA256": "db28d6d8073f5a2ab1348cabcd2f76e2d2648677e30268f7e5b605ef9a51e23f"
+}
