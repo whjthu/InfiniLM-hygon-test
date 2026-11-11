@@ -1,8 +1,8 @@
 {
   "owner": "root",
   "case": "T06.sft",
-  "CPU_GO": true,
-  "GPU_GO": true,
+  "CPU_GO": false,
+  "GPU_GO": false,
   "Model_GO": false,
   "parent": "1087656",
   "node": "f11r4n11",
@@ -36,7 +36,7 @@
   "prior_actual_updates": 0,
   "admission_repair": "Bind runtime PCI to exactly one accessible assigned KFD entry; never read unassigned GPU IDs.",
   "host_stdlib_guard_tests": 6,
-  "state": "PUBLISHED_ASSIGNED_KFD_REPAIR_NOT_EXECUTED",
+  "state": "TERMINAL_CONTAINER_PROC_ADMISSION_FAIL_BEFORE_MODEL",
   "source": "code/bw1000/training-sdxl-bf16-reduction-v2",
   "source_SHA256": {
     "CLAIM.json": "0db54d3ef1501dd0d6e3d97dd3fe2bc9ad3aeb2081476698c324ad394c406516",
@@ -88,5 +88,13 @@
     "path": "results/bw1000/2026-11-12/training-sdxl-original163-single-card-admission-failure.json",
     "SHA256": "70626815bacde389849034dcb65b7ef9388f20e73aa38d9c79fa7cfcb76ada82"
   },
-  "next": "Invoke unique v2 only after publication. Six source guard tests run once on host; CPU161 policy is reused. Fresh snapshot,actualassigned PCI/KFD and original runtime provider SHA must pass before the unchanged one-update candidate. Terminal+independentpost+unchangedCPUcomparator required; failure/unknown never replayed."
+  "next": "Preserve166FAIL and167clean separately. Move the unchanged process/KFD-holder scan to HOST inside the same GPU step,then verify its fresh SHA/step/boot/PCI receipt in the container. Assigned PCI/KFD still mandatory. Do not skip permission errors or replay163/166.",
+  "result": {
+    "path": "results/bw1000/2026-11-12/training-sdxl-original166-container-proc-admission-failure.json",
+    "SHA256": "2cef0d5956616abe8f2d8687866e51cf4e20d04a3ba87cb44b18bdf7d002e587"
+  },
+  "actual_GPU_step": "1087656.166",
+  "actual_GPU_state": "FAILED",
+  "actual_optimizer_updates": 0,
+  "post_step": "1087656.167"
 }

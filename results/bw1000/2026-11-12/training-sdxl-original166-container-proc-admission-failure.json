@@ -1,0 +1,86 @@
+{
+  "state": "TERMINAL_CONTAINER_PROC_ADMISSION_FAIL_BEFORE_MODEL",
+  "case": "T06.sft",
+  "observed_utc": "2026-11-11T23:44:00.759874+00:00",
+  "claim": "07d9c8a4367c0908102d9d21c9498a46ecd70b3b",
+  "original_request": "59385fc46064432cbb703e61dcbf6746",
+  "original_GPU_step": "1087656.166",
+  "original_GPU_state": "FAILED",
+  "original_GPU_exit": "1:0",
+  "original_GPU_elapsed_seconds": 0,
+  "post_step": "1087656.167",
+  "post_clean": true,
+  "pre_and_post_KFD_holders": 0,
+  "same_physical_eight_PCI": true,
+  "same_boot": true,
+  "actual_model_loads": 0,
+  "actual_optimizer_updates": 0,
+  "explicit_torch_GPU_initialization_reached": false,
+  "container_implicit_SDK_status": "UNKNOWN",
+  "original_CPU_policy_step": "1087656.161",
+  "original_policy": true,
+  "accounting_columns": [
+    "JobIDRaw",
+    "JobName",
+    "State",
+    "ExitCode",
+    "ElapsedRaw",
+    "NodeList"
+  ],
+  "accounting": [
+    [
+      "1087656.165",
+      "training-sdxl-bf16-reduction-v2-pre",
+      "COMPLETED",
+      "0:0",
+      "0",
+      "f11r4n11"
+    ],
+    [
+      "1087656.166",
+      "training-sdxl-bf16-reduction-v2",
+      "FAILED",
+      "1:0",
+      "0",
+      "f11r4n11"
+    ],
+    [
+      "1087656.167",
+      "training-sdxl-bf16-reduction-v2-post",
+      "COMPLETED",
+      "0:0",
+      "1",
+      "f11r4n11"
+    ]
+  ],
+  "error_type": "PermissionError",
+  "cause": "The container UID view classified an unrelated host process as same UID but could not read its FD directory. This strict scan stopped before torch/model.",
+  "evidence": {
+    "independent_failure_SHA256": "4bcf166e0222eb72be49fb8f7c6637781dd9f08b592a6cf6284f371c9e81964d",
+    "controller_result_SHA256": "00b8263b2860b316cdf5d9894645db6d094702705cbd7b0e91524abbc653c8eb",
+    "logs": {
+      "training-sdxl-bf16-reduction-v2-pre.log": {
+        "bytes": 355,
+        "SHA256": "42915f0f568f05a73a8a5580dcbc3da2ae48fc6e85dea76d809ba63c8216acd4"
+      },
+      "training-sdxl-bf16-reduction-v2.log": {
+        "bytes": 1128,
+        "SHA256": "30bb65138fa72a82c6c3b7a2a5c9558e5a7c51510c86e28ace6d908e30ec18db"
+      },
+      "training-sdxl-bf16-reduction-v2-post.log": {
+        "bytes": 355,
+        "SHA256": "41e9a81038a3230c266dfc21dd8c901e5dd6d435282b15e2dbbf3f73bb933e8a"
+      }
+    }
+  },
+  "numerical_result": null,
+  "causal_round_increment": 0,
+  "formal_performance": false,
+  "quality_effect": false,
+  "next": "Preserve166FAIL and167clean separately. Move the unchanged process/KFD-holder scan to HOST inside the same GPU step,then verify its fresh SHA/step/boot/PCI receipt in the container. Assigned PCI/KFD still mandatory. Do not skip permission errors or replay163/166.",
+  "review": {
+    "trigger": "Repeated avoidable admission errors",
+    "original_Astra_quota": "UNAVAILABLE_NO_AGENT_RESTART_OR_REPLACEMENT",
+    "root_action": "Separate host process ownership view from container device math; inspect the exact call path before dispatch. No Astra completion claimed."
+  }
+}
