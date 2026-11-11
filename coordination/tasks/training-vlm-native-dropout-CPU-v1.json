@@ -1,0 +1,44 @@
+{
+  "id": "training-vlm-native-dropout-CPU-v1",
+  "owner": "/root",
+  "cases": [
+    "T01.sft",
+    "T02.sft",
+    "T03.sft",
+    "T04.sft",
+    "T05.sft"
+  ],
+  "state": "PREPARED_NOT_EXECUTED",
+  "source": "code/bw1000/training-vlm-native-dropout-v1",
+  "source_SHA256": {
+    "framework/README.md": "cdb19d6a0a4d0d0ed47b3b05a5217ac8e0275ed3cdd2621ca7524d83dd023984",
+    "framework/tools/hygon_vlm_recipe.py": "dddeb468ffccaf1c63eee70b3091117c125b0156ef08f1499491e3bb8ad4e63e",
+    "framework/vlm/runtime/dropout_capture.py": "380a8b3a9afbabeaf8cb07a3da21f240c58d88856cc4fd973081ca9f22f6bd36",
+    "framework/vlm/tests/test_dropout_capture.py": "0eda52cd340c8ea82a46cfa3aaed34408f43b3f07ee41c3e5450b31986b408d9",
+    "framework/vlm/tests/test_hygon_vlm_recipe.py": "dbe44a0d5697603e98e9f6f40507003a8a48e643f759dcdcd31165eed7a3a9a4",
+    "inside_CPU.py": "bd4d271fc58f7f6c5b2a6241e9dd3cec5dbf2f5e0847c0a982a5afb15e856021",
+    "receive_CPU_once.py": "25b93094d93acb77d6fecc9b5d68d1dec0fb171e5c1b6e28c265256ce9ea7868",
+    "launch_CPU_once.py": "3a2996e5f5e9bf2122f1834756b8bfb41478034f3fb88964e100cf65497f585a",
+    "SOURCE_PROOF.json": "2d7b871fb3007996df694cdee037c7680d345b7bd27a5fae1c0a47fb2ba13a89"
+  },
+  "framework_commit": "8a487b20318bcc2a23c1d79851b05c876561c731",
+  "parent": "1087656",
+  "node": "f11r4n10",
+  "CPU_threads": 2,
+  "memory_MiB": 8192,
+  "GPU_allocation": 0,
+  "Slurm_seconds": 150,
+  "work_seconds": 120,
+  "single_epoch_seconds": 180,
+  "local_observation_seconds": 220,
+  "remote_files": [
+    "framework/vlm/runtime/dropout_capture.py",
+    "framework/vlm/tests/test_dropout_capture.py",
+    "inside_CPU.py"
+  ],
+  "scope": "One exact source-pinned CPU-only PyTorch2.10 DTK test step, on the owned T05 second node. Mask all accelerators. Test real delegated dropout forward/backward/RNG for FP32/BF16, contiguous/strided, zero/no-grad inputs, safe payload reload and malformed records. No checkpoint, model, Native SDK, GPU kernel, new service or poller. Preserve framework native entry and original recipe; no numerical threshold is invented.",
+  "CPU_GO": true,
+  "GPU_GO": false,
+  "model_GO": false,
+  "qualification_limit": "CPU operator semantics do not qualify GPU dispatch, common model masks or first-step numerical acceptance."
+}
