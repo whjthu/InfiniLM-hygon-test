@@ -1,0 +1,236 @@
+{
+  "id": "training-t10-trellis-paired-operands-CPU-v1",
+  "owner": "bw1000/root",
+  "state": "PUBLISHED_PAIRED_ACTUAL_OPERANDS_CPU_ATTRIBUTION_PENDING",
+  "training_case": "T10.shape-flow-lora",
+  "source": "code/bw1000/training-t10-trellis-paired-operands-CPU-v1",
+  "source_SHA256": {
+    "gencuda/__init__.py": "96e3064ca16ab05dd5664ffa026428b24455684d421f8e40305d37ca790190f5",
+    "gencuda/trellis_operand_attribution.py": "6e1ab133b6f20773662e64d68074c86b60f929990bb3be8d25b51e53646f1407",
+    "test_attribution.py": "e3f59ae7b06cea4640a212e120d0512d904a9abdd4656d431c939004c6691f61",
+    "PLAN.json": "e4174a14b325455983f9c2962457bf21b49388685d776bfc0ae5f7f05dc82716",
+    "audit_pair.py": "281c868a272c4a9f4462bebd1a23456a2383db734889319c24ddfd0906ef39c7",
+    "receive_once.py": "fd30efa75745c9795e698d67d203dc67b0fad4ee3f2b20c5a346171acdf9466e",
+    "README.md": "13a710d54c002fcfc0dbb474ec1e339cd4bfd0e4b432dc8d33f415ad0d202bde"
+  },
+  "source_manifest_SHA256": "2ec51626f98fba3a87b6bce1f9c2b5bc608168d51459bf59deb3da3e85c54ddc",
+  "remote_files": [
+    "gencuda/__init__.py",
+    "gencuda/trellis_operand_attribution.py",
+    "test_attribution.py",
+    "PLAN.json",
+    "audit_pair.py"
+  ],
+  "framework": {
+    "commit": "2f5a3466ae82f36f5b26a8926607dbd66e3a98e6",
+    "tree": "97eb7a2fdef0abd7f8fd0a66f65584b68b80997b",
+    "parent": "0a0eab5796bfa1a96d1f6314574f9ebbd9a28f97",
+    "paths": [
+      "generation/src/gencuda/trellis_operand_attribution.py",
+      "generation/tests/test_trellis_operand_attribution.py"
+    ],
+    "local_tests": 3,
+    "source_policy_passed": true,
+    "target_deployed": false,
+    "identity": "whjthu <haojie0429@gmail.com>|whjthu <haojie0429@gmail.com>"
+  },
+  "parent": "1087656",
+  "node": "a14r2n02",
+  "resource_group": "T10",
+  "CPU": 4,
+  "memory_MiB": 8192,
+  "GPU_cards": 0,
+  "seconds": {
+    "whole": 300,
+    "body": 180,
+    "Slurm": 240,
+    "outer_wait": 240,
+    "input_stream": 60,
+    "preparation_download": 60,
+    "TERM": 5,
+    "KILL": 5
+  },
+  "a100_capture_evidence": {
+    "path": "results/bw1000/2026-11-11/training-t10-original-A100-four-LoRA-operands-independent-capture.json",
+    "SHA256": "05e71bd81f75d3886b09461ab68af2ca600091405b0f8c86945901128e18f6b9"
+  },
+  "a100_binding": "coordination/training/trellis-A100-saved-lora-operands-v1.json",
+  "a100_input": {
+    "path": "/home/whj/nvidia-baseline/alignment-assets/hygon-trellis-lora-operands-v2/capture/original-a100-lora-operands.pt",
+    "bytes": 28474215,
+    "SHA256": "e1131c8d24b042d3a71c18bac398ced4d2eff29240e7851c67abf383c761a0e4",
+    "sites": {
+      "blocks.0.self_attn.to_qkv": {
+        "input": {
+          "shape": [
+            1024,
+            2
+          ],
+          "dtype": "torch.bfloat16",
+          "SHA256": "351fc08c4082033688f288f6e3f70a186e47dae64d50d1cc28e35d20f7ddb032",
+          "l2": 104.44600219805227
+        },
+        "upstream": {
+          "shape": [
+            1024,
+            4608
+          ],
+          "dtype": "torch.bfloat16",
+          "SHA256": "6b7ea6c07e6d905d3b723ef2f1b21963397cf8d1ab23c7d6b105ec44f19c17f1",
+          "l2": 0.000133470636868138
+        },
+        "native_gradient": {
+          "shape": [
+            4608,
+            2
+          ],
+          "dtype": "torch.float32",
+          "SHA256": "e7140b2cf47c0df670c4cf08349de30e2448507ecf4356524544f38bca6dc999",
+          "l2": 0.000551485249801868
+        },
+        "native_vs_cpu_f64_rounded_bf16": {
+          "relative_l2": 4.35235793233565e-07,
+          "exact_fraction": 0.9991319444444444
+        },
+        "input_visible_shape": [
+          1024,
+          2
+        ]
+      },
+      "blocks.0.self_attn.to_out": {
+        "input": {
+          "shape": [
+            1024,
+            2
+          ],
+          "dtype": "torch.bfloat16",
+          "SHA256": "656cdc9d592f75953f3546f8f112d859f613ae6dd837e5f57329a196478bc4ad",
+          "l2": 104.1522761250156
+        },
+        "upstream": {
+          "shape": [
+            1024,
+            1536
+          ],
+          "dtype": "torch.bfloat16",
+          "SHA256": "c277084aeea741e31511b3ab9e1637900f8bd2a97ed63582dc9d58ba4914ecf0",
+          "l2": 0.00030671197757532477
+        },
+        "native_gradient": {
+          "shape": [
+            1536,
+            2
+          ],
+          "dtype": "torch.float32",
+          "SHA256": "3aa5d4f1d16246a7e06720917048574cd776117937cd7f2b7741383df5c0e697",
+          "l2": 0.0010994420755345853
+        },
+        "native_vs_cpu_f64_rounded_bf16": {
+          "relative_l2": 0.002704392311274864,
+          "exact_fraction": 0.5950520833333334
+        },
+        "input_visible_shape": [
+          1024,
+          2
+        ]
+      },
+      "blocks.0.cross_attn.to_kv": {
+        "input": {
+          "shape": [
+            1029,
+            2
+          ],
+          "dtype": "torch.bfloat16",
+          "SHA256": "7dd60df157becd1a79991286e445996262a7109515ec878c301b728eb337d7b4",
+          "l2": 27.58916695959534
+        },
+        "upstream": {
+          "shape": [
+            1,
+            1029,
+            3072
+          ],
+          "dtype": "torch.bfloat16",
+          "SHA256": "381a5eea8be97dcd56d0e0ef330e5daaa5c8f676c588adb24cff6896112fdcf9",
+          "l2": 0.0012720315098683755
+        },
+        "native_gradient": {
+          "shape": [
+            3072,
+            2
+          ],
+          "dtype": "torch.float32",
+          "SHA256": "465d06e10fe2ead465a92802a6dbf82e9a88d61b0b4af86adf9f5db5b5ab51d8",
+          "l2": 0.0013011426307338312
+        },
+        "native_vs_cpu_f64_rounded_bf16": {
+          "relative_l2": 0.0025676455749316946,
+          "exact_fraction": 0.73388671875
+        },
+        "input_visible_shape": [
+          1,
+          1029,
+          2
+        ]
+      },
+      "blocks.1.self_attn.to_qkv": {
+        "input": {
+          "shape": [
+            1024,
+            2
+          ],
+          "dtype": "torch.bfloat16",
+          "SHA256": "4a40a63983e56fbacea7158788eb66b12b4c224ed8980da00582d266b93fcb8d",
+          "l2": 22.30426833914168
+        },
+        "upstream": {
+          "shape": [
+            1024,
+            4608
+          ],
+          "dtype": "torch.bfloat16",
+          "SHA256": "477fab8eecc0509857a7248c36b8edaf1ccca6bbe58e9affe985c9be9323cfbb",
+          "l2": 0.0009518373033921567
+        },
+        "native_gradient": {
+          "shape": [
+            4608,
+            2
+          ],
+          "dtype": "torch.float32",
+          "SHA256": "9e2812867bf67d970d17842cb26b7a87319f5104a759c36281a75b6f64af2a1d",
+          "l2": 0.0010535685113034605
+        },
+        "native_vs_cpu_f64_rounded_bf16": {
+          "relative_l2": 8.839697423454688e-07,
+          "exact_fraction": 0.9997829861111112
+        },
+        "input_visible_shape": [
+          1024,
+          2
+        ]
+      }
+    }
+  },
+  "hygon_input": {
+    "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/training-t10-trellis-lora-projection-vjp-v1/diagnostic/lora-projection-operands.pt",
+    "bytes": 28919769,
+    "SHA256": "7fad7cd06fb08ce08c5c77138a3753dbd6ff99aafd7c7dacc0cef05f016abf80"
+  },
+  "CPU_unit_tests": {
+    "passed": true,
+    "tests": 3,
+    "torch": "2.8.0a0+5228986c39.nv25.06",
+    "torch_cuda_initialized": false,
+    "GPU_calls": 0,
+    "real_operands_read": false,
+    "module_SHA256": "6e1ab133b6f20773662e64d68074c86b60f929990bb3be8d25b51e53646f1407",
+    "tests_SHA256": "e3f59ae7b06cea4640a212e120d0512d904a9abdd4656d431c939004c6691f61",
+    "qualification": "Tiny CPU algebra/invalid-input unit tests only; not real paired operands or cross-platform acceptance"
+  },
+  "actual_sites": 4,
+  "CPU_GO": true,
+  "GPU_GO": false,
+  "Model_GO": false,
+  "qualification": "First real paired A100/HIP saved-operand CPU cross-substitutions and full FP64 decomposition including interaction/Gram terms. Four projections only; no whole-adapter/model/numerical acceptance/performance promotion. No GPU/model/native25/old109 repeat. Raw28MB transferred only private A100->local->Hygon via authenticated SSH."
+}
