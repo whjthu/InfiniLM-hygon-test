@@ -1,0 +1,7 @@
+# Independent original Gemma reference reader
+
+After the exact original8card GPU and keeper terminal,read all200 original private artifact files with full byte/SHA/finiteness checks. Verify8 initial trainable states against the476-name/shape/dtype manifest and native baseline hashes,64 complete native input/output/RNG occurrences,2 real clipping/optimizer updates per rank,zero-LR first update and positive-LR second update. Compare initial/second-update/final parameter identities across ranks without reconstructing or executing a model. Preserve native logits_to_keep and report input/label/output lengths separately.
+
+Read required full checkpoint state at10/20/25,including all8 rank RNG files,optimizer/scheduler/trainer state and adapter structure. Use the installed Transformers safe_globals context with weights_only=True for the original RNG checkpoint schema. Hash required checkpoint files and keep native training arguments by identity. This checks saved-state integrity,not a fresh model restoration or resumed-training equivalence.
+
+Recheck owned original PIDs,nvidia compute processes and master-port cleanup independently. Raw tensors,token IDs,pixels and model outputs stay on the original host. Only fingerprints,norms,scalar losses,shapes and result metadata leave it. One660s parent epoch/600s reader deadline,hidden devices,2Torch threads and owned process cleanup. Never replay original GPU/Model or the closed v1 failure. Failure retains all8rank/200file planned denominators and completed rank summaries.
