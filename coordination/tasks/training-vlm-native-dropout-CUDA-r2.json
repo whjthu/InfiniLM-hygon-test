@@ -1,0 +1,71 @@
+{
+  "id": "training-vlm-native-dropout-CUDA-r2",
+  "owner": "/root",
+  "cases": [
+    "T01.sft",
+    "T02.sft",
+    "T03.sft",
+    "T04.sft",
+    "T05.sft"
+  ],
+  "state": "PREPARED_NOT_EXECUTED",
+  "source": "code/bw1000/training-vlm-native-dropout-CUDA-r2",
+  "source_SHA256": {
+    "dropout_capture.py": "380a8b3a9afbabeaf8cb07a3da21f240c58d88856cc4fd973081ca9f22f6bd36",
+    "check_GPU.py": "0a47ea39aa093fcb9f97d4cf85b9aa5f6263f5b866ef79b1c459db721a1fd40d",
+    "run_once.py": "0a8a8aacfdfd07879d2d6a66ee9da6bea50fcac9beb0fab4ec399b557f38c7f3",
+    "receive_once.py": "096eb0df7e89f75719c1529139db4187889cbc509ffe339eda0094322cd00ccd",
+    "launch_once.py": "94da5200f91ad5372a6d06d4610eab56822831ffc0df11f8965b3970d53fa83f",
+    "GPU_BINDING.json": "c1f2ef225b5e396cb6959af5d50e2bcf802498ce3bf4ed672a7ca047ca291a18"
+  },
+  "remote_files": [
+    "dropout_capture.py",
+    "check_GPU.py",
+    "run_once.py",
+    "GPU_BINDING.json"
+  ],
+  "runtime_module_framework_commit": "8a487b20318bcc2a23c1d79851b05c876561c731",
+  "host": "a100-26",
+  "GPU_cards_max": 1,
+  "card_selection": "First fresh idle known card; child CUDA mask and actual property UUID must match.",
+  "single_epoch_seconds": 180,
+  "native_worker_seconds": 120,
+  "supervisor_cleanup_reserve_seconds": 25,
+  "local_observation_seconds": 240,
+  "strict_device_free_floor_bytes": 17179869184,
+  "peak_allocated_limit_bytes": 2147483648,
+  "planned_valid_cases": 16,
+  "planned_rejections": 8,
+  "probability": 0.05,
+  "dtypes": [
+    "float32",
+    "bfloat16"
+  ],
+  "sequence_rows": [
+    247,
+    4096
+  ],
+  "input_features": [
+    1024,
+    2048,
+    3584
+  ],
+  "native_model_geometry": {
+    "artifact": "original-LoRA-input-geometry.json",
+    "SHA256": "3e07d5a74cf7294d7a3e19f0cc3b88f42ad426a9b7e77e4aef3dc2b2989ab72a",
+    "dropout_modules": 186,
+    "input_features": [
+      1024,
+      2048,
+      3584
+    ],
+    "classification": "Actual original LoRA matrix dimensions; test tensors synthetic, not captured model activations."
+  },
+  "scope": "One native CUDA dropout operator qualification with actual forward, backward, unchanged GPU input guards, exact capture output/gradient/native RNG progression, controlled-mask replay under another native seed, and invalid-mask rejection without RNG consumption. Test FP32/BF16, full4096 and original247 rows, actual original widths1024/2048/3584 plus strided/zero/no-grad cases. Preserve native sampler calls. Save only one small actual GPU reference packet privately for later HIP replay. No model/weights/training/profile/performance claim, no service/poller, no other PID termination.",
+  "GPU_GO": true,
+  "conditional_fresh_admission": true,
+  "model_GO": false,
+  "formal_performance": false,
+  "previous_terminal": "results/bw1000/2026-11-11/training-vlm-native-dropout-CUDA-v1-UUID-format-failure.json",
+  "reason": "Actual _CUuuid string differs only by NVML GPU- prefix; canonical UUID equality fixes admission check. No algorithm change; original failure preserved."
+}
