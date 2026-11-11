@@ -1,7 +1,7 @@
 {
   "id": "training-minicpm-forward-provider-counterfactual-v1",
   "owner": "bw1000/root",
-  "state": "ORIGINAL_PRELAUNCH_ZERO_GPU_ONCE_RESUME_SAME_EPOCH_ONLY",
+  "state": "TERMINAL_SIXTEEN_FORWARD_ARMS_BASELINE_SIX_RANKS_UNQUALIFIED_KEEPER_FAIL_PRESERVED",
   "case": "T05.sft",
   "hypothesis": "The FLA-vs-Torch gated-delta provider difference contributes to the observed pre-update forward loss drift. It is not established by loaded-module metadata.",
   "primary_variable": "Only the18linear-attention chunk_gated_delta_rule instance callables; keep causal_conv1d, gated norm, full inputs, weights, initial LoRA and all186recorded dropout masks unchanged.",
@@ -10,10 +10,20 @@
   "comparison": "Compare eight native-provider vs forced-Torch outputs in place on A100; compare scalar loss changes with original Hygon first forwards. Original model tolerance and pairwise tensor criteria still apply; scalar closeness alone does not pass numerical alignment.",
   "exit": "If native-arm reproduction or exact one-variable closure fails, stop and diagnose it; no blind rerun. If chunk switch leaves material drift, retain negative evidence and inspect gated norm/attention independently.",
   "fallback": "Use exact observed FP32 dropout shapes for a capture/replay forward+gradient+RNG component qualification if native-arm reproduction shows observer effects. Component results do not establish Model agreement.",
-  "GPU_GO": true,
-  "CPU_GO": true,
+  "GPU_GO": false,
+  "CPU_GO": false,
   "Model_GO": false,
-  "actual_run": null,
+  "actual_run": {
+    "platform": "A100_reference",
+    "GPU_cards": 8,
+    "original_epoch": 1794411555.8506768,
+    "original_deadline": 1794412755.8506768,
+    "epoch_reset": false,
+    "completed_rank_arms": 16,
+    "native_returncode": 0,
+    "keeper_passed": false,
+    "owned_processes_remaining": 0
+  },
   "evidence": {
     "path": "results/bw1000/2026-11-11/training-minicpm-original-forward-provider-selection-and-mask-metadata.json",
     "SHA256": "7282037ffff015532528a2ed8319d1973ef5282f056674b7b8ec3aa29cdd5d2c"
@@ -170,5 +180,9 @@
     "requires_native_remaining_seconds_gt": 300,
     "atomic_resume_directory": "resume-once",
     "ordinary_launcher_replay_allowed": false
+  },
+  "result": {
+    "path": "results/bw1000/2026-11-11/training-minicpm-original-provider-counterfactual-two-arms-and-baseline-drift.json",
+    "SHA256": "d1eb2393da6ee018ce25fd33a20fad793754988eb2c66de643dfdc7997bb0156"
   }
 }
