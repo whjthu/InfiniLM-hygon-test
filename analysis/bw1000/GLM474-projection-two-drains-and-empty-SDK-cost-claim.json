@@ -1,0 +1,35 @@
+{
+  "source_evidence": {
+    "glm_decode_leases_r1354.hpp": {
+      "path": "/refactor/candidates/GLM-C1-layer-observer-r474-CPU-v1/project-mirror/candidates/glm-M16-r8861/tree/candidates/glm-exact-budget-r8854/src/glm_decode_leases_r1354.hpp",
+      "SHA256": "b28cd3620755d7b0fb7f56976916814430f9972b558f9ec79df0c534f3058563",
+      "bytes": 4076
+    },
+    "glm_fp8_runtime_r809.hpp": {
+      "path": "/refactor/candidates/GLM-C1-layer-observer-r474-CPU-v1/project-mirror/candidates/glm-M16-r8861/tree/candidates/glm-exact-budget-r8854/src/glm_fp8_runtime_r809.hpp",
+      "SHA256": "94a13f0cb6378f226960bdf05a30ddb6cfbb430c8127a3ee126b8198582e02db",
+      "bytes": 505
+    },
+    "prepare_tp16.cpp": {
+      "path": "/refactor/candidates/GLM-C1-layer-observer-r474-CPU-v1/project-mirror/incoming/GLM952-global-TP16-component-r470/full-native-source-v1/prepare_tp16.cpp",
+      "SHA256": "285d0465a201b6c5da22bd28bc56b1a34606805df1b147469c1b8f0108bf4929",
+      "bytes": 9513
+    }
+  },
+  "actual_profile": "results/bw1000/2026-11-11/GLM474-original906-failed-prefix-quality-and-layer-windows.json",
+  "dedup": {
+    "old_case": "analysis/bw1000/evidence/GLM-prepare-fence-component-terminal-r8974.json",
+    "old_scope": "tokens8/existing activelease, AttentionPrepare terminal fence, real layer38 TP8, sealed.",
+    "current_scope": "No kernels/Model/checkpoint; SDK already-empty stream1vs2 drain on O01. Does not replay old AttentionPrepare component."
+  },
+  "source_findings": [
+    "Fp8Projection::forward success_fence is directly after projection.end.before_original_fence marker.",
+    "Without activelease, success_fence calls Runtime::syncStream and Work destructor calls retire which again syncs before releasing temporaries.",
+    "Original Context defaults decode_leases_r1356=false; original frozen owner does not call that optin policy.",
+    "A repeated already-empty driver call alone is not equivalent to the full marked interval, which also includes pending work, tensor retirement and later enqueue."
+  ],
+  "execution_claim": "coordination/tasks/O01-GLM-empty-stream-drain-cost-v1.json",
+  "new_Native_math_change": false,
+  "actual_GPU_yet": false,
+  "qualification": "Source and bounded diagnostic scope only. No hypothetical speed win or Model acceptance."
+}
