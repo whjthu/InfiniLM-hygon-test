@@ -1,0 +1,153 @@
+{
+  "schema": 1,
+  "observed_UTC": "2026-11-11T19:26:39.541610+00:00",
+  "scope": "Pinned installed source review, default-off shared-framework observer, separately bounded CPU-only tests pending",
+  "framework_commit": "51ff3141a4829cba7b1c21a47de92a0b241c71f7",
+  "source_inventory": [
+    {
+      "label": "qwen3_5",
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/training-minicpm-hygon-processor-r2/cpu/runtime-site/transformers/models/qwen3_5/modeling_qwen3_5.py",
+      "bytes": 93664,
+      "SHA256": "395439341ea5ba4dd14c103e830383caa75686cfaf6b693dd7efb58622224da6"
+    },
+    {
+      "label": "minicpmv4_6",
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/training-minicpm-hygon-processor-r2/cpu/runtime-site/transformers/models/minicpmv4_6/modeling_minicpmv4_6.py",
+      "bytes": 40096,
+      "SHA256": "a37ef94154e0b0ef3918ae60dfb43e871a5964d6a3cf48cd501dc36bf863119b"
+    },
+    {
+      "label": "minicpm_config",
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/training-minicpm-original-model-v1/MiniCPM-V-4.6/config.json",
+      "bytes": 2378,
+      "SHA256": "72d83ac9089bebddf28131b9953908acaf0a5740b868263c8aaac7c40b97991c"
+    },
+    {
+      "label": "swift_mixin",
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/training-vlm-swift-offline-runtime-v1/site/swift/trainers/mixin.py",
+      "bytes": 64818,
+      "SHA256": "6b6de2e7503ce414cb837961e1355be41a56787ecca502e8570bfcfa36c15ab9"
+    },
+    {
+      "label": "accelerate_containers_dtk26-sandbox-r1_usr_local_lib_python3.10_dist-packages_data_loader.py",
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/containers/dtk26-sandbox-r1/usr/local/lib/python3.10/dist-packages/accelerate/data_loader.py",
+      "bytes": 66830,
+      "SHA256": "e08c5f5cd3f7a8b8aaece03ad51f1c37994e390faf47d368281ad49c31bc84d1"
+    },
+    {
+      "label": "accelerate_containers_dtk26-sandbox-r1_usr_local_lib_python3.10_dist-packages_random.py",
+      "path": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/containers/dtk26-sandbox-r1/usr/local/lib/python3.10/dist-packages/accelerate/utils/random.py",
+      "bytes": 6665,
+      "SHA256": "87eff0975a4877ad9122de955bdb6dd587920112a23279353b3ff46877405b81"
+    }
+  ],
+  "source_read": {
+    "rc": 0,
+    "GPU_cards": 0,
+    "torch_imported": false,
+    "model_weight_bytes_read": 0,
+    "raw_tensor_transfer_bytes": 0
+  },
+  "findings": [
+    {
+      "fact": "Trainer restores RNG before set_epoch and construction of the resumed epoch iterator.",
+      "source": "original_trainer.py",
+      "SHA256": "c1a56423fcfcf9cfec6847467ffb2e2c8a9a9e8cc1836b82c87ed0c81e504be0",
+      "lines": [
+        1685,
+        1696
+      ],
+      "implication": "Original151 restored-RNG equality is not a measurement of actual forward-entry RNG."
+    },
+    {
+      "fact": "DataLoaderShard can synchronize configured RNG types at iterator entry and prefetches one batch ahead.",
+      "source": "accelerate/data_loader.py",
+      "SHA256": "e08c5f5cd3f7a8b8aaece03ad51f1c37994e390faf47d368281ad49c31bc84d1",
+      "lines": [
+        576,
+        606
+      ],
+      "implication": "Capture actual loader/accelerator RNG types; do not assume that global device RNG is synchronized or that synchronization caused the drift."
+    },
+    {
+      "fact": "Pinned MiniCPM constructs AutoModel from text_config whose model_type is qwen3_5_text; its forward calls language_model directly.",
+      "source": "modeling_minicpmv4_6.py",
+      "SHA256": "a37ef94154e0b0ef3918ae60dfb43e871a5964d6a3cf48cd501dc36bf863119b",
+      "lines": [
+        645,
+        647,
+        767,
+        774
+      ],
+      "implication": "Qwen multimodal rope_deltas cache is outside this MiniCPM text-backbone path; this does not exclude all state effects."
+    },
+    {
+      "fact": "Qwen text rotary embedding registers inv_freq and original_inv_freq as nonpersistent buffers. Pinned model rope_type is default.",
+      "source": "modeling_qwen3_5.py",
+      "SHA256": "395439341ea5ba4dd14c103e830383caa75686cfaf6b693dd7efb58622224da6",
+      "lines": [
+        100,
+        112
+      ],
+      "implication": "Adapter/optimizer checkpoint equality does not establish equality of all frozen base values and registered buffers; observe them without changing RoPE or cache settings."
+    }
+  ],
+  "implementation": {
+    "default_enabled": false,
+    "entry": "NativeResume config entry_state_step -> ResumeWitness.before -> capture_entry_state",
+    "scope": "One chosen global-step first accumulation microforward; defaults unchanged",
+    "observes": [
+      "full registered trainable and frozen parameters",
+      "persistent and nonpersistent buffers, None registrations and aliases",
+      "actual entry RNG hashes, unchanged across observer",
+      "root modes/AMP/backend flags",
+      "input shape/stride/offset/alignment",
+      "selected config/cache/rotary/provider attributes",
+      "actual loader and accelerator RNG type lists"
+    ],
+    "bounds": {
+      "chunk_bytes": 4194304,
+      "max_logical_bytes_including_aliases": 17179869184,
+      "registrations": 100000,
+      "input_tensors": 512,
+      "deadline": "Existing absolute witness epoch; checked per copied chunk"
+    },
+    "limitations": [
+      "Device copies can synchronize execution and perturb allocator/timing; observer wall cost is explicit.",
+      "No whole unregistered Python-state inventory or inner-kernel context proof.",
+      "This source is not installed into the HIP runtime yet; no actual MiniCPM forward, update, GPU or performance measured.",
+      "A first-divergence GPU run needs a separate minimal scope/claim and must preserve the original recipe and failures."
+    ]
+  },
+  "CPU_plan": {
+    "task": "training-minicpm-forward-entry-state-CPU-v1",
+    "framework_commit": "51ff3141a4829cba7b1c21a47de92a0b241c71f7",
+    "source_manifest_SHA256": "20c390f59da62bc48d61014128abaa1a89231c9fbd66cc184540642d63319066",
+    "CPU_GO": true,
+    "GPU_GO": false,
+    "Model_GO": false,
+    "platform": "Existing A100 host CPU-only tiny synthetic tests",
+    "GPU_cards": 0,
+    "CPU_threads": 1,
+    "whole_seconds": 120,
+    "test_timeout_seconds": 90,
+    "expected_tests": 25,
+    "raw_tensor_transfer_bytes": 0,
+    "scope": "Install exact framework source and run tiny CPU state-observer/recovery tests once; no model assets, no real model forward, no GPU runtime",
+    "unqualified": [
+      "HIP target runtime",
+      "actual MiniCPM entry state",
+      "numerical recovery",
+      "performance",
+      "heldout effect"
+    ]
+  },
+  "CPU_tests_executed": 0,
+  "GPU_GO": false,
+  "Model_GO": false,
+  "recovery_qualified": false,
+  "formal_performance": false,
+  "original151_not_replayed": true,
+  "original_numerical_thresholds": "MISSING",
+  "review": "Original Astra reviewer unavailable due to quota; no alternate agent or model started."
+}
