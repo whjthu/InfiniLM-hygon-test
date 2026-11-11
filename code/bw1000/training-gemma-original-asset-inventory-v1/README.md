@@ -1,0 +1,3 @@
+# Original Gemma file identity freeze
+
+One bounded CPU-only read of sixteen explicitly named original model files on the A100 source. Hash complete files and compare their existing source-sha256 companions, stable file identity, known small-file pins and two known safetensors headers. Exclude all partial files and do not alter source inputs. Preserve all16 planned-file denominators on failure. No original model/device load, transfer, target installation or numerical/performance acceptance. The 240-second epoch includes a230-second work guard; unknown transport is reconciled through the original intent/result and never rehashed as a replay.
