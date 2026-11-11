@@ -1,7 +1,7 @@
 {
   "owner": "root",
   "case": "T02.sft",
-  "state": "PREPARED_ORIGINAL_TWO_SHARD_TRANSFER_NOT_EXECUTED",
+  "state": "ORIGINAL_TRANSFER_ACTIVE_NOT_COMPLETE",
   "source": "code/bw1000/training-gemma-original-model-v1",
   "source_SHA256": {
     "CLAIM.json": "0f6ff8789cc490e42e8eb07a80f10f31e2bf4cae7f3eae0aa59a7648ab963cde",
@@ -15,7 +15,7 @@
     "transfer_once.py": "c47b3283ea1e81dc29c6079b37c3f9b1814817401a13958b7acf54f7b92f8ea1"
   },
   "claim_SHA256": "0f6ff8789cc490e42e8eb07a80f10f31e2bf4cae7f3eae0aa59a7648ab963cde",
-  "transfer_GO": true,
+  "transfer_GO": false,
   "CPU_GO": false,
   "GPU_GO": false,
   "Model_GO": false,
@@ -33,7 +33,44 @@
     "a14r1n17"
   ],
   "parent": "1087656",
-  "actual_transfer_handle": null,
+  "actual_transfer_handle": {
+    "request_id": "07834ae4ed8a48039e426d1acca3002a",
+    "driver": {
+      "PID": 143212,
+      "startcreationticks": 134389061498547831,
+      "owned_start_matches": true,
+      "live": true,
+      "exitcode": 259
+    },
+    "sender_transport": {
+      "PID": 87808,
+      "startcreationticks": 134389061501900661,
+      "owned_start_matches": true,
+      "live": true,
+      "exitcode": 259
+    },
+    "receiver_transport": {
+      "PID": 129564,
+      "startcreationticks": 134389061501864668,
+      "owned_start_matches": true,
+      "live": true,
+      "exitcode": 259
+    },
+    "source_owner": {
+      "host": "app-5fe95161c7d2451c953cdb82d51dfc99-66d9b5d4cb-zwccr",
+      "PID": 2879969,
+      "PGID": 2879969,
+      "startticks": 685288480
+    },
+    "target_owner": {
+      "host": "zz-login02",
+      "PID": 705978,
+      "PGID": 705978,
+      "startticks": 792028244
+    },
+    "epoch": 1794432549.929094,
+    "deadline": 1794475749.929094
+  },
   "source_model_binding": "coordination/training/gemma-original-model-v1.json",
   "native_CPU_input_binding": "coordination/training/gemma-native-inputs-v1.json",
   "analysis": {
@@ -41,5 +78,9 @@
     "SHA256": "99522ed1a809ee8d32da242a5be872c6f58172b0c78019872bc8790fa93fe065"
   },
   "replay_allowed": false,
-  "next": "Invoke the published original finite relay once,record owned driver/transports and remote request/PID/startticks. Observe actual handles; do not treat timeout as terminal or replay. After both workers actually finish,independently verify original outcomes and all16 destination file SHAs before full-model binding. Training and GPU require subsequent frozen scopes; original A100numerical thresholds/first-update reference are not yet qualified."
+  "next": "Follow the same original request and exact owned processes; preserve HOST-mismatch target PID liveness as UNKNOWN. Transfer is not complete. No replay,renaming,newservice or deadline reset. While this finite data relay runs,advance the original A100 Gemma first-update reference and other independent prepared tasks from shared code. Actual terminal source/receiver outcomes plus independent all16 target SHA closure are required before any Hygon model use.",
+  "first_observation": {
+    "path": "results/bw1000/2026-11-11/training-gemma-original-weight-transfer-first-request.json",
+    "SHA256": "557b83265f77edec9170b21f1ba50240cac8e50fc8c2dbf3c5346a91b56349b1"
+  }
 }
