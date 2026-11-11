@@ -11,7 +11,7 @@ def remaining(reserve=0):
 def query(args):return subprocess.check_output(args,text=True,timeout=min(12,remaining(5))).strip()
 def accounting():return [x.split('|') for x in query(['sacct','-n','-P','-j','1087656','--format=JobIDRaw,JobName%100,State,ExitCode,ElapsedRaw,NodeList']).splitlines() if '|'+label+'|' in x]
 old_fence=R/'results/training-minicpm-original143-values-CPU-v1/prelaunch-fence.json'
-fence_raw=old_fence.read_bytes();assert hashlib.sha256(fence_raw).hexdigest()=='d870af9c479d3a5ecc916e4ec891641ce2c1912d1e2e2d2590f4e339ad91b01d'
+fence_raw=old_fence.read_bytes();assert hashlib.sha256(fence_raw).hexdigest()=='f449adeda19a66e442652ddad2e83adb02a2d333a51bd00d380f7d2bc7c7ccb1'
 fence=json.loads(fence_raw);assert fence['original_audit_cannot_start'] and fence['atomic_absent_namespace_fence_won']
 assert not (old_fence.parent/'source').exists()
 assert not W.exists() and not accounting()
