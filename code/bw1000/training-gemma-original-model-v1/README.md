@@ -1,0 +1,7 @@
+# Original complete Gemma model staging
+
+Stream only the two pinned original BF16 Gemma shards (8,600,277,880 bytes) through the already configured ordinary A100 and Hygon SSH commands. Reuse14 verified metadata/processor/tokenizer files locally into a new immutable full-model directory. Do not modify the earlier14-file processor directory,source sidecars or source partial files. This does not access T10 raw operands or SF3D assets.
+
+The whole relay and both remote workers share one actual epoch+43,200s deadline. Source stat identities are frozen at preflight,source full hashes are computed during the actual stream,receiver reuses the qualified append verifier at offset0 through an explicit per-file payload slice. Every file must have the exact full SHA before finalization. Preserve a failure and partial files; never replay a namespace or ambiguous request. Windows workers are hidden and their owned PID/startcreationticks are recorded. No SSH service,poller,model import,GPU or training is involved. Stream progress is transfer cost,not compute utilization or throughput. Receiver success must still be independently checked before model use.
+
+Observed metadata transfer39.35MB/123.84s suggests about7.5hours for the weight payload at that rate. The earlier larger MiniCPM continuation was slower;12hours is a finite limit,not a guarantee. The original model training,A100numerical tolerances,first-update capture,25updates,fresh recovery,three formal runs and effects are still pending.

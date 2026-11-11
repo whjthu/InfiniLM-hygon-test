@@ -900,7 +900,7 @@
     "next": "r480 token clock source publishedaa3e9a74, actual network token SLO unverified; no independent load solely for clocks."
   },
   "schema_version": 1,
-  "updated_at_utc": "2026-11-11T21:17:50.749221+00:00",
+  "updated_at_utc": "2026-11-11T21:26:53.318543+00:00",
   "owner": "bw1000-agent",
   "hardware": "BW1000",
   "goal_complete": false,
@@ -3545,5 +3545,51 @@
     },
     "input_binding": "coordination/training/gemma-native-inputs-v1.json",
     "task": "coordination/tasks/training-gemma-native-inputs-HIP-CPU-v1.json"
+  },
+  "gemma_full_model_transfer": {
+    "owner": "root",
+    "case": "T02.sft",
+    "state": "PREPARED_ORIGINAL_TWO_SHARD_TRANSFER_NOT_EXECUTED",
+    "source": "code/bw1000/training-gemma-original-model-v1",
+    "source_SHA256": {
+      "CLAIM.json": "0f6ff8789cc490e42e8eb07a80f10f31e2bf4cae7f3eae0aa59a7648ab963cde",
+      "framed_stream.py": "c2ce058bc12abefe6577157c3d25b2321af7ead3518cf6ca517d3798d32e7b68",
+      "MODEL_FILES.json": "5c6875cfe190980cad4315703e8d73dbd1fb803d620ea1f707ba35fe5de30c63",
+      "README.md": "d0c0d4c3c7a2dce266a2b7784e6a4abccbbc3a71c2926488e4fa51d0c6e7c9cf",
+      "receiver.py": "4ffe47236bdc601c5dbdf1b7686a1b30fbf36a9be1e3d8e4a4b35636a6adb375",
+      "resume_stream.py": "04de4a21bc2f281d73ee69a65dd9577b16abb50e30d920674d286ad6aa3cce5e",
+      "sender.py": "e8d1dccb5527d41da46cff77bcf9ae69fc7661f0a020a3a2af8692273e6a0e20",
+      "SOURCE_FILES.json": "a7cba1b1571beaa317f5734241328b387e89afbc719125991e124b084875c350",
+      "transfer_once.py": "c47b3283ea1e81dc29c6079b37c3f9b1814817401a13958b7acf54f7b92f8ea1"
+    },
+    "claim_SHA256": "0f6ff8789cc490e42e8eb07a80f10f31e2bf4cae7f3eae0aa59a7648ab963cde",
+    "transfer_GO": true,
+    "CPU_GO": false,
+    "GPU_GO": false,
+    "Model_GO": false,
+    "weight_files": 2,
+    "weight_bytes": 8600277880,
+    "metadata_files_reused": 14,
+    "total_model_files": 16,
+    "total_model_bytes": 8639630561,
+    "whole_epoch_seconds": 43200,
+    "new_service": false,
+    "new_poller": false,
+    "max_existing_SSH_connections": 2,
+    "assigned_nodes": [
+      "a14r1n11",
+      "a14r1n17"
+    ],
+    "parent": "1087656",
+    "actual_transfer_handle": null,
+    "source_model_binding": "coordination/training/gemma-original-model-v1.json",
+    "native_CPU_input_binding": "coordination/training/gemma-native-inputs-v1.json",
+    "analysis": {
+      "path": "analysis/bw1000/Gemma-original-two-shard-transfer-plan.json",
+      "SHA256": "99522ed1a809ee8d32da242a5be872c6f58172b0c78019872bc8790fa93fe065"
+    },
+    "replay_allowed": false,
+    "next": "Invoke the published original finite relay once,record owned driver/transports and remote request/PID/startticks. Observe actual handles; do not treat timeout as terminal or replay. After both workers actually finish,independently verify original outcomes and all16 destination file SHAs before full-model binding. Training and GPU require subsequent frozen scopes; original A100numerical thresholds/first-update reference are not yet qualified.",
+    "task": "coordination/tasks/training-gemma-original-model-v1.json"
   }
 }
