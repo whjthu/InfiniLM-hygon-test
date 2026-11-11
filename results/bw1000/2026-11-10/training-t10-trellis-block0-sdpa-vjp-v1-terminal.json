@@ -1,0 +1,206 @@
+{
+  "id": "training-t10-trellis-block0-sdpa-vjp-v1",
+  "claim_commit": "9ee1b6f9e21117616839dbce16bdc980485a5ae6",
+  "framework_commit": "bccdd0c8b700d949ec79b0229e37276fc2ed856d",
+  "state": "TERMINAL_NATIVE_EQUALS_MATH_ON_CAPTURED_SDPA_INPUT",
+  "accounting": [
+    [
+      "1087656.105",
+      "t10-trellis-block0-sdpa-vjp-v1-pre",
+      "COMPLETED",
+      "0:0",
+      "1"
+    ],
+    [
+      "1087656.106",
+      "t10-trellis-block0-sdpa-vjp-v1",
+      "COMPLETED",
+      "0:0",
+      "60"
+    ],
+    [
+      "1087656.107",
+      "t10-trellis-block0-sdpa-vjp-v1-post",
+      "COMPLETED",
+      "0:0",
+      "0"
+    ]
+  ],
+  "assigned": {
+    "pci": "0000:09:00.0",
+    "visible_cards": 1,
+    "step": "1087656.106",
+    "node": "a14r1n20"
+  },
+  "post_cleanup": {
+    "same_boot": true,
+    "same_eight_pci": true,
+    "KFD_holders_before": 0,
+    "KFD_holders_after": 0
+  },
+  "site": "blocks.0.self_attn",
+  "scope": "captured native block-0 SDPA forward and VJP; same-input forced DCU math backend and independent CPU float64 VJP",
+  "inputs": {
+    "q": {
+      "shape": [
+        1,
+        12,
+        1024,
+        128
+      ],
+      "dtype": "torch.bfloat16"
+    },
+    "k": {
+      "shape": [
+        1,
+        12,
+        1024,
+        128
+      ],
+      "dtype": "torch.bfloat16"
+    },
+    "v": {
+      "shape": [
+        1,
+        12,
+        1024,
+        128
+      ],
+      "dtype": "torch.bfloat16"
+    },
+    "mask": {
+      "shape": [
+        1,
+        1,
+        1,
+        1024
+      ],
+      "dtype": "torch.bfloat16"
+    },
+    "upstream": {
+      "shape": [
+        1,
+        12,
+        1024,
+        128
+      ],
+      "dtype": "torch.bfloat16"
+    }
+  },
+  "operand_strides": {
+    "q": [
+      1572864,
+      128,
+      1536,
+      1
+    ],
+    "k": [
+      1572864,
+      128,
+      1536,
+      1
+    ],
+    "v": [
+      1572864,
+      128,
+      1536,
+      1
+    ],
+    "mask": [
+      1024,
+      1024,
+      1024,
+      1
+    ]
+  },
+  "native_backward": "ToCopyBackward0",
+  "math_backward": "ToCopyBackward0",
+  "model_gradients_bitwise_to_original_hip": true,
+  "prediction_bitwise_to_original_hip": true,
+  "gpu_optimizer_updates": 0,
+  "peak_reserved_bytes": 9227468800,
+  "operator_measures": {
+    "out": {
+      "native_vs_cpu_f64": {
+        "relative_l2": 0.0016595822359818124,
+        "max_abs": 0.2484101179275342,
+        "bf16_rounding_equal_fraction": 0.9939308166503906
+      },
+      "dcu_math_vs_cpu_f64": {
+        "relative_l2": 0.0016595822359818124,
+        "max_abs": 0.2484101179275342,
+        "bf16_rounding_equal_fraction": 0.9939308166503906
+      },
+      "native_vs_dcu_math": {
+        "relative_l2": 0.0,
+        "max_abs": 0.0,
+        "bf16_rounding_equal_fraction": 1.0
+      }
+    },
+    "dq": {
+      "native_vs_cpu_f64": {
+        "relative_l2": 0.0016119527901258264,
+        "max_abs": 2.7678603387765074e-08,
+        "bf16_rounding_equal_fraction": 0.9949391682942709
+      },
+      "dcu_math_vs_cpu_f64": {
+        "relative_l2": 0.0016119527901258264,
+        "max_abs": 2.7678603387765074e-08,
+        "bf16_rounding_equal_fraction": 0.9949391682942709
+      },
+      "native_vs_dcu_math": {
+        "relative_l2": 0.0,
+        "max_abs": 0.0,
+        "bf16_rounding_equal_fraction": 1.0
+      }
+    },
+    "dk": {
+      "native_vs_cpu_f64": {
+        "relative_l2": 0.0017407376379663891,
+        "max_abs": 2.3128760204231135e-07,
+        "bf16_rounding_equal_fraction": 0.9940338134765625
+      },
+      "dcu_math_vs_cpu_f64": {
+        "relative_l2": 0.0017407376379663891,
+        "max_abs": 2.3128760204231135e-07,
+        "bf16_rounding_equal_fraction": 0.9940338134765625
+      },
+      "native_vs_dcu_math": {
+        "relative_l2": 0.0,
+        "max_abs": 0.0,
+        "bf16_rounding_equal_fraction": 1.0
+      }
+    },
+    "dv": {
+      "native_vs_cpu_f64": {
+        "relative_l2": 0.0016591371434447426,
+        "max_abs": 3.635702580095356e-09,
+        "bf16_rounding_equal_fraction": 0.9958610534667969
+      },
+      "dcu_math_vs_cpu_f64": {
+        "relative_l2": 0.0016591371434447426,
+        "max_abs": 3.635702580095356e-09,
+        "bf16_rounding_equal_fraction": 0.9958610534667969
+      },
+      "native_vs_dcu_math": {
+        "relative_l2": 0.0,
+        "max_abs": 0.0,
+        "bf16_rounding_equal_fraction": 1.0
+      }
+    }
+  },
+  "original_hip_SHA256": "b1acdf0b074c3c66639b566ab082544d7c8bfac63a487d05b0f4edc1a8bcd767",
+  "private_operator_artifact_SHA256": "0ca00e3d92a1a58eb1c203eb1ed454b4cc0b8288a64d05da492fe66593106418",
+  "CPU_oracle": "Float64 explicit softmax and analytical VJP per head, checked against PyTorch CPU autograd on a small case within the same process. For each metric reference is the second operand of its label.",
+  "private_outcome_SHA256": "de3d407799411f24e2a385c23870e27246ca59546b1832b5411aaa14af87d247",
+  "private_summary_SHA256": "020486632c883dd111586ad8608d9c3a381f5a5409644211ff0aa23766dcd826",
+  "private_operator_artifact": "results/training-t10-trellis-block0-sdpa-vjp-v1/diagnostic/block0-operands.pt",
+  "interpretation": "A forced math dispatch did not change the observed SDPA output or gradients for these captured DCU operands. Compared with float64 on those same operands the relative L2 range is 0.00161–0.00174. Internal A100 operands are missing from the original capture. The test does not identify a cross-platform root cause or measure performance.",
+  "next": "Acquire the paired A100 block-0 capture under its original runtime; then cross-replay the A100 and DCU inputs and upstream gradients. Independently isolate block-0 LoRA projection saved input and output gradient for the B-weight VJP.",
+  "acceptance": {
+    "first_update_numeric": "FAILED_PREVIOUS_REAL_UPDATE",
+    "continuous_25_step_and_resume": "NOT_RUN",
+    "formal_performance": "NOT_RUN",
+    "held_out_effect": "NOT_RUN"
+  }
+}

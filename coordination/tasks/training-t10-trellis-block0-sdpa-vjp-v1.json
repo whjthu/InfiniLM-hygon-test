@@ -22,7 +22,7 @@
   "gpu_memory_MiB": 64000,
   "gpu_slurm_time": "00:07:00",
   "id": "training-t10-trellis-block0-sdpa-vjp-v1",
-  "state": "CLAIMED_GPU_FIXED_OPERAND_SDPA_DIAGNOSTIC",
+  "state": "TERMINAL_NATIVE_EQUALS_MATH_ON_CAPTURED_SDPA_INPUT",
   "source": "code/bw1000/training-t10-trellis-block0-sdpa-vjp-v1",
   "source_SHA256": {
     "diagnose_block0_sdpa.py": "43d516858c461e9ac76650dd649adf6dd2eacc56f6c083873226263418f18dd1",
@@ -33,5 +33,8 @@
   },
   "paired_evidence": "results/bw1000/2026-11-10/training-t10-trellis-loss-adjoint-v1-terminal.json",
   "paired_evidence_SHA256": "792fba7602b68ccfc55e43a370640a8bda0f35e08a82ab36c62336f6440687be",
-  "scope": "Original full BF16 forward and one backward, capture first self-attention Q/K/V/mask/dO and native gradients, compare native and forced math DCU to CPU float64 on the same captured operands, zero updates. A100 intermediate operands are absent."
+  "scope": "Original full BF16 forward and one backward, capture first self-attention Q/K/V/mask/dO and native gradients, compare native and forced math DCU to CPU float64 on the same captured operands, zero updates. A100 intermediate operands are absent.",
+  "terminal_evidence": "results/bw1000/2026-11-10/training-t10-trellis-block0-sdpa-vjp-v1-terminal.json",
+  "terminal_evidence_SHA256": "9d58b8eec6ecc87ef3d48deef33d523afc64d210b6105cea1643d31cbce08b33",
+  "next": "Acquire the paired A100 block-0 capture under its original runtime; then cross-replay the A100 and DCU inputs and upstream gradients. Independently isolate block-0 LoRA projection saved input and output gradient for the B-weight VJP."
 }
