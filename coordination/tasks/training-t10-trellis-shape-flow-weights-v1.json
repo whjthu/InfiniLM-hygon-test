@@ -1,12 +1,55 @@
 {
   "id": "training-t10-trellis-shape-flow-weights-v1",
   "owner": "/root",
-  "state": "CLAIMED_LOCAL_ASSET_ACQUISITION",
+  "state": "LOCAL_CHECKPOINT_VERIFIED_CLUSTER_STAGING_CLAIMED",
   "training_case": "T10.shape-flow-lora",
   "scope": "Acquire one official Microsoft Shape Flow checkpoint to local private storage. No model runtime or Slurm step.",
   "source": "code/bw1000/training-t10-trellis-cache-preflight-v1/fetch_shape_flow_weights.py",
   "source_SHA256": "1d9dca0d89b51fe79b68990503ace92e40435a818c9c852ddbcd2b40bf33304c",
   "revision": "81c44e3aefb363742e68d7eb4540bb65839d9ab3",
   "bytes": 2584574424,
-  "weight_SHA256": "ec5e0917ef9b7e25ad51dffc7d19687a42019871f94239f2fa7f86264c55b70f"
+  "weight_SHA256": "ec5e0917ef9b7e25ad51dffc7d19687a42019871f94239f2fa7f86264c55b70f",
+  "local_receipt_SHA256": "299cf7626d29f101999545ab2024fde7df71339d4b023006ffc2ab2b95738f39",
+  "local_receipt": {
+    "revision": "81c44e3aefb363742e68d7eb4540bb65839d9ab3",
+    "file": "slat_flow_img2shape_dit_1_3B_512_bf16.safetensors",
+    "bytes": 2584574424,
+    "SHA256": "ec5e0917ef9b7e25ad51dffc7d19687a42019871f94239f2fa7f86264c55b70f",
+    "scope": "local private asset"
+  },
+  "cluster_route": {
+    "route": "microsoft/TRELLIS.2-4B on ModelScope with system CA",
+    "files": [
+      {
+        "name": "pipeline.json",
+        "status": 200,
+        "range": null,
+        "SHA256": "222c359ab1ed9bc6735a640a34f95d47f8681b9bc4aaa101bfb80274676253c6",
+        "pin_match": true
+      },
+      {
+        "name": "ckpts/slat_flow_img2shape_dit_1_3B_512_bf16.json",
+        "status": 200,
+        "range": null,
+        "SHA256": "ddbd7a1d34ce9a8e7af2f6ef9ae686d9ab49f69e62dacb98d8409b511cdbd5e2",
+        "pin_match": true
+      },
+      {
+        "name": "ckpts/slat_flow_img2shape_dit_1_3B_512_bf16.safetensors",
+        "status": 206,
+        "range": "bytes 0-1048575/2584574424",
+        "header_SHA256": "67606173488fc22d0db6bcd086787623fe6fd4a99e8686e0b651c4a15ece4cb8",
+        "pin_match": true
+      }
+    ],
+    "disk_free_bytes": 534698627432448
+  },
+  "cluster_stage": {
+    "source": "code/bw1000/training-t10-trellis-cache-preflight-v1/stage_cluster_shape_flow.py",
+    "source_SHA256": "09f5ab021cb7093806ec6b7c0608975627c878b16e57defdf419081fce5739f4",
+    "scope": "One bounded ModelScope range transfer in the project's private cluster storage. No Slurm step or model execution.",
+    "wall_time_seconds": 900,
+    "GPU_cards": 0,
+    "private_path": "results/training-t10-trellis-shape-flow-cluster-v1"
+  }
 }
