@@ -1,0 +1,3 @@
+# Controlled original-input forward provider comparison
+
+One new eight-A100 diagnostic with one model load per rank and two full original first-forward arms, zero optimizer updates. Only the18 chunk callable instances change; all186 actual dropout masks, full original inputs, initialization, recurrent/conv/norm providers remain bound. Native arm is compared to its original A100 output; mismatch without original tolerances remains unqualified and prevents attribution to the historical cross-platform drift. Whole1200/native1080/stop1110/TERM10/KILL10 share one remote epoch. All raw outputs stay on A100. No training25, recovery, performance or heldout acceptance. Target subset derives from one shared framework commit; full292 target deployment is not claimed.

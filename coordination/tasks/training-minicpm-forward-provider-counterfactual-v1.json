@@ -1,21 +1,155 @@
 {
   "id": "training-minicpm-forward-provider-counterfactual-v1",
   "owner": "bw1000/root",
-  "state": "PREPARING_SINGLE_FORWARD_CAUSAL_DIAGNOSTIC_NO_LAUNCH_PACKAGE",
+  "state": "PUBLISHED_BOUNDED_ORIGINAL_INPUT_TWO_ARM_PACKAGE_READY_FOR_FRESH_ADMISSION",
   "case": "T05.sft",
   "hypothesis": "The FLA-vs-Torch gated-delta provider difference contributes to the observed pre-update forward loss drift. It is not established by loaded-module metadata.",
   "primary_variable": "Only the18linear-attention chunk_gated_delta_rule instance callables; keep causal_conv1d, gated norm, full inputs, weights, initial LoRA and all186recorded dropout masks unchanged.",
   "planned_resource": "Original A100 eight-card topology with one original full first-forward input per rank; no optimizer update and no25-step replay. Resource and cleanup/epoch package not yet frozen, so no GPU execution is authorized by this card.",
-  "baseline_gate": "Record actual per-instance providers and executed call counts. Native-provider arm must be compared to original A100 first-forward outputs before interpreting its paired forced-Torch arm. Baseline mismatch retains failure denominator and prevents attribution.",
+  "baseline_gate": "Compare native arm to original before interpreting historical drift. Nonexact reproduction without original model tolerances is UNQUALIFIED; paired alternate arm remains diagnostic only and cannot promote Model.",
   "comparison": "Compare eight native-provider vs forced-Torch outputs in place on A100; compare scalar loss changes with original Hygon first forwards. Original model tolerance and pairwise tensor criteria still apply; scalar closeness alone does not pass numerical alignment.",
   "exit": "If native-arm reproduction or exact one-variable closure fails, stop and diagnose it; no blind rerun. If chunk switch leaves material drift, retain negative evidence and inspect gated norm/attention independently.",
   "fallback": "Use exact observed FP32 dropout shapes for a capture/replay forward+gradient+RNG component qualification if native-arm reproduction shows observer effects. Component results do not establish Model agreement.",
-  "GPU_GO": false,
-  "CPU_GO": false,
+  "GPU_GO": true,
+  "CPU_GO": true,
   "Model_GO": false,
   "actual_run": null,
   "evidence": {
     "path": "results/bw1000/2026-11-11/training-minicpm-original-forward-provider-selection-and-mask-metadata.json",
     "SHA256": "7282037ffff015532528a2ed8319d1973ef5282f056674b7b8ec3aa29cdd5d2c"
-  }
+  },
+  "source": "code/bw1000/training-minicpm-forward-provider-counterfactual-v1",
+  "source_SHA256": {
+    "CONFIG.json": "c8e892f0326346785b813d6353db3317bb3d520e8b2740908b8b3dbbe7c5b705",
+    "FRAMEWORK.json": "4549c10b726beeaa2744185b922c0497f6bbc2517c45c4e12c79dc0f534800d7",
+    "GPU_BINDING.json": "d28da2f48d8f26b9f7b217f366fa296c060c089cc18bd243239d42f3574aa8a3",
+    "MODEL_FILES.json": "ddcb8756dc66474f348bd81bb1730874ba78af8b46567e6a99596cedf5594ae6",
+    "original-launch.json": "015401ce4791ec978f645afd8eea7724a57f075b6d06a6eac474123418a78789",
+    "owned_processes.py": "bd420824127b572cceb9fc238839358b9e34e649951474b60343dc06d04c3245",
+    "README.md": "bfe4a22b53bec1218a863c68e13b97ed9631ba6e357bb928752b5d1dc7ca4445",
+    "receive_once.py": "c0781618f95557e0781f8d00276340788c732da5c8701ca1e117231cf8a43a81",
+    "RUNTIME_BINDING.json": "d4ed07da0b36798796eb6d456a7710c3c5c68dbee4ee2836c1af8162fddd9d5e",
+    "run_once.py": "0c2c693a14f4ae6daef1efd52c92ca6b97c8c7057b0315b0c1db9ccb0b81e2ea",
+    "SOURCE_PROOF.json": "14748d789e0a40b5ba7dfef2e887c74841b61da9e090ef057d74b6dcac2847e4",
+    "framework/vlm/plugins/forward_provider_counterfactual.py": "fbd1ddbc0bab59e38eef8cadfcbc3aa194e68492d5873dd28f182e65ef882747",
+    "framework/vlm/runtime/dropout_capture.py": "380a8b3a9afbabeaf8cb07a3da21f240c58d88856cc4fd973081ca9f22f6bd36",
+    "framework/vlm/runtime/initial_trainables.py": "b3be827c056b258a277fee69281e3da72907463e9e7157f81346979c48e8ff69",
+    "framework/vlm/runtime/lora_dropout_session.py": "9c006c0253672391dd9159c2aa1eda225d7e17c8b390a62edb406570d87e62f3",
+    "framework/vlm/runtime/minicpm_recipe_contract.py": "56332ff2ad87fb2e21344db9debaa1ebfacb85d119ece268fd955d4305fb2bf8",
+    "framework/vlm/runtime/provider_counterfactual.py": "f705940c0b5943cbf2bc087c22d014eca8370370075156c6eef9696164254902",
+    "framework/vlm/tests/test_provider_counterfactual.py": "ec9937600704c611db157ab51289f11e14a5a698c25a2f00d7c011859312fb14"
+  },
+  "source_manifest_SHA256": "1d8c4938675a5a2a8e106a470be4fd728aa6d94215574813df1603dc869f9729",
+  "remote_files": [
+    "CONFIG.json",
+    "FRAMEWORK.json",
+    "GPU_BINDING.json",
+    "MODEL_FILES.json",
+    "original-launch.json",
+    "owned_processes.py",
+    "README.md",
+    "RUNTIME_BINDING.json",
+    "run_once.py",
+    "SOURCE_PROOF.json",
+    "framework/vlm/plugins/forward_provider_counterfactual.py",
+    "framework/vlm/runtime/dropout_capture.py",
+    "framework/vlm/runtime/initial_trainables.py",
+    "framework/vlm/runtime/lora_dropout_session.py",
+    "framework/vlm/runtime/minicpm_recipe_contract.py",
+    "framework/vlm/runtime/provider_counterfactual.py",
+    "framework/vlm/tests/test_provider_counterfactual.py"
+  ],
+  "framework": {
+    "framework": {
+      "commit": "be23f0f1833e7321b02384957394b0ca1be3ba30",
+      "tree": "34d3a48405834a8217884cbe971c59add87125ae",
+      "parent": "ee1d5d418d79fe0a73348bbfb9f65a4487af7b49",
+      "paths": [
+        "vlm/plugins/forward_provider_counterfactual.py"
+      ],
+      "source_SHA256": {
+        "vlm/plugins/forward_provider_counterfactual.py": "fbd1ddbc0bab59e38eef8cadfcbc3aa194e68492d5873dd28f182e65ef882747"
+      },
+      "source_policy_passed": true,
+      "unit_tests_passed": 4,
+      "unit_tests_scope": "Pure stdlib instance substitution and restoration; no Torch/model/device qualification",
+      "identity": "whjthu <haojie0429@gmail.com>|whjthu <haojie0429@gmail.com>",
+      "reused_unit_tests": {
+        "commit": "ee1d5d418d79fe0a73348bbfb9f65a4487af7b49",
+        "tree": "769571132eb7a3a1370a407e3fe69153ab2d7fe3",
+        "parent": "57a2edb7218b51fd6ba83b91bc241bdec0168fb3",
+        "paths": [
+          "vlm/runtime/provider_counterfactual.py",
+          "vlm/plugins/forward_provider_counterfactual.py",
+          "vlm/tests/test_provider_counterfactual.py"
+        ],
+        "source_SHA256": {
+          "vlm/runtime/provider_counterfactual.py": "f705940c0b5943cbf2bc087c22d014eca8370370075156c6eef9696164254902",
+          "vlm/plugins/forward_provider_counterfactual.py": "a5ab99c943e067635ec06e2b689123d990a3da37758a05c0a108fcbe7f1a3e68",
+          "vlm/tests/test_provider_counterfactual.py": "ec9937600704c611db157ab51289f11e14a5a698c25a2f00d7c011859312fb14"
+        },
+        "source_policy_passed": true,
+        "unit_tests_passed": 4,
+        "unit_tests_scope": "Pure stdlib instance substitution and restoration; no Torch/model/device qualification",
+        "identity": "whjthu <haojie0429@gmail.com>|whjthu <haojie0429@gmail.com>"
+      }
+    },
+    "subset_only": true,
+    "files": {
+      "vlm/runtime/dropout_capture.py": "380a8b3a9afbabeaf8cb07a3da21f240c58d88856cc4fd973081ca9f22f6bd36",
+      "vlm/runtime/lora_dropout_session.py": "9c006c0253672391dd9159c2aa1eda225d7e17c8b390a62edb406570d87e62f3",
+      "vlm/runtime/initial_trainables.py": "b3be827c056b258a277fee69281e3da72907463e9e7157f81346979c48e8ff69",
+      "vlm/runtime/minicpm_recipe_contract.py": "56332ff2ad87fb2e21344db9debaa1ebfacb85d119ece268fd955d4305fb2bf8",
+      "vlm/runtime/provider_counterfactual.py": "f705940c0b5943cbf2bc087c22d014eca8370370075156c6eef9696164254902",
+      "vlm/plugins/forward_provider_counterfactual.py": "fbd1ddbc0bab59e38eef8cadfcbc3aa194e68492d5873dd28f182e65ef882747",
+      "vlm/tests/test_provider_counterfactual.py": "ec9937600704c611db157ab51289f11e14a5a698c25a2f00d7c011859312fb14"
+    },
+    "full_source_files": 292,
+    "full_framework_target_installed": false
+  },
+  "local_checks": {
+    "source_AST_passed": true,
+    "source_files": 18,
+    "ownership_valid_cases": 1,
+    "ownership_rejected_cases": 3,
+    "original_callbacks_checked": true,
+    "framework_source_policy_files": 292,
+    "instance_restoration_unit_tests_reused": 4,
+    "actual_target_CPU": false,
+    "actual_GPU": false,
+    "initial_local_fixture_failure": {
+      "path": "C:\\Users\\WangHaojie\\.codex\\visualizations\\2026\\10\\12\\01a130bd-3b97-73c2-8ecf-eda5151f1ba7\\training-minicpm-forward-provider-counterfactual-v1\\first-local-publication-check-failure.json",
+      "SHA256": "75c602a1a790a8af2cec34449731a6e5c671fdd07e1e211362703db9166c4b3a",
+      "target_executed": false
+    }
+  },
+  "source_reference_bindings": {
+    "path": "coordination/training/minicpm-native-model-masks-reference-v1.json",
+    "SHA256": "23072ea2defe46811e81a29eba77e2f950dd6d73c5dbe4280a17456b48f7ce85"
+  },
+  "resource": {
+    "host": "original_A100_reference",
+    "GPU_cards": 8,
+    "CPU_recipe_threads_per_rank": 8,
+    "ranks": 8,
+    "Slurm_parent": null
+  },
+  "seconds": {
+    "whole": 1200,
+    "native": 1080,
+    "supervisor_stop": 1110,
+    "TERM": 10,
+    "KILL": 10,
+    "outer_observation": 1220,
+    "local_observation": 1260
+  },
+  "input_ranks": 8,
+  "arms_per_rank": 2,
+  "optimizer_updates": 0,
+  "maximum_private_output_file_bytes": 536870912,
+  "maximum_planned_raw_output_bytes": 8589934592,
+  "raw_tensor_transfer_bytes": 0,
+  "prerequisites": "Source/recipe/weights/input/mask/provider hashes; fresh8UUID/PCI/apps admission before and after CPU preflight; new port29879; unique namespace; owned PID/startticks bounded cleanup. All checks are in the sole launcher, not manual readiness claims.",
+  "conditional_GPU_admission": true,
+  "replay_allowed": false
 }
