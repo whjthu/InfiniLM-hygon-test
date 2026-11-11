@@ -1,0 +1,203 @@
+From 3793c14af4819ebfc7612be1c91e72e42bff1020 Mon Sep 17 00:00:00 2001
+From: whjthu <haojie0429@gmail.com>
+Date: Wed, 11 Nov 2026 08:17:07 +0800
+Subject: [PATCH] Bind TRELLIS Shape Flow replay to the original training
+ sources
+
+---
+ tools/hygon_trellis_first_step.py | 136 +++++++++++++++++++++++-------
+ 1 file changed, 104 insertions(+), 32 deletions(-)
+
+diff --git a/tools/hygon_trellis_first_step.py b/tools/hygon_trellis_first_step.py
+index 7fbb636..e0477d6 100644
+--- a/tools/hygon_trellis_first_step.py
++++ b/tools/hygon_trellis_first_step.py
+@@ -85,35 +85,57 @@ def inputs_and_reference(torch, args):
+     return config, reference, cache, arithmetic
+ 
+ 
+-def replay(torch, args, config, reference, cache, arithmetic):
+-    import numpy as np
+-    from gencuda.backends.trellis2_training import (
+-        _import_model, checked_memory, flow_prediction_and_loss, inject_lora,
+-        load_base_weights, observe_sdpa, trainable_parameters,
+-    )
++
++EXCLUDED_SOURCE = "trellis2/pipelines/rembg/BiRefNet.py"
++
++
++def verify_shape_flow_source(config, expected_path):
++    from gencuda.trellis_training_contract import file_sha, json_sha, require, verify_source
++
++    if expected_path is None:
++        return verify_source(config)
++    baseline = json.loads(expected_path.read_bytes())
++    require(len(baseline) == 93 and EXCLUDED_SOURCE in baseline
++            and json_sha(baseline) == config["source_inventory_sha256"], "TRELLIS original source inventory differs")
++    root = Path(config["source_root"]).resolve(strict=True)
++    require((root / "trellis2").is_dir() and not (root / "trellis2").is_symlink(), "invalid TRELLIS source directory")
++    entries = list((root / "trellis2").rglob("*"))
++    require(all(not item.is_symlink() for item in entries), "symlink in TRELLIS Shape Flow source")
++    actual = {item.relative_to(root).as_posix(): file_sha(item) for item in entries if item.is_file()}
++    expected = {name: digest for name, digest in baseline.items() if name != EXCLUDED_SOURCE}
++    require(actual == expected, "TRELLIS Shape Flow source differs from the original 92-file closure")
++    return {"path": str(root), "python_inventory_sha256": json_sha(actual),
++            "original_inventory_sha256": config["source_inventory_sha256"],
++            "excluded_source": EXCLUDED_SOURCE, "source_files": len(actual)}
++
++
++def executed_source(config):
++    from gencuda.backends.trellis2_training import validate_module_origin
++    from gencuda.trellis_training_contract import file_sha, require
++
++    root = Path(config["source_root"]).resolve()
++    modules = {}
++    for name, module in sorted(sys.modules.copy().items()):
++        if name != "trellis2" and not name.startswith("trellis2."):
++            continue
++        validate_module_origin(module, root, name)
++        if getattr(module, "__file__", None):
++            path = Path(module.__file__).resolve()
++            rel = path.relative_to(root).as_posix()
++            require(rel != EXCLUDED_SOURCE, "TRELLIS background-removal module was executed")
++            modules[rel] = file_sha(path)
++    require("trellis2/models/structured_latent_flow.py" in modules, "TRELLIS Shape Flow did not load")
++    return modules
++
++
++def prepare_model(torch, args, config, reference, device):
++    from gencuda.backends.trellis2_training import _import_model, inject_lora, load_base_weights, trainable_parameters
+     from gencuda.hy_resume_checkpoint import cpu_tree
+-    from gencuda.runtime import MEMORY_LIMIT_BYTES, inspect_runtime, validate_accelerator
+-    from gencuda.trellis_training_contract import inspect_weights, require, verify_source, file_sha
++    from gencuda.trellis_training_contract import inspect_weights, require
+     from gencuda.trellis_training_resume_checkpoint import make_optimizer
+ 
+-    runtime = inspect_runtime()
+-    validate_accelerator(runtime, "hip", 1)
+-    source = verify_source(config)
+     model_config, _, weights = inspect_weights(args.weights)
+     require(model_config["name"] == "SLatFlowModel", "TRELLIS component model class differs")
+-    device = torch.device("cuda", 0)
+-    torch.cuda.set_device(device)
+-    total = torch.cuda.get_device_properties(device).total_memory
+-    torch.cuda.set_per_process_memory_fraction(min(1.0, MEMORY_LIMIT_BYTES / total), device)
+-    torch.cuda.reset_peak_memory_stats(device)
+-    seed = config["seed"]
+-    random.seed(seed)
+-    np.random.seed(seed % 2**32)
+-    torch.manual_seed(seed)
+-    torch.cuda.manual_seed_all(seed)
+-    torch.use_deterministic_algorithms(True)
+-    torch.backends.cuda.matmul.allow_tf32 = False
+-    torch.backends.cudnn.allow_tf32 = False
+     model_class, sparse = _import_model(config)
+     model = model_class(**model_config["args"])
+     load_base_weights(model, weights)
+@@ -129,10 +151,52 @@ def replay(torch, args, config, reference, cache, arithmetic):
+             parameter.copy_(initial[name])
+             require(parameter.device == device and torch.equal(parameter.cpu(), initial[name]),
+                     f"TRELLIS initial adapter copy differs: {name}")
+-    initial_adapter = cpu_tree(named)
+     optimizer = make_optimizer(list(named.values()), config)
+     optimizer.load_state_dict(reference["initial_optimizer"])
+-    initial_optimizer = cpu_tree(optimizer.state_dict())
++    return model, sparse, named, optimizer, cpu_tree(named), cpu_tree(optimizer.state_dict()), weights
++
++
++def construct(torch, args, config, reference):
++    source = verify_shape_flow_source(config, args.source_inventory)
++    torch.manual_seed(config["seed"])
++    model, _, named, _, _, _, weights = prepare_model(torch, args, config, reference, torch.device("cpu"))
++    modules = executed_source(config)
++    from gencuda.trellis_training_contract import require
++    require(not torch.cuda.is_initialized(), "CPU construction initialized a GPU")
++    require(verify_shape_flow_source(config, args.source_inventory) == source, "TRELLIS source changed")
++    return {"scope":"native CPU construction from the exact original checkpoint",
++            "source":source,"executed_source":modules,"model_type":type(model).__name__,
++            "weights_SHA256":weights["sha256"],"weight_tensors":len(weights["header"]),
++            "trainable_tensors":len(named),"trainable_elements":sum(p.numel() for p in named.values()),
++            "gpu_initialized":False,"forward_executed":False}
++
++def replay(torch, args, config, reference, cache, arithmetic):
++    import numpy as np
++    from gencuda.backends.trellis2_training import checked_memory, flow_prediction_and_loss, observe_sdpa
++    from gencuda.hy_resume_checkpoint import cpu_tree
++    from gencuda.runtime import MEMORY_LIMIT_BYTES, inspect_runtime, validate_accelerator
++    from gencuda.trellis_training_contract import require, file_sha
++
++    runtime = inspect_runtime()
++    validate_accelerator(runtime, "hip", 1)
++    source = verify_shape_flow_source(config, args.source_inventory)
++    device = torch.device("cuda", 0)
++    torch.cuda.set_device(device)
++    total = torch.cuda.get_device_properties(device).total_memory
++    torch.cuda.set_per_process_memory_fraction(min(1.0, MEMORY_LIMIT_BYTES / total), device)
++    torch.cuda.reset_peak_memory_stats(device)
++    seed = config["seed"]
++    random.seed(seed)
++    np.random.seed(seed % 2**32)
++    torch.manual_seed(seed)
++    torch.cuda.manual_seed_all(seed)
++    torch.use_deterministic_algorithms(True)
++    torch.backends.cuda.matmul.allow_tf32 = False
++    torch.backends.cudnn.allow_tf32 = False
++    model, sparse, named, optimizer, initial_adapter, initial_optimizer, weights = prepare_model(
++        torch, args, config, reference, device,
++    )
++    initial = reference["initial_adapter"]
+     inputs = {name: t.to(device) for name, t in reference["inputs"].items()}
+     optimizer.zero_grad(set_to_none=True)
+     with observe_sdpa(torch) as sdpa:
+@@ -153,7 +217,8 @@ def replay(torch, args, config, reference, cache, arithmetic):
+     torch.cuda.synchronize(device)
+     final = cpu_tree(named)
+     require(any(not torch.equal(initial[name], final[name]) for name in named), "TRELLIS zero adapter update")
+-    require(verify_source(config) == source, "TRELLIS source changed during the replay")
++    modules = executed_source(config)
++    require(verify_shape_flow_source(config, args.source_inventory) == source, "TRELLIS source changed during the replay")
+     args.output.mkdir()
+     observed = args.output / "observed.pt"
+     torch.save({
+@@ -168,6 +233,7 @@ def replay(torch, args, config, reference, cache, arithmetic):
+                "replay_source_sha256": file_sha(Path(__file__)),
+                "weight_sha256": weights["sha256"], "upstream_inventory_sha256": source["python_inventory_sha256"],
+                "cache_sha256": cache["file_sha256"], "cpu_arithmetic": arithmetic,
++               "source_binding": {k: v for k, v in source.items() if k != "files"}, "executed_source": modules,
+                "memory": checked_memory(), "sdpa": sdpa, "numerical_acceptance": "pending"}
+     (args.output / "summary.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
+     return summary
+@@ -177,12 +243,16 @@ def main():
+     parser = argparse.ArgumentParser(description=__doc__)
+     for name in ("reference", "weights", "cache"):
+         parser.add_argument(f"--{name}", required=True, type=Path)
+-    for name in ("source", "output"):
+-        parser.add_argument(f"--{name}", type=Path)
+-    parser.add_argument("--validate-only", action="store_true")
++    for name in ("source", "source_inventory", "output"):
++        parser.add_argument("--" + name.replace("_", "-"), type=Path)
++    mode = parser.add_mutually_exclusive_group()
++    mode.add_argument("--validate-only", action="store_true")
++    mode.add_argument("--construct-only", action="store_true")
+     args = parser.parse_args()
+-    if not args.validate_only and (args.source is None or args.output is None or args.output.exists()):
+-        parser.error("a fresh --output and the exact --source are required for HIP replay")
++    if not args.validate_only and args.source is None:
++        parser.error("--source is required for model construction or replay")
++    if not (args.validate_only or args.construct_only) and (args.output is None or args.output.exists()):
++        parser.error("a fresh --output is required for HIP replay")
+     os.environ["HF_HUB_OFFLINE"] = "1"
+     sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "generation" / "src"))
+     from gencuda.runtime import get_torch
+@@ -197,6 +267,8 @@ def main():
+         )}, "cpu_arithmetic": arithmetic, "reference_loss": float(reference["loss"]),
+             "original_cache_tensors_bitwise": True, "adapter_tensors": len(reference["initial_adapter"]),
+             "adapter_elements": 96256, "weight_values_loaded": False, "gpu_initialized": torch.cuda.is_initialized()}))
++    elif args.construct_only:
++        print(json.dumps(construct(torch, args, config, reference)))
+     else:
+         print(json.dumps(replay(torch, args, config, reference, cache, arithmetic)))
+ 
+-- 
+2.40.0.windows.1
+
