@@ -900,7 +900,7 @@
     "next": "r480 token clock source publishedaa3e9a74, actual network token SLO unverified; no independent load solely for clocks."
   },
   "schema_version": 1,
-  "updated_at_utc": "2026-11-11T18:04:15.623128+00:00",
+  "updated_at_utc": "2026-11-11T18:35:17.297238+00:00",
   "owner": "bw1000-agent",
   "hardware": "BW1000",
   "goal_complete": false,
@@ -2580,9 +2580,16 @@
       "source": "code/bw1000/training-minicpm-paired-resume-CPU-v1",
       "published_delta_files": 22,
       "source_policy_passed": true,
-      "full_framework_installed": false,
-      "target_CPU_qualified": false,
-      "Model_GO": false
+      "full_framework_installed": true,
+      "target_CPU_qualified": true,
+      "Model_GO": false,
+      "source_directory": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/training-minicpm-paired-resume-CPU-v1/framework",
+      "target_CPU_qualification_scope": "Full304 source/mode closure;14 affected/new tests;16 unchanged148 tests reused; original checkpoint10 CPU loader;17-case registration. No GPU recovery/quality/performance acceptance.",
+      "actual_CPU_step": "1087656.149",
+      "actual_CPU_evidence": {
+        "path": "results/bw1000/2026-11-11/training-minicpm-original149-full-framework-and-paired-recovery-CPU.json",
+        "SHA256": "2a9cd16dbb86c4f83f284e364fe29f5304789778151c103c67eb174be4d851ca"
+      }
     },
     "runtime_binding": "coordination/training/unified-framework-runtime-v1.json",
     "latest_CPU_evidence": {
@@ -3194,13 +3201,87 @@
     }
   },
   "minicpm_paired_resume_CPU": {
-    "state": "PUBLISHED_SCOPE_NOT_DISPATCHED",
+    "state": "TERMINAL_FULL304_TARGET_CPU_AND_ORIGINAL_CHECKPOINT10_LOADER_VERIFIED",
     "task": "coordination/tasks/training-minicpm-paired-resume-CPU-v1.json",
     "framework_commit": "480cee6ed85a8499a57b0890c5cbbb56f77da9ce",
-    "CPU_GO": true,
+    "CPU_GO": false,
     "GPU_GO": false,
     "Model_GO": false,
     "planned_CPU_tests": 14,
-    "reused_unchanged_CPU148_tests": 16
+    "reused_unchanged_CPU148_tests": 16,
+    "actual_CPU_step": "1087656.149",
+    "actual_CPU_tests": 14,
+    "source_files_verified": 304,
+    "result": {
+      "path": "results/bw1000/2026-11-11/training-minicpm-original149-full-framework-and-paired-recovery-CPU.json",
+      "SHA256": "2a9cd16dbb86c4f83f284e364fe29f5304789778151c103c67eb174be4d851ca"
+    }
+  },
+  "minicpm_paired_native_recovery": {
+    "state": "PUBLISHED_SCOPE_NOT_DISPATCHED",
+    "task": "coordination/tasks/training-minicpm-paired-native-recovery-v1.json",
+    "framework_commit": "480cee6ed85a8499a57b0890c5cbbb56f77da9ce",
+    "planned_GPU_cards": 8,
+    "planned_arms": [
+      {
+        "name": "control",
+        "restore_step": 10,
+        "complete_steps": [
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25
+        ],
+        "micro_forwards_per_rank": 60,
+        "saved_checkpoints": [
+          20,
+          25
+        ]
+      },
+      {
+        "name": "restored",
+        "restore_step": 20,
+        "checkpoint_source": "Same-run control checkpoint20 after normal native close and full file pins",
+        "complete_steps": [
+          21,
+          22,
+          23,
+          24,
+          25
+        ],
+        "micro_forwards_per_rank": 20,
+        "saved_checkpoints": [
+          25
+        ]
+      }
+    ],
+    "budgets": {
+      "native": 1320,
+      "inside": 1380,
+      "GPU": 1500,
+      "post": 120,
+      "audit_cap": 120,
+      "audit_absolute_deadline": 1740,
+      "whole": 1800,
+      "TERM": 10,
+      "KILL": 10
+    },
+    "CPU_GO": true,
+    "GPU_GO": true,
+    "Model_GO": false,
+    "formal_performance": false,
+    "actual_GPU_handle": null,
+    "same_platform_recovery_window_exact": null
   }
 }

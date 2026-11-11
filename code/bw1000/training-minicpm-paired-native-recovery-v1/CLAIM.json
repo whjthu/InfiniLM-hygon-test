@@ -1,0 +1,84 @@
+{
+  "label": "training-minicpm-paired-native-recovery-v1",
+  "owner": "bw1000/root",
+  "case": "T05.sft",
+  "framework_commit": "480cee6ed85a8499a57b0890c5cbbb56f77da9ce",
+  "framework_tree": "e6ec794f3fc4ba64874a52f5fc8a29f6292edb4a",
+  "source_manifest_SHA256": "0173d9e2c083de4b8856e43d4bc628df43d9a344941c8df4c28036c49746bd67",
+  "resource": {
+    "parent": "1087656",
+    "GPU_node": "f11r4n09",
+    "GPU_cards": 8,
+    "GPU_CPU": 64,
+    "GPU_memory_MiB": 224000,
+    "CPU_audit_node": "f11r4n10",
+    "CPU_audit_cores": 4,
+    "CPU_audit_memory_MiB": 8192,
+    "CPU_audit_GPU_cards": 0
+  },
+  "budgets": {
+    "native": 1320,
+    "inside": 1380,
+    "GPU": 1500,
+    "post": 120,
+    "audit_cap": 120,
+    "audit_absolute_deadline": 1740,
+    "whole": 1800,
+    "TERM": 10,
+    "KILL": 10
+  },
+  "planned_arms": [
+    {
+      "name": "control",
+      "restore_step": 10,
+      "complete_steps": [
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25
+      ],
+      "micro_forwards_per_rank": 60,
+      "saved_checkpoints": [
+        20,
+        25
+      ]
+    },
+    {
+      "name": "restored",
+      "restore_step": 20,
+      "checkpoint_source": "Same-run control checkpoint20 after normal native close and full file pins",
+      "complete_steps": [
+        21,
+        22,
+        23,
+        24,
+        25
+      ],
+      "micro_forwards_per_rank": 20,
+      "saved_checkpoints": [
+        25
+      ]
+    }
+  ],
+  "CPU_GO": true,
+  "GPU_GO": true,
+  "Model_GO": false,
+  "formal_performance": false,
+  "scope": "One paired full-state recovery experiment, two sequential fresh8rank process forests, one weight load per required fresh-process arm, immutable original recipe and complete20 tail forwards per rank. No original25 replay and no optimization/performance promotion.",
+  "fresh_admission": "Parent40/node-step exclusivity; source/input/checkpoint/CPU149 pins before Slurm; unique namespace/labels; HOST fullPCI/KFD/FD/PID/port pre; actual HIPPCI/device lease within45seconds; exact owner startticks cleanup; actual GPU terminal, independent full HOST post then0GPU audit. Whole epoch begins before install and is never reset.",
+  "unknown_execution": "Reconcile the exact request/intent/controller PID/startticks/Slurm labels; never replay or rename. UNKNOWN retains reservation.",
+  "raw_tensor_transfer_bytes": 0,
+  "new_SSH_service": false,
+  "new_poller_service": false
+}
