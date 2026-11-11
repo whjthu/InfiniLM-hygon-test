@@ -1,4 +1,4 @@
-"""Bind the Slurm-assigned HIP PCI identity, then run the original TRELLIS update."""
+"""Bind the Slurm-assigned HIP PCI identity, then run the paired TRELLIS backward diagnostic."""
 
 import ctypes
 import json

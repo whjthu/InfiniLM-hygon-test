@@ -6,7 +6,9 @@ from pathlib import Path
 import random
 import sys
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]/"generation"/"src"))
+tools_dir = Path(__file__).resolve().parent
+sys.path.insert(0, str(tools_dir))
+sys.path.insert(0, str(tools_dir.parent / "generation" / "src"))
 import numpy as np
 import torch
 from gencuda.backends.trellis2_training import checked_memory, flow_prediction_and_loss, observe_sdpa

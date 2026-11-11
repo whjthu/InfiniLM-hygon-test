@@ -10,7 +10,7 @@ original_hip=results/"training-t10-trellis-hip-first-update-v1"
 weights=results/"training-t10-trellis-shape-flow-cluster-v1/model"
 cache=results/"training-t10-trellis-reference-cache-preflight-v1"
 node="a14r1n20"
-label="t10-trellis-hip-first-update-v1"
+label="t10-trellis-loss-adjoint-v1"
 def query(*cmd):
     return subprocess.check_output(cmd,text=True,timeout=12)
 def accounting(name):
