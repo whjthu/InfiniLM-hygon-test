@@ -1,0 +1,124 @@
+{
+  "id": "training-t10-trellis-loss-adjoint-v1",
+  "claim_commit": "fe0c635b58ebfefd39a04e532cbe6f31edcd00ae",
+  "framework_commit": "bccdd0c8b700d949ec79b0229e37276fc2ed856d",
+  "state": "TERMINAL_CONTROL_REPRODUCED_LOSS_GRADIENT_REPLACEMENT_DID_NOT_RESOLVE",
+  "scope": "Original fixed TRELLIS BF16 Shape Flow input and weights, one DCU forward graph and two real backward passes. The intervention injects the BF16 MSE derivative reconstructed on CPU from the original saved A100 prediction and identical target.",
+  "accounting": [
+    [
+      "1087656.102",
+      "t10-trellis-loss-adjoint-v1-pre",
+      "COMPLETED",
+      "0:0",
+      "0"
+    ],
+    [
+      "1087656.103",
+      "t10-trellis-loss-adjoint-v1",
+      "COMPLETED",
+      "0:0",
+      "55"
+    ],
+    [
+      "1087656.104",
+      "t10-trellis-loss-adjoint-v1-post",
+      "COMPLETED",
+      "0:0",
+      "0"
+    ]
+  ],
+  "assigned": {
+    "pci": "0000:09:00.0",
+    "visible_cards": 1,
+    "step": "1087656.103",
+    "node": "a14r1n20"
+  },
+  "post_cleanup": {
+    "same_boot": true,
+    "same_eight_pci": true,
+    "KFD_holders_before": 0,
+    "KFD_holders_after": 0
+  },
+  "runtime": {
+    "gpu_backward_arms": 2,
+    "gpu_optimizer_updates": 0,
+    "sdpa_forward_and_recompute_calls": 60,
+    "peak_reserved_bytes": 9206497280
+  },
+  "measurements": {
+    "control_gradient_relative_l2_to_a100": 0.08489262292320142,
+    "intervention_gradient_relative_l2_to_a100": 0.08568926607497838,
+    "control_gradient_relative_l2_to_original_hip": 0.0,
+    "intervention_gradient_relative_l2_to_control": 0.02612759778946714,
+    "control_cpu_projected_update_relative_l2_to_a100": 0.2582321094719329,
+    "intervention_cpu_projected_update_relative_l2_to_a100": 0.25752524327619897,
+    "native_loss_adjoint_relative_l2_to_a100": 0.015018953353152127,
+    "prediction_relative_l2_to_original_hip": 0.0,
+    "prediction_bitwise_to_original_hip": true,
+    "control_gradient_error_l2_squared_by_parameter": {
+      "blocks.0.self_attn.to_qkv.lora_A": 0.0,
+      "blocks.0.self_attn.to_qkv.lora_B": 1.5383300563054596e-08,
+      "blocks.0.self_attn.to_out.lora_A": 0.0,
+      "blocks.0.self_attn.to_out.lora_B": 6.521028499000984e-09,
+      "blocks.0.cross_attn.to_q.lora_A": 0.0,
+      "blocks.0.cross_attn.to_q.lora_B": 4.25903951592285e-12,
+      "blocks.0.cross_attn.to_kv.lora_A": 0.0,
+      "blocks.0.cross_attn.to_kv.lora_B": 3.3783279720230634e-09,
+      "blocks.0.cross_attn.to_out.lora_A": 0.0,
+      "blocks.0.cross_attn.to_out.lora_B": 4.208457296839451e-11,
+      "blocks.1.self_attn.to_qkv.lora_A": 0.0,
+      "blocks.1.self_attn.to_qkv.lora_B": 6.724331143930468e-09,
+      "blocks.1.self_attn.to_out.lora_A": 0.0,
+      "blocks.1.self_attn.to_out.lora_B": 9.51646705443893e-10,
+      "blocks.1.cross_attn.to_q.lora_A": 0.0,
+      "blocks.1.cross_attn.to_q.lora_B": 3.201656146927783e-11,
+      "blocks.1.cross_attn.to_kv.lora_A": 0.0,
+      "blocks.1.cross_attn.to_kv.lora_B": 5.020541272187112e-10,
+      "blocks.1.cross_attn.to_out.lora_A": 0.0,
+      "blocks.1.cross_attn.to_out.lora_B": 1.0182401154672506e-10,
+      "blocks.2.self_attn.to_qkv.lora_A": 0.0,
+      "blocks.2.self_attn.to_qkv.lora_B": 1.1633889068327883e-09,
+      "blocks.2.self_attn.to_out.lora_A": 0.0,
+      "blocks.2.self_attn.to_out.lora_B": 4.771975061129739e-10
+    },
+    "intervention_gradient_error_l2_squared_by_parameter": {
+      "blocks.0.self_attn.to_qkv.lora_A": 0.0,
+      "blocks.0.self_attn.to_qkv.lora_B": 1.5461799643103785e-08,
+      "blocks.0.self_attn.to_out.lora_A": 0.0,
+      "blocks.0.self_attn.to_out.lora_B": 6.216354904703948e-09,
+      "blocks.0.cross_attn.to_q.lora_A": 0.0,
+      "blocks.0.cross_attn.to_q.lora_B": 5.639572183173041e-12,
+      "blocks.0.cross_attn.to_kv.lora_A": 0.0,
+      "blocks.0.cross_attn.to_kv.lora_B": 4.358219090188415e-09,
+      "blocks.0.cross_attn.to_out.lora_A": 0.0,
+      "blocks.0.cross_attn.to_out.lora_B": 3.849612418216635e-11,
+      "blocks.1.self_attn.to_qkv.lora_A": 0.0,
+      "blocks.1.self_attn.to_qkv.lora_B": 6.809455772432101e-09,
+      "blocks.1.self_attn.to_out.lora_A": 0.0,
+      "blocks.1.self_attn.to_out.lora_B": 9.736813186711194e-10,
+      "blocks.1.cross_attn.to_q.lora_A": 0.0,
+      "blocks.1.cross_attn.to_q.lora_B": 3.112339883346208e-11,
+      "blocks.1.cross_attn.to_kv.lora_A": 0.0,
+      "blocks.1.cross_attn.to_kv.lora_B": 4.3721842509566714e-10,
+      "blocks.1.cross_attn.to_out.lora_A": 0.0,
+      "blocks.1.cross_attn.to_out.lora_B": 1.020385236886732e-10,
+      "blocks.2.self_attn.to_qkv.lora_A": 0.0,
+      "blocks.2.self_attn.to_qkv.lora_B": 1.0784358441894398e-09,
+      "blocks.2.self_attn.to_out.lora_A": 0.0,
+      "blocks.2.self_attn.to_out.lora_B": 4.3427533491699354e-10
+    }
+  },
+  "original_hip_SHA256": "b1acdf0b074c3c66639b566ab082544d7c8bfac63a487d05b0f4edc1a8bcd767",
+  "original_A100_reference_SHA256": "c164b02f2bd4edea0d266daebf7d93adef17e753589d95fb530f81b1fba9e612",
+  "private_outcome_SHA256": "572d15093c08cee29aa6a28b700360cfad130b5abd92264b0126347dc43359c4",
+  "private_summary_SHA256": "dfc08333597b8ae082851cdf657fae2ced510f3d1ccd633c04ad1c6136c03a03",
+  "private_gradient_artifact_SHA256": "6bd7bf6abc8b74dd415faba65601d0ca18be3b2196105f9efa27bee5e3e7ec03",
+  "interpretation": "Replacing the loss gradient alone did not reduce the adapter-gradient discrepancy. The retained DCU forward intermediates and model backward path remain coupled in this diagnostic. The CPU-projected update is diagnostic and does not qualify as a second device optimizer update.",
+  "next": "Use the first self-attention block as a diagnostic site, replay with fixed operator input and upstream gradient against the original A100 path, then distinguish saved forward intermediates from model backward arithmetic.",
+  "acceptance": {
+    "first_update_numeric": "FAILED_PREVIOUS_REAL_UPDATE",
+    "continuous_25_step_and_resume": "NOT_RUN",
+    "formal_performance": "NOT_RUN",
+    "held_out_effect": "NOT_RUN"
+  }
+}
