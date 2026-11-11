@@ -1,0 +1,278 @@
+From 828dc83de471946e02ace0f842fb651d205735c3 Mon Sep 17 00:00:00 2001
+From: whjthu <haojie0429@gmail.com>
+Date: Wed, 11 Nov 2026 08:03:17 +0800
+Subject: [PATCH] Replay the frozen TRELLIS Shape Flow first update
+
+---
+ .../src/gencuda/backends/trellis2_training.py |  34 ++-
+ tools/hygon_trellis_first_step.py             | 205 ++++++++++++++++++
+ 2 files changed, 228 insertions(+), 11 deletions(-)
+ create mode 100644 tools/hygon_trellis_first_step.py
+
+diff --git a/generation/src/gencuda/backends/trellis2_training.py b/generation/src/gencuda/backends/trellis2_training.py
+index 7705158..47b805c 100644
+--- a/generation/src/gencuda/backends/trellis2_training.py
++++ b/generation/src/gencuda/backends/trellis2_training.py
+@@ -169,6 +169,27 @@ def _import_model(config: dict[str, Any]) -> tuple[Any, Any]:
+     return module.SLatFlowModel, sp
+ 
+ 
++def realize_flow_inputs(clean: Any, fraction: Any, noise: Any) -> tuple[Any, Any]:
++    sigma_min = 1e-5
++    coefficient = (sigma_min + (1.0 - sigma_min) * fraction).to(clean.dtype)
++    noised = (1.0 - fraction.to(clean.dtype)) * clean + coefficient * noise
++    target = (1.0 - sigma_min) * noise - clean
++    return noised, target
++
++
++def flow_prediction_and_loss(
++    torch: Any, model: Any, sparse: Any, coords: Any, noised: Any, fraction: Any, condition: Any, target: Any,
++) -> tuple[Any, Any]:
++    sample = sparse.SparseTensor(feats=noised, coords=coords)
++    with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
++        prediction = model(sample, fraction * 1000.0, condition)
++        require(torch.equal(prediction.coords, coords), "prediction coordinates or order changed")
++        require(prediction.feats.shape == noised.shape and prediction.feats.device == noised.device
++                and prediction.feats.dtype == torch.bfloat16, "prediction shape/device/precision differs")
++        loss = (prediction.feats.float() - target.float()).square().mean()
++    return prediction, loss
++
++
+ def run_trellis2_training(weights: Path, config: dict[str, Any], output_dir: Path, source_root: Path) -> dict[str, Any]:
+     import numpy as np
+     config = resolve_config(config)
+@@ -236,18 +257,9 @@ def run_trellis2_training(weights: Path, config: dict[str, Any], output_dir: Pat
+             started = perf_counter()
+             noise = torch.randn_like(clean)
+             fraction = torch.rand((1,), device="cuda:0", dtype=torch.float32)
+-            sigma_min = 1e-5
+-            coefficient = (sigma_min + (1.0 - sigma_min) * fraction).to(clean.dtype)
+-            noised = (1.0 - fraction.to(clean.dtype)) * clean + coefficient * noise
+-            target = (1.0 - sigma_min) * noise - clean
+-            sample = sp.SparseTensor(feats=noised, coords=coords)
++            noised, target = realize_flow_inputs(clean, fraction, noise)
+             calls_before = sdpa["forward_and_recompute_calls"]
+-            with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
+-                prediction = model(sample, fraction * 1000.0, condition)
+-                require(torch.equal(prediction.coords, coords), "prediction coordinates or order changed")
+-                require(prediction.feats.shape == clean.shape and prediction.feats.device == clean.device
+-                        and prediction.feats.dtype == torch.bfloat16, "prediction shape/device/precision differs")
+-                loss = (prediction.feats.float() - target.float()).square().mean()
++            prediction, loss = flow_prediction_and_loss(torch, model, sp, coords, noised, fraction, condition, target)
+             require(bool(torch.isfinite(loss)), "non-finite loss before backward")
+             loss.backward()
+             grads = preclip_gradients(parameters)
+diff --git a/tools/hygon_trellis_first_step.py b/tools/hygon_trellis_first_step.py
+new file mode 100644
+index 0000000..7fbb636
+--- /dev/null
++++ b/tools/hygon_trellis_first_step.py
+@@ -0,0 +1,205 @@
++"""Bind the original TRELLIS Shape Flow cache and replay one frozen A100 update on HIP."""
++
++from __future__ import annotations
++
++import argparse
++from dataclasses import asdict
++import json
++import os
++from pathlib import Path
++import random
++import sys
++
++REFERENCE = "c164b02f2bd4edea0d266daebf7d93adef17e753589d95fb530f81b1fba9e612"
++POLICY = "6c89ab647541db1ba2e762c15308cfaad1a71b8b954bb7bcda7e8ca314016064"
++LAUNCH = "d5b23154d64af63332e54e079d6b0fda0a2904f53bdd0e6a0541fa265fad29fa"
++BOUNDARY = "trellis-shape-flow-frozen-first-update"
++
++
++def inputs_and_reference(torch, args):
++    from gencuda.backends.trellis2_training import realize_flow_inputs
++    from gencuda.trellis_training_contract import (
++        CONFIG_SHA, PIPELINE_SHA, PREFIX, adapter_shapes, file_sha, load_cache, require, resolve_config,
++    )
++
++    ref = args.reference / "reference.pt"
++    policy = args.reference / "policy.json"
++    launch = args.reference / "a100-launch.json"
++    for path, pin in ((ref, REFERENCE), (policy, POLICY), (launch, LAUNCH)):
++        require(file_sha(path) == pin, f"TRELLIS first-step binding differs: {path.name}")
++    require(json.loads(policy.read_bytes())["reference_payload_sha256"] == REFERENCE,
++            "TRELLIS policy refers to a different reference")
++    config = json.loads(launch.read_bytes())["config"]
++    config["training_cache"] = str(args.cache)
++    if args.source:
++        config["source_root"] = str(args.source)
++    config = resolve_config(config)
++    require(config["max_tokens"] == 1024 and config["max_condition_tokens"] == 2048,
++            "original Shape Flow limits differ")
++
++    component = args.weights / "ckpts" / (PREFIX + ".json")
++    pipeline = args.weights / "pipeline.json"
++    require(file_sha(component) == CONFIG_SHA and file_sha(pipeline) == PIPELINE_SHA,
++            "TRELLIS component or pipeline configuration differs")
++    normalization = json.loads(pipeline.read_bytes())["args"]["shape_slat_normalization"]
++    arrays, cache = load_cache(config, normalization)
++    reference = torch.load(ref, map_location="cpu", weights_only=True)
++    inputs = reference["inputs"]
++    shapes = {
++        "coords": ((1024, 4), torch.int32),
++        "clean": ((1024, 32), torch.bfloat16),
++        "condition": ((1, 1029, 1024), torch.bfloat16),
++        "noise": ((1024, 32), torch.bfloat16),
++        "fraction": ((1,), torch.float32),
++        "noised": ((1024, 32), torch.bfloat16),
++        "target": ((1024, 32), torch.bfloat16),
++    }
++    require(set(inputs) == set(shapes), "TRELLIS first-step input inventory differs")
++    for name, (shape, dtype) in shapes.items():
++        tensor = inputs[name]
++        require(isinstance(tensor, torch.Tensor) and tensor.shape == shape and tensor.dtype == dtype
++                and bool(torch.isfinite(tensor).all()), f"TRELLIS realized tensor differs: {name}")
++    require(0 <= inputs["fraction"].item() <= 1, "TRELLIS invalid sampled timestep fraction")
++    for key, array in (("coords", "coords"), ("clean", "shape_latent"), ("condition", "condition")):
++        require(torch.equal(torch.from_numpy(arrays[array]).to(inputs[key].dtype), inputs[key]),
++                f"normalized original cache differs from A100 tensor: {key}")
++    require(torch.equal(reference["prediction_coords"], inputs["coords"]),
++            "A100 prediction coordinate ordering differs")
++    noised, target = realize_flow_inputs(inputs["clean"], inputs["fraction"], inputs["noise"])
++    arithmetic = {
++        "noised_bitwise_on_cpu": torch.equal(noised, inputs["noised"]),
++        "target_bitwise_on_cpu": torch.equal(target, inputs["target"]),
++    }
++    initial = reference["initial_adapter"]
++    layout = adapter_shapes()
++    require(list(initial) == list(layout) and sum(t.numel() for t in initial.values()) == 96256,
++            "TRELLIS original adapter inventory differs")
++    for name, tensor in initial.items():
++        require(tuple(tensor.shape) == layout[name] and tensor.dtype == torch.float32
++                and bool(torch.isfinite(tensor).all()), f"invalid original adapter tensor: {name}")
++    optimizer = reference["initial_optimizer"]
++    group, = optimizer["param_groups"]
++    require(optimizer["state"] == {} and group["params"] == list(range(len(layout))) and
++            group["lr"] == config["learning_rate"] and group["weight_decay"] == config["weight_decay"],
++            "TRELLIS original first AdamW groups differ")
++    return config, reference, cache, arithmetic
++
++
++def replay(torch, args, config, reference, cache, arithmetic):
++    import numpy as np
++    from gencuda.backends.trellis2_training import (
++        _import_model, checked_memory, flow_prediction_and_loss, inject_lora,
++        load_base_weights, observe_sdpa, trainable_parameters,
++    )
++    from gencuda.hy_resume_checkpoint import cpu_tree
++    from gencuda.runtime import MEMORY_LIMIT_BYTES, inspect_runtime, validate_accelerator
++    from gencuda.trellis_training_contract import inspect_weights, require, verify_source, file_sha
++    from gencuda.trellis_training_resume_checkpoint import make_optimizer
++
++    runtime = inspect_runtime()
++    validate_accelerator(runtime, "hip", 1)
++    source = verify_source(config)
++    model_config, _, weights = inspect_weights(args.weights)
++    require(model_config["name"] == "SLatFlowModel", "TRELLIS component model class differs")
++    device = torch.device("cuda", 0)
++    torch.cuda.set_device(device)
++    total = torch.cuda.get_device_properties(device).total_memory
++    torch.cuda.set_per_process_memory_fraction(min(1.0, MEMORY_LIMIT_BYTES / total), device)
++    torch.cuda.reset_peak_memory_stats(device)
++    seed = config["seed"]
++    random.seed(seed)
++    np.random.seed(seed % 2**32)
++    torch.manual_seed(seed)
++    torch.cuda.manual_seed_all(seed)
++    torch.use_deterministic_algorithms(True)
++    torch.backends.cuda.matmul.allow_tf32 = False
++    torch.backends.cudnn.allow_tf32 = False
++    model_class, sparse = _import_model(config)
++    model = model_class(**model_config["args"])
++    load_base_weights(model, weights)
++    inject_lora(model)
++    for block in model.blocks:
++        block.use_checkpoint = config["gradient_checkpointing"]
++    model.to(device).train()
++    named = trainable_parameters(model)
++    initial = reference["initial_adapter"]
++    require(list(named) == list(initial), "TRELLIS device adapter names or order differ")
++    with torch.no_grad():
++        for name, parameter in named.items():
++            parameter.copy_(initial[name])
++            require(parameter.device == device and torch.equal(parameter.cpu(), initial[name]),
++                    f"TRELLIS initial adapter copy differs: {name}")
++    initial_adapter = cpu_tree(named)
++    optimizer = make_optimizer(list(named.values()), config)
++    optimizer.load_state_dict(reference["initial_optimizer"])
++    initial_optimizer = cpu_tree(optimizer.state_dict())
++    inputs = {name: t.to(device) for name, t in reference["inputs"].items()}
++    optimizer.zero_grad(set_to_none=True)
++    with observe_sdpa(torch) as sdpa:
++        prediction, loss = flow_prediction_and_loss(
++            torch, model, sparse, inputs["coords"], inputs["noised"],
++            inputs["fraction"], inputs["condition"], inputs["target"],
++        )
++        require(bool(torch.isfinite(prediction.feats).all()) and bool(torch.isfinite(loss)),
++                "nonfinite TRELLIS prediction")
++        loss.backward()
++    require(sdpa["forward_and_recompute_calls"] > 0, "no actual BF16 SDPA calls observed")
++    before = {name: cpu_tree(p.grad) for name, p in named.items()}
++    require(all(t is not None and bool(torch.isfinite(t).all()) for t in before.values()), "invalid TRELLIS gradient")
++    norm = torch.nn.utils.clip_grad_norm_(list(named.values()), config["max_grad_norm"])
++    require(bool(torch.isfinite(norm)) and float(norm) > 0, "invalid TRELLIS gradient norm")
++    after = {name: cpu_tree(p.grad) for name, p in named.items()}
++    optimizer.step()
++    torch.cuda.synchronize(device)
++    final = cpu_tree(named)
++    require(any(not torch.equal(initial[name], final[name]) for name in named), "TRELLIS zero adapter update")
++    require(verify_source(config) == source, "TRELLIS source changed during the replay")
++    args.output.mkdir()
++    observed = args.output / "observed.pt"
++    torch.save({
++        "initial_adapter": initial_adapter, "initial_optimizer": initial_optimizer, "inputs": cpu_tree(inputs),
++        "prediction": cpu_tree(prediction.feats), "prediction_coords": cpu_tree(prediction.coords),
++        "loss": cpu_tree(loss), "gradients_before_clip": before, "gradients_after_clip": after,
++        "preclip_norm": cpu_tree(norm), "final_adapter": final, "final_optimizer": cpu_tree(optimizer.state_dict()),
++    }, observed)
++    summary = {"stage_id": "trellis-shape", "boundary": BOUNDARY,
++               "reference_sha256": REFERENCE, "policy_sha256": POLICY, "launch_sha256": LAUNCH,
++               "runtime": asdict(runtime), "observed_sha256": file_sha(observed),
++               "replay_source_sha256": file_sha(Path(__file__)),
++               "weight_sha256": weights["sha256"], "upstream_inventory_sha256": source["python_inventory_sha256"],
++               "cache_sha256": cache["file_sha256"], "cpu_arithmetic": arithmetic,
++               "memory": checked_memory(), "sdpa": sdpa, "numerical_acceptance": "pending"}
++    (args.output / "summary.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
++    return summary
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    for name in ("reference", "weights", "cache"):
++        parser.add_argument(f"--{name}", required=True, type=Path)
++    for name in ("source", "output"):
++        parser.add_argument(f"--{name}", type=Path)
++    parser.add_argument("--validate-only", action="store_true")
++    args = parser.parse_args()
++    if not args.validate_only and (args.source is None or args.output is None or args.output.exists()):
++        parser.error("a fresh --output and the exact --source are required for HIP replay")
++    os.environ["HF_HUB_OFFLINE"] = "1"
++    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "generation" / "src"))
++    from gencuda.runtime import get_torch
++
++    torch = get_torch()
++    torch.set_num_threads(1)
++    torch.set_num_interop_threads(1)
++    config, reference, cache, arithmetic = inputs_and_reference(torch, args)
++    if args.validate_only:
++        print(json.dumps({"stage_id": "trellis-shape", "cache": {k: cache[k] for k in (
++            "file_sha256", "semantic_sha256", "normalized_sha256", "tokens", "condition_tokens",
++        )}, "cpu_arithmetic": arithmetic, "reference_loss": float(reference["loss"]),
++            "original_cache_tensors_bitwise": True, "adapter_tensors": len(reference["initial_adapter"]),
++            "adapter_elements": 96256, "weight_values_loaded": False, "gpu_initialized": torch.cuda.is_initialized()}))
++    else:
++        print(json.dumps(replay(torch, args, config, reference, cache, arithmetic)))
++
++
++if __name__ == "__main__":
++    main()
+-- 
+2.40.0.windows.1
+
