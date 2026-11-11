@@ -1,0 +1,62 @@
+{
+  "schema": 1,
+  "observed_UTC": "2026-11-11T19:34:53.737703+00:00",
+  "framework_commit": "51ff3141a4829cba7b1c21a47de92a0b241c71f7",
+  "scope": "Independent HIP target CPU qualification of full306 framework and changed default-off observer",
+  "claim": {
+    "owner": "root",
+    "label": "training-minicpm-forward-entry-HIP-CPU-v1",
+    "framework_commit": "51ff3141a4829cba7b1c21a47de92a0b241c71f7",
+    "source_manifest_SHA256": "bf1e971945104b62faa0f8719c8e08596145358fbd544b0f1038115d67ba1d60",
+    "framework_manifest_SHA256": "56154342a4f094f4933ab40e8a785985af7ccefcdaee08b17b5b727c77eb2d77",
+    "CPU_GO": true,
+    "GPU_GO": false,
+    "Model_GO": false,
+    "resources": {
+      "parent": "1087656",
+      "nodes": [
+        "f11r4n10"
+      ],
+      "CPU_cores": 4,
+      "memory_MiB": 8192,
+      "GPU_cards": 0
+    },
+    "budgets_seconds": {
+      "whole": 300,
+      "work_absolute": 220,
+      "srun_time_limit": 240,
+      "CPU_wait_cap": 250,
+      "TERM": 5,
+      "KILL": 5
+    },
+    "tests": 25,
+    "new_source_deltas": 6,
+    "complete_framework_files": 306,
+    "real_model_assets_read": false,
+    "original_CPU149_replayed": false,
+    "raw_tensor_transfer_bytes": 0,
+    "scope": "One new HIP target CPU-only source/observer qualification; no GPU launch or actual-model recovery"
+  },
+  "parent_source_reused": "/results/training-minicpm-paired-resume-CPU-v1/framework",
+  "parent_CPU149_replayed": false,
+  "original_checkpoint_loader_replayed": false,
+  "changed_source_paths": [
+    "vlm/README.md",
+    "vlm/plugins/resume_training.py",
+    "vlm/runtime/forward_entry_state.py",
+    "vlm/runtime/resume_witness.py",
+    "vlm/tests/test_forward_entry_state.py",
+    "vlm/tests/test_resume_witness.py"
+  ],
+  "checks": {
+    "local_AST": true,
+    "all_306_canonical_git_blobs_manifested": true,
+    "unchanged_300_files_equal_parent304_manifest": true,
+    "manifest_payload_closure_checked": true,
+    "actual_target_CPU_tests": 0
+  },
+  "why": "A100-host CPU success does not qualify the actual target Torch/HIP/Swift plugin. Reuse unchanged source and closed original checkpoint qualification; test the affected tiny observers only.",
+  "GPU_GO": false,
+  "Model_GO": false,
+  "formal_performance": false
+}
