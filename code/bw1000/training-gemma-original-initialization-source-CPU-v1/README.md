@@ -1,0 +1,5 @@
+# Original Gemma trainable initialization on the source host
+
+Use the immutable316-file shared framework and actual Gemma metadata/Swift/PEFT to construct the full architecture on meta. Allocate only the476 FP32 trainable tensors on CPU,create a fresh actual AdamW,and invoke the real shared NativeInitialTrainables callback with its exact original119430531-byte initial.pt pin. Verify original named digest,destination object identity,frozen meta boundaries,fresh optimizer and unchanged CPU RNG. The real NativeFirstUpdates object follows the initializer in callback order but is not executed as a GPU recorder.
+
+One source CPU process with rank0/world8 environment fixtures is not a distributed run. Four affinity CPUs,two Torch threads,one300second epoch. No file export,no source model forward/backward,no GPU,no Hygon initialization or numerical/recovery/performance/effect qualification. Raw initial values remain on their original A100 host. Do not retry the rejected cross-host transfer without the pending explicit permission.
