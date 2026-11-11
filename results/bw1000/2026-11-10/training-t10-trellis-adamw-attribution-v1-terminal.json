@@ -1,0 +1,249 @@
+{
+  "training_case": "T10.shape-flow-lora",
+  "state": "TERMINAL_ORIGINAL_GRADIENTS_REPRODUCE_CROSS_DEVICE_UPDATE_ERROR",
+  "CPU_step": "1087656.101",
+  "original_GPU_step": "1087656.98",
+  "original_public_evidence": "results/bw1000/2026-11-10/training-t10-trellis-hip-first-update-v1-terminal.json",
+  "original_public_evidence_SHA256": "578461f282d4f9aa2d263ee28362c5cd0ea8d196e0b7c208c4701752298972cf",
+  "cpu_source": "code/bw1000/training-t10-trellis-loss-adjoint-v1/diagnose_adamw.py",
+  "receipt_SHA256": "a1ecb5d998e41a89f4986fd534020fd01578f45e29d93c94ca5f107bee7d3f75",
+  "original_receipt": {
+    "accounting": [
+      [
+        "1087656.101",
+        "t10-trellis-adamw-attribution-v1",
+        "COMPLETED",
+        "0:0",
+        "9"
+      ]
+    ],
+    "rc": 0,
+    "source": {
+      "tools/hygon_trellis_compare_first_step.py": "2a0d2dbaaa6d30cc5935bddcd75335019eb29f8d48a3296d5fc699f5c427fa7d",
+      "tools/hygon_sdxl_compare_first_step.py": "5550090fff73ffed1436b55eab9884c79984576d68d6e7dbadd98244d87b5edd",
+      "tools/hygon_trellis_first_step.py": "ddd04a55d9a1da84f4822d2811f8ac407fd9d9060f3e2e160c6e1563f01a838c",
+      "tools/hygon_sdxl_first_step.py": "cdf2f908887db4163c29c32793491ed781fcafa2585a177e85f0ec4af75abded",
+      "generation/src/gencuda/__init__.py": "96e3064ca16ab05dd5664ffa026428b24455684d421f8e40305d37ca790190f5",
+      "generation/src/gencuda/runtime.py": "9516e0dfba734e2b58cd0fec18bcaa3c7e70ae32156b492df264fb0f6a87fbdf",
+      "tools/diagnose_adamw.py": "e4a88d2ae2aa8dd2caba22d450fd83635462ad147383e813397b46453779ec8b"
+    },
+    "node": "a14r2n02",
+    "output": [
+      {
+        "step": "1087656.101",
+        "gpu_initialized": false,
+        "input_sha256": [
+          "c164b02f2bd4edea0d266daebf7d93adef17e753589d95fb530f81b1fba9e612",
+          "b1acdf0b074c3c66639b566ab082544d7c8bfac63a487d05b0f4edc1a8bcd767",
+          "10bb10922391036cce9afd18ac31b7d50d59f965ee56ca70e76ad2b076ce5393"
+        ],
+        "original_cross_update": {
+          "relative_l2": 0.25823211638816324,
+          "error_l2_squared": 3.46013153499077e-05,
+          "reference_update_l2_squared": 0.0005188861746474084
+        },
+        "cpu_a100_vs_actual": {
+          "relative_l2": 6.951879320487464e-08,
+          "error_l2_squared": 2.507705591605185e-18,
+          "reference_update_l2_squared": 0.0005188861746474084
+        },
+        "cpu_hip_vs_actual": {
+          "relative_l2": 9.195387668295057e-08,
+          "error_l2_squared": 4.382240854450622e-18,
+          "reference_update_l2_squared": 0.0005182701027618686
+        },
+        "cpu_cross_update": {
+          "relative_l2": 0.25823210947704267,
+          "error_l2_squared": 3.4601313327180997e-05,
+          "reference_update_l2_squared": 0.0005188861720884348
+        },
+        "cpu_a100_optimizer_vs_actual": {
+          "exp_avg": 0.0,
+          "exp_avg_sq": 1.7291713473767075e-08
+        },
+        "cpu_hip_optimizer_vs_actual": {
+          "exp_avg": 0.0,
+          "exp_avg_sq": 2.619429133033406e-08
+        },
+        "clipping_changed_gradients": {
+          "a100": false,
+          "hip": false
+        },
+        "loss_input_gradient_relative_l2": 0.015018953353152127,
+        "sign_categories": {
+          "both_zero": {
+            "elements": 34854,
+            "update_error_l2_squared": 0.0,
+            "gradient_error_l2_squared": 0.0
+          },
+          "same_nonzero_sign": {
+            "elements": 59884,
+            "update_error_l2_squared": 1.6112877949624161e-06,
+            "gradient_error_l2_squared": 2.4581002544973875e-08
+          },
+          "opposite_nonzero_sign": {
+            "elements": 1508,
+            "update_error_l2_squared": 3.291282824636138e-05,
+            "gradient_error_l2_squared": 1.0687516114690366e-08
+          },
+          "zero_vs_nonzero": {
+            "elements": 10,
+            "update_error_l2_squared": 7.719930858391298e-08,
+            "gradient_error_l2_squared": 1.2940949453559578e-11
+          }
+        },
+        "parameter_contributions": [
+          {
+            "parameter": "blocks.0.self_attn.to_qkv.lora_A",
+            "gradient_error_l2_squared": 0.0,
+            "update_error_l2_squared": 0.0,
+            "sign_flip_elements": 0
+          },
+          {
+            "parameter": "blocks.0.self_attn.to_qkv.lora_B",
+            "gradient_error_l2_squared": 1.5383300563054596e-08,
+            "update_error_l2_squared": 6.1540527312010685e-06,
+            "sign_flip_elements": 328
+          },
+          {
+            "parameter": "blocks.0.self_attn.to_out.lora_A",
+            "gradient_error_l2_squared": 0.0,
+            "update_error_l2_squared": 0.0,
+            "sign_flip_elements": 0
+          },
+          {
+            "parameter": "blocks.0.self_attn.to_out.lora_B",
+            "gradient_error_l2_squared": 6.521028499000984e-09,
+            "update_error_l2_squared": 2.517452441936732e-06,
+            "sign_flip_elements": 69
+          },
+          {
+            "parameter": "blocks.0.cross_attn.to_q.lora_A",
+            "gradient_error_l2_squared": 0.0,
+            "update_error_l2_squared": 0.0,
+            "sign_flip_elements": 0
+          },
+          {
+            "parameter": "blocks.0.cross_attn.to_q.lora_B",
+            "gradient_error_l2_squared": 4.25903951592285e-12,
+            "update_error_l2_squared": 7.598006525730544e-07,
+            "sign_flip_elements": 77
+          },
+          {
+            "parameter": "blocks.0.cross_attn.to_kv.lora_A",
+            "gradient_error_l2_squared": 0.0,
+            "update_error_l2_squared": 0.0,
+            "sign_flip_elements": 0
+          },
+          {
+            "parameter": "blocks.0.cross_attn.to_kv.lora_B",
+            "gradient_error_l2_squared": 3.3783279720230634e-09,
+            "update_error_l2_squared": 2.2387648496749255e-06,
+            "sign_flip_elements": 95
+          },
+          {
+            "parameter": "blocks.0.cross_attn.to_out.lora_A",
+            "gradient_error_l2_squared": 0.0,
+            "update_error_l2_squared": 0.0,
+            "sign_flip_elements": 0
+          },
+          {
+            "parameter": "blocks.0.cross_attn.to_out.lora_B",
+            "gradient_error_l2_squared": 4.208457296839451e-11,
+            "update_error_l2_squared": 1.0642792190875421e-06,
+            "sign_flip_elements": 48
+          },
+          {
+            "parameter": "blocks.1.self_attn.to_qkv.lora_A",
+            "gradient_error_l2_squared": 0.0,
+            "update_error_l2_squared": 0.0,
+            "sign_flip_elements": 0
+          },
+          {
+            "parameter": "blocks.1.self_attn.to_qkv.lora_B",
+            "gradient_error_l2_squared": 6.724331143930468e-09,
+            "update_error_l2_squared": 5.554169678938272e-06,
+            "sign_flip_elements": 214
+          },
+          {
+            "parameter": "blocks.1.self_attn.to_out.lora_A",
+            "gradient_error_l2_squared": 0.0,
+            "update_error_l2_squared": 0.0,
+            "sign_flip_elements": 0
+          },
+          {
+            "parameter": "blocks.1.self_attn.to_out.lora_B",
+            "gradient_error_l2_squared": 9.51646705443893e-10,
+            "update_error_l2_squared": 2.035888043951682e-06,
+            "sign_flip_elements": 62
+          },
+          {
+            "parameter": "blocks.1.cross_attn.to_q.lora_A",
+            "gradient_error_l2_squared": 0.0,
+            "update_error_l2_squared": 0.0,
+            "sign_flip_elements": 0
+          },
+          {
+            "parameter": "blocks.1.cross_attn.to_q.lora_B",
+            "gradient_error_l2_squared": 3.201656146927783e-11,
+            "update_error_l2_squared": 8.624032766492261e-07,
+            "sign_flip_elements": 85
+          },
+          {
+            "parameter": "blocks.1.cross_attn.to_kv.lora_A",
+            "gradient_error_l2_squared": 0.0,
+            "update_error_l2_squared": 0.0,
+            "sign_flip_elements": 0
+          },
+          {
+            "parameter": "blocks.1.cross_attn.to_kv.lora_B",
+            "gradient_error_l2_squared": 5.020541272187112e-10,
+            "update_error_l2_squared": 3.2646018550317147e-06,
+            "sign_flip_elements": 159
+          },
+          {
+            "parameter": "blocks.1.cross_attn.to_out.lora_A",
+            "gradient_error_l2_squared": 0.0,
+            "update_error_l2_squared": 0.0,
+            "sign_flip_elements": 0
+          },
+          {
+            "parameter": "blocks.1.cross_attn.to_out.lora_B",
+            "gradient_error_l2_squared": 1.0182401154672506e-10,
+            "update_error_l2_squared": 1.5288720858357333e-06,
+            "sign_flip_elements": 59
+          },
+          {
+            "parameter": "blocks.2.self_attn.to_qkv.lora_A",
+            "gradient_error_l2_squared": 0.0,
+            "update_error_l2_squared": 0.0,
+            "sign_flip_elements": 0
+          },
+          {
+            "parameter": "blocks.2.self_attn.to_qkv.lora_B",
+            "gradient_error_l2_squared": 1.1633889068327883e-09,
+            "update_error_l2_squared": 6.45079594782956e-06,
+            "sign_flip_elements": 240
+          },
+          {
+            "parameter": "blocks.2.self_attn.to_out.lora_A",
+            "gradient_error_l2_squared": 0.0,
+            "update_error_l2_squared": 0.0,
+            "sign_flip_elements": 0
+          },
+          {
+            "parameter": "blocks.2.self_attn.to_out.lora_B",
+            "gradient_error_l2_squared": 4.771975061129739e-10,
+            "update_error_l2_squared": 2.170234567198191e-06,
+            "sign_flip_elements": 72
+          }
+        ]
+      }
+    ],
+    "error_tail": []
+  },
+  "opposite_sign_share_of_squared_update_error": 0.9512016498080664,
+  "interpretation": "Same-gradient AdamW update replay matches each original update; cross-device discrepancy is carried by incoming gradients. This does not identify the operator responsible for the gradient discrepancy.",
+  "formal_performance": false,
+  "numerical_gate_changed": false
+}
