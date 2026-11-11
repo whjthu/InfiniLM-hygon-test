@@ -1,0 +1,10 @@
+from pathlib import Path
+import datetime,hashlib,json,os,socket,subprocess
+W=Path('/home/whj/nvidia-baseline/alignment-assets/hygon-minicpm-forward-provider-counterfactual-v1');p=W/'prelaunch-result.json';raw=p.read_bytes();assert hashlib.sha256(raw).hexdigest()==PIN;v=json.loads(raw);assert v['state']=='PRELAUNCH_OCCUPIED_AFTER_CPU' and not v['GPU_launched'];assert not (W/'gpu-intent.json').exists() and not (W/'native.log').exists() and not (W/'arms').exists()
+intent=json.loads((W/'intent.json').read_bytes());out=json.loads((W/'outer-result.json').read_bytes());assert out['supervisor_rc']==0 and not out['supervisor_observation_timeout'];installed=json.loads((W/'installed.json').read_bytes());assert installed['claim']==intent['claim']==out['claim']
+for n,pin in installed['files'].items():assert hashlib.sha256((W/'src'/n).read_bytes()).hexdigest()==pin
+pid=2868186;proc=Path('/proc',str(pid));owner=dict(PID=pid,present=proc.exists())
+if proc.exists():
+ stat=(proc/'stat').read_text().split(') ',1)[1].split();args=(proc/'cmdline').read_bytes().split(b'\0');owner.update(UID=proc.stat().st_uid,PPID=int(stat[1]),PGID=int(stat[2]),startticks=int(stat[19]),state=stat[0],exe=str((proc/'exe').resolve()),cwd=str((proc/'cwd').resolve()),command_basename=Path(args[0].decode(errors='replace')).name,script_paths=[x.decode(errors='replace') for x in args if x.endswith(b'.py')][:4])
+current=subprocess.check_output(['nvidia-smi','--query-compute-apps=gpu_uuid,pid,used_memory','--format=csv,noheader,nounits'],text=True,timeout=10).strip().splitlines()
+print(json.dumps(dict(independent_prelaunch_terminal_verified=True,observed_at_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),source_files_verified=len(installed['files']),prelaunch_SHA256=PIN,outer_result_SHA256=hashlib.sha256((W/'outer-result.json').read_bytes()).hexdigest(),intent=intent,admission=v['admission'],GPU_launch_absent=True,model_forward_runs=0,optimizer_updates=0,raw_tensor_transfer_bytes=0,occupying_process=owner,current_compute_apps=current,Model_GO=False)))
