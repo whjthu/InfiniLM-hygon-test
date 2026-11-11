@@ -1,0 +1,264 @@
+{
+  "case": "T06.sft",
+  "owner": "root",
+  "state": "TERMINAL_REAL_UPDATE_BF16_REDUCTION_NO_OBSERVED_CHANGE_GATE_FAILED",
+  "observed_utc": "2026-11-11T23:50:17.627434+00:00",
+  "claim": "d2f6352e894138ea97fbccf835b1d6d8932da073",
+  "original_request": "e36de5790621469aa3c6ef71b35dd690",
+  "original_epoch": 1794440672.0797098,
+  "original_deadline": 1794441872.0797098,
+  "original_owner": {
+    "PID": 3927833,
+    "PGID": 3927833,
+    "startticks": 792845454,
+    "host": "zz-login01",
+    "epoch": 1794440672.0797098
+  },
+  "framework_commit": "e56e2f5b647830bf87697ae031b3b260e0748f8e",
+  "framework_tree": "d2411b8b1619c8586d965e5ae7858f692419674a",
+  "framework_total_source_files": 319,
+  "verified_target_source_subset_files": 7,
+  "full319_target_installation": false,
+  "hardware": {
+    "parent": "1087656",
+    "node": "f11r4n11",
+    "actual_GPU_step": "1087656.169",
+    "cards": 1,
+    "PCI": "0000:09:00.0",
+    "KFD_GPU_ID": 22078,
+    "runtime": {
+      "torch_version": "2.10.0",
+      "cuda_available": true,
+      "cuda_count": 1,
+      "device_name": "BW",
+      "accelerator": "hip",
+      "accelerator_version": "6.3.26113"
+    }
+  },
+  "accounting_columns": [
+    "JobIDRaw",
+    "JobName",
+    "State",
+    "ExitCode",
+    "ElapsedRaw",
+    "NodeList"
+  ],
+  "accounting": [
+    [
+      "1087656.168",
+      "training-sdxl-bf16-reduction-v3-pre",
+      "COMPLETED",
+      "0:0",
+      "0",
+      "f11r4n11"
+    ],
+    [
+      "1087656.169",
+      "training-sdxl-bf16-reduction-v3",
+      "COMPLETED",
+      "0:0",
+      "86",
+      "f11r4n11"
+    ],
+    [
+      "1087656.170",
+      "training-sdxl-bf16-reduction-v3-post",
+      "COMPLETED",
+      "0:0",
+      "0",
+      "f11r4n11"
+    ],
+    [
+      "1087656.171",
+      "training-sdxl-bf16-reduction-v3-compare",
+      "FAILED",
+      "1:0",
+      "8",
+      "f11r4n11"
+    ]
+  ],
+  "actual_optimizer_updates": 1,
+  "scope": "One fixed-realized-input native BF16 SDXL UNet LoRA4 update; frozen initial parameters/input/loss/AdamW and original5% update gate. Not full image pipeline,25updates,recovery or formal performance.",
+  "policy": {
+    "stage_id": "sdxl-sft",
+    "reference_sha256": "c59a71095924edfdfb9ad7041b8ef32f747e7825557a313f72ad09a3b0b53036",
+    "policy_sha256": "075e86e54a3eeefb8d5aad219a23f16959d14bd42b22103cd5fe5302c823f6b5",
+    "original_policy": true,
+    "requested_policy": false,
+    "policy": "torch.backends.cuda.matmul.allow_bf16_reduced_precision_reduction",
+    "torch": "2.10.0",
+    "HIP": "6.3.26113",
+    "replay_source_SHA256": "cdf2f908887db4163c29c32793491ed781fcafa2585a177e85f0ec4af75abded",
+    "qualification": "Native policy value is recorded; actual GEMM accumulator implementation is not inferred.",
+    "executed_update": true,
+    "state": "ONE_NATIVE_UPDATE_RETURNED",
+    "observed_policy": false,
+    "operators": {
+      "aten::addmm": 312,
+      "aten::mm": 4226,
+      "aten::scaled_dot_product_attention": 140,
+      "aten::_scaled_dot_product_flash_attention": 140,
+      "aten::_scaled_dot_product_flash_attention_backward": 140
+    },
+    "restored_policy": true
+  },
+  "comparison": {
+    "passed": false,
+    "checks": {
+      "exact_inputs_and_state_schema": true,
+      "loss": true,
+      "preclip_norm": true,
+      "prediction": true,
+      "gradients_before_clip": true,
+      "gradients_after_clip": true,
+      "gradient_direction": true,
+      "parameter_update": false,
+      "optimizer_exp_avg": true,
+      "optimizer_exp_avg_sq": true,
+      "nonzero_gradient_and_update": true,
+      "all_required_floating_values_finite": true
+    },
+    "metrics": {
+      "loss": {
+        "observed": 0.4887405335903168,
+        "reference": 0.48856455087661743,
+        "relative_error": 0.0003602036074528536
+      },
+      "preclip_norm": {
+        "observed": 0.59765625,
+        "reference": 0.59765625,
+        "relative_error": 0.0
+      },
+      "prediction": {
+        "reference_l2": 44.01533001058736,
+        "observed_l2": 44.02102358420951,
+        "relative_l2": 0.01378032866135803,
+        "cosine": 0.999905071916623
+      },
+      "gradients_before_clip": {
+        "reference_l2": 0.5975808392483847,
+        "observed_l2": 0.5983751757088719,
+        "relative_l2": 0.022971842946482662,
+        "cosine": 0.9997373797622271
+      },
+      "gradients_after_clip": {
+        "reference_l2": 0.5975808392483847,
+        "observed_l2": 0.5983751757088719,
+        "relative_l2": 0.022971842946482662,
+        "cosine": 0.9997373797622271
+      },
+      "parameter_update": {
+        "reference_l2": 0.16262293003030975,
+        "observed_l2": 0.1626242842956242,
+        "relative_l2": 0.19271900631141353,
+        "cosine": 0.9814298469834055
+      },
+      "optimizer_exp_avg": {
+        "reference_l2": 0.059756936468091375,
+        "observed_l2": 0.05983805022569048,
+        "relative_l2": 0.023090280751682783,
+        "cosine": 0.9997347008434966
+      },
+      "optimizer_exp_avg_sq": {
+        "reference_l2": 3.645868500028521e-06,
+        "observed_l2": 3.659034667790794e-06,
+        "relative_l2": 0.021701191404110032,
+        "cosine": 0.9997718735571949
+      }
+    },
+    "observed_SHA256": "f44f0d40d198699fcd3a635bb8fc744b907dcba05d8fe2284a2967f34f0192a3",
+    "reference_SHA256": "c59a71095924edfdfb9ad7041b8ef32f747e7825557a313f72ad09a3b0b53036",
+    "policy_SHA256": "075e86e54a3eeefb8d5aad219a23f16959d14bd42b22103cd5fe5302c823f6b5",
+    "comparison_SHA256": "043356564d1801bd1d4a5688ae0811de868b5cb9ef40de071c9f0e670860a3cb"
+  },
+  "peak_reserved_bytes": 5840568320,
+  "physical_admission": {
+    "same_step_host_UID": 154459,
+    "fresh_same_step_host_gate": true,
+    "assigned_KFD_positive": true,
+    "other_devices_gpu_id_read": false,
+    "denied_unassigned_topology_entries": 7
+  },
+  "cleanup": {
+    "post_step": "1087656.170",
+    "post_KFD_holder_count": 0,
+    "same_eight_PCI_inventory": true,
+    "same_boot": true,
+    "normal_GPU_process_exit": true,
+    "forced_GPU_cleanup": false,
+    "original_controller_alive": false
+  },
+  "independent": {
+    "passed": true,
+    "comparison_per_tensor_reductions_consistent": true,
+    "private_observed_bytes": 73890269,
+    "private_observed_SHA256": "f44f0d40d198699fcd3a635bb8fc744b907dcba05d8fe2284a2967f34f0192a3",
+    "private_evidence": {
+      "controller-result.json": {
+        "bytes": 10940,
+        "SHA256": "d9657b42f1696fd5d7f9491268f15e17cb346fa763d14ac485708ccdf0369636"
+      },
+      "assigned.json": {
+        "bytes": 789,
+        "SHA256": "687d0c2a004efb464c6db8dd85e00931719f2e7d550f931921052abb5edbc1dc"
+      },
+      "lease-before.json": {
+        "bytes": 705,
+        "SHA256": "8cdbc06d41c360c4b8492c5aafc74a6adecc08772df166c55c3d49d8931e9202"
+      },
+      "before.json": {
+        "bytes": 474,
+        "SHA256": "4bfae3e5416ebe36fdf8dab6433deef88e21036d9f75fb85916181b2dda8cc22"
+      },
+      "after.json": {
+        "bytes": 474,
+        "SHA256": "e71f24fd7791e8660c58ca32ba1ad71ea817cce8841061a58b5659ab07606473"
+      },
+      "candidate/policy.json": {
+        "bytes": 945,
+        "SHA256": "570ab3fef05682cd3e2b8c1639458cbd8ca7c856348205615eeefadadfe208d6"
+      },
+      "candidate/replay/summary.json": {
+        "bytes": 935,
+        "SHA256": "525c9fb788e06d33d70a6b34d44fd99bb8ef550f23eac295128834721830d599"
+      },
+      "comparison.json": {
+        "bytes": 1784062,
+        "SHA256": "043356564d1801bd1d4a5688ae0811de868b5cb9ef40de071c9f0e670860a3cb"
+      },
+      "reused-original-policy.json": {
+        "bytes": 225,
+        "SHA256": "defed96091624b19a1c8170809c158d327e6763b82e92b2c4618dbb1cabdc46d"
+      },
+      "reused-host-guard-tests.json": {
+        "bytes": 261,
+        "SHA256": "8620fa6afe57f18c558c609cd5de150d739d2e69cf0e1f4452909dc31baf7fe8"
+      }
+    },
+    "reader_result_SHA256": "8d563e4bd216a1c93150bed367a735c25adf93c7f9292b080ba455648fe1f7b5"
+  },
+  "baseline_observed_SHA256": "f44f0d40d198699fcd3a635bb8fc744b907dcba05d8fe2284a2967f34f0192a3",
+  "all_captured_values_byte_identical_to_closed_default": true,
+  "interpretation": "The requested flag was applied and restored,with the same observed140flash SDPA forwards/backwards and a real update. The complete saved payload is byte-identical to the closed default arm. The parameter-update relativeL2 remains19.2719006311%,above the unchanged5% gate. Whether this backend ignored the flag or already used an equivalent accumulator remains UNKNOWN; no accumulator precision claim.",
+  "resource_cost": {
+    "allocated_GPU_card_seconds": 86,
+    "CPU_compare_seconds": 8,
+    "scope": "Slurm allocation windows include model-file hash,loading,profiling,native update and cleanup; not exclusive GPU kernel time or throughput."
+  },
+  "preserved_failures": [
+    "1087656.163",
+    "1087656.166"
+  ],
+  "causal_round_increment": 1,
+  "performance_round_increment": 0,
+  "raw_tensor_transfer_bytes": 0,
+  "numerical_alignment": false,
+  "continuous25_qualified": false,
+  "recovery_qualified": false,
+  "formal_performance": false,
+  "quality_effect": false,
+  "Model_GO": false,
+  "promote": false,
+  "accepted_cases": 0,
+  "next": "Close this native reduction-flag candidate and do not grid/repeat default/math/flag arms. Reuse original sign-error/CPU-AdamW diagnosis. Next at most one source-backed LoRA backward/cancellation diagnostic card should use already-local captured per-tensor errors to select the operator and retain the5% update gate; no25step or performance promotion. Continue other prepared model work while exact Gemma initial-file export permission is pending."
+}
