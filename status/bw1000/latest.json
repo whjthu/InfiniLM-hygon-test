@@ -108,7 +108,23 @@
     "card_count": 320,
     "node_KFD_holders_observed": 1,
     "mapping": "coordination/training/1087656-node-task-map-v1.json",
-    "mapping_SHA256": "9b81e16bd200ee68517ff6bfb22d303ff95536132bb9c0ed98c12e5b603e1a8d"
+    "mapping_SHA256": "9b81e16bd200ee68517ff6bfb22d303ff95536132bb9c0ed98c12e5b603e1a8d",
+    "latest_parent_actual_observation": {
+      "observed_at_utc": "2026-11-11T08:51:41.374445+00:00",
+      "parent": {
+        "rc": 0,
+        "lines": [
+          "1087656|RUNNING|40|30-00:00:00|29-08:46:52|a01r4n[14,16],a14r1n[11,17,20],a14r2n02,a14r3n[04,12,14,17],f11r2n15,f11r3n02,f11r4n[09-19],f12r3n[03-10,12-20]"
+        ],
+        "stderr_SHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "source": {
+        "path": "results/bw1000/2026-11-11/GLM474-original906-failed-prefix-quality-and-layer-windows.json",
+        "SHA256": "fa6cd50cfc2adbda2c861f3de61d2d7d71b881fb8b46b9b803dbe3a4c6006889"
+      },
+      "busy_measured": false,
+      "node_map_changed": false
+    }
   },
   "training_reference_access": {
     "evidence": "results/bw1000/2026-11-11/training-t10-a100-capture-prelaunch-and-t11-weight-approval.json",
@@ -888,7 +904,7 @@
     "next": "r480 token clock source publishedaa3e9a74, actual network token SLO unverified; no independent load solely for clocks."
   },
   "schema_version": 1,
-  "updated_at_utc": "2026-11-11T08:48:36.762975+00:00",
+  "updated_at_utc": "2026-11-11T08:53:39.985336+00:00",
   "owner": "bw1000-agent",
   "hardware": "BW1000",
   "goal_complete": false,
@@ -1032,10 +1048,22 @@
       "owner": "/root/glm_operator_tuning",
       "current_original906_state": "TERMINAL_FAILED906_KEEPER1121_POST907_CLEAN",
       "latest_terminal_evidence": {
-        "path": "results/bw1000/2026-11-11/GLM474-original906-reconciled-terminal-and-prefix-reader-source.json",
-        "SHA256": "febcbc13d2c6a168cf0a2be354ad25fd54986eb41b4a0d34c9451fdad2f81d7a"
+        "path": "results/bw1000/2026-11-11/GLM474-original906-failed-prefix-quality-and-layer-windows.json",
+        "SHA256": "fa6cd50cfc2adbda2c861f3de61d2d7d71b881fb8b46b9b803dbe3a4c6006889"
       },
-      "next": "Audit failed original prefix before choosing at most two fresh candidates on current I02nodes."
+      "next": "Audit failed original prefix before choosing at most two fresh candidates on current I02nodes.",
+      "independent_prefix": 31,
+      "screen": {
+        "planned": 32,
+        "validated": 30,
+        "correct": 23,
+        "parse_failure": 6,
+        "natural_EOS": 28,
+        "cap_hit": 2,
+        "missing_or_unvalidated": 2,
+        "strict_gt15": 0
+      },
+      "next_cards": "analysis/bw1000/GLM474-original906-failed-prefix-profile-next.json"
     },
     "Kimi": {
       "cards": 32,
@@ -1117,7 +1145,7 @@
   "engineering_root_consumption": "analysis/bw1000/GLM1067-and-Deep481-CPU1068-root-independent-consumption.json",
   "GLM_next": {
     "source": "code/bw1000/GLM-C1-layer-observer-r474/full-model-screen32-v1",
-    "state": "TERMINAL_FAILED906_KEEPER1121_POST907_CLEAN",
+    "state": "TERMINAL_FAILED_WITH31_INDEPENDENT_PREFIX_AND48_PROFILE_FRAMES",
     "Native": "955e6a14060c636196a5afb1603f6b7405a63215dd5736f11c6f2f39adb7b18f",
     "CPU": "910407.1119",
     "GPU": "910371.906",
@@ -1126,10 +1154,10 @@
     "original_request": "4e493c21ddd44d8c99478e76777e2c81",
     "queue_run": "d3d2aed1861b547cd6b76f40c6636925168e0ccd653ecd4dc838129ec69ac1fd",
     "last_observed_GPU": "FAILED1:0/17400s",
-    "last_phase": "Original31completed/1partial/1missing; v1 independent full-run validation0; post907clean",
+    "last_phase": "31validated=1diagnostic+30screen;23correct/32planned;0strictgt15;normaldestroy0",
     "constructor_capacity_evidence": "results/bw1000/2026-11-06/GLM471-original890-constructor-capacity-boundary.json",
-    "terminal_evidence": "results/bw1000/2026-11-11/GLM474-original906-reconciled-terminal-and-prefix-reader-source.json",
-    "next": "Consume published CPU-only failed-prefix reader against exact old artifacts; keep full run FAILED; no repeatlaunch/load/finish.",
+    "terminal_evidence": "results/bw1000/2026-11-11/GLM474-original906-failed-prefix-quality-and-layer-windows.json",
+    "next": "Two evidence-based CPU/source cards in analysis/bw1000/GLM474-original906-failed-prefix-profile-next.json; no old906 Model/load/finish replay.",
     "package": {
       "source": "code/bw1000/GLM-C1-layer-observer-r474/full-model-screen32-v1",
       "MF": "a94ef2b3e69c38087e3e434e0761a7aa1792e65c85f2fcbc1cb44776149ff560",
@@ -2183,7 +2211,7 @@
     "tests": "23queueinvariants+9resident/wholeprompt/loaderCPUrecordings; v2deadlineverifierpassesandcorrectlyrejectsv1; engineeringonly",
     "agents": "three originals usage-limit errored; root continuing; handoff messages delivered without triggering restart",
     "root_integration": "single Git token; model-owned sources; root merges/regresses shared framework",
-    "next": "Original906 alreadyTERMINAL/failed+postclean. Independent partial prefix CPUaudit only; no oldrun reserve/finish replay. READY0 unchanged.",
+    "next": "Original906 failed terminal plus independent31prefix/48frames consumed. No completed paired-performance round added. READY0 unchanged; implement exact profile-derived source/operator prerequisites before fresh I02/O01 GPU claim.",
     "publication": "cd527682e1415bcb546bb222b7ba2d4a4615b5a3",
     "GLM_HOST_qualification": "analysis\\bw1000\\GLM470-HOST-original-phase-diagnostic-consumption-20261106.json",
     "original_run": "d3d2aed1861b547cd6b76f40c6636925168e0ccd653ecd4dc838129ec69ac1fd",
@@ -2342,7 +2370,7 @@
       }
     ],
     "each_zone_two_READY_achieved": false,
-    "last_terminal": "results/bw1000/2026-11-11/GLM474-original906-reconciled-terminal-and-prefix-reader-source.json",
+    "last_terminal": "results/bw1000/2026-11-11/GLM474-original906-failed-prefix-quality-and-layer-windows.json",
     "terminal_collector_fix": "code/bw1000/GLM-prefill-memory-r472/terminal-collection-fix-v1",
     "resident_r473_terminal": {
       "GPU": "910371.900",
@@ -2595,14 +2623,54 @@
     "independently_validated": 0,
     "normal_destroy": 0,
     "queue_already_terminal": true,
-    "repeat_finish": false
+    "repeat_finish": false,
+    "independently_validated_prefix": 31,
+    "screen_validated": 30,
+    "full_run_passed": false,
+    "latest_evidence": {
+      "path": "results/bw1000/2026-11-11/GLM474-original906-failed-prefix-quality-and-layer-windows.json",
+      "SHA256": "fa6cd50cfc2adbda2c861f3de61d2d7d71b881fb8b46b9b803dbe3a4c6006889"
+    }
   },
   "GLM_failed_prefix_reader": {
     "source": "code/bw1000/GLM-C1-layer-observer-r474/failed-prefix-root-reader-v2",
     "manifest_SHA256": "ee071193aba4fdadad4a30873dd09d04ea62c7ddd0ee9d06da313fd67f0fe52b",
     "reader_SHA256": "8ff2a033f2f40d77a133413ad591796aae717e3e7124c265ae657e4e89fe90d9",
     "CPU_bad_evidence_rejections": 19,
-    "actual_original906_consumed": false,
-    "GPU_GO": false
+    "actual_original906_consumed": true,
+    "GPU_GO": false,
+    "root_result": {
+      "path": "results/bw1000/2026-11-11/GLM474-original906-failed-prefix-quality-and-layer-windows.json",
+      "SHA256": "fa6cd50cfc2adbda2c861f3de61d2d7d71b881fb8b46b9b803dbe3a4c6006889"
+    },
+    "full_Model_passed": false
+  },
+  "GLM_original906_failed_prefix": {
+    "evidence": {
+      "path": "results/bw1000/2026-11-11/GLM474-original906-failed-prefix-quality-and-layer-windows.json",
+      "SHA256": "fa6cd50cfc2adbda2c861f3de61d2d7d71b881fb8b46b9b803dbe3a4c6006889"
+    },
+    "independently_validated": 31,
+    "screen32": {
+      "planned": 32,
+      "validated": 30,
+      "correct": 23,
+      "parse_failure": 6,
+      "natural_EOS": 28,
+      "cap_hit": 2,
+      "missing_or_unvalidated": 2,
+      "strict_gt15": 0
+    },
+    "backend_decode": {
+      "n": 30,
+      "minimum": 0.747739857630662,
+      "median": 1.7671397709159038,
+      "maximum": 2.607278274138316
+    },
+    "frames": 48,
+    "full_Model_passed": false,
+    "post_clean": true,
+    "normal_destroy": 0,
+    "next_cards": "analysis/bw1000/GLM474-original906-failed-prefix-profile-next.json"
   }
 }
