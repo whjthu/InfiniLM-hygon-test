@@ -1,0 +1,41 @@
+{
+  "id": "training-vlm-swift-offline-runtime-v1",
+  "owner": "/root",
+  "cases": [
+    "T01.sft",
+    "T02.sft",
+    "T03.sft",
+    "T04.sft",
+    "T05.sft"
+  ],
+  "state": "CLAIMED_PUBLIC_OFFLINE_SWIFT_RUNTIME_PREPARATION",
+  "source": "code/bw1000/training-vlm-swift-offline-runtime-v1",
+  "source_SHA256": {
+    "prepare_offline_runtime.py": "352a13141cb10b40c8744560652aa0028a952ec45aab2343a27052a3527fb9c3",
+    "receive_offline_runtime.py": "da0202988111d739b0b87531324afe201a69e5b7e8d23654e457a5d920bc2963",
+    "stage_public_packages.py": "29e8ae29bd34ea0d6875e5509f78c1b20565ea14cab5c083751b85b12ec239ff",
+    "inventory_runtime.py": "590a78ed94ba374182a7fb6a2614bd62c3d28b87cb72fc1e9a4107bf14a8173a",
+    "SWIFT_REQUIREMENTS.json": "1636a10e792b3f247ec4a3c32b170f828ca178cbe31ef8b7b32af5a62932d693",
+    "PUBLIC_PACKAGES.json": "427e7763699d211e2228282a06bb816a0b80c890145bc38454e7dfd30765ff3e"
+  },
+  "node": "a01r4n16",
+  "parent": "1087656",
+  "CPUs": 4,
+  "memory_MiB": 16384,
+  "GPU_allocation": 0,
+  "Slurm_time": "00:09:00",
+  "CPU_single_epoch_seconds": 600,
+  "inside_total_seconds": 480,
+  "public_package_staging_alarm_seconds": 600,
+  "public_packages": 50,
+  "public_package_bytes": 123908112,
+  "scope": "Copy only the frozen official public PyPI Python package artifacts into a new private package directory using the existing SSH connection. Then use offline pip dry-run against the actual DTK base, install the selected artifacts only into a new /replay/site prefix, and verify the real Swift SFT import and package versions. Original Torch/TorchVision versions constrained, no model or weight payload, no GPU allocation or explicit device operation.",
+  "previous_CPU_step": "1087656.115",
+  "previous_failure": "Compute node DNS did not resolve official PyPI. Base environment unchanged.",
+  "prerequisite_base_metadata_step": "1087656.116",
+  "protected_runtime": {
+    "torch": "2.10.0+das.opt1.dtk2604.2606161421.g91a580",
+    "torchvision": "0.25.0+das.opt1.dtk2604.torch2100.2605071719.g7ffc50"
+  },
+  "qualification": "Public artifacts form candidate inputs. The real DTK pip resolution and SFT import must pass before the runtime is qualified."
+}
