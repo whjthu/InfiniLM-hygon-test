@@ -1,0 +1,3 @@
+# Dependency-corrected target native meta check
+
+Original184 remains FAILED at missing imageio. New scope adds six public wheel packages at actual originalA100 versions; officialPyPI SHA and every wheel RECORD verified, all extracted files pinned in the new private namespace. No shared package, HIP Torch or NumPy replacement. Reuse the exact immutable380framework and40native source bytes/modes. Check actual dependency requirements/eager imports before native meta constructor and PEFT scope. One4CPU8GiB,0GPU step under the original single epoch and terminal-accounting helper. Mutable payload only after finite ordinarySSH READY; UNKNOWN never replayed.
