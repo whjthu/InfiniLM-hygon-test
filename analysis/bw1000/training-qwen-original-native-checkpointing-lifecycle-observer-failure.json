@@ -1,0 +1,79 @@
+{
+  "case": "T01.sft",
+  "diagnosis": {
+    "failed_ranks_with_exact_error": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "planned_ranks": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "original_log_SHA256": "825bd951fbe3bc03a8ebe403a3395bf72ff67aa6ab09bdf1c7ccd47b8de262e0",
+    "checkpoint_method": {
+      "module": "swift.trainers.mixin",
+      "qualname": "SwiftMixin._prepare_gradient_checkpointing",
+      "first_line": 910,
+      "last_line": 939,
+      "source_file_SHA256": "6b6de2e7503ce414cb837961e1355be41a56787ecca502e8570bfcfa36c15ab9",
+      "method_source_SHA256": "cc5effb6461c8437f711eede6044a3984e705915d883a99bdea2721e8914fa5a"
+    },
+    "source_proves_model_enable_then_trainer_flag_false": true,
+    "actual_failed_run_effective_model_checkpointing_observed": false,
+    "actual_source_compatibility_failure": true,
+    "numerical_training_failure_qualified": false,
+    "original_GPU_replay_allowed": false
+  },
+  "upstream_source_observation": {
+    "transport_rc": 0,
+    "stdout_SHA256": "c818d00886a42514bc70508ce393b6c79a978bb5d073ec4315c757f79c838365",
+    "stderr_SHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "value": {
+      "at_UTC": "2026-11-12T08:33:30.265504+00:00",
+      "files": {
+        "swift/pipelines/train/sft.py": {
+          "path": "/home/whj/nvidia-baseline/env-vlm/lib/python3.12/site-packages/swift/pipelines/train/sft.py",
+          "bytes": 15931,
+          "mtime_ns": 1791622070291244360,
+          "SHA256": "024ff2ff4e6755a07c30bcc3dd081106816b31fbb30169d9e27125f0b67be7d0"
+        },
+        "swift/trainers/mixin.py": {
+          "path": "/home/whj/nvidia-baseline/env-vlm/lib/python3.12/site-packages/swift/trainers/mixin.py",
+          "bytes": 64818,
+          "mtime_ns": 1791622070312244689,
+          "SHA256": "6b6de2e7503ce414cb837961e1355be41a56787ecca502e8570bfcfa36c15ab9"
+        },
+        "swift/pipelines/train/tuner.py": {
+          "path": "/home/whj/nvidia-baseline/env-vlm/lib/python3.12/site-packages/swift/pipelines/train/tuner.py",
+          "bytes": 18778,
+          "mtime_ns": 1791622070292244376,
+          "SHA256": "eaccb40ba11e132d647022d940ab6f396a36ac3227640be536fb0510a9e89fe8"
+        }
+      },
+      "Torch_imported": false,
+      "GPU_calls": 0
+    }
+  },
+  "actual_failure": "All eight original ranks failed in the observer at on_train_begin: native Trainer argument differs: gradient_checkpointing.",
+  "identified_observer_bug": "The frozen recipe requests gradient_checkpointing=true. SwiftMixin._prepare_gradient_checkpointing enables/prepares the model, separately handles vision checkpointing, then deliberately assigns Trainer.args.gradient_checkpointing=False before super().train(). The observer compared the mutable Trainer field directly with the original recipe.",
+  "original_effective_model_checkpointing_state_observed": false,
+  "old_CPU_qualification_limit": "The original CPU/meta check validated a manually enabled model and constructed TrainerArguments; it did not execute the real Swift checkpointing preparation lifecycle. Complete trainable names/shapes/frozen-boundary qualification remains useful, while native lifecycle compatibility was unproven.",
+  "fix_required": "Preserve the original recipe and math. Execute the exact original Swift preparation method on a full actual Qwen meta model with real arguments. Bind the method/provider SHA and require effective language checkpointing plus the correct frozen vision state. Validate the real lowered Trainer-field state before any new GPU scope.",
+  "actual_original_GPU_scope_sealed": true,
+  "original_model_replay_allowed": false,
+  "review_trigger": "Observer lifecycle entry failure; existing unavailable reviewer is not restarted or replaced to bypass quota.",
+  "new_GPU_GO": false,
+  "Model_GO": false
+}
