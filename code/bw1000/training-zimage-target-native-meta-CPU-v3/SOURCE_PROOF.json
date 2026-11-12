@@ -1,0 +1,66 @@
+{
+  "framework_commit_receipt": {
+    "commit": "3ccd7188f6bf328755d68dc608a68ffc8f545b6f",
+    "parent": "8ea4db8ed15df3cb3dc892c056a77c73d4c5c770",
+    "paths": [
+      "tools/hygon_zimage_meta_check.py"
+    ],
+    "framework_files": 380,
+    "passive_API_boundary_cases": 3,
+    "local_CLI_passed": true,
+    "index_policy_passed": true,
+    "actual_target_invocations": 0,
+    "actual_device_qualification": false
+  },
+  "local_passive_observer_boundaries": {
+    "passed": true,
+    "cases": 3,
+    "actual_torch_or_GPU_imports": false,
+    "results": [
+      {
+        "imported": false,
+        "root_function_callable": false,
+        "operator_called": false,
+        "device_qualification": false,
+        "scope": "device-hidden CPU process"
+      },
+      {
+        "imported": true,
+        "root_function_callable": false,
+        "module_file": null,
+        "module_paths": [],
+        "operator_called": false,
+        "device_qualification": false,
+        "scope": "device-hidden CPU process",
+        "version": null,
+        "qualification_gap": "root function absent in masked CPU process; device availability untested"
+      },
+      {
+        "imported": true,
+        "root_function_callable": true,
+        "module_file": null,
+        "module_paths": [],
+        "operator_called": false,
+        "device_qualification": false,
+        "scope": "device-hidden CPU process",
+        "version": null,
+        "signature": "(obj, /)",
+        "inspection_error_type": "TypeError"
+      }
+    ]
+  },
+  "original185_error": {
+    "bytes": 471,
+    "SHA256": "c2bff47cb6916441e13d50cddb5369b7c57457701c0c0e4cc77232f2ee1bfbbe",
+    "tail": [
+      "  File \"/input-stage/run_checks.py\", line 48, in <module>",
+      "    native=entry.run(Namespace(epoch=epoch,deadline=deadline,spec=S/'META_SPEC.json',spec_sha256=sha(S/'META_SPEC.json'),source_root=Path('/native-source'),output=W/'native-meta-result.json'))",
+      "  File \"/input-framework/tools/hygon_zimage_meta_check.py\", line 137, in run",
+      "    function = flash.flash_attn_func",
+      "AttributeError: module 'flash_attn' has no attribute 'flash_attn_func'"
+    ]
+  },
+  "dependency_extraction_not_repeated": true,
+  "native_source_not_changed": true,
+  "root_export_absence_does_not_imply_actual_device_qualification": true
+}

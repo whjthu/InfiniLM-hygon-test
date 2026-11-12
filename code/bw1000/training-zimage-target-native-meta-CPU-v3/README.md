@@ -1,0 +1,3 @@
+# Complete native meta scope with explicit passive API gap
+
+Original184 failed at missing imageio. Original185 passed required dependency imports but failed in the meta checker when passive inspection unconditionally read an absent root FlashAttention export in a hidden-device process. Both failures remain. This scope changes only that observer: absence and inspection errors are recorded, actual device/API/attention qualification stays false. The complete native meta constructor and original476/9922560 LoRA/frozen-boundary assertions remain unchanged. Reuse official-pinned2852 dependency files and original40 providers; verify all source and dependencies before one bounded4CPU8GiB0GPU step. No weights/data or native device calls.
