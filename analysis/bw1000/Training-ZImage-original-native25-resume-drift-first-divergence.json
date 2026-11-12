@@ -1,0 +1,110 @@
+{
+  "result": "results/bw1000/2026-11-12/training-zimage-original-native25-first-update-PASS-with-fresh-resume-numerical-FAIL.json",
+  "resume_gate_failed": true,
+  "first_differing_loss_step": 22,
+  "step21_loss_and_BF16_global_norm_equal": true,
+  "full_step21_gradients_captured": false,
+  "step21_optimizer_boundary_captured": false,
+  "root_cause": "UNKNOWN",
+  "attention_source_receipt": {
+    "transport_rc": 0,
+    "RTT_seconds": 1.3440000000409782,
+    "stdout_SHA256": "f363937f0bf91e72ccad851504b816f8d1d6a1538bae5344c4436be973b06682",
+    "stderr_SHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "new_Slurm_steps": 0,
+    "source_files": {
+      "diffsynth/core/attention/__init__.py": {
+        "exists": true,
+        "bytes": 41,
+        "SHA256": "558e2a638ecbd3b7287bb9ab74d0e7e70b098da59bb8127163a494c39ec24190"
+      },
+      "diffsynth/core/attention/attention.py": {
+        "exists": true,
+        "bytes": 5756,
+        "SHA256": "1b55a91812b4e82b6b0ba9c7f46036231acca3234a0b6a105ed210954508e2e4"
+      }
+    },
+    "source_bytes_read": 5797,
+    "Torch_imported": false,
+    "GPU_initialized": false
+  },
+  "attention_static_fact": "DiffSynth attention_forward routes any nonNone mask toTorchSDPA;the model passes attention_mask. Actualpercall mask/backend were not observed,so thirdpartyFlashorTorchSDPA runtime causes are not classified.",
+  "masked_attention_route_can_be_checked_without_reloading_model": true,
+  "optimizer_structure": {
+    "passed": true,
+    "saved20_false_mode_count": 0,
+    "saved20_false_modes": [],
+    "forcing_train_after_restore_can_change_saved_modes": false,
+    "final_state_component_equal": {
+      "trainable": false,
+      "buffers": true,
+      "modes": true,
+      "optimizer": false,
+      "optimizer_parameter_names": true,
+      "optimizer_placements": true,
+      "optimizer_implementation": true,
+      "optimizer_progress": true
+    },
+    "optimizer_groups_without_parameter_ids": [
+      {
+        "lr": 0.0001,
+        "betas": [
+          0.9,
+          0.999
+        ],
+        "eps": 1e-08,
+        "weight_decay": 0.01,
+        "amsgrad": false,
+        "maximize": false,
+        "foreach": null,
+        "capturable": false,
+        "differentiable": false,
+        "fused": null,
+        "decoupled_weight_decay": true
+      }
+    ],
+    "optimizer_changed_tensors_by_slot": {
+      "step": 0,
+      "exp_avg": 476,
+      "exp_avg_sq": 476
+    },
+    "optimizer_step_counts": {
+      "25.0": 476
+    },
+    "optimizer_state_dtypes": [
+      [
+        "exp_avg",
+        "torch.bfloat16",
+        "cpu"
+      ],
+      [
+        "exp_avg_sq",
+        "torch.bfloat16",
+        "cpu"
+      ],
+      [
+        "step",
+        "torch.float32",
+        "cpu"
+      ]
+    ],
+    "replayed_GPU_or_model_runs": 0,
+    "gradient_recomputations": 0,
+    "GPU_initialized": false,
+    "root_cause_qualified": false
+  },
+  "next_causal_cards": [
+    {
+      "hypothesis": "The firstresumed backward orfirstoptimizerupdate changes despite an equalrestored boundary.",
+      "required_new_evidence": "Actualstep21input/noise/target/prediction/preclip/postclip/updated/moments andruntime attentionprovider/flags at thefirstresumed boundary;preserveoriginalforward/backwardmath anduseexistingcheckpoint20.",
+      "performance_promotion": false,
+      "expected_end_to_end_effect": "UNKNOWN",
+      "GPU_GO": false
+    }
+  ],
+  "review_due_for_severe_resume_numeric_failure": true,
+  "new_reviewer_spawned": false,
+  "review_completed": false,
+  "original_failures_retained": true,
+  "all17_final_accepted": 0
+}
