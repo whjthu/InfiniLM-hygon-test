@@ -1,0 +1,50 @@
+{
+  "framework_commit": "b641edb0ad0f5104f18ba4ab45a247fbe1f7c495",
+  "full_framework_files": 350,
+  "delta_paths": [
+    "vlm/runtime/native_caller_budget.py",
+    "vlm/plugins/native_first_updates.py",
+    "tests/test_native_caller_budget.py"
+  ],
+  "files": {
+    "vlm/runtime/native_caller_budget.py": {
+      "bytes": 5338,
+      "SHA256": "fa4dd65be73a265faf9d1809a0ab52ae7f80a6e503d46f321517396dadea53da"
+    },
+    "vlm/plugins/native_first_updates.py": {
+      "bytes": 7067,
+      "SHA256": "01535dd7901bcc1d65ecb0cfaa8b96d7344fc4f5ac26db2c43ae85938d7e9ba5"
+    },
+    "tests/test_native_caller_budget.py": {
+      "bytes": 6757,
+      "SHA256": "aa65775398db1bc9a0f70f9ad4d14474718af90c16e1ffa59497b97c658839e1"
+    }
+  },
+  "hypothesis": "The original64 full-logit bound is valid only if actual native OneVision cache/hidden/attention outputs and head shape/element size match its frozen assumptions.",
+  "implementation": "Native callback now validates the actualT04 base model before capture,requires root/languagecacheOFF and hiddenstacks/attentionmapsOFF,actual4096x151936BF16 head and original forward signature without logits_to_keep. Native option may be originalNone/False only. Writes native-capture-conditions.json in its private capture scope before attaching hooks. Original inputs,max4096,full logits,LoRA/optimizer/schedule and existing2GiB-1/8GiB limits are unchanged.",
+  "reused_actual_caller": "results/bw1000/2026-11-12/training-llava-original64-native-collator-full-logits-and-capture-bound.json",
+  "per_rank_full_capture_upper_bytes": 4807148264,
+  "checks": {
+    "root_unittests": 74,
+    "recipe_unittests": 16,
+    "affected_budget_and_guard_unittests": 9,
+    "new_guard_tests": 4,
+    "OneVision_invalid_subcases": 21,
+    "source_policy_files": 350,
+    "index_policy_files": 350,
+    "history_precommit": {
+      "commits": 162,
+      "source_revisions": 682
+    }
+  },
+  "actual_native_T04_runtime_guard_executed": false,
+  "actual_CPU_model_replays": 0,
+  "actual_GPU_launches": 0,
+  "CPU_GO": false,
+  "GPU_GO": false,
+  "Model_GO": false,
+  "first_update_numerics_qualified": false,
+  "performance_qualified": false,
+  "qualification": "Local structural CPU doubles and source integration only;actual loaded-model guard,materialized loader/RoPE,first updates and training acceptance remain unqualified.",
+  "next": "Qualify complete original OneVision checkpoint identity;then prepare the original8A100 bounded native25 reference using this guard and preserved actual64 native full-logit binding. Do not rerun the closed64encoding or oldmeta scopes. No GPU dispatch until complete load/input/source/resource prerequisites are claimed and verified."
+}
