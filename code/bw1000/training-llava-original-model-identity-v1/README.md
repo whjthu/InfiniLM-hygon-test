@@ -1,0 +1,5 @@
+# Original OneVision full checkpoint identity
+
+One complete read of exactly four original17,054,506,776B shards on the originalA100-27 source. Existing shared indexed-safetensors inspector bytes are unchanged from the independently qualified Qwen/InternVL scopes. Pin config/index and device/inode/size/mtime, verify698 tensor names,dtypes,shapes,contiguous ranges and index17,054,429,248B payload. No weight decoding,model/Torch/SDK load,weight export,old meta/64input re-execution or GPU. Sidecars are not substitutes for full SHA. Currently observed hashes do not prove official release provenance or historical training file identity.
+
+2affinityCPU,1GiBgroupRSS,0GPU. One epoch before installation;whole300/CPU260/supervisor270/TERM5/KILL5. Per-shard/partial-byte progress and the full denominator survive failure. One exclusive namespace/intent;UNKNOWN is reconciled without replay or renamed equivalent. Independent terminal reader checks original receipts,header-only metadata,current stats and exact owners; it must not rehash weight payloads. No model,numerical,resume,performance or effect qualification follows from a file identity result.
