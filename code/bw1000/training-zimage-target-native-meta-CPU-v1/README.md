@@ -1,0 +1,3 @@
+# Target full native Z-Image structural verification
+
+The original forty-file native import closure is copied byte-for-byte from the previously qualified A100 manifest, with the original LICENSE. All380 unified framework source bytes and modes are installed. The actual HIP environment constructs the complete native meta model and injects the original PEFT rank4 LoRA; no optional device import is stubbed or changed. Weights/data/network/device initialization are forbidden. Passive FlashAttention import/API is evidence only, never device qualification. One boundedCPUstep on T07; one epoch and original-only reconciliation. Old183 already closed and never rerun.
