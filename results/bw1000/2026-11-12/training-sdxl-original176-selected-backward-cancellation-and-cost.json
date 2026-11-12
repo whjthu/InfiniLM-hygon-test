@@ -1,0 +1,498 @@
+{
+  "state": "TERMINAL_REAL_SELECTED_BACKWARD_DIAGNOSTIC_PASS_MODEL_UPDATE_GATE_FAIL",
+  "owner": "root",
+  "case": "T06.sft",
+  "claim": "140b111d03ab6551b8f29d93cdc9ba87f75a3ee6",
+  "original_request": "e0860d2446574e77bf8101576a61ba8f",
+  "epoch": 1794455070.5979605,
+  "deadline": 1794456270.5979605,
+  "framework_commit": "c6c88bed6f016436f5bb9e8225751617db6b99d2",
+  "framework_tree": "4d82a129ed7c92ba66dbcdab0042c7a12a1b5752",
+  "framework_total_source_files": 330,
+  "actual_target_subset_files": 8,
+  "full330_target_installed": false,
+  "hardware": {
+    "parent": "1087656",
+    "node": "f11r4n11",
+    "GPU_cards": 1,
+    "actual_GPU_step": "1087656.176",
+    "actual_PCI": "0000:09:00.0",
+    "actual_KFD_GPU_ID": 22078,
+    "runtime": {
+      "torch_version": "2.10.0",
+      "cuda_available": true,
+      "cuda_count": 1,
+      "device_name": "BW",
+      "accelerator": "hip",
+      "accelerator_version": "6.3.26113"
+    }
+  },
+  "accounting_columns": [
+    "JobIDRaw",
+    "JobName",
+    "State",
+    "ExitCode",
+    "ElapsedRaw",
+    "NodeList"
+  ],
+  "actual_accounting": [
+    [
+      "1087656.175",
+      "training-sdxl-backward-cancellation-v1-pre",
+      "COMPLETED",
+      "0:0",
+      "1",
+      "f11r4n11"
+    ],
+    [
+      "1087656.176",
+      "training-sdxl-backward-cancellation-v1",
+      "COMPLETED",
+      "0:0",
+      "59",
+      "f11r4n11"
+    ],
+    [
+      "1087656.177",
+      "training-sdxl-backward-cancellation-v1-post",
+      "COMPLETED",
+      "0:0",
+      "1",
+      "f11r4n11"
+    ],
+    [
+      "1087656.178",
+      "training-sdxl-backward-cancellation-v1-compare",
+      "FAILED",
+      "1:0",
+      "9",
+      "f11r4n11"
+    ]
+  ],
+  "actual_optimizer_updates": 1,
+  "original_policy_unchanged": true,
+  "native_policies": {
+    "BF16_reduction": true,
+    "TF32_matmul": false,
+    "TF32_cudnn": true
+  },
+  "diagnostic": {
+    "module": "up_blocks.0.attentions.0.transformer_blocks.2.attn1.to_q.lora_B.default",
+    "counts": {
+      "model": 1,
+      "forward": 1,
+      "output_gradient": 1,
+      "weight_gradient": 1
+    },
+    "input_shape": [
+      1,
+      64,
+      4
+    ],
+    "output_gradient_shape": [
+      1,
+      64,
+      1280
+    ],
+    "weight_shape": [
+      1280,
+      4
+    ],
+    "operand_dtype": "torch.bfloat16",
+    "operand_SHA256": {
+      "input": "d771fa2a3b322aa2876efe21f01f918c398c7df7e26c5c2a3de5beb6efdf4f5f",
+      "output_gradient": "321db18588abc91defb4d9f2536d8c15a66f03df0c9fd1c086de4a422cece490",
+      "weight_gradient": "a28070e22fdd210ba590731ed0dc4e82a4f751cf0c794efea2d0c63e0cb71c32"
+    },
+    "captured_tensor_bytes": 174592,
+    "local_reference_device": "cpu",
+    "local_reference_dtype": "torch.float64",
+    "native_vs_local_F64_rounded": {
+      "difference_l2": 2.98023224015731e-08,
+      "reference_l2": 0.003027416243957821,
+      "relative_l2": 9.844144313175692e-06,
+      "sign_differences": 0,
+      "elements": 5120,
+      "exact_equal": false
+    },
+    "native_vs_original_gradient": {
+      "difference_l2": 0.00017435560125580364,
+      "reference_l2": 0.0030221495353779607,
+      "relative_l2": 0.057692579144333477,
+      "sign_differences": 111,
+      "elements": 5120,
+      "exact_equal": false
+    },
+    "local_F64_rounded_vs_original_gradient": {
+      "difference_l2": 0.00017435605463541056,
+      "reference_l2": 0.0030221495353779607,
+      "relative_l2": 0.05769272916325266,
+      "sign_differences": 111,
+      "elements": 5120,
+      "exact_equal": false
+    },
+    "cancellation_ratio_at_least": {
+      "10": 1435,
+      "100": 158,
+      "1000": 18,
+      "10000": 2
+    },
+    "exact_zero_with_nonzero_absolute_sum": 0,
+    "FP64_product_adds": 327680,
+    "qualification": "One linear weight-gradient diagnostic using actual local operands. Not a repaired gradient, model numerical acceptance, performance result or cause proven across platforms."
+  },
+  "independent_CPU_operand_reference": {
+    "passed": true,
+    "method": "Independent NumPy CPUF64 einsum with optimize=False, then BF16 rounding and scalar comparisons; no native backward replay",
+    "module": "up_blocks.0.attentions.0.transformer_blocks.2.attn1.to_q.lora_B.default",
+    "computed": {
+      "native_vs_local_F64_rounded": {
+        "difference_l2": 2.98023224015731e-08,
+        "reference_l2": 0.003027416243957821,
+        "relative_l2": 9.844144313175692e-06,
+        "sign_differences": 0,
+        "elements": 5120,
+        "exact_equal": false
+      },
+      "native_vs_original_gradient": {
+        "difference_l2": 0.00017435560125580364,
+        "reference_l2": 0.0030221495353779607,
+        "relative_l2": 0.057692579144333477,
+        "sign_differences": 111,
+        "elements": 5120,
+        "exact_equal": false
+      },
+      "local_F64_rounded_vs_original_gradient": {
+        "difference_l2": 0.00017435605463541056,
+        "reference_l2": 0.0030221495353779607,
+        "relative_l2": 0.05769272916325266,
+        "sign_differences": 111,
+        "elements": 5120,
+        "exact_equal": false
+      }
+    },
+    "cancellation_ratio_at_least": {
+      "10": 1435,
+      "100": 158,
+      "1000": 18,
+      "10000": 2
+    },
+    "exact_zero_with_nonzero_absolute_sum": 0,
+    "captured_tensor_bytes": 174592,
+    "private_capture_SHA256": "e4876b3c6ab6129900a68460d2aba93e40cb85e5e220ac0b7adf00760fa12c5a",
+    "GPU_initialized": false,
+    "GPU_cards": 0,
+    "original_comparator_returncode": 1,
+    "Model_GO": false
+  },
+  "comparison": {
+    "passed": false,
+    "checks": {
+      "exact_inputs_and_state_schema": true,
+      "loss": true,
+      "preclip_norm": true,
+      "prediction": true,
+      "gradients_before_clip": true,
+      "gradients_after_clip": true,
+      "gradient_direction": true,
+      "parameter_update": false,
+      "optimizer_exp_avg": true,
+      "optimizer_exp_avg_sq": true,
+      "nonzero_gradient_and_update": true,
+      "all_required_floating_values_finite": true
+    },
+    "metrics": {
+      "loss": {
+        "observed": 0.4887405335903168,
+        "reference": 0.48856455087661743,
+        "relative_error": 0.0003602036074528536
+      },
+      "preclip_norm": {
+        "observed": 0.59765625,
+        "reference": 0.59765625,
+        "relative_error": 0.0
+      },
+      "prediction": {
+        "reference_l2": 44.01533001058736,
+        "observed_l2": 44.02102358420951,
+        "relative_l2": 0.01378032866135803,
+        "cosine": 0.999905071916623
+      },
+      "gradients_before_clip": {
+        "reference_l2": 0.5975808392483847,
+        "observed_l2": 0.5983751757088719,
+        "relative_l2": 0.022971842946482662,
+        "cosine": 0.9997373797622271
+      },
+      "gradients_after_clip": {
+        "reference_l2": 0.5975808392483847,
+        "observed_l2": 0.5983751757088719,
+        "relative_l2": 0.022971842946482662,
+        "cosine": 0.9997373797622271
+      },
+      "parameter_update": {
+        "reference_l2": 0.16262293003030975,
+        "observed_l2": 0.1626242842956242,
+        "relative_l2": 0.19271900631141353,
+        "cosine": 0.9814298469834055
+      },
+      "optimizer_exp_avg": {
+        "reference_l2": 0.059756936468091375,
+        "observed_l2": 0.05983805022569048,
+        "relative_l2": 0.023090280751682783,
+        "cosine": 0.9997347008434966
+      },
+      "optimizer_exp_avg_sq": {
+        "reference_l2": 3.645868500028521e-06,
+        "observed_l2": 3.659034667790794e-06,
+        "relative_l2": 0.021701191404110032,
+        "cosine": 0.9997718735571949
+      }
+    },
+    "observed_SHA256": "f44f0d40d198699fcd3a635bb8fc744b907dcba05d8fe2284a2967f34f0192a3",
+    "reference_SHA256": "c59a71095924edfdfb9ad7041b8ef32f747e7825557a313f72ad09a3b0b53036",
+    "policy_SHA256": "075e86e54a3eeefb8d5aad219a23f16959d14bd42b22103cd5fe5302c823f6b5",
+    "comparison_SHA256": "043356564d1801bd1d4a5688ae0811de868b5cb9ef40de071c9f0e670860a3cb"
+  },
+  "original_parameter_update_relative_l2_gate": 0.05,
+  "original_observed_payload_SHA256": "f44f0d40d198699fcd3a635bb8fc744b907dcba05d8fe2284a2967f34f0192a3",
+  "original_observed_payload_bytes": 73890269,
+  "entire_payload_byte_identical_to_closed_default": true,
+  "private_capture_file_bytes": 176936,
+  "private_capture_SHA256": "e4876b3c6ab6129900a68460d2aba93e40cb85e5e220ac0b7adf00760fa12c5a",
+  "private_capture_stayed_on_Hygon": true,
+  "raw_tensor_cross_host_transfer_bytes": 0,
+  "peak_reserved_bytes": 5840568320,
+  "cost": {
+    "allocated_GPU_card_seconds": 59,
+    "CPU_compare_seconds": 9,
+    "pre_CPU_seconds": 1,
+    "post_CPU_seconds": 1,
+    "scope": "Slurm allocation windows include loading/hash/hooks/reference/cleanup; no exclusiveGPUtime or comparable throughput measurement."
+  },
+  "independent_reader_passed": true,
+  "comparison_per_tensor_reductions_consistent": true,
+  "numerical_parameter_update_denominator": 1120,
+  "terminal_reader": {
+    "path": "code/bw1000/training-sdxl-backward-cancellation-v1/read_original_terminal.py",
+    "SHA256": "798e6dec9242772791f9a4c3fe1c0c7e1933b2b09c65ca860dddeac387105ddb"
+  },
+  "independent_result_SHA256": "5b7d9bd20ec37e16f17d8305e48dc47ec16a30a6ba8a9f0f2bc788c64345e6f4",
+  "private_terminal_wrapper_SHA256": "25133b3506a0ef672dfb8c74615afed72f759fadc33ea88c168c1ca3d7cb20ac",
+  "private_evidence": {
+    "intent.json": {
+      "bytes": 2990,
+      "SHA256": "d1558656b869cd16ea75af67edca9913434cfcde1d4e8747c9bd0641d53a1a4d"
+    },
+    "controller-result.json": {
+      "bytes": 14278,
+      "SHA256": "5d9d02c6c559814ea9191ad7dbca8fa0a4fd04cccb2663a7f02262fddb6d0bc3"
+    },
+    "keeper-owner.json": {
+      "bytes": 355,
+      "SHA256": "aa9d94d3996688dfbaf70b4c2ad301fbb5b76586be7b558e3a4efd4986a6c034"
+    },
+    "src/CLAIM.json": {
+      "bytes": 1846,
+      "SHA256": "c3062aa2caafd86e8a2c592b1f84aa349992737bc7358eef4441027345c50254"
+    },
+    "src/DEPENDENCIES.json": {
+      "bytes": 955,
+      "SHA256": "f505a7cc192583d1665a5565bd267729116c108d2ff475ae712cecc67e1fc81f"
+    },
+    "src/FRAMEWORK_SUBSET.json": {
+      "bytes": 1435,
+      "SHA256": "e04fb53b242cf1bd0fe6038f8ee055f95639dc381c3e8515806ab49b1d662a1b"
+    },
+    "src/README.md": {
+      "bytes": 1130,
+      "SHA256": "7ab5db532e5dfb1f0f62b55202b6647c0a13391a77022efb5db4b4b29e28d8a1"
+    },
+    "src/REUSED_CPU174.json": {
+      "bytes": 700,
+      "SHA256": "31bb024fd0c082191a0d5b388d64af2abb2a7af21f3a45fd28040f05906c21b6"
+    },
+    "src/REUSED_CPU_POLICY.json": {
+      "bytes": 652,
+      "SHA256": "b2a086c4a4a19166db0a59ae0ca7d769c1f8f0f972170f9d662bd8c15f6f2acd"
+    },
+    "src/SOURCE_FILES.json": {
+      "bytes": 3365,
+      "SHA256": "746a053ab96e4c0cfa71deb769e016d18d5ba8e8108a147a865d85466be89fd8"
+    },
+    "src/compare_new_operands.py": {
+      "bytes": 4236,
+      "SHA256": "8b6a2f555a9adcbd264de95984ee8dbaf134d1c9ba05c9130268394bf298ac4d"
+    },
+    "src/controller.py": {
+      "bytes": 9833,
+      "SHA256": "04166e85498271bb86bc1263d022c586894aba82f963afe29966b10206cea941"
+    },
+    "src/device_entry.py": {
+      "bytes": 5887,
+      "SHA256": "234842bf0ac9f0b3bb662b5c3230ecf814ebc60fc26a120b8eb2fa33bf7941a1"
+    },
+    "src/host_device_gate.py": {
+      "bytes": 1083,
+      "SHA256": "607e755853aee7ee2f725ba4c4d3305a17d697b769714b51244ee0ba4a8d475f"
+    },
+    "src/launch_once.py": {
+      "bytes": 3357,
+      "SHA256": "c816f6046c8f7edca17400e5b1765f201139a8ce7a06e4d5782ce185a6b44796"
+    },
+    "src/receive_once.py": {
+      "bytes": 4847,
+      "SHA256": "63831b175477b511efd22e6b5885a6c6e173152d6a1d87a51b4f8d2421fc85c4"
+    },
+    "src/scope.py": {
+      "bytes": 1639,
+      "SHA256": "43353878a9524c7b911d2e119fc5512309a7dcf40c0e57e4aaf84aa7974dd8e7"
+    },
+    "src/slurm_accounting.py": {
+      "bytes": 1111,
+      "SHA256": "15a42839fd887a52e415104dcef2a4a548480be5da380f8cbd6980ddb55d3c0b"
+    },
+    "src/snapshot.py": {
+      "bytes": 3523,
+      "SHA256": "6fd72a9da70b8e02dd5f632dc443fd2fbcc4a2cc22e9a7c593357217f9173617"
+    },
+    "src/source/generation/src/gencuda/__init__.py": {
+      "bytes": 78,
+      "SHA256": "96e3064ca16ab05dd5664ffa026428b24455684d421f8e40305d37ca790190f5"
+    },
+    "src/source/generation/src/gencuda/lora_backward_audit.py": {
+      "bytes": 6888,
+      "SHA256": "e34dff4bb795455637574216353b73bd037a62f47ecf94b1e21a035d0dca0532"
+    },
+    "src/source/generation/src/gencuda/runtime.py": {
+      "bytes": 2665,
+      "SHA256": "9516e0dfba734e2b58cd0fec18bcaa3c7e70ae32156b492df264fb0f6a87fbdf"
+    },
+    "src/source/tests/test_sdxl_assigned_kfd.py": {
+      "bytes": 4203,
+      "SHA256": "c317d51b618c69526458c20bc57fa2c851f5c9ed510019efd74604a56ae597d4"
+    },
+    "src/source/tools/hygon_sdxl_assigned_kfd.py": {
+      "bytes": 2423,
+      "SHA256": "270da1e9fbf1da0cb73759afaa582b1f30f355b20ab8535cf06bb97b168d21df"
+    },
+    "src/source/tools/hygon_sdxl_backward_audit.py": {
+      "bytes": 2080,
+      "SHA256": "948f15e429f5809165cf2680e884eb824082893aee46bbef3de478b8225dc6f0"
+    },
+    "src/source/tools/hygon_sdxl_compare_first_step.py": {
+      "bytes": 9483,
+      "SHA256": "5550090fff73ffed1436b55eab9884c79984576d68d6e7dbadd98244d87b5edd"
+    },
+    "src/source/tools/hygon_sdxl_first_step.py": {
+      "bytes": 9153,
+      "SHA256": "cdf2f908887db4163c29c32793491ed781fcafa2585a177e85f0ec4af75abded"
+    },
+    "source/tools/hygon_sdxl_first_step.py": {
+      "bytes": 9153,
+      "SHA256": "cdf2f908887db4163c29c32793491ed781fcafa2585a177e85f0ec4af75abded"
+    },
+    "source/tools/hygon_sdxl_compare_first_step.py": {
+      "bytes": 9483,
+      "SHA256": "5550090fff73ffed1436b55eab9884c79984576d68d6e7dbadd98244d87b5edd"
+    },
+    "source/tools/hygon_sdxl_backward_audit.py": {
+      "bytes": 2080,
+      "SHA256": "948f15e429f5809165cf2680e884eb824082893aee46bbef3de478b8225dc6f0"
+    },
+    "source/tools/hygon_sdxl_assigned_kfd.py": {
+      "bytes": 2423,
+      "SHA256": "270da1e9fbf1da0cb73759afaa582b1f30f355b20ab8535cf06bb97b168d21df"
+    },
+    "source/tests/test_sdxl_assigned_kfd.py": {
+      "bytes": 4203,
+      "SHA256": "c317d51b618c69526458c20bc57fa2c851f5c9ed510019efd74604a56ae597d4"
+    },
+    "source/generation/src/gencuda/__init__.py": {
+      "bytes": 78,
+      "SHA256": "96e3064ca16ab05dd5664ffa026428b24455684d421f8e40305d37ca790190f5"
+    },
+    "source/generation/src/gencuda/runtime.py": {
+      "bytes": 2665,
+      "SHA256": "9516e0dfba734e2b58cd0fec18bcaa3c7e70ae32156b492df264fb0f6a87fbdf"
+    },
+    "source/generation/src/gencuda/lora_backward_audit.py": {
+      "bytes": 6888,
+      "SHA256": "e34dff4bb795455637574216353b73bd037a62f47ecf94b1e21a035d0dca0532"
+    },
+    "training-sdxl-backward-cancellation-v1-pre.log": {
+      "bytes": 355,
+      "SHA256": "ccc82a4b98540d9d54b5f88c4f65fce1cc2c64ea56d1c5c6baa3edd882851693"
+    },
+    "training-sdxl-backward-cancellation-v1.log": {
+      "bytes": 1802,
+      "SHA256": "30429c710bf7a6ff2042e17f5dd20495d8114b7789d6486d40e2af221336cc4a"
+    },
+    "training-sdxl-backward-cancellation-v1-post.log": {
+      "bytes": 355,
+      "SHA256": "8f2636e775ed3f4ce0ef9cdd4b5eb5e8a7f4b07f54990f15dce92e1e94aca49a"
+    },
+    "training-sdxl-backward-cancellation-v1-compare.log": {
+      "bytes": 349,
+      "SHA256": "8576fca420c631dd0460cf99fa21ca65eaa87a35a42c31940c3b10ca1141037b"
+    },
+    "before.json": {
+      "bytes": 474,
+      "SHA256": "a8b8fab3b369d20112d6f4b18b53259cdf5038557ccae95e1258a596ee1a6f32"
+    },
+    "after.json": {
+      "bytes": 473,
+      "SHA256": "241cd01bc49935ae63bf2f9029a0e373d2cdcbe28adcbe155718ff8adadf0373"
+    },
+    "lease-before.json": {
+      "bytes": 705,
+      "SHA256": "a4970e4461cef481b83bddc66de121da931a6d6e425b50c2bca923f888c7a3d2"
+    },
+    "assigned.json": {
+      "bytes": 998,
+      "SHA256": "862933c8084857a45f6b5b28c3950a88341e4f2c6db09560728a6d433e10ec8d"
+    },
+    "candidate/backward-audit.json": {
+      "bytes": 2400,
+      "SHA256": "96424d9d2d8ad8328a32771b14810b12605ed49872648c86adfb4170c473e909"
+    },
+    "backward-independent.json": {
+      "bytes": 1438,
+      "SHA256": "f142254066031d37d2f8c79171e0161bccb9d269427544377c27379fad258597"
+    },
+    "comparison.json": {
+      "bytes": 1784062,
+      "SHA256": "043356564d1801bd1d4a5688ae0811de868b5cb9ef40de071c9f0e670860a3cb"
+    },
+    "candidate/replay/summary.json": {
+      "bytes": 935,
+      "SHA256": "525c9fb788e06d33d70a6b34d44fd99bb8ef550f23eac295128834721830d599"
+    }
+  },
+  "cleanup": {
+    "post_step": "1087656.177",
+    "post_KFD_holder_count": 0,
+    "same_eight_PCI": true,
+    "same_boot": true,
+    "normal_GPU_step_exit": true,
+    "forced_GPU_cleanup": false,
+    "original_controller_same_host_observed": true,
+    "original_owned_PID_identity_present": false,
+    "original_controller_executing": false,
+    "original_controller_reconciliation_SHA256": "1245e12ec2111d834968dd7dc9e214dfbbd851a05027243660a657b8ab0e5449"
+  },
+  "conclusion": "For this selected LoRA-B weight gradient,local native GEMM rounding is insufficient to explain its difference from the originalA100 gradient: nativevsCPUF64-rounded relativeL2 9.844144313e-6 with0sign changes,versus nativevsA100 .05769257914 with111sign differences; CPUF64-rounded retains the same111sign differences and .05769272916 discrepancy. This does not identify which upstream forward/backward operation caused the operand difference or prove the same result for all560LoRA-B tensors. Stop an accumulator-only repair for this selected tensor; no model or performance win.",
+  "stop_selected_accumulator_only_repair": true,
+  "all560_layer_cause_proven": false,
+  "causal_round_increment": 1,
+  "performance_round_increment": 0,
+  "numerical_alignment": false,
+  "continuous25_qualified": false,
+  "recovery_qualified": false,
+  "formal_performance": false,
+  "heldout_effects_qualified": false,
+  "Model_GO": false,
+  "promote": false,
+  "all17_final_accepted": 0,
+  "next": "Close this exact diagnostic and do not repeat native/default/math/reduction arms or CPU174/helper/readers/transfers. Prefer a source-backed upstream operand provenance check on originalA100 without exporting raw operands,or progress another model with available prerequisites. No further fullUNet loading without a distinct discriminating question. Keep original5% update gate,all failed numerical denominators and separate stage qualification; no25step/formal performance or DDPO promotion."
+}
