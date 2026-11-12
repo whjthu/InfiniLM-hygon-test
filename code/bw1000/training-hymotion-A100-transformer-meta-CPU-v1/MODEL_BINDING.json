@@ -1,0 +1,64 @@
+{
+  "model_config": {
+    "classes": {
+      "train_pipeline": "hymotion/pipeline/motion_diffusion.MotionFlowMatching",
+      "network_module": "hymotion/network/hymotion_mmdit.HunyuanMotionMMDiT"
+    },
+    "train_pipeline_args": {
+      "enable_ctxt_null_feat": true,
+      "enable_special_game_feat": true,
+      "infer_noise_scheduler_cfg": {
+        "validation_steps": 50
+      },
+      "losses_cfg": {
+        "recons": {
+          "name": "SmoothL1Loss",
+          "weight": 1.0
+        }
+      },
+      "noise_scheduler_cfg": {
+        "method": "euler"
+      },
+      "output_mesh_fps": 30,
+      "random_generator_on_gpu": false,
+      "test_cfg": {
+        "mean_std_dir": "./stats/",
+        "text_guidance_scale": 5.0
+      },
+      "text_encoder_cfg": {
+        "llm_type": "qwen3",
+        "max_length_llm": 128
+      },
+      "text_encoder_module": "hymotion/network/text_encoders/text_encoder.HYTextModel",
+      "train_cfg": {
+        "cond_mask_prob": 0.1
+      },
+      "train_frames": 360
+    },
+    "network_module_args": {
+      "apply_rope_to_single_branch": false,
+      "ctxt_input_dim": 4096,
+      "dropout": 0.0,
+      "feat_dim": 1280,
+      "input_dim": 201,
+      "mask_mode": "narrowband",
+      "mlp_ratio": 4.0,
+      "num_heads": 20,
+      "num_layers": 27,
+      "time_factor": 1000.0,
+      "vtxt_input_dim": 768
+    }
+  },
+  "original_backend": "/mnt/data/nvidia-baseline-20261010/cuda_source/generation/src/gencuda/backends/hy_motion_training.py",
+  "original_backend_SHA256": "1645d687e68e93b413e88d2c6b898e0a0d862fba3c26880c65b7f5daac0ca73e",
+  "model_config_path": "/mnt/data/nvidia-baseline-20261010/inputs/models/hy-motion-1.0/HY-Motion-1.0/config.yml",
+  "model_config_SHA256": "ed90095c0d6a8032520ebdd14a2294adb43a19916dd84d4751e36dcecb5c6427",
+  "expected_versions": {
+    "torch": "2.8.0a0+5228986c39.nv25.6",
+    "numpy": "1.26.4",
+    "einops": "0.8.1",
+    "accelerate": "1.14.0"
+  },
+  "framework_commit": "ec8ceda524ddb9f226365497b8ecb36c6951fc5a",
+  "framework_files": 331
+}
