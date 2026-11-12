@@ -1,0 +1,9 @@
+# VGGT target CPU v2: portable original-math identity
+
+Original172 remainsFAILED1/17s. Full321source/69upstream closure and exact runtime versions passed; six actual CPUrecorderbehavior tests passed. The seventh original-math AST test failed because Python3.12 emits48 empty type_params fields absent from Python3.10. Removing only those empty fields reproduces the exact observed target hash. The unchanged production backend retains SHA49bfe39b... .
+
+Unified framework3b1d690/323files adds a purestdlib canonical AST identity helper and two portability regressions, and changes only the original-math assertion. Expected digest b87f91... is derived from exact original58576B source57f0939d..., not from accepting the failed target digest. Nonempty type parameters and actual math changes remain significant. No production math is changed and source A10025/first-update/recovery qualifications retain their actual original runtime source hashes.
+
+On target reuse the six named172passing CPUbehavior methods only after verifying original outcome/tests SHA, exact unchanged method AST and same runtime versions. Run only the three changed/new portable tests, then construct the actual full VGGT meta model, compare69trainable/216174610FP32manifest with A100, freeze/evalaggregator and import Co3d. Record actual target source/optimizer provider evidence. No weights, image/data bytes, GPUcontext, fullA100test replay or raw export. Reuse69target originalPython sources; no repeat source sync.
+
+Single new label/namespace, parent1087656/T12f11r4n19,4CPU8GiB/GPU0,300s origin epoch/work220s, qualified actualSlurmterminal helper. Unknown requests are reconciled, never replayed. Target path mappings/weights/initial values/actualGPU numerics/recovery/performance/effects remain unqualified until separately evidenced.
