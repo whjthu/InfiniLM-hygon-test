@@ -1,0 +1,51 @@
+{
+  "problem": "InternVL original launch uses model_type=internvl and leaves template unset. Its native Swift mapping selects InternVLHfLoader/internvl_hf/llava_hf paths and embeds Qwen3. Reusing QwenVL-only provider or legacy InternVLChat paths would qualify the wrong scope.",
+  "implementation": "Add explicit nativeHF InternVL contract and source pins for both InternVL and Qwen3 to the same framework; preserve the original implicit template and actual native checkpointing lifecycle.",
+  "source_framework_commit": "bbf3c6fb03b4696fdc0e71ebd6ca4e79c0ee7564",
+  "evidence": "results/bw1000/2026-11-12/training-internvl-original-full-meta-native-HF-CPU-qualified.json",
+  "actual_original_CPU_wall_seconds": 7.489999947138131,
+  "whole_wall_seconds": 8.723502499051392,
+  "peak_RSS_bytes": 985178112,
+  "actual_frozen_boundaries": {
+    "model.vision_tower": {
+      "tensors": 436,
+      "parameters": 304012288
+    },
+    "model.multi_modal_projector": {
+      "tensors": 6,
+      "parameters": 33570816
+    }
+  },
+  "actual_lifecycle": {
+    "original_requested": true,
+    "native_Trainer_flag": false,
+    "language_checkpointing": true,
+    "language_checkpointed_layers": 36,
+    "language_use_cache": false,
+    "vision_checkpointing": false,
+    "vision_checkpointing_flags": 25,
+    "provider": {
+      "module": "swift.trainers.mixin",
+      "qualname": "SwiftMixin._prepare_gradient_checkpointing",
+      "source_file_bytes": 64818,
+      "source_file_SHA256": "6b6de2e7503ce414cb837961e1355be41a56787ecca502e8570bfcfa36c15ab9",
+      "method_source_SHA256": "cc5effb6461c8437f711eede6044a3984e705915d883a99bdea2721e8914fa5a"
+    }
+  },
+  "provider_classes": 334,
+  "selected_runtime_source_files": 40,
+  "first_reader_failed": true,
+  "first_reader_reason": "Assumed new HF model.vision_tower index prefix; actual original index uses vision_tower. Source CPU result was not changed or rerun.",
+  "corrected_reader_scope": "Explicit observed legacy prefix correspondence for tensor counts only; no actual checkpoint conversion or weight loading is qualified.",
+  "checkpoint_original_key_paths": {
+    "model.vision_tower": "vision_tower",
+    "model.multi_modal_projector": "multi_modal_projector"
+  },
+  "local_root_tests": 65,
+  "local_affected_stdlib_tests": 20,
+  "source_policy_files": 345,
+  "history_commits": 158,
+  "history_source_revisions": 672,
+  "next": "Qualify the original64-row native HF preprocessing and legacy checkpoint key-conversion provider before a separately claimed actual source8card first-update/native25 reference. Do not repeat this CPU run or treat meta values as initialized/trainable values. Hygon runtime,source complete weight SHA,first-step numerical tolerances,recovery,formal performance and effects remain unqualified.",
+  "all17_final_accepted": 0
+}
