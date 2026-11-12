@@ -1,0 +1,1679 @@
+{
+  "model_config": {
+    "classes": {
+      "train_pipeline": "hymotion/pipeline/motion_diffusion.MotionFlowMatching",
+      "network_module": "hymotion/network/hymotion_mmdit.HunyuanMotionMMDiT"
+    },
+    "train_pipeline_args": {
+      "enable_ctxt_null_feat": true,
+      "enable_special_game_feat": true,
+      "infer_noise_scheduler_cfg": {
+        "validation_steps": 50
+      },
+      "losses_cfg": {
+        "recons": {
+          "name": "SmoothL1Loss",
+          "weight": 1.0
+        }
+      },
+      "noise_scheduler_cfg": {
+        "method": "euler"
+      },
+      "output_mesh_fps": 30,
+      "random_generator_on_gpu": false,
+      "test_cfg": {
+        "mean_std_dir": "./stats/",
+        "text_guidance_scale": 5.0
+      },
+      "text_encoder_cfg": {
+        "llm_type": "qwen3",
+        "max_length_llm": 128
+      },
+      "text_encoder_module": "hymotion/network/text_encoders/text_encoder.HYTextModel",
+      "train_cfg": {
+        "cond_mask_prob": 0.1
+      },
+      "train_frames": 360
+    },
+    "network_module_args": {
+      "apply_rope_to_single_branch": false,
+      "ctxt_input_dim": 4096,
+      "dropout": 0.0,
+      "feat_dim": 1280,
+      "input_dim": 201,
+      "mask_mode": "narrowband",
+      "mlp_ratio": 4.0,
+      "num_heads": 20,
+      "num_layers": 27,
+      "time_factor": 1000.0,
+      "vtxt_input_dim": 768
+    }
+  },
+  "recipe": {
+    "model": "hy-motion-1.0",
+    "seed": 20260911,
+    "training_data_manifest": "/mnt/data/nvidia-baseline-20261010/inputs/datasets/hy-motion-training-cache-r128-rc3-r2/training-data-manifest.json",
+    "training_data_manifest_sha256": "f7c83fd55fd0ff374671b02b5d878b1579d8865805f7525a329b3e6ad2718508",
+    "variant": "HY-Motion-1.0",
+    "qwen_path": "/mnt/data/nvidia-baseline-20261010/inputs/models/Qwen3-8B",
+    "clip_path": "/mnt/data/nvidia-baseline-20261010/inputs/models/clip-vit-large-patch14",
+    "lora_target_modules": [
+      "qkv",
+      "proj",
+      "fc1",
+      "fc2"
+    ],
+    "lora_rank": 4,
+    "lora_alpha": 8,
+    "gradient_checkpointing": true,
+    "learning_rate": 0.0001,
+    "weight_decay": 0.01,
+    "max_grad_norm": 1.0,
+    "max_steps": 20,
+    "warmup_steps": 5,
+    "checkpoint_steps": [
+      10,
+      20
+    ],
+    "validate_recovery": true,
+    "resume_atol": 1e-06,
+    "cards": [
+      0
+    ]
+  },
+  "upstream_files": {
+    "hymotion/pipeline/motion_diffusion.py": {
+      "bytes": 27427,
+      "SHA256": "44ff059fc6bc810deb23d0841fc38e4d8cb3c10e6f6213dfef559b204cb50464"
+    },
+    "hymotion/network/hymotion_mmdit.py": {
+      "bytes": 23759,
+      "SHA256": "f6cb73bcac88c619dac0ada3946af7c000d8aea064522b2aec73c28a0f4f603b"
+    },
+    "hymotion/network/text_encoders/text_encoder.py": {
+      "bytes": 12762,
+      "SHA256": "fad806c32971eabe3478c997cfd3ee19b28b53fe588843a1643dde5e95fed2f1"
+    },
+    "hymotion/utils/loaders.py": {
+      "bytes": 5503,
+      "SHA256": "5663f2c66224f3ed8ebb70c0682d22c6733b463cf70389b929dc3cae9a95089f"
+    },
+    "hymotion/utils/geometry.py": {
+      "bytes": 30879,
+      "SHA256": "15d0c3c093e6fbe7464ce54697c6d909050217d2af8af0813a21cd64a7b3c540"
+    },
+    "hymotion/utils/motion_process.py": {
+      "bytes": 2030,
+      "SHA256": "2e749f3852e90f36afb3189ac8659be14893e0c517ca771239f8fe0b6135e634"
+    },
+    "hymotion/utils/type_converter.py": {
+      "bytes": 454,
+      "SHA256": "4842ff415b6549ced395524dc2678c7b9fa18025d0020f424080ad88ff294f70"
+    },
+    "hymotion/pipeline/body_model.py": {
+      "bytes": 14871,
+      "SHA256": "01eebf66d87f0ee10ebbd2e7b8ab1a2dd4c581661be99d0597c5286854e95443"
+    },
+    "hymotion/network/attention.py": {
+      "bytes": 4270,
+      "SHA256": "d98bcf998a0203e66794930b74b2d29e9bcc1897cd7a558018d72bfc2fcfab7a"
+    },
+    "hymotion/network/bricks.py": {
+      "bytes": 1362,
+      "SHA256": "4c0d7e0f979dd6f28ac24b5fdc0b208abe4840242b0014cd461c726a56df7476"
+    },
+    "hymotion/network/encoders.py": {
+      "bytes": 4600,
+      "SHA256": "81994bfe775ceab04b9f8accdd7fd331df0e6a2b68b183cb72800e86059e84ef"
+    },
+    "hymotion/network/modulate_layers.py": {
+      "bytes": 1595,
+      "SHA256": "fff5e1e4b718847c9280599a9c1b668879ea40773ac68701e9c7e6f9f0386a0f"
+    },
+    "hymotion/network/positional_encoding.py": {
+      "bytes": 7481,
+      "SHA256": "532a88737cf73ab0587b15a5c3d91a2320bd196bef4493b9f2d05f9def282014"
+    },
+    "hymotion/network/text_encoders/model_constants.py": {
+      "bytes": 553,
+      "SHA256": "e0e93a93a0f4180038826fcdeb1d451dd8eec1f45eb177d7bbe2ec4448c19289"
+    },
+    "hymotion/utils/misc.py": {
+      "bytes": 3362,
+      "SHA256": "8c98da71be2fab93e4013c885705410394c6347de2adee21b75c64abd59fcdfa"
+    },
+    "hymotion/network/token_refiner.py": {
+      "bytes": 7309,
+      "SHA256": "af7331f037ca1696d1558153e34f54d7be3a3118126bb7bcf2e0bd13d49c8562"
+    }
+  },
+  "reference_trainable_manifest": {
+    "text_refiner.individual_token_refiner.blocks.0.self_attn_qkv.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "text_refiner.individual_token_refiner.blocks.0.self_attn_qkv.lora_B": {
+      "shape": [
+        3840,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 15360,
+      "meta": true
+    },
+    "text_refiner.individual_token_refiner.blocks.0.self_attn_proj.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "text_refiner.individual_token_refiner.blocks.0.self_attn_proj.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "text_refiner.individual_token_refiner.blocks.0.mlp.fc1.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "text_refiner.individual_token_refiner.blocks.0.mlp.fc1.lora_B": {
+      "shape": [
+        5120,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "text_refiner.individual_token_refiner.blocks.0.mlp.fc2.lora_A": {
+      "shape": [
+        4,
+        5120
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "text_refiner.individual_token_refiner.blocks.0.mlp.fc2.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "text_refiner.individual_token_refiner.blocks.1.self_attn_qkv.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "text_refiner.individual_token_refiner.blocks.1.self_attn_qkv.lora_B": {
+      "shape": [
+        3840,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 15360,
+      "meta": true
+    },
+    "text_refiner.individual_token_refiner.blocks.1.self_attn_proj.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "text_refiner.individual_token_refiner.blocks.1.self_attn_proj.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "text_refiner.individual_token_refiner.blocks.1.mlp.fc1.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "text_refiner.individual_token_refiner.blocks.1.mlp.fc1.lora_B": {
+      "shape": [
+        5120,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "text_refiner.individual_token_refiner.blocks.1.mlp.fc2.lora_A": {
+      "shape": [
+        4,
+        5120
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "text_refiner.individual_token_refiner.blocks.1.mlp.fc2.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.0.motion_qkv.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.0.motion_qkv.lora_B": {
+      "shape": [
+        3840,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 15360,
+      "meta": true
+    },
+    "double_blocks.0.motion_out_proj.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.0.motion_out_proj.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.0.motion_mlp.fc1.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.0.motion_mlp.fc1.lora_B": {
+      "shape": [
+        5120,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.0.motion_mlp.fc2.lora_A": {
+      "shape": [
+        4,
+        5120
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.0.motion_mlp.fc2.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.0.text_qkv.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.0.text_qkv.lora_B": {
+      "shape": [
+        3840,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 15360,
+      "meta": true
+    },
+    "double_blocks.0.text_out_proj.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.0.text_out_proj.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.0.text_mlp.fc1.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.0.text_mlp.fc1.lora_B": {
+      "shape": [
+        5120,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.0.text_mlp.fc2.lora_A": {
+      "shape": [
+        4,
+        5120
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.0.text_mlp.fc2.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.1.motion_qkv.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.1.motion_qkv.lora_B": {
+      "shape": [
+        3840,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 15360,
+      "meta": true
+    },
+    "double_blocks.1.motion_out_proj.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.1.motion_out_proj.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.1.motion_mlp.fc1.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.1.motion_mlp.fc1.lora_B": {
+      "shape": [
+        5120,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.1.motion_mlp.fc2.lora_A": {
+      "shape": [
+        4,
+        5120
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.1.motion_mlp.fc2.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.1.text_qkv.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.1.text_qkv.lora_B": {
+      "shape": [
+        3840,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 15360,
+      "meta": true
+    },
+    "double_blocks.1.text_out_proj.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.1.text_out_proj.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.1.text_mlp.fc1.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.1.text_mlp.fc1.lora_B": {
+      "shape": [
+        5120,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.1.text_mlp.fc2.lora_A": {
+      "shape": [
+        4,
+        5120
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.1.text_mlp.fc2.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.2.motion_qkv.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.2.motion_qkv.lora_B": {
+      "shape": [
+        3840,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 15360,
+      "meta": true
+    },
+    "double_blocks.2.motion_out_proj.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.2.motion_out_proj.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.2.motion_mlp.fc1.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.2.motion_mlp.fc1.lora_B": {
+      "shape": [
+        5120,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.2.motion_mlp.fc2.lora_A": {
+      "shape": [
+        4,
+        5120
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.2.motion_mlp.fc2.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.2.text_qkv.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.2.text_qkv.lora_B": {
+      "shape": [
+        3840,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 15360,
+      "meta": true
+    },
+    "double_blocks.2.text_out_proj.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.2.text_out_proj.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.2.text_mlp.fc1.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.2.text_mlp.fc1.lora_B": {
+      "shape": [
+        5120,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.2.text_mlp.fc2.lora_A": {
+      "shape": [
+        4,
+        5120
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.2.text_mlp.fc2.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.3.motion_qkv.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.3.motion_qkv.lora_B": {
+      "shape": [
+        3840,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 15360,
+      "meta": true
+    },
+    "double_blocks.3.motion_out_proj.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.3.motion_out_proj.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.3.motion_mlp.fc1.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.3.motion_mlp.fc1.lora_B": {
+      "shape": [
+        5120,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.3.motion_mlp.fc2.lora_A": {
+      "shape": [
+        4,
+        5120
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.3.motion_mlp.fc2.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.3.text_qkv.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.3.text_qkv.lora_B": {
+      "shape": [
+        3840,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 15360,
+      "meta": true
+    },
+    "double_blocks.3.text_out_proj.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.3.text_out_proj.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.3.text_mlp.fc1.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.3.text_mlp.fc1.lora_B": {
+      "shape": [
+        5120,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.3.text_mlp.fc2.lora_A": {
+      "shape": [
+        4,
+        5120
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.3.text_mlp.fc2.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.4.motion_qkv.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.4.motion_qkv.lora_B": {
+      "shape": [
+        3840,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 15360,
+      "meta": true
+    },
+    "double_blocks.4.motion_out_proj.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.4.motion_out_proj.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.4.motion_mlp.fc1.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.4.motion_mlp.fc1.lora_B": {
+      "shape": [
+        5120,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.4.motion_mlp.fc2.lora_A": {
+      "shape": [
+        4,
+        5120
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.4.motion_mlp.fc2.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.4.text_qkv.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.4.text_qkv.lora_B": {
+      "shape": [
+        3840,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 15360,
+      "meta": true
+    },
+    "double_blocks.4.text_out_proj.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.4.text_out_proj.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.4.text_mlp.fc1.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.4.text_mlp.fc1.lora_B": {
+      "shape": [
+        5120,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.4.text_mlp.fc2.lora_A": {
+      "shape": [
+        4,
+        5120
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.4.text_mlp.fc2.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.5.motion_qkv.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.5.motion_qkv.lora_B": {
+      "shape": [
+        3840,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 15360,
+      "meta": true
+    },
+    "double_blocks.5.motion_out_proj.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.5.motion_out_proj.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.5.motion_mlp.fc1.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.5.motion_mlp.fc1.lora_B": {
+      "shape": [
+        5120,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.5.motion_mlp.fc2.lora_A": {
+      "shape": [
+        4,
+        5120
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.5.motion_mlp.fc2.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.5.text_qkv.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.5.text_qkv.lora_B": {
+      "shape": [
+        3840,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 15360,
+      "meta": true
+    },
+    "double_blocks.5.text_out_proj.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.5.text_out_proj.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.5.text_mlp.fc1.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.5.text_mlp.fc1.lora_B": {
+      "shape": [
+        5120,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.5.text_mlp.fc2.lora_A": {
+      "shape": [
+        4,
+        5120
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.5.text_mlp.fc2.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.6.motion_qkv.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.6.motion_qkv.lora_B": {
+      "shape": [
+        3840,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 15360,
+      "meta": true
+    },
+    "double_blocks.6.motion_out_proj.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.6.motion_out_proj.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.6.motion_mlp.fc1.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.6.motion_mlp.fc1.lora_B": {
+      "shape": [
+        5120,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.6.motion_mlp.fc2.lora_A": {
+      "shape": [
+        4,
+        5120
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.6.motion_mlp.fc2.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.6.text_qkv.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.6.text_qkv.lora_B": {
+      "shape": [
+        3840,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 15360,
+      "meta": true
+    },
+    "double_blocks.6.text_out_proj.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.6.text_out_proj.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.6.text_mlp.fc1.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.6.text_mlp.fc1.lora_B": {
+      "shape": [
+        5120,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.6.text_mlp.fc2.lora_A": {
+      "shape": [
+        4,
+        5120
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.6.text_mlp.fc2.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.7.motion_qkv.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.7.motion_qkv.lora_B": {
+      "shape": [
+        3840,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 15360,
+      "meta": true
+    },
+    "double_blocks.7.motion_out_proj.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.7.motion_out_proj.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.7.motion_mlp.fc1.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.7.motion_mlp.fc1.lora_B": {
+      "shape": [
+        5120,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.7.motion_mlp.fc2.lora_A": {
+      "shape": [
+        4,
+        5120
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.7.motion_mlp.fc2.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.7.text_qkv.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.7.text_qkv.lora_B": {
+      "shape": [
+        3840,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 15360,
+      "meta": true
+    },
+    "double_blocks.7.text_out_proj.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.7.text_out_proj.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.7.text_mlp.fc1.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.7.text_mlp.fc1.lora_B": {
+      "shape": [
+        5120,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.7.text_mlp.fc2.lora_A": {
+      "shape": [
+        4,
+        5120
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.7.text_mlp.fc2.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.8.motion_qkv.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.8.motion_qkv.lora_B": {
+      "shape": [
+        3840,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 15360,
+      "meta": true
+    },
+    "double_blocks.8.motion_out_proj.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.8.motion_out_proj.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.8.motion_mlp.fc1.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.8.motion_mlp.fc1.lora_B": {
+      "shape": [
+        5120,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.8.motion_mlp.fc2.lora_A": {
+      "shape": [
+        4,
+        5120
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.8.motion_mlp.fc2.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.8.text_qkv.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.8.text_qkv.lora_B": {
+      "shape": [
+        3840,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 15360,
+      "meta": true
+    },
+    "double_blocks.8.text_out_proj.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.8.text_out_proj.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.8.text_mlp.fc1.lora_A": {
+      "shape": [
+        4,
+        1280
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    },
+    "double_blocks.8.text_mlp.fc1.lora_B": {
+      "shape": [
+        5120,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.8.text_mlp.fc2.lora_A": {
+      "shape": [
+        4,
+        5120
+      ],
+      "dtype": "torch.float32",
+      "numel": 20480,
+      "meta": true
+    },
+    "double_blocks.8.text_mlp.fc2.lora_B": {
+      "shape": [
+        1280,
+        4
+      ],
+      "dtype": "torch.float32",
+      "numel": 5120,
+      "meta": true
+    }
+  },
+  "reference_lora_layers": [
+    "double_blocks.0.motion_mlp.fc1",
+    "double_blocks.0.motion_mlp.fc2",
+    "double_blocks.0.motion_out_proj",
+    "double_blocks.0.motion_qkv",
+    "double_blocks.0.text_mlp.fc1",
+    "double_blocks.0.text_mlp.fc2",
+    "double_blocks.0.text_out_proj",
+    "double_blocks.0.text_qkv",
+    "double_blocks.1.motion_mlp.fc1",
+    "double_blocks.1.motion_mlp.fc2",
+    "double_blocks.1.motion_out_proj",
+    "double_blocks.1.motion_qkv",
+    "double_blocks.1.text_mlp.fc1",
+    "double_blocks.1.text_mlp.fc2",
+    "double_blocks.1.text_out_proj",
+    "double_blocks.1.text_qkv",
+    "double_blocks.2.motion_mlp.fc1",
+    "double_blocks.2.motion_mlp.fc2",
+    "double_blocks.2.motion_out_proj",
+    "double_blocks.2.motion_qkv",
+    "double_blocks.2.text_mlp.fc1",
+    "double_blocks.2.text_mlp.fc2",
+    "double_blocks.2.text_out_proj",
+    "double_blocks.2.text_qkv",
+    "double_blocks.3.motion_mlp.fc1",
+    "double_blocks.3.motion_mlp.fc2",
+    "double_blocks.3.motion_out_proj",
+    "double_blocks.3.motion_qkv",
+    "double_blocks.3.text_mlp.fc1",
+    "double_blocks.3.text_mlp.fc2",
+    "double_blocks.3.text_out_proj",
+    "double_blocks.3.text_qkv",
+    "double_blocks.4.motion_mlp.fc1",
+    "double_blocks.4.motion_mlp.fc2",
+    "double_blocks.4.motion_out_proj",
+    "double_blocks.4.motion_qkv",
+    "double_blocks.4.text_mlp.fc1",
+    "double_blocks.4.text_mlp.fc2",
+    "double_blocks.4.text_out_proj",
+    "double_blocks.4.text_qkv",
+    "double_blocks.5.motion_mlp.fc1",
+    "double_blocks.5.motion_mlp.fc2",
+    "double_blocks.5.motion_out_proj",
+    "double_blocks.5.motion_qkv",
+    "double_blocks.5.text_mlp.fc1",
+    "double_blocks.5.text_mlp.fc2",
+    "double_blocks.5.text_out_proj",
+    "double_blocks.5.text_qkv",
+    "double_blocks.6.motion_mlp.fc1",
+    "double_blocks.6.motion_mlp.fc2",
+    "double_blocks.6.motion_out_proj",
+    "double_blocks.6.motion_qkv",
+    "double_blocks.6.text_mlp.fc1",
+    "double_blocks.6.text_mlp.fc2",
+    "double_blocks.6.text_out_proj",
+    "double_blocks.6.text_qkv",
+    "double_blocks.7.motion_mlp.fc1",
+    "double_blocks.7.motion_mlp.fc2",
+    "double_blocks.7.motion_out_proj",
+    "double_blocks.7.motion_qkv",
+    "double_blocks.7.text_mlp.fc1",
+    "double_blocks.7.text_mlp.fc2",
+    "double_blocks.7.text_out_proj",
+    "double_blocks.7.text_qkv",
+    "double_blocks.8.motion_mlp.fc1",
+    "double_blocks.8.motion_mlp.fc2",
+    "double_blocks.8.motion_out_proj",
+    "double_blocks.8.motion_qkv",
+    "double_blocks.8.text_mlp.fc1",
+    "double_blocks.8.text_mlp.fc2",
+    "double_blocks.8.text_out_proj",
+    "double_blocks.8.text_qkv",
+    "text_refiner.individual_token_refiner.blocks.0.mlp.fc1",
+    "text_refiner.individual_token_refiner.blocks.0.mlp.fc2",
+    "text_refiner.individual_token_refiner.blocks.0.self_attn_proj",
+    "text_refiner.individual_token_refiner.blocks.0.self_attn_qkv",
+    "text_refiner.individual_token_refiner.blocks.1.mlp.fc1",
+    "text_refiner.individual_token_refiner.blocks.1.mlp.fc2",
+    "text_refiner.individual_token_refiner.blocks.1.self_attn_proj",
+    "text_refiner.individual_token_refiner.blocks.1.self_attn_qkv"
+  ],
+  "reference_base_parameters_meta": 1042868681,
+  "backend_SHA256": "e23a88e0b78ec16ef76e7c4eb0b254452f0c21a4013f5c5be4cf5dec96e7bb27",
+  "original_A100_CPU_claim": "6f3e68fc343bba8fb4ffda147757acfaa4c2fc83",
+  "original_A100_request": "b8b446f63f894f30aec4678a5045144e",
+  "original_A100_result_SHA256": "617c2490c17ae0ab18852646e3b39c0c8a5f102bffa2ef729bc0edbe20f569bc"
+}
