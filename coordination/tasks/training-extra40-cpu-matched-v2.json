@@ -1,9 +1,9 @@
 {
   "owner": "root",
-  "allocation_GO": true,
+  "allocation_GO": false,
   "max_new_sbatch_submissions": 1,
-  "actual_new_sbatch_submissions": 0,
-  "original_parent_retained": "1087656",
+  "actual_new_sbatch_submissions": 1,
+  "original_parent_retained": true,
   "only_replace_confirmed_unallocated_pending_job": "1103563",
   "preserve_if_prior_already_RUNNING": true,
   "replacement_after_actual_CANCELLED_AllocNodes0_only": true,
@@ -45,11 +45,35 @@
   "replay_allowed": false,
   "GPU_kernel_invocations": 0,
   "explanation": "Bareexclusive allocates all128CPUs on a node;userexclusive retains no-other-user sharing while matching original64CPU+8DCU/node. Existing2560CPU plusnew2560CPU matches doubled requiredCPU,without lowering any training recipe. Exact inherited group cap remains undisclosed and successful test-only estimate is not actual admission.",
-  "next": "Fresh-read actual1103563. IfRUNNING preserve/adopt. Otherwise state/user/name filtered cancellation andactualCANCELLED/zeroallocated before unique replacement. Then independently verify actualnewhandle/nodecount/TRES;pending stayspending,not80node success.",
-  "state": "SOURCE_PREPARED_NOT_INVOKED",
+  "next": "Keep1103606queued;no furthernewjob/resubmission. PlatformmustenableassociationgroupGRESquota sufficientfor640DCU total(and matching5120CPU/80nodes/memory). Readsameactualjob afterexternalquota change. Publish80nodeassignment onlyafteractualRUNNING40newdisjointnodes andnewdevicechecks.",
+  "state": "SUBMITTED_PENDING_ASSOC_GROUP_GRES_LIMIT",
   "source": "code/bw1000/training-extra40-cpu-matched-v2",
   "source_SHA256": {
     "replace_pending_once.py": "5a59c8c9c874cfee38ff9df39a2541b7af7c89d1266338e8a60b0cbae6673088",
     "launch_once.py": "b1be4177a334f1a5a159ca5d5cac23936c18aaca7e1eb921aa1e2d55ea8726cb"
-  }
+  },
+  "new_job_id": "1103606",
+  "previous1103563_terminal": {
+    "job_id": "1103563",
+    "accounting_columns": [
+      "JobIDRaw",
+      "State",
+      "ExitCode",
+      "AllocNodes",
+      "NodeList"
+    ],
+    "row": [
+      "1103563",
+      "CANCELLED by 154459",
+      "0:0",
+      "0",
+      "None assigned"
+    ]
+  },
+  "pending_reason": "AssocGrpGRES",
+  "extra_allocated_nodes": 0,
+  "extra_allocated_DCU": 0,
+  "evidence": "results/bw1000/2026-11-12/training-extra40-original1103606-pending-GRES-association-limit.json",
+  "evidence_SHA256": "dfbeac8d5ce7082225fcc0b5eb0c2c63a65f5f8ef59a0c563ec4768c48a081b6",
+  "handoff": "handoff/bw1000-extra40-Slurm-association-quota-request.zh-CN.md"
 }
