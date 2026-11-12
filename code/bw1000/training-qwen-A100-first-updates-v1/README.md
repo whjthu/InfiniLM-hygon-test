@@ -1,0 +1,9 @@
+# Original eight-A100 Qwen native reference
+
+Run the exact original Qwen3-VL 8-card BF16 recipe, batch 1 per card, accumulation 4, length limit 4096, SDPA, gradient checkpointing enabled, rank16/alpha32/dropout0.05 LoRA, original AdamW/cosine/warmup ratio, original data and seeds, 25 real optimizer updates. Add only the shared native first-update observer before the original baseline callback; preserve full artifacts for eight micro-forwards and the first two real updates per rank. This is diagnostic training, not formal throughput, recovery, held-out effect or cross-platform acceptance. Raw artifacts stay on A100.
+
+The complete 340-file framework is assembled from the hash-verified immutable 314-file qualified parent plus declared committed deltas. The original full-model SHA receipt and exact file stat continuity qualify reuse of the four full hashes; all ten metadata files are freshly hashed. The complete original meta/Swift/PEFT manifest and original 64-row pre-model template identities are reused with original-file hashes. No closed CPU scope is rerun.
+
+The final native collator and serialized capture sizes are first observed in this actual original training. Existing unchanged per-file/per-rank capture limits reject overflow, without truncating input, logits, updates or optimizer states. Disk admission reserves at least 80GiB.
+
+One epoch starts before installation and propagates to the native workers: whole900/native820/supervisor-stop850, owned TERM/KILL10 each, supervisor hard890 and outer observation895. Exact owned PID/starttick/command descendants are cleaned. UUID/PCI identity, compute apps and the unique master port are checked before launching and after return. A separate root reader must still consume original ranks and independent post-state. No Hygon GPU or Slurm resource is changed by this scope.
