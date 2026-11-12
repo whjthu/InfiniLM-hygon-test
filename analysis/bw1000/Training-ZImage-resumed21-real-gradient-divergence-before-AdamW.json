@@ -1,0 +1,135 @@
+{
+  "result": "results/bw1000/2026-11-12/training-zimage-actual-resumed21-backward-history-divergence.json",
+  "result_SHA256": "e4367bb6ffd24e901d40fb5074ab51a71370d8ef03924c6e8d0a74ebbed1541e",
+  "conclusion": "Bothnativearmscompletedactualglobal21fromtheexactoriginalcheckpoint20. Initialtrainables/AdamW,capturedinput/RNG/noise/target,prediction/lossandclipnormmatch;1163frozenparameterhashesmatchcrossarm. Firstdifferenceispreclipgradient(444of476tensorleaves,maxabs1.9073486328125e-6),followedbyupdatedparameters(439of476,maxabs0.0001220703125). Thislocatesdivergenceintheactualbackwardboundaryassociatedwithonewarmuphistoryvariable;theparticularoperator/backendisUNKNOWN. OriginalGPUcomparatorrc1andCPUconsumerpost-metadatarc1remainFAIL;separatemetadataauditvalidatesthesavedCPUcomparisonwithoutrereadingtensors.",
+  "comparison": {
+    "passed": true,
+    "groups": [
+      {
+        "name": "initial.pt",
+        "tensor_leaves": 476,
+        "numpy_array_leaves": 0,
+        "mismatched_leaves": 0,
+        "max_abs": 0.0,
+        "tree_equal": true
+      },
+      {
+        "name": "initial_optimizer.pt",
+        "tensor_leaves": 1428,
+        "numpy_array_leaves": 0,
+        "mismatched_leaves": 0,
+        "max_abs": 0.0,
+        "tree_equal": true
+      },
+      {
+        "name": "input.pt",
+        "tensor_leaves": 2,
+        "numpy_array_leaves": 0,
+        "mismatched_leaves": 0,
+        "max_abs": 0.0,
+        "tree_equal": true
+      },
+      {
+        "name": "prepared.pt",
+        "tensor_leaves": 7,
+        "numpy_array_leaves": 0,
+        "mismatched_leaves": 0,
+        "max_abs": 0.0,
+        "tree_equal": true
+      },
+      {
+        "name": "target.pt",
+        "tensor_leaves": 1,
+        "numpy_array_leaves": 0,
+        "mismatched_leaves": 0,
+        "max_abs": 0.0,
+        "tree_equal": true
+      },
+      {
+        "name": "forward.pt",
+        "tensor_leaves": 2,
+        "numpy_array_leaves": 0,
+        "mismatched_leaves": 0,
+        "max_abs": 0.0,
+        "tree_equal": true
+      },
+      {
+        "name": "preclip.pt",
+        "tensor_leaves": 476,
+        "numpy_array_leaves": 0,
+        "mismatched_leaves": 444,
+        "max_abs": 1.9073486328125e-06,
+        "tree_equal": false
+      },
+      {
+        "name": "postclip.pt",
+        "tensor_leaves": 476,
+        "numpy_array_leaves": 0,
+        "mismatched_leaves": 444,
+        "max_abs": 1.9073486328125e-06,
+        "tree_equal": false
+      },
+      {
+        "name": "updated.pt",
+        "tensor_leaves": 476,
+        "numpy_array_leaves": 0,
+        "mismatched_leaves": 439,
+        "max_abs": 0.0001220703125,
+        "tree_equal": false
+      },
+      {
+        "name": "optimizer.pt",
+        "tensor_leaves": 1428,
+        "numpy_array_leaves": 0,
+        "mismatched_leaves": 884,
+        "max_abs": 4.76837158203125e-07,
+        "tree_equal": false
+      },
+      {
+        "name": "clip_norm.pt",
+        "tensor_leaves": 1,
+        "numpy_array_leaves": 0,
+        "mismatched_leaves": 0,
+        "max_abs": 0.0,
+        "tree_equal": true
+      },
+      {
+        "name": "optimizer_groups.pt",
+        "tensor_leaves": 0,
+        "numpy_array_leaves": 0,
+        "mismatched_leaves": 0,
+        "max_abs": 0.0,
+        "tree_equal": true
+      }
+    ],
+    "complete_checkpoint21": {
+      "tensor_leaves": 1910,
+      "numpy_array_leaves": 1,
+      "mismatched_leaves": 1325,
+      "max_abs": 0.0001220703125,
+      "tree_equal": false
+    },
+    "all_groups_equal": false,
+    "first_different_group": "preclip.pt",
+    "actual_global_step": 21,
+    "actual_optimizer_calls": 3,
+    "original_GPU_overall_passed": false,
+    "original_GPU_comparator_failure_preserved": true,
+    "new_GPU_runs": 0
+  },
+  "established": [
+    "Realnativeglobal21firstdivergenceispreclipgradient;lossandclipnormalonehidthegradientdifferences.",
+    "CPUandCUDAoptimizer-onlyfixtureswereexact,butactualnativebackwardchangeswithwarmuphistoryafterfullcheckpointrestore.",
+    "All1163frozenhashesandfullrecordedinput/parameter/noise/target/predictionmatch."
+  ],
+  "unknown": [
+    "Specificbackwardoperator/backendresponsible.",
+    "Whetheronebackendfixreproducesfullcontinuous25/freshresume5continuation.",
+    "Newplatformnumeric/performance/effectacceptance."
+  ],
+  "engineering_failures_preserved": [
+    "OriginalGPUrunrc1NumPycomparisonerror.",
+    "CPUconsumerthreechecksPASSandsavedcomparisonPASS,butouterrc1inpostcomparisonmetadata."
+  ],
+  "next": "CaptureactualattentiondispatchandCUDAbackwardkernelprofileforoneboundnativeglobal21;thenchooseonebackend/determinismcandidatebasedonobservedoperator. Do notattributeaFlash/SDPA/kernelcausetosourceavailabilityalone. Preserveallfailures,nooldmodel/reader/compare-replay. All17finalacceptancesstillunmet."
+}
