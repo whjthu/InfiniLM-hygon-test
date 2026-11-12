@@ -1,0 +1,20 @@
+from pathlib import Path
+import concurrent.futures,hashlib,json,subprocess,uuid
+B=Path(__file__).resolve().parent;D=B/'training-gemma-original-model-v1';G=Path('C:/Users/WangHaojie/Documents/ChatGPT/海光集群/InfiniLM-hygon-test');A=Path('C:/Users/WangHaojie/.codex/worktrees/b9ba/训练/nvidia_baseline');original=json.loads((D/'transfer-outcome.json').read_bytes());claim=original['claim'];request=original['request_id'];git=['git','-c','safe.directory='+G.as_posix(),'-C',str(G)];task=json.loads(subprocess.check_output(git+['show',claim+':coordination/tasks/training-gemma-original-model-v1.json']));raw=subprocess.check_output(git+['show',claim+':'+task['source']+'/MODEL_FILES.json']);assert hashlib.sha256(raw).hexdigest()==task['source_SHA256']['MODEL_FILES.json'];plan=json.loads(raw);binding=json.loads((G/task['source_model_binding']).read_bytes());source_headers={x['name']:x for x in binding['source_files'] if x['name'] in plan['weights']};rid=uuid.uuid4().hex;assert original['passed'] and original['source_rc']==original['destination_rc']==0;ns={'__file__':str(D/'reader-reuse.py')};pre=(B/'i03-deep-c4-history-staging-v1/read_source_once.py').read_text(encoding='utf8');exec(compile(pre.split('REMOTE=',1)[0],'ordinary_cluster_ssh','exec'),ns);common=('CLAIM='+repr(claim)+'\nREQUEST='+repr(request)+'\nEPOCH='+repr(original['epoch'])+'\nDEADLINE='+repr(original['deadline'])+'\nPLAN='+repr(plan)+'\n').encode()
+with (D/'root-reader-original-intent.json').open('x') as f:json.dump(dict(reader_request_id=rid,original_claim=claim,original_request_id=request,expected_model_bytes=8639630561,expected_files=16,exec_request_attempted=True,replay_allowed=False,GPU_cards=0),f,indent=2)
+source_ssh=['ssh','-T','-o','BatchMode=yes','-o','ConnectTimeout=12','-F',str(A/'ssh_config'),'a100-26','python3 -B -u -'];target_payload=common+('EXPECTED_RECEIVER='+repr(original['receiver_result'])+'\nSOURCE_HEADERS='+repr(source_headers)+'\nREADER_REQUEST='+repr(rid)+'\n').encode()+(D/'read_original_target16.py').read_bytes();jobs=[('source',source_ssh,common+(D/'read_original_source_terminal.py').read_bytes(),45),('target',ns['ssh'],target_payload,630)]
+def run(job):
+ name,ssh,payload,budget=job
+ try:r=subprocess.run(ssh,input=payload,capture_output=True,timeout=budget)
+ except subprocess.TimeoutExpired as e:
+  for suffix,raw in [('stdout.private.json',e.stdout or b''),('stderr.private.txt',e.stderr or b'')]:
+   with (D/('root-reader-'+name+'.'+suffix)).open('xb') as f:f.write(raw)
+  with (D/('root-reader-'+name+'-timeout.json')).open('x') as f:json.dump(dict(reader_request_id=rid,original_request_id=request,observation_timeout=True,reader_outcome='UNKNOWN',replay_allowed=False),f,indent=2)
+  raise RuntimeError(name+' readonly observation timeout;reconcile original reader') from None
+ for suffix,raw in [('stdout.private.json',r.stdout),('stderr.private.txt',r.stderr)]:
+  with (D/('root-reader-'+name+'.'+suffix)).open('xb') as f:f.write(raw)
+ assert r.returncode==0,(name,'reader failed',r.returncode);rows=[json.loads(line) for line in r.stdout.splitlines() if line.startswith(b'{')];values=[v for v in rows if v.get('source_terminal_verified') or v.get('target_independent_files_verified')];assert len(values)==1;return name,values[0]
+with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:results=dict(pool.map(run,jobs))
+assert results['target']['original_outcome']==original['receiver_result'] and results['source']['original_outcome']['files']==plan['weights'];value=dict(evidence_verified=True,original_transport=original,source=results['source'],target=results['target'],Model_GO=False)
+with (D/'independent-original-terminal-and-model16.json').open('x') as f:json.dump(value,f,indent=2)
+print(json.dumps(dict(evidence_verified=True,files=16,total_bytes=8639630561,source_rc=0,destination_rc=0,target_parameter_count=results['target']['total_parameter_count'],target_tensor_count=883,target_full_SHA_verified=True,model_files_READY=True,model_loaded=False,Model_GO=False)))
