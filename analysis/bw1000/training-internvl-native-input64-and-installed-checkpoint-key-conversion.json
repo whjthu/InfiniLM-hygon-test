@@ -1,0 +1,182 @@
+{
+  "case": "T03.sft",
+  "conclusion": "Original64 native HF pre-model inputs and complete841 checkpoint header/key/shape/dtype correspondence pass. Actual values,loading and training remain unqualified.",
+  "implementation": {
+    "common_framework_commit": "0ac3a6948d2d505e4a42535b3b30d8f223af4c49",
+    "new_files": [
+      "vlm/runtime/native_checkpoint_schema.py",
+      "vlm/tests/test_native_checkpoint_schema.py"
+    ],
+    "rules": "Actual installed get_model_conversion_mapping and core_model_loading.rename_source_key; ordered top-level plus scoped InternVLModel conversion. No handwritten runtime rename or bypass of Native model.",
+    "exact_actual_provider_files": {
+      "conversion_mapping.py": {
+        "path": "/home/whj/nvidia-baseline/env/lib/python3.12/site-packages/transformers/conversion_mapping.py",
+        "bytes": 84705,
+        "SHA256": "f061182c90771d52014807801cc36bfa0bea1f19e0bbb5bbfc389d50b7a36226"
+      },
+      "core_model_loading.py": {
+        "path": "/home/whj/nvidia-baseline/env/lib/python3.12/site-packages/transformers/core_model_loading.py",
+        "bytes": 71476,
+        "SHA256": "039b2070561997b4aa7bde0f08294b09a555dc23340fcc41d34fd4b9f3e937d7"
+      }
+    },
+    "transforms": [
+      {
+        "type": "WeightRenaming",
+        "source": [
+          "^language_model.lm_head"
+        ],
+        "target": [
+          "lm_head"
+        ],
+        "scope": null,
+        "base": null
+      },
+      {
+        "type": "WeightRenaming",
+        "source": [
+          "^language_model"
+        ],
+        "target": [
+          "model.language_model"
+        ],
+        "scope": null,
+        "base": null
+      },
+      {
+        "type": "WeightRenaming",
+        "source": [
+          "^vision_tower"
+        ],
+        "target": [
+          "model.vision_tower"
+        ],
+        "scope": null,
+        "base": null
+      },
+      {
+        "type": "WeightRenaming",
+        "source": [
+          "^multi_modal_projector"
+        ],
+        "target": [
+          "model.multi_modal_projector"
+        ],
+        "scope": null,
+        "base": null
+      },
+      {
+        "type": "WeightRenaming",
+        "source": [
+          "^language_model.model"
+        ],
+        "target": [
+          "language_model"
+        ],
+        "scope": "model",
+        "base": "model"
+      },
+      {
+        "type": "WeightRenaming",
+        "source": [
+          "LayerNorm.gamma"
+        ],
+        "target": [
+          "LayerNorm.weight"
+        ],
+        "scope": null,
+        "base": null
+      },
+      {
+        "type": "WeightRenaming",
+        "source": [
+          "LayerNorm.beta"
+        ],
+        "target": [
+          "LayerNorm.bias"
+        ],
+        "scope": null,
+        "base": null
+      },
+      {
+        "type": "WeightRenaming",
+        "source": [
+          ".weight_g$"
+        ],
+        "target": [
+          ".parametrizations.weight.original0"
+        ],
+        "scope": null,
+        "base": null
+      },
+      {
+        "type": "WeightRenaming",
+        "source": [
+          ".weight_v$"
+        ],
+        "target": [
+          ".parametrizations.weight.original1"
+        ],
+        "scope": null,
+        "base": null
+      }
+    ]
+  },
+  "input_evidence": {
+    "rows": 64,
+    "encoded_fields": 192,
+    "sequence_length_min": 283,
+    "sequence_length_max": 3363,
+    "native_template": "internvl_hf",
+    "explicit_template_in_original": false
+  },
+  "checkpoint_evidence": {
+    "shards": 4,
+    "keys": 841,
+    "renamed": 841,
+    "key_groups": {
+      "language_model": 399,
+      "multi_modal_projector": 6,
+      "vision_tower": 436
+    },
+    "tensor_bytes": 17056636928,
+    "actual_header_bytes_read": 107128,
+    "actual_payload_bytes_read": 0,
+    "full_file_SHA256_qualified": false
+  },
+  "actual_cost": {
+    "inside_seconds": 12.776497692801058,
+    "whole_seconds": 13.796139175072312,
+    "peak_process_RSS_bytes": 1121042432,
+    "peak_sampled_group_RSS_bytes": 1076932608,
+    "GPU_cards": 0
+  },
+  "checks": {
+    "new_local_header_unittest_cases": 3,
+    "new_header_corruption_rejection_subcases": 11,
+    "root_suite_exit": 0,
+    "worktree_policy_exit": 0,
+    "index_policy_exit": 0,
+    "history_policy_exit": 0,
+    "independent_actual_terminal_reader_exit": 0,
+    "original_owner_absent": true,
+    "original_supervisor_absent": true,
+    "owned_group_empty": true
+  },
+  "provenance_boundary": "First source-only reads used global Python; exact env-vlm copies were then independently read and pinned. Their three file hashes match. Actual imported provider resolves through env-vlm symlink to env and is verified by bytes/hash; no global environment runtime qualification implied.",
+  "limits": [
+    "4 exact runtime files installed; not all347 files executed.",
+    "Inputs are before model-dependent final collator; not actual distributed first forward.",
+    "Header-only mapping does not establish full-file SHA, actual weight values, initial LoRA values or from_pretrained loading.",
+    "No forward/backward, optimizer update,numerics,25steps,fresh-process resume,performance or heldout quality.",
+    "Original unknown Qwen target request is untouched."
+  ],
+  "next": "Independently pin original InternVL full checkpoint values, then freeze first real-update input/capture budget and initialized trainables before original8A100 diagnostic and target comparison.",
+  "input_reference": "coordination/training/internvl-native-template-inputs-reference-v1.json",
+  "schema_reference": "coordination/training/internvl-original-native-checkpoint-schema-v1.json",
+  "result": "results/bw1000/2026-11-12/training-internvl-original64-native-HF-inputs-and841-checkpoint-schema-independent.json",
+  "GPU_GO": false,
+  "Model_GO": false,
+  "completed_performance_rounds_added": 0,
+  "all17_final_accepted": 0
+}
