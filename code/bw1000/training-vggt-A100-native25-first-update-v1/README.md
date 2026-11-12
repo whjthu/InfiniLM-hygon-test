@@ -1,0 +1,9 @@
+# Original A100 VGGT first-update diagnostic
+
+One process on physical GPU0; original CO3D224/two frames/online frozen aggregator, full69tensor FP32 camera-head AdamW. The shared321source framework and exact upstream/weight/input/provider bindings reuse the closed CPU qualifications. Original5warm+20measured updates and checkpoints10/20/25 stay unchanged. TF32 remains disabled. The optional observer records actual initial parameters, realized batch and RNG, target, four pose predictions/loss, gradients before/after original clipping, real updated parameters and first AdamW state.351 tensor-wise PT files remain private on the A100;12GiB capture cap,256MiB per artifact. No raw export.
+
+This is a diagnostic, not a formal throughput run. Serialization/synchronization costs remain included in native/enclosing timers. No profiler or optimizer/math changes. Source/meta CPU tests are not replayed.
+
+The qualified Gemma deadline and owned-process helpers are reused. Only the exact native command recognizer changes to this VGGT entry. One receive epoch sets900s whole,820s native,850s supervisor stop,10s TERM/KILL grace. Admission verifies actual8GPU PCI/UUID inventory and idle selectedGPU0, full321source modes/SHA,69upstream sources, original CPU result/binding/provider versions, original5GBweight size/companion and40GiB free disk. Native identity recomputes the original whole weight/data/aggregator/provider identities before capture. Other GPUs are not allocated or killed. Namespace and local intent are exclusive. Unknown outcomes must reconcile exact original intent/PID/startticks; never replay.
+
+Independent completion must audit original outcome, native result and capture files/checkpoints after child termination and fresh selected-GPU post. A CPU structural binding does not qualify production initial values. Do not reuse this CUDA provider binding as HIP evidence. Fresh-process recovery and all formal performance/effect gates remain pending.
