@@ -3,8 +3,8 @@ from pathlib import Path
 import base64,hashlib,json,subprocess,uuid
 D=Path(__file__).resolve().parent
 G=Path('C:/Users/WangHaojie/Documents/ChatGPT/海光集群/InfiniLM-hygon-test')
-claim=json.loads((D/'source-publication-receipt.json').read_bytes())['commit']
-pre=json.loads((D/'preflight-result.json').read_bytes());assert pre['claim']==claim and pre['transport_rc']==0 and pre['value']['passed']
+claim=json.loads((D/'source-publication-v2-receipt.json').read_bytes())['commit']
+pre=json.loads((D/'preflight-v2-result.json').read_bytes());assert pre['claim']==claim and pre['transport_rc']==0 and pre['value']['passed']
 git=['git','-c','safe.directory='+G.as_posix(),'-C',str(G)]
 def blob(name):return subprocess.check_output(git+['show',claim+':'+name])
 task=json.loads(blob('coordination/tasks/training-llava-A100-native-contract-CPU-v1.json'))
