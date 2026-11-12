@@ -1,0 +1,113 @@
+{
+  "cases": [
+    {
+      "shape": [
+        1,
+        32,
+        30,
+        128
+      ],
+      "stride": [
+        122880,
+        3840,
+        128,
+        1
+      ],
+      "input_SHA256": [
+        "49449fdc8a5d809d4b8687cecea6f9d38369add6c7fd16535cf8f4ca45615c3a",
+        "ee78d8bc03063ebf9f9d1de328dc4e211d397465541690cf06c63ce7e1b8d6ad",
+        "f07797d9f2c33c4045f29df21cd10fd956405f6075c65ead8a3c266782f3e1ab",
+        "7e73d2d1b398c5e1d22775f09cf59c792f1916a572cb61f6a41289dc02ceb0e8"
+      ]
+    },
+    {
+      "shape": [
+        1,
+        256,
+        30,
+        128
+      ],
+      "stride": [
+        983040,
+        3840,
+        128,
+        1
+      ],
+      "input_SHA256": [
+        "81c52b4498160b9e6bd755043e66d1df322868752db220ceff5d23e8fe84809d",
+        "6d1bef3cf3f4d1bdccc538e5b071a3f7ec25da65b21296845068e5464d73bdfa",
+        "4d826d015297cb815cdeece623a50d7e53b402a14eb8b3c0add30c6aa5873ec5",
+        "798f5b93cd5774101d2119ecb579c87d451c6f6513bb9ba6e9f5ce695ae6c8a5"
+      ]
+    },
+    {
+      "shape": [
+        1,
+        288,
+        30,
+        128
+      ],
+      "stride": [
+        1105920,
+        3840,
+        128,
+        1
+      ],
+      "input_SHA256": [
+        "85a9515fbe96b189ce0f44fdb844b1190798c86269d9ed7a93d236cd7c674139",
+        "c332eb6074c2a7890658a152b84016453bf783a3463695aeee54a945326122d1",
+        "da734efc2342a60f40f1cb65cae90cabdc614e7e9c3ce23ab2b1dba291239843",
+        "5b837819b0b250927070ed6424d38fdd1f3aa6154c99778263f9b4b4fd5266c7"
+      ]
+    }
+  ],
+  "expected_HIP": "6.3.26113",
+  "expected_Torch": "2.10.0+das.opt1.dtk2604.2606161421.g91a580",
+  "expected_flash_version": "2.8.3+das.opt1.dtk2604.torch2100.2606192019.gca46e7",
+  "reference_max_abs": 1e-12,
+  "reference_relative_l2": 1e-12,
+  "extension_module": "flash_attn_2_cuda",
+  "binary_hash_limit_bytes": 2147483648,
+  "source_providers": {
+    "initializer": {
+      "bytes": 2066,
+      "SHA256": "dcc98be92799500ad9c5655c33919fff7187810616a4828a46d186ad6c9ebfe7"
+    },
+    "interfaces": {
+      "flash_attn_interface.py": {
+        "bytes": 163088,
+        "SHA256": "0485a88280a8522a226125dcfdc120fd1057121bc10047c4fd5286f1ea625b9b",
+        "definitions": [
+          {
+            "name": "FlashAttnFunc",
+            "line": 940,
+            "end_line": 1016
+          },
+          {
+            "name": "flash_attn_func",
+            "line": 1470,
+            "end_line": 1554
+          }
+        ]
+      },
+      "flash_attn_triton_interface.py": {
+        "bytes": 5062,
+        "SHA256": "c0c839df4796c1403803004eec72d151c2826ef63eb5f4c1311bf500477719a5",
+        "definitions": [
+          {
+            "name": "flash_attn_func",
+            "line": 29,
+            "end_line": 37
+          }
+        ]
+      }
+    }
+  },
+  "source_proof": {
+    "root_exports_condition": "torch.cuda.is_available()",
+    "CPUmasked_missing_export_explained": true,
+    "deterministic_flag_present_in_actual_interface": true,
+    "device_function_never_called": true
+  },
+  "original_A100_reference": "results/bw1000/2026-11-12/training-zimage-explicit-Flash2-deterministic-native-recovery-candidate.json"
+}
