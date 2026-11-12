@@ -1,0 +1,135 @@
+{
+  "case": "T03.sft",
+  "conclusion": "Actual original64 native HF collator and installed Swift logit-selection methods pass. Complete sequences283..3363 remain intact; only native supervised-loss logits select11..21rows. Conservative full record upper3,933,355,752B/rank fits unchanged8GiB limit.",
+  "implementation": {
+    "framework_commit": "b715b6b52f28b24738b41388ca3d68a0e15e301f",
+    "full_framework_files": 349,
+    "actual_runtime_subset": 4,
+    "changed_files": [
+      "vlm/runtime/native_caller_budget.py",
+      "tests/test_native_caller_budget.py",
+      "vlm/plugins/native_first_updates.py"
+    ],
+    "original_recipe_unchanged": true,
+    "original_template_implicit": true,
+    "native_loss_logit_policy": true,
+    "callback_condition_guard": "Check actual InternVL width4096/vocabulary151936,languagecacheOFF and no output hidden-state stacks or attention maps before any recorder forward. No training math or input transformation replacement."
+  },
+  "actual_CPU_evidence": {
+    "rows": 64,
+    "full_sequence_range": [
+      283,
+      3363
+    ],
+    "selected_logit_rows_range": [
+      11,
+      21
+    ],
+    "providers": {
+      "collator": {
+        "module": "swift.template.base",
+        "name": "Template.data_collator",
+        "path": "/home/whj/nvidia-baseline/env/lib/python3.12/site-packages/swift/template/base.py",
+        "bytes": 107643,
+        "SHA256": "cc1629c8a84b764b530895692e4e04322aa6732281be229efce9e98752e113cc",
+        "method_source_SHA256": "7d580c3bfb2f93ddb0858d674c850cba386f76306b5f78b0ea495c5505f80d30"
+      },
+      "base_collator": {
+        "module": "swift.template.base",
+        "name": "Template._data_collator",
+        "path": "/home/whj/nvidia-baseline/env/lib/python3.12/site-packages/swift/template/base.py",
+        "bytes": 107643,
+        "SHA256": "cc1629c8a84b764b530895692e4e04322aa6732281be229efce9e98752e113cc",
+        "method_source_SHA256": "6d3ce2374f435b19937fadef195f9c4853264dd8cc160f5389103979c764b9f4"
+      },
+      "logit_policy": {
+        "module": "swift.trainers.mixin",
+        "name": "SwiftMixin.get_use_logits_to_keep",
+        "path": "/home/whj/nvidia-baseline/env/lib/python3.12/site-packages/swift/trainers/mixin.py",
+        "bytes": 64818,
+        "SHA256": "6b6de2e7503ce414cb837961e1355be41a56787ecca502e8570bfcfa36c15ab9",
+        "method_source_SHA256": "18e92ee882f3774d1aed7c19ed911c1bd6f7c66df509bb2c380e0853a4e91da8"
+      },
+      "logit_selection": {
+        "module": "swift.trainers.mixin",
+        "name": "SwiftMixin.prepare_logits_to_keep",
+        "path": "/home/whj/nvidia-baseline/env/lib/python3.12/site-packages/swift/trainers/mixin.py",
+        "bytes": 64818,
+        "SHA256": "6b6de2e7503ce414cb837961e1355be41a56787ecca502e8570bfcfa36c15ab9",
+        "method_source_SHA256": "734ae69d8a717d969714721fb6634aa046d93101360d3461b635b9318bc22486"
+      },
+      "native_prepare_inputs": {
+        "module": "swift.trainers.seq2seq_trainer",
+        "name": "Seq2SeqTrainer._prepare_inputs",
+        "path": "/home/whj/nvidia-baseline/env/lib/python3.12/site-packages/swift/trainers/seq2seq_trainer.py",
+        "bytes": 12688,
+        "SHA256": "28fe9cb927390ad423add8b98411a90fb2d1c801ead124b354802bdd0779ecf6",
+        "method_source_SHA256": "1a14cf8c57430c65ac7f8cd28c566551d2fee58bd6543f206d39dd1e066f6661"
+      },
+      "post_encode": {
+        "module": "swift.template.templates.internvl",
+        "name": "InternvlhfTemplate._post_encode",
+        "path": "/home/whj/nvidia-baseline/env/lib/python3.12/site-packages/swift/template/templates/internvl.py",
+        "bytes": 17078,
+        "SHA256": "6795d6f8bc646bd791dc8669a252efe64a8d546ae65768f552a0f29be2deb803",
+        "method_source_SHA256": "c2b4eb0ee7fc427f292df61ee783c8a048d66c51e3290c25c1161d2d42a19906"
+      }
+    },
+    "actual_collated_Torch_serialization_counted": true,
+    "raw_encoded_values_saved": false,
+    "original_encoded_fields_exact": true,
+    "non_label_collated_fields_unchanged": true
+  },
+  "capture_budget": {
+    "rows": 64,
+    "parameter_tensors": 504,
+    "parameter_elements": 43646976,
+    "parameter_bytes": 174587904,
+    "full_parameter_and_AdamW_payload_bytes": 2618818560,
+    "max_input_payload_upper_bytes": 70814169,
+    "max_output_payload_upper_bytes": 67288580,
+    "metadata_RNG_scalar_reserve_per_file": 8388608,
+    "planned_files_per_rank": 25,
+    "planned_micro_forwards_per_rank": 8,
+    "planned_optimizer_updates": 2,
+    "maximum_artifact_upper_bytes": 532152320,
+    "per_artifact_limit": 2147483647,
+    "per_rank_total_upper_bytes": 3933355752,
+    "per_rank_total_limit": 8589934592,
+    "analytical_sufficiency": true,
+    "actual_GPU_serialized_artifact_bytes_qualified": false,
+    "input_truncation_allowed": false,
+    "output_truncation_allowed": false
+  },
+  "actual_cost": {
+    "inside_seconds": 15.443664386868477,
+    "whole_seconds": 16.64153662044555,
+    "peak_process_RSS_bytes": 1248817152,
+    "peak_sampled_group_RSS_bytes": 1186234368,
+    "GPU_cards": 0
+  },
+  "checks": {
+    "root_unittest_cases": 69,
+    "worktree_policy_exit": 0,
+    "index_policy_exit": 0,
+    "history_policy_exit": 0,
+    "new_budget_fixture_cases": 4,
+    "actual_original_CPU_exit": 0,
+    "independent_terminal_reader_exit": 0,
+    "original_owned_group_empty": true
+  },
+  "limits": [
+    "CPU invoked actual native collator and Swift methods with a bare complete meta HF model; full Trainer and image embedding post-encode forward were not run.",
+    "No checkpoint value read or initialized LoRA values. Actual model load,forward/backward and optimizer updates remain unqualified.",
+    "The3.93GB/rank bound is analytical with explicit conditions and8MiB/file reserve; actualGPU artifact sizes are not yet qualified. Recorder still rejects rather than truncates any overrun.",
+    "Only4runtime files installed,not full349 executed. No training/recovery/performance/effects acceptance."
+  ],
+  "next": "Freeze the full349file original8A100 native25 first-two-update package using this new binding and exact17model files. Fresh uniqueUUID/PCI/apps/port/disk admission and single-epoch owned-process cleanup precede the unique launch. Preserve original native25 input/recipe and full artifacts; no old CPU/hash/native run replay.",
+  "source": "code/bw1000/training-internvl-native-caller-CPU-v1",
+  "result": "results/bw1000/2026-11-12/training-internvl-original64-native-collator-logit-selection-and-full-capture-budget.json",
+  "caller_reference": "coordination/training/internvl-native-caller-and-capture-budget-v1.json",
+  "first_updates_binding": "coordination/training/internvl-native-first-updates-binding-v1.json",
+  "GPU_GO": false,
+  "Model_GO": false,
+  "all17_final_accepted": 0
+}
