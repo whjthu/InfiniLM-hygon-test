@@ -1,0 +1,3 @@
+# Original A100 selected backward operand provenance
+
+One original-realized-input sourceCUDA update,not a new performance baseline. Shared replay/comparator have explicit platform selection; mathematical bodies and original5% update gate are unchanged.14 realCPU tests precede freshGPU4 UUID/PCI/idle admission. One900s epoch bounds all source CPU/GPU/comparison and owned-process cleanup. Input,model,observed snapshots and selected raw operands remain on A100. Only hashes and bounded scalar summaries are published. No Hygon replay,raw operand transfer,25step run,performance or effect promotion. Unknown transport is reconciled through original intent/owner/outcome and never replayed.

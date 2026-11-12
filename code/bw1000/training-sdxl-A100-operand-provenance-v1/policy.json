@@ -1,0 +1,49 @@
+{
+  "schema": "baseline-equivalence-policy-v1",
+  "contract_id": "a100-alignment-v1",
+  "stage_id": "sdxl-sft",
+  "created_utc": "2026-10-11T11:06:18.162115+00:00",
+  "reference_payload_sha256": "c59a71095924edfdfb9ad7041b8ef32f747e7825557a313f72ad09a3b0b53036",
+  "purpose": "Reproduce actual frozen A100 first optimizer update. Practical engineering equivalence, not FP32 accuracy or task-quality acceptance.",
+  "metrics": {
+    "loss_relative_error_max": 0.01,
+    "prediction_relative_l2_max": 0.02,
+    "gradient_preclip_relative_l2_max": 0.05,
+    "gradient_preclip_cosine_min": 0.995,
+    "gradient_preclip_norm_relative_error_max": 0.02,
+    "gradient_postclip_relative_l2_max": 0.05,
+    "parameter_update_relative_l2_max": 0.05,
+    "optimizer_moment_relative_l2_max": 0.05,
+    "all_floating_tensors_finite": true,
+    "nonzero_total_gradient_and_update": true
+  },
+  "reference_scope": "Unchanged patched CUDA trainer and native recipe first optimizer update. Includes posterior mean/logvar/std, exact epsilon and unscaled latent, CUDA RNG before/after; captures actual dataset pixel/tokens/crop, VAE latent, noise/timestep, prompt/pooled embeddings/time_ids, target, prediction/loss, initial LoRA and optimizer, named pre/postclip gradients and update. Traced runtime not performance; no cross-platform numeric acceptance.",
+  "pre_result_status": "Awaiting platform confirmation that no paired device outputs exist before this policy timestamp. No result-dependent tuning.",
+  "optimizer_state_tensor_keys": [
+    "exp_avg",
+    "exp_avg_sq"
+  ],
+  "required_exact": [
+    "initial trainable named tensors and initial optimizer tree",
+    "realized inputs/target/masks and input dtype",
+    "canonical parameter names/shapes/order and optimizer groups",
+    "discrete output coordinates where applicable",
+    "all non-floating optimizer state and update counters"
+  ],
+  "additional_required": [
+    "finite floating tensors",
+    "nonzero total gradient and total update",
+    "all required scalar and aggregate metrics pass",
+    "per-tensor errors and worst names reported for review"
+  ],
+  "numerical_only": "No acceptance of 25-step trajectory, complete version, recovery, performance or task quality. Original runtime including VAE/prompt encode remains the performance boundary.",
+  "posterior_additional_metrics": {
+    "mean_relative_l2_max": 0.02,
+    "logvar_relative_l2_max": 0.02,
+    "std_relative_l2_max": 0.02,
+    "unscaled_latent_relative_l2_max": 0.02,
+    "exact_saved_epsilon_required": true,
+    "reconstruction_required": true
+  },
+  "unet_boundary_only_allowed_but_not_end_to_end": true
+}
