@@ -1,0 +1,51 @@
+{
+  "problem": "The original eight-A100 run failed at observer on_train_begin because Swift had legitimately cleared the mutable Trainer gradient_checkpointing flag after enabling actual model checkpointing.",
+  "fix": "Keep the original ON recipe; qualify actual unchanged Swift provider and require all36 language flags ON, vision flags OFF and language cache OFF before accepting lowered Trainer flag False.",
+  "evidence": "results/bw1000/2026-11-12/training-qwen-original-Swift-checkpointing-lifecycle-CPU-qualified.json",
+  "original_failure_preserved": "coordination/tasks/training-qwen-A100-first-updates-v1.json",
+  "actual_old_failure_reproduced": "native Trainer argument differs: gradient_checkpointing",
+  "actual_new_validator_pass": true,
+  "actual_bad_boundaries": 12,
+  "shared_stdlib_tests": 13,
+  "full_Trainer_constructed": false,
+  "meta_model_only": true,
+  "weight_values_read": false,
+  "training_forward_backward": false,
+  "GPU_cards": 0,
+  "CPU_wall_seconds": 7.027823527343571,
+  "whole_wall_seconds": 8.255162327550352,
+  "peak_RSS_bytes": 971931648,
+  "actual_lifecycle": {
+    "original_requested": true,
+    "native_Trainer_flag": false,
+    "language_checkpointing": true,
+    "language_checkpointed_layers": 36,
+    "language_use_cache": false,
+    "vision_checkpointing": false,
+    "vision_checkpointing_flags": 28,
+    "provider": {
+      "module": "swift.trainers.mixin",
+      "qualname": "SwiftMixin._prepare_gradient_checkpointing",
+      "source_file_bytes": 64818,
+      "source_file_SHA256": "6b6de2e7503ce414cb837961e1355be41a56787ecca502e8570bfcfa36c15ab9",
+      "method_source_SHA256": "cc5effb6461c8437f711eede6044a3984e705915d883a99bdea2721e8914fa5a"
+    }
+  },
+  "independent_complete_manifest": true,
+  "installed_package_files": 17,
+  "actual_runtime_sources": 36,
+  "local_framework_commit": "e306d8e2e8f8d2bfd21421f1943e6102c673d02e",
+  "local_framework_files": 342,
+  "local_root_unittests": 65,
+  "local_targeted_unittests": 13,
+  "history_commits_checked": 157,
+  "history_source_revisions_checked": 665,
+  "acceptance": {
+    "first_step_numerics": false,
+    "native25": false,
+    "resume": false,
+    "formal_three_round_performance": false,
+    "heldout_effects": false,
+    "final_training_cases_accepted": 0
+  }
+}
