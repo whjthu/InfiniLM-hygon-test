@@ -1,0 +1,530 @@
+{
+  "result": "results/bw1000/2026-11-12/training-zimage-actual-native-backward-profile-and-Flash2-dispatch.json",
+  "result_SHA256": "8fe76fa9f08ab693adf1c70780bdd42d75520a01af5e8c6da7712bfb351a126d",
+  "conclusion": "Actualgrad-requiringDiTattentionusesFlashAttention2forB1H30D128sequence32/256/288;34actualFlash2backwardcallslinktoseqk_parallelkernels. OtherobservedTorchSDPAQKVrequirenograd. NativewrapperomitsdeterministicandactualFlash2.7.4defaultisFalse. Thisselectsonebackward-determinismcandidatebutdoesnotprovethecauseorfix.",
+  "candidate": {
+    "id": "zimage-flash2-deterministic-backward",
+    "hypothesis": "ActualtrainingbranchusesFlashAttention2defaultdeterministicFalse;itsbackwardhistorydependencymaycausepreclipgradientdrift. Hypothesisnotyetproven.",
+    "single_variable": "ExplicitFlashAttention2deterministic=Trueforactualgrad-enablednativeattentiononly;preserveforward/backend/dtype/shape/seed/model/data/optimizer.",
+    "actual_provider_version": "2.7.4.post1",
+    "provider_SHA256": "d8eaf989a5401fedd23d11a336a7f38e67596d0a4d5a279df14cbe2d7de2ed75",
+    "provider_signature": "(q, k, v, dropout_p=0.0, softmax_scale=None, causal=False, window_size=(-1, -1), softcap=0.0, alibi_slopes=None, deterministic=False, return_attn_probs=False)",
+    "actual_shapes": [
+      {
+        "route": "native.attention.flash_attention_2",
+        "q": {
+          "shape": [
+            1,
+            256,
+            30,
+            128
+          ],
+          "stride": [
+            983040,
+            3840,
+            128,
+            1
+          ],
+          "dtype": "torch.bfloat16",
+          "device": "cuda:0",
+          "requires_grad": true
+        },
+        "k": {
+          "shape": [
+            1,
+            256,
+            30,
+            128
+          ],
+          "stride": [
+            983040,
+            3840,
+            128,
+            1
+          ],
+          "dtype": "torch.bfloat16",
+          "device": "cuda:0",
+          "requires_grad": true
+        },
+        "v": {
+          "shape": [
+            1,
+            256,
+            30,
+            128
+          ],
+          "stride": [
+            983040,
+            3840,
+            128,
+            1
+          ],
+          "dtype": "torch.bfloat16",
+          "device": "cuda:0",
+          "requires_grad": true
+        },
+        "grad_enabled": true,
+        "mask": null,
+        "scale": null,
+        "is_causal": false,
+        "calls": 4
+      },
+      {
+        "route": "native.attention.flash_attention_2",
+        "q": {
+          "shape": [
+            1,
+            288,
+            30,
+            128
+          ],
+          "stride": [
+            1105920,
+            3840,
+            128,
+            1
+          ],
+          "dtype": "torch.bfloat16",
+          "device": "cuda:0",
+          "requires_grad": true
+        },
+        "k": {
+          "shape": [
+            1,
+            288,
+            30,
+            128
+          ],
+          "stride": [
+            1105920,
+            3840,
+            128,
+            1
+          ],
+          "dtype": "torch.bfloat16",
+          "device": "cuda:0",
+          "requires_grad": true
+        },
+        "v": {
+          "shape": [
+            1,
+            288,
+            30,
+            128
+          ],
+          "stride": [
+            1105920,
+            3840,
+            128,
+            1
+          ],
+          "dtype": "torch.bfloat16",
+          "device": "cuda:0",
+          "requires_grad": true
+        },
+        "grad_enabled": true,
+        "mask": null,
+        "scale": null,
+        "is_causal": false,
+        "calls": 60
+      },
+      {
+        "route": "native.attention.flash_attention_2",
+        "q": {
+          "shape": [
+            1,
+            32,
+            30,
+            128
+          ],
+          "stride": [
+            122880,
+            3840,
+            128,
+            1
+          ],
+          "dtype": "torch.bfloat16",
+          "device": "cuda:0",
+          "requires_grad": true
+        },
+        "k": {
+          "shape": [
+            1,
+            32,
+            30,
+            128
+          ],
+          "stride": [
+            122880,
+            3840,
+            128,
+            1
+          ],
+          "dtype": "torch.bfloat16",
+          "device": "cuda:0",
+          "requires_grad": true
+        },
+        "v": {
+          "shape": [
+            1,
+            32,
+            30,
+            128
+          ],
+          "stride": [
+            122880,
+            3840,
+            128,
+            1
+          ],
+          "dtype": "torch.bfloat16",
+          "device": "cuda:0",
+          "requires_grad": true
+        },
+        "grad_enabled": true,
+        "mask": null,
+        "scale": null,
+        "is_causal": false,
+        "calls": 4
+      }
+    ],
+    "required_checks": [
+      "Freezeexplicitpolicyidentityandcheckpointbehavior;diagnosticbaseline20restorecanonlybederivedscope,candidatecheckpointsnoteligiblewithoutsamepolicy.",
+      "ExactobservedSDKshapes/strides/BF16/causalFalse/dropout0;qualifyactualAPIandworkspace/numericswithoutcallingfixtureamodelresult.",
+      "Newsource-publishedactualcold/warm-restored21pairwithfull476gradient/update/optimizercapturesandall1163frozenhashes;notprofiler/replayoldarms.",
+      "Onlyaftercausalpairpasses,fullnative25andfreshresume5withconsistentpolicyandoriginalthreshold;thencrossplatformnumerics/performance/effect."
+    ],
+    "expected_cost": "ExtraFA2backwardworkspace/runtimeUNKNOWNuntilmeasured. Observed34backwardopslinkeddeviceintervalsum2.215935msisnotamodelspeedforecast.",
+    "max_candidates": 1,
+    "source_prepared": false,
+    "actual_GPU_runs": 0,
+    "Model_GO": false
+  },
+  "cost_limits": "FlatCUDA-deviceeventsincludedeviceannotationranges(e.g.native.forward,Optimizer.step)andcopies;thetoplistisNOTapur physicalkernellist. PhysicalFlash2backwardkernelnamesareindependentlyvalidatedthroughCPUoperator.kernel_links. Inclusivephases/devicetimesoverlap;notexclusiveGPUbusy,FLOPsorformalperformance.",
+  "real_shape_stride_routes": [
+    {
+      "route": "torch.functional.sdpa",
+      "q": {
+        "shape": [
+          1,
+          1,
+          1024,
+          512
+        ],
+        "stride": [
+          524288,
+          512,
+          512,
+          1
+        ],
+        "dtype": "torch.bfloat16",
+        "device": "cuda:0",
+        "requires_grad": false
+      },
+      "k": {
+        "shape": [
+          1,
+          1,
+          1024,
+          512
+        ],
+        "stride": [
+          524288,
+          512,
+          512,
+          1
+        ],
+        "dtype": "torch.bfloat16",
+        "device": "cuda:0",
+        "requires_grad": false
+      },
+      "v": {
+        "shape": [
+          1,
+          1,
+          1024,
+          512
+        ],
+        "stride": [
+          524288,
+          512,
+          512,
+          1
+        ],
+        "dtype": "torch.bfloat16",
+        "device": "cuda:0",
+        "requires_grad": false
+      },
+      "grad_enabled": true,
+      "mask": null,
+      "scale": null,
+      "is_causal": false,
+      "calls": 1
+    },
+    {
+      "route": "torch.functional.sdpa",
+      "q": {
+        "shape": [
+          1,
+          32,
+          512,
+          128
+        ],
+        "stride": [
+          2097152,
+          128,
+          4096,
+          1
+        ],
+        "dtype": "torch.bfloat16",
+        "device": "cuda:0",
+        "requires_grad": false
+      },
+      "k": {
+        "shape": [
+          1,
+          32,
+          512,
+          128
+        ],
+        "stride": [
+          2097152,
+          65536,
+          128,
+          1
+        ],
+        "dtype": "torch.bfloat16",
+        "device": "cuda:0",
+        "requires_grad": false
+      },
+      "v": {
+        "shape": [
+          1,
+          32,
+          512,
+          128
+        ],
+        "stride": [
+          2097152,
+          65536,
+          128,
+          1
+        ],
+        "dtype": "torch.bfloat16",
+        "device": "cuda:0",
+        "requires_grad": false
+      },
+      "grad_enabled": true,
+      "mask": {
+        "shape": [
+          1,
+          1,
+          512,
+          512
+        ],
+        "stride": [
+          262144,
+          262144,
+          512,
+          1
+        ],
+        "dtype": "torch.bool",
+        "device": "cuda:0",
+        "requires_grad": false
+      },
+      "scale": 0.08838834764831845,
+      "is_causal": false,
+      "calls": 36
+    },
+    {
+      "route": "native.attention.flash_attention_2",
+      "q": {
+        "shape": [
+          1,
+          256,
+          30,
+          128
+        ],
+        "stride": [
+          983040,
+          3840,
+          128,
+          1
+        ],
+        "dtype": "torch.bfloat16",
+        "device": "cuda:0",
+        "requires_grad": true
+      },
+      "k": {
+        "shape": [
+          1,
+          256,
+          30,
+          128
+        ],
+        "stride": [
+          983040,
+          3840,
+          128,
+          1
+        ],
+        "dtype": "torch.bfloat16",
+        "device": "cuda:0",
+        "requires_grad": true
+      },
+      "v": {
+        "shape": [
+          1,
+          256,
+          30,
+          128
+        ],
+        "stride": [
+          983040,
+          3840,
+          128,
+          1
+        ],
+        "dtype": "torch.bfloat16",
+        "device": "cuda:0",
+        "requires_grad": true
+      },
+      "grad_enabled": true,
+      "mask": null,
+      "scale": null,
+      "is_causal": false,
+      "calls": 4
+    },
+    {
+      "route": "native.attention.flash_attention_2",
+      "q": {
+        "shape": [
+          1,
+          288,
+          30,
+          128
+        ],
+        "stride": [
+          1105920,
+          3840,
+          128,
+          1
+        ],
+        "dtype": "torch.bfloat16",
+        "device": "cuda:0",
+        "requires_grad": true
+      },
+      "k": {
+        "shape": [
+          1,
+          288,
+          30,
+          128
+        ],
+        "stride": [
+          1105920,
+          3840,
+          128,
+          1
+        ],
+        "dtype": "torch.bfloat16",
+        "device": "cuda:0",
+        "requires_grad": true
+      },
+      "v": {
+        "shape": [
+          1,
+          288,
+          30,
+          128
+        ],
+        "stride": [
+          1105920,
+          3840,
+          128,
+          1
+        ],
+        "dtype": "torch.bfloat16",
+        "device": "cuda:0",
+        "requires_grad": true
+      },
+      "grad_enabled": true,
+      "mask": null,
+      "scale": null,
+      "is_causal": false,
+      "calls": 60
+    },
+    {
+      "route": "native.attention.flash_attention_2",
+      "q": {
+        "shape": [
+          1,
+          32,
+          30,
+          128
+        ],
+        "stride": [
+          122880,
+          3840,
+          128,
+          1
+        ],
+        "dtype": "torch.bfloat16",
+        "device": "cuda:0",
+        "requires_grad": true
+      },
+      "k": {
+        "shape": [
+          1,
+          32,
+          30,
+          128
+        ],
+        "stride": [
+          122880,
+          3840,
+          128,
+          1
+        ],
+        "dtype": "torch.bfloat16",
+        "device": "cuda:0",
+        "requires_grad": true
+      },
+      "v": {
+        "shape": [
+          1,
+          32,
+          30,
+          128
+        ],
+        "stride": [
+          122880,
+          3840,
+          128,
+          1
+        ],
+        "dtype": "torch.bfloat16",
+        "device": "cuda:0",
+        "requires_grad": true
+      },
+      "grad_enabled": true,
+      "mask": null,
+      "scale": null,
+      "is_causal": false,
+      "calls": 4
+    }
+  ],
+  "backward_owner": {
+    "name": "flash_attn::_flash_attn_backward",
+    "calls": 34,
+    "linked_device_us": 2215.9350000004633,
+    "kernels": {
+      "void flash::flash_bwd_dot_do_o_kernel<true, Flash_bwd_kernel_traits<128, 64, 128, 8, 2, 4, 2, false, false, cutlass::bfloat16_t, Flash_kernel_traits<128, 64, 128, 8, cutlass::bfloat16_t> > >(flash::Flash_bwd_params)": 34,
+      "void flash::flash_bwd_dq_dk_dv_loop_seqk_parallel_kernel<Flash_bwd_kernel_traits<128, 64, 128, 8, 2, 4, 2, false, false, cutlass::bfloat16_t, Flash_kernel_traits<128, 64, 128, 8, cutlass::bfloat16_t> >, false, false, false, false, false, true, false>(flash::Flash_bwd_params)": 32,
+      "void flash::flash_bwd_convert_dq_kernel<Flash_bwd_kernel_traits<128, 64, 128, 8, 2, 4, 2, false, false, cutlass::bfloat16_t, Flash_kernel_traits<128, 64, 128, 8, cutlass::bfloat16_t> > >(flash::Flash_bwd_params, int)": 34,
+      "void flash::flash_bwd_dq_dk_dv_loop_seqk_parallel_kernel<Flash_bwd_kernel_traits<128, 64, 128, 8, 2, 4, 2, false, false, cutlass::bfloat16_t, Flash_kernel_traits<128, 64, 128, 8, cutlass::bfloat16_t> >, false, false, false, false, true, true, false>(flash::Flash_bwd_params)": 2
+    }
+  },
+  "actual_experiment_complete": true,
+  "next_candidate_actual_GPU_runs": 0
+}

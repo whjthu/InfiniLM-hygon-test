@@ -2,12 +2,12 @@
   "owner": "root",
   "case": "T07.sft:actual-native-backward-operator-profile",
   "related_task": "O01",
-  "GPU_GO": true,
+  "GPU_GO": false,
   "Model_GO": false,
   "original_namespace": "/home/whj/nvidia-baseline/alignment-assets/hygon-zimage-resumed21-native-profile-v1",
   "framework_commit": "5fb1cfcf75a0714e6f75ab34db93d5d1d156d373",
   "framework_files": 374,
-  "actual_GPU_invocations": 0,
+  "actual_GPU_invocations": 1,
   "max_GPU_invocations": 1,
   "replay_allowed": false,
   "GPU_UUID": "GPU-38411ef6-aa2e-b1f4-b72e-e9aab37cdda2",
@@ -72,7 +72,7 @@
     }
   },
   "next": "FirstrequireactualCUDAeventqualificationbeforemodel. Profileoneactualwarmed/restoredglobal21withactualdispatch. Independentlyconsumeboundedeventtraceandowners/post;publishactualbackend/operatornameswithnonadditivecostlimits. No formalperformance/quality/136busyclaim. Chooseatmostonecandidatefromobservedbackend.",
-  "state": "SOURCE_PREPARED_NO_PROFILE_GPU_RUN",
+  "state": "TERMINAL_ACTUAL_NATIVE_PROFILE_INDEPENDENTLY_CONSUMED",
   "source": "code/bw1000/training-zimage-resumed21-native-profile-v1",
   "source_SHA256": {
     "FRAMEWORK_FILES.json": "d9b51dc0da47389b3f8833f38f608981d86e59f837d3db9e13e3728384c883c7",
@@ -101,5 +101,207 @@
   "private_binding_pin": {
     "bytes": 120772,
     "SHA256": "69eb99261f6e28c060a593ecf03b2cac5f485089286c652f5c0f8c7632ff8b29"
+  },
+  "actual_request_id": "dd67d68fbb694a7fa2f9dbb2893bf634",
+  "actual_result": "results/bw1000/2026-11-12/training-zimage-actual-native-backward-profile-and-Flash2-dispatch.json",
+  "independent_event_reader_passed": true,
+  "owned_group_reaped": true,
+  "next_candidate": {
+    "id": "zimage-flash2-deterministic-backward",
+    "hypothesis": "ActualtrainingbranchusesFlashAttention2defaultdeterministicFalse;itsbackwardhistorydependencymaycausepreclipgradientdrift. Hypothesisnotyetproven.",
+    "single_variable": "ExplicitFlashAttention2deterministic=Trueforactualgrad-enablednativeattentiononly;preserveforward/backend/dtype/shape/seed/model/data/optimizer.",
+    "actual_provider_version": "2.7.4.post1",
+    "provider_SHA256": "d8eaf989a5401fedd23d11a336a7f38e67596d0a4d5a279df14cbe2d7de2ed75",
+    "provider_signature": "(q, k, v, dropout_p=0.0, softmax_scale=None, causal=False, window_size=(-1, -1), softcap=0.0, alibi_slopes=None, deterministic=False, return_attn_probs=False)",
+    "actual_shapes": [
+      {
+        "route": "native.attention.flash_attention_2",
+        "q": {
+          "shape": [
+            1,
+            256,
+            30,
+            128
+          ],
+          "stride": [
+            983040,
+            3840,
+            128,
+            1
+          ],
+          "dtype": "torch.bfloat16",
+          "device": "cuda:0",
+          "requires_grad": true
+        },
+        "k": {
+          "shape": [
+            1,
+            256,
+            30,
+            128
+          ],
+          "stride": [
+            983040,
+            3840,
+            128,
+            1
+          ],
+          "dtype": "torch.bfloat16",
+          "device": "cuda:0",
+          "requires_grad": true
+        },
+        "v": {
+          "shape": [
+            1,
+            256,
+            30,
+            128
+          ],
+          "stride": [
+            983040,
+            3840,
+            128,
+            1
+          ],
+          "dtype": "torch.bfloat16",
+          "device": "cuda:0",
+          "requires_grad": true
+        },
+        "grad_enabled": true,
+        "mask": null,
+        "scale": null,
+        "is_causal": false,
+        "calls": 4
+      },
+      {
+        "route": "native.attention.flash_attention_2",
+        "q": {
+          "shape": [
+            1,
+            288,
+            30,
+            128
+          ],
+          "stride": [
+            1105920,
+            3840,
+            128,
+            1
+          ],
+          "dtype": "torch.bfloat16",
+          "device": "cuda:0",
+          "requires_grad": true
+        },
+        "k": {
+          "shape": [
+            1,
+            288,
+            30,
+            128
+          ],
+          "stride": [
+            1105920,
+            3840,
+            128,
+            1
+          ],
+          "dtype": "torch.bfloat16",
+          "device": "cuda:0",
+          "requires_grad": true
+        },
+        "v": {
+          "shape": [
+            1,
+            288,
+            30,
+            128
+          ],
+          "stride": [
+            1105920,
+            3840,
+            128,
+            1
+          ],
+          "dtype": "torch.bfloat16",
+          "device": "cuda:0",
+          "requires_grad": true
+        },
+        "grad_enabled": true,
+        "mask": null,
+        "scale": null,
+        "is_causal": false,
+        "calls": 60
+      },
+      {
+        "route": "native.attention.flash_attention_2",
+        "q": {
+          "shape": [
+            1,
+            32,
+            30,
+            128
+          ],
+          "stride": [
+            122880,
+            3840,
+            128,
+            1
+          ],
+          "dtype": "torch.bfloat16",
+          "device": "cuda:0",
+          "requires_grad": true
+        },
+        "k": {
+          "shape": [
+            1,
+            32,
+            30,
+            128
+          ],
+          "stride": [
+            122880,
+            3840,
+            128,
+            1
+          ],
+          "dtype": "torch.bfloat16",
+          "device": "cuda:0",
+          "requires_grad": true
+        },
+        "v": {
+          "shape": [
+            1,
+            32,
+            30,
+            128
+          ],
+          "stride": [
+            122880,
+            3840,
+            128,
+            1
+          ],
+          "dtype": "torch.bfloat16",
+          "device": "cuda:0",
+          "requires_grad": true
+        },
+        "grad_enabled": true,
+        "mask": null,
+        "scale": null,
+        "is_causal": false,
+        "calls": 4
+      }
+    ],
+    "required_checks": [
+      "Freezeexplicitpolicyidentityandcheckpointbehavior;diagnosticbaseline20restorecanonlybederivedscope,candidatecheckpointsnoteligiblewithoutsamepolicy.",
+      "ExactobservedSDKshapes/strides/BF16/causalFalse/dropout0;qualifyactualAPIandworkspace/numericswithoutcallingfixtureamodelresult.",
+      "Newsource-publishedactualcold/warm-restored21pairwithfull476gradient/update/optimizercapturesandall1163frozenhashes;notprofiler/replayoldarms.",
+      "Onlyaftercausalpairpasses,fullnative25andfreshresume5withconsistentpolicyandoriginalthreshold;thencrossplatformnumerics/performance/effect."
+    ],
+    "expected_cost": "ExtraFA2backwardworkspace/runtimeUNKNOWNuntilmeasured. Observed34backwardopslinkeddeviceintervalsum2.215935msisnotamodelspeedforecast.",
+    "max_candidates": 1,
+    "source_prepared": false,
+    "actual_GPU_runs": 0,
+    "Model_GO": false
   }
 }
