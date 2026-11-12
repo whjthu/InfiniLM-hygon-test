@@ -1,7 +1,7 @@
 """One published CPU-only full native Z-Image meta scope with bounded owned-process cleanup."""
 from pathlib import Path
 import base64,hashlib,json,os,signal,socket,subprocess,time
-W=Path('/home/whj/nvidia-baseline/alignment-assets/hygon-zimage-first-update-recorder-CPU-v1')
+W=Path('/home/whj/nvidia-baseline/alignment-assets/hygon-zimage-first-update-recorder-CPU-v2')
 epoch=time.time();anchor=time.monotonic();deadline=epoch+300
 assert not W.exists();W.mkdir(mode=0o700)
 def dump(name,value):

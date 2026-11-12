@@ -7,7 +7,7 @@ A=Path('C:/Users/WangHaojie/.codex/worktrees/b9ba/训练/nvidia_baseline')
 tag=sys.argv[1];assert re.fullmatch('[a-z0-9-]{1,30}',tag)
 intent=json.loads((D/'launch-intent.json').read_bytes());claim=intent['claim'];request=intent['request_id']
 git=['git','-c','safe.directory='+G.as_posix(),'-C',str(G)]
-task=json.loads(subprocess.check_output(git+['show',claim+':coordination/tasks/'+D.name+'.json']))
+task=json.loads(subprocess.check_output(git+['show',claim+':coordination/tasks/training-zimage-first-update-recorder-CPU-v2.json']))
 sources={}
 for n,pin in task['source_SHA256'].items():
  raw=subprocess.check_output(git+['show',claim+':'+task['source']+'/'+n]);assert hashlib.sha256(raw).hexdigest()==pin;sources[n]=raw
