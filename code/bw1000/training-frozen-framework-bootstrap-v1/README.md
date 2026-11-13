@@ -1,0 +1,7 @@
+# Early installer identity and frozen framework reference
+
+Unified framework52b26e2a93927c494180039b17a3f0b8c866a608 contains384files. New helper records actual LinuxPID/PGID/startticks/host/boot identity and the original epoch before bulk source verification. It validates exact source bytes/modes/paths under both wall and monotonic deadlines,returns a required read-only bind and copies zero framework files. Existing or partial workspaces are rejected. Verification failures retain the first owner and UNKNOWN execution status.
+
+Eight local stdlib CPU tests passed;the first pytest invocation could not run because pytest was unavailable,so the committed tests use unittest without installing dependencies. Fixture owners and files are synthetic and are not cluster evidence. No new helper deployment/HOST qualification,Slurm,SDK,model,weight,data,GPU or performance execution occurred. The preparation-only callsite illustrates the actual function invocation but is not an executable launcher.
+
+OriginalGPUv2 requesta673262fb84d4e2998102f0911827ff3 remainsUNKNOWN and was not replayed,renamed or resumed. Existing frozen GPUv2 frameworkbcb2ad9/382 is unchanged. These source additions do not retroactively qualify that request or authorize a new dispatch on its reserved node. Future integration must prepublish its exact scope,record a bootstrap outcome and actual owned child identity,then independently reconcile accounting/post.
