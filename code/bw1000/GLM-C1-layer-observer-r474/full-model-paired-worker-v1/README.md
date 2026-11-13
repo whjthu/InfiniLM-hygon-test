@@ -1,0 +1,7 @@
+# GLM-5.3 TP16 paired worker
+
+The container entry `inside.sh` runs one leader per node and eight fresh owner processes per leader on the added I02 pair. The controller calls the paired owner with the selected Native arm and the run verifier. The original phase exchange carries the run manifest digest, selected arm and Native SHA through every barrier. The owner keeps the original full checkpoint, 33-request plan (one diagnostic plus 32 screen cases), and teardown.
+
+The future HOST launcher must reserve `/refactor/results/GLM474-pair-<32 hex run ID>-<arm>` exclusively and write its `RUN_MANIFEST.json`. It passes `GLM474_PAIR_ID`, `GLM474_PAIR_ARM`, `GLM470_EPOCH` and `GLM470_GPU_MF` (SHA256 of the run manifest) through Slurm and the container. It must invoke the installed `inside.sh` at its real package path so the script locates sibling files. The shared verifier checks the run manifest and exact matching resource claim, package files, private input and model metadata. `verify_manifest` and `verify_entry` define the schema. Run each arm serially on the same pair with independent outputs. Fresh pre/post GPU ownership verification, bounded Slurm accounting, one submission per arm, and independent terminal comparison belong to the HOST launcher. This package contains no live resource claim.
+
+`python -B check_worker_CPU.py` tests both arm identities, the real 16-record leader framing via local sockets, and the frozen schedule/input boundary using a fixture. This source has not run inside the target container.
