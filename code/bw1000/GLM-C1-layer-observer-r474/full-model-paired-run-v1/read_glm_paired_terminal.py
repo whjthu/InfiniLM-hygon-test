@@ -3,6 +3,7 @@ import argparse
 import hashlib
 import json
 import math
+import re
 from pathlib import Path
 import statistics
 import subprocess
@@ -109,7 +110,7 @@ def audit_request(row, pin, eos, special, rescore=None):
                 ttft=ttft, gaps=gaps)
 
 
-def summarize_requests(rows, binding, rescore=None, *, verified=None):
+def summarize_requests(rows, binding, rescore=None, *, verified=None, rank_hashes=None):
     pins = binding["private_plan"]["requests"]
     eos = set(binding["eos_token_ids"])
     special = set(binding["tokenizer"]["special_ids"])
@@ -141,6 +142,10 @@ def summarize_requests(rows, binding, rescore=None, *, verified=None):
                 item = audit_request(row, pin, eos, special, rescore)
             except (ValueError, KeyError, TypeError):
                 result["invalid"] += 1
+                continue
+            if rank_hashes is not None and rank_hashes.get(pin["ordinal"]) != item["output_hash"]:
+                result["invalid"] += 1
+                result["rank_agreement_unverified"] = result.get("rank_agreement_unverified", 0) + 1
                 continue
             if verified is not None:
                 verified[pin["ordinal"]] = item
@@ -186,10 +191,59 @@ def compare_requests(pins, baseline, candidate):
     return results
 
 
+def audit_ranks(folder, arm, gate, claim):
+    manifest, manifest_sha = read(folder / "RUN_MANIFEST.json")
+    native_sha = claim["native_arms"][arm]
+    require(manifest["run_id"] == RUN and manifest["arm"] == arm
+            and manifest["Native_SHA256"] == native_sha
+            and manifest["source_manifest_SHA256"] == claim["source_manifest_SHA256"]
+            and manifest["claim_SHA256"] == claim["claim_SHA256"],
+            "run manifest differs from frozen claim")
+    snapshots = {}
+    common = None
+    primary = []
+    for rank in range(16):
+        path = folder / f"owner-{rank:02d}.json"
+        hashes = {}
+        if path.is_file():
+            owner, digest = read(path)
+            valid = (owner.get("actual_GPU") == gate[0] and owner.get("global_rank") == rank
+                     and owner.get("node") == NODES[rank // 8] and owner.get("device") == rank % 8
+                     and owner.get("Native_arm") == arm and owner.get("Native_SHA256") == native_sha
+                     and owner.get("source_manifest_SHA256") == claim["source_manifest_SHA256"]
+                     and owner.get("GPU_manifest_SHA256") == manifest_sha)
+            snapshots[str(rank)] = dict(SHA256=digest, identity_verified=valid,
+                                        normal_close=valid and owner.get("normal_close") is True)
+            if valid:
+                if rank == 0:
+                    primary = owner["requests"]
+                duplicates = set()
+                for row in owner["requests"]:
+                    if (row.get("diagnostic") is not False or row.get("completed") is not True
+                            or row.get("reset_after") is not True):
+                        continue
+                    ordinal = row["ordinal"]
+                    if ordinal in hashes:
+                        duplicates.add(ordinal)
+                    output = row.get("generated_token_ids_SHA256", "")
+                    if isinstance(output, str) and re.fullmatch(r"[0-9a-f]{64}", output):
+                        hashes[ordinal] = output
+                for ordinal in duplicates:
+                    hashes.pop(ordinal, None)
+        common = hashes if common is None else {
+            ordinal: digest for ordinal, digest in common.items() if hashes.get(ordinal) == digest
+        }
+    return primary, common, snapshots
+
+
 def summarize(root, rows):
     observed = accounting(rows)
     require(is_terminal(observed.get(LABEL + "-baseline-gate")), "baseline Slurm terminal required")
     src = root / (LABEL + "-dispatch") / "src"
+    claim, claim_sha = read(src / "GPU_RESOURCE_CLAIM.json")
+    require(claim_sha == "3f322106a0530b6123efa76072b167a21eca1b8d95b68fa1c6654dfc091e5198",
+            "GPU claim hash differs")
+    claim["claim_SHA256"] = claim_sha
     binding, binding_sha = read(src / "INPUT_BINDING.json")
     require(binding_sha == "81f6b2d68228aafb79993306847b0edb04c1ba101a35ab21bb822ac96ca2ba5e",
             "input binding hash differs")
@@ -248,21 +302,17 @@ def summarize(root, rows):
         item["post_node_checks"] = cleanup
         item["post_verified"] = bool(post and post[2:4] == ["COMPLETED", "0:0"]
                                      and len(cleanup) == 2 and all(v["passed"] for v in cleanup))
-        owner_path = folder / "owner-00.json"
-        request_rows = []
-        if owner_path.is_file():
-            owner, digest = read(owner_path)
-            require(owner["actual_GPU"] == gate[0] and owner["global_rank"] == 0, "wrong rank-0 source")
-            item["rank0_SHA256"] = digest
-            item["rank0_normal_close"] = owner.get("normal_close")
-            request_rows = owner["requests"]
-        item["screen"] = summarize_requests(request_rows, binding, rescore, verified=verified[arm])
+        request_rows, rank_hashes, snapshots = audit_ranks(folder, arm, gate, claim)
+        item["owners"] = snapshots
+        item["all_rank_output_agreement_count"] = len(rank_hashes)
+        item["screen"] = summarize_requests(request_rows, binding, rescore,
+                                             verified=verified[arm], rank_hashes=rank_hashes)
         item["diagnostic_completed"] = sum(row.get("diagnostic") is True and row.get("completed") is True
                                           and row.get("reset_after") is True for row in request_rows)
     comparison = compare_requests(plan_pin["requests"], verified["baseline"], verified["single-drain"])
     return dict(run_id=RUN, arms=result, paired_screen=comparison,
                 pair_scope="fixed process order; engineering screen with ordinal-matched requests",
-                score_scope="frozen scorer rerun on saved rank-0 output, with completion checks",
+                score_scope="frozen scorer rerun on saved rank-0 output with all-rank hash agreement and completion checks",
                 timing_scope="rank-0 sampled visible tokens; TTFT from request entry; nearest-rank percentiles; ITL pooled within suite; no HTTP client or fleet busy evidence")
 
 
