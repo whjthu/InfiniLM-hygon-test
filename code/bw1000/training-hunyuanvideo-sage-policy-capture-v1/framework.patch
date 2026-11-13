@@ -1,0 +1,250 @@
+From 5707c0a21f0a1dacbdc8e9c81004d8b981738644 Mon Sep 17 00:00:00 2001
+From: whjthu <haojie0429@gmail.com>
+Date: Fri, 13 Nov 2026 18:49:06 +0800
+Subject: [PATCH] Capture the first HunyuanVideo SAGE-GRPO policy update
+
+---
+ README.md                                     |  5 ++
+ .../backends/hunyuanvideo_sage_grpo.py        | 50 ++++++++++++-
+ .../test_hunyuanvideo_sage_policy_capture.py  | 75 +++++++++++++++++++
+ tools/hygon_training_recipe.py                |  8 ++
+ 4 files changed, 136 insertions(+), 2 deletions(-)
+ create mode 100644 generation/tests/test_hunyuanvideo_sage_policy_capture.py
+
+diff --git a/README.md b/README.md
+index e0fcff3..8e628d5 100644
+--- a/README.md
++++ b/README.md
+@@ -82,6 +82,11 @@ a fresh `--run-name`, and `--resume-from-checkpoint /experiments/previous/checkp
+ The backend verifies the committed checkpoint for both ranks before restoring.
+ For HunyuanVideo SFT, this flag takes the native checkpoint file.
+ 
++For a SAGE-GRPO numerical diagnostic, use `T09.sage-grpo --run --capture-first-policy`.
++The first warmup update writes its realized trajectory and
++`first-policy-update.json` inside the run directory. Keep the trajectory in
++experiment storage. The diagnostic run is ineligible for formal performance.
++
+ The launcher checks the recipe's card count and uses `gencuda --accelerator hip`
+ from this checkout. The runtime manifest records the reported platform and
+ version. A wrong platform or visible card count fails before training.
+diff --git a/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py b/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py
+index 9cdfbf5..2cac300 100644
+--- a/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py
++++ b/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py
+@@ -178,6 +178,25 @@ def _init_nccl(torch: Any, output_dir: Path) -> tuple[bool, Path]:
+     return True, rendezvous
+ 
+ 
++def _policy_trace(old_log_probs, new_log_probs, ratios, advantages, policy_losses, moving_kls):
++    """Record four rollouts in the order used by the optimizer."""
++    fields = {
++        "old_log_probs": old_log_probs, "new_log_probs": new_log_probs,
++        "ratios": ratios, "policy_losses": policy_losses, "moving_kls": moving_kls,
++    }
++    if len(advantages) != 4 or any(len(values) != 16 for values in fields.values()):
++        raise ValueError("SAGE-GRPO trace requires four rollouts with four transitions each")
++    if not all(math.isfinite(value) for values in (*fields.values(), advantages) for value in values):
++        raise ValueError("SAGE-GRPO trace contains non-finite policy values")
++    if any(value <= 0 for value in ratios):
++        raise ValueError("SAGE-GRPO trace contains a non-positive ratio")
++    return [
++        {"rollout": index, "advantage": advantages[index],
++         **{name: values[4 * index:4 * (index + 1)] for name, values in fields.items()}}
++        for index in range(4)
++    ]
++
++
+ def run_hunyuanvideo_sage_grpo(
+     weights: Path,
+     config: dict[str, Any],
+@@ -185,6 +204,12 @@ def run_hunyuanvideo_sage_grpo(
+     source_root: Path,
+     sage_root: Path,
+ ) -> dict[str, Any]:
++    capture_first_policy = config.get("capture_first_policy", False)
++    if type(capture_first_policy) is not bool:
++        raise ValueError("capture_first_policy must be boolean")
++    if capture_first_policy and any(type(config.get(key, 4)) is not int or config.get(key, 4) != 4
++                                    for key in ("num_generations", "sampling_steps")):
++        raise ValueError("SAGE-GRPO policy capture requires the original four-by-four rollout")
+     torch = require_cuda()
+     if torch.cuda.device_count() < 2:
+         raise RuntimeError("HunyuanVideo SAGE-GRPO requires actor and reward CUDA cards")
+@@ -201,6 +226,10 @@ def run_hunyuanvideo_sage_grpo(
+     os.environ.setdefault("HF_HUB_OFFLINE", "1")
+     os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+     output_dir.mkdir(parents=True, exist_ok=True)
++    policy_path = output_dir / "first-policy-update.json"
++    if capture_first_policy and (policy_path.exists() or
++                                 (output_dir / "trajectories" / "step-0001.pt").exists()):
++        raise FileExistsError("SAGE-GRPO policy capture requires fresh output paths")
+     created_group, rendezvous = _init_nccl(torch, output_dir)
+     sys.path.insert(0, str(source_root))
+     actor_device = torch.device("cuda:0")
+@@ -409,7 +438,8 @@ def run_hunyuanvideo_sage_grpo(
+             trajectory_tensor = torch.stack(trajectory, dim=1)
+             old_log_tensor = torch.stack(old_log_probs, dim=1)
+             noise_tensor = torch.stack(noises, dim=1)
+-            if save_outputs:
++            capture_policy = capture_first_policy and global_step == 1
++            if save_outputs or capture_policy:
+                 trajectory_path = output_dir / "trajectories" / f"step-{global_step:04d}.pt"
+                 trajectory_path.parent.mkdir(parents=True, exist_ok=True)
+                 torch.save(
+@@ -427,7 +457,7 @@ def run_hunyuanvideo_sage_grpo(
+                     trajectory_path,
+                 )
+                 trajectory_paths.append(trajectory_path)
+-                if global_step in {1, int(config.get("max_steps", 20))}:
++                if save_outputs and global_step in {1, int(config.get("max_steps", 20))}:
+                     for sample_index, video in enumerate(videos):
+                         path = output_dir / f"step-{global_step:04d}-sample-{sample_index}.mp4"
+                         imageio.mimwrite(
+@@ -515,6 +545,19 @@ def run_hunyuanvideo_sage_grpo(
+             old_values = old_log_tensor.numpy().reshape(-1)
+             new_values = np.asarray(new_log_values, dtype=np.float32)
+             errors = np.abs(new_values - old_values)
++            if capture_policy:
++                policy = {
++                    "global_step": global_step,
++                    "trajectory": {"path": str(trajectory_path), "sha256": sha256_path(trajectory_path)},
++                    "reward": {key: value.tolist() for key, value in rewards.items()},
++                    "rollouts": _policy_trace(old_values.tolist(), new_log_values, ratio_values,
++                                              advantages.tolist(), policy_losses, moving_kls),
++                    "adapter_before": actor_start_sha, "adapter_after": adapter_after,
++                    "grad_norm_before_clip": grad_value,
++                }
++                encoded = json.dumps(policy, allow_nan=False, indent=2) + "\n"
++                with policy_path.open("x", encoding="utf-8") as stream:
++                    stream.write(encoded)
+             return {
+                 "global_step": global_step,
+                 "started_unix": time() - rollout_seconds - reward_seconds - update_seconds,
+@@ -656,6 +699,7 @@ def run_hunyuanvideo_sage_grpo(
+                 {"path": str(step_log), "sha256": sha256_path(step_log)},
+                 {"path": str(summary_path), "sha256": sha256_path(summary_path)},
+                 *({"path": str(path), "sha256": sha256_path(path)} for path in trajectory_paths),
++                *([{"path": str(policy_path), "sha256": sha256_path(policy_path)}] if capture_first_policy else []),
+             ],
+             "metrics": {
+                 "steps": max_steps,
+@@ -679,6 +723,8 @@ def run_hunyuanvideo_sage_grpo(
+                 "reward_cuda_memory": reward_memory,
+                 "peak_cpu_rss_bytes": int(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * 1024),
+                 "cuda_utilization": None,
++                **({"diagnostic_capture_first_policy": True, "performance_accepted": False}
++                   if capture_first_policy else {}),
+             },
+             "stage_timings": {
+                 "model_load_seconds": load_seconds,
+diff --git a/generation/tests/test_hunyuanvideo_sage_policy_capture.py b/generation/tests/test_hunyuanvideo_sage_policy_capture.py
+new file mode 100644
+index 0000000..0b5397e
+--- /dev/null
++++ b/generation/tests/test_hunyuanvideo_sage_policy_capture.py
+@@ -0,0 +1,75 @@
++import ast
++import contextlib
++import hashlib
++import io
++import json
++import math
++from pathlib import Path
++import sys
++import tempfile
++import unittest
++from unittest.mock import patch
++
++
++ROOT = Path(__file__).resolve().parents[2]
++sys.path.insert(0, str(ROOT / "tools"))
++import hygon_training_recipe as recipe
++
++SOURCE = ROOT / "generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py"
++tree = ast.parse(SOURCE.read_text(encoding="utf-8"))
++function = next(node for node in tree.body
++                if isinstance(node, ast.FunctionDef) and node.name == "_policy_trace")
++namespace = {"math": math}
++exec(compile(ast.Module(body=[function], type_ignores=[]), str(SOURCE), "exec"), namespace)
++trace = namespace["_policy_trace"]
++
++
++class PolicyCaptureTests(unittest.TestCase):
++    def test_rollout_rows_match_optimizer_iteration_order(self):
++        old = list(range(16))
++        new = [value + 0.25 for value in old]
++        ratios = [1.25] * 16
++        rows = trace(old, new, ratios, [-2, -1, 1, 2], old, new)
++        self.assertEqual([row["rollout"] for row in rows], [0, 1, 2, 3])
++        self.assertEqual(rows[2], {
++            "rollout": 2, "advantage": 1, "old_log_probs": old[8:12],
++            "new_log_probs": new[8:12], "ratios": ratios[8:12],
++            "policy_losses": old[8:12], "moving_kls": new[8:12],
++        })
++
++    def test_bad_transition_evidence_is_rejected(self):
++        values = [1.0] * 16
++        for ratios, advantages, message in (
++            (values[:-1], [1] * 4, "four transitions"),
++            (values, [0, 0, float("nan"), 0], "non-finite"),
++            ([0, *values[1:]], [1] * 4, "non-positive"),
++        ):
++            with self.subTest(message=message), self.assertRaisesRegex(ValueError, message):
++                trace(values, values, ratios, advantages, values, values)
++
++    def test_unified_entry_only_changes_opt_in_config(self):
++        frozen = {"config": {"warmup_steps": 5, "max_steps": 20,
++                             "num_generations": 4, "sampling_steps": 4},
++                  "weights": "/original/weights"}
++        raw = json.dumps(frozen).encode()
++        binding = (hashlib.sha256(raw).hexdigest(), "hunyuanvideo-1.5", "rl", 2)
++        with tempfile.TemporaryDirectory() as directory:
++            launch = Path(directory) / "launch.json"
++            launch.write_bytes(raw)
++            assets = Path(directory) / "assets.json"
++            assets.write_text(json.dumps({"/original/weights": "/target/weights"}), encoding="utf-8")
++            args = ["T09.sage-grpo", "--a100-launch", str(launch), "--asset-map", str(assets), "--run"]
++            with patch.dict(recipe.GENERATION, {"T09.sage-grpo": binding}):
++                with patch.object(recipe, "run_generation", return_value=0) as run:
++                    self.assertEqual(recipe.main(args), 0)
++                    self.assertEqual(run.call_args.args[0]["config"], frozen["config"])
++                    self.assertEqual(recipe.main(args + ["--capture-first-policy"]), 0)
++                    plan = run.call_args.args[0]
++                    self.assertEqual(plan["cards"], 2)
++                    self.assertEqual(plan["config"], dict(frozen["config"], capture_first_policy=True))
++        with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
++            recipe.main(["T09.dp2", "--run", "--capture-first-policy"])
++
++
++if __name__ == "__main__":
++    unittest.main()
+diff --git a/tools/hygon_training_recipe.py b/tools/hygon_training_recipe.py
+index 9016908..78f69af 100644
+--- a/tools/hygon_training_recipe.py
++++ b/tools/hygon_training_recipe.py
+@@ -189,7 +189,11 @@ def main(argv: list[str] | None = None, *, generation_accelerator: str = "hip")
+         parser.add_argument(f"--{name}", type=vlm.absolute_path)
+     parser.add_argument("--resume-from-checkpoint", type=vlm.absolute_path,
+                         help="resume HunyuanVideo SFT from a native checkpoint file or DP2 from a committed checkpoint directory")
++    parser.add_argument("--capture-first-policy", action="store_true",
++                        help="capture the first SAGE-GRPO rollout and policy update for numerical diagnostics")
+     options = parser.parse_args(args)
++    if options.capture_first_policy and (options.case != "T09.sage-grpo" or not options.run):
++        parser.error("--capture-first-policy requires T09.sage-grpo --run")
+     if options.resume_from_checkpoint is not None:
+         if options.case not in ("T09.sft", "T09.dp2") or not options.run:
+             parser.error("--resume-from-checkpoint requires --run with T09.sft or T09.dp2")
+@@ -208,6 +212,10 @@ def main(argv: list[str] | None = None, *, generation_accelerator: str = "hip")
+         if generation_accelerator not in ("cuda", "hip"):
+             raise ValueError("unsupported generation accelerator")
+         plan["backend_options"] = ["--accelerator", generation_accelerator]
++        if options.capture_first_policy:
++            if options.asset_map is None:
++                raise ValueError("--capture-first-policy requires --asset-map")
++            plan["config"]["capture_first_policy"] = True
+         if options.resume_from_checkpoint is not None:
+             if options.asset_map is None:
+                 raise ValueError("--resume-from-checkpoint requires --asset-map")
+-- 
+2.40.0.windows.1
+
