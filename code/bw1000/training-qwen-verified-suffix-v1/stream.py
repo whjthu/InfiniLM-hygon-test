@@ -4,8 +4,10 @@ import json
 import os
 from pathlib import Path
 import stat
+import shutil
 
 CHUNK = 1024 * 1024
+COMMIT_FRAME = b"QWEN_SUFFIX_SOURCE_VERIFIED\n"
 
 
 def require(condition, message):
@@ -89,6 +91,7 @@ def receive(plan, stream):
     final = root / "model"
     terminal(root / "outcome.json", plan["original_receiver_terminal_sha256"], plan)
     require(staging.is_dir() and not staging.is_symlink() and not os.path.lexists(final), "Wrong target directory")
+    require(shutil.disk_usage(root).free > plan["relay_bytes"] + CHUNK, "Insufficient target disk space")
     allowed = set(plan["prior_done"]) | {plan["active"] + ".partial"}
     require({p.name for p in staging.iterdir()} == allowed, "Target has unexpected files")
     for name, spec in plan["prior_done"].items():
@@ -113,6 +116,7 @@ def receive(plan, stream):
             require(digest.hexdigest() == spec["SHA256"], "Received whole-file hash differs")
         os.link(partial, staging / name)
         partial.unlink()
+    require(stream.readline(len(COMMIT_FRAME)) == COMMIT_FRAME, "Sender completion not verified")
     require(not stream.read(1), "Excess bytes after the registered files")
     require({p.name for p in staging.iterdir()} == set(plan["files"]), "Incomplete final file set")
     require(not os.path.lexists(final), "Final model path already exists")
@@ -142,6 +146,10 @@ def run_endpoint(plan, claim, request, epoch, role, source_scope=None):
     scope = original / "verified-suffix-v1"
     scope.mkdir(mode=0o700)
     result = dict(claim=claim, request_id=request, epoch=epoch, role=role, passed=False)
+    with (scope / "intent.json").open("x", encoding="utf8") as out:
+        json.dump(dict(result, deadline=epoch + plan["timeout_seconds"], pid=os.getpid()), out)
+        out.flush()
+        os.fsync(out.fileno())
     try:
         if role == "sender":
             send(plan, sys.stdout.buffer)
