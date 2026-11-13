@@ -253,16 +253,45 @@
       "model": "HunyuanVideo 1.5",
       "launch_SHA256": "6b230bb6ac909a4599faa37fc9a20e85d425c97e8c643ca111b3f124ef16c5a3",
       "original_cards": 2,
-      "a100_reference": "已核验 A100 原配方及三轮结果。独立固定 rollout 全字段数值对照待核。",
-      "target_evidence": "基础 SFT 海光侧验收及策略更新实跑待完成。",
-      "target_numerics": "未验证",
-      "target_recovery": "海光未验证",
+      "a100_reference": "已核验 A100 原配方及三轮结果。固定 rollout 回放的奖励、log-prob 和 ratio 一致，首个张量差异在裁剪前梯度，正式数值门槛未通过。",
+      "target_evidence": "海光已通过 scheduler 和新进程 Muon/RNG 组件检查。VAE 与 Transformer 完整资产、基础 SFT 海光侧验收和 SAGE 策略更新仍待完成。",
+      "target_numerics": "scheduler 组件通过，完整固定 rollout 与真实策略更新未验",
+      "target_recovery": "双 DCU 合成组件的全局步 20→21 新进程恢复通过，原模型策略恢复未验",
       "target_performance": "待三轮同口径实测",
       "target_holdout_effect": "待留出集实测",
       "stage3_accepted": false,
       "reference_evidence": "results/bw1000/2026-11-13/training-hunyuanvideo-three-a100-case-references.json",
-      "hygon_evidence": null,
-      "a100_median_updates_per_second": 0.011123785892607565
+      "hygon_evidence": "results/bw1000/2026-11-13/training-hunyuanvideo-sage-resume-device-1103606-56-terminal.json",
+      "a100_median_updates_per_second": 0.011123785892607565,
+      "supplemental_evidence": {
+        "a100_fixed_replay": {
+          "path": "results/bw1000/2026-11-13/training-hunyuanvideo-sage-A100-tensor-replay-terminal.json",
+          "SHA256": "32a3971bb644d7b97571d77e82cbdd978d6724f6114c2bf8497edba7fb6f89af"
+        },
+        "hygon_scheduler_fixture": {
+          "path": "results/bw1000/2026-11-13/training-hunyuanvideo-sage-scheduler-1103606-53-terminal.json",
+          "SHA256": "d17a93ce4088d6145ef5b3a97002366f559be9ee374cf622d7456f629032a421"
+        },
+        "hygon_resume_fixture": {
+          "path": "results/bw1000/2026-11-13/training-hunyuanvideo-sage-resume-device-1103606-56-terminal.json",
+          "SHA256": "afe5be8c9f58734dee6d99da4f8e0fcdc5612d350431413af7c20f7ce392c143"
+        }
+      },
+      "original_asset_transfer": {
+        "observed_utc_epoch": 1794584870.106135,
+        "vae": {
+          "request_id": "a1b91ad8a4ec4b4ba8b079b58b949e5b",
+          "persisted_offset_bytes": 872415232,
+          "progress_receipt_SHA256": "45c036e14658e86385d445e6971c49d9399e3b5b2b46601139748dbf03b86da0",
+          "finalized": false
+        },
+        "transformer": {
+          "request_id": "3a0a148aedb74a7ca7e9e34457d529ac",
+          "persisted_offset_bytes": 2316915681,
+          "progress_receipt_SHA256": "8a2b8a59fd3110259dbfc976be30da0e7a57fdcc93088763d17f72a389db76c4",
+          "finalized": false
+        }
+      }
     },
     {
       "case": "T10.shape-flow-lora",
