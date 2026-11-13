@@ -1,0 +1,371 @@
+diff --git a/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py b/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py
+index 2ee2854..7e4e879 100644
+--- a/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py
++++ b/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py
+@@ -127,13 +127,16 @@ def _save_rl_checkpoint(
+     model: Any,
+     optimizer: Any,
+     anchor: dict[str, Any],
+-    global_step: int,
++    measured_step: int,
++    resume_contract: dict[str, Any],
+ ) -> None:
+     path.parent.mkdir(parents=True, exist_ok=True)
+     temporary = path.with_suffix(path.suffix + ".tmp")
+     torch.save(
+         {
+-            "global_step": global_step,
++            "global_step": measured_step + resume_contract["warmup_steps"],
++            "measured_step": measured_step,
++            "resume_contract": resume_contract,
+             "adapter": _adapter_state(model),
+             "optimizer": _cpu_tree(optimizer.state_dict()),
+             "anchor": _cpu_tree(anchor),
+@@ -149,18 +152,28 @@ def _save_rl_checkpoint(
+
+
+ def _load_rl_checkpoint(
+-    path: Path, torch: Any, model: Any, optimizer: Any
++    path: Path, torch: Any, model: Any, optimizer: Any, resume_contract: dict[str, Any], *, max_measured_step: int
+ ) -> tuple[int, dict[str, Any]]:
+     payload = torch.load(path, map_location="cpu", weights_only=False)
+-    _load_state(model, payload["adapter"])
+-    optimizer.load_state_dict(payload["optimizer"])
++    measured_step = payload.get("measured_step")
++    if (payload.get("resume_contract") != resume_contract
++            or type(measured_step) is not int or not 1 <= measured_step <= max_measured_step
++            or payload.get("global_step") != measured_step + resume_contract["warmup_steps"]):
++        raise ValueError("SAGE-GRPO checkpoint recipe or optimizer-step cursor differs")
++    state = tuple(payload[name] for name in (
++        "adapter", "optimizer", "anchor", "python_rng", "numpy_rng",
++        "torch_rng", "cuda_rng_0", "cuda_rng_1",
++    ))
++    adapter, optimizer_state, anchor, python_rng, numpy_rng, torch_rng, actor_rng, reward_rng = state
++    _load_state(model, adapter)
++    optimizer.load_state_dict(optimizer_state)
+     _optimizer_to_device(optimizer)
+-    random.setstate(payload["python_rng"])
+-    np.random.set_state(payload["numpy_rng"])
+-    torch.set_rng_state(payload["torch_rng"])
+-    torch.cuda.set_rng_state(payload["cuda_rng_0"], 0)
+-    torch.cuda.set_rng_state(payload["cuda_rng_1"], 1)
+-    return int(payload["global_step"]), payload["anchor"]
++    random.setstate(python_rng)
++    np.random.set_state(numpy_rng)
++    torch.set_rng_state(torch_rng)
++    torch.cuda.set_rng_state(actor_rng, 0)
++    torch.cuda.set_rng_state(reward_rng, 1)
++    return measured_step, anchor
+
+
+ def _save_adapter(path: Path, model: Any) -> None:
+@@ -303,6 +316,7 @@ def run_hunyuanvideo_sage_grpo(
+ ) -> dict[str, Any]:
+     capture_first_policy = config.get("capture_first_policy", False)
+     capture_only = config.get("capture_first_policy_only", False)
++    resume_from = config.get("resume_from_checkpoint")
+     replay_path = config.get("replay_first_trajectory")
+     replay_sha = config.get("replay_first_trajectory_sha256")
+     trace_blocks = config.get("trace_first_actor_blocks", False)
+@@ -329,11 +343,13 @@ def run_hunyuanvideo_sage_grpo(
+     if (capture_first_policy or replay_path is not None) and any(type(config.get(key, 4)) is not int or config.get(key, 4) != 4
+                                     for key in ("num_generations", "sampling_steps")):
+         raise ValueError("SAGE-GRPO policy capture requires the original four-by-four rollout")
++    if resume_from is not None and (capture_first_policy or replay_path is not None):
++        raise ValueError("SAGE-GRPO checkpoint recovery and first-policy diagnostics are separate runs")
+     vae_root = weights / "vae"
+     if "sage_vae_dir" in config:
+         vae_root = Path(config["sage_vae_dir"])
+-        if replay_path is None or not vae_root.is_absolute() or not (vae_root / "config.json").is_file():
+-            raise ValueError("separate SAGE VAE requires a configured absolute directory and fixed replay")
++        if not vae_root.is_absolute() or not (vae_root / "config.json").is_file():
++            raise ValueError("separate SAGE VAE requires a configured absolute directory")
+     torch = require_cuda()
+     if torch.cuda.device_count() < 2:
+         raise RuntimeError("HunyuanVideo SAGE-GRPO requires actor and reward CUDA cards")
+@@ -811,13 +827,38 @@ def run_hunyuanvideo_sage_grpo(
+         if warmup_steps < 0 or max_steps < 1:
+             raise ValueError("SAGE-GRPO requires nonnegative warmup and at least one measured update")
+         checkpoint_steps = {int(item) for item in config.get("checkpoint_steps", [10, 20])}
++        resume_contract = {
++            "schema": "sage-policy-resume-v1",
++            "native_source": str(source_root.resolve()),
++            "warmup_steps": warmup_steps,
++            "weights": str(weights.resolve()),
++            "vae": str(vae_root.resolve()),
++            "scheduler_sha256": sha256_path(sage_root / "hyvideo/schedulers/scheduling_flow_match_discrete.py"),
++            "input_sha256": {name: sha256_path(path) for name, path in (
++                ("training_cache", cache_path), ("target_video", target_video_path),
++                ("initial_adapter", initial_adapter_path)
++            )},
++            "policy_config": {key: value for key, value in config.items() if key not in {
++                "resume_from_checkpoint", "validate_recovery", "max_steps", "checkpoint_steps",
++            }},
++        }
++        resumed_steps = 0
++        if resume_from is not None:
++            previous = Path(resume_from).expanduser()
++            if previous.is_dir():
++                previous /= "state.pt"
++            resumed_steps, anchor_state = _load_rl_checkpoint(
++                previous, torch, model, optimizer, resume_contract, max_measured_step=max_steps - 1
++            )
++            anchor_sha = _state_sha(anchor_state)
++        first_global_step = warmup_steps + resumed_steps + 1 if resumed_steps else 1
+         records = []
+         measured = []
+         artifacts: list[dict[str, Any]] = []
+         step_log = output_dir / "steps.ndjson"
+-        with step_log.open("w", encoding="utf-8") as handle:
+-            for global_step in range(1, warmup_steps + max_steps + 1):
+-                if global_step == warmup_steps + 1:
++        with step_log.open("x" if resumed_steps else "w", encoding="utf-8") as handle:
++            for global_step in range(first_global_step, warmup_steps + max_steps + 1):
++                if global_step == warmup_steps + resumed_steps + 1:
+                     torch.cuda.synchronize(actor_device)
+                     torch.cuda.synchronize(reward_device)
+                     measurement_started = perf_counter()
+@@ -830,12 +871,12 @@ def run_hunyuanvideo_sage_grpo(
+                     measured.append(record)
+                     if measured_step in checkpoint_steps:
+                         path = output_dir / f"checkpoint-{measured_step}" / "state.pt"
+-                        _save_rl_checkpoint(path, torch, model, optimizer, anchor_state, measured_step)
++                        _save_rl_checkpoint(path, torch, model, optimizer, anchor_state, measured_step, resume_contract)
+                         artifacts.append({"path": str(path), "sha256": sha256_path(path)})
+
+         checkpoint = output_dir / f"checkpoint-{max_steps}" / "state.pt"
+         if not checkpoint.is_file():
+-            _save_rl_checkpoint(checkpoint, torch, model, optimizer, anchor_state, max_steps)
++            _save_rl_checkpoint(checkpoint, torch, model, optimizer, anchor_state, max_steps, resume_contract)
+             artifacts.append({"path": str(checkpoint), "sha256": sha256_path(checkpoint)})
+         torch.cuda.synchronize(actor_device)
+         torch.cuda.synchronize(reward_device)
+@@ -846,7 +887,7 @@ def run_hunyuanvideo_sage_grpo(
+         def restore_recovery_checkpoint() -> int:
+             nonlocal anchor_state, anchor_sha
+             restored_step, anchor_state = _load_rl_checkpoint(
+-                checkpoint, torch, model, optimizer
++                checkpoint, torch, model, optimizer, resume_contract, max_measured_step=max_steps
+             )
+             anchor_sha = _state_sha(anchor_state)
+             return restored_step
+@@ -940,8 +981,10 @@ def run_hunyuanvideo_sage_grpo(
+                   if capture_first_policy else []),
+             ],
+             "metrics": {
+-                "steps": max_steps,
+-                "warmup_steps": warmup_steps,
++                "steps": len(measured),
++                "warmup_steps": 0 if resumed_steps else warmup_steps,
++                "completed_global_step": warmup_steps + max_steps,
++                "resumed_from_global_step": warmup_steps + resumed_steps if resumed_steps else None,
+                 "num_generations": rollout_count,
+                 "sampling_steps": sampling_steps,
+                 "reward_variance_min": min(reward_variances),
+diff --git a/generation/src/gencuda/cli.py b/generation/src/gencuda/cli.py
+index 4ec4473..78d4b5d 100644
+--- a/generation/src/gencuda/cli.py
++++ b/generation/src/gencuda/cli.py
+@@ -34,6 +34,7 @@ EXTERNAL_RESUME_ROUTES = frozenset({
+     ("train", "stable-fast-3d"),
+     ("train", "trellis-shape-flow-1.3b"),
+     ("rl", "sdxl-1.0"),
++    ("rl", "hunyuanvideo-1.5"),
+     ("rl", "hy-motion-1.0"),
+     ("rl", "z-image-turbo"),
+ })
+@@ -236,8 +237,8 @@ def run_backend(
+             scheduler_root = _source_dir(source_root, "sage-grpo")
+         else:
+             scheduler_root = Path(scheduler_override)
+-            if not config.get("replay_first_trajectory") or not scheduler_root.is_absolute():
+-                raise ValueError("separate SAGE scheduler requires an absolute path and fixed replay")
++            if not scheduler_root.is_absolute():
++                raise ValueError("separate SAGE scheduler requires an absolute path")
+             if not (scheduler_root / "hyvideo/schedulers/scheduling_flow_match_discrete.py").is_file():
+                 raise ValueError("separately staged SAGE scheduler file is missing")
+         return _call(f"gencuda.backends.{module}", function, weights, config, directory,
+diff --git a/generation/tests/test_hunyuanvideo_sage_policy_capture.py b/generation/tests/test_hunyuanvideo_sage_policy_capture.py
+index 4f82e5c..b76bc7f 100644
+--- a/generation/tests/test_hunyuanvideo_sage_policy_capture.py
++++ b/generation/tests/test_hunyuanvideo_sage_policy_capture.py
+@@ -206,7 +206,12 @@ class PolicyCaptureTests(unittest.TestCase):
+                     self.assertEqual(routed["sage_vae_dir"], "/staged/vae")
+                     self.assertEqual(routed["sage_scheduler_root"], "/staged/sage")
+                     self.assertEqual(routed["replay_first_trajectory_sha256"], "a" * 64)
+-                    for flags, accelerator in ((separate, "hip"), (replay + separate, "cuda")):
++                    resumed = ["--resume-from-checkpoint", "/previous/checkpoint-20"]
++                    self.assertEqual(recipe.main(args + resumed + separate), 0)
++                    self.assertEqual(run.call_args.args[0]["config"], dict(
++                        frozen["config"], resume_from_checkpoint="/previous/checkpoint-20",
++                        sage_vae_dir="/staged/vae", sage_scheduler_root="/staged/sage"))
++                    for flags, accelerator in ((resumed + replay, "hip"), (replay + separate, "cuda")):
+                         with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+                             recipe.main(args + flags, generation_accelerator=accelerator)
+                     detail = ["--trace-first-actor-detail-block", "50"]
+diff --git a/generation/tests/test_hunyuanvideo_sage_policy_window.py b/generation/tests/test_hunyuanvideo_sage_policy_window.py
+index 3ffe89b..e011e6c 100644
+--- a/generation/tests/test_hunyuanvideo_sage_policy_window.py
++++ b/generation/tests/test_hunyuanvideo_sage_policy_window.py
+@@ -1,7 +1,9 @@
+ import ast
+ import json
+ import math
++import pickle
+ from pathlib import Path
++from typing import Any
+ from tempfile import TemporaryDirectory
+ from types import SimpleNamespace
+ import unittest
+@@ -13,12 +15,56 @@ backend = next(node for node in tree.body
+                if isinstance(node, ast.FunctionDef) and node.name == "run_hunyuanvideo_sage_grpo")
+ training = next(node.body for node in backend.body if isinstance(node, ast.Try))
+ start = next(i for i, node in enumerate(training) if isinstance(node, ast.Assign)
+-             and isinstance(node.targets[0], ast.Name) and node.targets[0].id == "warmup_steps")
++             and isinstance(node.targets[0], ast.Name) and node.targets[0].id == "first_global_step")
+ end = next(i for i, node in enumerate(training) if isinstance(node, ast.FunctionDef)
+            and node.name == "restore_recovery_checkpoint")
+ window = compile(ast.Module(body=training[start:end], type_ignores=[]), str(SOURCE), "exec")
+
+
++checkpoint_functions = compile(ast.Module(body=[
++    node for node in tree.body if isinstance(node, ast.FunctionDef)
++    and node.name in {"_save_rl_checkpoint", "_load_rl_checkpoint"}
++], type_ignores=[]), str(SOURCE), "exec")
++
++
++class PolicyCheckpointTests(unittest.TestCase):
++    def test_checkpoint_restores_both_device_rngs_anchor_and_optimizer_cursor(self):
++        restored = {}
++        rng = lambda label: SimpleNamespace(cpu=lambda: label)
++        cuda = SimpleNamespace(get_rng_state=lambda rank: rng(rank + 7),
++                               set_rng_state=lambda value, rank: restored.__setitem__(rank, value))
++        torch = SimpleNamespace(cuda=cuda, get_rng_state=lambda: 6,
++                                set_rng_state=lambda value: restored.__setitem__("torch", value),
++                                save=lambda obj, path: path.write_bytes(pickle.dumps(obj)),
++                                load=lambda path, **kwargs: pickle.loads(path.read_bytes()))
++        scope = dict(Path=Path, Any=Any, _adapter_state=lambda model: model,
++                     _cpu_tree=lambda x: x, _optimizer_to_device=lambda x: None,
++                     _load_state=lambda model, state: model.update(state),
++                     random=SimpleNamespace(getstate=lambda: 4, setstate=lambda v: restored.update(python=v)),
++                     np=SimpleNamespace(random=SimpleNamespace(get_state=lambda: 5,
++                                        set_state=lambda v: restored.update(numpy=v))))
++        exec(checkpoint_functions, scope)
++        optimizer = SimpleNamespace(state_dict=lambda: {"updates": 20},
++                                    load_state_dict=lambda state: restored.update(optimizer=state))
++        with TemporaryDirectory() as directory:
++            checkpoint = Path(directory) / "checkpoint-15" / "state.pt"
++            contract = {"schema": "sage-policy-resume-v1", "warmup_steps": 5}
++            scope["_save_rl_checkpoint"](checkpoint, torch, {"adapter": 1}, optimizer,
++                                         {"anchor": 2}, 15, contract)
++            self.assertEqual(pickle.loads(checkpoint.read_bytes())["global_step"], 20)
++            model = {}
++            for wrong_contract, last in [(dict(contract, warmup_steps=4), 20), (contract, 14)]:
++                with self.assertRaisesRegex(ValueError, "checkpoint recipe or optimizer-step cursor"):
++                    scope["_load_rl_checkpoint"](checkpoint, torch, model, optimizer,
++                                                 wrong_contract, max_measured_step=last)
++                self.assertFalse(restored or model)
++            cursor, anchor = scope["_load_rl_checkpoint"](checkpoint, torch, model, optimizer,
++                                                          contract, max_measured_step=19)
++            self.assertEqual((cursor, anchor, model), (15, {"anchor": 2}, {"adapter": 1}))
++            self.assertEqual(restored, {"optimizer": {"updates": 20}, "python": 4, "numpy": 5,
++                                        "torch": 6, 0: 7, 1: 8})
++
++
+ class PolicyWindowTests(unittest.TestCase):
+     def test_drains_and_all_measured_checkpoint_io_are_inside_the_boundary(self):
+         events = []
+@@ -32,7 +78,7 @@ class PolicyWindowTests(unittest.TestCase):
+             events.append(("step", index, save_outputs))
+             return {"global_step": index}
+
+-        def checkpoint(path, torch, model, optimizer, anchor_state, measured_step):
++        def checkpoint(path, torch, model, optimizer, anchor_state, measured_step, resume_contract):
+             events.append(("checkpoint", measured_step))
+             path.parent.mkdir()
+             path.write_bytes(b"checkpoint")
+@@ -43,7 +89,7 @@ class PolicyWindowTests(unittest.TestCase):
+
+         with TemporaryDirectory() as tmp:
+             ctx = dict(
+-                config={"warmup_steps": 1, "max_steps": 3, "checkpoint_steps": [2]},
++                warmup_steps=1, max_steps=3, checkpoint_steps={2}, resumed_steps=0, resume_contract={},
+                 output_dir=Path(tmp), json=json, math=math, Any=object, rl_step=step,
+                 perf_counter=clock, _save_rl_checkpoint=checkpoint, sha256_path=digest,
+                 torch=SimpleNamespace(cuda=SimpleNamespace(synchronize=lambda device: events.append(("sync", device)))),
+@@ -54,7 +100,18 @@ class PolicyWindowTests(unittest.TestCase):
+             self.assertEqual(len(ctx["measured"]), 3)
+             self.assertEqual([json.loads(line)["global_step"] for line in
+                               (Path(tmp) / "steps.ndjson").read_text().splitlines()], [1, 2, 3, 4])
+-        self.assertEqual(events, [
++            fresh_events = list(events)
++            with TemporaryDirectory() as resumed_tmp:
++                ctx.update(output_dir=Path(resumed_tmp), resumed_steps=2, perf_counter=iter([200.0, 230.0]).__next__)
++                events.clear()
++                exec(window, ctx)
++                self.assertEqual(ctx["measurement_seconds"], 30.0)
++                self.assertEqual(ctx["measured"], [{"global_step": 4}])
++                self.assertFalse((Path(resumed_tmp) / "checkpoint-2").exists())
++                self.assertEqual(events, [("sync", "actor"), ("sync", "reward"), ("step", 4, True),
++                                          ("checkpoint", 3), ("hash", "checkpoint-3"),
++                                          ("sync", "actor"), ("sync", "reward")])
++        self.assertEqual(fresh_events, [
+             ("step", 1, False), ("sync", "actor"), ("sync", "reward"), ("clock",),
+             ("step", 2, True), ("step", 3, True), ("checkpoint", 2), ("hash", "checkpoint-2"),
+             ("step", 4, True), ("checkpoint", 3), ("hash", "checkpoint-3"),
+diff --git a/tools/hygon_training_recipe.py b/tools/hygon_training_recipe.py
+index e10d8ed..c43f98d 100644
+--- a/tools/hygon_training_recipe.py
++++ b/tools/hygon_training_recipe.py
+@@ -197,9 +197,9 @@ def main(argv: list[str] | None = None, *, generation_accelerator: str = "hip")
+     parser.add_argument("--replay-first-trajectory", type=vlm.absolute_path)
+     parser.add_argument("--replay-first-trajectory-sha256")
+     parser.add_argument("--sage-vae-dir", type=vlm.absolute_path,
+-                        help="use a separately staged VAE directory for T09.sage-grpo replay")
++                        help="use a separately staged VAE directory for T09.sage-grpo")
+     parser.add_argument("--sage-scheduler-root", type=vlm.absolute_path,
+-                        help="use a separately staged SAGE checkout for T09.sage-grpo replay")
++                        help="use a separately staged SAGE checkout for T09.sage-grpo")
+     parser.add_argument("--trace-first-actor-blocks", action="store_true",
+                         help="fingerprint checkpointed actor block outputs and their gradients on CUDA")
+     parser.add_argument("--trace-first-actor-detail-block", type=int,
+@@ -218,9 +218,9 @@ def main(argv: list[str] | None = None, *, generation_accelerator: str = "hip")
+         if len(digest) != 64 or set(digest) - set("0123456789abcdef"):
+             parser.error("fixed trajectory replay requires a lowercase SHA256")
+     if (options.sage_vae_dir is not None or options.sage_scheduler_root is not None) and (
+-        options.replay_first_trajectory is None or generation_accelerator != "hip"
++        options.case != "T09.sage-grpo" or not options.run or generation_accelerator != "hip"
+     ):
+-        parser.error("separate SAGE assets require T09.sage-grpo fixed replay on HIP")
++        parser.error("separate SAGE assets require T09.sage-grpo --run on HIP")
+     if options.trace_first_actor_blocks and (
+         generation_accelerator != "cuda" or not (
+             options.capture_first_policy_only or options.replay_first_trajectory is not None
+@@ -233,8 +233,10 @@ def main(argv: list[str] | None = None, *, generation_accelerator: str = "hip")
+     ):
+         parser.error("--trace-first-actor-detail-block requires block tracing and fixed replay")
+     if options.resume_from_checkpoint is not None:
+-        if options.case not in ("T09.sft", "T09.dp2") or not options.run:
+-            parser.error("--resume-from-checkpoint requires --run with T09.sft or T09.dp2")
++        if options.case not in ("T09.sft", "T09.dp2", "T09.sage-grpo") or not options.run:
++            parser.error("--resume-from-checkpoint requires --run with a T09 use case")
++        if options.capture_first_policy or options.replay_first_trajectory is not None:
++            parser.error("--resume-from-checkpoint cannot be combined with first-policy diagnostics")
+     if options.dry_run and not options.run:
+         parser.error("--dry-run requires --run")
+     if options.case == "list":
+@@ -261,10 +263,10 @@ def main(argv: list[str] | None = None, *, generation_accelerator: str = "hip")
+                 raise ValueError("fixed trajectory replay requires --asset-map")
+             plan["config"].update(replay_first_trajectory=str(options.replay_first_trajectory),
+                                   replay_first_trajectory_sha256=options.replay_first_trajectory_sha256)
+-            if options.sage_vae_dir is not None:
+-                plan["config"]["sage_vae_dir"] = str(options.sage_vae_dir)
+-            if options.sage_scheduler_root is not None:
+-                plan["config"]["sage_scheduler_root"] = str(options.sage_scheduler_root)
++        if options.sage_vae_dir is not None:
++            plan["config"]["sage_vae_dir"] = str(options.sage_vae_dir)
++        if options.sage_scheduler_root is not None:
++            plan["config"]["sage_scheduler_root"] = str(options.sage_scheduler_root)
+         if options.trace_first_actor_blocks:
+             plan["config"]["trace_first_actor_blocks"] = True
+             if options.trace_first_actor_detail_block is not None:
