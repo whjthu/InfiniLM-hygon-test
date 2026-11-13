@@ -1,0 +1,100 @@
+From c1550a1eb478a296a185d3f48d3a0ddc32abd2e5 Mon Sep 17 00:00:00 2001
+From: whjthu <haojie0429@gmail.com>
+Date: Fri, 13 Nov 2026 18:40:10 +0800
+Subject: [PATCH] Expose HunyuanVideo DP2 recovery in the unified recipe
+
+---
+ README.md                                     |  5 +++
+ .../tests/test_hunyuanvideo_recipe_resume.py  | 40 ++++++++++++++++++-
+ tools/hygon_training_recipe.py                |  6 +--
+ 3 files changed, 46 insertions(+), 5 deletions(-)
+
+diff --git a/README.md b/README.md
+index 33e2f82..e0fcff3 100644
+--- a/README.md
++++ b/README.md
+@@ -77,6 +77,11 @@ this example must be `/sources/hunyuanvideo-1.5`. VGGT also needs
+ `--vggt-weights` because its frozen recipe is a config file without a
+ weights field. SDXL DDPO uses its runtime package without an upstream checkout.
+ 
++To verify DP2 recovery, start a new run with the same launch and asset map,
++a fresh `--run-name`, and `--resume-from-checkpoint /experiments/previous/checkpoint-20`.
++The backend verifies the committed checkpoint for both ranks before restoring.
++For HunyuanVideo SFT, this flag takes the native checkpoint file.
++
+ The launcher checks the recipe's card count and uses `gencuda --accelerator hip`
+ from this checkout. The runtime manifest records the reported platform and
+ version. A wrong platform or visible card count fails before training.
+diff --git a/generation/tests/test_hunyuanvideo_recipe_resume.py b/generation/tests/test_hunyuanvideo_recipe_resume.py
+index 7c39494..ac359cd5 100644
+--- a/generation/tests/test_hunyuanvideo_recipe_resume.py
++++ b/generation/tests/test_hunyuanvideo_recipe_resume.py
+@@ -43,8 +43,44 @@ class HunyuanRecipeResumeTest(unittest.TestCase):
+                     self.assertEqual(recipe.main(args + ['--resume-from-checkpoint', '/checkpoints/state.pt']), 2)
+                     run.assert_not_called()
+ 
+-    def test_only_sft_execution_accepts_generation_resume_flag(self):
+-        for args in (['T09.sft'], ['T09.dp2', '--run'], ['T09.sage-grpo', '--run'],
++    def test_dp2_recovery_reaches_distributed_backend_with_frozen_topology(self):
++        config = dict(parallel_mode="data_parallel", world_size=2, sp=1, warmup_steps=5,
++                      max_steps=20, checkpoint_steps=[10, 20])
++        frozen = dict(config=config, weights="/original/weights", source="/original/hunyuanvideo-1.5")
++        raw = json.dumps(frozen).encode()
++        registration = (hashlib.sha256(raw).hexdigest(), "hunyuanvideo-1.5", "train", 2)
++        with tempfile.TemporaryDirectory() as directory:
++            root = Path(directory)
++            launch = root / "launch.json"
++            launch.write_bytes(raw)
++            assets = root / "assets.json"
++            assets.write_text(json.dumps({frozen["weights"]: "/target/weights",
++                                          frozen["source"]: "/target/hunyuanvideo-1.5"}))
++            args = ["T09.dp2", "--a100-launch", str(launch), "--asset-map", str(assets), "--run",
++                    "--source-root", "/target", "--output-root", "/experiments", "--run-name", "dp2-resumed",
++                    "--lock-root", "/locks", "--lock-host", "assigned-host", "--cards", "0,1",
++                    "--resume-from-checkpoint", "/previous/checkpoint-20"]
++            sys.path.insert(0, str(TOOLS.parent / "generation" / "src"))
++            from gencuda import cli
++
++            def capture(options):
++                self.assertEqual(options.accelerator, "hip")
++                self.assertEqual(options.cards, "0,1")
++                self.assertEqual(json.loads(Path(options.config).read_bytes()),
++                                 dict(config, resume_from_checkpoint="/previous/checkpoint-20"))
++                return 0
++
++            with patch.dict(recipe.GENERATION, {"T09.dp2": registration}):
++                with patch.object(cli, "cmd_run", side_effect=capture) as launch_backend:
++                    self.assertEqual(recipe.main(args), 0)
++                    launch_backend.assert_called_once()
++                    args[args.index("0,1")] = "0"
++                    with contextlib.redirect_stderr(io.StringIO()):
++                        self.assertEqual(recipe.main(args), 2)
++                    launch_backend.assert_called_once()
++
++    def test_only_hunyuan_sft_or_dp2_execution_accepts_generation_resume_flag(self):
++        for args in (['T09.sft'], ['T09.dp2'], ['T09.sage-grpo', '--run'],
+                      ['T09.sft', '--run', '--resume-from-checkpoint', 'relative/state.pt']):
+             supplied = args if '--resume-from-checkpoint' in args else args + ['--resume-from-checkpoint', '/checkpoints/state.pt']
+             with self.subTest(args=args), contextlib.redirect_stderr(io.StringIO()):
+diff --git a/tools/hygon_training_recipe.py b/tools/hygon_training_recipe.py
+index 8f5a4a8..9016908 100644
+--- a/tools/hygon_training_recipe.py
++++ b/tools/hygon_training_recipe.py
+@@ -188,11 +188,11 @@ def main(argv: list[str] | None = None, *, generation_accelerator: str = "hip")
+     for name in ("output-root", "lock-root", "source-root", "vggt-weights"):
+         parser.add_argument(f"--{name}", type=vlm.absolute_path)
+     parser.add_argument("--resume-from-checkpoint", type=vlm.absolute_path,
+-                        help="resume HunyuanVideo SFT from an existing native checkpoint")
++                        help="resume HunyuanVideo SFT from a native checkpoint file or DP2 from a committed checkpoint directory")
+     options = parser.parse_args(args)
+     if options.resume_from_checkpoint is not None:
+-        if options.case != "T09.sft" or not options.run:
+-            parser.error("--resume-from-checkpoint requires T09.sft --run")
++        if options.case not in ("T09.sft", "T09.dp2") or not options.run:
++            parser.error("--resume-from-checkpoint requires --run with T09.sft or T09.dp2")
+     if options.dry_run and not options.run:
+         parser.error("--dry-run requires --run")
+     if options.case == "list":
+-- 
+2.40.0.windows.1
+
