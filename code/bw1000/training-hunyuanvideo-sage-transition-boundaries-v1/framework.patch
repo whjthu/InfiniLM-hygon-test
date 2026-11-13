@@ -1,0 +1,157 @@
+From 145c6c547d7afb37e337dd6f3d256382b657d651 Mon Sep 17 00:00:00 2001
+From: whjthu <haojie0429@gmail.com>
+Date: Fri, 13 Nov 2026 19:46:40 +0800
+Subject: [PATCH] Trace SAGE-GRPO backward boundaries for each transition
+
+---
+ .../backends/hunyuanvideo_sage_grpo.py        | 27 +++++++++---
+ .../test_hunyuanvideo_sage_policy_capture.py  | 43 +++++++++++++++++++
+ 2 files changed, 65 insertions(+), 5 deletions(-)
+
+diff --git a/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py b/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py
+index a1778fc..bcf6ac0 100644
+--- a/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py
++++ b/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py
+@@ -18,6 +18,7 @@ from typing import Any
+ 
+ import numpy as np
+ 
++from ..hy_resume_checkpoint import tree_sha256
+ from ..manifest import sha256_path
+ from ..hunyuanvideo_resume_checkpoint import _cpu_tree as snapshot_cpu_tree
+ from ..recovery_validation import run_recovery_validation, validate_recovery_enabled
+@@ -406,7 +407,7 @@ def run_hunyuanvideo_sage_grpo(
+             sigmas: Any,
+             index: int,
+             gradients: bool,
+-        ) -> tuple[Any, Any, Any, Any]:
++        ) -> tuple[Any, Any, Any, Any, Any]:
+             prediction = model_output(latents, timestep, gradients)
+             schedule = _scheduler(scheduler_class, sigmas, actor_device, shift)
+             schedule._step_index = index
+@@ -420,7 +421,7 @@ def run_hunyuanvideo_sage_grpo(
+                 sde_solver=True,
+                 sde_type="sage_grpo",
+             )
+-            return next_value, log_prob, mean, std
++            return next_value, log_prob, mean, std, prediction
+ 
+         def decode(final_latents: Any) -> np.ndarray:
+             videos = []
+@@ -474,7 +475,7 @@ def run_hunyuanvideo_sage_grpo(
+             model.eval()
+             for index, timestep in enumerate(timesteps):
+                 fixed_next = replay["latent"][:, index + 1].to(actor_device) if replay is not None else None
+-                next_value, log_prob, mean, std = transition(
++                next_value, log_prob, mean, std, _ = transition(
+                     current, fixed_next, timestep, sigmas, index, gradients=False
+                 )
+                 old_log_probs.append(log_prob.detach().cpu())
+@@ -547,7 +548,7 @@ def run_hunyuanvideo_sage_grpo(
+                     for index, timestep in enumerate(timesteps):
+                         latent = trajectory_tensor[sample_index : sample_index + 1, index].to(actor_device)
+                         next_latent = trajectory_tensor[sample_index : sample_index + 1, index + 1].to(actor_device)
+-                        _, _, mean, _ = transition(
++                        _, _, mean, _, _ = transition(
+                             latent, next_latent, timestep, sigmas, index, gradients=False
+                         )
+                         per_sample.append(mean.detach().cpu())
+@@ -569,6 +570,7 @@ def run_hunyuanvideo_sage_grpo(
+                     "parameters_before": snapshot_cpu_tree(named_trainable),
+                     "optimizer_before": snapshot_cpu_tree(optimizer.state_dict()),
+                     "transition_losses": [],
++                    "transition_boundaries": [],
+                 }
+             optimizer.zero_grad(set_to_none=True)
+             update_started = perf_counter()
+@@ -586,7 +588,7 @@ def run_hunyuanvideo_sage_grpo(
+                     latent = trajectory_tensor[sample_index : sample_index + 1, index].to(actor_device)
+                     next_latent = trajectory_tensor[sample_index : sample_index + 1, index + 1].to(actor_device)
+                     old_log = old_log_tensor[sample_index : sample_index + 1, index].to(actor_device)
+-                    _, new_log, mean, std = transition(
++                    _, new_log, mean, std, prediction = transition(
+                         latent, next_latent, timestep, sigmas, index, gradients=True
+                     )
+                     ratio = torch.exp(new_log - old_log)
+@@ -604,9 +606,24 @@ def run_hunyuanvideo_sage_grpo(
+                     moving_kl = ((mean - anchor_mean) ** 2).mean() / (2 * std.float().square() + 1e-6)
+                     stepwise_kl = (old_log - new_log).mean()
+                     loss = policy_loss + kl_weight * (moving_kl + dual_step_weight * stepwise_kl)
++                    if update_state is not None:
++                        prediction.retain_grad()
+                     (loss / transition_count).backward()
+                     if update_state is not None:
+                         update_state["transition_losses"].append(float(loss.detach().cpu()))
++                        if prediction.grad is None:
++                            raise RuntimeError("SAGE-GRPO actor output gradient was not produced")
++                        update_state["transition_boundaries"].append({
++                            "rollout": sample_index,
++                            "transition": index,
++                            "actor_output_sha256": tree_sha256(prediction),
++                            "actor_output_gradient_sha256": tree_sha256(prediction.grad),
++                            "anchor_mean_sha256": tree_sha256(anchor_mean),
++                            "accumulated_lora_gradients_sha256": tree_sha256(
++                                {name: value.grad for name, value in named_trainable.items()}
++                            ),
++                        })
++                    del prediction
+                     new_log_values.append(float(new_log.detach().cpu()))
+                     ratio_values.append(float(ratio.detach().cpu()))
+                     moving_kls.append(float(moving_kl.detach().cpu()))
+diff --git a/generation/tests/test_hunyuanvideo_sage_policy_capture.py b/generation/tests/test_hunyuanvideo_sage_policy_capture.py
+index c28ac6f..c96597b 100644
+--- a/generation/tests/test_hunyuanvideo_sage_policy_capture.py
++++ b/generation/tests/test_hunyuanvideo_sage_policy_capture.py
+@@ -31,6 +31,49 @@ load_trajectory = namespace["_load_first_trajectory"]
+ 
+ 
+ class PolicyCaptureTests(unittest.TestCase):
++    def test_transition_records_backward_boundaries_in_order(self):
++        step = next(node for node in ast.walk(tree)
++                    if isinstance(node, ast.FunctionDef) and node.name == "rl_step")
++        body = next(node.body for node in ast.walk(step) if isinstance(node, ast.For)
++                    and any(ast.unparse(item) == "(loss / transition_count).backward()"
++                            for item in node.body))
++        index = next(i for i, item in enumerate(body)
++                     if ast.unparse(item) == "(loss / transition_count).backward()")
++        boundary = compile(ast.Module(body=body[index - 1:index + 2], type_ignores=[]),
++                           str(SOURCE), "exec")
++        events = []
++        prediction = SimpleNamespace(grad=None, retain_grad=lambda: events.append("retain"))
++
++        class Loss:
++            def __truediv__(self, count):
++                events.append(count)
++                return self
++
++            def backward(self):
++                self.assert_retained()
++                prediction.grad = "output gradient"
++
++            def assert_retained(self):
++                if events != ["retain", 16]:
++                    raise AssertionError(events)
++
++            def detach(self):
++                return self
++
++            def cpu(self):
++                return 0.25
++
++        state = {"transition_losses": [], "transition_boundaries": []}
++        exec(boundary, dict(update_state=state, prediction=prediction, loss=Loss(), transition_count=16,
++                            sample_index=2, index=1, anchor_mean="anchor", tree_sha256=lambda value: value,
++                            named_trainable={"lora": SimpleNamespace(grad="parameter gradient")}))
++        self.assertEqual(state["transition_losses"], [0.25])
++        self.assertEqual(state["transition_boundaries"], [{
++            "rollout": 2, "transition": 1, "actor_output_sha256": prediction,
++            "actor_output_gradient_sha256": "output gradient", "anchor_mean_sha256": "anchor",
++            "accumulated_lora_gradients_sha256": {"lora": "parameter gradient"},
++        }])
++
+     def test_rollout_rows_match_optimizer_iteration_order(self):
+         old = list(range(16))
+         new = [value + 0.25 for value in old]
+-- 
+2.40.0.windows.1
+
