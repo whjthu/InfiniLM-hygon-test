@@ -82,10 +82,10 @@ def audit_request(row, pin, eos, special, rescore=None):
                                      and not score["parse_failure"] and not score["unexpected_tool_intent"]),
             "saved scorer flags inconsistent")
     return dict(correct=score["correct"], raw_match=score["answer_matches_gold"],
-                parse_failure=score["parse_failure"], cap=cap, decode=decode)
+                parse_failure=score["parse_failure"], cap=cap, decode=decode, output_hash=digest)
 
 
-def summarize_requests(rows, binding, rescore=None):
+def summarize_requests(rows, binding, rescore=None, *, verified=None):
     pins = binding["private_plan"]["requests"]
     eos = set(binding["eos_token_ids"])
     special = set(binding["tokenizer"]["special_ids"])
@@ -118,6 +118,8 @@ def summarize_requests(rows, binding, rescore=None):
             except (ValueError, KeyError, TypeError):
                 result["invalid"] += 1
                 continue
+            if verified is not None:
+                verified[pin["ordinal"]] = item
             result["completed_verified"] += 1
             for key in ("correct", "raw_match", "parse_failure", "cap"):
                 result[key] += item[key]
@@ -128,6 +130,28 @@ def summarize_requests(rows, binding, rescore=None):
                       backend_decode_tok_s_median=statistics.median(rates) if rates else None)
         counts[suite] = result
     return counts
+
+
+def compare_requests(pins, baseline, candidate):
+    """Pair only verified occurrences of the same frozen screen input."""
+    results = {}
+    for suite in ("gsm8k", "mmlu"):
+        ordinals = [pin["ordinal"] for pin in pins if pin["suite"] == suite]
+        pairs = [(baseline[k], candidate[k]) for k in ordinals if k in baseline and k in candidate]
+        ratios = [b["decode"] / a["decode"] for a, b in pairs
+                  if a["decode"] is not None and b["decode"] is not None]
+        gains = sum(b["correct"] and not a["correct"] for a, b in pairs)
+        losses = sum(a["correct"] and not b["correct"] for a, b in pairs)
+        results[suite] = dict(
+            planned_pairs=len(ordinals), verified_pairs=len(pairs),
+            unverified_pairs=len(ordinals) - len(pairs),
+            identical_outputs=sum(a["output_hash"] == b["output_hash"] for a, b in pairs),
+            candidate_only_correct=gains, baseline_only_correct=losses,
+            observed_paired_accuracy_delta=(gains - losses) / len(pairs) if pairs else None,
+            paired_decode_count=len(ratios),
+            candidate_over_baseline_backend_decode_median=statistics.median(ratios) if ratios else None,
+        )
+    return results
 
 
 def summarize(root, rows):
@@ -154,6 +178,7 @@ def summarize(root, rows):
         return grade(cases[ordinal], text, natural_EOS=natural, cap_hit=cap, unexpected_tool=False)
 
     result = {}
+    verified = {arm: {} for arm in ARMS}
     for arm in ARMS:
         label = LABEL + "-" + arm
         phases = {phase: observed.get(label + "-" + phase) for phase in ("pre", "gate", "post")}
@@ -199,10 +224,13 @@ def summarize(root, rows):
             item["rank0_SHA256"] = digest
             item["rank0_normal_close"] = owner.get("normal_close")
             request_rows = owner["requests"]
-        item["screen"] = summarize_requests(request_rows, binding, rescore)
+        item["screen"] = summarize_requests(request_rows, binding, rescore, verified=verified[arm])
         item["diagnostic_completed"] = sum(row.get("diagnostic") is True and row.get("completed") is True
                                           and row.get("reset_after") is True for row in request_rows)
-    return dict(run_id=RUN, arms=result, score_scope="frozen scorer rerun on saved rank-0 output, with completion checks",
+    comparison = compare_requests(plan_pin["requests"], verified["baseline"], verified["single-drain"])
+    return dict(run_id=RUN, arms=result, paired_screen=comparison,
+                pair_scope="fixed process order; engineering screen with ordinal-matched requests",
+                score_scope="frozen scorer rerun on saved rank-0 output, with completion checks",
                 timing_scope="backend sampled tokens; no HTTP client or fleet busy evidence")
 
 
