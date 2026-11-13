@@ -31,12 +31,23 @@ def check_idle():
     require(len(parents) == 1, "I02 allocation missing")
     state, hosts = parents[0].split("|")
     require(state == "RUNNING" and set(NODES) <= expand(hosts), "I02 allocation changed")
-    for line in query("squeue", "--steps", "-h", "-j", PARENT, "-o", "%i|%N"):
-        step, hosts = line.split("|")
-        if step in {PARENT + ".batch", PARENT + ".extern"}:
+    check_live_steps(query("scontrol", "show", "step", PARENT, "-o"))
+
+
+def check_live_steps(lines):
+    require(bool(lines), "controller returned no steps for the running allocation")
+    for line in lines:
+        fields = dict(word.split("=", 1) for word in line.split() if "=" in word)
+        step = fields.get("StepId", "")
+        require(re.fullmatch(re.escape(PARENT) + r"\.(?:[0-9]+|batch|extern)", step),
+                "unrecognized controller step")
+        if step.endswith((".batch", ".extern")):
             continue
-        require(hosts not in {"", "(null)", "None"} and not (set(NODES) & expand(hosts)),
-                "live or unresolved Slurm step overlaps I02 pair")
+        hosts = fields.get("NodeList")
+        require(hosts not in {None, "", "(null)", "None", "(none)"},
+                "controller step has unresolved nodes")
+        nodes = expand(hosts)
+        require(nodes and not (set(NODES) & nodes), "live or unresolved Slurm step overlaps I02 pair")
 
 
 def account(label, deadline):

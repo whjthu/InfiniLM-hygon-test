@@ -86,6 +86,16 @@ def main():
                 assert host.account("exact", time.monotonic()+5)[0] == "1103606.1"
             else:
                 rejects(lambda: host.account("exact", time.monotonic()+5))
+    batch = "StepId=1103606.batch State=RUNNING NodeList=other"
+    extern = "StepId=1103606.extern State=RUNNING NodeList=f13r1n[05,07]"
+    active = "StepId=1103606.71 State=RUNNING NodeList=f13r1n[05,07]"
+    host.check_live_steps([batch, extern])
+    rejects(lambda: host.check_live_steps([]))
+    rejects(lambda: host.check_live_steps([batch, "StepId=1103606.71 State=RUNNING"]))
+    rejects(lambda: host.check_live_steps(["unexpected controller output"]))
+    with patch.object(host, "expand", side_effect=lambda nodes: set(host.NODES) if "[05,07]" in nodes else {"other"}):
+        rejects(lambda: host.check_live_steps([batch, extern, active]))
+        host.check_live_steps([batch, extern, active.replace("f13r1n[05,07]", "other")])
     print("PASS: serial arms, duplicate refusal, unresolved/failed accounting, hardware changes, GPU gate arguments")
 
 
