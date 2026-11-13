@@ -1,0 +1,74 @@
+From e08e2fe5a72001466cdfea1d1363a0310e248556 Mon Sep 17 00:00:00 2001
+From: whjthu <haojie0429@gmail.com>
+Date: Fri, 13 Nov 2026 19:13:48 +0800
+Subject: [PATCH] Register SAGE-GRPO diagnostic policy artifacts in the
+ manifest
+
+---
+ .../backends/hunyuanvideo_sage_grpo.py        |  5 ++--
+ .../test_hunyuanvideo_sage_policy_capture.py  | 30 +++++++++++++++++++
+ 2 files changed, 33 insertions(+), 2 deletions(-)
+
+diff --git a/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py b/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py
+index 2477b8d..1fd3c05 100644
+--- a/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py
++++ b/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py
+@@ -650,11 +650,12 @@ def run_hunyuanvideo_sage_grpo(
+         if replay_path is not None or capture_only:
+             rl_step(1, save_outputs=False)
+             hook_handle.remove()
+-            logs = [{"path": str(policy_path), "sha256": sha256_path(policy_path)}]
++            policy_artifact = {"path": str(policy_path), "sha256": sha256_path(policy_path)}
++            logs = []
+             if capture_only:
+                 logs.extend({"path": str(path), "sha256": sha256_path(path)} for path in trajectory_paths)
+             return {
+-                "artifacts": [],
++                "artifacts": [policy_artifact],
+                 "logs": logs,
+                 "metrics": {"diagnostic_fixed_trajectory_replay": replay_path is not None,
+                             "diagnostic_capture_first_policy_only": capture_only, "policy_updates": 1,
+diff --git a/generation/tests/test_hunyuanvideo_sage_policy_capture.py b/generation/tests/test_hunyuanvideo_sage_policy_capture.py
+index fc64d9f..97961b2 100644
+--- a/generation/tests/test_hunyuanvideo_sage_policy_capture.py
++++ b/generation/tests/test_hunyuanvideo_sage_policy_capture.py
+@@ -99,6 +99,36 @@ class PolicyCaptureTests(unittest.TestCase):
+                 load_trajectory(torch, path, hashlib.sha256(b"original").hexdigest(),
+                                 "adapter", {}, (), None, None)
+ 
++    def test_capture_only_result_is_accepted_by_the_real_manifest_merger(self):
++        sys.path.insert(0, str(ROOT / "generation/src"))
++        from gencuda.manifest import merge_backend_result, new_manifest, sha256_path
++
++        backend = next(node for node in tree.body if isinstance(node, ast.FunctionDef)
++                       and node.name == "run_hunyuanvideo_sage_grpo")
++        training = next(node.body for node in backend.body if isinstance(node, ast.Try))
++        branch = next(node for node in training if isinstance(node, ast.If)
++                      and ast.unparse(node.test) == "replay_path is not None or capture_only")
++        wrapper = ast.parse("def diagnostic():\n    pass")
++        wrapper.body[0].body = [branch]
++        with tempfile.TemporaryDirectory() as directory:
++            root = Path(directory)
++            policy = root / "first-policy-update.json"
++            trajectory = root / "step-0001.pt"
++            policy.write_text("{}", encoding="utf-8")
++            trajectory.write_bytes(b"test")
++            steps = []
++            scope = dict(replay_path=None, capture_only=True, policy_path=policy,
++                         trajectory_paths=[trajectory], sha256_path=sha256_path, load_seconds=1.0,
++                         hook_handle=SimpleNamespace(remove=lambda: None),
++                         rl_step=lambda index, save_outputs: steps.append((index, save_outputs)))
++            exec(compile(wrapper, str(SOURCE), "exec"), scope)
++            result = scope["diagnostic"]()
++            manifest = new_manifest("rl", "hunyuanvideo-1.5", {}, {})
++            merge_backend_result(manifest, result)
++            self.assertEqual(steps, [(1, False)])
++            self.assertEqual(manifest["artifacts"][0]["path"], str(policy))
++            self.assertFalse(manifest["metrics"]["performance_accepted"])
++
+ 
+ if __name__ == "__main__":
+     unittest.main()
+-- 
+2.40.0.windows.1
+
