@@ -61,6 +61,7 @@ def gpu_holders():
     kernel = {entry.name for entry in (KFD / "proc").iterdir()}
     require(all(name.isdecimal() for name in kernel), "unexpected KFD process-directory schema")
     same_uid = set()
+    denied = set()
     for proc in Path("/proc").iterdir():
         if not proc.name.isdecimal():
             continue
@@ -76,7 +77,9 @@ def gpu_holders():
                     same_uid.add(proc.name)
         except FileNotFoundError:
             continue
-    return len(kernel | same_uid)
+        except PermissionError:
+            denied.add(proc.name)
+    return len(kernel | same_uid), len(kernel), len(denied)
 
 
 def snapshot(leased):
@@ -87,11 +90,14 @@ def snapshot(leased):
     mapping = kfd_inventory() if leased else None
     if leased:
         require(sorted(mapping) == pci, "allocated KFD inventory differs from DRM")
-    holders = gpu_holders()
+    holders, kernel_holders, fd_denied = gpu_holders()
     return {
         "kind": "i03_device_snapshot", "mode": "leased" if leased else "cpu",
         "node": node, "step": step, "pci": pci, "pci_to_kfd": mapping,
         "kfd_holder_count": holders,
+        "kernel_kfd_holder_count": kernel_holders,
+        "same_uid_fd_denied_count": fd_denied,
+        "holder_scope": "kernel KFD plus readable same-UID file descriptors",
         "boot_id": Path("/proc/sys/kernel/random/boot_id").read_text().strip(),
         "monotonic_ns": time.monotonic_ns(),
     }
