@@ -1,0 +1,96 @@
+{
+  "case": "T09.sage-grpo",
+  "source": "code/bw1000/training-hunyuanvideo-sage-A100-trajectory-audit-v1/audit_trajectory.py",
+  "source_SHA256": "e68687ad5507dc50e15101c0d41e277040835510b12f6169d3192aa660201c82",
+  "receipt_SHA256": "035b79545afc659632827076b69f4bd7a287da9695da661a59c1029a0ae227c4",
+  "first_audit": {
+    "receipt_SHA256": "11413f3fa32933f669eb31898b71c3d466bd2236dddec747cd1cb1602ddf8952",
+    "result": {
+      "rc": 1,
+      "stdout_SHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_SHA256": "98f723f7f0eb3b3f1b5eb4176646aa66539162be4b1da56608e52d5c8b4c523c",
+      "failure_tail": [
+        "Traceback (most recent call last):",
+        "  File \"<stdin>\", line 42, in <module>",
+        "AssertionError"
+      ]
+    },
+    "error": "Independent verifier incorrectly used spatial latent dimensions 60x106. Frozen cache dimensions are 30x53."
+  },
+  "corrected_audit": {
+    "rc": 0,
+    "stdout_SHA256": "7addcfa569d0d6aeb902cc56c6cdea264cccbca3af95c96af6a690b005e799e7",
+    "stderr_SHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "value": {
+      "request_id": "ecf2043eea694842bce5441cc9e3c41d",
+      "tensors": {
+        "latent": {
+          "shape": [
+            4,
+            5,
+            32,
+            3,
+            30,
+            53
+          ],
+          "dtype": "torch.float32",
+          "numel": 3052800,
+          "sha256": "548408158f915cfdccad7a111bb733c55b40096076c28aea61296ecb6c68926a"
+        },
+        "noise": {
+          "shape": [
+            4,
+            4,
+            32,
+            3,
+            30,
+            53
+          ],
+          "dtype": "torch.float32",
+          "numel": 2442240,
+          "sha256": "24f14e22dfb70cc0a55df7759bc3d4f8675795b387b34ea0c1978ec206994dd0"
+        },
+        "sampled_log_prob": {
+          "shape": [
+            4,
+            4
+          ],
+          "dtype": "torch.float32",
+          "numel": 16,
+          "sha256": "5785870a5bb2bd8e0bdd7f183e6886d4de3176d356fbf891ab18a771d3d50a79"
+        },
+        "timestep": {
+          "shape": [
+            4
+          ],
+          "dtype": "torch.float32",
+          "numel": 4,
+          "sha256": "36f3b098007cb69cd2c0fb9358cbb1685d33e6273e6f05a95e7f8aa3f42cb234"
+        },
+        "sigmas": {
+          "shape": [
+            5
+          ],
+          "dtype": "torch.float32",
+          "numel": 5,
+          "sha256": "ea164fc5ce687cf448e1c8a7b8fe01d07e8886a2a9a20c1eb8c6818deff9f636"
+        }
+      },
+      "input_identity": {
+        "cache_sha256": "9bdbaccaada6be6080ace96aa464f70adc8041bd43e58eae58052c5b2eab541b",
+        "target_video_sha256": "e1dd43dfb043b83b64b9b6c878f2956588c936ff8e2ed1b482ce29e3c5479915"
+      },
+      "tensor_contents_verified": true,
+      "old_log_prob_matches_policy": true,
+      "launch_and_adapter_file_verified": true,
+      "reference_sha256": "55a879cafa7880840ac0aead8dec4fd4c55f3732e041dcfbfbad0cba790dccff",
+      "cuda_initialized": false,
+      "original_launcher_passed": false,
+      "actual_replay_executed": false
+    }
+  },
+  "original_gpu_runs": 1,
+  "new_gpu_runs": 0,
+  "original_launcher_passed": false,
+  "Hygon_replay_passed": false
+}
