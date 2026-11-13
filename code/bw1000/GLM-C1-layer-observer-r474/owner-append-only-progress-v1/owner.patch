@@ -1,0 +1,30 @@
+--- a/code/bw1000/GLM-C1-layer-observer-r474/full-model-paired-worker-v1/owner.py
++++ b/code/bw1000/GLM-C1-layer-observer-r474/full-model-paired-worker-v1/owner.py
+@@ -51,8 +51,25 @@
+   if time.time()>=epoch+cap:raise TimeoutError('Original epoch deadline '+label)
+   if sampler and(sampler.errors or(sampler.minimum is not None and sampler.minimum<FLOOR)):raise RuntimeError('Observed original8GiB floor/sampler failure')
+  def mark(phase,**extra):
+-  q['phase']=phase;event=dict(phase=phase,epoch=time.time(),monotonic=time.monotonic(),**extra);q['events'].append(event);trace.write((json.dumps(event)+'\n').encode());save(local,q)
+-  if phase not in ['load.progress','forward.enter','forward.return','sampled']:save(target,q)
++  q['phase'] = phase
++  event = dict(phase=phase, epoch=time.time(), monotonic=time.monotonic(), **extra)
++  if phase in ('forward.enter', 'forward.return', 'sampled'):
++   # Keep live progress in the append-only trace, with no cumulative snapshot rewrite.
++   current = q['requests'][-1]
++   event['progress'] = {
++    'ordinal': current['ordinal'],
++    'generated': len(current['generated_token_ids']),
++    'forward_attempts': q['Native_forward_attempts'],
++    'forward_completed': q['Native_forward_completed'],
++   }
++   q['events'].append(event)
++   trace.write((json.dumps(event) + '\n').encode())
++   return
++  q['events'].append(event)
++  trace.write((json.dumps(event) + '\n').encode())
++  save(local,q)
++  if phase != 'load.progress':
++   save(target,q)
+  def memory(label):
+   free,total=sampler.read();q['memory_boundaries'].append(dict(phase=label,epoch=time.time(),free=free,total=total,floor=FLOOR));assert free>=FLOOR,(label,'8GiB floor',free);deadline(label);return free
+  def gate(phase):
