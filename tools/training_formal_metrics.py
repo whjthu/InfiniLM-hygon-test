@@ -52,7 +52,7 @@ def timing(runs, cards, recipe, boundary, verify_raw):
     return statistics.median(rates)
 
 
-def effect(rows, expected, verify_raw):
+def effect(rows, expected, provenance, verify_raw):
     need(rows.keys() == expected.keys(), 'held-out metric set differs')
     regressions = {}
     for metric, direction in expected.items():
@@ -62,11 +62,16 @@ def effect(rows, expected, verify_raw):
              and sha(row['raw_scores']['SHA256']) and sha(row['paired_checkpoint_binding']['SHA256']),
              'invalid held-out scores or missing evidence')
         scores = {k: v for k, v in row.items() if k not in ('raw_scores', 'paired_checkpoint_binding')}
-        need(verify_raw(row['raw_scores']) == dict(scores, metric=metric),
-             'held-out score fields differ from the pinned receipt')
         binding = verify_raw(row['paired_checkpoint_binding'])
-        need(all(sha(binding[key]) for key in ('A100', 'Hygon', 'Hygon_before')),
-             'missing paired checkpoint identities')
+        need(all(binding.get(key) == value for key, value in provenance.items()),
+             'paired checkpoints belong to different held-out evidence')
+        platforms = ('A100', 'Hygon', 'Hygon_before')
+        need(all(sha(binding[key]) for key in platforms), 'missing paired checkpoint identities')
+        checkpoints = {key: binding[key] for key in platforms}
+        receipt = dict(scores, metric=metric, **provenance,
+                       checkpoint_SHA256=checkpoints)
+        need(verify_raw(row['raw_scores']) == receipt,
+             'held-out scores differ from the pinned case, scorer, dataset or checkpoints')
         need(type(row['planned_samples']) is int and row['planned_samples'] > 0,
              'missing held-out sample denominator')
         for platform in ('A100', 'Hygon', 'Hygon_before'):
@@ -111,7 +116,9 @@ def stage_three(case, framework_commit, evidence, verify_raw):
                      for name, direction in directions.items()), 'missing registered VBench metrics')
         expected = {'Video CLIP': 'higher', **directions}
     need(expected is not None, 'unknown training case')
-    regressions = effect(holdout['metrics'], expected, verify_raw)
+    provenance = {'case': case['case'], 'framework_commit': framework_commit,
+                  'dataset_SHA256': holdout['dataset_SHA256'], 'scorer_SHA256': holdout['scorer_SHA256']}
+    regressions = effect(holdout['metrics'], expected, provenance, verify_raw)
     ratio = hygon / a100
     return {'A100_median_updates_per_second': a100, 'Hygon_median_updates_per_second': hygon,
             'throughput_ratio': ratio, 'effect_regressions': regressions,
