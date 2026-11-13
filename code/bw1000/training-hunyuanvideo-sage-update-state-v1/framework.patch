@@ -1,0 +1,156 @@
+From 55a21c045a81ce078816854d3456421bf1d14e2d Mon Sep 17 00:00:00 2001
+From: whjthu <haojie0429@gmail.com>
+Date: Fri, 13 Nov 2026 19:27:19 +0800
+Subject: [PATCH] Capture gradients and Muon state for SAGE-GRPO diagnostics
+
+---
+ README.md                                     |  3 ++
+ .../backends/hunyuanvideo_sage_grpo.py        | 37 ++++++++++++++++++-
+ .../test_hunyuanvideo_sage_policy_capture.py  |  4 ++
+ 3 files changed, 42 insertions(+), 2 deletions(-)
+
+diff --git a/README.md b/README.md
+index 0bbc32d..5bbece0 100644
+--- a/README.md
++++ b/README.md
+@@ -93,6 +93,9 @@ Replay a trajectory captured with this version using
+ and `--replay-first-trajectory-sha256 <digest>` in a fresh SAGE-GRPO run.
+ Replay recomputes the rewards and likelihoods and runs one policy update with
+ the recorded old log-probabilities as the PPO denominator.
++Capture and replay also save named adapter parameters, gradients before and
++after clipping, transition losses, and optimizer state before and after the
++update in `first-policy-update-state.pt`. Keep this file in experiment storage.
+ 
+ The launcher checks the recipe's card count and uses `gencuda --accelerator hip`
+ from this checkout. The runtime manifest records the reported platform and
+diff --git a/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py b/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py
+index 1fd3c05..a1778fc 100644
+--- a/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py
++++ b/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py
+@@ -19,6 +19,7 @@ from typing import Any
+ import numpy as np
+ 
+ from ..manifest import sha256_path
++from ..hunyuanvideo_resume_checkpoint import _cpu_tree as snapshot_cpu_tree
+ from ..recovery_validation import run_recovery_validation, validate_recovery_enabled
+ from ..runtime import require_cuda, synchronize, within_memory_limit
+ from .hunyuanvideo_training import (
+@@ -277,7 +278,8 @@ def run_hunyuanvideo_sage_grpo(
+     os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+     output_dir.mkdir(parents=True, exist_ok=True)
+     policy_path = output_dir / "first-policy-update.json"
+-    if (capture_first_policy or replay_path is not None) and (policy_path.exists() or
++    update_state_path = output_dir / "first-policy-update-state.pt"
++    if (capture_first_policy or replay_path is not None) and (policy_path.exists() or update_state_path.exists() or
+                                  (output_dir / "trajectories" / "step-0001.pt").exists()):
+         raise FileExistsError("SAGE-GRPO policy capture requires fresh output paths")
+     created_group, rendezvous = _init_nccl(torch, output_dir)
+@@ -552,6 +554,22 @@ def run_hunyuanvideo_sage_grpo(
+                     anchor_means.append(torch.cat(per_sample, dim=0))
+                 _load_state(model, current_state)
+ 
++            update_state = None
++            if capture_policy:
++                named_trainable = {name: value for name, value in model.named_parameters()
++                                   if value.requires_grad}
++                names_by_id = {id(value): name for name, value in named_trainable.items()}
++                update_state = {
++                    "schema": "hunyuanvideo-sage-policy-update-v1",
++                    "global_step": global_step,
++                    "optimizer_parameter_names": [
++                        [names_by_id[id(value)] for value in group["params"]]
++                        for group in optimizer.param_groups
++                    ],
++                    "parameters_before": snapshot_cpu_tree(named_trainable),
++                    "optimizer_before": snapshot_cpu_tree(optimizer.state_dict()),
++                    "transition_losses": [],
++                }
+             optimizer.zero_grad(set_to_none=True)
+             update_started = perf_counter()
+             new_log_values = []
+@@ -587,11 +605,19 @@ def run_hunyuanvideo_sage_grpo(
+                     stepwise_kl = (old_log - new_log).mean()
+                     loss = policy_loss + kl_weight * (moving_kl + dual_step_weight * stepwise_kl)
+                     (loss / transition_count).backward()
++                    if update_state is not None:
++                        update_state["transition_losses"].append(float(loss.detach().cpu()))
+                     new_log_values.append(float(new_log.detach().cpu()))
+                     ratio_values.append(float(ratio.detach().cpu()))
+                     moving_kls.append(float(moving_kl.detach().cpu()))
+                     policy_losses.append(float(policy_loss.detach().cpu()))
++            if update_state is not None:
++                update_state["gradients_before_clip"] = snapshot_cpu_tree(
++                    {name: value.grad for name, value in named_trainable.items()})
+             grad_norm = torch.nn.utils.clip_grad_norm_(trainable, max_grad_norm)
++            if update_state is not None:
++                update_state["gradients_after_clip"] = snapshot_cpu_tree(
++                    {name: value.grad for name, value in named_trainable.items()})
+             optimizer.step()
+             synchronize()
+             update_seconds = perf_counter() - update_started
+@@ -608,6 +634,10 @@ def run_hunyuanvideo_sage_grpo(
+             new_values = np.asarray(new_log_values, dtype=np.float32)
+             errors = np.abs(new_values - old_values)
+             if capture_policy:
++                update_state.update(parameters_after=snapshot_cpu_tree(named_trainable),
++                                    optimizer_after=snapshot_cpu_tree(optimizer.state_dict()))
++                with update_state_path.open("xb") as stream:
++                    torch.save(update_state, stream)
+                 policy = {
+                     "global_step": global_step,
+                     "trajectory": {"path": str(trajectory_path), "sha256": sha256_path(trajectory_path)},
+@@ -616,6 +646,7 @@ def run_hunyuanvideo_sage_grpo(
+                                               advantages.tolist(), policy_losses, moving_kls),
+                     "adapter_before": actor_start_sha, "adapter_after": adapter_after,
+                     "grad_norm_before_clip": grad_value,
++                    "update_state": {"path": str(update_state_path), "sha256": sha256_path(update_state_path)},
+                 }
+                 if replay is not None:
+                     policy["recomputed_old_log_probs"] = evaluated_old_log.tolist()
+@@ -651,7 +682,7 @@ def run_hunyuanvideo_sage_grpo(
+             rl_step(1, save_outputs=False)
+             hook_handle.remove()
+             policy_artifact = {"path": str(policy_path), "sha256": sha256_path(policy_path)}
+-            logs = []
++            logs = [{"path": str(update_state_path), "sha256": sha256_path(update_state_path)}]
+             if capture_only:
+                 logs.extend({"path": str(path), "sha256": sha256_path(path)} for path in trajectory_paths)
+             return {
+@@ -795,6 +826,8 @@ def run_hunyuanvideo_sage_grpo(
+                 {"path": str(summary_path), "sha256": sha256_path(summary_path)},
+                 *({"path": str(path), "sha256": sha256_path(path)} for path in trajectory_paths),
+                 *([{"path": str(policy_path), "sha256": sha256_path(policy_path)}] if capture_first_policy else []),
++                *([{"path": str(update_state_path), "sha256": sha256_path(update_state_path)}]
++                  if capture_first_policy else []),
+             ],
+             "metrics": {
+                 "steps": max_steps,
+diff --git a/generation/tests/test_hunyuanvideo_sage_policy_capture.py b/generation/tests/test_hunyuanvideo_sage_policy_capture.py
+index 97961b2..c28ac6f 100644
+--- a/generation/tests/test_hunyuanvideo_sage_policy_capture.py
++++ b/generation/tests/test_hunyuanvideo_sage_policy_capture.py
+@@ -114,10 +114,13 @@ class PolicyCaptureTests(unittest.TestCase):
+             root = Path(directory)
+             policy = root / "first-policy-update.json"
+             trajectory = root / "step-0001.pt"
++            update_state = root / "first-policy-update-state.pt"
+             policy.write_text("{}", encoding="utf-8")
+             trajectory.write_bytes(b"test")
++            update_state.write_bytes(b"state")
+             steps = []
+             scope = dict(replay_path=None, capture_only=True, policy_path=policy,
++                         update_state_path=update_state,
+                          trajectory_paths=[trajectory], sha256_path=sha256_path, load_seconds=1.0,
+                          hook_handle=SimpleNamespace(remove=lambda: None),
+                          rl_step=lambda index, save_outputs: steps.append((index, save_outputs)))
+@@ -127,6 +130,7 @@ class PolicyCaptureTests(unittest.TestCase):
+             merge_backend_result(manifest, result)
+             self.assertEqual(steps, [(1, False)])
+             self.assertEqual(manifest["artifacts"][0]["path"], str(policy))
++            self.assertIn({"path": str(update_state), "sha256": sha256_path(update_state)}, manifest["logs"])
+             self.assertFalse(manifest["metrics"]["performance_accepted"])
+ 
+ 
+-- 
+2.40.0.windows.1
+
