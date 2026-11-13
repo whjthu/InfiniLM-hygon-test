@@ -1,0 +1,25 @@
+# 17 项训练用例验收矩阵
+
+统一入口为 `tools/hygon_training_recipe.py`。本表随实验推进更新，第三阶段需要同配方吞吐达到 A100 的 90%，且留出集指标相对退化不超过 5%。
+
+框架注册快照为 `fb1e2ee1a33a8f9fc5dda7c769fefcb1f69191e8`。原启动哈希、卡数和证据哈希见同目录 JSON。
+
+| 用例 | A100 参考 | 海光功能或阻塞 | 数值 | 恢复 | 正式性能 | 留出集 |
+|---|---|---|---|---|---|---|
+| T01.sft | A100 已独立核对两次更新及 25 步。 [证据](../../results/bw1000/2026-11-12/training-qwen-original-eight-A100-native25-two-updates-and-checkpoints-independent.json) | 模型公开权重传输未终结。 [证据](../../coordination/tasks/training-qwen-public-model-target-identity-v1.json) | 未验证 | 未验证 | 待实测 | 待实测 |
+| T02.sft | A100 已核对两次更新及 25 步。 [证据](../../results/bw1000/2026-11-11/training-gemma-original-native25-two-updates-and-three-checkpoints-independent.json) | 目标 16 个模型文件通过校验。原初始 LoRA 参数传输待授权。 [证据](../../coordination/tasks/training-gemma-original-initial-trainables-v1.json) | 未验证 | 未验证 | 待实测 | 待实测 |
+| T03.sft | A100 原配方及 CPU 原生入口已绑定。八卡参考任务尚未启动。 [证据](../../coordination/tasks/training-internvl-A100-first-updates-v1.json) | 缺完整 A100 首步数值参考及目标实测。 [证据](../../results/bw1000/2026-11-12/training-internvl-original64-native-collator-logit-selection-and-full-capture-budget.json) | 未验证 | 未验证 | 待实测 | 待实测 |
+| T04.sft | A100 原配方已绑定。原节点仍有计算进程，八卡参考未启动。 [证据](../../coordination/tasks/training-llava-A100-first-updates-v1.json) | 缺完整 A100 首步数值参考及目标实测。 [证据](../../results/bw1000/2026-11-12/training-llava-original64-native-collator-full-logits-and-capture-bound.json) | 未验证 | 未验证 | 待实测 | 待实测 |
+| T05.sft | A100 两次更新和 25 步参考已核验。 [证据](../../results/bw1000/2026-11-11/training-minicpm-original-A10025-two-updates-independent-reference.json) | 目标首步和检查点已有实测。首次内部边界诊断执行状态未知。 [证据](../../results/bw1000/2026-11-11/training-minicpm-original151-native-paired-recovery-inputs-match-numerical-drift.json) | 待验证 | 失败，配对恢复出现数值漂移 | 待实测 | 待实测 |
+| T06.sft | A100 固定输入和原数值策略已绑定。 [证据](../../results/bw1000/2026-11-10/training-t06-sdxl-first-update-r2-v1-verified-inputs.json) | 海光执行真实首步。多条 SDPA 路径均未通过参数更新门槛。 [证据](../../results/bw1000/2026-11-12/training-sdxl-original176-selected-backward-cancellation-and-cost.json) | 失败，参数更新门槛 | 未验证 | 待实测 | 待实测 |
+| T06.ddpo | 原启动哈希已登记。独立 rollout、奖励及策略更新对照待核。 | 基础 SFT 数值门槛未过。 | 未验证 | 未验证 | 待实测 | 待实测 |
+| T07.sft | A100 首步通过。原恢复失败，另有确定性 Flash2 候选恢复通过。 [证据](../../results/bw1000/2026-11-12/training-zimage-explicit-Flash2-deterministic-native-recovery-candidate.json) | 海光 HIP attention 组件通过，原底座、预置 adapter 和完整首步仍待验证。 [证据](../../results/bw1000/2026-11-13/training-zimage-added-1103606-27-hip-attention-numerical.json) | 未验证 | 海光未验证 | 待实测 | 待实测 |
+| T07.flow-grpo | 原启动哈希已登记。独立 rollout、奖励及策略更新对照待核。 | 基础 SFT 完整首步未过验收。 | 未验证 | 未验证 | 待实测 | 待实测 |
+| T08.flow-matching-lora | 原缓存 60 帧、128 个样本。要求 128 帧。 [证据](../../results/bw1000/2026-11-12/training-hymotion-original-frame-conflict-and-unified-admission-guard.json) | 海光 meta 通过。真实 128 帧配方及参考待定。 [证据](../../results/bw1000/2026-11-12/training-hymotion-original180-unified-native-HIP-meta-and-source-closure.json) | 未验证 | 未验证 | 待实测 | 待实测 |
+| T08.motion-rft | 原启动哈希已登记。独立 128 帧参考与固定 rollout 对照待核。 | 基础 128 帧配方尚未确认。 [证据](../../results/bw1000/2026-11-12/training-hymotion-original-frame-conflict-and-unified-admission-guard.json) | 未验证 | 未验证 | 待实测 | 待实测 |
+| T09.sft | A100 首步和 25 步已核验。第 20 步新进程恢复至 25 步完全匹配。 [证据](../../results/bw1000/2026-11-13/training-hunyuanvideo-sft-A100-fresh-process-resume20-terminal.json) | 公开底座传输中，原缓存与私有首步输入待就绪。 [证据](../../coordination/tasks/training-hunyuanvideo-sft-fixed-input-replay-v1.json) | 未验证 | 海光未验证 | 待实测 | 待实测 |
+| T09.dp2 | 已审计原双 rank 计时、训练与恢复记录。 [证据](../../results/bw1000/2026-11-13/training-hunyuanvideo-dp2-A100-slowest-rank-and-recovery-audit.json) | 基础 SFT 海光侧验收及 DP2 实跑待完成。 | 未验证 | 海光未验证 | 待实测 | 待实测 |
+| T09.sage-grpo | 已核验 A100 原配方及三轮结果。独立固定 rollout 全字段数值对照待核。 [证据](../../results/bw1000/2026-11-13/training-hunyuanvideo-three-a100-case-references.json) | 基础 SFT 海光侧验收及策略更新实跑待完成。 | 未验证 | 海光未验证 | 待实测 | 待实测 |
+| T10.shape-flow-lora | A100 固定首步已核对。 [证据](../../results/bw1000/2026-11-10/training-t10-trellis-first-reference-r1-verified.json) | 海光已执行真实首步。后续诊断保留失败记录。 [证据](../../results/bw1000/2026-11-10/training-t10-trellis-hip-first-update-v1-terminal.json) | 失败，首步数值门槛 | 未验证 | 待实测 | 待实测 |
+| T11.material-head | A100 固定首步已核对。 [证据](../../results/bw1000/2026-11-10/training-t11-sf3d-first-reference-r1-verified.json) | 海光原生 CPU 导入通过，完整权重传输待授权。 [证据](../../results/bw1000/2026-11-10/training-t11-sf3d-native-cpu-runtime-v1-terminal.json) | 未验证 | 未验证 | 待实测 | 待实测 |
+| T12.camera-head | A100 首步、25 步和第 20 步新进程恢复已核验。 [证据](../../results/bw1000/2026-11-12/training-vggt-original-A100-fresh-process20-to25-exact-recovery-independent.json) | 海光模型全文件校验通过，原 CO3D 输入传输待授权。 [证据](../../coordination/tasks/training-vggt-original-CO3D-inputs-v1.json) | 未验证 | 海光未验证 | 待实测 | 待实测 |
