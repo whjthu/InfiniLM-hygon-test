@@ -4,6 +4,8 @@ import hashlib
 import json
 from pathlib import Path
 
+from training_formal_metrics import stage_three
+
 
 def require(condition, message):
     if not condition:
@@ -30,9 +32,18 @@ def verify(root):
     require(all(type(case["stage3_accepted"]) is bool for case in cases), "invalid acceptance flag")
     require(sum(case["stage3_accepted"] for case in cases) == index["stage3_passed"],
             "stage-three count differs")
+    require(matrix["stage3"] == {"minimum_A100_throughput_ratio": 0.9,
+                                 "maximum_relative_effect_regression": 0.05},
+            "unexpected stage-three thresholds")
     ledger = matrix["node_ledger"]
     pinned(ledger["path"], ledger["SHA256"])
     pins = dict(matrix["evidence_SHA256"])
+    def verify_formal_attachment(item):
+        path, digest = item["path"], item["SHA256"]
+        require(pins.setdefault(path, digest) == digest, f"conflicting evidence hashes: {path}")
+        # Attachments are small summaries or manifests for private experiment receipts.
+        return json.loads(pinned(path, digest))
+
     for case in cases:
         for evidence in case.get("supplemental_evidence", {}).values():
             path, sha = evidence["path"], evidence["SHA256"]
@@ -40,6 +51,29 @@ def verify(root):
         for field in ("reference_evidence", "hygon_evidence"):
             path = case[field]
             require(path is None or path in pins, f"{case['case']}: unpinned {field}")
+        formal = case.get("formal_acceptance")
+        if case["stage3_accepted"]:
+            require(isinstance(formal, dict), f"{case['case']}: missing formal acceptance evidence")
+        if formal is not None:
+            gate_paths = set()
+            for gate in ("function", "numerics", "recovery"):
+                item = formal["gate_evidence"][gate]
+                path, digest = item["path"], item["SHA256"]
+                require(path not in gate_paths, f"{case['case']}: duplicate gate evidence")
+                gate_paths.add(path)
+                require(pins.setdefault(path, digest) == digest, f"conflicting evidence hashes: {path}")
+                result = json.loads(pinned(path, digest))
+                require(result["case"] == case["case"] and result["framework_commit"] == matrix["framework_commit"]
+                        and result["gate"] == gate and result["passed"] is True,
+                        f"{case['case']}: wrong or failed {gate} gate")
+            item = formal["metrics_evidence"]
+            path, digest = item["path"], item["SHA256"]
+            require(path not in gate_paths, f"{case['case']}: duplicate metrics evidence")
+            require(pins.setdefault(path, digest) == digest, f"conflicting evidence hashes: {path}")
+            metrics = stage_three(case, matrix["framework_commit"], json.loads(pinned(path, digest)),
+                                  verify_formal_attachment)
+            require(metrics["passed"] is case["stage3_accepted"],
+                    f"{case['case']}: formal measurements and acceptance flag disagree")
     for path, sha in pins.items():
         pinned(path, sha)
     human = (root / index["human_readable"]).read_text(encoding="utf-8")
