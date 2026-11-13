@@ -1,0 +1,7 @@
+# GLM FP8 projection host timing
+
+This source variant instruments the pinned CPU1119 prepare translation unit. Arm on the Runtime owner thread before a selected forward and read on that same thread after the original caller has completed. Supply the actual Runtime address to both functions. The component caller still needs to bind both symbols and prove that it passes the right owner. A result with dropped samples must be treated as incomplete.
+
+The caller supplies a buffer with room for capacity_rows times nine uint64_t words. The row fields in order are projection rows, columns, tokens, cached path, active lease, explicit fence nanoseconds, return cleanup nanoseconds, next projection quant submission gap nanoseconds and a flag indicating whether the next submission was observed. The gap can include unrelated operations and the next observer marker. The cleanup interval begins after the explicit fence and includes Work retirement, the retire-path synchronization when applicable, temporary destruction and other return cleanup. The final row may have no observed successor. All timings are host wall intervals. The recording path adds steady-clock reads and bookkeeping. This package measures no GPU events.
+
+The unchanged N256.K2048 profile mark has no matching projection in this translation unit's constructor. The source does not attribute the longest original interval to this implementation. Preserve the original numerical and lifecycle gates in the subsequent device experiment.
