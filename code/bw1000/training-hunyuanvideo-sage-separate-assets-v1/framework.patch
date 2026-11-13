@@ -1,0 +1,152 @@
+From 93f2709ec1832b5852dcbfd8bf57f0c890548d17 Mon Sep 17 00:00:00 2001
+From: whjthu <haojie0429@gmail.com>
+Date: Fri, 13 Nov 2026 21:27:51 +0800
+Subject: [PATCH] Bind separately staged assets for HunyuanVideo policy replay
+
+---
+ .../backends/hunyuanvideo_sage_grpo.py        |  7 +++-
+ generation/src/gencuda/cli.py                 | 12 +++++-
+ .../test_hunyuanvideo_sage_policy_capture.py  | 37 +++++++++++++++++++
+ tools/hygon_training_recipe.py                | 12 ++++++
+ 4 files changed, 66 insertions(+), 2 deletions(-)
+
+diff --git a/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py b/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py
+index c9408dc..2ee2854 100644
+--- a/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py
++++ b/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py
+@@ -329,6 +329,11 @@ def run_hunyuanvideo_sage_grpo(
+     if (capture_first_policy or replay_path is not None) and any(type(config.get(key, 4)) is not int or config.get(key, 4) != 4
+                                     for key in ("num_generations", "sampling_steps")):
+         raise ValueError("SAGE-GRPO policy capture requires the original four-by-four rollout")
++    vae_root = weights / "vae"
++    if "sage_vae_dir" in config:
++        vae_root = Path(config["sage_vae_dir"])
++        if replay_path is None or not vae_root.is_absolute() or not (vae_root / "config.json").is_file():
++            raise ValueError("separate SAGE VAE requires a configured absolute directory and fixed replay")
+     torch = require_cuda()
+     if torch.cuda.device_count() < 2:
+         raise RuntimeError("HunyuanVideo SAGE-GRPO requires actor and reward CUDA cards")
+@@ -414,7 +419,7 @@ def run_hunyuanvideo_sage_grpo(
+         )
+         trainable = [parameter for parameter in model.parameters() if parameter.requires_grad]
+         vae = AutoencoderKLConv3D.from_pretrained(
+-            weights / "vae", torch_dtype=torch.bfloat16
++            vae_root, torch_dtype=torch.bfloat16
+         ).to(reward_device)
+         vae.set_tile_sample_min_size(256, 0.125)
+         vae.eval()
+diff --git a/generation/src/gencuda/cli.py b/generation/src/gencuda/cli.py
+index 90ad312..4ec4473 100644
+--- a/generation/src/gencuda/cli.py
++++ b/generation/src/gencuda/cli.py
+@@ -231,7 +231,17 @@ def run_backend(
+             source_root=_source_dir(source_root, source),
+         )
+     if command == "rl" and spec.name == "hunyuanvideo-1.5":
+-        return _call(f"gencuda.backends.{module}", function, weights, config, directory, _source_dir(source_root, source), _source_dir(source_root, "sage-grpo"))
++        scheduler_override = config.get("sage_scheduler_root")
++        if scheduler_override is None:
++            scheduler_root = _source_dir(source_root, "sage-grpo")
++        else:
++            scheduler_root = Path(scheduler_override)
++            if not config.get("replay_first_trajectory") or not scheduler_root.is_absolute():
++                raise ValueError("separate SAGE scheduler requires an absolute path and fixed replay")
++            if not (scheduler_root / "hyvideo/schedulers/scheduling_flow_match_discrete.py").is_file():
++                raise ValueError("separately staged SAGE scheduler file is missing")
++        return _call(f"gencuda.backends.{module}", function, weights, config, directory,
++                     _source_dir(source_root, source), scheduler_root)
+     if command == "rl" and spec.name == "hy-motion-1.0":
+         return _call(f"gencuda.backends.{module}", function, weights, config, directory, _source_dir(source_root, source), _source_dir(source_root, "motionrft"))
+     if source is None:
+diff --git a/generation/tests/test_hunyuanvideo_sage_policy_capture.py b/generation/tests/test_hunyuanvideo_sage_policy_capture.py
+index 0940efc..4f82e5c 100644
+--- a/generation/tests/test_hunyuanvideo_sage_policy_capture.py
++++ b/generation/tests/test_hunyuanvideo_sage_policy_capture.py
+@@ -199,6 +199,16 @@ class PolicyCaptureTests(unittest.TestCase):
+                     self.assertTrue(run.call_args.args[0]["config"]["trace_first_actor_blocks"])
+                     replay = ["--replay-first-trajectory", "/capture/step-0001.pt",
+                               "--replay-first-trajectory-sha256", "a" * 64]
++                    separate = ["--sage-vae-dir", "/staged/vae",
++                                "--sage-scheduler-root", "/staged/sage"]
++                    self.assertEqual(recipe.main(args + replay + separate), 0)
++                    routed = run.call_args.args[0]["config"]
++                    self.assertEqual(routed["sage_vae_dir"], "/staged/vae")
++                    self.assertEqual(routed["sage_scheduler_root"], "/staged/sage")
++                    self.assertEqual(routed["replay_first_trajectory_sha256"], "a" * 64)
++                    for flags, accelerator in ((separate, "hip"), (replay + separate, "cuda")):
++                        with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
++                            recipe.main(args + flags, generation_accelerator=accelerator)
+                     detail = ["--trace-first-actor-detail-block", "50"]
+                     self.assertEqual(recipe.main(args + replay + trace_option + detail,
+                                                  generation_accelerator="cuda"), 0)
+@@ -211,6 +221,33 @@ class PolicyCaptureTests(unittest.TestCase):
+         with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+             recipe.main(["T09.dp2", "--run", "--capture-first-policy"])
+ 
++    def test_backend_routes_separately_staged_scheduler(self):
++        cli_source = ROOT / "generation/src/gencuda/cli.py"
++        cli_tree = ast.parse(cli_source.read_bytes())
++        names = {"run_backend", "_source_dir"}
++        functions = [node for node in cli_tree.body
++                     if isinstance(node, ast.FunctionDef) and node.name in names]
++        call = lambda *args: args
++        ns = {"Path": Path, "ModelSpec": Any, "Any": Any, "_call": call,
++              "validate_resume_request": lambda *args: None}
++        exec(compile(ast.Module(body=functions, type_ignores=[]), str(cli_source), "exec"), ns)
++        with tempfile.TemporaryDirectory() as folder:
++            root = Path(folder)
++            (root / "hunyuanvideo-1.5").mkdir()
++            staged = root / "separate-sage"
++            path = staged / "hyvideo/schedulers/scheduling_flow_match_discrete.py"
++            spec = SimpleNamespace(name="hunyuanvideo-1.5")
++            config = {"sage_scheduler_root": str(staged), "replay_first_trajectory": "/trajectory.pt"}
++            with self.assertRaisesRegex(ValueError, "file is missing"):
++                ns["run_backend"]("rl", spec, root, config, root, root)
++            path.parent.mkdir(parents=True)
++            path.touch()
++            args = ns["run_backend"]("rl", spec, root, config, root, root)
++            self.assertEqual(args[-2:], (root / "hunyuanvideo-1.5", staged))
++            (root / "sage-grpo").mkdir()
++            args = ns["run_backend"]("rl", spec, root, {}, root, root)
++            self.assertEqual(args[-1], root / "sage-grpo")
++
+     def test_replay_loader_refuses_altered_bytes_before_deserializing(self):
+         with tempfile.TemporaryDirectory() as directory:
+             path = Path(directory) / "step-0001.pt"
+diff --git a/tools/hygon_training_recipe.py b/tools/hygon_training_recipe.py
+index 37569c8..e10d8ed 100644
+--- a/tools/hygon_training_recipe.py
++++ b/tools/hygon_training_recipe.py
+@@ -196,6 +196,10 @@ def main(argv: list[str] | None = None, *, generation_accelerator: str = "hip")
+                          help="stop after recording the first SAGE-GRPO policy update")
+     parser.add_argument("--replay-first-trajectory", type=vlm.absolute_path)
+     parser.add_argument("--replay-first-trajectory-sha256")
++    parser.add_argument("--sage-vae-dir", type=vlm.absolute_path,
++                        help="use a separately staged VAE directory for T09.sage-grpo replay")
++    parser.add_argument("--sage-scheduler-root", type=vlm.absolute_path,
++                        help="use a separately staged SAGE checkout for T09.sage-grpo replay")
+     parser.add_argument("--trace-first-actor-blocks", action="store_true",
+                         help="fingerprint checkpointed actor block outputs and their gradients on CUDA")
+     parser.add_argument("--trace-first-actor-detail-block", type=int,
+@@ -213,6 +217,10 @@ def main(argv: list[str] | None = None, *, generation_accelerator: str = "hip")
+         digest = options.replay_first_trajectory_sha256
+         if len(digest) != 64 or set(digest) - set("0123456789abcdef"):
+             parser.error("fixed trajectory replay requires a lowercase SHA256")
++    if (options.sage_vae_dir is not None or options.sage_scheduler_root is not None) and (
++        options.replay_first_trajectory is None or generation_accelerator != "hip"
++    ):
++        parser.error("separate SAGE assets require T09.sage-grpo fixed replay on HIP")
+     if options.trace_first_actor_blocks and (
+         generation_accelerator != "cuda" or not (
+             options.capture_first_policy_only or options.replay_first_trajectory is not None
+@@ -253,6 +261,10 @@ def main(argv: list[str] | None = None, *, generation_accelerator: str = "hip")
+                 raise ValueError("fixed trajectory replay requires --asset-map")
+             plan["config"].update(replay_first_trajectory=str(options.replay_first_trajectory),
+                                   replay_first_trajectory_sha256=options.replay_first_trajectory_sha256)
++            if options.sage_vae_dir is not None:
++                plan["config"]["sage_vae_dir"] = str(options.sage_vae_dir)
++            if options.sage_scheduler_root is not None:
++                plan["config"]["sage_scheduler_root"] = str(options.sage_scheduler_root)
+         if options.trace_first_actor_blocks:
+             plan["config"]["trace_first_actor_blocks"] = True
+             if options.trace_first_actor_detail_block is not None:
