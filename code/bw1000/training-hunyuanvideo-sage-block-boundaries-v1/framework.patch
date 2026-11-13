@@ -1,0 +1,232 @@
+From 284a58f898593e9c70c9224bd3bddb9d720e20f9 Mon Sep 17 00:00:00 2001
+From: whjthu <haojie0429@gmail.com>
+Date: Fri, 13 Nov 2026 20:04:18 +0800
+Subject: [PATCH] Trace gradients at SAGE-GRPO actor block boundaries
+
+---
+ .../backends/hunyuanvideo_sage_grpo.py        | 67 ++++++++++++++++++-
+ .../test_hunyuanvideo_sage_policy_capture.py  | 53 +++++++++++++++
+ tools/hygon_training_recipe.py                | 10 +++
+ 3 files changed, 127 insertions(+), 3 deletions(-)
+
+diff --git a/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py b/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py
+index bcf6ac0..c6da155 100644
+--- a/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py
++++ b/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py
+@@ -12,6 +12,7 @@ except ModuleNotFoundError:  # Windows can inspect the CLI but cannot run an CUD
+     resource = None
+ import statistics
+ import sys
++from contextlib import contextmanager
+ from pathlib import Path
+ from time import perf_counter, time
+ from typing import Any
+@@ -231,6 +232,52 @@ def _load_first_trajectory(torch, path, expected_sha, adapter_sha, input_identit
+     return payload
+ 
+ 
++@contextmanager
++def _trace_actor_block_boundaries(model: Any, enabled: bool):
++    """Observe the checkpoint wrapper outputs from one actor forward."""
++    if not enabled:
++        yield None
++        return
++
++    records = {}
++    handles = []
++
++    def record(name, output):
++        if name in records:
++            raise RuntimeError(f"SAGE-GRPO actor block {name} ran twice in one forward")
++        outputs = output if isinstance(output, tuple) else (output,)
++        rows = []
++        records[name] = rows
++        for tensor in outputs:
++            if not hasattr(tensor, "requires_grad"):
++                raise RuntimeError(f"SAGE-GRPO actor block {name} returned a non-tensor")
++            row = {"output_sha256": tree_sha256(tensor), "requires_grad": tensor.requires_grad}
++            rows.append(row)
++            if tensor.requires_grad:
++                def record_gradient(gradient, row=row):
++                    if "output_gradient_sha256" in row:
++                        raise RuntimeError("SAGE-GRPO actor block output received two gradients")
++                    row["output_gradient_sha256"] = tree_sha256(gradient)
++
++                tensor.register_hook(record_gradient)
++
++    try:
++        for family in ("double_blocks", "single_blocks"):
++            for index, module in enumerate(getattr(model, family)):
++                name = f"{family}.{index}"
++                handles.append(module.register_forward_hook(
++                    lambda _module, _inputs, output, name=name: record(name, output)
++                ))
++        if not handles:
++            raise RuntimeError("SAGE-GRPO actor has no block boundaries to trace")
++        yield records
++        if len(records) != len(handles):
++            raise RuntimeError("SAGE-GRPO actor block forward coverage is incomplete")
++    finally:
++        for handle in handles:
++            handle.remove()
++
++
+ def run_hunyuanvideo_sage_grpo(
+     weights: Path,
+     config: dict[str, Any],
+@@ -242,6 +289,9 @@ def run_hunyuanvideo_sage_grpo(
+     capture_only = config.get("capture_first_policy_only", False)
+     replay_path = config.get("replay_first_trajectory")
+     replay_sha = config.get("replay_first_trajectory_sha256")
++    trace_blocks = config.get("trace_first_actor_blocks", False)
++    if type(trace_blocks) is not bool or (trace_blocks and not (capture_only or replay_path)):
++        raise ValueError("SAGE-GRPO actor block tracing requires capture-only or fixed replay")
+     if (replay_path is None) != (replay_sha is None):
+         raise ValueError("SAGE-GRPO replay requires both a trajectory and its SHA256")
+     if replay_path is not None:
+@@ -588,9 +638,12 @@ def run_hunyuanvideo_sage_grpo(
+                     latent = trajectory_tensor[sample_index : sample_index + 1, index].to(actor_device)
+                     next_latent = trajectory_tensor[sample_index : sample_index + 1, index + 1].to(actor_device)
+                     old_log = old_log_tensor[sample_index : sample_index + 1, index].to(actor_device)
+-                    _, new_log, mean, std, prediction = transition(
+-                        latent, next_latent, timestep, sigmas, index, gradients=True
+-                    )
++                    with _trace_actor_block_boundaries(
++                        model, trace_blocks and sample_index == 0 and index == 0
++                    ) as block_boundaries:
++                        _, new_log, mean, std, prediction = transition(
++                            latent, next_latent, timestep, sigmas, index, gradients=True
++                        )
+                     ratio = torch.exp(new_log - old_log)
+                     advantage = torch.tensor(advantages[sample_index], device=actor_device)
+                     unclipped = -advantage * ratio
+@@ -623,6 +676,14 @@ def run_hunyuanvideo_sage_grpo(
+                                 {name: value.grad for name, value in named_trainable.items()}
+                             ),
+                         })
++                    if block_boundaries is not None:
++                        gradient_count = sum(
++                            "output_gradient_sha256" in row
++                            for rows in block_boundaries.values() for row in rows
++                        )
++                        if not gradient_count:
++                            raise RuntimeError("SAGE-GRPO actor block tracing recorded no output gradients")
++                        update_state["first_actor_block_boundaries"] = block_boundaries
+                     del prediction
+                     new_log_values.append(float(new_log.detach().cpu()))
+                     ratio_values.append(float(ratio.detach().cpu()))
+diff --git a/generation/tests/test_hunyuanvideo_sage_policy_capture.py b/generation/tests/test_hunyuanvideo_sage_policy_capture.py
+index c96597b..6e8e11a 100644
+--- a/generation/tests/test_hunyuanvideo_sage_policy_capture.py
++++ b/generation/tests/test_hunyuanvideo_sage_policy_capture.py
+@@ -1,5 +1,6 @@
+ import ast
+ import contextlib
++from typing import Any
+ import hashlib
+ import io
+ import json
+@@ -31,6 +32,51 @@ load_trajectory = namespace["_load_first_trajectory"]
+ 
+ 
+ class PolicyCaptureTests(unittest.TestCase):
++    def test_actor_trace_removes_forward_hooks_before_backward(self):
++        tracer = next(node for node in tree.body if isinstance(node, ast.FunctionDef)
++                      and node.name == "_trace_actor_block_boundaries")
++        ns = {"contextmanager": contextlib.contextmanager, "Any": Any,
++              "tree_sha256": lambda tensor: tensor.label}
++        exec(compile(ast.Module(body=[tracer], type_ignores=[]), str(SOURCE), "exec"), ns)
++        trace_blocks = ns["_trace_actor_block_boundaries"]
++
++        def module():
++            obj = SimpleNamespace(callback=None)
++
++            def register(callback):
++                obj.callback = callback
++                return SimpleNamespace(remove=lambda: setattr(obj, "callback", None))
++
++            obj.register_forward_hook = register
++            return obj
++
++        def tensor(label, requires_grad):
++            obj = SimpleNamespace(label=label, requires_grad=requires_grad)
++            obj.register_hook = lambda callback: setattr(obj, "gradient", callback)
++            return obj
++
++        double, single = module(), module()
++        model = SimpleNamespace(double_blocks=[double], single_blocks=[single])
++        image, text, joined = tensor("img", True), tensor("txt", False), tensor("joined", True)
++        with trace_blocks(model, True) as evidence:
++            double.callback(double, (), (image, text))
++            single.callback(single, (), joined)
++        self.assertIsNone(double.callback)
++        self.assertIsNone(single.callback)
++        joined.gradient(tensor("d_joined", False))
++        image.gradient(tensor("d_img", False))
++        self.assertEqual(evidence["double_blocks.0"], [
++            {"output_sha256": "img", "requires_grad": True, "output_gradient_sha256": "d_img"},
++            {"output_sha256": "txt", "requires_grad": False},
++        ])
++        self.assertEqual(evidence["single_blocks.0"][0]["output_gradient_sha256"], "d_joined")
++        with self.assertRaisesRegex(RuntimeError, "coverage is incomplete"):
++            with trace_blocks(model, True):
++                pass
++        self.assertIsNone(double.callback)
++        self.assertIsNone(single.callback)
++        with trace_blocks(model, False) as disabled:
++            self.assertIsNone(disabled)
+     def test_transition_records_backward_boundaries_in_order(self):
+         step = next(node for node in ast.walk(tree)
+                     if isinstance(node, ast.FunctionDef) and node.name == "rl_step")
+@@ -124,6 +170,13 @@ class PolicyCaptureTests(unittest.TestCase):
+                     self.assertEqual(run.call_args.args[0]["config"], dict(
+                         frozen["config"], replay_first_trajectory="/capture/step-0001.pt",
+                         replay_first_trajectory_sha256="a" * 64))
++                    trace_option = ["--trace-first-actor-blocks"]
++                    self.assertEqual(recipe.main(args + ["--capture-first-policy-only"] + trace_option,
++                                                 generation_accelerator="cuda"), 0)
++                    self.assertTrue(run.call_args.args[0]["config"]["trace_first_actor_blocks"])
++                    for accelerator, flags in (("cuda", []), ("hip", ["--capture-first-policy-only"])):
++                        with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
++                            recipe.main(args + flags + trace_option, generation_accelerator=accelerator)
+         with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+             recipe.main(["T09.dp2", "--run", "--capture-first-policy"])
+ 
+diff --git a/tools/hygon_training_recipe.py b/tools/hygon_training_recipe.py
+index c3dbfa8..a2d7756 100644
+--- a/tools/hygon_training_recipe.py
++++ b/tools/hygon_training_recipe.py
+@@ -196,6 +196,8 @@ def main(argv: list[str] | None = None, *, generation_accelerator: str = "hip")
+                          help="stop after recording the first SAGE-GRPO policy update")
+     parser.add_argument("--replay-first-trajectory", type=vlm.absolute_path)
+     parser.add_argument("--replay-first-trajectory-sha256")
++    parser.add_argument("--trace-first-actor-blocks", action="store_true",
++                        help="fingerprint checkpointed actor block outputs and their gradients on CUDA")
+     options = parser.parse_args(args)
+     if options.capture_first_policy_only:
+         options.capture_first_policy = True
+@@ -209,6 +211,12 @@ def main(argv: list[str] | None = None, *, generation_accelerator: str = "hip")
+         digest = options.replay_first_trajectory_sha256
+         if len(digest) != 64 or set(digest) - set("0123456789abcdef"):
+             parser.error("fixed trajectory replay requires a lowercase SHA256")
++    if options.trace_first_actor_blocks and (
++        generation_accelerator != "cuda" or not (
++            options.capture_first_policy_only or options.replay_first_trajectory is not None
++        )
++    ):
++        parser.error("--trace-first-actor-blocks requires CUDA and capture-only or fixed replay")
+     if options.resume_from_checkpoint is not None:
+         if options.case not in ("T09.sft", "T09.dp2") or not options.run:
+             parser.error("--resume-from-checkpoint requires --run with T09.sft or T09.dp2")
+@@ -238,6 +246,8 @@ def main(argv: list[str] | None = None, *, generation_accelerator: str = "hip")
+                 raise ValueError("fixed trajectory replay requires --asset-map")
+             plan["config"].update(replay_first_trajectory=str(options.replay_first_trajectory),
+                                   replay_first_trajectory_sha256=options.replay_first_trajectory_sha256)
++        if options.trace_first_actor_blocks:
++            plan["config"]["trace_first_actor_blocks"] = True
+         if options.resume_from_checkpoint is not None:
+             if options.asset_map is None:
+                 raise ValueError("--resume-from-checkpoint requires --asset-map")
+-- 
+2.40.0.windows.1
+
