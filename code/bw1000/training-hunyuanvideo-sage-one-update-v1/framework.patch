@@ -1,0 +1,119 @@
+From c798ebb308c04573caa256314a7c9e75dddd9062 Mon Sep 17 00:00:00 2001
+From: whjthu <haojie0429@gmail.com>
+Date: Fri, 13 Nov 2026 19:01:17 +0800
+Subject: [PATCH] Allow one-update HunyuanVideo SAGE-GRPO reference captures
+
+---
+ README.md                                        |  2 ++
+ .../gencuda/backends/hunyuanvideo_sage_grpo.py   | 16 ++++++++++++----
+ .../test_hunyuanvideo_sage_policy_capture.py     |  3 +++
+ tools/hygon_training_recipe.py                   |  9 ++++++++-
+ 4 files changed, 25 insertions(+), 5 deletions(-)
+
+diff --git a/README.md b/README.md
+index 5b1a16e..0bbc32d 100644
+--- a/README.md
++++ b/README.md
+@@ -86,6 +86,8 @@ For a SAGE-GRPO numerical diagnostic, use `T09.sage-grpo --run --capture-first-p
+ The first warmup update writes its realized trajectory and
+ `first-policy-update.json` inside the run directory. Keep the trajectory in
+ experiment storage. The diagnostic run is ineligible for formal performance.
++Use `--capture-first-policy-only` to exit after the first update and its
++diagnostic artifacts have been written.
+ Replay a trajectory captured with this version using
+ `--replay-first-trajectory /experiments/reference/trajectories/step-0001.pt`
+ and `--replay-first-trajectory-sha256 <digest>` in a fresh SAGE-GRPO run.
+diff --git a/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py b/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py
+index 6da06ed..2477b8d 100644
+--- a/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py
++++ b/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py
+@@ -237,6 +237,7 @@ def run_hunyuanvideo_sage_grpo(
+     sage_root: Path,
+ ) -> dict[str, Any]:
+     capture_first_policy = config.get("capture_first_policy", False)
++    capture_only = config.get("capture_first_policy_only", False)
+     replay_path = config.get("replay_first_trajectory")
+     replay_sha = config.get("replay_first_trajectory_sha256")
+     if (replay_path is None) != (replay_sha is None):
+@@ -248,6 +249,8 @@ def run_hunyuanvideo_sage_grpo(
+         replay_path = Path(replay_path)
+     if type(capture_first_policy) is not bool:
+         raise ValueError("capture_first_policy must be boolean")
++    if type(capture_only) is not bool or (capture_only and not capture_first_policy):
++        raise ValueError("capture_first_policy_only requires capture_first_policy")
+     if capture_first_policy and replay_path is not None:
+         raise ValueError("SAGE-GRPO capture and replay are separate diagnostics")
+     if (capture_first_policy or replay_path is not None) and any(type(config.get(key, 4)) is not int or config.get(key, 4) != 4
+@@ -644,15 +647,20 @@ def run_hunyuanvideo_sage_grpo(
+                 "anchor_sha": anchor_sha,
+             }
+ 
+-        if replay_path is not None:
++        if replay_path is not None or capture_only:
+             rl_step(1, save_outputs=False)
+             hook_handle.remove()
++            logs = [{"path": str(policy_path), "sha256": sha256_path(policy_path)}]
++            if capture_only:
++                logs.extend({"path": str(path), "sha256": sha256_path(path)} for path in trajectory_paths)
+             return {
+                 "artifacts": [],
+-                "logs": [{"path": str(policy_path), "sha256": sha256_path(policy_path)}],
+-                "metrics": {"diagnostic_fixed_trajectory_replay": True, "policy_updates": 1,
++                "logs": logs,
++                "metrics": {"diagnostic_fixed_trajectory_replay": replay_path is not None,
++                            "diagnostic_capture_first_policy_only": capture_only, "policy_updates": 1,
+                             "performance_accepted": False},
+-                "checks": {"fixed_trajectory_consumed": True, "current_adapter": True},
++                "checks": {"policy_update_recorded": True, "current_adapter": True,
++                           **({"fixed_trajectory_consumed": True} if replay_path is not None else {})},
+                 "stage_timings": {"model_load_seconds": load_seconds},
+             }
+ 
+diff --git a/generation/tests/test_hunyuanvideo_sage_policy_capture.py b/generation/tests/test_hunyuanvideo_sage_policy_capture.py
+index 32e5664..fc64d9f 100644
+--- a/generation/tests/test_hunyuanvideo_sage_policy_capture.py
++++ b/generation/tests/test_hunyuanvideo_sage_policy_capture.py
+@@ -73,6 +73,9 @@ class PolicyCaptureTests(unittest.TestCase):
+                     plan = run.call_args.args[0]
+                     self.assertEqual(plan["cards"], 2)
+                     self.assertEqual(plan["config"], dict(frozen["config"], capture_first_policy=True))
++                    self.assertEqual(recipe.main(args + ["--capture-first-policy-only"]), 0)
++                    self.assertEqual(run.call_args.args[0]["config"], dict(
++                        frozen["config"], capture_first_policy=True, capture_first_policy_only=True))
+                     self.assertEqual(recipe.main(args + ["--replay-first-trajectory", "/capture/step-0001.pt",
+                                                         "--replay-first-trajectory-sha256", "a" * 64]), 0)
+                     self.assertEqual(run.call_args.args[0]["config"], dict(
+diff --git a/tools/hygon_training_recipe.py b/tools/hygon_training_recipe.py
+index a5743e7..c3dbfa8 100644
+--- a/tools/hygon_training_recipe.py
++++ b/tools/hygon_training_recipe.py
+@@ -189,11 +189,16 @@ def main(argv: list[str] | None = None, *, generation_accelerator: str = "hip")
+         parser.add_argument(f"--{name}", type=vlm.absolute_path)
+     parser.add_argument("--resume-from-checkpoint", type=vlm.absolute_path,
+                         help="resume HunyuanVideo SFT from a native checkpoint file or DP2 from a committed checkpoint directory")
+-    parser.add_argument("--capture-first-policy", action="store_true",
++    capture = parser.add_mutually_exclusive_group()
++    capture.add_argument("--capture-first-policy", action="store_true",
+                         help="capture the first SAGE-GRPO rollout and policy update for numerical diagnostics")
++    capture.add_argument("--capture-first-policy-only", action="store_true",
++                         help="stop after recording the first SAGE-GRPO policy update")
+     parser.add_argument("--replay-first-trajectory", type=vlm.absolute_path)
+     parser.add_argument("--replay-first-trajectory-sha256")
+     options = parser.parse_args(args)
++    if options.capture_first_policy_only:
++        options.capture_first_policy = True
+     if options.capture_first_policy and (options.case != "T09.sage-grpo" or not options.run):
+         parser.error("--capture-first-policy requires T09.sage-grpo --run")
+     if (options.replay_first_trajectory is None) != (options.replay_first_trajectory_sha256 is None):
+@@ -226,6 +231,8 @@ def main(argv: list[str] | None = None, *, generation_accelerator: str = "hip")
+             if options.asset_map is None:
+                 raise ValueError("--capture-first-policy requires --asset-map")
+             plan["config"]["capture_first_policy"] = True
++            if options.capture_first_policy_only:
++                plan["config"]["capture_first_policy_only"] = True
+         if options.replay_first_trajectory is not None:
+             if options.asset_map is None:
+                 raise ValueError("fixed trajectory replay requires --asset-map")
+-- 
+2.40.0.windows.1
+
