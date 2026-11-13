@@ -1,0 +1,138 @@
+From b1bf26cec25c2f571b8ee6da579bb49d9a9616b6 Mon Sep 17 00:00:00 2001
+From: whjthu <haojie0429@gmail.com>
+Date: Fri, 13 Nov 2026 18:52:52 +0800
+Subject: [PATCH] Measure the complete HunyuanVideo policy update window
+
+---
+ .../backends/hunyuanvideo_sage_grpo.py        | 20 ++++++
+ .../test_hunyuanvideo_sage_policy_window.py   | 66 +++++++++++++++++++
+ 2 files changed, 86 insertions(+)
+ create mode 100644 generation/tests/test_hunyuanvideo_sage_policy_window.py
+
+diff --git a/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py b/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py
+index 2cac300..718a4ed 100644
+--- a/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py
++++ b/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py
+@@ -584,6 +584,8 @@ def run_hunyuanvideo_sage_grpo(
+ 
+         warmup_steps = int(config.get("warmup_steps", 0))
+         max_steps = int(config.get("max_steps", 20))
++        if warmup_steps < 0 or max_steps < 1:
++            raise ValueError("SAGE-GRPO requires nonnegative warmup and at least one measured update")
+         checkpoint_steps = {int(item) for item in config.get("checkpoint_steps", [10, 20])}
+         records = []
+         measured = []
+@@ -591,6 +593,10 @@ def run_hunyuanvideo_sage_grpo(
+         step_log = output_dir / "steps.ndjson"
+         with step_log.open("w", encoding="utf-8") as handle:
+             for global_step in range(1, warmup_steps + max_steps + 1):
++                if global_step == warmup_steps + 1:
++                    torch.cuda.synchronize(actor_device)
++                    torch.cuda.synchronize(reward_device)
++                    measurement_started = perf_counter()
+                 record = rl_step(global_step, save_outputs=global_step > warmup_steps)
+                 records.append(record)
+                 handle.write(json.dumps(record, sort_keys=True) + "\n")
+@@ -607,6 +613,12 @@ def run_hunyuanvideo_sage_grpo(
+         if not checkpoint.is_file():
+             _save_rl_checkpoint(checkpoint, torch, model, optimizer, anchor_state, max_steps)
+             artifacts.append({"path": str(checkpoint), "sha256": sha256_path(checkpoint)})
++        torch.cuda.synchronize(actor_device)
++        torch.cuda.synchronize(reward_device)
++        measurement_seconds = perf_counter() - measurement_started
++        if not math.isfinite(measurement_seconds) or measurement_seconds <= 0:
++            raise RuntimeError("SAGE-GRPO measured window duration is invalid")
++
+         def restore_recovery_checkpoint() -> int:
+             nonlocal anchor_state, anchor_sha
+             restored_step, anchor_state = _load_rl_checkpoint(
+@@ -717,6 +729,14 @@ def run_hunyuanvideo_sage_grpo(
+                 "step_seconds_median": statistics.median(step_seconds),
+                 "step_seconds_max": max(step_seconds),
+                 "updates_per_second": 1.0 / statistics.median(step_seconds),
++                "measurement_steps": len(measured),
++                "measurement_wall_seconds": measurement_seconds,
++                "measurement_updates_per_second": len(measured) / measurement_seconds,
++                "measurement_samples_per_second": len(measured) * rollout_count / measurement_seconds,
++                "policy_window_boundary": (
++                    "before first measured update through final checkpoint write and hash and both device drains; "
++                    "includes trajectory, video and step-log writes; excludes warmup, recovery and final adapter export"
++                ),
+                 "adapter_sha_after": adapter_after,
+                 "resume_reward_error": recovery.metrics["resume_reward_error"],
+                 "actor_cuda_memory": actor_memory,
+diff --git a/generation/tests/test_hunyuanvideo_sage_policy_window.py b/generation/tests/test_hunyuanvideo_sage_policy_window.py
+new file mode 100644
+index 0000000..3ffe89b
+--- /dev/null
++++ b/generation/tests/test_hunyuanvideo_sage_policy_window.py
+@@ -0,0 +1,66 @@
++import ast
++import json
++import math
++from pathlib import Path
++from tempfile import TemporaryDirectory
++from types import SimpleNamespace
++import unittest
++
++
++SOURCE = Path(__file__).resolve().parents[1] / "src/gencuda/backends/hunyuanvideo_sage_grpo.py"
++tree = ast.parse(SOURCE.read_text(encoding="utf-8"))
++backend = next(node for node in tree.body
++               if isinstance(node, ast.FunctionDef) and node.name == "run_hunyuanvideo_sage_grpo")
++training = next(node.body for node in backend.body if isinstance(node, ast.Try))
++start = next(i for i, node in enumerate(training) if isinstance(node, ast.Assign)
++             and isinstance(node.targets[0], ast.Name) and node.targets[0].id == "warmup_steps")
++end = next(i for i, node in enumerate(training) if isinstance(node, ast.FunctionDef)
++           and node.name == "restore_recovery_checkpoint")
++window = compile(ast.Module(body=training[start:end], type_ignores=[]), str(SOURCE), "exec")
++
++
++class PolicyWindowTests(unittest.TestCase):
++    def test_drains_and_all_measured_checkpoint_io_are_inside_the_boundary(self):
++        events = []
++        times = iter([100.0, 180.0])
++
++        def clock():
++            events.append(("clock",))
++            return next(times)
++
++        def step(index, *, save_outputs):
++            events.append(("step", index, save_outputs))
++            return {"global_step": index}
++
++        def checkpoint(path, torch, model, optimizer, anchor_state, measured_step):
++            events.append(("checkpoint", measured_step))
++            path.parent.mkdir()
++            path.write_bytes(b"checkpoint")
++
++        def digest(path):
++            events.append(("hash", path.parent.name))
++            return "checkpoint-sha"
++
++        with TemporaryDirectory() as tmp:
++            ctx = dict(
++                config={"warmup_steps": 1, "max_steps": 3, "checkpoint_steps": [2]},
++                output_dir=Path(tmp), json=json, math=math, Any=object, rl_step=step,
++                perf_counter=clock, _save_rl_checkpoint=checkpoint, sha256_path=digest,
++                torch=SimpleNamespace(cuda=SimpleNamespace(synchronize=lambda device: events.append(("sync", device)))),
++                actor_device="actor", reward_device="reward", model=None, optimizer=None, anchor_state=None,
++            )
++            exec(window, ctx)
++            self.assertEqual(ctx["measurement_seconds"], 80.0)
++            self.assertEqual(len(ctx["measured"]), 3)
++            self.assertEqual([json.loads(line)["global_step"] for line in
++                              (Path(tmp) / "steps.ndjson").read_text().splitlines()], [1, 2, 3, 4])
++        self.assertEqual(events, [
++            ("step", 1, False), ("sync", "actor"), ("sync", "reward"), ("clock",),
++            ("step", 2, True), ("step", 3, True), ("checkpoint", 2), ("hash", "checkpoint-2"),
++            ("step", 4, True), ("checkpoint", 3), ("hash", "checkpoint-3"),
++            ("sync", "actor"), ("sync", "reward"), ("clock",),
++        ])
++
++
++if __name__ == "__main__":
++    unittest.main()
+-- 
+2.40.0.windows.1
+
