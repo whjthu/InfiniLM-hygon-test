@@ -48,6 +48,28 @@ def accounting(rows):
     return indexed
 
 
+def percentile(values, fraction):
+    if not values:
+        return None
+    ordered = sorted(values)
+    return ordered[math.ceil(fraction * len(ordered)) - 1]
+
+
+def backend_timing(row, visible):
+    enter = row["request_enter_ns"]
+    duration = row["whole_backend_s"]
+    require(type(enter) is int and 0 < enter < row["sampled_ns"][0]
+            and type(duration) in (float, int) and math.isfinite(duration)
+            and duration >= (row["sampled_ns"][-1] - enter) / 1e9,
+            "request clock boundary differs")
+    ttft = (visible[0] - enter) / 1e9 if visible else None
+    recorded = row["backend_sampled_TTFT_s"]
+    require(recorded is None if ttft is None else math.isclose(recorded, ttft, rel_tol=1e-12),
+            "first visible token clock differs")
+    gaps = [(b - a) / 1e9 for a, b in zip(visible, visible[1:])]
+    return ttft, gaps
+
+
 def audit_request(row, pin, eos, special, rescore=None):
     fields = ("ordinal", "case_id", "suite", "prompt_IDs_SHA256", "body_SHA256")
     require(all(row[k] == pin[k] for k in fields), "request does not match frozen input")
@@ -72,6 +94,7 @@ def audit_request(row, pin, eos, special, rescore=None):
     require(row["visible_nonEOS_nonspecial"] == len(visible) and
             (row["backend_decode_tok_s"] is None if decode is None else
              math.isclose(row["backend_decode_tok_s"], decode, rel_tol=1e-12)), "decode record differs")
+    ttft, gaps = backend_timing(row, visible)
     score = row["score"]
     if rescore is not None:
         require(score == rescore(pin["ordinal"], row["output_text"], natural, cap),
@@ -82,7 +105,8 @@ def audit_request(row, pin, eos, special, rescore=None):
                                      and not score["parse_failure"] and not score["unexpected_tool_intent"]),
             "saved scorer flags inconsistent")
     return dict(correct=score["correct"], raw_match=score["answer_matches_gold"],
-                parse_failure=score["parse_failure"], cap=cap, decode=decode, output_hash=digest)
+                parse_failure=score["parse_failure"], cap=cap, decode=decode, output_hash=digest,
+                ttft=ttft, gaps=gaps)
 
 
 def summarize_requests(rows, binding, rescore=None, *, verified=None):
@@ -104,7 +128,7 @@ def summarize_requests(rows, binding, rescore=None, *, verified=None):
         require(len(selected) == 16, "wrong suite denominator")
         result = dict(planned=16, completed_verified=0, missing=0, incomplete=0, invalid=0,
                       correct=0, raw_match=0, parse_failure=0, cap=0, backend_decode_gt_15=0)
-        rates = []
+        rates, ttfts, gaps = [], [], []
         for pin in selected:
             row = found.get(pin["ordinal"])
             if row is None:
@@ -123,10 +147,18 @@ def summarize_requests(rows, binding, rescore=None, *, verified=None):
             result["completed_verified"] += 1
             for key in ("correct", "raw_match", "parse_failure", "cap"):
                 result[key] += item[key]
+            if item["ttft"] is not None:
+                ttfts.append(item["ttft"])
+            gaps.extend(item["gaps"])
             if item["decode"] is not None:
                 rates.append(item["decode"])
                 result["backend_decode_gt_15"] += item["decode"] > 15
-        result.update(decode_observed=len(rates),
+        result.update(decode_observed=len(rates), backend_sampled_TTFT_count=len(ttfts),
+                      backend_sampled_TTFT_s_p50=percentile(ttfts, .50),
+                      backend_sampled_TTFT_s_p95=percentile(ttfts, .95),
+                      backend_visible_ITL_count=len(gaps),
+                      backend_visible_ITL_s_p95=percentile(gaps, .95),
+                      backend_visible_ITL_s_p99=percentile(gaps, .99),
                       backend_decode_tok_s_median=statistics.median(rates) if rates else None)
         counts[suite] = result
     return counts
@@ -231,7 +263,7 @@ def summarize(root, rows):
     return dict(run_id=RUN, arms=result, paired_screen=comparison,
                 pair_scope="fixed process order; engineering screen with ordinal-matched requests",
                 score_scope="frozen scorer rerun on saved rank-0 output, with completion checks",
-                timing_scope="backend sampled tokens; no HTTP client or fleet busy evidence")
+                timing_scope="rank-0 sampled visible tokens; TTFT from request entry; nearest-rank percentiles; ITL pooled within suite; no HTTP client or fleet busy evidence")
 
 
 def main():
