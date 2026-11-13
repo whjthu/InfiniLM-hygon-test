@@ -1,0 +1,315 @@
+From 7bb2c4f5a9d53d7ba4e091f0ba577009478e8207 Mon Sep 17 00:00:00 2001
+From: whjthu <haojie0429@gmail.com>
+Date: Fri, 13 Nov 2026 18:57:19 +0800
+Subject: [PATCH] Replay a fixed HunyuanVideo SAGE-GRPO trajectory
+
+---
+ README.md                                     |   5 +
+ .../backends/hunyuanvideo_sage_grpo.py        | 108 +++++++++++++++---
+ .../test_hunyuanvideo_sage_policy_capture.py  |  26 +++++
+ tools/hygon_training_recipe.py                |  15 +++
+ 4 files changed, 137 insertions(+), 17 deletions(-)
+
+diff --git a/README.md b/README.md
+index 8e628d5..5b1a16e 100644
+--- a/README.md
++++ b/README.md
+@@ -86,6 +86,11 @@ For a SAGE-GRPO numerical diagnostic, use `T09.sage-grpo --run --capture-first-p
+ The first warmup update writes its realized trajectory and
+ `first-policy-update.json` inside the run directory. Keep the trajectory in
+ experiment storage. The diagnostic run is ineligible for formal performance.
++Replay a trajectory captured with this version using
++`--replay-first-trajectory /experiments/reference/trajectories/step-0001.pt`
++and `--replay-first-trajectory-sha256 <digest>` in a fresh SAGE-GRPO run.
++Replay recomputes the rewards and likelihoods and runs one policy update with
++the recorded old log-probabilities as the PPO denominator.
+ 
+ The launcher checks the recipe's card count and uses `gencuda --accelerator hip`
+ from this checkout. The runtime manifest records the reported platform and
+diff --git a/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py b/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py
+index 718a4ed..6da06ed 100644
+--- a/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py
++++ b/generation/src/gencuda/backends/hunyuanvideo_sage_grpo.py
+@@ -197,6 +197,38 @@ def _policy_trace(old_log_probs, new_log_probs, ratios, advantages, policy_losse
+     ]
+ 
+ 
++def _load_first_trajectory(torch, path, expected_sha, adapter_sha, input_identity, latent_shape, timesteps, sigmas):
++    with path.open("rb") as stream:
++        digest = hashlib.sha256()
++        for block in iter(lambda: stream.read(1024 * 1024), b""):
++            digest.update(block)
++        if digest.hexdigest() != expected_sha:
++            raise ValueError("SAGE-GRPO trajectory SHA256 mismatch")
++        stream.seek(0)
++        payload = torch.load(stream, map_location="cpu", weights_only=True)
++    if (payload["global_step"] != 1 or payload["adapter_sha"] != adapter_sha
++            or payload["input_identity"] != input_identity):
++        raise ValueError("SAGE-GRPO trajectory input identity differs")
++    for key, shape in (("latent", (4, 5, *latent_shape[1:])),
++                       ("noise", (4, 4, *latent_shape[1:])), ("sampled_log_prob", (4, 4))):
++        value = payload[key]
++        if (not isinstance(value, torch.Tensor) or tuple(value.shape) != shape
++                or value.dtype != torch.float32 or not bool(torch.isfinite(value).all())):
++            raise ValueError(f"SAGE-GRPO trajectory has invalid {key}")
++    for key, expected in (("timestep", timesteps), ("sigmas", sigmas)):
++        value = payload[key]
++        if (not isinstance(value, torch.Tensor) or value.dtype != expected.dtype
++                or not torch.equal(value, expected.detach().cpu())):
++            raise ValueError(f"SAGE-GRPO trajectory has mismatched {key}")
++    rewards = payload["reward"]
++    if (not isinstance(rewards, dict) or set(rewards) != {"VQ", "MQ", "TA", "Overall"}
++            or any(not isinstance(values, list) or len(values) != 4
++                   or any(type(value) not in (float, int) or not math.isfinite(value) for value in values)
++                   for values in rewards.values())):
++        raise ValueError("SAGE-GRPO trajectory has invalid reference rewards")
++    return payload
++
++
+ def run_hunyuanvideo_sage_grpo(
+     weights: Path,
+     config: dict[str, Any],
+@@ -205,9 +237,20 @@ def run_hunyuanvideo_sage_grpo(
+     sage_root: Path,
+ ) -> dict[str, Any]:
+     capture_first_policy = config.get("capture_first_policy", False)
++    replay_path = config.get("replay_first_trajectory")
++    replay_sha = config.get("replay_first_trajectory_sha256")
++    if (replay_path is None) != (replay_sha is None):
++        raise ValueError("SAGE-GRPO replay requires both a trajectory and its SHA256")
++    if replay_path is not None:
++        if (type(replay_sha) is not str or len(replay_sha) != 64
++                or set(replay_sha) - set("0123456789abcdef")):
++            raise ValueError("SAGE-GRPO replay requires a lowercase SHA256")
++        replay_path = Path(replay_path)
+     if type(capture_first_policy) is not bool:
+         raise ValueError("capture_first_policy must be boolean")
+-    if capture_first_policy and any(type(config.get(key, 4)) is not int or config.get(key, 4) != 4
++    if capture_first_policy and replay_path is not None:
++        raise ValueError("SAGE-GRPO capture and replay are separate diagnostics")
++    if (capture_first_policy or replay_path is not None) and any(type(config.get(key, 4)) is not int or config.get(key, 4) != 4
+                                     for key in ("num_generations", "sampling_steps")):
+         raise ValueError("SAGE-GRPO policy capture requires the original four-by-four rollout")
+     torch = require_cuda()
+@@ -222,12 +265,16 @@ def run_hunyuanvideo_sage_grpo(
+     expected_adapter_file_sha = str(config.get("initial_adapter_file_sha", ""))
+     if expected_adapter_file_sha and sha256_path(initial_adapter_path) != expected_adapter_file_sha:
+         raise RuntimeError("HunyuanVideo initial RL adapter file SHA mismatch")
++    input_identity = None
++    if capture_first_policy or replay_path is not None:
++        input_identity = {"cache_sha256": sha256_path(cache_path),
++                          "target_video_sha256": sha256_path(target_video_path)}
+ 
+     os.environ.setdefault("HF_HUB_OFFLINE", "1")
+     os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+     output_dir.mkdir(parents=True, exist_ok=True)
+     policy_path = output_dir / "first-policy-update.json"
+-    if capture_first_policy and (policy_path.exists() or
++    if (capture_first_policy or replay_path is not None) and (policy_path.exists() or
+                                  (output_dir / "trajectories" / "step-0001.pt").exists()):
+         raise FileExistsError("SAGE-GRPO policy capture requires fresh output paths")
+     created_group, rendezvous = _init_nccl(torch, output_dir)
+@@ -398,30 +445,39 @@ def run_hunyuanvideo_sage_grpo(
+             rollout_started = perf_counter()
+             initial = []
+             seeds = []
+-            for sample_index in range(rollout_count):
+-                sample_seed = seed + global_step * 100 + sample_index
+-                seeds.append(sample_seed)
+-                torch.cuda.manual_seed(sample_seed)
+-                initial.append(torch.randn(latents_shape, device=actor_device, dtype=torch.float32))
+-            current = torch.cat(initial, dim=0)
++            if replay_path is None:
++                for sample_index in range(rollout_count):
++                    sample_seed = seed + global_step * 100 + sample_index
++                    seeds.append(sample_seed)
++                    torch.cuda.manual_seed(sample_seed)
++                    initial.append(torch.randn(latents_shape, device=actor_device, dtype=torch.float32))
++                current = torch.cat(initial, dim=0)
+             base_schedule = scheduler_class(shift=shift, reverse=True, solver="euler")
+             base_schedule.set_timesteps(sampling_steps, device=actor_device)
+             sigmas = base_schedule.sigmas.to(actor_device)
+             timesteps = base_schedule.timesteps
++            replay = None
++            if replay_path is not None:
++                replay = _load_first_trajectory(torch, replay_path, replay_sha, rollout_adapter_sha,
++                                                input_identity, latents_shape, timesteps, sigmas)
++                seeds = replay["seed"]
++                current = replay["latent"][:, 0].to(actor_device)
+             trajectory = [current.detach().cpu()]
+             old_log_probs = []
+             old_means = []
+             noises = []
+             model.eval()
+             for index, timestep in enumerate(timesteps):
++                fixed_next = replay["latent"][:, index + 1].to(actor_device) if replay is not None else None
+                 next_value, log_prob, mean, std = transition(
+-                    current, None, timestep, sigmas, index, gradients=False
++                    current, fixed_next, timestep, sigmas, index, gradients=False
+                 )
+-                noise = (next_value - mean) / std
+                 old_log_probs.append(log_prob.detach().cpu())
+                 old_means.append(mean.detach().cpu())
+-                noises.append(noise.detach().cpu())
+-                current = next_value.detach()
++                if replay is None:
++                    noise = (next_value - mean) / std
++                    noises.append(noise.detach().cpu())
++                current = next_value.detach() if fixed_next is None else fixed_next
+                 trajectory.append(current.cpu())
+             synchronize()
+             rollout_seconds = perf_counter() - rollout_started
+@@ -436,23 +492,26 @@ def run_hunyuanvideo_sage_grpo(
+             reward_seconds = perf_counter() - reward_started
+ 
+             trajectory_tensor = torch.stack(trajectory, dim=1)
+-            old_log_tensor = torch.stack(old_log_probs, dim=1)
+-            noise_tensor = torch.stack(noises, dim=1)
+-            capture_policy = capture_first_policy and global_step == 1
+-            if save_outputs or capture_policy:
++            evaluated_old_log = torch.stack(old_log_probs, dim=1)
++            old_log_tensor = evaluated_old_log if replay is None else replay["sampled_log_prob"]
++            capture_policy = (capture_first_policy and global_step == 1) or replay is not None
++            trajectory_path = replay_path
++            if replay is None and (save_outputs or capture_policy):
+                 trajectory_path = output_dir / "trajectories" / f"step-{global_step:04d}.pt"
+                 trajectory_path.parent.mkdir(parents=True, exist_ok=True)
+                 torch.save(
+                     {
+                         "latent": trajectory_tensor,
+                         "timestep": timesteps.detach().cpu(),
+-                        "noise": noise_tensor,
++                        "noise": torch.stack(noises, dim=1),
+                         "sampled_log_prob": old_log_tensor,
+                         "reward": {key: value.tolist() for key, value in rewards.items()},
+                         "prompt": cache["prompt"],
+                         "seed": seeds,
+                         "global_step": global_step,
+                         "adapter_sha": rollout_adapter_sha,
++                        **({"sigmas": sigmas.detach().cpu(), "input_identity": input_identity}
++                           if capture_policy else {}),
+                     },
+                     trajectory_path,
+                 )
+@@ -555,6 +614,9 @@ def run_hunyuanvideo_sage_grpo(
+                     "adapter_before": actor_start_sha, "adapter_after": adapter_after,
+                     "grad_norm_before_clip": grad_value,
+                 }
++                if replay is not None:
++                    policy["recomputed_old_log_probs"] = evaluated_old_log.tolist()
++                    policy["reference_reward"] = replay["reward"]
+                 encoded = json.dumps(policy, allow_nan=False, indent=2) + "\n"
+                 with policy_path.open("x", encoding="utf-8") as stream:
+                     stream.write(encoded)
+@@ -582,6 +644,18 @@ def run_hunyuanvideo_sage_grpo(
+                 "anchor_sha": anchor_sha,
+             }
+ 
++        if replay_path is not None:
++            rl_step(1, save_outputs=False)
++            hook_handle.remove()
++            return {
++                "artifacts": [],
++                "logs": [{"path": str(policy_path), "sha256": sha256_path(policy_path)}],
++                "metrics": {"diagnostic_fixed_trajectory_replay": True, "policy_updates": 1,
++                            "performance_accepted": False},
++                "checks": {"fixed_trajectory_consumed": True, "current_adapter": True},
++                "stage_timings": {"model_load_seconds": load_seconds},
++            }
++
+         warmup_steps = int(config.get("warmup_steps", 0))
+         max_steps = int(config.get("max_steps", 20))
+         if warmup_steps < 0 or max_steps < 1:
+diff --git a/generation/tests/test_hunyuanvideo_sage_policy_capture.py b/generation/tests/test_hunyuanvideo_sage_policy_capture.py
+index 0b5397e..32e5664 100644
+--- a/generation/tests/test_hunyuanvideo_sage_policy_capture.py
++++ b/generation/tests/test_hunyuanvideo_sage_policy_capture.py
+@@ -5,6 +5,7 @@ import io
+ import json
+ import math
+ from pathlib import Path
++from types import SimpleNamespace
+ import sys
+ import tempfile
+ import unittest
+@@ -22,6 +23,11 @@ function = next(node for node in tree.body
+ namespace = {"math": math}
+ exec(compile(ast.Module(body=[function], type_ignores=[]), str(SOURCE), "exec"), namespace)
+ trace = namespace["_policy_trace"]
++loader = next(node for node in tree.body
++              if isinstance(node, ast.FunctionDef) and node.name == "_load_first_trajectory")
++namespace["hashlib"] = hashlib
++exec(compile(ast.Module(body=[loader], type_ignores=[]), str(SOURCE), "exec"), namespace)
++load_trajectory = namespace["_load_first_trajectory"]
+ 
+ 
+ class PolicyCaptureTests(unittest.TestCase):
+@@ -67,9 +73,29 @@ class PolicyCaptureTests(unittest.TestCase):
+                     plan = run.call_args.args[0]
+                     self.assertEqual(plan["cards"], 2)
+                     self.assertEqual(plan["config"], dict(frozen["config"], capture_first_policy=True))
++                    self.assertEqual(recipe.main(args + ["--replay-first-trajectory", "/capture/step-0001.pt",
++                                                        "--replay-first-trajectory-sha256", "a" * 64]), 0)
++                    self.assertEqual(run.call_args.args[0]["config"], dict(
++                        frozen["config"], replay_first_trajectory="/capture/step-0001.pt",
++                        replay_first_trajectory_sha256="a" * 64))
+         with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+             recipe.main(["T09.dp2", "--run", "--capture-first-policy"])
+ 
++    def test_replay_loader_refuses_altered_bytes_before_deserializing(self):
++        with tempfile.TemporaryDirectory() as directory:
++            path = Path(directory) / "step-0001.pt"
++            path.write_bytes(b"original")
++            def deserialize(stream, *, map_location, weights_only):
++                self.assertEqual(stream.read(), b"original")
++                self.assertEqual((map_location, weights_only), ("cpu", True))
++                return {"global_step": 1, "adapter_sha": "other", "input_identity": {}}
++            torch = SimpleNamespace(load=deserialize)
++            with self.assertRaisesRegex(ValueError, "SHA256 mismatch"):
++                load_trajectory(None, path, "0" * 64, "adapter", {}, (), None, None)
++            with self.assertRaisesRegex(ValueError, "identity differs"):
++                load_trajectory(torch, path, hashlib.sha256(b"original").hexdigest(),
++                                "adapter", {}, (), None, None)
++
+ 
+ if __name__ == "__main__":
+     unittest.main()
+diff --git a/tools/hygon_training_recipe.py b/tools/hygon_training_recipe.py
+index 78f69af..a5743e7 100644
+--- a/tools/hygon_training_recipe.py
++++ b/tools/hygon_training_recipe.py
+@@ -191,9 +191,19 @@ def main(argv: list[str] | None = None, *, generation_accelerator: str = "hip")
+                         help="resume HunyuanVideo SFT from a native checkpoint file or DP2 from a committed checkpoint directory")
+     parser.add_argument("--capture-first-policy", action="store_true",
+                         help="capture the first SAGE-GRPO rollout and policy update for numerical diagnostics")
++    parser.add_argument("--replay-first-trajectory", type=vlm.absolute_path)
++    parser.add_argument("--replay-first-trajectory-sha256")
+     options = parser.parse_args(args)
+     if options.capture_first_policy and (options.case != "T09.sage-grpo" or not options.run):
+         parser.error("--capture-first-policy requires T09.sage-grpo --run")
++    if (options.replay_first_trajectory is None) != (options.replay_first_trajectory_sha256 is None):
++        parser.error("fixed trajectory replay requires both the path and its SHA256")
++    if options.replay_first_trajectory is not None:
++        if options.case != "T09.sage-grpo" or not options.run or options.capture_first_policy:
++            parser.error("fixed trajectory replay requires T09.sage-grpo --run without capture")
++        digest = options.replay_first_trajectory_sha256
++        if len(digest) != 64 or set(digest) - set("0123456789abcdef"):
++            parser.error("fixed trajectory replay requires a lowercase SHA256")
+     if options.resume_from_checkpoint is not None:
+         if options.case not in ("T09.sft", "T09.dp2") or not options.run:
+             parser.error("--resume-from-checkpoint requires --run with T09.sft or T09.dp2")
+@@ -216,6 +226,11 @@ def main(argv: list[str] | None = None, *, generation_accelerator: str = "hip")
+             if options.asset_map is None:
+                 raise ValueError("--capture-first-policy requires --asset-map")
+             plan["config"]["capture_first_policy"] = True
++        if options.replay_first_trajectory is not None:
++            if options.asset_map is None:
++                raise ValueError("fixed trajectory replay requires --asset-map")
++            plan["config"].update(replay_first_trajectory=str(options.replay_first_trajectory),
++                                  replay_first_trajectory_sha256=options.replay_first_trajectory_sha256)
+         if options.resume_from_checkpoint is not None:
+             if options.asset_map is None:
+                 raise ValueError("--resume-from-checkpoint requires --asset-map")
+-- 
+2.40.0.windows.1
+
