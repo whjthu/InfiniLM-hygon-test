@@ -1,0 +1,148 @@
+{
+  "state": "TERMINAL_SOCKET_PASS_SHCA_INIT_FAILED_NO_COMPLETED_PAIR",
+  "claim": "080a255149261f7efbe5b903abbd02b6bfbce448",
+  "request_id": "b10e555080914d59a96d8a9aa603f705",
+  "accounting_columns": [
+    "JobIDRaw",
+    "JobName",
+    "State",
+    "ExitCode",
+    "ElapsedRaw",
+    "NodeList"
+  ],
+  "accounting": [
+    [
+      "1103606.82",
+      "GLM474-TP16-transport-pair-v1-pre",
+      "COMPLETED",
+      "0:0",
+      "0",
+      "f13r1n[08-09]"
+    ],
+    [
+      "1103606.83",
+      "GLM474-TP16-transport-pair-v1-arm-0",
+      "COMPLETED",
+      "0:0",
+      "5",
+      "f13r1n[08-09]"
+    ],
+    [
+      "1103606.84",
+      "GLM474-TP16-transport-pair-v1-arm-1",
+      "FAILED",
+      "1:0",
+      "61",
+      "f13r1n[08-09]"
+    ],
+    [
+      "1103606.85",
+      "GLM474-TP16-transport-pair-v1-post",
+      "COMPLETED",
+      "0:0",
+      "0",
+      "f13r1n[08-09]"
+    ]
+  ],
+  "independent_observation_epoch": 1794618355.622831,
+  "independent_observation_SHA256": "bf37db1d8d24e61c25e3a8c3212465254b4b17b6954aa5580c3b419a9459bcd7",
+  "remote_terminal_SHA256": "01813da94daabdc197e5396523eb982bcd7c7bdc3fc876fea7f4459b8a19e036",
+  "launcher_stdout_SHA256": "25700606125adc9593e576696698a19c78bf8f1838f9c73e637b71bc4190e358",
+  "planned_arms": [
+    "socket",
+    "shca",
+    "shca",
+    "socket",
+    "socket",
+    "shca"
+  ],
+  "dispatched_arms": 2,
+  "completed_valid_arms": 1,
+  "completed_pairs": 0,
+  "undispatched_arms": 4,
+  "post_clean": true,
+  "post_receipt_SHA256": {
+    "f13r1n08": "cf7b53420fb0eb65df2ad2dcebfaa8ac78e1cd3a77adfd69e982c0c96abda3a4",
+    "f13r1n09": "6cd74bd33284b2faa68ee974bf4b1c55ee6bfbeab89f063acddcd7a5dc89b1ad"
+  },
+  "socket_summary": [
+    {
+      "operation": "allreduce",
+      "bytes": 2048,
+      "median_slowest_rank_ns": 141646.5
+    },
+    {
+      "operation": "allgather",
+      "bytes": 2048,
+      "median_slowest_rank_ns": 467536.5
+    },
+    {
+      "operation": "allreduce",
+      "bytes": 12288,
+      "median_slowest_rank_ns": 272698.5
+    },
+    {
+      "operation": "allgather",
+      "bytes": 12288,
+      "median_slowest_rank_ns": 1144882.5
+    }
+  ],
+  "socket_numeric_rank_receipts": 16,
+  "shca_numeric_rank_receipts": 0,
+  "shca_logs": {
+    "SHA256": "16a4a998aaf305e7dfa6bec294f30b53c73d27f758c1dec62b327bd28ef848bc",
+    "bytes": 21814,
+    "counts": {
+      "Using network": 8,
+      "IBext_v8": 16,
+      "NET/Socket": 0,
+      "Init COMPLETE": 0,
+      "WARN": 41,
+      "No plugin": 0,
+      "failed": 0,
+      "error": 3,
+      "ucx": 0,
+      "libibverbs": 16
+    },
+    "selected_network_logged": [
+      "IBext_v8"
+    ],
+    "relevant_warnings": [
+      [
+        "WARNING: Could not find any rocm files on this host!",
+        16
+      ],
+      [
+        "WARNING: /opt/hyhal/lib/cmake/rocm_smi doesn't exist, please install the latest driver(version >= 6.3.15)",
+        16
+      ],
+      [
+        "Missing \"HSA_FORCE_FINE_GRAIN_PCIE=1\" from environment which can lead to low RCCL performance, system instablity or hang!",
+        9
+      ],
+      [
+        "    raise TimeoutError('communicator ID unavailable')",
+        8
+      ],
+      [
+        "TimeoutError: communicator ID unavailable",
+        8
+      ],
+      [
+        "srun: error: f13r1n09: tasks 8-15: Exited with exit code 1",
+        1
+      ],
+      [
+        "slurmstepd: error: *** STEP 1103606.84 ON f13r1n08 CANCELLED AT 2026-11-14T09:03:42 ***",
+        1
+      ],
+      [
+        "srun: error: f13r1n08: tasks 0-7: Terminated",
+        1
+      ]
+    ]
+  },
+  "shca_initialization_qualified": false,
+  "end_to_end_speedup_measured": false,
+  "next": "Diagnose communicator-ID creation and publication separately. Emit rank-zero before/after GetUniqueId timestamps, check actual bootstrap interface and SHCA provider on both nodes, and test the documented RCCL environment with a distinct bounded initialization scope. The fine-grain PCIe warning is a diagnostic clue; the old run does not establish causality."
+}
