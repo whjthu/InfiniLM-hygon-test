@@ -12,7 +12,7 @@ CALLBACKS = ("native_initial_trainables", "native_first_updates")
 BASE = PurePosixPath("/public/home/aclsylqidf/hygon-inference-refactor-20261014/results")
 DATASET = BASE / "training-vlm-original-assets-v1/vlm_report_coco64.hip.jsonl"
 PLUGINS = BASE / "training-vlm-original-assets-v1/plugins"
-MODEL_PARENT = BASE / "training-qwen-original-public-model-v1/models"
+MODEL_DIRECTORY = BASE / "training-qwen-original-public-model-v1/model"
 
 
 def require(condition, message):
@@ -34,10 +34,17 @@ def prepare(original, binding_path, swift, framework, output, port, *, epoch, de
     root = PurePosixPath(framework)
     output = PurePosixPath(output)
     sources = [root / "vlm/plugins" / (name + ".py") for name in CALLBACKS]
-    launch = build_launch(CASE, original, PurePosixPath(swift), MODEL_PARENT, DATASET, PLUGINS,
+    launch = build_launch(CASE, original, PurePosixPath(swift), MODEL_DIRECTORY.parent, DATASET, PLUGINS,
                           output / "train", port, diagnostic_plugin=sources,
                           diagnostic_callback=list(CALLBACKS), diagnostic_callback_position="before")
     argv = launch["command"]
+    # Swift takes the already verified publication directory directly. The
+    # generic VLM helper builds a directory from the A100 model basename.
+    model_at = argv.index("--model") + 1
+    require(argv.count("--model") == 1 and argv[model_at] == launch["required_assets"]["model_directory"],
+            "Ambiguous model argument in frozen recipe")
+    argv[model_at] = str(MODEL_DIRECTORY)
+    launch["required_assets"]["model_directory"] = str(MODEL_DIRECTORY)
     at = argv.index("--callbacks") + 1
     require(argv[at:at + 3] == [*CALLBACKS, "nvidia_baseline"], "Invalid callback order")
     env = launch["environment_overrides"]
