@@ -1,0 +1,137 @@
+"""Materialize the pinned framework and execute one bounded CPU step."""
+import base64
+import hashlib
+import json
+import os
+from pathlib import Path
+import shlex
+import signal
+import shutil
+import subprocess
+import sys
+import time
+
+R = Path("/public/home/aclsylqidf/hygon-inference-refactor-20261014")
+LABEL = "training-qwen-same-ckpt25-pair-CPU-v1"
+PARENT = "1087656"
+NODE = "a01r4n16"
+W = R / "results" / LABEL
+
+
+def require(condition, message):
+    if not condition:
+        raise ValueError(message)
+
+
+def write(name, value):
+    with (W / name).open("x") as f:
+        json.dump(value, f, indent=2)
+
+
+def query(*argv):
+    return subprocess.check_output(argv, timeout=10, text=True).strip()
+
+
+def accounting():
+    return [line.split("|") for line in query("sacct", "-n", "-P", "-j", PARENT,
+        "--format=JobIDRaw,JobName%100,State,ExitCode,ElapsedRaw,NodeList").splitlines()
+        if "|"+LABEL+"|" in line]
+
+
+def main():
+    epoch = time.time()
+    started = time.monotonic()
+    payload = json.load(sys.stdin)
+    require(set(payload) == {"request","claim","package"}, "Unexpected payload")
+    require(not W.exists() and not accounting(), "Existing scope requires reconciliation")
+    state, count, hosts = query("squeue", "-h", "-j", PARENT, "-o", "%T|%D|%N").split("|")
+    nodes = query("scontrol", "show", "hostnames", hosts).splitlines()
+    require(state == "RUNNING" and int(count) == len(set(nodes)) == 40 and NODE in nodes,
+            "Frozen CPU node is unavailable")
+    for line in query("squeue", "--steps", "-h", "-j", PARENT, "-o", "%i|%N").splitlines():
+        handle, hosts = line.split("|")
+        if not handle.endswith((".batch", ".extern")) and hosts not in ("", "(null)"):
+            require(NODE not in query("scontrol", "show", "hostnames", hosts).splitlines(),
+                    "CPU node has an active step")
+    W.mkdir(mode=0o700)
+    write("intent.json", dict(epoch=epoch, deadline=epoch+290, request=payload["request"],
+        claim=payload["claim"], pid=os.getpid(), parent=PARENT, node=NODE, GPU_cards=0))
+    original = R/"results/training-qwen-continuous-tail-hip-v1"
+    resumed = R/"results/training-qwen-paired-control-resume20-hip-v1"
+    for path,digest in ((original,"a758dee9ebfd5ef9acc2b466de161aa88a24e0af45fc08e0bd0c90bffa0f30ab"),
+                        (resumed,"32be044cdd38cce04f1a0a2c346b64fb3ef97f74cd26c4645097888d914ac212")):
+        require(hashlib.sha256((path/"outcome.json").read_bytes()).hexdigest()==digest,
+                "Original training terminal differs")
+    terminal=query("sacct","-n","-P","-j",PARENT,"--format=JobIDRaw,State,ExitCode,NodeList").splitlines()
+    for handle in ("1087656.230","1087656.231","1087656.233","1087656.234"):
+        require(handle+"|COMPLETED|0:0|"+NODE in terminal, "Original accounting not confirmed")
+    fix = W/"fix"
+    fix.mkdir()
+    require(set(payload["package"]) == set(PACKAGE_PINS), "Package mismatch")
+    for name,digest in PACKAGE_PINS.items():
+        data=base64.b64decode(payload["package"][name],validate=True)
+        require(hashlib.sha256(data).hexdigest()==digest,name)
+        with (fix/name).open("xb") as f:
+            f.write(data)
+    sys.path.insert(0,str(fix))
+    from slurm_accounting import wait_terminal
+    evidence=W/"evidence"
+    evidence.mkdir()
+    require(time.monotonic() - started < 85 and time.time() < epoch+85, "Admission budget exhausted")
+    shell = ("set -euo pipefail; ulimit -c 0; source /opt/dtk/env.sh; "
+        "export PYTHONNOUSERSITE=1 PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES=-1 "
+        "HIP_VISIBLE_DEVICES=-1 ROCR_VISIBLE_DEVICES=-1 OMP_NUM_THREADS=2 OPENBLAS_NUM_THREADS=1; "
+        "export HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 PYTHONPATH=/swift-runtime/site QWEN_CPU_DEADLINE="
+        + shlex.quote(str(epoch+230)) + " QWEN_CPU_EPOCH=" + shlex.quote(str(epoch))
+        + "; exec python3 -B -u /fix/compute.py")
+    command = ["/public/software/apps/apptainer/1.3.4/bin/apptainer", "exec", "--no-home", "--pwd", "/"]
+    binds = [(original, "/original", "ro"), (resumed, "/resumed", "ro"),
+             (fix, "/fix", "ro"), (evidence, "/evidence", "rw"),
+             (R/"results/training-vlm-swift-offline-runtime-v1/site", "/swift-runtime/site", "ro"),
+             (Path("/opt/hyhal"), "/opt/hyhal", "ro")]
+    for source, target, mode in binds:
+        command += ["--bind", f"{source}:{target}:{mode}"]
+    command += [str(R/"containers/dtk26-sandbox-r1"), "/bin/bash", "--noprofile", "--norc", "-c", shell]
+    step = ["srun", "--jobid="+PARENT, "--job-name="+LABEL, "--exact", "--nodes=1", "--ntasks=1",
+        "--nodelist="+NODE, "--cpus-per-task=4", "--mem=8192M", "--gres=none",
+        "--immediate=5", "--time=4", *command]
+    forced = False
+    with (W/"CPU.log").open("xb") as log:
+        p = subprocess.Popen(step, stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
+        try:
+            stat = Path(f"/proc/{p.pid}/stat").read_text().split(") ",1)[1].split()
+            write("owned-srun.json", {"pid":p.pid, "pgid":int(stat[2]), "startticks":int(stat[19])})
+            p.wait(timeout=max(1,min(epoch+242-time.time(),242-(time.monotonic()-started))))
+        finally:
+            if p.poll() is None:
+                forced = True
+                try:
+                    os.killpg(p.pid, signal.SIGTERM)
+                    p.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    os.killpg(p.pid, signal.SIGKILL)
+                    p.wait(timeout=5)
+                except ProcessLookupError:
+                    p.wait(timeout=5)
+            def one_row():
+                current = accounting()
+                require(len(current) <= 1, "Duplicate Slurm label")
+                return current[0] if current else None
+            cutoff = time.monotonic() + min(23, max(0, epoch+265-time.time()),
+                                            max(0, 265-(time.monotonic()-started)))
+            observed = wait_terminal(one_row, cutoff, interval=1, max_observations=23)
+            rows = [observed["row"]] if observed["terminal_visible"] else []
+            receipt = evidence/"compute.json"
+            compute = json.loads(receipt.read_bytes()) if receipt.is_file() else None
+            passed = bool(compute and len(rows)==1 and rows[0][0]==compute["step"] and
+                          rows[0][2:4]==["COMPLETED","0:0"] and p.returncode==0 and not forced)
+            value = dict(passed=passed, rows=rows, accounting=observed, rc=p.returncode, forced=forced, compute=compute,
+                         log_SHA256=hashlib.sha256((W/"CPU.log").read_bytes()).hexdigest(),
+                         request=payload["request"], claim=payload["claim"])
+            write("outcome.json",value)
+            print(json.dumps({**value, "compute": None if compute is None else {k:compute[k] for k in ("adapter","optimizer_moments_by_serialized_parameter_id","step","GPU_cards")}}),flush=True)
+    return 0 if passed else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
