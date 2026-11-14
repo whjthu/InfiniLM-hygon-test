@@ -2,7 +2,7 @@
   "owner": "root",
   "case": "T01.sft",
   "scope": "COMPONENT_ONLY",
-  "state": "CLAIMED_BEFORE_DISPATCH",
+  "state": "COMPONENT_PASSED_INDEPENDENT_ORIGINAL_COLLECTOR_FAILED",
   "source": "code/bw1000/training-qwen-hip-input-agreement-tcp-v2",
   "source_SHA256": {
     "worker.py": "787683b278b4693ec8ed77c58b8459e0be5ffbbcfcdaf04cc32c827adc20acba",
@@ -18,10 +18,10 @@
     "coordination/training/training80-active-node-task-map-v1.json": "36361b92773f8eda412132ea176c29e814e4620ea8392ff287e68d854d67f5c9",
     "results/bw1000/2026-11-14/training-qwen-hip-input-agreement-v1-original-terminal.json": "1e711576256001f010c25dee955c54fc8389cf9c29fa62ca24df1f9e4be739fc"
   },
-  "GPU_GO": true,
+  "GPU_GO": false,
   "Model_GO": false,
   "max_GPU_invocations": 1,
-  "actual_GPU_invocations": 0,
+  "actual_GPU_invocations": 1,
   "replay_allowed": false,
   "resources": {
     "parent": "1087656",
@@ -58,5 +58,13 @@
   "previous_failed_step": "1087656.203",
   "previous_failure_preserved": true,
   "change": "Use torch.distributed.run standalone TCP rendezvous with no restarts and write rank-stage and vote receipts.",
-  "qualification_boundary": "Rendezvous and process launcher change together. A pass qualifies the TCP launch path without attributing the old failure to FileStore alone."
+  "qualification_boundary": "Rendezvous and process launcher change together. A pass qualifies the TCP launch path without attributing the old failure to FileStore alone.",
+  "actual_GPU_step": "1087656.206",
+  "independent_post_step": "1087656.207",
+  "evidence": "results/bw1000/2026-11-14/training-qwen-hip-input-agreement-tcp-v2-original-terminal.json",
+  "independent_reader": "code/bw1000/training-qwen-hip-input-agreement-tcp-v2/read_original_terminal.py",
+  "independent_reader_sha256": "4a794326594fc80c85f3a2384cc72e94e468908c47de5b96bb8a6e9e290e65d8",
+  "original_collector_passed": false,
+  "independent_component_passed": true,
+  "next": "Reuse TCP launcher for the target native run once original LoRA initialization and first-batch qualification are bound. Require read-after-terminal bounded receipt visibility in future collectors."
 }
