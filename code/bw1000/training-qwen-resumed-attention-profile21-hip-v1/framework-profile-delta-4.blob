@@ -1,0 +1,110 @@
+import json
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from types import SimpleNamespace
+import unittest
+
+from vlm.runtime.qwen_attention_profile import AttentionProfile, summarize
+from vlm.runtime.qwen_backward_trace import BackwardTrace, compare_backward_traces
+
+
+class Trainer:
+    def __init__(self):
+        self.state = SimpleNamespace(global_step=19)
+        self.calls = []
+        self.on_forward = None
+
+    def training_step(self, model, batch, *, count):
+        self.calls.append((model.sync, batch, count))
+        if self.on_forward:
+            self.on_forward()
+        return batch
+
+
+class QwenBackwardTraceTest(unittest.TestCase):
+    def test_profile_wraps_only_second_microbatch_and_keeps_native_return(self):
+        trainer = Trainer()
+        trainer.state.global_step = 20
+        model = SimpleNamespace(sync=False)
+        dispatch = []
+
+        class Profile:
+            def __enter__(self):
+                dispatch.append('begin')
+
+            def __exit__(self, *_):
+                dispatch.append('end')
+
+            def events(self):
+                kernel = SimpleNamespace(name='hip_fixture_kernel', duration=4.0)
+                child = SimpleNamespace(kernels=[kernel], cpu_children=[])
+                return [SimpleNamespace(name='aten::_scaled_dot_product_flash_attention_backward',
+                                        input_shapes=[[1, 16, 128, 128]], kernels=[], cpu_children=[child]),
+                        SimpleNamespace(name='aten::empty')]
+
+        with TemporaryDirectory() as tmp:
+            profile_path = Path(tmp) / 'attention-profile-21.json'
+            profile = AttentionProfile(profile_path, 4, Profile)
+            trace = BackwardTrace(trainer, Path(tmp) / 'backward-21.json', lambda: None,
+                                  lambda m: dict(ddp_sync=m.sync, accelerator_sync=m.sync),
+                                  lambda: dict.fromkeys(map(str, range(504))), profiler=profile)
+            for ordinal in range(1, 5):
+                trainer.on_forward = lambda: (trace.forward_entry(ordinal), dispatch.append(ordinal))
+                self.assertIs(trainer.training_step(model, model, count=1), model)
+            trace.finish()
+            self.assertEqual(dispatch, [1, 'begin', 2, 'end', 3, 4])
+            self.assertEqual(len(trainer.calls), 4)
+            report = json.loads(profile_path.read_bytes())
+            self.assertTrue(report['backward_dispatch_observed'])
+            self.assertTrue(report['device_kernel_observed'])
+            self.assertFalse(report['timing_qualified'])
+            self.assertEqual(report['operators'][0]['kernels'],
+                             [dict(name='hip_fixture_kernel', duration_us=4.0)])
+
+    def test_profile_retains_missing_backward_and_device_coverage(self):
+        event = SimpleNamespace(name='aten::_scaled_dot_product_attention_math',
+                                input_shapes=[], kernels=[], cpu_children=[])
+        result = summarize([event])
+        self.assertFalse(result['backward_dispatch_observed'])
+        self.assertFalse(result['device_kernel_observed'])
+        self.assertEqual(result['operators'][0]['phase'], 'forward_or_recompute')
+        with self.assertRaisesRegex(ValueError, 'SDPA event count'):
+            summarize([event] * 257)
+
+    def test_preserves_native_calls_and_finds_local_gradient_difference(self):
+        trainer = Trainer()
+        with TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'backward-21.json'
+            model = SimpleNamespace(sync=False)
+            trace = BackwardTrace(trainer, path, lambda: None,
+                                  lambda m: dict(ddp_sync=m.sync, accelerator_sync=m.sync),
+                                  lambda: {str(i): len(trainer.calls) for i in range(504)})
+            batch = object()
+            self.assertIs(trainer.training_step(model, batch, count=1), batch)
+            self.assertFalse(path.exists())
+            trainer.state.global_step = 20
+            for ordinal in range(1, 5):
+                model.sync = ordinal == 4
+                trainer.on_forward = lambda: trace.forward_entry(ordinal)
+                self.assertIs(trainer.training_step(model, batch, count=1), batch)
+            trace.finish()
+            self.assertNotIn('training_step', vars(trainer))
+            self.assertEqual(trainer.calls, [(False, batch, 1)] * 4 + [(True, batch, 1)])
+            original = json.loads(path.read_bytes())
+            changed = json.loads(path.read_bytes())
+            changed['microbatches'][0]['gradients']['0'] = 0
+            pair = compare_backward_traces(original, changed)
+            self.assertEqual([m['differing_gradient_tensors'] for m in pair], [1, 0, 0, 0])
+            self.assertEqual([m['resumed_ddp_sync'] for m in pair], [False, False, False, True])
+
+    def test_rejects_missing_forward(self):
+        trainer = Trainer()
+        trainer.state.global_step = 20
+        with TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'backward-21.json'
+            trace = BackwardTrace(trainer, path, lambda: None,
+                                  lambda m: dict(ddp_sync=False, accelerator_sync=False), dict)
+            with self.assertRaisesRegex(ValueError, 'without an observed forward'):
+                trainer.training_step(SimpleNamespace(sync=False), object(), count=1)
+            self.assertFalse(path.exists())
+            self.assertEqual(trace.pending['ordinal'], 1)

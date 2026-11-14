@@ -1,0 +1,86 @@
+"""Capture the native attention dispatch for one Qwen training microbatch."""
+
+import json
+import math
+
+
+RANK = 4
+MICROBATCH = 2
+MAX_EVENTS = 100_000
+MAX_SELECTED = 256
+SDPA = 'aten::_scaled_dot_product_'
+
+
+def summarize(events):
+    if len(events) > MAX_EVENTS:
+        raise ValueError('Qwen profiler event count exceeded its budget')
+    selected = []
+    for event in events:
+        name = event.name
+        if name != 'aten::scaled_dot_product_attention' and not name.startswith(SDPA):
+            continue
+        if len(selected) >= MAX_SELECTED:
+            raise ValueError('Qwen SDPA event count exceeded its budget')
+        kernels = []
+        pending = [event]
+        count = 0
+        while pending:
+            child = pending.pop()
+            count += 1
+            if count > 2048 or len(kernels) + len(child.kernels) > 512:
+                raise ValueError('Qwen SDPA subtree exceeded its budget')
+            for kernel in child.kernels:
+                if not 0 < len(kernel.name) <= 4096 or not math.isfinite(kernel.duration) or kernel.duration < 0:
+                    raise ValueError('invalid Qwen device kernel event')
+                kernels.append(dict(name=kernel.name, duration_us=kernel.duration))
+            pending.extend(reversed(child.cpu_children))
+        selected.append(dict(name=name, input_shapes=event.input_shapes, kernels=kernels,
+                             phase='backward' if name.endswith('_backward') else 'forward_or_recompute'))
+    return dict(event_count=len(events), operators=selected,
+                backward_dispatch_observed=any(x['phase'] == 'backward' for x in selected),
+                device_kernel_observed=any(x['kernels'] for x in selected))
+
+
+class AttentionProfile:
+    def __init__(self, path, rank, create_profiler):
+        if rank != RANK or path.exists():
+            raise ValueError('Qwen attention profiler requires a new rank-4 output')
+        self.path = path
+        self.create_profiler = create_profiler
+        self.complete = False
+
+    def run(self, ordinal, step, *args, **kwargs):
+        if ordinal != MICROBATCH:
+            return step(*args, **kwargs)
+        if self.complete:
+            raise ValueError('duplicate Qwen attention profile')
+        profile = self.create_profiler()
+        with profile:
+            result = step(*args, **kwargs)
+        summary = dict(complete=True, rank=RANK, global_update=21, microbatch=MICROBATCH,
+                       timing_qualified=False, **summarize(profile.events()))
+        raw = json.dumps(summary, allow_nan=False)
+        if len(raw.encode()) > 1024**2:
+            raise ValueError('Qwen attention profile output exceeded its budget')
+        temporary = self.path.with_suffix('.tmp')
+        with temporary.open('x', encoding='utf-8') as stream:
+            stream.write(raw)
+        temporary.replace(self.path)
+        self.complete = True
+        return result
+
+
+def native_attention_profile(path, rank):
+    import torch
+    from torch.profiler import ProfilerActivity, profile, supported_activities
+
+    if not torch.version.hip or torch.cuda.current_device() != rank:
+        raise ValueError('Qwen attention profile requires its assigned HIP device')
+
+    def create():
+        activities = [ProfilerActivity.CPU, ProfilerActivity.CUDA]
+        if not set(activities) <= supported_activities():
+            raise RuntimeError('target profiler lacks CPU or device activity')
+        return profile(activities=activities, record_shapes=True)
+
+    return AttentionProfile(path, rank, create)
