@@ -1,0 +1,97 @@
+{
+  "source_SHA256": {
+    "results/bw1000/2026-11-13/added-o01-bf16-collective-1103606-4.json": "c3bbdf88f490d9de349a0a5b545901df7ea0ea814d82b71c326c9a713be665bb",
+    "results/bw1000/2026-11-13/added-o01-shca-collective-1103606-24.json": "96fd286401492ec70032106c39fc51debfd4ae8b59b8959f558539084438c34b",
+    "results/bw1000/2026-11-13/GLM474-TP16-native-collective-1103606-66-terminal.json": "66897d6ef7abcbe75624e95caf3d3f9590c0f402c78b3c6da563981f1e79e684"
+  },
+  "original_steps": {
+    "socket": "1103606.4",
+    "shca": "1103606.24"
+  },
+  "nodes": [
+    "f12r2n10",
+    "f12r2n11"
+  ],
+  "same_nodes_PCI_KFD_boot_Torch_HIP": true,
+  "comparison": [
+    {
+      "bytes": 8192,
+      "socket": {
+        "measured_windows": 20,
+        "median_us": 257.088,
+        "p95_us": 277.185,
+        "max_us": 283.895
+      },
+      "shca": {
+        "measured_windows": 20,
+        "median_us": 108.9165,
+        "p95_us": 124.042,
+        "max_us": 125.841
+      },
+      "median_shca_over_socket": 0.4236545463032113,
+      "p95_shca_over_socket": 0.4475061781842452
+    },
+    {
+      "bytes": 131072,
+      "socket": {
+        "measured_windows": 20,
+        "median_us": 614.607,
+        "p95_us": 684.902,
+        "max_us": 687.163
+      },
+      "shca": {
+        "measured_windows": 20,
+        "median_us": 140.296,
+        "p95_us": 157.321,
+        "max_us": 188.0
+      },
+      "median_shca_over_socket": 0.22826944697994003,
+      "p95_shca_over_socket": 0.2296985554137672
+    },
+    {
+      "bytes": 4194304,
+      "socket": {
+        "measured_windows": 20,
+        "median_us": 8398.6455,
+        "p95_us": 8705.722,
+        "max_us": 9074.3
+      },
+      "shca": {
+        "measured_windows": 20,
+        "median_us": 421.145,
+        "p95_us": 538.012,
+        "max_us": 571.13
+      },
+      "median_shca_over_socket": 0.05014439530755286,
+      "p95_shca_over_socket": 0.06179981396143823
+    }
+  ],
+  "same_session_pair": false,
+  "payload_unit": "BF16 input bytes per rank",
+  "timing_boundary": "Max of both ranks for each sample. Host call through device completion, input copy excluded.",
+  "candidate_consumer": {
+    "GLM_original_step": "1103606.66",
+    "nodes": [
+      "f13r1n05",
+      "f13r1n07"
+    ],
+    "ranks": 16,
+    "native_operations": [
+      "allreduce",
+      "allgather"
+    ],
+    "input_bytes_per_rank": [
+      2048,
+      12288
+    ],
+    "native_provider_SHA256": [
+      "76eb65adacc8a6832970991ca276b32562543b7fb7e8dd09cda9f4c269f24809"
+    ],
+    "exact_workloads_matched": 0,
+    "original_transport": "Unclassified; no fabric or GDR claim."
+  },
+  "next_scope": "A same-allocation TP16 InfiniCCL comparison at 2048 and 12288 bytes would test the actual caller's operations and transport. The original I02 nodes remain reserved while .81 runs.",
+  "GDR_qualified": false,
+  "native_transport_promoted": false,
+  "end_to_end_gain_measured": false
+}
