@@ -1,0 +1,47 @@
+import json
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from types import SimpleNamespace
+import unittest
+
+from vlm.runtime.qwen_update_trace import UpdateTrace, compare_update_traces
+
+
+class QwenUpdateTraceTest(unittest.TestCase):
+    def test_one_native_clip_is_preserved_and_first_difference_is_reported(self):
+        with TemporaryDirectory() as tmp:
+            calls = []
+            norm = object()
+            def clip(model):
+                calls.append(model)
+                return norm
+            trainer = SimpleNamespace(state=SimpleNamespace(global_step=20), _clip_grad_norm=clip)
+            path = Path(tmp) / 'update-21.json'
+            trace = UpdateTrace(trainer, path, lambda: None, lambda kind, value=None: kind)
+            for i in range(1, 5):
+                trace.forward_entry(i)
+                trace.forward_loss(i, lambda: 0)
+            model = object()
+            self.assertIs(trainer._clip_grad_norm(model), norm)
+            self.assertEqual(calls, [model])
+            trace.before_optimizer()
+            trace.after_optimizer()
+            trainer.state.global_step = 21
+            trace.finish()
+            self.assertIs(trainer._clip_grad_norm, clip)
+            original = json.loads(path.read_bytes())
+            changed = json.loads(path.read_bytes())
+            changed['events'][8]['value'] = 'different'
+            self.assertEqual(compare_update_traces(original, changed)['first_difference'], 'preclip')
+
+    def test_premature_optimizer_rejected(self):
+        with TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'update-21.json'
+            trainer = SimpleNamespace(state=SimpleNamespace(global_step=20),
+                                      _clip_grad_norm=lambda model: None)
+            trace = UpdateTrace(trainer, path, lambda: None, lambda kind, value=None: kind)
+            trace.forward_entry(1)
+            with self.assertRaisesRegex(ValueError, 'unexpected Qwen update boundary'):
+                trace.before_optimizer()
+            with self.assertRaisesRegex(ValueError, 'expected a complete'):
+                compare_update_traces(json.loads(path.read_bytes()), {})
