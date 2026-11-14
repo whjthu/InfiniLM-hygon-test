@@ -1,0 +1,109 @@
+{
+  "original_step": "1103606.110",
+  "original_timing": {
+    "path": "results/bw1000/2026-11-14/GLM474-ffn-original-110-attention-projection-occurrences.json",
+    "SHA256": "2b67f79afc3c9b2472dc71cbd39710c4be3eaadd19e4c0e9b0257f212754728c"
+  },
+  "original_sources": {
+    "code/bw1000/GLM952-global-TP16-component-r470/full-native-source-v1/NoV_tp16.cpp": "f696e5e87fd21d090f8dd6f0836ed884d8649a26aa2e9d6cbd0c355fba338428",
+    "code/bw1000/GLM952-global-TP16-component-r470/full-native-source-v1/prepare_tp16.cpp": "285d0465a201b6c5da22bd28bc56b1a34606805df1b147469c1b8f0108bf4929",
+    "code/bw1000/GLM-V-on-demand-Model-integration-r403/selected_values_r400.hpp": "50ece2ded22ce1e70ea55947972dd3f5f17cdee2dd39f9080f1bb08a3cae0489"
+  },
+  "selector_obs_SHA256": "93d3b89adf7cba925a32334e7732a4b65bd0478ab8b9c39a8dbbdb85462eb13f",
+  "selector_header_SHA256": "38062a1097a1194ca9721cdb4f5035f59bc3795b192d3b00f7f471c3126bc70b",
+  "selector_binding": [
+    {
+      "rank": 0,
+      "owner_SHA256": "44bff593a47f5eb5f581c855aad6b0de1814b239eb331f56eac8a76ef30465cc",
+      "selector": [
+        [
+          0,
+          1312,
+          1
+        ],
+        [
+          0,
+          1313,
+          1
+        ],
+        [
+          0,
+          1314,
+          1
+        ]
+      ]
+    },
+    {
+      "rank": 8,
+      "owner_SHA256": "6725995af66dc8412052c386ea939bd16e68959fef6abcff7a2047f27c9fe5fd",
+      "selector": [
+        [
+          0,
+          1312,
+          1
+        ],
+        [
+          0,
+          1313,
+          1
+        ],
+        [
+          0,
+          1314,
+          1
+        ]
+      ]
+    }
+  ],
+  "source_mapping": {
+    "first_occurrence": "Fresh KV expansion calls kv_b on the current token. The original observer frame pins one arriving row.",
+    "second_occurrence": "Selected-value expansion gathers latent and rotary rows by the causal union and invokes the same kv_b. It returns V and keeps generated K alive until the original drain.",
+    "second_M_upper_by_frame": [
+      1313,
+      1314,
+      1315
+    ],
+    "second_M_runtime_observed": false,
+    "second_M_bound_basis": "Causal union deduplicates valid indices and cannot exceed past + 1 for one query. The mark inventory records one expansion call, but has no tensor row or provider tag.",
+    "logical_shape": {
+      "original_weight": [
+        1792,
+        512
+      ],
+      "global_scales": [
+        224,
+        4
+      ],
+      "packed_weight": [
+        1280,
+        512
+      ],
+      "packed_scales": [
+        10,
+        4
+      ]
+    },
+    "weight_tile_rows": 128,
+    "weight_tiles_original": 14,
+    "weight_tiles_retained": 10,
+    "relative_projected_columns_removed": 0.2857142857142857
+  },
+  "CPU_validation": {
+    "source": "code/bw1000/GLM-NoV-value-block-packing/check_pack_tp16.cpp",
+    "source_SHA256": "165067efced7a1678bd88e026f589d7ec0f343e5a7d895364b868dd02e70f131",
+    "packing_header": "code/bw1000/GLM-NoV-value-block-packing/packed_kv_b_tp16.hpp",
+    "packing_header_SHA256": "134d271f6a3c1deffbbe4e481f70fd79ff5119b2f594a15289f2de6d380e8877",
+    "existing_TP8_header_SHA256": "5c3c8c2732421aa10b8286abf250ed58f6495aa3ad3a7e47bc0645360c7405cd",
+    "command": "g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic",
+    "ranks": 16,
+    "value_rows_per_rank": 1024,
+    "weight_bytes_compared": 8388608,
+    "scale_values_compared": 65536,
+    "invalid_input_cases_rejected": 5,
+    "pass": true,
+    "device_calls": 0
+  },
+  "next": "Bind actual selected M and provider dispatch, then exercise value-block packing on the real Fp8BlockLinear provider with original quantization and compare the complete selected-value phase including gathers and stream drain.",
+  "device_output_equivalence_verified": false,
+  "performance_qualified": false
+}
