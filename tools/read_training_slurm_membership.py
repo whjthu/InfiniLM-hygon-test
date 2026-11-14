@@ -34,10 +34,11 @@ def snapshot(groups):
         nodes = expand(expression)
         if handle != parent or len(set(nodes)) != len(nodes) or len(nodes) != int(count):
             raise ValueError(f'allocation identity or node count differs for {parent}')
-        overlap = all_nodes.intersection(nodes)
+        parent_nodes = set(nodes)
+        overlap = all_nodes.intersection(parent_nodes)
         if overlap:
             raise ValueError('Slurm parents share allocated nodes')
-        all_nodes.update(nodes)
+        all_nodes.update(parent_nodes)
 
         job = fields(query('scontrol', 'show', 'job', parent, '--oneliner')[0])
         dcu = int(dict(row.split('=', 1) for row in job['AllocTRES'].split(','))['gres/dcu'])
@@ -53,12 +54,26 @@ def snapshot(groups):
                 raise ValueError(f'step node count differs for {step_id}')
             if step_id in steps:
                 raise ValueError(f'duplicate live step {step_id}')
-            steps[step_id] = dict(state=step['State'], nodes=len(members),
-                                  groups=sorted({expected.get(node, 'OUTSIDE_LEDGER') for node in members}),
-                                  allocated_TRES=step.get('TRES'))
-        parents[parent] = dict(state=state, nodes=len(nodes), allocated_DCU=dcu,
-                               ledger_exact=set(nodes) == set(expected), active_steps=steps)
-    return dict(parents=parents, distinct_nodes=len(all_nodes), observed_epoch=time.time())
+            step_groups = sorted({expected[node] for node in members if node in expected})
+            outside_ledger = sorted(set(members).difference(expected))
+            outside_parent = sorted(set(members).difference(parent_nodes))
+            steps[step_id] = dict(
+                state=step['State'], nodes=len(members), member_nodes=sorted(members),
+                groups=step_groups, outside_ledger_nodes=outside_ledger,
+                outside_parent_nodes=outside_parent, allocated_TRES=step.get('TRES'),
+                membership_qualified=(len(step_groups) == 1 and not outside_ledger and not outside_parent),
+            )
+        parents[parent] = dict(
+            state=state, nodes=len(nodes), allocated_DCU=dcu,
+            ledger_exact=parent_nodes == set(expected), active_steps=steps,
+        )
+    membership_qualified = all(
+        parent['state'] == 'RUNNING' and parent['ledger_exact']
+        and all(step['membership_qualified'] for step in parent['active_steps'].values())
+        for parent in parents.values()
+    )
+    return dict(parents=parents, distinct_nodes=len(all_nodes),
+                membership_qualified=membership_qualified, observed_epoch=time.time())
 
 
 def main():
