@@ -1,0 +1,46 @@
+{
+  "terminal_audit_SHA256": "689103ffd834ea85bf28f185a8403c3d43627932e5e55e4f15cb993b0d4afcad",
+  "steps": {
+    "socket": "1103606.102",
+    "shca": "1103606.105"
+  },
+  "verified_ranks_per_arm": [
+    0,
+    8
+  ],
+  "planned_pairs": 32,
+  "identical_output_pairs": 31,
+  "divergences": [
+    {
+      "ordinal": 150,
+      "suite": "mmlu",
+      "prompt_tokens": 1448,
+      "common_generated_prefix_tokens": 42,
+      "first_difference_phase": "autoregressive_logits",
+      "decode_forwards_before_first_difference": 42,
+      "generated_tokens": {
+        "socket": 994,
+        "shca": 4096
+      },
+      "correct": {
+        "socket": true,
+        "shca": false
+      },
+      "natural_EOS": {
+        "socket": true,
+        "shca": false
+      },
+      "cap_hit": {
+        "socket": false,
+        "shca": true
+      }
+    }
+  ],
+  "first_divergence_scope": "Sampled token sequence; logits and collective operands were not captured for this ordinal.",
+  "causal_attribution": null,
+  "formal_quality_qualified": false,
+  "source": "code/bw1000/GLM-C1-layer-observer-r474/full-model-transport-terminal-reader-v1/read_divergence.py",
+  "source_SHA256": "2b984ec6f3c191bc7a1086dcbaa7cf0eac0a980ca2f5a6082025d055843e2c8c",
+  "original_response_SHA256": "d108c7fc92e84a0198c35b8230b2e25f52719628298fdb0b1ba1ee8f8c3c83ed",
+  "decision": "Keep Socket as model default. If this transport route is tested again, first capture the top logits and their margin at the 43rd sample on the exact original input. Use each arm’s identical 42-token history at the comparison point. Compare the original greedy output, then collect layer boundaries only if needed for attribution. Full output and quality denominators still apply."
+}
