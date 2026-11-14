@@ -91,6 +91,48 @@ def timing(runs, cards, recipe, boundary, verify_raw, *, provenance, shared_devi
     return statistics.median(rates)
 
 
+def verify_sample_inventory(row, metric, provenance, checkpoints, verify_raw):
+    """Check a frozen ID plan and a manifest of private per-sample artifacts.
+
+    These attachments are SHA-pinned JSON. Artifact locations and digests
+    identify private outputs or failure records for independent scoring audits.
+    """
+    # Each metric may use a different holdout, such as TextVQA versus COCO.
+    identity = dict(provenance, metric=metric)
+    planned = verify_raw(row['sample_plan'])
+    need(all(planned.get(key) == value for key, value in identity.items()),
+         'sample plan belongs to different held-out evidence')
+    sample_ids = planned['sample_ids']
+    need(isinstance(sample_ids, list) and len(sample_ids) == row['planned_samples']
+         and all(isinstance(sample_id, str) and sample_id.strip() for sample_id in sample_ids),
+         'invalid planned held-out sample IDs')
+    expected = set(sample_ids)
+    need(len(expected) == len(sample_ids), 'duplicate planned held-out sample ID')
+
+    inventory = verify_raw(row['sample_inventory'])
+    need(all(inventory.get(key) == value for key, value in identity.items())
+         and inventory['sample_plan_SHA256'] == row['sample_plan']['SHA256']
+         and inventory['checkpoint_SHA256'] == checkpoints,
+         'sample inventory belongs to a different plan, scorer or checkpoint')
+    need(inventory['arms'].keys() == checkpoints.keys(), 'incorrect held-out arms')
+    for platform, samples in inventory['arms'].items():
+        observed = set()
+        failed = 0
+        for sample in samples:
+            sample_id = sample['sample_id']
+            need(isinstance(sample_id, str) and sample_id in expected and sample_id not in observed,
+                 'unexpected or duplicate held-out sample ID')
+            artifact = sample['artifact']
+            need(isinstance(artifact['location'], str) and artifact['location'].strip()
+                 and sha(artifact['SHA256']) and sample['status'] in ('scored', 'failed'),
+                 'missing held-out output or failure evidence')
+            observed.add(sample_id)
+            failed += sample['status'] == 'failed'
+        need(observed == expected and failed == row[platform + '_failed']
+             and len(samples) - failed == row[platform + '_scored'],
+             'held-out sample inventory or counts differ from the declared plan')
+
+
 def effect(rows, expected, provenance, verify_raw):
     need(rows.keys() == expected.keys(), 'held-out metric set differs')
     regressions = {}
@@ -122,6 +164,7 @@ def effect(rows, expected, provenance, verify_raw):
             need(type(scored) is int and type(failed) is int and scored > 0 and failed >= 0
                  and scored + failed == row['planned_samples'],
                  'held-out score and failure counts do not close')
+        verify_sample_inventory(row, metric, provenance, checkpoints, verify_raw)
         delta = reference - target if direction == 'higher' else target - reference
         regressions[metric] = {'absolute_degradation': delta,
                                'relative_degradation': None if reference == 0 else delta / reference}
