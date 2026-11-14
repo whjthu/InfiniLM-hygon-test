@@ -1,0 +1,132 @@
+{
+  "provider_source": {
+    "path": "code/bw1000/GLM-C1-layer-observer-r474/ffn-window-observer-source-v1/routed_ffn_tp16.cpp",
+    "SHA256": "99f9062d0bdc832d5aa55b6907a9f73b9145b7789bedc3f9c69b77593560d188"
+  },
+  "source_proof": {
+    "path": "code/bw1000/GLM-C1-layer-observer-r474/ffn-window-observer-source-v1/SOURCE_PROOF.json",
+    "SHA256": "29db5aad4b39163e1d8c5cac1b1cad04eee0377f5511bd704e878ddff0cdddba"
+  },
+  "current_model_run_claim": {
+    "path": "coordination/tasks/GLM474-ffn-window-gpu-v1.json",
+    "SHA256": "ac1c1fac7dfb8071b0585fe1cefe4893d7fda39f6bff82d672c5cef40bba1672"
+  },
+  "original_GPU_step": "1103606.110",
+  "caller": "RoutedFFN forward TP path",
+  "ranks": 16,
+  "nodes": [
+    "f13r1n05",
+    "f13r1n07"
+  ],
+  "layout": "new rank-local dense allocation; strides are the packed logical layout, not a device trace",
+  "operation": "Copy combined to distinct reduced storage, invoke in-place F32 SUM on reduced, cast to BF16, then preserve original success fence.",
+  "aliases": "The caller returns combined separately from the BF16 output. An in-place overwrite of combined would change that value.",
+  "logical_payloads": [
+    {
+      "scope": "decode",
+      "shape": [
+        1,
+        6144
+      ],
+      "logical_row_major_strides_elements": [
+        6144,
+        1
+      ],
+      "dtype": "F32",
+      "count": 6144,
+      "allreduce_bytes_per_rank": 24576,
+      "explicit_copy_payload_bytes": 24576,
+      "distinct_collective_buffer_logical_bytes": 24576,
+      "copy_minimum_logical_read_plus_write_bytes": 49152
+    },
+    {
+      "scope": "full prefill fragment",
+      "shape": [
+        512,
+        6144
+      ],
+      "logical_row_major_strides_elements": [
+        6144,
+        1
+      ],
+      "dtype": "F32",
+      "count": 3145728,
+      "allreduce_bytes_per_rank": 12582912,
+      "explicit_copy_payload_bytes": 12582912,
+      "distinct_collective_buffer_logical_bytes": 12582912,
+      "copy_minimum_logical_read_plus_write_bytes": 25165824
+    },
+    {
+      "scope": "native caller upper bound",
+      "shape": [
+        4096,
+        6144
+      ],
+      "logical_row_major_strides_elements": [
+        6144,
+        1
+      ],
+      "dtype": "F32",
+      "count": 25165824,
+      "allreduce_bytes_per_rank": 100663296,
+      "explicit_copy_payload_bytes": 100663296,
+      "distinct_collective_buffer_logical_bytes": 100663296,
+      "copy_minimum_logical_read_plus_write_bytes": 201326592
+    }
+  ],
+  "actual_device_liveness_peak_measured": false,
+  "wire_traffic_measured": false,
+  "numeric_acceptance": null,
+  "performance_qualified": false,
+  "promotion": false,
+  "existing_evidence": {
+    "O01_four_rank_IBext_v8": {
+      "reference": {
+        "path": "results/bw1000/2026-11-13/o01-four-rank-cross-allocation-shca-terminal.json",
+        "SHA256": "66ffb9c3cb945103240c05e828d189d122b32753b40f9a573cedd1428c5c449f"
+      },
+      "dtype": "BF16",
+      "rank_count": 4,
+      "bytes": [
+        8192,
+        131072,
+        4194304
+      ],
+      "actual_steps": [
+        "1087656.198",
+        "1087656.199",
+        "1103606.47",
+        "1103606.48"
+      ],
+      "applicability": "Provider and cross-allocation reachability on the sampled four nodes only."
+    },
+    "GLM_TP16_transport": {
+      "reference": {
+        "path": "results/bw1000/2026-11-14/GLM474-model-transport-gpu-v1-independent-terminal.json",
+        "SHA256": "f235afa052481619a9498d003a88918dd6b47234583471ae69774f06c751418b"
+      },
+      "phase_reference": {
+        "path": "results/bw1000/2026-11-14/GLM474-transport-original-102-105-decode-phase-cost.json",
+        "SHA256": "45a33235e7f92b570ec5949551c15ddd62bac38cc57a12f5513549c679b13440"
+      },
+      "identical_output_decode_pairs": 31,
+      "mmlu_baseline_only_correct": 1,
+      "decision": "Keep Socket as default. Positive backend decode movement at fixed order, one baseline-only-correct MMLU response and zero requests above 15 tok/s in either arm."
+    },
+    "empty_sdk_drain": {
+      "reference": {
+        "path": "coordination/tasks/O01-GLM-empty-stream-drain-cost-v1.json",
+        "SHA256": "85aefcd81602733130c1e328b1c3a7ebd62749cbfe8dec7bba3522681d888733"
+      },
+      "median_extra_ns": 875.42578125,
+      "applicability": "Already-drained SDK stream; no pending allreduce or tensor retirement attribution."
+    }
+  },
+  "next_decision": "After original GLM terminal audit, use its two detailed-layer FFN observations to decide whether to qualify the exact TP16 F32 SUM or buffer copy. A separate source change must preserve the pre-reduction combined value and be validated through the actual caller.",
+  "source_bound_prefill_fragment": {
+    "path": "code/bw1000/GLM-C1-layer-observer-r474/full-model-ffn-window-v1/INPUT_BINDING.json",
+    "SHA256": "81f6b2d68228aafb79993306847b0edb04c1ba101a35ab21bb822ac96ca2ba5e",
+    "tokens": 512
+  },
+  "allocation_scope": "Work::alloc calls rt::Tensor::empty and retains the allocation in Work::held until retirement. Allocator padding and peak live bytes require measured evidence."
+}
