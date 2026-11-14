@@ -1,0 +1,170 @@
+"""Opt-in first-tail-update diagnostics shared by continuous and resumed Qwen."""
+
+import json
+
+
+STEP = 20
+EXPECTED = (*(f'{part}-{i}' for i in range(1, 5) for part in ('entry', 'loss')),
+            'preclip', 'postclip', 'preoptimizer', 'postoptimizer', 'update-complete')
+
+
+class UpdateTrace:
+    def __init__(self, trainer, path, check, snapshot):
+        if trainer.state.global_step != STEP or path.exists():
+            raise ValueError('expected a new step-21 trace at update entry')
+        self.trainer, self.path, self.check, self.snapshot = trainer, path, check, snapshot
+        self.events = []
+        self.original_clip = trainer._clip_grad_norm
+        self.trace_clip = self.clip
+        trainer._clip_grad_norm = self.trace_clip
+
+    def record(self, name, value):
+        self.check()
+        i = len(self.events)
+        step = STEP + int(name == 'update-complete')
+        if (self.trainer.state.global_step != step or i >= len(EXPECTED) or EXPECTED[i] != name):
+            raise ValueError('unexpected Qwen update boundary: ' + name)
+        self.events.append(dict(boundary=name, value=value()))
+        tmp = self.path.with_suffix('.tmp')
+        tmp.write_text(json.dumps(dict(events=self.events, complete=name == 'update-complete'),
+                                  allow_nan=False), encoding='utf-8')
+        tmp.replace(self.path)
+
+    def forward_entry(self, ordinal):
+        self.record(f'entry-{ordinal}', lambda: self.snapshot('entry'))
+
+    def forward_loss(self, ordinal, read_loss):
+        self.record(f'loss-{ordinal}', read_loss)
+
+    def clip(self, model):
+        self.record('preclip', lambda: self.snapshot('gradients'))
+        norm = self.original_clip(model)
+        self.record('postclip', lambda: dict(gradients=self.snapshot('gradients'),
+                                             returned_norm=self.snapshot('value', norm)))
+        return norm
+
+    def before_optimizer(self):
+        self.record('preoptimizer', lambda: self.snapshot('state'))
+
+    def after_optimizer(self):
+        self.record('postoptimizer', lambda: self.snapshot('state'))
+
+    def finish(self):
+        if self.trainer._clip_grad_norm is not self.trace_clip:
+            raise ValueError('native clipping hook changed during Qwen update')
+        self.trainer._clip_grad_norm = self.original_clip
+        self.record('update-complete', lambda: {})
+
+
+def start_trace(trainer, model, path, check, device_rng):
+    from .first_update_audit import fingerprint
+    from .first_update_capture import cpu
+    from .forward_entry_state import tensor_digest
+    from .resume_witness import rng_fingerprint, rng_values, optimizer_fingerprint
+    from peft import get_peft_model_state_dict
+
+    named = [(name, tensor) for name, tensor in model.named_parameters() if tensor.requires_grad]
+    if len(named) != 504 or sum(x.numel() for _, x in named) != 43_646_976:
+        raise ValueError('unexpected Qwen trainable parameter inventory')
+
+    def gradients():
+        return {name: (None if p.grad is None else
+                       dict(shape=list(p.grad.shape), dtype=str(p.grad.dtype),
+                            **tensor_digest(p.grad, check=check)))
+                for name, p in named}
+
+    def snapshot(kind, value=None):
+        if kind == 'entry':
+            return rng_fingerprint(rng_values(device_rng))
+        if kind == 'gradients':
+            return gradients()
+        if kind == 'state':
+            return dict(adapter=fingerprint(cpu(get_peft_model_state_dict(model))),
+                        optimizer=optimizer_fingerprint(trainer.optimizer.state_dict()),
+                        scheduler=fingerprint(cpu(trainer.lr_scheduler.state_dict())))
+        if kind == 'value':
+            return fingerprint(cpu(value))
+        raise ValueError('unexpected Qwen trace snapshot')
+
+    return UpdateTrace(trainer, path, check, snapshot)
+
+
+class FirstTailUpdate:
+    """Attach after the regular witness, and remove the hooks after step 21."""
+
+    def __init__(self, trainer, model, path, check, device_rng):
+        from .first_update_audit import fingerprint
+        from .first_update_capture import cpu
+
+        self.trainer, self.trace = trainer, None
+        self.ordinal = 0
+        self.completed = False
+        self.backward = None
+
+        def enter(module, args, kwargs):
+            if trainer.state.global_step != STEP:
+                return
+            if self.trace is None:
+                self.trace = start_trace(trainer, model, path, check, device_rng)
+            self.ordinal += 1
+            self.trace.forward_entry(self.ordinal)
+            if self.backward is not None:
+                self.backward.forward_entry(self.ordinal)
+
+        def leave(module, args, kwargs, output):
+            if trainer.state.global_step == STEP:
+                loss = output.get('loss') if isinstance(output, dict) else getattr(output, 'loss', None)
+                if loss is None or loss.numel() != 1:
+                    raise ValueError('Qwen trace requires the native scalar loss')
+                self.trace.forward_loss(self.ordinal, lambda: fingerprint(cpu(loss)))
+
+        self.handles = [model.register_forward_pre_hook(enter, with_kwargs=True),
+                        model.register_forward_hook(leave, with_kwargs=True)]
+
+    def observe_backward(self, path, check):
+        import torch
+        from .qwen_backward_trace import BackwardTrace
+
+        def context(model):
+            if not isinstance(model, torch.nn.parallel.DistributedDataParallel):
+                raise ValueError('Qwen backward trace requires the native DDP wrapper')
+            return dict(ddp_sync=model.require_backward_grad_sync,
+                        accelerator_sync=self.trainer.accelerator.sync_gradients)
+
+        self.backward = BackwardTrace(
+            self.trainer, path, check, context, lambda: self.trace.snapshot('gradients'))
+
+    def before_optimizer(self):
+        if self.trainer.state.global_step == STEP:
+            if self.trace is None:
+                raise ValueError('optimizer reached before Qwen forward')
+            self.trace.before_optimizer()
+
+    def after_optimizer(self):
+        if self.trainer.state.global_step == STEP:
+            self.trace.after_optimizer()
+
+    def step_end(self, step):
+        if step == STEP + 1:
+            if self.trace is None:
+                raise ValueError('update completed without Qwen forward')
+            if self.backward is not None:
+                self.backward.finish()
+            self.trace.finish()
+            for handle in self.handles:
+                handle.remove()
+            self.completed = True
+
+    def verify(self):
+        if not self.completed:
+            raise ValueError('Qwen first tail update trace was incomplete')
+
+
+def compare_update_traces(continuous, resumed):
+    for row in (continuous, resumed):
+        if row['complete'] is not True or tuple(e['boundary'] for e in row['events']) != EXPECTED:
+            raise ValueError('expected a complete Qwen step-21 trace')
+    differences = [left['boundary'] for left, right in zip(continuous['events'], resumed['events'])
+                   if left['value'] != right['value']]
+    return dict(first_difference=differences[0] if differences else None,
+                differing_boundaries=differences)
