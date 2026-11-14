@@ -29,32 +29,49 @@ def nonnegative(value):
     return type(value) in (int, float) and math.isfinite(value) and value >= 0
 
 
+WARMUP_UPDATES = 5
+MEASURED_UPDATES = 20
+
+
+def complete_window(window):
+    # Ordinals are relative to this run, including its warmup updates.
+    ordinals = window["update_ordinals"]
+    expected = list(range(WARMUP_UPDATES + 1, WARMUP_UPDATES + MEASURED_UPDATES + 1))
+    need(isinstance(ordinals, list) and all(type(step) is int for step in ordinals)
+         and ordinals == expected and type(window["measured_updates"]) is int
+         and window["measured_updates"] == MEASURED_UPDATES,
+         "timed window does not contain the complete ordered update sequence")
+    seconds = window["seconds"]
+    need(nonnegative(seconds) and seconds > 0, "invalid timed window duration")
+    return seconds
+
+
 def sage_wall_seconds(run, cards):
     # The original controller fences both devices around one host clock.
     need(cards == 2 and 'ranks' not in run, 'SAGE shared clock requires two devices and one window')
     clock = run['shared_device_clock']
     need(set(clock) == {'seconds', 'measured_updates', 'actor_device', 'vae_device',
-                        'synchronized_before', 'synchronized_after'}, 'invalid SAGE shared clock fields')
+                        'synchronized_before', 'synchronized_after', 'update_ordinals'},
+         'invalid SAGE shared clock fields')
     devices = [clock['actor_device'], clock['vae_device']]
     need(all(type(device) is int for device in devices) and set(devices) == {0, 1},
          'SAGE clock must identify distinct actor and VAE devices')
     need(clock['synchronized_before'] == devices and clock['synchronized_after'] == devices
          and all(type(device) is int for key in ('synchronized_before', 'synchronized_after')
                  for device in clock[key]), 'SAGE clock must fence both devices at each boundary')
-    seconds = clock['seconds']
-    need(type(clock['measured_updates']) is int and clock['measured_updates'] == 20
-         and nonnegative(seconds) and seconds > 0, 'incomplete or invalid SAGE shared window')
-    return seconds
+    return complete_window(clock)
 
 
-def timing(runs, cards, recipe, boundary, verify_raw, *, shared_device_clock=False):
+def timing(runs, cards, recipe, boundary, verify_raw, *, provenance, shared_device_clock=False):
     need(len(runs) == 3 and len({r['run_id'] for r in runs}) == 3
          and all(isinstance(r['run_id'], str) and r['run_id'] for r in runs),
          'formal timing requires three distinct runs per platform')
     rates = []
     for run in runs:
-        need(run['recipe_SHA256'] == recipe and run['boundary_SHA256'] == boundary
-             and run['warmup_updates'] == 5 and run['measured_updates'] == 20
+        need(all(run.get(key) == value for key, value in provenance.items())
+             and run['recipe_SHA256'] == recipe and run['boundary_SHA256'] == boundary
+             and type(run['warmup_updates']) is int and run['warmup_updates'] == WARMUP_UPDATES
+             and type(run['measured_updates']) is int and run['measured_updates'] == MEASURED_UPDATES
              and run['profiler'] is False and run['completed'] is True
              and sha(run['raw_receipt']['SHA256']), 'unqualified timing window')
         need(verify_raw(run['raw_receipt']) == {k: v for k, v in run.items() if k != 'raw_receipt'},
@@ -64,14 +81,13 @@ def timing(runs, cards, recipe, boundary, verify_raw, *, shared_device_clock=Fal
         else:
             need('shared_device_clock' not in run, 'expected a complete window for each rank')
             ranks = run['ranks']
-            need(sorted(row['rank'] for row in ranks) == list(range(cards))
-                 and all(type(row['rank']) is int and row['measured_updates'] == 20
-                         and nonnegative(row['seconds']) and row['seconds'] > 0 for row in ranks),
-                 'incomplete or invalid rank timings')
-            seconds = max(row['seconds'] for row in ranks)
+            need(all(type(row['rank']) is int for row in ranks)
+                 and sorted(row['rank'] for row in ranks) == list(range(cards)),
+                 'incomplete or invalid rank inventory')
+            seconds = max(complete_window(row) for row in ranks)
         for field in ('admission_seconds', 'load_seconds', 'cache_preparation_seconds'):
             need(nonnegative(run[field]), 'invalid separately reported startup timing')
-        rates.append(20 / seconds)
+        rates.append(MEASURED_UPDATES / seconds)
     return statistics.median(rates)
 
 
@@ -121,8 +137,11 @@ def stage_three(case, framework_commit, evidence, verify_raw):
     need(len({run['raw_receipt']['SHA256'] for arm in ('A100', 'Hygon') for run in runs[arm]}) == 6,
          'formal timing receipts are not distinct')
     shared_device_clock = case['case'] == 'T09.sage-grpo'
-    a100 = timing(runs['A100'], cards, recipe, boundary, verify_raw, shared_device_clock=shared_device_clock)
-    hygon = timing(runs['Hygon'], cards, recipe, boundary, verify_raw, shared_device_clock=shared_device_clock)
+    identity = {'case': case['case'], 'framework_commit': framework_commit}
+    a100 = timing(runs['A100'], cards, recipe, boundary, verify_raw,
+                  provenance=dict(identity, platform='A100'), shared_device_clock=shared_device_clock)
+    hygon = timing(runs['Hygon'], cards, recipe, boundary, verify_raw,
+                   provenance=dict(identity, platform='Hygon'), shared_device_clock=shared_device_clock)
     need(not ({r['run_id'] for r in evidence['timing']['A100']}
               & {r['run_id'] for r in evidence['timing']['Hygon']}), 'run IDs shared across platforms')
     holdout = evidence['holdout']
