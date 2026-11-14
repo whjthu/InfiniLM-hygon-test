@@ -7,6 +7,9 @@ from pathlib import Path
 from training_formal_metrics import stage_three
 
 
+TRAINING_GROUPS = {f"T{i:02d}" for i in range(1, 13)}
+
+
 def require(condition, message):
     if not condition:
         raise ValueError(message)
@@ -36,7 +39,11 @@ def verify(root):
                                  "maximum_relative_effect_regression": 0.05},
             "unexpected stage-three thresholds")
     ledger = matrix["node_ledger"]
-    pinned(ledger["path"], ledger["SHA256"])
+    groups = json.loads(pinned(ledger["path"], ledger["SHA256"]))["groups"]
+    require({group for group in groups if group.startswith("T")} == TRAINING_GROUPS,
+            "training task groups differ")
+    assigned = [case for group in sorted(TRAINING_GROUPS) for case in groups[group]["cases"]]
+    require(ids == assigned, "matrix and resource ledger training case identities differ")
     pins = dict(matrix["evidence_SHA256"])
     def verify_formal_attachment(item):
         path, digest = item["path"], item["SHA256"]
@@ -76,7 +83,7 @@ def verify(root):
                     f"{case['case']}: formal measurements and acceptance flag disagree")
     for path, sha in pins.items():
         pinned(path, sha)
-    human = (root / index["human_readable"]).read_text(encoding="utf-8")
+    human = pinned(index["human_readable"], index["human_readable_SHA256"]).decode("utf-8")
     markdown_ids = [line.split("|")[1].strip() for line in human.splitlines() if line.startswith("| T")
                     and line.split("|")[1].strip() != "用例"]
     require(markdown_ids == ids, "Markdown and JSON training case order differs")
