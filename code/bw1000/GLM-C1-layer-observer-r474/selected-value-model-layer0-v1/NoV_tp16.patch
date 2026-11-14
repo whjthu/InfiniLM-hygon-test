@@ -1,0 +1,101 @@
+--- a/NoV_tp16.cpp
++++ b/NoV_tp16.cpp
+@@ -5,0 +6,2 @@
++#include "packed_value_device_tp16.hpp"
++#include <optional>
+@@ -37 +39,2 @@
+-// No class layout changes. Registry contains no shared Runtime/storage owners.
++// Preserve the Model class layout. The existing per-layer registration erases
++// optional packed device storage on the owner thread during Model destruction.
+@@ -39 +42,25 @@
+-struct Identity5775 {rt::Runtime*owner;size_t layer;int stage,rank,device,pp;};
++namespace selected_pack = ::glm_nov_value::tp16;
++struct Identity5775 {
++ rt::Runtime*owner;
++ size_t layer;
++ int stage,rank,device,pp;
++ bool pack_layer0;
++ std::optional<selected_pack::PackedDeviceValue> packed;
++ uint64_t packed_calls=0;
++ uint64_t cached_dispatch_calls=0;
++};
++bool packed_layer0_requested(const nlohmann::json& cfg){
++ const char* env=std::getenv("GLM_SELECTED_VALUE_PACKED_LAYER0");
++ if(env&&std::string(env)!="0"&&std::string(env)!="1")
++  throw std::invalid_argument("packed selected-value flag must be 0 or 1");
++ const bool enabled=cfg.value("glm_selected_value_packed_layer0",false);
++ if(enabled!=(env&&std::string(env)=="1"))
++  throw std::invalid_argument("packed selected-value requires matching JSON and environment");
++ return enabled;
++}
++void check_packed_memory(){
++ constexpr size_t minimum=size_t{8}<<30;
++ size_t available=0,total=0;
++ if(cudaMemGetInfo(&available,&total)!=cudaSuccess||available<minimum)
++  throw std::runtime_error("packed selected-value requires 8 GiB free device memory");
++}
+@@ -62,0 +90,18 @@
++// A typed bridge may read these counters on the owning thread after a drain.
++extern "C" int modern_glm_selected_value_layer0_read(void* runtime,uint64_t* out,size_t count){
++ try{
++  if(!runtime||!out||count!=3)return 1;
++  auto& r=*static_cast<rt::Runtime*>(runtime);
++  r.assertOwnerThread();
++  for(const auto& entry:identities5775){
++   const auto& layer=entry.second;
++   if(layer.owner!=&r||layer.layer!=0)continue;
++   out[0]=layer.packed.has_value();
++   out[1]=layer.packed_calls;
++   out[2]=layer.cached_dispatch_calls;
++   return 0;
++  }
++  return 1;
++ }catch(...){return 1;}
++}
++
+@@ -70,0 +116,5 @@
++ const bool pack_requested=packed_layer0_requested(cfg);
++ if(pack_requested&&(rows!=1||capacity!=32768||topk!=2048||
++                     !glm_global_tp16_r470::admitted(rank)||
++                     !v_on_demand_r403::requested()||projected_host_r4504::enabled()))
++  throw std::invalid_argument("packed selected-value requires admitted C1 TP16 full-context NoV");
+@@ -86 +136,2 @@
+-  identities5775[this]={&r,layer,rank.pp_stage,rank.tp_rank,r.device().index(),rank.pp_size};
++  identities5775[this]={&r,layer,rank.pp_stage,rank.tp_rank,r.device().index(),
++                       rank.pp_size,pack_requested&&layer==0,std::nullopt};
+@@ -89 +140,15 @@
+-void NativeAttentionProjectedR22::process_weights_after_loading(rt::Runtime&r,bool flag){r.assertOwnerThread();if(&r!=owner_||ready_||r.isGraphRecording())throw std::invalid_argument("GLM persistent attention postload differs");prepare_->process_weights_after_loading(r,flag);output_->process_weights_after_loading(r,flag);if(indexer_)indexer_->process_weights_after_loading(r,flag);ready_=true;}
++void NativeAttentionProjectedR22::process_weights_after_loading(rt::Runtime&r,bool flag){r.assertOwnerThread();if(&r!=owner_||ready_||r.isGraphRecording())throw std::invalid_argument("GLM persistent attention postload differs");prepare_->process_weights_after_loading(r,flag);output_->process_weights_after_loading(r,flag);if(indexer_)indexer_->process_weights_after_loading(r,flag);
++ auto& identity=identities5775.at(this);
++ if(identity.pack_layer0){
++  if(identity.owner!=&r||prepare_->local_heads()!=selected_pack::heads||identity.packed)
++   throw std::logic_error("packed selected-value layer binding differs");
++  check_packed_memory();
++  auto weights=prepare_->state_dict();
++  Work work{r};
++  identity.packed.emplace(selected_pack::pack_device(
++      r,weights.at("kv_b_proj.weight").tensor(),
++      weights.at("kv_b_proj.weight_scale_inv").tensor(),size_t(identity.rank),work));
++  check_packed_memory();
++ }
++ ready_=true;
++}
+@@ -131 +196 @@
+-  const auto identity5775=identities5775.at(this);if(identity5775.owner!=&r)throw std::logic_error("5775 Runtime identity");
++  auto& identity5775=identities5775.at(this);if(identity5775.owner!=&r)throw std::logic_error("5775 Runtime identity");
+@@ -223,0 +289,9 @@
++   auto selected_value=[&](){
++    if(identity5775.packed&&count==1&&logical.size()>=65&&logical.size()<=2048){
++     auto selected=selected_pack::selected(r,*identity5775.packed,latent_row,rotary_row,ids,work);
++     ++identity5775.packed_calls;
++     identity5775.cached_dispatch_calls+=selected.cached_fp8_dispatch;
++     return std::move(selected.value);
++    }
++    return v_on_demand_r400::selected_values(*prepare_,r,latent_row,rotary_row,ids,work.held);
++   };
+@@ -226 +300 @@
+-    expanded={key_row->narrow({{0,0,prefix}}),v398?v_on_demand_r400::selected_values(*prepare_,r,latent_row,rotary_row,ids,work.held):value_row->narrow({{0,0,prefix}})};
++    expanded={key_row->narrow({{0,0,prefix}}),v398?selected_value():value_row->narrow({{0,0,prefix}})};
+@@ -230 +304 @@
+-    expanded={work.alloc({logical.size(),prepare_->local_heads(),256},rt::DataType::kBFloat16),v398?v_on_demand_r400::selected_values(*prepare_,r,latent_row,rotary_row,ids,work.held):work.alloc({logical.size(),prepare_->local_heads(),256},rt::DataType::kBFloat16)};
++    expanded={work.alloc({logical.size(),prepare_->local_heads(),256},rt::DataType::kBFloat16),v398?selected_value():work.alloc({logical.size(),prepare_->local_heads(),256},rt::DataType::kBFloat16)};
