@@ -1,0 +1,190 @@
+"""Fingerprint native final decoder, norm, and LM head boundaries."""
+
+import json
+
+
+TARGET_MICROBATCH = {1: 1, 4: 2}
+MODULES = ('last_decoder', 'final_norm', 'lm_head')
+REQUIRED = frozenset(('input', 'output', 'grad_input', 'grad_output'))
+SUFFIX_START = {1: 33, 4: 26}
+INTERNAL_LAYERS = (30, 31, 32)
+DECODER_BRANCHES = ('input_layernorm', 'self_attn', 'post_attention_layernorm', 'mlp')
+
+
+def suffix_modules(rank, *, include_internals=False):
+    names = []
+    for index in range(SUFFIX_START[rank], 35):
+        name = f'decoder_{index}'
+        names.append(name)
+        if include_internals and rank == 4 and index in INTERNAL_LAYERS:
+            names.extend(f'{name}.{branch}' for branch in DECODER_BRANCHES)
+    return (*names, *MODULES)
+
+
+def is_decoder(name):
+    return name == 'last_decoder' or (name.startswith('decoder_') and '.' not in name)
+
+
+def expected_modules(ordinal):
+    return {MODULES} | {suffix_modules(rank, include_internals=internals)
+                        for rank, micro in TARGET_MICROBATCH.items() if ordinal == micro
+                        for internals in (False, True)}
+
+
+class LossBoundaryTrace:
+    def __init__(self, modules, path, ordinal, snapshot):
+        if (path.exists() or tuple(modules) not in expected_modules(ordinal)
+                or ordinal not in TARGET_MICROBATCH.values()):
+            raise ValueError('invalid Qwen loss boundary scope')
+        self.path, self.snapshot, self.ordinal = path, snapshot, ordinal
+        self.phase = None
+        self.rows = {name: {} for name in modules}
+        self.handles = []
+        for name, module in modules.items():
+            self.handles.extend((
+                module.register_forward_pre_hook(self.before(name), with_kwargs=True),
+                module.register_forward_hook(self.after(name), with_kwargs=True),
+            ))
+
+    def write(self, complete):
+        temporary = self.path.with_suffix('.tmp')
+        temporary.write_text(json.dumps(dict(ordinal=self.ordinal, boundaries=self.rows,
+                                             complete=complete), allow_nan=False), encoding='utf-8')
+        temporary.replace(self.path)
+
+    def record(self, name, key, value):
+        row = self.rows[name]
+        if key in row:
+            raise ValueError(f'duplicate Qwen loss boundary {name}.{key}')
+        row[key] = self.snapshot(value)
+        self.write(False)
+
+    def record_forward_tensor(self, name, key, value):
+        self.record(name, key, value)
+        if not value.requires_grad:
+            raise ValueError(f'Qwen loss boundary is detached: {name}.{key}')
+
+        def receive(grad):
+            if self.phase != 'backward':
+                raise ValueError('Qwen gradient outside selected backward')
+            self.record(name, 'grad_' + key, grad)
+            return None
+
+        self.handles.append(value.register_hook(receive))
+
+    def before(self, name):
+        def receive(module, args, kwargs):
+            if self.phase == 'forward':
+                self.record_forward_tensor(name, 'input', args[0] if args else kwargs['hidden_states'])
+            elif self.phase == 'backward' and (is_decoder(name) or '.' in name):
+                self.record(name, 'recompute_input', args[0] if args else kwargs['hidden_states'])
+        return receive
+
+    def after(self, name):
+        def receive(module, args, kwargs, output):
+            if self.phase == 'forward':
+                tensor = output[0] if isinstance(output, (tuple, list)) else output
+                self.record_forward_tensor(name, 'output', tensor)
+            elif self.phase == 'backward' and '.' in name:
+                tensor = output[0] if isinstance(output, (tuple, list)) else output
+                self.record(name, 'recompute_output', tensor)
+        return receive
+
+    def forward_entry(self, ordinal):
+        self.phase = 'forward' if ordinal == self.ordinal else None
+
+    def forward_returned(self, ordinal):
+        if ordinal == self.ordinal:
+            self.phase = 'backward'
+
+    def backward_returned(self, ordinal):
+        if ordinal == self.ordinal:
+            self.phase = None
+
+    def finish(self):
+        for handle in self.handles:
+            handle.remove()
+        if self.phase is not None or any(
+                not REQUIRED <= row.keys() or (is_decoder(name) and 'recompute_input' not in row)
+                for name, row in self.rows.items()):
+            raise ValueError('incomplete Qwen loss boundary trace')
+        self.write(True)
+
+
+def observe_loss_boundaries(model, path, check, rank, *, include_suffix=False, include_internals=False):
+    from .forward_entry_state import tensor_digest
+
+    core = model.get_base_model()
+    language = core.get_submodule('model.language_model')
+    start = SUFFIX_START[rank] if include_suffix else 35
+    if (len(language.layers) != 36
+            or any(language.layers[i].gradient_checkpointing is not True for i in range(start, 36))):
+        raise ValueError('expected 36 Qwen decoder layers and native checkpointing')
+    head = core.get_output_embeddings()
+    if head is not core.get_submodule('lm_head'):
+        raise ValueError('Qwen output projection provider differs')
+    if include_internals and not include_suffix:
+        raise ValueError('Qwen internal probes require the contiguous decoder suffix')
+    modules = dict(last_decoder=language.layers[-1], final_norm=language.get_submodule('norm'),
+                   lm_head=head)
+    if include_suffix:
+        available = {f'decoder_{i}': language.layers[i] for i in range(start, 35)}
+        available.update(modules)
+        modules = {}
+        for name in suffix_modules(rank, include_internals=include_internals):
+            owner, dot, branch = name.partition('.')
+            modules[name] = available[owner].get_submodule(branch) if dot else available[owner]
+
+    def snapshot(tensor):
+        size = tensor.numel() * tensor.element_size()
+        if not 0 < size <= 3 * 1024**3:
+            raise ValueError('Qwen loss boundary byte count outside diagnostic budget')
+        return dict(shape=list(tensor.shape), dtype=str(tensor.dtype), stride=list(tensor.stride()),
+                    storage_offset=tensor.storage_offset(), **tensor_digest(tensor, check=check))
+
+    return LossBoundaryTrace(modules, path, TARGET_MICROBATCH[rank], snapshot)
+
+
+def compare_loss_boundaries(continuous, resumed):
+    if (continuous['complete'] is not True or resumed['complete'] is not True
+            or continuous['ordinal'] != resumed['ordinal']
+            or continuous['ordinal'] not in TARGET_MICROBATCH.values()):
+        raise ValueError('incomplete or mismatched Qwen loss boundary scope')
+    names = tuple(continuous['boundaries'])
+    if (names != tuple(resumed['boundaries'])
+            or names not in expected_modules(continuous['ordinal'])):
+        raise ValueError('Qwen loss boundary inventory differs')
+    paired = {}
+    for name in names:
+        left, right = continuous['boundaries'][name], resumed['boundaries'][name]
+        required = REQUIRED | {'recompute_input'} if is_decoder(name) else REQUIRED
+        optional = {'recompute_input', 'recompute_output'} if '.' in name else set()
+        for row in (left, right):
+            if (not required <= row.keys() <= required | optional
+                    or ('recompute_output' in row and 'recompute_input' not in row)):
+                raise ValueError('Qwen loss boundary inventory differs')
+        paired[name] = {
+            key: compare_boundary(left.get(key), right.get(key))
+            for key in sorted(required | (left.keys() | right.keys()))
+        }
+    return paired
+
+
+def compare_boundary(left, right):
+    if left is None or right is None:
+        return dict(continuous_observed=left is not None, resumed_observed=right is not None,
+                    logical_sha_equal=None, layout_equal=None)
+    return dict(logical_sha_equal=left['SHA256'] == right['SHA256'],
+                layout_equal=all(left[field] == right[field]
+                                 for field in ('shape', 'dtype', 'stride', 'storage_offset')))
+
+
+def first_suffix_gradient_difference(paired):
+    """Walk the observed gradients from logits toward the earlier decoder layers."""
+    for name in reversed(paired):
+        if '.' in name:
+            continue
+        for boundary in ('grad_output', 'grad_input'):
+            if paired[name][boundary]['logical_sha_equal'] is False:
+                return dict(module=name, boundary=boundary)
+    return None

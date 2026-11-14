@@ -1,0 +1,122 @@
+import json
+from pathlib import Path
+from tempfile import TemporaryDirectory
+import unittest
+
+from vlm.runtime.qwen_loss_boundary_trace import (LossBoundaryTrace, MODULES, compare_loss_boundaries,
+                                                 first_suffix_gradient_difference, is_decoder, suffix_modules)
+from vlm.tests.test_qwen_layer_trace import Hidden, Layer, snapshot
+
+
+class QwenLossBoundaryTest(unittest.TestCase):
+    def test_localizes_gradient_change_across_native_head(self):
+        with TemporaryDirectory() as tmp:
+            modules = {name: Layer() for name in MODULES}
+            path = Path(tmp) / 'loss-21.json'
+            trace = LossBoundaryTrace(modules, path, 1, snapshot)
+            trace.forward_entry(1)
+            tensors = [Hidden(str(i)) for i in range(4)]
+            for layer, a, b in zip(modules.values(), tensors, tensors[1:]):
+                layer.before(layer, (a,), {})
+                layer.after(layer, (a,), {}, b)
+            trace.forward_returned(1)
+            decoder = modules['last_decoder']
+            decoder.before(decoder, (tensors[0],), {})
+            for value in reversed(tensors):
+                for hook in value.hooks:
+                    self.assertIsNone(hook(Hidden('gradient')))
+            trace.backward_returned(1)
+            trace.finish()
+            left = json.loads(path.read_bytes())
+            right = json.loads(path.read_bytes())
+            right['boundaries']['lm_head']['grad_input']['SHA256'] = 'changed'
+            pair = compare_loss_boundaries(left, right)
+            self.assertTrue(pair['lm_head']['grad_output']['logical_sha_equal'])
+            self.assertFalse(pair['lm_head']['grad_input']['logical_sha_equal'])
+
+    def test_contiguous_suffix_requires_every_decoder_recompute_entry(self):
+        with TemporaryDirectory() as tmp:
+            names = suffix_modules(4)
+            self.assertEqual(names[:2], ('decoder_26', 'decoder_27'))
+            self.assertEqual(names[-4:], ('decoder_34', *MODULES))
+            modules = {name: Layer() for name in names}
+            path = Path(tmp) / 'loss-21.json'
+            trace = LossBoundaryTrace(modules, path, 2, snapshot)
+            trace.forward_entry(2)
+            tensors = [Hidden(str(i)) for i in range(len(names) + 1)]
+            for layer, left, right in zip(modules.values(), tensors, tensors[1:]):
+                layer.before(layer, (left,), {})
+                layer.after(layer, (left,), {}, right)
+            trace.forward_returned(2)
+            for name, value in reversed(list(zip(names, tensors))):
+                if is_decoder(name):
+                    modules[name].before(modules[name], (value,), {})
+            for value in reversed(tensors):
+                for hook in value.hooks:
+                    self.assertIsNone(hook(Hidden('gradient')))
+            trace.backward_returned(2)
+            trace.finish()
+            left = json.loads(path.read_bytes())
+            right = json.loads(path.read_bytes())
+            right['boundaries']['decoder_33']['grad_input']['SHA256'] = 'changed'
+            right['boundaries']['decoder_32']['grad_output']['SHA256'] = 'changed'
+            paired = compare_loss_boundaries(left, right)
+            self.assertEqual(first_suffix_gradient_difference(paired),
+                             dict(module='decoder_33', boundary='grad_input'))
+            del right['boundaries']['decoder_30']['recompute_input']
+            with self.assertRaisesRegex(ValueError, 'inventory differs'):
+                compare_loss_boundaries(left, right)
+
+    def test_requires_the_logit_gradient(self):
+        row = dict(complete=True, ordinal=1,
+                   boundaries={name: {} for name in MODULES})
+        with self.assertRaisesRegex(ValueError, 'inventory differs'):
+            compare_loss_boundaries(row, row)
+
+    def test_decoder_branch_trace_retains_partial_recompute_and_coarse_location(self):
+        names = suffix_modules(4, include_internals=True)
+        branches = [name for name in names if '.' in name]
+        self.assertEqual(tuple(branches), tuple(
+            f'decoder_{i}.{module}' for i in (30, 31, 32)
+            for module in ('input_layernorm', 'self_attn', 'post_attention_layernorm', 'mlp')))
+        with TemporaryDirectory() as tmp:
+            modules = {name: Layer() for name in names}
+            path = Path(tmp) / 'loss-21.json'
+            trace = LossBoundaryTrace(modules, path, 2, snapshot)
+            trace.forward_entry(2)
+            values = {name: (Hidden(name + ' input'), Hidden(name + ' output')) for name in names}
+            for name, layer in modules.items():
+                incoming, outgoing = values[name]
+                layer.before(layer, (), {'hidden_states': incoming})
+                layer.after(layer, (), {}, (outgoing, None) if name.endswith('.self_attn') else outgoing)
+            trace.forward_returned(2)
+            attention = 'decoder_31.self_attn'
+            mlp = 'decoder_31.mlp'
+            for name, layer in modules.items():
+                incoming, outgoing = values[name]
+                if is_decoder(name) or name in (attention, mlp):
+                    layer.before(layer, (incoming,), {})
+                if name == attention:
+                    layer.after(layer, (incoming,), {}, (outgoing, None))
+            for incoming, outgoing in reversed(list(values.values())):
+                for value in (outgoing, incoming):
+                    for hook in value.hooks:
+                        self.assertIsNone(hook(Hidden('gradient')))
+            trace.backward_returned(2)
+            trace.finish()
+            continuous = json.loads(path.read_bytes())
+            resumed = json.loads(path.read_bytes())
+            resumed['boundaries'][attention]['grad_input']['SHA256'] = 'different'
+            resumed['boundaries']['decoder_31']['grad_input']['SHA256'] = 'different'
+            del resumed['boundaries'][attention]['recompute_output']
+            paired = compare_loss_boundaries(continuous, resumed)
+            self.assertEqual(paired[attention]['recompute_output'], dict(
+                continuous_observed=True, resumed_observed=False, logical_sha_equal=None,
+                layout_equal=None))
+            self.assertFalse(paired[attention]['grad_input']['logical_sha_equal'])
+            self.assertNotIn('recompute_output', paired[mlp])
+            self.assertEqual(first_suffix_gradient_difference(paired),
+                             dict(module='decoder_31', boundary='grad_input'))
+            del continuous['boundaries'][attention]['recompute_input']
+            with self.assertRaisesRegex(ValueError, 'inventory differs'):
+                compare_loss_boundaries(continuous, resumed)
