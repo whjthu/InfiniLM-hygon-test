@@ -37,7 +37,7 @@ def save(name, value):
         os.fsync(output.fileno())
 
 
-task = json.loads(git_show(f"coordination/tasks/{label}.json"))
+task = json.loads(git_show("coordination/tasks/TP16-FFN-f32-transport-pair-v1.json"))
 assert task["GPU_GO"] and not task["Model_GO"] and task["max_experiment_invocations"] == 1
 assert task["actual_experiment_invocations"] == 0 and not task["replay_allowed"]
 for path, pin in task["pinned_references"].items():
