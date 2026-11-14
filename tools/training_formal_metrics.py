@@ -94,6 +94,7 @@ def timing(runs, cards, recipe, boundary, verify_raw, *, provenance, shared_devi
 def effect(rows, expected, provenance, verify_raw):
     need(rows.keys() == expected.keys(), 'held-out metric set differs')
     regressions = {}
+    common_checkpoints = None
     for metric, direction in expected.items():
         row = rows[metric]
         reference, target = row['A100'], row['Hygon']
@@ -107,6 +108,9 @@ def effect(rows, expected, provenance, verify_raw):
         platforms = ('A100', 'Hygon', 'Hygon_before')
         need(all(sha(binding[key]) for key in platforms), 'missing paired checkpoint identities')
         checkpoints = {key: binding[key] for key in platforms}
+        need(common_checkpoints is None or checkpoints == common_checkpoints,
+             'held-out metrics use different paired checkpoints')
+        common_checkpoints = checkpoints
         receipt = dict(scores, metric=metric, **provenance,
                        checkpoint_SHA256=checkpoints)
         need(verify_raw(row['raw_scores']) == receipt,
