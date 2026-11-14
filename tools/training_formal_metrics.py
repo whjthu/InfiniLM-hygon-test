@@ -141,11 +141,19 @@ def stage_three(case, framework_commit, evidence, verify_raw):
     need(len({run['raw_receipt']['SHA256'] for arm in ('A100', 'Hygon') for run in runs[arm]}) == 6,
          'formal timing receipts are not distinct')
     shared_device_clock = case['case'] == 'T09.sage-grpo'
-    identity = {'case': case['case'], 'framework_commit': framework_commit}
+    reference_commit = evidence.get('A100_framework_commit')
+    need(isinstance(reference_commit, str) and len(reference_commit) == 40
+         and all(c in '0123456789abcdef' for c in reference_commit),
+         'missing or invalid A100 framework revision')
     a100 = timing(runs['A100'], cards, recipe, boundary, verify_raw,
-                  provenance=dict(identity, platform='A100'), shared_device_clock=shared_device_clock)
+                  provenance={'case': case['case'], 'platform': 'A100',
+                              'framework_commit': reference_commit,
+                              'original_launch_SHA256': case['launch_SHA256']},
+                  shared_device_clock=shared_device_clock)
     hygon = timing(runs['Hygon'], cards, recipe, boundary, verify_raw,
-                   provenance=dict(identity, platform='Hygon'), shared_device_clock=shared_device_clock)
+                   provenance={'case': case['case'], 'platform': 'Hygon',
+                               'framework_commit': framework_commit},
+                   shared_device_clock=shared_device_clock)
     need(not ({r['run_id'] for r in evidence['timing']['A100']}
               & {r['run_id'] for r in evidence['timing']['Hygon']}), 'run IDs shared across platforms')
     holdout = evidence['holdout']
