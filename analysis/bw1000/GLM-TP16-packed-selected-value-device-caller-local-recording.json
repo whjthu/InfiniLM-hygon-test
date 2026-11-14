@@ -1,0 +1,72 @@
+{
+  "state": "TP16_DEVICE_CALLER_SOURCE_WITH_LOCAL_RECORDING_PASS",
+  "sources_SHA256": {
+    "code/bw1000/GLM-NoV-value-block-packing/packed_value_device_tp16.hpp": "496bb77a0c3d4c00f0a7532a9d1d27f7bdbe216dd5fdb70fce3add3c43dacaf5",
+    "code/bw1000/GLM-NoV-value-block-packing/check_device_recording_tp16.py": "2ff806f40836fbf88b0154ac854323e5bd41f74b1acacc18761e7ba1b5a76b4f",
+    "code/bw1000/GLM-NoV-value-block-packing/packed_kv_b_tp16.hpp": "134d271f6a3c1deffbbe4e481f70fd79ff5119b2f594a15289f2de6d380e8877",
+    "code/bw1000/GLM-NoV-value-block-packing/packed_value_device.hpp": "894cb576e56230ab1b5bf414bd430f788145acabc6835101926c5a171018689d",
+    "code/bw1000/GLM-NoV-value-block-packing/packed_kv_b.hpp": "5c3c8c2732421aa10b8286abf250ed58f6495aa3ad3a7e47bc0645360c7405cd",
+    "code/bw1000/GLM-NoV-value-block-packing/check_device_recording.py": "2d73047209e50f8faf517e6d4ca9e6f73af051939cd2f805c79a1cbc4c927cc6"
+  },
+  "original_reference": "analysis/bw1000/GLM474-110-kv-b-selected-value-TP16-source-and-CPU.json",
+  "geometry": {
+    "latent_cache_shape": [
+      32768,
+      512
+    ],
+    "rotary_cache_shape": [
+      32768,
+      64
+    ],
+    "selected_rows": [
+      65,
+      2048
+    ],
+    "weight": [
+      1280,
+      512
+    ],
+    "scale": [
+      10,
+      4
+    ],
+    "output_shape": [
+      "M",
+      4,
+      256
+    ],
+    "packed_weight_and_scale_bytes": 655520
+  },
+  "contract": [
+    "Prepare from the original device weight and full scale tensor before measurement.",
+    "Use global rank for scale rows and local device (global rank modulo eight) for owner admission.",
+    "Keep both original gathers, activation quantization, BF16 output and stream drain.",
+    "Call the same fp8_cached_r809 dispatch first, then Fp8BlockLinear if it declines. Report the branch taken.",
+    "Require original validated causal IDs; the caller owns bindings, postload lifetime, memory floors and failure teardown."
+  ],
+  "local_CPU_recording": {
+    "global_ranks": [
+      7,
+      15
+    ],
+    "input_rows": [
+      65,
+      1313,
+      1314,
+      1315,
+      2048
+    ],
+    "valid_calls": 20,
+    "guarded_failures": 12,
+    "actual_helper_compiled_against_recording_leaves": true,
+    "Native_dlopen": false,
+    "SDK_calls": 0,
+    "GPU_calls": 0
+  },
+  "target_status": {
+    "target_compile": false,
+    "device_numerics_verified": false,
+    "performance_qualified": false,
+    "production_dispatch_changed": false
+  }
+}
