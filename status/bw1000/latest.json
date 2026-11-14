@@ -10248,5 +10248,119 @@
     "terminal_evidence": "results/bw1000/2026-11-14/training-qwen-1087656-267-branches21-terminal.json",
     "terminal_evidence_SHA256": "3351cf8ca169d79b2edca0b6f1ee641a03e145357f139c34973de42f260b4bb0",
     "paired_resume_claim": "coordination/tasks/training-qwen-resumed-branches21-hip-v1.json"
+  },
+  "training_qwen_paired_branch21_terminal": {
+    "case": "T01.sft",
+    "state": "QWEN_SAME_CHECKPOINT_PAIR_LOCATES_RANK4_DELTA_IN_DECODER32_ATTENTION_BACKWARD",
+    "continuous_step": "1087656.267",
+    "resume_step": "1087656.270",
+    "verified_input_fingerprints": 160,
+    "identical_loss_on_all_inputs": false,
+    "checkpoint_origin_independently_verified": true,
+    "rank4_microbatch": 2,
+    "rank4_first_decoder_boundary": {
+      "module": "decoder_32",
+      "boundary": "grad_input"
+    },
+    "rank4_first_attention_boundary": {
+      "module": "decoder_32.self_attn",
+      "boundary": "grad_input",
+      "comparisons": {
+        "grad_input": {
+          "logical_sha_equal": false,
+          "layout_equal": true
+        },
+        "grad_output": {
+          "logical_sha_equal": true,
+          "layout_equal": true
+        },
+        "input": {
+          "logical_sha_equal": true,
+          "layout_equal": true
+        },
+        "output": {
+          "logical_sha_equal": true,
+          "layout_equal": true
+        },
+        "recompute_input": {
+          "logical_sha_equal": true,
+          "layout_equal": true
+        },
+        "recompute_output": {
+          "logical_sha_equal": true,
+          "layout_equal": true
+        }
+      }
+    },
+    "rank1_first_decoder_boundary": {
+      "module": "last_decoder",
+      "boundary": "grad_input"
+    },
+    "recovery_qualified": false,
+    "formal_performance": false,
+    "observation_SHA256": "ab5e2d60d977d655982b7bba87842f914651e0c77078ab7382dc7cea6a304226",
+    "checkpoint25_compare_file_SHA256": {
+      "adapter_model.safetensors": {
+        "continuous": "ef2d99fe4705176666a43588b15e4f526fdd931460233371d73dc11ceda84f65",
+        "resumed": "5a01d0fd76a116acf2588266d1349d9a0df11c5b372eea4a5a94202a665a8638",
+        "equal": false
+      },
+      "optimizer.pt": {
+        "continuous": "cdfeade9c0f1cbfcd5f4f05c4e7f2fc632cff7f1cf691ce0481b5a8afa0502a1",
+        "resumed": "2a14288543f9cef3a78fbbb68f158feec9a846445e493dd2d6be3fdc47d58822",
+        "equal": false
+      },
+      "scheduler.pt": {
+        "continuous": "30e0a60066e6425186d98d4886df0bd453495327859d0e45199454efe7d7e640",
+        "resumed": "30e0a60066e6425186d98d4886df0bd453495327859d0e45199454efe7d7e640",
+        "equal": true
+      },
+      "rng_state_0.pth": {
+        "continuous": "ffbe2795c86065713d95bd794aafd0e4c119028655c76bb2f75366f71834bfd8",
+        "resumed": "ffbe2795c86065713d95bd794aafd0e4c119028655c76bb2f75366f71834bfd8",
+        "equal": true
+      },
+      "rng_state_1.pth": {
+        "continuous": "c961e66a96e475fb0916a3296406ad7b9b1ee03f3a3a4b9581ba4f6c48330c77",
+        "resumed": "c961e66a96e475fb0916a3296406ad7b9b1ee03f3a3a4b9581ba4f6c48330c77",
+        "equal": true
+      },
+      "rng_state_2.pth": {
+        "continuous": "a7aa5f728678719908371e6c7a60d61fc3154181478ae273dcaeb64500053fd3",
+        "resumed": "a7aa5f728678719908371e6c7a60d61fc3154181478ae273dcaeb64500053fd3",
+        "equal": true
+      },
+      "rng_state_3.pth": {
+        "continuous": "2ca255c64aeec484752972dbb8946ca326651a3554f3d96f8541a39e7dd6aaa7",
+        "resumed": "2ca255c64aeec484752972dbb8946ca326651a3554f3d96f8541a39e7dd6aaa7",
+        "equal": true
+      },
+      "rng_state_4.pth": {
+        "continuous": "a5b45db73c168b13d5bfe75eb2006fba1796b617076575734b1b668996abaf40",
+        "resumed": "a5b45db73c168b13d5bfe75eb2006fba1796b617076575734b1b668996abaf40",
+        "equal": true
+      },
+      "rng_state_5.pth": {
+        "continuous": "12bdd4b420e5ceac7fd4b8b0f92e3df8ee469740f96cdba028022cd15fa99ba1",
+        "resumed": "12bdd4b420e5ceac7fd4b8b0f92e3df8ee469740f96cdba028022cd15fa99ba1",
+        "equal": true
+      },
+      "rng_state_6.pth": {
+        "continuous": "56caf5e51d68190bbd5c33228c81b95e7461098ed6bc9b534be4c3a735b7ae4b",
+        "resumed": "56caf5e51d68190bbd5c33228c81b95e7461098ed6bc9b534be4c3a735b7ae4b",
+        "equal": true
+      },
+      "rng_state_7.pth": {
+        "continuous": "f8220b97cca0b2f08a95a02b86832dda81e6967f7a809cd2c74a38ee7f83bd24",
+        "resumed": "f8220b97cca0b2f08a95a02b86832dda81e6967f7a809cd2c74a38ee7f83bd24",
+        "equal": true
+      }
+    },
+    "qualification": "The boundary is specific to this pair. The previous pair first diverged in decoder 31 on rank 4; this is not an attribution to a single layer or attention kernel across runs.",
+    "task": "coordination/tasks/training-qwen-resumed-branches21-hip-v1.json",
+    "terminal": {
+      "path": "results/bw1000/2026-11-14/training-qwen-1087656-270-branches21-paired-terminal.json",
+      "SHA256": "b2872753c8a8cf40fc5d8e35b1b0c85fc194ee6bcb0776af96f5c4977d532c35"
+    }
   }
 }

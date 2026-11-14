@@ -50,7 +50,8 @@
     "results/bw1000/2026-11-14/training-qwen-target-original-input-and-framework-source-closure.json": "d09302afb5135f8b64ad2f6ac7cb024e3360d7e34c0abc83e0938306082ce3e5",
     "results/bw1000/2026-11-14/training-qwen-hip-input-agreement-tcp-v2-original-terminal.json": "7b7fa01cf572d50ac83163415f306ccf370f71f05c3c8f213100c73ea130dfcf",
     "results/bw1000/2026-11-14/training-qwen-tcp-bounded-terminal-receipt-visibility.json": "d6b86c795b2560a9acd9f28b21f57e4445ce10a8b4feabf845b5b3685d7e4f68",
-    "results/bw1000/2026-11-13/training-hunyuanvideo-sage-resume-device-1103606-56-terminal.json": "afe5be8c9f58734dee6d99da4f8e0fcdc5612d350431413af7c20f7ce392c143"
+    "results/bw1000/2026-11-13/training-hunyuanvideo-sage-resume-device-1103606-56-terminal.json": "afe5be8c9f58734dee6d99da4f8e0fcdc5612d350431413af7c20f7ce392c143",
+    "results/bw1000/2026-11-14/training-qwen-1087656-270-branches21-paired-terminal.json": "b2872753c8a8cf40fc5d8e35b1b0c85fc194ee6bcb0776af96f5c4977d532c35"
   },
   "cases": [
     {
@@ -61,7 +62,7 @@
       "a100_reference": "A100 已独立核对两次更新及 25 步。",
       "target_evidence": "海光单节点八卡完成原配方 25 步；已独立核对检查点清单，另有张量内容对照。",
       "target_numerics": "已采集训练张量并记录对 A100 的标量差异；数值门槛待验。",
-      "target_recovery": "连续与续训配对的 160 个微批输入指纹一致。仍有 loss、最终 LoRA 和 AdamW 状态差异；最新对照首次观测到 rank 4 第 2 微批的第 31 层输入梯度差异。",
+      "target_recovery": "160 个续训微批输入指纹一致，恢复数值仍未通过。上一组 rank 4 首个差异在第 31 层；本组第 2 微批首次定位到第 32 层 self_attn 的反向输入梯度，注意力前向、重算和传入梯度指纹一致。",
       "target_performance": "待三轮同口径实测",
       "target_holdout_effect": "待留出集实测",
       "stage3_accepted": false,
@@ -96,6 +97,10 @@
         "paired_suffix": {
           "path": "results/bw1000/2026-11-14/training-qwen-1087656-264-suffix21-paired-terminal.json",
           "SHA256": "3947d49bda69333c862468c7b83937aa0b5bc5b3981456f4c125255641a69e3c"
+        },
+        "paired_attention_boundary": {
+          "path": "results/bw1000/2026-11-14/training-qwen-1087656-270-branches21-paired-terminal.json",
+          "SHA256": "b2872753c8a8cf40fc5d8e35b1b0c85fc194ee6bcb0776af96f5c4977d532c35"
         }
       }
     },
