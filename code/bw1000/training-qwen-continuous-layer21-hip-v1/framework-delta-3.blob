@@ -1,0 +1,121 @@
+"""Observe native checkpointed decoder boundaries in two selected Qwen microbatches."""
+
+import json
+
+
+TARGETS = {1: (1, (33, 34)), 4: (2, (26, 27))}
+REQUIRED = {'forward_input', 'forward_output', 'recompute_input', 'grad_input', 'grad_output'}
+
+
+class LayerTrace:
+    def __init__(self, layers, path, check, snapshot, ordinal):
+        if path.exists() or (ordinal, tuple(layers)) not in TARGETS.values():
+            raise ValueError('unexpected Qwen layer trace scope')
+        self.path, self.check, self.snapshot, self.ordinal = path, check, snapshot, ordinal
+        self.phase = None
+        self.records = {str(i): {} for i in layers}
+        self.output_hooked = set()
+        self.handles = []
+        for index, layer in layers.items():
+            self.handles.extend((
+                layer.register_forward_pre_hook(self.before(str(index)), with_kwargs=True),
+                layer.register_forward_hook(self.after(str(index)), with_kwargs=True),
+            ))
+
+    def write(self, complete):
+        tmp = self.path.with_suffix('.tmp')
+        tmp.write_text(json.dumps(dict(ordinal=self.ordinal, layers=self.records, complete=complete),
+                                  allow_nan=False), encoding='utf-8')
+        tmp.replace(self.path)
+
+    def record(self, layer, boundary, value):
+        self.check()
+        record = self.records[layer]
+        if boundary in record:
+            raise ValueError(f'duplicate Qwen layer {layer} boundary {boundary}')
+        record[boundary] = self.snapshot(value)
+        self.write(complete=False)
+
+    def grad_hook(self, layer, boundary):
+        def observe(gradient):
+            if self.phase != 'recompute':
+                raise ValueError('gradient outside the selected Qwen backward')
+            self.record(layer, boundary, gradient)
+            return None
+        return observe
+
+    def before(self, layer):
+        def observe(module, args, kwargs):
+            if self.phase is None:
+                return
+            hidden = args[0] if args else kwargs['hidden_states']
+            self.record(layer, self.phase + '_input', hidden)
+            if self.phase == 'forward' and hidden.requires_grad:
+                self.handles.append(hidden.register_hook(self.grad_hook(layer, 'grad_input')))
+        return observe
+
+    def after(self, layer):
+        def observe(module, args, kwargs, output):
+            if self.phase is None:
+                return
+            hidden = output[0] if isinstance(output, (tuple, list)) else output
+            self.record(layer, self.phase + '_output', hidden)
+            if hidden.requires_grad and layer not in self.output_hooked:
+                self.handles.append(hidden.register_hook(self.grad_hook(layer, 'grad_output')))
+                self.output_hooked.add(layer)
+        return observe
+
+    def forward_entry(self, ordinal):
+        self.phase = 'forward' if self.ordinal == ordinal else None
+
+    def forward_returned(self, ordinal):
+        if self.ordinal == ordinal:
+            self.phase = 'recompute'
+
+    def backward_returned(self, ordinal):
+        if self.ordinal == ordinal:
+            self.phase = None
+
+    def finish(self):
+        for handle in self.handles:
+            handle.remove()
+        if self.phase is not None or any(REQUIRED - set(row) for row in self.records.values()):
+            raise ValueError('incomplete Qwen layer trace')
+        self.write(complete=True)
+
+
+def observe_layers(model, path, check, rank):
+    from .forward_entry_state import tensor_digest
+
+    ordinal, selected = TARGETS[rank]
+    layers = model.get_base_model().get_submodule('model.language_model').layers
+    if len(layers) != 36 or any(getattr(layers[i], 'gradient_checkpointing', None) is not True for i in selected):
+        raise ValueError('expected the selected Qwen checkpointed decoder layers')
+
+    def snapshot(value):
+        return dict(shape=list(value.shape), dtype=str(value.dtype), stride=list(value.stride()),
+                    storage_offset=value.storage_offset(), **tensor_digest(value, check=check))
+
+    return LayerTrace({i: layers[i] for i in selected}, path, check, snapshot, ordinal)
+
+
+def compare_layer_traces(continuous, resumed):
+    targets = {(ordinal, frozenset(map(str, layers))) for ordinal, layers in TARGETS.values()}
+    def scope(row):
+        return row['ordinal'], frozenset(row['layers'])
+    if (continuous['complete'] is not True or resumed['complete'] is not True
+            or scope(continuous) != scope(resumed) or scope(continuous) not in targets):
+        raise ValueError('incompatible Qwen layer traces')
+    pairs = {}
+    for layer, left in continuous['layers'].items():
+        right = resumed['layers'][layer]
+        if REQUIRED - set(left) or REQUIRED - set(right):
+            raise ValueError('missing required Qwen layer boundary')
+        pairs[layer] = {key: dict(
+            observed_in_both=key in left and key in right,
+            logical_sha_equal=left[key]['SHA256'] == right[key]['SHA256'] if key in left and key in right else None,
+            layout_equal=all(left[key][field] == right[key][field]
+                             for field in ('shape', 'dtype', 'stride', 'storage_offset'))
+            if key in left and key in right else None)
+            for key in sorted(left.keys() | right.keys())}
+    return pairs

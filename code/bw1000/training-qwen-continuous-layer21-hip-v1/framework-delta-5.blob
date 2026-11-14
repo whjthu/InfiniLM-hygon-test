@@ -1,0 +1,75 @@
+import json
+from pathlib import Path
+from tempfile import TemporaryDirectory
+import unittest
+
+from vlm.runtime.qwen_layer_trace import LayerTrace, compare_layer_traces
+
+
+class Hook:
+    def remove(self):
+        pass
+
+
+class Hidden:
+    def __init__(self, value):
+        self.value = value
+        self.requires_grad = True
+        self.hooks = []
+
+    def register_hook(self, hook):
+        self.hooks.append(hook)
+        return Hook()
+
+
+class Layer:
+    def register_forward_pre_hook(self, fn, *, with_kwargs):
+        self.before = fn
+        return Hook()
+
+    def register_forward_hook(self, fn, *, with_kwargs):
+        self.after = fn
+        return Hook()
+
+
+def snapshot(value):
+    return dict(SHA256=value.value, shape=[1, 2], dtype='bf16', stride=[2, 1], storage_offset=0)
+
+
+class QwenLayerTraceTest(unittest.TestCase):
+    def test_early_stopping_recompute_and_passive_gradients(self):
+        with TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'layers-21.json'
+            layers = {33: Layer(), 34: Layer()}
+            trace = LayerTrace(layers, path, lambda: None, snapshot, 1)
+            trace.forward_entry(1)
+            inputs = Hidden('input')
+            boundary = Hidden('boundary')
+            output = Hidden('output')
+            for layer, a, b in ((layers[33], inputs, boundary), (layers[34], boundary, output)):
+                layer.before(layer, (a,), {})
+                layer.after(layer, (a,), {}, b)
+            trace.forward_returned(1)
+            layers[34].before(layers[34], (boundary,), {})
+            layers[33].before(layers[33], (inputs,), {})
+            for tensor in (output, boundary, inputs):
+                for fn in tensor.hooks:
+                    self.assertIsNone(fn(Hidden('gradient')))
+            trace.backward_returned(1)
+            trace.finish()
+            left = json.loads(path.read_bytes())
+            right = json.loads(path.read_bytes())
+            right['layers']['34']['grad_input']['SHA256'] = 'different'
+            compared = compare_layer_traces(left, right)
+            self.assertFalse(compared['34']['grad_input']['logical_sha_equal'])
+            self.assertTrue(compared['34']['grad_input']['layout_equal'])
+            self.assertNotIn('recompute_output', compared['34'])
+
+    def test_missing_backward_fails_closed(self):
+        with TemporaryDirectory() as tmp:
+            layers = {26: Layer(), 27: Layer()}
+            trace = LayerTrace(layers, Path(tmp) / 'layers-21.json', lambda: None, snapshot, 2)
+            trace.forward_entry(1)
+            layers[26].before(layers[26], (), {})
+            with self.assertRaisesRegex(ValueError, 'incomplete'):
+                trace.finish()

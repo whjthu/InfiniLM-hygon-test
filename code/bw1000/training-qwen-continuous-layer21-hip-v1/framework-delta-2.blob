@@ -1,0 +1,89 @@
+"""Observe the gradients returned by the native Trainer for each accumulation microbatch."""
+
+import json
+
+from .qwen_update_trace import STEP
+
+
+class BackwardTrace:
+    def __init__(self, trainer, path, check, context, gradients, *, returned=None):
+        if path.exists():
+            raise ValueError('Qwen backward trace path already exists')
+        self.trainer, self.path, self.check = trainer, path, check
+        self.context, self.gradients = context, gradients
+        self.returned = returned
+        self.rows = []
+        self.pending = None
+        self.pending_model = None
+        self.original_step = trainer.training_step
+        self.instance_method = 'training_step' in vars(trainer)
+        self.observed_step = self.training_step
+        trainer.training_step = self.observed_step
+
+    def write(self, complete):
+        tmp = self.path.with_suffix('.tmp')
+        tmp.write_text(json.dumps(dict(microbatches=self.rows, complete=complete),
+                                  allow_nan=False), encoding='utf-8')
+        tmp.replace(self.path)
+
+    def forward_entry(self, ordinal):
+        if self.pending is None or self.pending['ordinal'] != ordinal or 'forward' in self.pending:
+            raise ValueError('unexpected Qwen forward inside training_step')
+        self.pending['forward'] = self.context(self.pending_model)
+
+    def training_step(self, model, *args, **kwargs):
+        if self.trainer.state.global_step != STEP:
+            return self.original_step(model, *args, **kwargs)
+        self.check()
+        if self.pending is not None or len(self.rows) >= 4:
+            raise ValueError('unexpected Qwen training_step count')
+        self.pending_model = model
+        self.pending = dict(ordinal=len(self.rows) + 1, entry=self.context(model))
+        result = self.original_step(model, *args, **kwargs)
+        self.check()
+        self.pending['returned'] = self.context(model)
+        if 'forward' not in self.pending:
+            raise ValueError('Qwen training_step returned without an observed forward')
+        if self.returned is not None:
+            self.returned(self.pending['ordinal'])
+        gradients = self.gradients()
+        if len(gradients) != 504:
+            raise ValueError('Qwen backward gradient inventory changed')
+        self.pending['gradients'] = gradients
+        self.rows.append(self.pending)
+        self.pending = None
+        self.pending_model = None
+        self.write(complete=False)
+        return result
+
+    def finish(self):
+        if self.trainer.training_step is not self.observed_step:
+            raise ValueError('native training_step changed under Qwen observation')
+        if self.instance_method:
+            self.trainer.training_step = self.original_step
+        else:
+            del self.trainer.training_step
+        if self.pending is not None or len(self.rows) != 4:
+            raise ValueError('incomplete Qwen backward capture')
+        self.write(complete=True)
+
+
+def compare_backward_traces(continuous, resumed):
+    for row in (continuous, resumed):
+        if row['complete'] is not True or [m['ordinal'] for m in row['microbatches']] != [1, 2, 3, 4]:
+            raise ValueError('expected every Qwen backward boundary')
+    pairs = []
+    for a, b in zip(continuous['microbatches'], resumed['microbatches']):
+        contexts = [row[phase] for row in (a, b) for phase in ('entry', 'forward', 'returned')]
+        if any(set(ctx) != {'ddp_sync', 'accelerator_sync'}
+               or any(type(v) is not bool for v in ctx.values()) for ctx in contexts):
+            raise ValueError('unobserved DDP synchronization state')
+        left, right = a['gradients'], b['gradients']
+        if left.keys() != right.keys() or len(left) != 504:
+            raise ValueError('Qwen gradient inventories differ')
+        pairs.append(dict(ordinal=a['ordinal'],
+                          continuous_ddp_sync=a['forward']['ddp_sync'],
+                          resumed_ddp_sync=b['forward']['ddp_sync'],
+                          all_contexts_equal=all(ctx == contexts[0] for ctx in contexts),
+                          differing_gradient_tensors=sum(left[k] != right[k] for k in left)))
+    return pairs

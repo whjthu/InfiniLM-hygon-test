@@ -1,0 +1,106 @@
+"""Opt-in witness for comparing a fresh native Qwen run with a checkpoint-20 resume."""
+
+import os
+from pathlib import Path
+
+import torch
+from swift.callbacks import TrainerCallback, callbacks_map
+
+from vlm.runtime.continuous_tail import ContinuousTail
+from vlm.runtime.first_update_audit import fingerprint
+from vlm.runtime.first_update_capture import cpu
+
+
+KEY = 'qwen_native_continuous_tail'
+
+
+class QwenContinuousTail(TrainerCallback):
+    def on_train_begin(self, args, state, control, **kwargs):
+        callbacks = self.trainer.callback_handler.callbacks
+        recorders = [c for c in callbacks if type(c).__name__ == 'NativeFirstUpdates']
+        rank, local = int(os.environ['RANK']), int(os.environ['LOCAL_RANK'])
+        if (not torch.version.hip or torch.cuda.device_count() != 8
+                or int(os.environ['WORLD_SIZE']) != 8
+                or rank != local or not 0 <= rank < 8 or torch.cuda.current_device() != local
+                or state.global_step != 0 or args.max_steps != ContinuousTail.end
+                or args.gradient_accumulation_steps != ContinuousTail.accumulation
+                or args.per_device_train_batch_size != 1 or not args.bf16
+                or getattr(args, 'resume_from_checkpoint', None)
+                or len(recorders) != 1 or callbacks.index(recorders[0]) >= callbacks.index(self)
+                or recorders[0].binding['spec']['case'] != 'T01.sft'):
+            raise ValueError('expected the native fresh eight-rank Qwen control')
+        self.capture = recorders[0].capture
+        self.tail = ContinuousTail(Path(args.output_dir) / 'continuous-tail' / ('rank-%02d' % rank), rank)
+        model = kwargs.get('model', self.trainer.model)
+
+        def before(module, argv, kw):
+            step = self.trainer.state.global_step
+            if step >= self.tail.first:
+                self.capture.check_deadline()
+                self.tail.before(step, lambda: fingerprint(cpu(dict(args=argv, kwargs=kw))))
+
+        def after(module, argv, kw, output):
+            step = self.trainer.state.global_step
+            if step >= self.tail.first:
+                self.capture.check_deadline()
+                loss = getattr(output, 'loss', None)
+                if loss is None and isinstance(output, dict):
+                    loss = output.get('loss')
+                if not isinstance(loss, torch.Tensor) or loss.numel() != 1:
+                    raise ValueError('continuous Qwen forward lacks scalar loss')
+                self.tail.after(step, lambda: fingerprint(cpu(loss)))
+
+        self.handles = [
+            model.register_forward_pre_hook(before, with_kwargs=True),
+            model.register_forward_hook(after, with_kwargs=True),
+        ]
+        self.update_trace = None
+        if os.environ.get('QWEN_TRACE_UPDATE21') == '1':
+            from vlm.runtime.qwen_update_trace import FirstTailUpdate
+
+            self.update_trace = FirstTailUpdate(
+                self.trainer, model, self.tail.root / 'update-21.json',
+                self.capture.check_deadline, torch.cuda.get_rng_state_all)
+            if os.environ.get('QWEN_TRACE_BACKWARD21') == '1':
+                layers = None
+                if os.environ.get('QWEN_TRACE_LAYERS21') == '1':
+                    from vlm.runtime.qwen_layer_trace import TARGETS, observe_layers
+
+                    if rank in TARGETS:
+                        layers = observe_layers(model, self.tail.root / 'layers-21.json',
+                                               self.capture.check_deadline, rank)
+                self.update_trace.observe_backward(self.tail.root / 'backward-21.json',
+                                                   self.capture.check_deadline, layers=layers)
+        return control
+
+    def on_pre_optimizer_step(self, args, state, control, **kwargs):
+        if self.update_trace:
+            self.update_trace.before_optimizer()
+        return control
+
+    def on_optimizer_step(self, args, state, control, **kwargs):
+        if self.update_trace:
+            self.update_trace.after_optimizer()
+        return control
+
+    def on_step_end(self, args, state, control, **kwargs):
+        self.tail.step_end(state.global_step)
+        if self.update_trace:
+            self.update_trace.step_end(state.global_step)
+        return control
+
+    def on_train_end(self, args, state, control, **kwargs):
+        self.capture.check_deadline()
+        for handle in self.handles:
+            handle.remove()
+        if state.global_step != self.tail.end:
+            raise ValueError('native Qwen training ended outside the declared window')
+        if self.update_trace:
+            self.update_trace.verify()
+        self.tail.finish()
+        return control
+
+
+if KEY in callbacks_map:
+    raise ValueError('duplicate Qwen continuous-tail callback')
+callbacks_map[KEY] = QwenContinuousTail
