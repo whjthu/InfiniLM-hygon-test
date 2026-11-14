@@ -29,6 +29,15 @@ def read_pinned(path, digest, bound):
     return raw
 
 
+def visible_gap_summary(gaps):
+    if not gaps:
+        return dict(samples=0, p50=None, p95=None, p99=None)
+    if len(gaps) == 1:
+        return dict(samples=1, p50=gaps[0], p95=gaps[0], p99=gaps[0])
+    percentiles = statistics.quantiles(gaps, n=100, method="inclusive")
+    return dict(samples=len(gaps), p50=percentiles[49], p95=percentiles[94], p99=percentiles[98])
+
+
 def summarize_screen(owner, pins, plan, eos_ids, special_ids, grade):
     need((owner["global_rank"], owner["actual_GPU"], owner["passed"]) == (0, GPU, True),
          "wrong original scoring rank")
@@ -60,17 +69,21 @@ def summarize_screen(owner, pins, plan, eos_ids, special_ids, grade):
         ttft = (visible[0] - start) / 1e9 if visible else None
         need((len(visible), rate, ttft) == (row["visible_nonEOS_nonspecial"], row["backend_decode_tok_s"],
                                           row["backend_sampled_TTFT_s"]), "original backend clocks differ")
-        suites.setdefault(pin["suite"], []).append((score, rate, ttft))
+        gaps = [(end - begin) / 1e9 for begin, end in zip(visible, visible[1:])]
+        suites.setdefault(pin["suite"], []).append((score, rate, ttft, gaps))
     need(set(suites) == {"gsm8k", "mmlu"} and all(len(rows) == 16 for rows in suites.values()),
          "wrong planned suite split")
     result = {}
     for suite, rows in suites.items():
-        rates = [rate for _, rate, _ in rows if rate is not None]
-        ttft = [first for _, _, first in rows if first is not None]
+        rates = [rate for _, rate, _, _ in rows if rate is not None]
+        ttft = [first for _, _, first, _ in rows if first is not None]
+        pooled_gaps = [gap for _, _, _, gaps in rows for gap in gaps]
         result[suite] = dict(planned=16, verified=16, missing_or_unverified=0,
-            **{key: sum(score[key] for score, _, _ in rows) for key in
+            **{key: sum(score[key] for score, _, _, _ in rows) for key in
                ("correct", "answer_matches_gold", "parse_failure", "natural_EOS", "cap_hit")},
             backend_decode_rate_available=len(rates), backend_strict_gt15=sum(rate > 15 for rate in rates),
+            backend_visible_ITL_requests=sum(bool(gaps) for _, _, _, gaps in rows),
+            backend_visible_ITL_s_pooled=visible_gap_summary(pooled_gaps),
             median_backend_decode_tok_s=statistics.median(rates) if rates else None,
             median_backend_sampled_TTFT_s=statistics.median(ttft) if ttft else None)
     return result
@@ -88,7 +101,9 @@ def audit(results, report_path, report_sha):
     out = dict(original_GPU=GPU, private_terminal_audit_SHA256=report_sha, planned_requests=33,
                diagnostic_outside_quality_denominator=True, planned_screen=32,
                verified_screen=0, missing_or_unverified_screen=32, per_suite=None,
-               same_owner_backend_clock=True, formal_quality_qualified=False, service_qualified=False)
+               same_owner_backend_clock=True,
+               backend_visible_ITL_scope="pooled consecutive visible-token gaps within each request",
+               formal_quality_qualified=False, service_qualified=False)
     if not (terminal["valid_ffn_evidence"] is True and terminal["independent_post_clean"] is True
             and terminal["launcher_rc"] == 0 and gate[2:4] == ["COMPLETED", "0:0"]):
         return out
