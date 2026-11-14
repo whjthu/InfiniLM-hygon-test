@@ -1,0 +1,28 @@
+{
+  "case": "GLM TP16 historical selected-value component",
+  "source_SHA256": {
+    "code/bw1000/GLM-NoV-value-block-packing/selected_value_pair_tp16.hpp": "89f3b80a00d9a3cd123cd00122fbf3dd31368622927e7a9bb0a9990d830060b2",
+    "code/bw1000/GLM-NoV-value-block-packing/check_selected_value_pair_tp16.py": "c90555e8053fd615bde18aefba2e9e200f195767958236387d95485d7d6c30a4",
+    "code/bw1000/GLM-NoV-value-block-packing/packed_value_device_tp16.hpp": "496bb77a0c3d4c00f0a7532a9d1d27f7bdbe216dd5fdb70fce3add3c43dacaf5",
+    "code/bw1000/GLM-V-on-demand-Model-integration-r403/selected_values_r400.hpp": "50ece2ded22ce1e70ea55947972dd3f5f17cdee2dd39f9080f1bb08a3cae0489",
+    "code/bw1000/GLM-V-on-demand-Model-integration-r403/chunk_geometry_r400.hpp": "a4234fd4e1c60e04e44117c16d579dc7002be242ffafa10ec66d7b7a451ad53e"
+  },
+  "comparison": {
+    "arm_original": "Original r400 selected_values and expand_cached",
+    "arm_packed": "Previously published TP16 packed selected device helper",
+    "bindings": "Same AttentionPrepare instance, Runtime, full 32768-row latent and rotary cache, and original causal IDs. Both arms accept 65..2048 selected rows.",
+    "wall_timing": "Pre-drain outside clock. Clock encloses selected-value producer, including gather, buffer setup within the producer, FP8 projection and the producer drain. Weight packing and BF16 readback are outside. Original provider branch not recorded.",
+    "numeric_check": "All returned BF16 bits compared after timing, with separate nonfinite counts for both arms."
+  },
+  "local_CPU_recording": {
+    "compiler": "g++ C++17",
+    "producer_routes": 2,
+    "comparisons": 3,
+    "cross_layer_rejections": 2,
+    "first_attempt": "Fixture tensor alias lacked the original Tensor::empty static API; corrected the fixture, leaving the original native header unchanged."
+  },
+  "target_compile": false,
+  "actual_device_numerics": false,
+  "actual_device_performance": false,
+  "production_dispatch_changed": false
+}
