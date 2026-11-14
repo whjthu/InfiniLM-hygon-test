@@ -1,0 +1,60 @@
+{
+  "original": {
+    "path": "code/bw1000/GLM952-global-TP16-component-r470/full-native-source-v1/routed_ffn_tp16.cpp",
+    "SHA256": "02d0608d153e24776fbc3e0d0e827e1dafdcca7289a1698ef298128c254496f0"
+  },
+  "annotated": {
+    "path": "code/bw1000/GLM-C1-layer-observer-r474/ffn-window-observer-source-v1/routed_ffn_tp16.cpp",
+    "SHA256": "99f9062d0bdc832d5aa55b6907a9f73b9145b7789bedc3f9c69b77593560d188"
+  },
+  "observer_header": {
+    "path": "code/bw1000/GLM-C1-layer-observer-r474/CPU-v1/native-src/glm_sparse_observer_r131.hpp",
+    "SHA256": "edc7eb0e4dfe95072347d0fc994633e8ae7174f817ca4eaa5ede1e64e0f86a64"
+  },
+  "original_dependency_evidence": {
+    "path": "analysis/bw1000/GLM474-original32-MD-five-inline-consumers-and-recipes.json",
+    "SHA256": "0298cc91478eca66d2c6cc0a1ae17e1d9351f4322abc846e1b283cf9b36b1c21"
+  },
+  "original_object_SHA256": "1f08a267108ffa3697601708ea017d820d26324e47929a34376e5f7288675843",
+  "observed_layer_cost": {
+    "path": "results/bw1000/2026-11-14/GLM474-transport-original-102-105-diagnostic-layer-cost.json",
+    "SHA256": "76d91019d08c6498c750b1b0dd7a29ff6d8f546a5ee1ab6475685ed34b19f503"
+  },
+  "marks": [
+    "FFN.local.gate_up.return",
+    "FFN.local.activation.end",
+    "FFN.local.down.begin",
+    "FFN.local.down.before_original_fence",
+    "FFN.local.down.after_original_fence",
+    "FFN.tp.copy.begin",
+    "FFN.tp.allreduce.begin",
+    "FFN.tp.allreduce.return",
+    "FFN.out.before_original_fence",
+    "FFN.out.after_original_fence"
+  ],
+  "old_event_bound": 250,
+  "new_event_bound": 270,
+  "event_pool_size": 512,
+  "source_only": true,
+  "actual_target_compile": false,
+  "actual_GPU_steps": 0,
+  "collective": {
+    "dtype": "float32",
+    "elements": 6144,
+    "bytes": 24576,
+    "operation": "sum",
+    "ranks": 16
+  },
+  "limits": "Allreduce begin/return separates host API enqueue and a mark interval. The existing output fence still includes prior in-flight work. Neither interval is exclusive collective-device time if the transport uses another stream.",
+  "owner": {
+    "base": "code/bw1000/GLM-C1-layer-observer-r474/full-model-transport-pair-v1/owner.py",
+    "base_SHA256": "ba045e33d91875ec7fca6aab852ea69159eb1cfe8b412e2df18afcd619d50750",
+    "path": "code/bw1000/GLM-C1-layer-observer-r474/ffn-window-observer-source-v1/owner.py",
+    "SHA256": "fa68debacfc471dbb61b4c793a76bab313bb5c02beec4599b7bef68bc339d690",
+    "changed_fields": [
+      "observer_source_event_bound",
+      "sample_event_count_limit"
+    ]
+  },
+  "target_gate_pending": "Rebuild packaging and independent reader with the specific new native, request and max event bound before dispatch."
+}
