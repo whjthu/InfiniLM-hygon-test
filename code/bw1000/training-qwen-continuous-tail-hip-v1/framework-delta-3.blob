@@ -1,0 +1,79 @@
+"""Compare two independently observed Qwen tails by native rank and microbatch."""
+
+import argparse
+import hashlib
+import json
+from pathlib import Path
+import re
+
+from .continuous_tail import ContinuousTail
+
+
+def read_rank(root, rank, *, resumed):
+    path = root / ('rank-%02d' % rank) / 'result.json'
+    with path.open('rb') as stream:
+        raw = stream.read(131073)
+    if len(raw) > 131072:
+        raise ValueError('oversized Qwen rank result')
+    row = json.loads(raw)
+    if (type(row['rank']) is not int or row['rank'] != rank or row['world_size'] != 8
+            or row['completed_global_step'] != ContinuousTail.end):
+        raise ValueError('Qwen tail rank or endpoint differs')
+    if resumed:
+        if (row['native_resume_window_complete'] is not True
+                or row['diagnostic_stop_step'] is not None or len(row['RNG_loads']) != 1
+                or row['RNG_loads'][0]['global_step'] != ContinuousTail.first
+                or row['RNG_loads'][0]['saved_equal'] is not True):
+            raise ValueError('expected one complete native checkpoint-20 resume')
+    elif row['continuous_tail_complete'] is not True or row['fresh_start_global_step'] != 0:
+        raise ValueError('expected a complete fresh continuous run')
+    total = (ContinuousTail.end - ContinuousTail.first) * ContinuousTail.accumulation
+    if len(row['inputs']) != total or len(row['outputs']) != total:
+        raise ValueError('Qwen tail lost microbatches')
+    pins = []
+    for i, (inp, out) in enumerate(zip(row['inputs'], row['outputs'])):
+        if (inp['ordinal'] != i + 1 or out['ordinal'] != i + 1
+                or inp['global_step'] != ContinuousTail.first + i // ContinuousTail.accumulation):
+            raise ValueError('Qwen tail microbatch order differs')
+        loss = out['loss']
+        if loss['tensors'] != 1 or loss['elements'] != 1 or loss['floating_elements'] != 1:
+            raise ValueError('Qwen tail requires a floating scalar loss')
+        for item in (inp['full_input'], loss):
+            if item['finite'] is not True or not re.fullmatch('[0-9a-f]{64}', item['SHA256']):
+                raise ValueError('invalid Qwen tail fingerprint')
+        pins.append((inp['full_input']['SHA256'], loss['SHA256']))
+    return pins, hashlib.sha256(raw).hexdigest()
+
+
+def compare(continuous, resumed):
+    rows = []
+    for rank in range(8):
+        left, continuous_sha = read_rank(continuous, rank, resumed=False)
+        right, resumed_sha = read_rank(resumed, rank, resumed=True)
+        pairs = list(zip(left, right))
+        rows.append(dict(rank=rank, continuous_result_SHA256=continuous_sha,
+                         resumed_result_SHA256=resumed_sha, microbatches=len(pairs),
+                         input_mismatches=[i for i, (a, b) in enumerate(pairs, 1) if a[0] != b[0]],
+                         loss_mismatches_on_equal_inputs=[
+                             i for i, (a, b) in enumerate(pairs, 1) if a[0] == b[0] and a[1] != b[1]]))
+    return dict(ranks=rows, compared_microbatches=sum(r['microbatches'] for r in rows),
+                all_inputs_equal=not any(r['input_mismatches'] for r in rows),
+                identical_loss_on_all_inputs=not any(
+                    r['input_mismatches'] or r['loss_mismatches_on_equal_inputs'] for r in rows),
+                checkpoint_origin_independently_verified=False, recovery_qualified=False)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('continuous', type=Path)
+    parser.add_argument('resumed', type=Path)
+    parser.add_argument('output', type=Path)
+    args = parser.parse_args()
+    result = compare(args.continuous, args.resumed)
+    with args.output.open('x', encoding='utf-8') as stream:
+        json.dump(result, stream, indent=2)
+        stream.write('\n')
+
+
+if __name__ == '__main__':
+    main()

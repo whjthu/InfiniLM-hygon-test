@@ -1,0 +1,81 @@
+import hashlib
+import json
+from pathlib import Path
+import tempfile
+import unittest
+
+from vlm.runtime.continuous_tail import ContinuousTail
+from vlm.runtime.qwen_tail_pair import compare
+
+
+def pin(label):
+    return dict(SHA256=hashlib.sha256(label.encode()).hexdigest(), finite=True,
+                tensors=1, elements=1, floating_elements=1)
+
+
+class QwenTailTest(unittest.TestCase):
+    def setUp(self):
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        self.continuous = Path(temp.name) / 'continuous'
+        self.resumed = Path(temp.name) / 'resumed'
+
+    def native_window(self, rank):
+        name = 'rank-%02d' % rank
+        tail = ContinuousTail(self.continuous / name, rank)
+        for step in range(25):
+            if step >= 20:
+                for micro in range(4):
+                    tail.before(step, lambda: pin(f'input-{rank}-{step}-{micro}'))
+                    tail.after(step, lambda: pin(f'loss-{rank}-{step}-{micro}'))
+            tail.step_end(step + 1)
+        tail.finish()
+        directory = self.resumed / name
+        directory.mkdir(parents=True)
+        result = dict(rank=rank, world_size=8, completed_global_step=25,
+                      inputs=tail.inputs, outputs=tail.outputs,
+                      native_resume_window_complete=True, diagnostic_stop_step=None,
+                      RNG_loads=[dict(global_step=20, saved_equal=True)])
+        return directory / 'result.json', result
+
+    def test_complete_pair_distinguishes_input_and_loss_drift(self):
+        for rank in range(8):
+            path, result = self.native_window(rank)
+            if rank == 5:
+                result['inputs'][2]['full_input'] = pin('different input')
+                result['outputs'][2]['loss'] = pin('different loss on changed input')
+                result['outputs'][3]['loss'] = pin('different loss on same input')
+            path.write_text(json.dumps(result), encoding='utf-8')
+        result = compare(self.continuous, self.resumed)
+        self.assertEqual(result['compared_microbatches'], 160)
+        self.assertFalse(result['all_inputs_equal'])
+        self.assertFalse(result['recovery_qualified'])
+        self.assertEqual(result['ranks'][5]['input_mismatches'], [3])
+        self.assertEqual(result['ranks'][5]['loss_mismatches_on_equal_inputs'], [4])
+
+    def test_missing_forward_keeps_partial_evidence(self):
+        root = self.continuous / 'rank-00'
+        tail = ContinuousTail(root, 0)
+        for step in range(1, 21):
+            tail.step_end(step)
+        tail.before(20, lambda: pin('partial'))
+        with self.assertRaisesRegex(ValueError, 'missed an update or forward'):
+            tail.step_end(21)
+        with self.assertRaisesRegex(ValueError, 'finished early'):
+            tail.finish()
+        progress = json.loads((root / 'progress.json').read_bytes())
+        self.assertEqual(progress['completed_global_step'], 20)
+        self.assertEqual(len(progress['inputs']), 1)
+        self.assertFalse((root / 'result.json').exists())
+
+    def test_rejects_early_stop_and_wrong_microbatch_order(self):
+        path, row = self.native_window(0)
+        row['diagnostic_stop_step'] = 21
+        path.write_text(json.dumps(row), encoding='utf-8')
+        with self.assertRaisesRegex(ValueError, 'complete native checkpoint-20 resume'):
+            compare(self.continuous, self.resumed)
+        row['diagnostic_stop_step'] = None
+        row['inputs'][4]['global_step'] = 20
+        path.write_text(json.dumps(row), encoding='utf-8')
+        with self.assertRaisesRegex(ValueError, 'microbatch order differs'):
+            compare(self.continuous, self.resumed)

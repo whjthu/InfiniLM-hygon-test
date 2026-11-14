@@ -1,0 +1,59 @@
+"""Track the actual forward and update boundaries of a fresh 25-step control."""
+
+import json
+
+
+class ContinuousTail:
+    first = 20
+    end = 25
+    accumulation = 4
+
+    def __init__(self, root, rank):
+        self.root = root
+        self.rank = rank
+        self.step = 0
+        self.inputs = []
+        self.outputs = []
+        self.root.mkdir(mode=0o700, parents=True, exist_ok=False)
+        self.write()
+
+    def write(self, complete=False):
+        result = dict(rank=self.rank, world_size=8, fresh_start_global_step=0,
+                      completed_global_step=self.step, inputs=self.inputs,
+                      outputs=self.outputs, continuous_tail_complete=complete)
+        target = self.root / ('result.json' if complete else 'progress.json')
+        temporary = self.root / 'tail.tmp'
+        temporary.write_text(json.dumps(result, indent=2), encoding='utf-8')
+        temporary.replace(target)
+
+    def before(self, step, read_fingerprint):
+        ordinal = len(self.inputs)
+        if (not self.first <= step < self.end or step != self.step
+                or ordinal != len(self.outputs)
+                or step != self.first + ordinal // self.accumulation):
+            raise ValueError('unexpected continuous forward boundary')
+        self.inputs.append(dict(ordinal=ordinal + 1, global_step=step,
+                                full_input=read_fingerprint()))
+        self.write()
+
+    def after(self, step, read_fingerprint):
+        ordinal = len(self.outputs)
+        if (ordinal + 1 != len(self.inputs)
+                or self.inputs[ordinal]['global_step'] != step or step != self.step):
+            raise ValueError('unexpected continuous loss boundary')
+        self.outputs.append(dict(ordinal=ordinal + 1, loss=read_fingerprint()))
+        self.write()
+
+    def step_end(self, step):
+        tail_forwards = max(0, step - self.first) * self.accumulation
+        if (step != self.step + 1 or step > self.end
+                or len(self.inputs) != tail_forwards or len(self.outputs) != tail_forwards):
+            raise ValueError('continuous control missed an update or forward')
+        self.step = step
+        if step >= self.first:
+            self.write()
+
+    def finish(self):
+        if self.step != self.end:
+            raise ValueError('continuous control finished early')
+        self.write(complete=True)
