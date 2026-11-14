@@ -1,0 +1,122 @@
+"""Observe checkpoint20-to25 recovery in the native eight-rank Qwen recipe."""
+import hashlib
+import json
+import os
+from pathlib import Path
+import signal
+import time
+
+import torch
+from swift.callbacks import TrainerCallback, callbacks_map
+
+from vlm.runtime.first_update_capture import remaining
+from vlm.runtime.native_recipe_contract import validate_native_recipe
+from vlm.runtime.resume_witness import ResumeWitness
+
+KEY = 'qwen_native_resume_witness'
+
+
+class QwenResume(TrainerCallback):
+    def on_train_begin(self, args, state, control, **kwargs):
+        config_raw = Path(os.environ['NATIVE_RESUME_CONFIG']).read_bytes()
+        if len(config_raw) > 65536 or hashlib.sha256(config_raw).hexdigest() != os.environ['NATIVE_RESUME_CONFIG_SHA256']:
+            raise ValueError('Qwen resume config identity differs')
+        config = json.loads(config_raw)
+        raw = Path(os.environ['QWEN_RESUME_BINDING']).read_bytes()
+        if hashlib.sha256(raw).hexdigest() != '9c9ba809529c73098e71f93ad1bf4744cb84079160f7062a540e7a37cb144067':
+            raise ValueError('Qwen binding differs')
+        binding = json.loads(raw)
+        rank, local = int(os.environ['RANK']), int(os.environ['LOCAL_RANK'])
+        if (not torch.version.hip or torch.cuda.device_count() != 8
+                or int(os.environ['WORLD_SIZE']) != 8 or rank != local or not 0 <= rank < 8
+                or torch.cuda.current_device() != local or state.global_step != 20 or args.max_steps != 25):
+            raise ValueError('expected eight native Qwen ranks restoring checkpoint20')
+        if any(type(c).__name__ in {'BaselineCallback', 'NativeFirstUpdates', 'NativeInitialTrainables'}
+               for c in self.trainer.callback_handler.callbacks):
+            raise ValueError('fresh-training observers cannot participate in resume')
+        model = kwargs.get('model', self.trainer.model)
+        named, frozen = validate_native_recipe(model, args, binding,
+            checkpointing_method=self.trainer._prepare_gradient_checkpointing)
+        if any(p.device.type != 'cuda' or p.device.index != local for _, p in named):
+            raise ValueError('restored Qwen parameters are on the wrong device')
+        epoch, deadline = float(os.environ['NATIVE_RESUME_EPOCH']), float(os.environ['NATIVE_RESUME_DEADLINE'])
+        maximum = float(os.environ['NATIVE_RESUME_MAX_SECONDS'])
+        self.witness = ResumeWitness(self.trainer, model, kwargs['train_dataloader'],
+            Path(args.output_dir) / 'resume-witness' / ('rank-%02d' % rank),
+            config['checkpoint'], config['checkpoint_files'], rank=rank, world_size=8,
+            checkpoint_step=20, max_steps=25, epoch=epoch, deadline=deadline, max_seconds=maximum,
+            device_rng=torch.cuda.get_rng_state_all)
+        self.witness.write('frozen-boundaries.json', frozen)
+        self.witness.write('owner.json', dict(rank=rank, local_rank=local, PID=os.getpid(),
+            PGID=os.getpgrp(), epoch=epoch, deadline=deadline,
+            startticks=int(Path('/proc/self/stat').read_text().split(') ', 1)[1].split()[19])))
+        def expired(*_):
+            error = TimeoutError('Qwen resume epoch exhausted')
+            self.witness.fail(error)
+            raise error
+        limit = remaining(epoch, deadline, time.time(), maximum)
+        prior = signal.getitimer(signal.ITIMER_REAL)[0]
+        signal.signal(signal.SIGALRM, expired)
+        signal.setitimer(signal.ITIMER_REAL, min(prior, limit) if prior else limit)
+        self.update_trace = None
+        if os.environ.get('QWEN_TRACE_UPDATE21') == '1':
+            from vlm.runtime.qwen_update_trace import FirstTailUpdate
+
+            self.update_trace = FirstTailUpdate(
+                self.trainer, model, self.witness.root / 'update-21.json',
+                self.witness.check, torch.cuda.get_rng_state_all)
+            if os.environ.get('QWEN_TRACE_BACKWARD21') == '1':
+                layers = None
+                layer_probe = os.environ.get('QWEN_TRACE_LAYERS21') == '1'
+                loss_probe = os.environ.get('QWEN_TRACE_LOSS21') == '1'
+                if layer_probe and loss_probe:
+                    raise ValueError('select only one Qwen module boundary probe')
+                if loss_probe:
+                    from vlm.runtime.qwen_loss_boundary_trace import TARGET_MICROBATCH, observe_loss_boundaries
+
+                    if rank in TARGET_MICROBATCH:
+                        layers = observe_loss_boundaries(model, self.witness.root / 'loss-21.json',
+                                                         self.witness.check, rank,
+                                                         include_suffix=os.environ.get('QWEN_TRACE_SUFFIX21') == '1')
+                if layer_probe:
+                    from vlm.runtime.qwen_layer_trace import TARGETS, observe_layers
+
+                    if rank in TARGETS:
+                        layers = observe_layers(model, self.witness.root / 'layers-21.json',
+                                               self.witness.check, rank)
+                self.update_trace.observe_backward(self.witness.root / 'backward-21.json',
+                                                   self.witness.check, layers=layers)
+        return control
+
+    def on_pre_optimizer_step(self, args, state, control, **kwargs):
+        if self.update_trace:
+            self.update_trace.before_optimizer()
+        return control
+
+    def on_optimizer_step(self, args, state, control, **kwargs):
+        if self.update_trace:
+            self.update_trace.after_optimizer()
+        return control
+
+    def on_step_end(self, args, state, control, **kwargs):
+        self.witness.guarded(self.witness.step_end)()
+        if self.update_trace:
+            self.update_trace.step_end(state.global_step)
+        if state.global_step == 25:
+            control.should_save = True
+        return control
+
+    def on_save(self, args, state, control, **kwargs):
+        self.witness.guarded(self.witness.checkpoint_saved)()
+        return control
+
+    def on_train_end(self, args, state, control, **kwargs):
+        if self.update_trace:
+            self.update_trace.verify()
+        self.witness.guarded(self.witness.finish)()
+        return control
+
+
+if KEY in callbacks_map:
+    raise ValueError('duplicate Qwen native recovery callback')
+callbacks_map[KEY] = QwenResume
