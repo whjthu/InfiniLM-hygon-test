@@ -1,0 +1,112 @@
+{
+  "framework_commit": "f9684625e5e46f2ad030b1ec7b6af9e8849d124b",
+  "case_scope": "shared T01–T05 VLM timing collector",
+  "node": "a01r4n16",
+  "target_new_accelerator_cards": 0,
+  "observations": [
+    {
+      "original_summary_SHA256": "ce052f47bc611302e2b649b3c3979af6e44d41a475809cf0fc472c3bba5f2a3b",
+      "receipt": {
+        "rows": [
+          [
+            "1087656.272",
+            "training-vlm-timer-target-import-f968462",
+            "FAILED",
+            "1:0",
+            "12",
+            "a01r4n16"
+          ]
+        ],
+        "rc": 1,
+        "failure": [
+          "KeyError: 'on_step_begin'",
+          "srun: error: a01r4n16: task 0: Exited with exit code 1",
+          "srun: Terminating StepId=1087656.272"
+        ]
+      }
+    },
+    {
+      "original_summary_SHA256": "a5398de9e220da29bac5d3ffb15b99f3e26bd1a05a3a0437b24f5eaf5a1f839c",
+      "receipt": {
+        "rows": [
+          [
+            "1087656.273",
+            "training-vlm-timer-swift-callback-mro-f968462",
+            "COMPLETED",
+            "0:0",
+            "11",
+            "a01r4n16"
+          ]
+        ],
+        "rc": 0,
+        "qualification": {
+          "slurm": "1087656.273",
+          "node": "a01r4n16",
+          "torch_version": "2.10.0",
+          "hip_version": "6.3.26113",
+          "registered": true,
+          "trainer_implementation_chain": [
+            {
+              "provider": "transformers.trainer.Trainer",
+              "events": {},
+              "SHA256": "59b69168df6552465fa88c5ea56fe6c31ac28dee1e756b1061cd502d62edafab"
+            }
+          ],
+          "save_implementation_chain": [
+            {
+              "provider": "swift.trainers.mixin.SwiftMixin",
+              "events": {},
+              "SHA256": "c42e46c9a4204dee893650e4614f8646c82e205e4454012a30581fd82bc4de5b"
+            },
+            {
+              "provider": "transformers.trainer.Trainer",
+              "events": {
+                "_save_checkpoint": [
+                  48
+                ],
+                "on_save": [
+                  49
+                ]
+              },
+              "SHA256": "af101534f0f7b2d7fa6984044242e6f125c51092b05c755566c14823f2b43696"
+            }
+          ],
+          "skipped_optimizer_property_available": true,
+          "source_pins": {
+            "vlm/runtime/training_timing.py": "b8dfe52aa3013230947475c5fcb8edeae4d3ad5aa2ea2b6383d53943a1ed6025",
+            "vlm/plugins/native_training_timing.py": "0e06ccdb01ebae7c598543f0e9eb46016c136649371350662069ad3e4c413794"
+          },
+          "gpu_cards": 0,
+          "model_loads": 0,
+          "optimizer_updates": 0
+        }
+      }
+    },
+    {
+      "original_summary_SHA256": "0636052ddc2073cb63e8300b40fa43f66561fa77ea52949bfea4f4f7ce59121a",
+      "receipt": {
+        "rows": [
+          [
+            "1087656.274",
+            "training-vlm-timer-cpu-callback-order-f968462",
+            "FAILED",
+            "1:0",
+            "11",
+            "a01r4n16"
+          ]
+        ],
+        "rc": 1,
+        "failure": [
+          "AttributeError: 'TrainingArguments' object has no attribute 'max_epochs'",
+          "srun: error: a01r4n16: task 0: Exited with exit code 1",
+          "srun: Terminating StepId=1087656.274"
+        ]
+      }
+    }
+  ],
+  "runtime_import_qualified": true,
+  "actual_trainer_order_qualified": false,
+  "target_model_updates": 0,
+  "formal_performance": false,
+  "next": "Use the installed Swift Seq2SeqTrainingArguments and its actual trainer callback flow in the CPU fixture, then verify both save boundaries."
+}
