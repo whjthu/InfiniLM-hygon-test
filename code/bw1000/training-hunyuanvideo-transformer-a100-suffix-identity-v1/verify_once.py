@@ -21,6 +21,10 @@ def require(condition, message):
         raise ValueError(message)
 
 
+def identity(s):
+    return s.st_dev, s.st_ino, s.st_size, s.st_mtime_ns, s.st_ctime_ns
+
+
 def stable_read(path, expected_bytes, limit=None):
     before = path.lstat()
     require(stat.S_ISREG(before.st_mode), 'Expected a regular file')
@@ -39,8 +43,6 @@ def stable_read(path, expected_bytes, limit=None):
             digest = sha(data)
         after = os.fstat(f.fileno())
     final = path.lstat()
-    def identity(s):
-        return s.st_dev, s.st_ino, s.st_size, s.st_mtime_ns, s.st_ctime_ns
     require(identity(before) == identity(opened) == identity(after) == identity(final),
             'File changed during verification')
     return digest, data
@@ -77,10 +79,13 @@ def audit(plan, transfer):
     require({p.name for p in target.iterdir()} == {'config.json', name}, 'Published Transformer file set differs')
     config, _ = stable_read(target / 'config.json', 968)
     require(config == plan['config_sha256'], 'Transformer config hash differs')
-    weight, _ = stable_read(target / name, plan['file']['bytes'])
+    path = target / name
+    before = identity(path.lstat())
+    weight, _ = stable_read(path, plan['file']['bytes'])
     require(weight == plan['file']['SHA256'], 'Transformer whole-file hash differs')
-    return dict(passed=True, intent_SHA256=intent_sha, terminal_SHA256=terminal_sha,
-                fsynced_SHA256=fsynced_sha, config_SHA256=config, weight_SHA256=weight, bytes=plan['file']['bytes'], GPU_calls=0)
+    require(identity(path.lstat()) == before, 'Weight fingerprint changed during audit')
+    return dict(passed=True, request_id=transfer['request_id'], claim=transfer['claim'], intent_SHA256=intent_sha, terminal_SHA256=terminal_sha,
+                fsynced_SHA256=fsynced_sha, file_identity=list(before), config_SHA256=config, weight_SHA256=weight, bytes=plan['file']['bytes'], GPU_calls=0)
 
 
 def main():
