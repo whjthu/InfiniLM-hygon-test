@@ -1,0 +1,11 @@
+--- a/code/bw1000/training-qwen-resumed-attention-profile21-hip-v1/verify_package.py
++++ b/code/bw1000/training-qwen-resumed-attention-profile21-hip-v1/verify_package.py
+@@ -51,7 +51,7 @@
+     frozen=json.loads(mf.read_bytes())
+     assert frozen["commit"]=="096157e7b63f7e9cd60cb53f31b10f2810ac2ddc"
+     files=frozen["files"]
+-    assert len(files)==406 and {p.relative_to(FRAMEWORK).as_posix()
++    assert len(files)==406 and {p.relative_to(FRAMEWORK_BASE).as_posix()
+             for p in FRAMEWORK_BASE.rglob("*") if p.is_file()}==set(files)
+     for name,pin in files.items():
+         path=FRAMEWORK_BASE/name
