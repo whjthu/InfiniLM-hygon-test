@@ -74,6 +74,15 @@ def check(dataset, model_dir):
 
     require(len(samples) == 2, "no distinct lengths for checking padding")
     lengths = [len(sample["input_ids"]) for sample in samples]
+    # Swift's native RoPE collator calls this same meta-model factory lazily.
+    # Bind the original generative registration before that lookup loses it.
+    with torch.device("meta"):
+        template.dummy_model, _ = get_model_processor(str(model_dir), model_type="qwen3_vl",
+                                                      return_dummy_model=True, download_model=False)
+    require(template.dummy_model is not None, "missing native RoPE meta-model")
+    parameters = list(template.dummy_model.parameters())
+    require(parameters and all(parameter.device.type == "meta" for parameter in parameters),
+            "native RoPE meta-model materialized parameters")
     batch = template.data_collator(samples)
     labels = batch["labels"]
     attention = batch["attention_mask"].bool()
@@ -92,6 +101,7 @@ def check(dataset, model_dir):
         "supervised_tokens_range": [min(x[2] for x in evidence), max(x[2] for x in evidence)],
         "per_row_counts_SHA256": hashlib.sha256(json.dumps(evidence).encode()).hexdigest(),
         "collated_lengths": lengths,
+        "rope_model_parameters_on_meta": True,
         "actual_GPU_cards": 0,
         "actual_updates": 0,
     }
