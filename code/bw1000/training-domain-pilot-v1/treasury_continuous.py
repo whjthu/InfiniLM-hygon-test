@@ -1,4 +1,4 @@
-"""Run one scoped Treasury continuous arm under the existing T01 allocation."""
+"""Run one scoped Treasury training arm under the existing T01 allocation."""
 
 import ctypes
 import hashlib
@@ -29,12 +29,15 @@ BASE = RESULTS / "training-qwen-a68952c-swift-initial-CPU-v1"
 DATA = RESULTS / "training-qwen-treasury-pilot-data-v1"
 MODEL = RESULTS / "training-qwen-original-public-model-v1/model"
 FRAMEWORK = RUN / "framework"
-ARM = RUN / "continuous"
+CONTINUOUS_ROOT = RESULTS / "training-qwen-treasury-sft-v3"
+RESUME_ROOT = RESULTS / "training-qwen-treasury-resume-v1"
+ARM_NAME = "resumed" if RUN == RESUME_ROOT else "continuous"
+ARM = RUN / ARM_NAME
 HOST_PYTHON = "/usr/local/python3.12/bin/python3"
 NODE, PARENT, PORT = "a01r4n16", "1087656", 29907
-LABEL = "training-qwen-treasury-continuous-hip-v3"
+LABEL = "training-qwen-treasury-resume-hip-v1" if ARM_NAME == "resumed" else "training-qwen-treasury-continuous-hip-v3"
 COLUMNS = "JobIDRaw,JobName%100,State,ExitCode,ElapsedRaw,NodeList,AllocTRES"
-PACKAGE_SECONDS = 1620
+PACKAGE_SECONDS = 2400 if ARM_NAME == "resumed" else 1620
 WORKER_SECONDS = 900
 
 
@@ -75,10 +78,37 @@ def asset(path, size, digest):
     require(all(getattr(info, field) == getattr(after, field) for field in fields), "asset changed while reading")
 
 
+def resume_witness_config(intent):
+    """Verify the completed continuous scope before touching the restore inputs."""
+    proof_path = CONTINUOUS_ROOT / "independent-continuous-v3.json"
+    expected = intent["continuous_audit_SHA256"]
+    require(re.fullmatch(r"[0-9a-f]{64}", expected) and proof_path.stat().st_size <= 262144
+            and sha(proof_path) == expected, "independent continuous audit identity differs")
+    proof = read(proof_path)
+    require(proof["state"] == "ORIGINAL_CONTINUOUS_VERIFIED_CHECKPOINT_2_PINNED"
+            and proof["original_request"] == "4edaf94de9e04f088aed227a5090940e"
+            and proof["actual_optimizer_updates"] == 5 and proof["checkpoint_global_step"] == 2,
+            "continuous arm is not qualified for this resume")
+    for phase in ("pre", "gpu", "post"):
+        row = proof["accounting"][phase]
+        require(row == accounting("training-qwen-treasury-continuous-hip-v3-" + phase)
+                and row[2:4] == ["COMPLETED", "0:0"], "continuous step changed or is not terminal")
+    checkpoint = CONTINUOUS_ROOT / "continuous/train/checkpoint-2"
+    pins = proof["checkpoint_files"]
+    names = {"trainer_state.json", "args.json", "adapter_model.safetensors", "optimizer.pt",
+             "scheduler.pt", "adapter_config.json", *(f"rng_state_{rank}.pth" for rank in range(8))}
+    require(set(pins) == names and sum(p["bytes"] for p in pins.values()) <= 768 * 1024**2,
+            "checkpoint state denominator differs")
+    for name, pin in pins.items():
+        asset(checkpoint / name, pin["bytes"], pin["SHA256"])
+    return {"checkpoint": str(checkpoint), "checkpoint_files": pins}
+
+
 def prepare():
     cfg = read(RUN / "intent.json")
-    require(cfg["node"] == NODE and cfg["parent"] == PARENT and cfg["arm"] == "continuous",
+    require(cfg["node"] == NODE and cfg["parent"] == PARENT and cfg["arm"] == ARM_NAME,
             "original resource intent differs")
+    witness_config = resume_witness_config(cfg) if ARM_NAME == "resumed" else {}
     manifest = BASE / "source/FRAMEWORK_FILES.json"
     require(sha(manifest) == "e54fd2031287277d1823a4a703d6dc0540067809d3d0f505c6e081cf4c5cec41",
             "original common framework manifest differs")
@@ -123,14 +153,16 @@ def prepare():
             "original CPU skip result differs")
     plan = make_plan(FRAMEWORK, original.read_bytes(), (RUN / "src/native-input-CPU.json").read_bytes(),
                      PurePosixPath(str(RUN)), PurePosixPath(str(RUN / "src/qwen_treasury_witness.py")),
-                     PORT, "continuous")
+                     PORT, ARM_NAME,
+                     continuous_root=PurePosixPath(str(CONTINUOUS_ROOT)) if witness_config else None)
     for name, pin in read(RUN / "src/MODEL_ASSETS.json")["model"].items():
         asset(MODEL / name, pin["bytes"], pin["SHA256"])
     for plugin in plan["required_assets"]["plugins"]:
         require(Path(plugin).is_file(), "planned callback missing")
     save(RUN / "native-plan.json", plan)
     require(shutil.disk_usage(RUN).free >= 16 * 1024**3, "insufficient checkpoint space")
-    save(RUN / "witness-config.json", {"original_binding": str(binding)})
+    witness_config["original_binding"] = str(binding)
+    save(RUN / "witness-config.json", witness_config)
 
 
 def command(args):
@@ -231,7 +263,7 @@ def worker():
                 owned[child.pid] = {k: observed[k] for k in ("PID", "PPID", "PGID", "startticks", "state")}
             while child.poll() is None:
                 owned_processes.refresh(owned, ARM)
-                require(time.time() < deadline, "native continuous deadline expired")
+                require(time.time() < deadline, "native training deadline expired")
                 time.sleep(1)
             rc = child.returncode
             quiet_until = time.monotonic() + 5
@@ -255,7 +287,7 @@ def worker():
 
 def controller():
     expected = read(RUN / "intent.json")
-    require(RUN.name == "training-qwen-treasury-sft-v3" and RUN.parent == RESULTS, "wrong run root")
+    require(RUN in (CONTINUOUS_ROOT, RESUME_ROOT), "wrong run root")
     budget = int(expected["epoch"] + PACKAGE_SECONDS - time.time())
     require(0 < budget <= PACKAGE_SECONDS, "expired original launch epoch")
     def expired(*_):
@@ -283,6 +315,9 @@ def controller():
                 (RESULTS / "training-minicpm-hygon-processor-r2/cpu/runtime-site", "/minicpm-transformers", "ro"),
                 (DATA / "data", DATASET.parent, "ro"), ("/opt/hyhal", "/opt/hyhal", "ro")):
             runtime.extend(["--bind", f"{source}:{target}:{mode}"])
+        if ARM_NAME == "resumed":
+            checkpoint = CONTINUOUS_ROOT / "continuous/train/checkpoint-2"
+            runtime.extend(["--bind", f"{checkpoint}:{checkpoint}:ro"])
         runtime.extend([str(REFACTOR / "containers/dtk26-sandbox-r1"), "/bin/bash", "--noprofile", "--norc", "-c", shell])
         snapshot_cmd = [HOST_PYTHON, "-B", str(Path(__file__).resolve()), "snapshot"]
         stages["pre"] = step("pre", snapshot_cmd, False, 60)

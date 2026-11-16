@@ -12,13 +12,14 @@ def require(condition, message):
         raise ValueError(message)
 
 
-def compare(root):
+def compare(root, resumed_root=None):
     evidence, differences = {}, []
     max_loss_gap = 0.0
 
     def record(arm, rank, name):
         path = Path(arm) / "train/treasury-witness" / f"rank-{rank:02d}" / name
-        with (root / path).open("rb") as stream:
+        base = resumed_root if arm == "resumed" and resumed_root is not None else root
+        with (base / path).open("rb") as stream:
             raw = stream.read(262145)
         require(0 < len(raw) <= 262144, f"unexpected receipt size: {path}")
         evidence[path.as_posix()] = hashlib.sha256(raw).hexdigest()
@@ -72,8 +73,9 @@ def compare(root):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("root", type=Path)
+    parser.add_argument("--resumed-root", type=Path)
     opts = parser.parse_args()
-    record = compare(opts.root)
+    record = compare(opts.root, opts.resumed_root)
     print(json.dumps(record, sort_keys=True))
     raise SystemExit(0 if record["exact_paired_recovery"] else 1)
 

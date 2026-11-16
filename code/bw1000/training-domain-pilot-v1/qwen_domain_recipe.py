@@ -64,15 +64,16 @@ def check_preflight(raw):
     return row[0][0]
 
 
-def make_plan(framework, original, cpu_receipt, root, plugin, master_port, arm):
+def make_plan(framework, original, cpu_receipt, root, plugin, master_port, arm, *, continuous_root=None):
     require(sha(original) == ORIGINAL_SHA256, "frozen Qwen T01 recipe changed")
     cpu_step = check_preflight(cpu_receipt)
     require(arm in {"continuous", "resumed"}, "invalid trial arm")
-    for path in (root, plugin):
+    require(continuous_root is None or arm == "resumed", "continuous training does not take a resume source")
+    for path in (root, plugin, continuous_root or root):
         require(path.is_absolute() and path.anchor == "/" and len(path.parts) > 1 and ".." not in path.parts,
                 "expected an absolute container path without traversal")
     output = root / arm / "train"
-    checkpoint = root / "continuous/train/checkpoint-2" if arm == "resumed" else None
+    checkpoint = (continuous_root or root) / "continuous/train/checkpoint-2" if arm == "resumed" else None
     callback = "qwen_treasury_resume_witness" if checkpoint else "qwen_treasury_continuous_witness"
     build, translator_sha = native_translator(framework)
     launch = build("T01.sft", original, PurePosixPath(framework.as_posix()) / "vlm/runtime/swift_entry.py",
