@@ -14,7 +14,8 @@ from prepare_qwen_inputs import MANIFEST_SHA256, digest, pinned_bytes, read_json
 
 TOPICS = ("lookup", "signed_difference", "maximum_date")
 TABLES = {"dev": 36, "blind": 18}
-ARMS = ("base", "domain", "generic", "domain_text_only")
+DEV_ARMS = ("base", "domain")
+ARMS = (*DEV_ARMS, "generic", "domain_text_only")
 TABLE_ID = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{4}-[0-9]{2}-[0-9]{2}")
 DAY = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
 DOLLARS = re.compile(r"[+-]?(?:[0-9]+|[0-9]{1,3}(?:,[0-9]{3})+)\.[0-9]{2}")
@@ -110,7 +111,9 @@ def interval(deltas, samples=10000):
     return [totals[int((samples - 1) * tail)] for tail in (0.025, 0.975)]
 
 
-def score(source, split, files):
+def _score(source, split, files, arms):
+    if set(files) != set(arms):
+        raise ValueError("Unexpected prediction arms for this scoring mode")
     root, proof, rows, images = holdout(source, split)
     labels = read_jsonl(root / "labels.jsonl", proof["labels_SHA256"])
     identities = [identity for identity, _, _, _ in rows]
@@ -127,7 +130,7 @@ def score(source, split, files):
     report = {"source_manifest_SHA256": MANIFEST_SHA256, "split": split, "rows": len(rows),
               "tables": len(images), "labels_SHA256": proof["labels_SHA256"], "arms": {}, "comparisons": {}}
     matches = {}
-    for arm in ARMS:
+    for arm in arms:
         values, sha = predictions(files[arm], truth)
         buckets = defaultdict(Counter)
         matches[arm] = {}
@@ -143,7 +146,9 @@ def score(source, split, files):
                           **{outcome: counts[outcome] for outcome in ("correct", "missing", "invalid_format", "wrong")}}
                     for key, counts in buckets.items()}
         report["arms"][arm] = {"prediction_SHA256": sha, "scores": measures}
-    for arm in ("base", "generic", "domain_text_only"):
+    for arm in arms:
+        if arm == "domain":
+            continue
         by_table = defaultdict(list)
         for identity, table, _, _ in rows:
             by_table[table].append(matches["domain"][identity] - matches[arm][identity])
@@ -153,22 +158,36 @@ def score(source, split, files):
     return report
 
 
+def score(source, split, files):
+    return _score(source, split, files, ARMS)
+
+
+def score_dev_pair(source, files):
+    report = _score(source, "dev", files, DEV_ARMS)
+    report["scope"] = "development_pair_calibration"
+    return report
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     modes = parser.add_subparsers(dest="mode", required=True)
-    for mode in ("prepare", "score"):
+    for mode in ("prepare", "score", "score-dev-pair"):
         command = modes.add_parser(mode)
         command.add_argument("--source", type=Path, required=True)
-        command.add_argument("--split", choices=TABLES, required=True)
+        if mode != "score-dev-pair":
+            command.add_argument("--split", choices=TABLES, required=True)
         command.add_argument("--output", type=Path, required=True)
-        if mode == "score":
-            for arm in ARMS:
+        if mode != "prepare":
+            for arm in ARMS if mode == "score" else DEV_ARMS:
                 command.add_argument("--" + arm.replace("_", "-"), type=Path, required=True)
     args = parser.parse_args()
     if args.mode == "prepare":
         report = prepare(args.source, args.split, args.output)
     else:
-        report = score(args.source, args.split, {arm: getattr(args, arm) for arm in ARMS})
+        if args.mode == "score-dev-pair":
+            report = score_dev_pair(args.source, {arm: getattr(args, arm) for arm in DEV_ARMS})
+        else:
+            report = score(args.source, args.split, {arm: getattr(args, arm) for arm in ARMS})
         with args.output.open("xb") as handle:
             handle.write(jsonl([report]))
     print(json.dumps(report, sort_keys=True))

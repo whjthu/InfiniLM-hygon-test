@@ -19,6 +19,14 @@
 
 ## 评分
 
+开发集先用两个已执行的视觉臂定标。两臂模式自动匹配冻结的 36 张表、108 题，每个题型 36 题。
+
+```text
+python treasury_holdout.py score-dev-pair --source <原件目录> --output <新开发报告.json> --base <底座.jsonl> --domain <领域.jsonl>
+```
+
+开发定标报告记录 `scope=development_pair_calibration`、原件和答案 SHA、两臂预测 SHA、完整分母下的各题型准确率、缺失和失败，以及 `domain_minus_base` 的整表配对置信区间。将报告与目标端推理收据、开发视觉批次 SHA、原底座和第 5 步适配器 SHA、共同解码配置一起归档。失败题用于检查数字格式、读数与运算能力，再冻结通用对照及盲评配置。开发模式只支持底座和领域两臂，正式盲评使用以下四臂命令。
+
 ```text
 python treasury_holdout.py score --source <原件目录> --split blind --output <新报告.json> --base <底座.jsonl> --domain <领域.jsonl> --generic <通用.jsonl> --domain-text-only <领域无图.jsonl>
 ```
