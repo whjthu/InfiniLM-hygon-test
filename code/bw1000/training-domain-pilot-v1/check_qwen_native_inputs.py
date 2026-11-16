@@ -12,6 +12,7 @@ DATASET_SHA256 = "e0219347307a94259b826b929a88f3fe991b688026677c86c25075c6941bc1
 TEMPLATE_SHA256 = "d4a35ced472f7b10eb254cc334ec21db44f0793a750b68d5edeab105c7db15c3"
 CONFIG_SHA256 = "5cd452860dc1e9c29dd71cc3cef7f39b338b7a40793f7a260655c2d3568f3661"
 SOURCE_VERSIONS = {"ms-swift": "4.4.2", "transformers": "5.12.1", "qwen-vl-utils": "0.0.14"}
+MAX_PIXELS = 262144
 
 
 def require(condition, message):
@@ -47,6 +48,7 @@ def check(dataset, model_dir):
                                                   load_model=False, download_model=False, device_map="cpu")
     require(loaded_model is None, "processor unexpectedly returned a model")
     template = get_template(processor, template_type="qwen3_vl", max_length=4096,
+                            max_pixels=MAX_PIXELS, padding_side="right", padding_free=False,
                             truncation_strategy="raise")
     template.set_mode("train")
     evidence = []
@@ -95,6 +97,7 @@ def check(dataset, model_dir):
         "rows": len(evidence),
         "dataset_SHA256": DATASET_SHA256,
         "template_SHA256": TEMPLATE_SHA256,
+        "max_pixels": MAX_PIXELS,
         "versions": versions,
         "input_tokens_range": [min(x[0] for x in evidence), max(x[0] for x in evidence)],
         "image_tokens_range": [min(x[1] for x in evidence), max(x[1] for x in evidence)],
