@@ -45,22 +45,46 @@ class Budget:
 
 
 def expand(budget, nodelist):
-    return set(budget.query(["scontrol", "show", "hostnames", nodelist]))
+    hosts = budget.query(["scontrol", "show", "hostnames", nodelist])
+    distinct = set(hosts)
+    if not hosts or len(hosts) != len(distinct) or any(not host for host in hosts):
+        raise ValueError("Slurm node list is empty or contains duplicate nodes")
+    return distinct
+
+
+def slurm_fields(line):
+    return dict(word.split("=", 1) for word in line.split() if "=" in word)
 
 
 def admit(budget):
-    lines = budget.query(["squeue", "-h", "-j", PARENT, "-o", "%T|%D|%N"])
+    lines = budget.query(["scontrol", "show", "job", PARENT, "--oneliner"])
     if len(lines) != 1:
         raise ValueError("Original long allocation is missing or ambiguous")
-    state, count, nodelist = lines[0].split("|")
-    hosts = expand(budget, nodelist)
-    if state != "RUNNING" or count != "40" or len(hosts) != 40 or NODE not in hosts:
+    job = slurm_fields(lines[0])
+    if (job.get("JobId") != PARENT or job.get("JobState") != "RUNNING"
+            or job.get("NumNodes") != "40" or "gres/dcu=320" not in job.get("AllocTRES", "").split(",")
+            or not job.get("NodeList")):
         raise ValueError("Original parent allocation or node has changed")
-    for line in budget.query(["squeue", "--steps", "-h", "-j", PARENT, "-o", "%i|%N"]):
-        handle, nodes = line.split("|")
-        if handle not in (PARENT + ".batch", PARENT + ".extern") and nodes not in ("", "(null)"):
-            if NODE in expand(budget, nodes):
-                raise ValueError("Requested node already has an active step")
+    hosts = expand(budget, job["NodeList"])
+    if len(hosts) != 40 or NODE not in hosts:
+        raise ValueError("Original parent allocation or node has changed")
+    seen = set()
+    for line in budget.query(["scontrol", "show", "step", PARENT, "--oneliner"]):
+        if not line.strip():
+            continue
+        step = slurm_fields(line)
+        handle = step.get("StepId", "")
+        if handle in (PARENT + ".batch", PARENT + ".extern"):
+            continue
+        if (not re.fullmatch(re.escape(PARENT) + r"\.[0-9]+", handle) or handle in seen
+                or not step.get("NodeList") or not step.get("Nodes", "").isdigit()):
+            raise ValueError("Slurm step membership is incomplete or ambiguous")
+        seen.add(handle)
+        members = expand(budget, step["NodeList"])
+        if len(members) != int(step["Nodes"]) or not members <= hosts:
+            raise ValueError("Slurm step membership differs from its actual parent")
+        if NODE in members:
+            raise ValueError("Requested node already has an active step: " + handle)
 
 
 def accounting(budget, phase):
