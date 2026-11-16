@@ -82,9 +82,9 @@ class TreasuryContinuous(TreasuryBase):
     def on_train_begin(self, args, state, control, **kw):
         binding, named = self.setup(args, state, kw, 0)
         callbacks = self.trainer.callback_handler.callbacks
-        baselines = [i for i, cb in enumerate(callbacks) if type(cb).__name__ == "BaselineCallback"]
-        require(len(baselines) == 1 and callbacks.index(self) < baselines[0],
-                "the initialization witness must precede the baseline callback")
+        require(sum(cb is self for cb in callbacks) == 1
+                and all(type(cb).__name__ != "BaselineCallback" for cb in callbacks),
+                "unexpected original benchmark callback in the five-step domain arm")
         self.root.mkdir(mode=0o700, parents=True, exist_ok=False)
         with (self.root / "initialization.json").open("x", encoding="utf-8") as stream:
             initial = binding["initial_state"]

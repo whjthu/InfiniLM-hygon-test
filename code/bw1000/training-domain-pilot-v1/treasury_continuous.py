@@ -32,7 +32,7 @@ FRAMEWORK = RUN / "framework"
 ARM = RUN / "continuous"
 HOST_PYTHON = "/usr/local/python3.12/bin/python3"
 NODE, PARENT, PORT = "a01r4n16", "1087656", 29907
-LABEL = "training-qwen-treasury-continuous-hip-v2"
+LABEL = "training-qwen-treasury-continuous-hip-v3"
 COLUMNS = "JobIDRaw,JobName%100,State,ExitCode,ElapsedRaw,NodeList,AllocTRES"
 PACKAGE_SECONDS = 1620
 WORKER_SECONDS = 900
@@ -255,7 +255,7 @@ def worker():
 
 def controller():
     expected = read(RUN / "intent.json")
-    require(RUN.name == "training-qwen-treasury-sft-v2" and RUN.parent == RESULTS, "wrong run root")
+    require(RUN.name == "training-qwen-treasury-sft-v3" and RUN.parent == RESULTS, "wrong run root")
     budget = int(expected["epoch"] + PACKAGE_SECONDS - time.time())
     require(0 < budget <= PACKAGE_SECONDS, "expired original launch epoch")
     def expired(*_):

@@ -80,6 +80,13 @@ def make_plan(framework, original, cpu_receipt, root, plugin, master_port, arm):
                    diagnostic_plugin=plugin, diagnostic_callback=callback, diagnostic_callback_position="before",
                    resume_from_checkpoint=checkpoint)
     argv = launch["command"]
+    if checkpoint is None:
+        require(argv.count("nvidia_baseline") == 1, "expected the original source callback before domain binding")
+        argv.remove("nvidia_baseline")
+    baseline_plugin = str(ORIGINAL_PLUGINS / "swift_callback_nvidia_baseline_v2.py")
+    require(argv.count(baseline_plugin) == 1, "expected the original source plugin before domain binding")
+    argv.remove(baseline_plugin)
+    launch["required_assets"]["plugins"].remove(baseline_plugin)
     changes = {"--model": str(MODEL), "--max_steps": "5", "--save_steps": "2"}
     frozen = {"--model_type": "qwen3_vl", "--template": "qwen3_vl", "--max_pixels": "262144",
               "--max_length": "4096", "--torch_dtype": "bfloat16", "--dataloader_drop_last": "false",
