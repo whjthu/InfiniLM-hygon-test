@@ -21,3 +21,14 @@ python check_generic_holdout.py --original-bindings <原始绑定文件> --coco-
 先按物理环境和完整采集序列分组。可使用 `freiburg1_room` 一类办公室序列作为训练候选，`freiburg2_pioneer_slam` 机器人设备区做开发候选，`freiburg3_long_office_household` 做盲评候选。下载帧之前核对场景关系和来源证明。同室多次路线、变体、相邻帧始终进同一划分。盘点时保留序列、RGB 时间戳和原图 SHA，按帧内容 SHA 查跨划分交集，并按时间留出采样间隔。若两个候选物理场景有交叉，将它们并入同一划分并启用另一独立场景。只采有 mocap 的窗口，从同一序列选两帧并验证时间最近匹配；避开长期缺少真值的轨迹区间。留出组应逐步扩充到多个独立物理场景再作能力外推。
 
 接入 T12 时增加独立的原生数据适配器。对 RGB 用现有 224 像素入口，同时传播裁剪和缩放对内参的变换，按帧产生 `[1,2,3,224,224]` 输入和对应内外参。先用一条授权的小图批次与原相机头的尺度、坐标轴、四元数顺序和 camera/world 方向做 CPU 重投影验证，确定同步误差、两帧实际平移和可视重叠。随后单 DCU 实测原 VGGT-1B 在线冻结 aggregator 的 camera-head 一个真实更新，记录 loss、梯度和参数变化。建议为这次资格范围先留 4 CPU 与 1 DCU，预处理本身 0 DCU。后续短训及和同预算通用相机头对照另认领；按采集序列做 AUC@5/15/30 和失败分母，并可追加 TUM 原生 RPE/ATE。独立领域试验保留原 CO3D 任务身份和 acceptance 状态。
+
+### 首批两帧的 CPU 验证
+
+`tum_vggt_pair.py` 的首版使用 Freiburg 3 已去畸变的 640×480 共注册 RGB-D。Freiburg 1、2 的场景候选仍需自己的标定与重采样验证。以 `rgb.txt`、`depth.txt`、`groundtruth.txt` 和选定的四张 PNG 构成七文件摘要清单，固定 `sequence`、`rgb_indices` 和 `files_SHA256`。首轮从非盲测场景选择两帧，间隔 100–500 ms。位姿和深度各找最近记录，最大时间差 20 ms。图像居中裁剪和缩放到 224 像素，内参采用同一像素中心变换。深度值按 5000 单位/米转换，零深度保留为无效。相机外参以首帧为世界坐标，双向投影分别记录投影覆盖、深度匹配数和误差。时间差、间隔和深度门槛是本轮接入试验参数，后续用真实样本复核。 [TUM 文件格式和标定](https://cvg.cit.tum.de/data/datasets/rgbd-dataset/file_formats)
+
+```text
+python tum_vggt_pair.py <序列数据目录> <七文件清单> --manifest-sha <清单SHA>
+python check_tum_vggt_pair_CPU.py
+```
+
+CPU 测试用生成的 RGB-D 图像验证帧顺序、内参、非平凡旋转和平移、双向投影以及六种拒绝条件。CLI 输出摘要，`prepare_pair` 返回原训练转换器所需的 RGB、深度、外参、内参和真实深度掩码。正式试验还需带原 VGGT 输入转换器复核真实两帧，再进入相机头单卡更新。
