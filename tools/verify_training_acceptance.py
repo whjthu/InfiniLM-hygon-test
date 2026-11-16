@@ -45,6 +45,26 @@ def verify(root):
     assigned = [case for group in sorted(TRAINING_GROUPS) for case in groups[group]["cases"]]
     require(ids == assigned, "matrix and resource ledger training case identities differ")
     pins = dict(matrix["evidence_SHA256"])
+
+    registry = matrix.get("live_registry_evidence")
+    require(registry == index.get("live_registry_evidence"), "compute registry evidence index differs")
+    if registry is not None:
+        path, digest = registry["path"], registry["SHA256"]
+        require(pins.setdefault(path, digest) == digest, f"conflicting evidence hashes: {path}")
+        report = json.loads(pinned(path, digest))
+        observed = report["result"]
+        case_bindings = {case["case"]: [case["launch_SHA256"], case["original_cards"]] for case in cases}
+        require(observed["registry_cases"] == ids and observed["entry_registry_matches_matrix"] is True
+                and observed["registry_order_matches"] is True and not observed["mismatched_launch_or_card_bindings"]
+                and report["verified_registry_bindings"] == case_bindings
+                and report["matrix_framework_commit"] == matrix["framework_commit"]
+                and observed["source"]["framework_commit"] == registry["deployed_framework_commit"]
+                and observed["explicit_GPU_allocation"] == observed["training_updates"] == 0,
+                "compute registry evidence differs from the indexed cases or source")
+        require(len(report["rows"]) == 1 and report["rows"][0][0] == observed["step"]
+                and report["rows"][0][2:4] == ["COMPLETED", "0:0"],
+                "compute registry evidence has no successful terminal step")
+
     def verify_formal_attachment(item):
         path, digest = item["path"], item["SHA256"]
         require(pins.setdefault(path, digest) == digest, f"conflicting evidence hashes: {path}")

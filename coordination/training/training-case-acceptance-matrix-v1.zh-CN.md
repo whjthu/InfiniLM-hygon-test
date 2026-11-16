@@ -4,6 +4,8 @@
 
 框架注册快照为 `fb1e2ee1a33a8f9fc5dda7c769fefcb1f69191e8`。原启动哈希、卡数和证据哈希见同目录 JSON。
 
+统一入口已在计算容器上的 Slurm step 1103606.149 实查。部署提交 a68952cb 的 393 个源码文件通过核验，17 项原始启动摘要、卡数与注册顺序均与矩阵一致。此次验证覆盖源码与注册，正式阶段三仍待逐项实测。[计算节点核验](../../results/bw1000/2026-11-17/training-common-a68952c-live-17-case-registry.json)
+
 | 用例 | A100 参考 | 海光功能或阻塞 | 数值 | 恢复 | 正式性能 | 留出集 |
 |---|---|---|---|---|---|---|
 | T01.sft | A100 已独立核对两次更新及 25 步。 [证据](../../results/bw1000/2026-11-12/training-qwen-original-eight-A100-native25-two-updates-and-checkpoints-independent.json) | 海光单节点八卡完成原配方 25 步；已独立核对检查点清单，另有张量内容对照。 [25 步与检查点](../../results/bw1000/2026-11-14/training-qwen-1087656-220-native25-independent-terminal-and-checkpoint-inventory.json) | 已采集训练张量并记录对 A100 的标量差异；数值门槛待验。 [A100 对照](../../results/bw1000/2026-11-14/training-qwen-1087656-223-capture-content-and-a100-differences.json) | 160 个续训微批输入指纹一致，恢复数值仍未通过。上一组 rank 4 首个差异在第 31 层；本组第 2 微批首次定位到第 32 层 self_attn 的反向输入梯度，注意力前向、重算和传入梯度指纹一致。 [注意力层内对照](../../results/bw1000/2026-11-14/training-qwen-1087656-270-branches21-paired-terminal.json) [最终状态对照](../../results/bw1000/2026-11-14/training-qwen-1087656-235-same-checkpoint25-tensor-differences.json) [层边界证据](../../results/bw1000/2026-11-14/training-qwen-1087656-264-suffix21-paired-terminal.json) | 待实测 | 待实测 |
