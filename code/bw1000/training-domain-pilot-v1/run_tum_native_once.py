@@ -18,9 +18,9 @@ import time
 
 R = Path("/public/home/aclsylqidf/hygon-inference-refactor-20261014")
 RESULTS = R / "results"
-LABEL = "training-vggt-tum-indoor-first-update-v1"
+LABEL = "training-vggt-tum-indoor-first-update-v2"
 PARENT, NODE = "1087656", "f11r4n19"
-CPU, MEMORY = 16, 65536
+CPU, MEMORY = 4, 65536
 FRAMEWORK = RESULTS / "training-qwen-a68952c-swift-initial-CPU-v1/framework"
 FRAMEWORK_MANIFEST = FRAMEWORK.parent / "source/FRAMEWORK_FILES.json"
 FRAMEWORK_SHA = "e54fd2031287277d1823a4a703d6dc0540067809d3d0f505c6e081cf4c5cec41"

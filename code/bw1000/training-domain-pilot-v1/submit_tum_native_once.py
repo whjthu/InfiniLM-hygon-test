@@ -11,7 +11,7 @@ import uuid
 
 
 G = Path(__file__).resolve().parents[3]
-CLAIM_PATH = "coordination/tasks/training-vggt-tum-indoor-first-update-v1.json"
+CLAIM_PATH = "coordination/tasks/training-vggt-tum-indoor-first-update-v2.json"
 
 
 def digest(raw):
@@ -58,7 +58,7 @@ def main():
     payload = dict(publication=args.publication, request=request, files={name: dict(
         sha=digest(raw), bytes=len(raw), b64=base64.b64encode(raw).decode("ascii")) for name, raw in files.items()})
     body = ("PAYLOAD=" + repr(payload) + "\n").encode() + sources["src/run_tum_native_once.py"]
-    out = G / "local-only/training-vggt-tum-indoor-first-update-v1"
+    out = G / "local-only/training-vggt-tum-indoor-first-update-v2"
     out.mkdir()
     with (out / "request.json").open("x") as stream:
         json.dump(dict(request=request, publication=args.publication, body_SHA256=digest(body)), stream)
