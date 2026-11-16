@@ -1,0 +1,113 @@
+{
+  "observed_epoch": 1794851873.3616004,
+  "controller_alive": false,
+  "request_id": "51948c48d9ee46d5aa471bf327a58d3b",
+  "rows": [
+    [
+      "1087656.278",
+      "training-qwen-treasury-continuous-hip-v1-pre",
+      "COMPLETED",
+      "0:0",
+      "0",
+      "a01r4n16",
+      "cpu=2,mem=4G,node=1"
+    ],
+    [
+      "1087656.279",
+      "training-qwen-treasury-continuous-hip-v1-gpu",
+      "FAILED",
+      "1:0",
+      "79",
+      "a01r4n16",
+      "cpu=64,gres/dcu=8,mem=224000M,node=1"
+    ],
+    [
+      "1087656.280",
+      "training-qwen-treasury-continuous-hip-v1-post",
+      "COMPLETED",
+      "0:0",
+      "0",
+      "a01r4n16",
+      "cpu=2,mem=4G,node=1"
+    ]
+  ],
+  "present": {
+    "plan": {
+      "sha": "45551f1430d35d53b721f08cf695c10e3174a1f6a9ebe04b3bab1b1ef2939e0c",
+      "case": "qwen3vl.treasury-table-qa",
+      "domain_arm": "continuous",
+      "native_preflight_step": "1103606.153"
+    },
+    "before": {
+      "sha": "05f17422d30b832d5ab69d8c7dbab48879e95d339bef87ba5a8e3a9f263d801d",
+      "kind": "training_qwen_device_snapshot",
+      "step": "1087656.278",
+      "node": "a01r4n16",
+      "kfd_holder_count": 0
+    },
+    "assigned": {
+      "sha": "c1e0c43ae5be28c20cee56f70c05e946d6d8df51c4084f7eee583f70027c757f",
+      "step": "1087656.279",
+      "node": "a01r4n16",
+      "cpus": 64,
+      "visible_pci": [
+        "0000:09:00.0",
+        "0000:36:00.0",
+        "0000:55:00.0",
+        "0000:77:00.0",
+        "0000:85:00.0",
+        "0000:b5:00.0",
+        "0000:d5:00.0",
+        "0000:f5:00.0"
+      ]
+    },
+    "outcome": {
+      "sha": "9ffb9cedc393b7d3a75e7d1c82e5051bb250db2bb29234d5fedd6c5fb8025772",
+      "passed": false,
+      "failure": null,
+      "finished": 1794851760.4884083
+    },
+    "native_outcome": {
+      "sha": "055f263c4f7ce056cecbe3758583f03501531f239e893cb9ac990e965fc9932c",
+      "passed": false,
+      "rc": 1,
+      "error": null,
+      "cleanup": {
+        "owned_processes_remaining": 0,
+        "termination_needed": false
+      },
+      "finished": []
+    },
+    "after": {
+      "sha": "24043596ec0c1f18ca2a56ee9e79c519cf8a235dee48ed66d1dd652e4a3dcf32",
+      "kind": "training_qwen_device_snapshot",
+      "step": "1087656.280",
+      "node": "a01r4n16",
+      "owned_remaining": 0
+    }
+  },
+  "checkpoints": [],
+  "diagnostics": [
+    [
+      "gpu.log",
+      "srun: error: a01r4n16: task 0: Exited with exit code 1"
+    ],
+    [
+      "continuous/native.log",
+      "[rank0]: ValueError: native Trainer argument differs: save_steps"
+    ]
+  ],
+  "state": "TERMINAL_FAILED_AT_DOMAIN_SAVE_INTERVAL_BINDING",
+  "claim_commit": "ea0a48ace5e857a1af6225dad17c9d1d0fbb6456",
+  "observed_UTC": "2026-11-16T17:57:53.361600+00:00",
+  "wrapper_SHA256": "cca84513a9e5acc6934a38930b7c9418547d41c7cae5465224970ce280614b39",
+  "verified_completed_optimizer_updates": 0,
+  "qualified_checkpoint_2": false,
+  "post_cleanup_verified": true,
+  "fault": {
+    "original_native_binding_save_steps": 10,
+    "domain_command_save_steps": 2,
+    "where": "on_train_begin before trainable initialization"
+  },
+  "next": "Bind the verified domain save interval inside the runtime validation of the new independent v2 scope."
+}

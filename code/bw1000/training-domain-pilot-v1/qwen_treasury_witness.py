@@ -57,10 +57,11 @@ class TreasuryBase(TrainerCallback):
         require(state.global_step == start and args.max_steps == 5 and args.save_steps == 2
                 and len(kw["train_dataloader"]) == 20, "native step, checkpoint or loader differs")
         binding = read_record(self.config["original_binding"], 2 * 1024 * 1024, ORIGINAL_BINDING_SHA256)
-        require(binding["spec"]["case"] == "T01.sft" and binding["spec"]["training"]["max_steps"] == 25,
+        require(binding["spec"]["case"] == "T01.sft" and binding["spec"]["training"]["max_steps"] == 25
+                and binding["spec"]["training"]["save_steps"] == 10,
                 "unexpected T01 native binding")
-        binding["spec"]["training"]["max_steps"] = 5
-        binding["spec"]["effective_warmup_steps"] = math.ceil(5 * binding["spec"]["training"]["warmup_ratio"])
+        binding["spec"]["training"].update(max_steps=args.max_steps, save_steps=args.save_steps)
+        binding["spec"]["effective_warmup_steps"] = math.ceil(args.max_steps * binding["spec"]["training"]["warmup_ratio"])
         self.model = kw.get("model", self.trainer.model)
         named, self.frozen = validate_native_recipe(self.model, args, binding,
             checkpointing_method=self.trainer._prepare_gradient_checkpointing)
