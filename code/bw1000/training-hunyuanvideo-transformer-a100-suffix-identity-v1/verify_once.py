@@ -54,16 +54,16 @@ def audit(plan, transfer):
     require(scope.is_dir() and not scope.is_symlink(), 'Original receiver scope differs')
     intent_sha, intent_raw = stable_read(scope / 'intent.json', None, 32768)
     terminal_sha, terminal_raw = stable_read(scope / 'outcome.json', None, 32768)
-    identity = {k: transfer[k] for k in ('claim', 'request_id', 'epoch')}
+    receipt_identity = {k: transfer[k] for k in ('claim', 'request_id', 'epoch')}
     intent = json.loads(intent_raw)
     pid = intent.get('pid')
     require(type(pid) is int and pid > 0 and intent.get('passed') is False and
-            intent == dict(identity, role='receiver', passed=False, deadline=transfer['deadline'], pid=pid),
+            intent == dict(receipt_identity, role='receiver', passed=False, deadline=transfer['deadline'], pid=pid),
             'Wrong original receiver intent')
     terminal = json.loads(terminal_raw)
     name = plan['name']
     require(terminal.get('passed') is True and terminal == dict(
-        identity, role='receiver', passed=True, suffix_bytes=transfer['suffix_bytes'],
+        receipt_identity, role='receiver', passed=True, suffix_bytes=transfer['suffix_bytes'],
         files={name: plan['file']}), 'Wrong original receiver terminal')
     fsynced_sha, fsynced_raw = stable_read(scope / 'last-fsynced.json', None, 32768)
     fsynced = json.loads(fsynced_raw)
