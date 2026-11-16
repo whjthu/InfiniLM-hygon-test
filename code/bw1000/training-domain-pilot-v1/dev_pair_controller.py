@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import shlex
 import signal
+import socket
 import stat
 import subprocess
 import sys
@@ -18,7 +19,7 @@ from slurm_accounting import wait_terminal
 
 ROOT = Path("/public/home/aclsylqidf/hygon-inference-refactor-20261014")
 RESULTS = ROOT / "results"
-RUN = RESULTS / "training-qwen-treasury-dev-pair-hip-v1"
+RUN = RESULTS / "training-qwen-treasury-dev-pair-hip-v2"
 PREP = RESULTS / "training-qwen-treasury-dev-native-CPU-v1"
 MODEL = RESULTS / "training-qwen-original-public-model-v1/model"
 ADAPTER = RESULTS / "training-qwen-treasury-sft-v3/continuous/train/checkpoint-5"
@@ -150,8 +151,37 @@ def snapshot():
     print(json.dumps(snap), flush=True)
 
 
+def leased_kfd(pci):
+    matches = []
+    denied = 0
+    for node in (devices.KFD / "topology/nodes").iterdir():
+        try:
+            gpu_id = int((node / "gpu_id").read_text())
+            if not gpu_id:
+                continue
+            props = dict(row.split(maxsplit=1) for row in (node / "properties").read_text().splitlines())
+        except PermissionError:
+            denied += 1
+            continue
+        reported = devices.pci_for_render("renderD" + str(int(props["drm_render_minor"])))
+        if reported == pci:
+            domain, bus, slot_function = reported.split(":")
+            slot, function = slot_function.split(".")
+            location = int(bus, 16) << 8 | int(slot, 16) << 3 | int(function, 16)
+            require(int(props["domain"]) == int(domain, 16) and int(props["location_id"]) == location,
+                    "leased KFD and DRM disagree")
+            matches.append(gpu_id)
+    require(len(matches) == 1 and matches[0] > 0, "leased HIP PCI has no unique accessible KFD identity")
+    return matches[0], denied
+
+
 def worker(deadline):
-    first, current = read(RUN / "before.json"), devices.snapshot(True)
+    first = read(RUN / "before.json")
+    node = socket.gethostname().split(".")[0]
+    step = os.environ["SLURM_JOB_ID"] + "." + os.environ["SLURM_STEP_ID"]
+    require(node == NODE and devices.STEP.fullmatch(step), "wrong Slurm compute node or step")
+    current = dict(node=node, step=step, pci=devices.drm_inventory(), kfd_holder_count=len(devices.kernel_holders()),
+                   boot_id=Path("/proc/sys/kernel/random/boot_id").read_text().strip(), monotonic_ns=time.monotonic_ns())
     require(first["pci"] == current["pci"] and first["boot_id"] == current["boot_id"]
             and 0 <= current["monotonic_ns"] - first["monotonic_ns"] <= 45_000_000_000
             and current["kfd_holder_count"] == 0, "device claim changed after host check")
@@ -163,8 +193,10 @@ def worker(deadline):
     pci = pci.value.decode().lower()
     pci = "0000:" + pci if len(pci) == 7 else pci
     require(pci in current["pci"] and len(os.sched_getaffinity(0)) >= 8, "unexpected CPU or PCI range")
+    kfd, denied = leased_kfd(pci)
     process = Path("/proc/self/stat").read_text().split(") ", 1)[1].split()
-    save("assigned.json", dict(current, visible_pci=pci, worker_pid=os.getpid(), worker_startticks=int(process[19])))
+    save("assigned.json", dict(current, visible_pci=pci, visible_kfd_id=kfd, inaccessible_topology_nodes=denied,
+                               worker_pid=os.getpid(), worker_startticks=int(process[19])))
     sys.argv = [str(RUN / "src/dev_pair_generation.py"), "--inputs", str(PREP / "dev"), "--inventory",
                 str(PREP / "inventory.json"), "--model", str(MODEL), "--adapter", str(ADAPTER),
                 "--output", str(RUN / "outputs"), "--deadline", str(deadline)]

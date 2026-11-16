@@ -1,0 +1,186 @@
+{
+  "observed": {
+    "request": "3cbea5dfa0134535aef34f1b8dbfbcb2",
+    "observed_epoch": 1794856021.4407673,
+    "accounting_columns": "JobIDRaw,JobName%100,State,ExitCode,ElapsedRaw,NodeList,AllocTRES",
+    "rows": [
+      [
+        "1087656.294",
+        "training-qwen-treasury-dev-pair-hip-v1-pre",
+        "COMPLETED",
+        "0:0",
+        "0",
+        "a01r4n14",
+        "cpu=2,mem=4G,node=1"
+      ],
+      [
+        "1087656.295",
+        "training-qwen-treasury-dev-pair-hip-v1-gpu",
+        "FAILED",
+        "1:0",
+        "0",
+        "a01r4n14",
+        "cpu=8,gres/dcu=1,mem=64G,node=1"
+      ],
+      [
+        "1087656.296",
+        "training-qwen-treasury-dev-pair-hip-v1-post",
+        "COMPLETED",
+        "0:0",
+        "0",
+        "a01r4n14",
+        "cpu=2,mem=4G,node=1"
+      ]
+    ],
+    "predicted_rows": {},
+    "outcome": {
+      "after.json": {
+        "SHA256": "460aebef41d4da5ce765c2a0f8659ac2d5faec9b041d490dfec08f77be7afc67",
+        "data": {
+          "step": "1087656.296",
+          "node": "a01r4n14",
+          "kfd_holder_count": 0,
+          "full_fd_inventory_performed": true
+        }
+      },
+      "controller-outcome.json": {
+        "SHA256": "d157d1de0bb39ca6278d864e189809cdc6e4bf1448afcdf068dac0ad116c6074",
+        "data": {
+          "passed": false,
+          "stages": {
+            "pre": {
+              "terminal_visible": true,
+              "row": [
+                "1087656.294",
+                "training-qwen-treasury-dev-pair-hip-v1-pre",
+                "COMPLETED",
+                "0:0",
+                "0",
+                "a01r4n14",
+                "cpu=2,mem=4G,node=1"
+              ],
+              "observations": [
+                null,
+                [
+                  "1087656.294",
+                  "training-qwen-treasury-dev-pair-hip-v1-pre",
+                  "COMPLETED",
+                  "0:0",
+                  "0",
+                  "a01r4n14",
+                  "cpu=2,mem=4G,node=1"
+                ]
+              ],
+              "rc": 0,
+              "passed": true
+            },
+            "gpu": {
+              "terminal_visible": true,
+              "row": [
+                "1087656.295",
+                "training-qwen-treasury-dev-pair-hip-v1-gpu",
+                "FAILED",
+                "1:0",
+                "0",
+                "a01r4n14",
+                "cpu=8,gres/dcu=1,mem=64G,node=1"
+              ],
+              "observations": [
+                [
+                  "1087656.295",
+                  "training-qwen-treasury-dev-pair-hip-v1-gpu",
+                  "RUNNING",
+                  "0:0",
+                  "0",
+                  "a01r4n14",
+                  "cpu=8,gres/dcu=1,mem=64G,node=1"
+                ],
+                [
+                  "1087656.295",
+                  "training-qwen-treasury-dev-pair-hip-v1-gpu",
+                  "FAILED",
+                  "1:0",
+                  "0",
+                  "a01r4n14",
+                  "cpu=8,gres/dcu=1,mem=64G,node=1"
+                ]
+              ],
+              "rc": 1,
+              "passed": false
+            },
+            "post": {
+              "terminal_visible": true,
+              "row": [
+                "1087656.296",
+                "training-qwen-treasury-dev-pair-hip-v1-post",
+                "COMPLETED",
+                "0:0",
+                "0",
+                "a01r4n14",
+                "cpu=2,mem=4G,node=1"
+              ],
+              "observations": [
+                [
+                  "1087656.296",
+                  "training-qwen-treasury-dev-pair-hip-v1-post",
+                  "RUNNING",
+                  "0:0",
+                  "0",
+                  "a01r4n14",
+                  "cpu=2,mem=4G,node=1"
+                ],
+                [
+                  "1087656.296",
+                  "training-qwen-treasury-dev-pair-hip-v1-post",
+                  "COMPLETED",
+                  "0:0",
+                  "0",
+                  "a01r4n14",
+                  "cpu=2,mem=4G,node=1"
+                ]
+              ],
+              "rc": 0,
+              "passed": true
+            }
+          },
+          "generation_verified": false
+        }
+      }
+    },
+    "process": {
+      "alive": false
+    },
+    "gpu.log_failure": [
+      "srun: error: a01r4n14: task 0: Exited with exit code 1"
+    ]
+  },
+  "diagnostic": {
+    "log_bytes": 1298,
+    "log_SHA256": "d6779cb878c8c9ab9be3ea62f60550fc31815663750eadf7eac1637536647f4e",
+    "lines": [
+      "WARNING: Could not find any rocm files on this host!",
+      "WARNING: /opt/hyhal/lib/cmake/rocm_smi doesn't exist, please install the latest driver(version >= 6.3.15)",
+      "The rocm_smi_lib will be used in default",
+      "Traceback (most recent call last):",
+      "  File \"/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/training-qwen-treasury-dev-pair-hip-v1/src/dev_pair_controller.py\", line 216, in <module>",
+      "    worker(float(sys.argv[2]))",
+      "  File \"/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/training-qwen-treasury-dev-pair-hip-v1/src/dev_pair_controller.py\", line 154, in worker",
+      "    first, current = read(RUN / \"before.json\"), devices.snapshot(True)",
+      "  File \"/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/training-qwen-treasury-dev-pair-hip-v1/src/snapshot.py\", line 92, in snapshot",
+      "    mapping = kfd_inventory() if leased else None",
+      "  File \"/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/training-qwen-treasury-dev-pair-hip-v1/src/snapshot.py\", line 44, in kfd_inventory",
+      "    gpu_id = int((node / \"gpu_id\").read_text())",
+      "  File \"/usr/lib/python3.10/pathlib.py\", line 1135, in read_text",
+      "    return f.read()",
+      "PermissionError: [Errno 1] Operation not permitted",
+      "srun: error: a01r4n14: task 0: Exited with exit code 1",
+      "srun: Terminating StepId=1087656.295"
+    ],
+    "same_boot": true,
+    "same_pci": true,
+    "post_kfd_holders": 0
+  },
+  "actual_generated_rows": 0,
+  "dev_scores_available": false,
+  "issue": "The one-DCU step cannot enumerate an unrelated KFD topology entry. Failure occurred before model load."
+}
