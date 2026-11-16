@@ -6,10 +6,11 @@ from hashlib import sha256
 import json
 from pathlib import Path
 import runpy
+import re
 import subprocess
 import uuid
 
-from render_tum_dev_controller import LABEL, render
+from render_tum_dev_controller import LABEL as SINGLE_LABEL, render as render_single
 from submit_tum_native_once import G, pin
 
 
@@ -18,6 +19,7 @@ def main():
     parser.add_argument("publication")
     parser.add_argument("ssh_helper", type=Path)
     parser.add_argument("manifest", type=Path)
+    parser.add_argument("--development-set", action="store_true")
     args = parser.parse_args()
     git = ["git", "--no-optional-locks", "-c", "safe.directory=" + G.as_posix(), "-C", str(G)]
 
@@ -28,24 +30,45 @@ def main():
                                    timeout=12).decode().split()[0]
     if head != args.publication:
         raise ValueError("expected published development claim at remote head")
+    if args.development_set:
+        from render_tum_development_set import LABEL, render
+    else:
+        LABEL, render = SINGLE_LABEL, render_single
     claim = json.loads(from_git("coordination/tasks/" + LABEL + ".json"))
     files = {"src/" + name: pin(from_git(row["path"]), row["sha"]) for name, row in claim["sources"].items()}
     data = pin(args.manifest.read_bytes(), claim["pair_sha"])
     pair = json.loads(data)
-    if claim["sequence"] != pair["sequence"] or (claim["parent"], claim["node"], claim["device_count"]) != (
-            "1087656", "f11r4n19", 1):
+    if (claim["parent"], claim["node"], claim["device_count"]) != ("1087656", "f11r4n19", 1):
         raise ValueError("development pair or resource scope differs")
     root = args.manifest.resolve().parent
     total = len(data)
     files["data/pair.json"] = data
-    for name, sha in pair["files_SHA256"].items():
-        path = (root / name).resolve()
-        if not path.is_relative_to(root):
-            raise ValueError("frozen member is outside the development directory")
-        raw = pin(path.read_bytes(), sha)
-        files["data/" + name] = raw
-        total += len(raw)
-    if total != claim["pair_payload_bytes"] or total > 3 * 1024**2:
+    def bind_pair(prefix, manifest):
+        nonlocal total
+        for name, digest in manifest["files_SHA256"].items():
+            path = (root / prefix / name).resolve()
+            if not path.is_relative_to((root / prefix).resolve()):
+                raise ValueError("frozen member is outside the development directory")
+            raw = pin(path.read_bytes(), digest)
+            files["data/" + prefix + name] = raw
+            total += len(raw)
+
+    if args.development_set:
+        if len(pair["pairs"]) != claim["development_pair_cases"]:
+            raise ValueError("frozen development pair count differs")
+        for row in pair["pairs"]:
+            if not re.fullmatch(r"[a-z0-9][a-z0-9_-]*", row["id"]):
+                raise ValueError("invalid development case directory")
+            prefix = row["id"] + "/"
+            source = pin((root / prefix / "pair.json").read_bytes(), row["manifest_sha256"])
+            files["data/" + prefix + "pair.json"] = source
+            total += len(source)
+            bind_pair(prefix, json.loads(source))
+    else:
+        if claim["sequence"] != pair["sequence"]:
+            raise ValueError("development pair sequence differs")
+        bind_pair("", pair)
+    if total != claim["pair_payload_bytes"] or total > 6 * 1024**2:
         raise ValueError("development pair byte budget differs")
     controller = pin(render(files["src/run_tum_native_once.py"], claim["pair_sha"], claim["sequence"]),
                      claim["generated_controller_sha"])

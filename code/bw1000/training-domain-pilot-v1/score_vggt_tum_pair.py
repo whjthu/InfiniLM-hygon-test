@@ -1,7 +1,8 @@
-"""Score a paired VGGT camera-head comparison on one frozen RGB-D pair."""
+"""Score a paired VGGT camera-head comparison on frozen development RGB-D pairs."""
 
 from hashlib import sha256
 import sys
+from math import isfinite
 from time import perf_counter
 
 import numpy as np
@@ -59,17 +60,39 @@ def stream_sha256(path):
     return digest.hexdigest()
 
 
-def score_native(raw_pair, *, sequence, pair_sha, source, weights, trained_head):
-    """Evaluate both parameter states on identical images using the native forward."""
+def summarize_development(rows):
+    """Report exact areas under empirical angular recall, retaining failed pairs."""
+    identifiers = {(row["sequence"], tuple(row["frame_ids"])) for row in rows}
+    if not rows or len(identifiers) != len(rows):
+        raise ValueError("development results must identify distinct frame pairs")
+    summary = {"pairs": len(rows), "sequences": len({row["sequence"] for row in rows})}
+    for arm in ("baseline", "updated"):
+        errors = [row[arm]["pair_error_deg"] for row in rows]
+        if any(error is not None and (not isfinite(error) or not 0 <= error <= 180) for error in errors):
+            raise ValueError("invalid development angular error")
+        summary[arm] = dict(failed_pairs=errors.count(None),
+                            **{f"development_AUC_at_{threshold}": sum(
+                                max(0, 1 - error / threshold) for error in errors if error is not None
+                            ) / len(rows) for threshold in (5, 15, 30)})
+    return summary
+
+
+def score_native_pairs(cases, *, source, weights, trained_head):
+    """Run each frozen pair under both heads while keeping one model instance resident."""
+    seen = set()
+    for raw_pair, sequence, pair_sha in cases:
+        identity = (sequence, tuple(raw_pair.get("frame_identity", raw_pair["ids"])))
+        if (pair_sha == PILOT_GEOMETRY_SHA or sequence in (
+                "freiburg3_structure_texture_near", "freiburg3_long_office_household")
+                or raw_pair["seq_name"] != sequence or identity in seen):
+            raise ValueError("development evaluation needs a distinct pair outside training and blind sequences")
+        seen.add(identity)
+    if not seen:
+        raise ValueError("development evaluation needs a frozen pair")
     import torch
     from gencuda.backends.vggt_training import _module_sha, _tensor_batch, valid_depth_batch
     from gencuda.runtime import autocast_bf16, synchronize
 
-    if pair_sha == PILOT_GEOMETRY_SHA or sequence in (
-            "freiburg3_structure_texture_near", "freiburg3_long_office_household"):
-        raise ValueError("development evaluation requires a separate physical sequence")
-    if raw_pair["seq_name"] != sequence:
-        raise ValueError("raw pair sequence differs from frozen evaluation sequence")
     if torch.cuda.device_count() != 1 or not torch.version.hip:
         raise ValueError("evaluation requires the one leased HIP device")
     if stat_identity(trained_head) != HEAD_STAT:
@@ -80,9 +103,10 @@ def score_native(raw_pair, *, sequence, pair_sha, source, weights, trained_head)
 
     if stream_sha256(weights) != WEIGHT_SHA:
         raise ValueError("original model bytes differ")
-    batch = _tensor_batch(torch, raw_pair)
-    if tuple(batch["images"].shape) != (1, 2, 3, 224, 224) or not valid_depth_batch(batch["point_masks"]):
-        raise ValueError("native evaluation batch has invalid geometry")
+    batches = [_tensor_batch(torch, case[0]) for case in cases]
+    if any(tuple(batch["images"].shape) != (1, 2, 3, 224, 224)
+           or not valid_depth_batch(batch["point_masks"]) for batch in batches):
+        raise ValueError("a frozen development batch has invalid geometry")
     raw_state = torch.load(weights, map_location="cpu", weights_only=True)
     state = raw_state.get("model", raw_state) if isinstance(raw_state, dict) else raw_state
     model = VGGT(enable_camera=True, enable_point=False, enable_depth=False, enable_track=False)
@@ -93,10 +117,9 @@ def score_native(raw_pair, *, sequence, pair_sha, source, weights, trained_head)
     if _module_sha(model.camera_head) != BASE_HEAD or _module_sha(model.aggregator) != AGGREGATOR:
         raise ValueError("baseline weights differ from the first-update original")
     model.requires_grad_(False).eval().cuda()
-    images = batch["images"].cuda()
-    truth = batch["extrinsics"][0].numpy()
-
-    def measure():
+    def measure(batch):
+        images = batch["images"].cuda()
+        truth = batch["extrinsics"][0].numpy()
         synchronize()
         start = perf_counter()
         with torch.inference_mode(), autocast_bf16():
@@ -109,7 +132,7 @@ def score_native(raw_pair, *, sequence, pair_sha, source, weights, trained_head)
                                                      build_intrinsics=False)
         return dict(forward_s=forward_s, **angular_errors(extrinsics[0].cpu().numpy(), truth))
 
-    baseline = measure()
+    baseline = [measure(batch) for batch in batches]
     head_state = torch.load(trained_head, map_location="cpu", weights_only=True)
     if stat_identity(trained_head) != HEAD_STAT:
         raise ValueError("trained head changed while loading")
@@ -117,9 +140,18 @@ def score_native(raw_pair, *, sequence, pair_sha, source, weights, trained_head)
     del head_state
     if _module_sha(model.camera_head) != UPDATED_HEAD:
         raise ValueError("trained head differs from the saved first update")
-    updated = measure()
+    updated = [measure(batch) for batch in batches]
     if _module_sha(model.aggregator) != AGGREGATOR or _module_sha(model.camera_head) != UPDATED_HEAD:
         raise ValueError("evaluation mutated model weights")
-    return dict(sequence=sequence, pair_sha256=pair_sha, paired_cases=1, baseline=baseline, updated=updated,
+    return [dict(sequence=sequence, pair_sha256=pair_sha,
+                 frame_ids=list(raw_pair.get("frame_identity", raw_pair["ids"])),
+                 baseline=before, updated=after)
+            for (raw_pair, sequence, pair_sha), before, after in zip(cases, baseline, updated, strict=True)]
+
+
+def score_native(raw_pair, *, sequence, pair_sha, source, weights, trained_head):
+    row, = score_native_pairs([(raw_pair, sequence, pair_sha)], source=source, weights=weights,
+                              trained_head=trained_head)
+    return dict(**row, paired_cases=1,
                 formal_CO3D_eligible=False, formal_performance_eligible=False, optimizer_updates=0,
                 orientation_convention="first camera to second, directed translation without sign folding")
