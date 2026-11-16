@@ -1,0 +1,36 @@
+{
+  "owner": "root",
+  "state": "NATIVE_SKIP_AND_SWIFT_CALLBACK_IMPORT_CPU_CLAIM",
+  "parent": "1103606",
+  "node": "f13r1n10",
+  "label": "training-qwen-treasury-mid-epoch-recovery-CPU-v1",
+  "CPU_cores": 8,
+  "memory_MiB": 12288,
+  "GPU_cards": 0,
+  "maximum_cpu_invocations": 1,
+  "slurm_minutes": 8,
+  "inside_seconds": 450,
+  "whole_seconds": 600,
+  "dataset_SHA256": "e0219347307a94259b826b929a88f3fe991b688026677c86c25075c6941bc19b",
+  "framework_commit": "a68952cb2285d6593b665147249d14ec1f8cecbc",
+  "files": {
+    "mid_epoch_recovery.py": "c40071d9cf48dc128d0b779de14a3e2360147c55730bb6be5c42fa59d3f3a283",
+    "qwen_treasury_witness.py": "8f4b854b618772adae5b4362faffcf74835a24895fabb01a5df31ebcc3c27d2f",
+    "compare_treasury_recovery.py": "74aebbc0d9974771ea7ad69860d2c6e654d496c6d7695942d1bbaff7b401afb7",
+    "check_qwen_resume_cpu.py": "e214296f0b95469fe125827daadf77d6dc6356d40c0cce355f9432aada76384e",
+    "qwen_domain_recipe.py": "7e2ce793049c5aa6355cb2be0f3af48e209522d17accd3a0e92d6b91668518d2"
+  },
+  "patched_framework_candidate": {
+    "vlm/runtime/resume_cursor.py": "565c25dde2fd66b248648e83722a5b149b783dec9f323efa050d2cf0eebc760e",
+    "vlm/runtime/resume_witness.py": "4454f738caa07554caa5054234414941e07431416ac8ca3d6b5a3368a14bb02c"
+  },
+  "local_source_and_receipt_checks": {
+    "valid_cursor_cases": 5,
+    "invalid_cursor_or_partial_receipt_cases": 7,
+    "legacy_default_cursor_unchanged_cases": 4,
+    "synthetic_reader_compared_tail_microbatches": 96,
+    "synthetic_reader_detected_injected_drift": true
+  },
+  "expected_scope": "Run the original pinned CPU Trainer skip function on eight logical rank datasets from the actual 160 public training rows and verify the exact suffix; load real Swift callback registrations against the candidate cursor/witness modules. No distributed model initialization, native RNG restore, training or performance run.",
+  "GPU_GO": false
+}
