@@ -7,7 +7,7 @@ import re
 PARENT_CONTROLLER_SHA = "1fbea4e33fe3059455a6b6d6c08d58041cc185be2c9bf9f3170e8cc8528695c8"
 TRAIN_PAIR_SHA = "b98b2473335cecd21c65be9dfb64d908b177802adfa74ce5750a5e4c4efeac50"
 CANONICAL_BACKEND_SHA = "49bfe39b7aa6a14df9fdf1dda73e6db00836a81d2806012b312c16b2d3fbed6c"
-LABEL = "training-vggt-tum-indoor-paired-dev-v1"
+LABEL = "training-vggt-tum-indoor-paired-dev-v2"
 
 
 def render(raw, pair_sha, sequence):

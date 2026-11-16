@@ -1,6 +1,6 @@
 """Score a paired VGGT camera-head comparison on one frozen RGB-D pair."""
 
-from hashlib import file_digest
+from hashlib import sha256
 import sys
 from time import perf_counter
 
@@ -51,6 +51,14 @@ def stat_identity(path):
     return info.st_size, info.st_ino, info.st_mtime_ns
 
 
+def stream_sha256(path):
+    digest = sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def score_native(raw_pair, *, sequence, pair_sha, source, weights, trained_head):
     """Evaluate both parameter states on identical images using the native forward."""
     import torch
@@ -70,9 +78,8 @@ def score_native(raw_pair, *, sequence, pair_sha, source, weights, trained_head)
     from vggt.models.vggt import VGGT
     from vggt.utils.pose_enc import pose_encoding_to_extri_intri
 
-    with weights.open("rb") as stream:
-        if file_digest(stream, "sha256").hexdigest() != WEIGHT_SHA:
-            raise ValueError("original model bytes differ")
+    if stream_sha256(weights) != WEIGHT_SHA:
+        raise ValueError("original model bytes differ")
     batch = _tensor_batch(torch, raw_pair)
     if tuple(batch["images"].shape) != (1, 2, 3, 224, 224) or not valid_depth_batch(batch["point_masks"]):
         raise ValueError("native evaluation batch has invalid geometry")
