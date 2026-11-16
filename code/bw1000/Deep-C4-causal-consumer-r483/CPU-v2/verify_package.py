@@ -11,6 +11,7 @@ def verify(d=None):
  assert all(H(d/n)==h for n,h in m['files_SHA256'].items())
  assert H(d/'SOURCE_MANIFEST.json')==c['source_manifest_SHA256']
  assert c['label']=='Deep-C4-causal-consumer-r483-CPU-v2' and p['candidate']=='/refactor/candidates/'+c['label']
+ assert (c['parent'],c['node'],c['previous_parent'])==('1103606','f13r2n01','910407')
  assert (c['CPU'],c['memory_MiB'],c['GPU'],c['new_HOST_TUs'],c['new_GPU_translation_units'])==(4,8192,0,1,0)
  assert (c['Slurm_seconds'],c['inside_seconds'],c['work_seconds'])==(300,270,265)
  assert c['CPU_GO'] and c['Native_compile_GO'] and not c['GPU_GO'] and not c['Model_GO']
@@ -25,8 +26,8 @@ def verify(d=None):
  assert "registered=str(D/relative);assert registered in names" in build
  assert build.index("assert not unmatched")<build.index("+'-compile'")
  assert "work_remaining(start,deadline,time.monotonic(),time.time())" in build
- assert 'TUNING_CPU_EPOCH=' in launch and 'TUNING_CPU_DEADLINE=' in launch and 'epoch=time.time();deadline=epoch+300' in launch
- assert 'verify_package.py' in launch and "epoch=epoch,deadline=deadline" in launch
+ assert 'TUNING_CPU_EPOCH=' in launch and 'TUNING_CPU_DEADLINE=' in launch and 'deadline = epoch + 300' in launch
+ assert 'verify_package.py' in launch and 'epoch=epoch, deadline=deadline' in launch
  assert 'float(os.environ["TUNING_CPU_DEADLINE"])-time.time()-7.0' in inside and '"${remaining}s"' in inside and '--kill-after=5s' in inside
  for name in m['files_SHA256']:
   if name.endswith('.py'):ast.parse((d/name).read_bytes(),filename=name)
