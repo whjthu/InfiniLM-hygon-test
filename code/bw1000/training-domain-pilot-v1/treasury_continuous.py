@@ -30,12 +30,12 @@ DATA = RESULTS / "training-qwen-treasury-pilot-data-v1"
 MODEL = RESULTS / "training-qwen-original-public-model-v1/model"
 FRAMEWORK = RUN / "framework"
 CONTINUOUS_ROOT = RESULTS / "training-qwen-treasury-sft-v3"
-RESUME_ROOT = RESULTS / "training-qwen-treasury-resume-v1"
+RESUME_ROOT = RESULTS / "training-qwen-treasury-resume-v2"
 ARM_NAME = "resumed" if RUN == RESUME_ROOT else "continuous"
 ARM = RUN / ARM_NAME
 HOST_PYTHON = "/usr/local/python3.12/bin/python3"
 NODE, PARENT, PORT = "a01r4n16", "1087656", 29907
-LABEL = "training-qwen-treasury-resume-hip-v1" if ARM_NAME == "resumed" else "training-qwen-treasury-continuous-hip-v3"
+LABEL = "training-qwen-treasury-resume-hip-v2" if ARM_NAME == "resumed" else "training-qwen-treasury-continuous-hip-v3"
 COLUMNS = "JobIDRaw,JobName%100,State,ExitCode,ElapsedRaw,NodeList,AllocTRES"
 PACKAGE_SECONDS = 2400 if ARM_NAME == "resumed" else 1620
 WORKER_SECONDS = 900
@@ -97,8 +97,10 @@ def resume_witness_config(intent):
     pins = proof["checkpoint_files"]
     names = {"trainer_state.json", "args.json", "adapter_model.safetensors", "optimizer.pt",
              "scheduler.pt", "adapter_config.json", *(f"rng_state_{rank}.pth" for rank in range(8))}
-    require(set(pins) == names and sum(p["bytes"] for p in pins.values()) <= 768 * 1024**2,
-            "checkpoint state denominator differs")
+    require(set(pins) == names, "checkpoint state denominator differs")
+    require(pins["optimizer.pt"] == mid_epoch_recovery.TREASURY_OPTIMIZER_PIN
+            and sum(pin["bytes"] for pin in pins.values()) <= 512 * 1024**2,
+            "checkpoint does not fit the scoped native witness")
     for name, pin in pins.items():
         asset(checkpoint / name, pin["bytes"], pin["SHA256"])
     return {"checkpoint": str(checkpoint), "checkpoint_files": pins}
@@ -118,7 +120,7 @@ def prepare():
         path = BASE / "framework" / name
         asset(path, pin["bytes"], pin["SHA256"])
         require(stat.S_IMODE(path.stat().st_mode) == pin["mode"], "common framework mode differs")
-    updates = mid_epoch_recovery.candidate_sources(BASE / "framework")
+    updates = mid_epoch_recovery.candidate_sources(BASE / "framework", treasury_checkpoint=ARM_NAME == "resumed")
     FRAMEWORK.mkdir(mode=0o700, exist_ok=False)
     for name in files:
         target = FRAMEWORK / name

@@ -12,6 +12,10 @@ BASE_PINS = {
     CURSOR: "ab49439782518c0abd91bb3515d0f102fe056087ccd250effd681eadb9e640d0",
     WITNESS: "8dcdf503002ecfbb7c0b933196639ac86044abe955924643b5ecc1ba6168af15",
 }
+TREASURY_OPTIMIZER_PIN = {
+    "bytes": 349601739,
+    "SHA256": "29115fde1e008100f3e68cf445a913f02c9101d5535a58c42bbd4c764985db40",
+}
 
 
 def digest(raw):
@@ -55,20 +59,28 @@ def patch_cursor(raw):
         '                          if skip_batches else "Epoch-boundary cursor plan only; no model or checkpoint state loaded."),\n')
 
 
-def patch_witness(raw):
+def patch_witness(raw, *, treasury_checkpoint=False):
     raw = replace_once(raw, "                 boundary_modules=None):\n",
                        "                 boundary_modules=None, allow_mid_epoch=False):\n")
-    return replace_once(raw, "                dataloader_batches_per_rank=len(loader))\n",
+    raw = replace_once(raw, "                dataloader_batches_per_rank=len(loader))\n",
                        "                dataloader_batches_per_rank=len(loader), allow_mid_epoch=allow_mid_epoch)\n")
+    if treasury_checkpoint:
+        raw = replace_once(
+            raw,
+            "        if (type(pin['bytes']) is not int or not 0 < pin['bytes'] <= 256 * 1024**2\n",
+            "        if (type(pin['bytes']) is not int or not (0 < pin['bytes'] <= 256 * 1024**2\n"
+            f"                or (name == 'optimizer.pt' and pin == {TREASURY_OPTIMIZER_PIN!r}))\n",
+        )
+    return raw
 
 
-def candidate_sources(framework):
+def candidate_sources(framework, *, treasury_checkpoint=False):
     patched = {}
     for name, patch in ((CURSOR, patch_cursor), (WITNESS, patch_witness)):
         raw = (framework / name).read_bytes()
         if digest(raw) != BASE_PINS[name]:
             raise ValueError(f"frozen framework file differs: {name}")
-        patched[name] = patch(raw)
+        patched[name] = patch(raw, treasury_checkpoint=treasury_checkpoint) if name == WITNESS else patch(raw)
         compile(patched[name], name, "exec")
     return patched
 
