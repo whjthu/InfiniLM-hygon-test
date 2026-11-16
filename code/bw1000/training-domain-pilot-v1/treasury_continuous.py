@@ -335,9 +335,24 @@ def controller():
             require(after["pci"] == before["pci"] and after["boot_id"] == before["boot_id"],
                     "post snapshot identities differ")
             save(RUN / "after.json", after)
-    passed = bool(failure is None and all(stages.get(k, {}).get("passed") for k in ("pre", "gpu", "post"))
-                  and (ARM / "native-outcome.json").exists() and read(ARM / "native-outcome.json")["passed"])
-    save(RUN / "controller-outcome.json", dict(stages=stages, failure=failure, passed=passed, finished=time.time()))
+    native_path = ARM / "native-outcome.json"
+    native = None
+    passed_steps = all(stages.get(k, {}).get("passed") for k in ("pre", "gpu", "post"))
+    if failure is None and passed_steps:
+        # The compute node writes this receipt before exit; the login mount can expose it later.
+        settle = time.monotonic() + min(15, max(0, expected["epoch"] + PACKAGE_SECONDS - time.time() - 2))
+        while True:
+            try:
+                receipt = read(native_path)
+                native = dict(SHA256=sha(native_path), passed=receipt["passed"] is True)
+                break
+            except (FileNotFoundError, json.JSONDecodeError):
+                if time.monotonic() >= settle:
+                    break
+                time.sleep(.5)
+    passed = bool(failure is None and passed_steps and native and native["passed"])
+    save(RUN / "controller-outcome.json", dict(stages=stages, failure=failure, passed=passed,
+                                              native_outcome_observation=native, finished=time.time()))
     return 0 if passed else 1
 
 

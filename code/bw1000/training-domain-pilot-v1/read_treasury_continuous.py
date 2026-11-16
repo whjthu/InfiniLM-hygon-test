@@ -3,6 +3,7 @@
 import argparse
 import hashlib
 import json
+import math
 from pathlib import Path
 import re
 import stat
@@ -52,8 +53,14 @@ def audit(root, request, claim):
             "original steps lack completed success accounting")
     require("gres/dcu=8" in steps["gpu"][6], "original trained step did not hold eight DCUs")
     result, outcome_hash = bounded_json(root / "controller-outcome.json")
-    require(result["passed"] is True and all(result["stages"][key]["row"] == row for key, row in steps.items()),
-            "controller disagrees with terminal accounting")
+    require(type(result["passed"]) is bool and result["failure"] is None,
+            "controller recorded a separate failure")
+    receipt_hashes = {}
+    for phase, row in steps.items():
+        receipt, receipt_hashes[phase] = bounded_json(root / (phase + "-accounting.json"))
+        require(receipt == result["stages"][phase] and receipt["row"] == row
+                and receipt["passed"] is True and receipt["rc"] == 0,
+                "original stage receipt disagrees with terminal accounting")
     before, _ = bounded_json(root / "before.json")
     assigned, assigned_hash = bounded_json(root / "continuous/assigned.json")
     post, post_hash = bounded_json(root / "after.json")
@@ -63,7 +70,13 @@ def audit(root, request, claim):
             and before["kfd_holder_count"] == post["kfd_holder_count"] == 0 and post["owned_remaining"] == 0,
             "original GPU identities or post-run cleanup disagree")
     arm = root / "continuous"
+    native, native_hash = bounded_json(arm / "native-outcome.json")
+    require(native["passed"] is True and native["rc"] == 0 and native["error"] is None
+            and native["cleanup"] == {"owned_processes_remaining": 0, "termination_needed": False},
+            "native continuous result or cleanup disagrees")
     witnesses = []
+    final_states = []
+    losses = [[] for _ in range(5)]
     for rank in range(8):
         path = arm / "train/treasury-witness" / f"rank-{rank:02d}"
         witness, sha = bounded_json(path / "result.json")
@@ -74,7 +87,15 @@ def audit(root, request, claim):
                 f"continuous witness differs for rank {rank}")
         rng, rng_hash = bounded_json(path / "checkpoint-2-rng.json")
         require(rng["rank"] == rank and rng.get("RNG"), f"missing checkpoint RNG for rank {rank}")
+        final_states.append(witness["steps"][-1]["state"])
+        for ordinal, output in enumerate(witness["outputs"], 1):
+            value = output["loss_scalar"]
+            require(output["ordinal"] == ordinal and type(value) in (int, float) and math.isfinite(value),
+                    f"invalid native loss for rank {rank}")
+            losses[(ordinal - 1) // 4].append(value)
         witnesses.append({"rank": rank, "result_SHA256": sha, "checkpoint_2_rng_witness_SHA256": rng_hash})
+    require(native["finished"] == [{"rank": x["rank"], "SHA256": x["result_SHA256"]} for x in witnesses]
+            and all(state == final_states[0] for state in final_states), "native rank/digest or final state differs")
     ckpt = arm / "train/checkpoint-2"
     state, state_hash = bounded_json(ckpt / "trainer_state.json")
     require(state["global_step"] == 2 and state["max_steps"] == 5 and abs(state["epoch"] - .4) < 1e-10,
@@ -87,6 +108,10 @@ def audit(root, request, claim):
     return dict(state="ORIGINAL_CONTINUOUS_VERIFIED_CHECKPOINT_2_PINNED", original_request=request,
                 accounting_columns=COLUMNS.split(","), accounting=steps, launch_SHA256=launch_hash,
                 controller_outcome_SHA256=outcome_hash, assigned_SHA256=assigned_hash, post_SHA256=post_hash,
+                original_controller_passed=result["passed"], original_stage_receipt_SHA256=receipt_hashes,
+                native_outcome_SHA256=native_hash, equal_rank_final_states=True,
+                mean_rank_microbatch_loss=[math.fsum(values) / len(values) for values in losses],
+                loss_measurement="Arithmetic mean of the 32 native rank/microbatch loss scalars per update.",
                 actual_optimizer_updates=5, owner_ranks=witnesses, checkpoint_files=pins,
                 checkpoint_global_step=2, checkpoint_epoch=state["epoch"], resume_executed=False)
 
