@@ -41,8 +41,10 @@ def check(dataset, model_dir):
     from swift.template.templates import qwen
 
     read_pinned(Path(qwen.__file__), TEMPLATE_SHA256)
-    loaded_model, processor = get_model_processor(str(model_dir), load_model=False,
-                                                  download_model=False, device_map="cpu")
+    # The pinned local mount is named `model`, so Swift cannot infer which
+    # Qwen3-VL registration to use from the checkpoint directory basename.
+    loaded_model, processor = get_model_processor(str(model_dir), model_type="qwen3_vl",
+                                                  load_model=False, download_model=False, device_map="cpu")
     require(loaded_model is None, "processor unexpectedly returned a model")
     template = get_template(processor, template_type="qwen3_vl", max_length=4096,
                             truncation_strategy="raise")
