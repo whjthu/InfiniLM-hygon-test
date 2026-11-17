@@ -1,0 +1,229 @@
+{
+  "label": "training-worldbank-macro-chart-v2",
+  "selection_seed": "worldbank-macro-chart-v1-20261117",
+  "value_cutoff_year": 2020,
+  "strata_are_scenario_design_not_official_WB_regions": true,
+  "strata": {
+    "north_america": [
+      "USA",
+      "CAN",
+      "MEX"
+    ],
+    "south_america": [
+      "BRA",
+      "CHL",
+      "COL"
+    ],
+    "europe": [
+      "DEU",
+      "FRA",
+      "POL"
+    ],
+    "sub_saharan_africa": [
+      "ZAF",
+      "KEN",
+      "NGA"
+    ],
+    "east_asia": [
+      "CHN",
+      "JPN",
+      "KOR"
+    ],
+    "south_asia": [
+      "IND",
+      "BGD",
+      "PAK"
+    ],
+    "west_asia_north_africa": [
+      "EGY",
+      "MAR",
+      "SAU"
+    ],
+    "oceania": [
+      "AUS",
+      "NZL",
+      "FJI"
+    ]
+  },
+  "splits": {
+    "train": {
+      "years": [
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006
+      ],
+      "countries": [
+        "CHN",
+        "FRA",
+        "MEX",
+        "AUS",
+        "CHL",
+        "BGD",
+        "NGA",
+        "MAR"
+      ],
+      "strata": {
+        "CHN": "east_asia",
+        "FRA": "europe",
+        "MEX": "north_america",
+        "AUS": "oceania",
+        "CHL": "south_america",
+        "BGD": "south_asia",
+        "NGA": "sub_saharan_africa",
+        "MAR": "west_asia_north_africa"
+      }
+    },
+    "dev": {
+      "years": [
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013
+      ],
+      "countries": [
+        "KOR",
+        "POL",
+        "USA",
+        "FJI",
+        "COL",
+        "PAK",
+        "ZAF",
+        "SAU"
+      ],
+      "strata": {
+        "KOR": "east_asia",
+        "POL": "europe",
+        "USA": "north_america",
+        "FJI": "oceania",
+        "COL": "south_america",
+        "PAK": "south_asia",
+        "ZAF": "sub_saharan_africa",
+        "SAU": "west_asia_north_africa"
+      }
+    },
+    "blind": {
+      "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020
+      ],
+      "countries": [
+        "JPN",
+        "DEU",
+        "CAN",
+        "NZL",
+        "BRA",
+        "IND",
+        "KEN",
+        "EGY"
+      ],
+      "strata": {
+        "JPN": "east_asia",
+        "DEU": "europe",
+        "CAN": "north_america",
+        "NZL": "oceania",
+        "BRA": "south_america",
+        "IND": "south_asia",
+        "KEN": "sub_saharan_africa",
+        "EGY": "west_asia_north_africa"
+      }
+    }
+  },
+  "indicators": {
+    "NY.GDP.MKTP.KD.ZG": {
+      "name": "GDP growth (annual %)",
+      "theme": "real_output_growth",
+      "unit_label": "annual percent",
+      "change_unit": "percentage points"
+    },
+    "NY.GDP.DEFL.KD.ZG": {
+      "name": "Inflation, GDP deflator (annual %)",
+      "theme": "GDP_deflator_inflation_not_CPI",
+      "unit_label": "annual percent",
+      "change_unit": "percentage points"
+    },
+    "NE.GDI.TOTL.ZS": {
+      "name": "Gross capital formation (% of GDP)",
+      "theme": "investment_share",
+      "unit_label": "percent of GDP",
+      "change_unit": "percentage points"
+    }
+  },
+  "source_id": "2",
+  "source_name": "World Development Indicators",
+  "endpoints": {
+    "facts_train": {
+      "URL": "https://api.worldbank.org/v2/country/AUS;BGD;CHL;CHN;FRA;MAR;MEX;NGA/indicator/NE.GDI.TOTL.ZS;NY.GDP.DEFL.KD.ZG;NY.GDP.MKTP.KD.ZG?source=2&date=2000:2006&format=json&per_page=1000&page=1&footnote=y",
+      "cap_bytes": 2097152
+    },
+    "facts_dev": {
+      "URL": "https://api.worldbank.org/v2/country/COL;FJI;KOR;PAK;POL;SAU;USA;ZAF/indicator/NE.GDI.TOTL.ZS;NY.GDP.DEFL.KD.ZG;NY.GDP.MKTP.KD.ZG?source=2&date=2007:2013&format=json&per_page=1000&page=1&footnote=y",
+      "cap_bytes": 2097152
+    },
+    "facts_blind": {
+      "URL": "https://api.worldbank.org/v2/country/BRA;CAN;DEU;EGY;IND;JPN;KEN;NZL/indicator/NE.GDI.TOTL.ZS;NY.GDP.DEFL.KD.ZG;NY.GDP.MKTP.KD.ZG?source=2&date=2014:2020&format=json&per_page=1000&page=1&footnote=y",
+      "cap_bytes": 2097152
+    }
+  },
+  "planned_countries": 24,
+  "planned_facts": 504,
+  "planned_charts": 72,
+  "questions_per_chart": 9,
+  "planned_QA": 648,
+  "chart_pixels": [
+    512,
+    512
+  ],
+  "max_chart_bytes": 393216,
+  "max_all_chart_bytes": 33554432,
+  "max_all_raw_JSON_bytes": 8388608,
+  "exact_sum_HTTP_endpoint_caps": 6291456,
+  "whole_epoch_seconds": 300,
+  "CPU_cores": 2,
+  "memory_limit_bytes": 2147483648,
+  "renderer_versions": {
+    "matplotlib": "3.10.7",
+    "numpy": "2.3.5",
+    "Pillow": "13.0.0"
+  },
+  "renderer_currently_qualified": true,
+  "root_GO": true,
+  "Dataset_GO": false,
+  "training_GO": false,
+  "GPU_GO": false,
+  "renderer_font_SHA256": "3fdf69cabf06049ea70a00b5919340e2ce1e6d02b0cc3c4b44fb6801bd1e0d22",
+  "cached_metadata": {
+    "indicator_0": {
+      "URL": "https://api.worldbank.org/v2/indicator/NE.GDI.TOTL.ZS?source=2&format=json",
+      "cap_bytes": 131072,
+      "indicator": "NE.GDI.TOTL.ZS"
+    },
+    "indicator_1": {
+      "URL": "https://api.worldbank.org/v2/indicator/NY.GDP.DEFL.KD.ZG?source=2&format=json",
+      "cap_bytes": 131072,
+      "indicator": "NY.GDP.DEFL.KD.ZG"
+    },
+    "indicator_2": {
+      "URL": "https://api.worldbank.org/v2/indicator/NY.GDP.MKTP.KD.ZG?source=2&format=json",
+      "cap_bytes": 131072,
+      "indicator": "NY.GDP.MKTP.KD.ZG"
+    }
+  },
+  "new_HTTP_GETs": 3,
+  "original_attempted_GETs": 4,
+  "combined_attempted_GETs_max": 7,
+  "socket_timeout_cap_seconds": 75,
+  "country_names_source": "consistent nonempty country.value in all fact rows grouped by countryiso3code; no country endpoint",
+  "failure_stop_rule": "facts failure seals this route; no third data-download route"
+}
