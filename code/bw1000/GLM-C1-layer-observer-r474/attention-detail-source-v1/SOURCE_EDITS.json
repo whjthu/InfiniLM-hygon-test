@@ -1,0 +1,221 @@
+{
+  "schema": "exact-parent-observation-edits-v1",
+  "edits": [
+    {
+      "file": "NoV_tp16.cpp",
+      "id": "include",
+      "old": "#include \"geometry.hpp\"",
+      "new": "#include \"geometry.hpp\"\n#include \"attention_detail_v1.hpp\""
+    },
+    {
+      "file": "prepare_tp16.cpp",
+      "id": "include",
+      "old": "#include \"geometry.hpp\"",
+      "new": "#include \"geometry.hpp\"\n#include \"attention_detail_v1.hpp\""
+    },
+    {
+      "file": "output_tp16.cpp",
+      "id": "include",
+      "old": "#include \"geometry.hpp\"",
+      "new": "#include \"geometry.hpp\"\n#include \"attention_detail_v1.hpp\""
+    },
+    {
+      "file": "NoV_tp16.cpp",
+      "id": "ids.H2D",
+      "old": "r.memcpyH2D(x->data(),owned.data(),owned.size()*8,false);",
+      "new": "\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.ids.H2D.begin\");\n/* ATTND1_OBSERVATION_END */\nr.memcpyH2D(x->data(),owned.data(),owned.size()*8,false);\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.ids.H2D.return\");\n/* ATTND1_OBSERVATION_END */\n"
+    },
+    {
+      "file": "NoV_tp16.cpp",
+      "id": "prepare.forward_latent",
+      "old": "auto prepared=prepare_->forward_latent(r,hidden,positions);",
+      "new": "\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.prepare.forward_latent.begin\");\n/* ATTND1_OBSERVATION_END */\nauto prepared=prepare_->forward_latent(r,hidden,positions);\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.prepare.forward_latent.return\");\n/* ATTND1_OBSERVATION_END */\n"
+    },
+    {
+      "file": "NoV_tp16.cpp",
+      "id": "fresh.expand_cached",
+      "old": "auto fresh_all=prepare_->expand_cached(r,prepared.kv_latent,prepared.k_rot);",
+      "new": "\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.fresh.expand_cached.begin\");\n/* ATTND1_OBSERVATION_END */\nauto fresh_all=prepare_->expand_cached(r,prepared.kv_latent,prepared.k_rot);\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.fresh.expand_cached.return\");\n/* ATTND1_OBSERVATION_END */\n"
+    },
+    {
+      "file": "NoV_tp16.cpp",
+      "id": "selection.D2H",
+      "old": "r.memcpyD2H(host.data(),chosen->data(),host.size()*8);",
+      "new": "\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.selection.D2H.begin\");\n/* ATTND1_OBSERVATION_END */\nr.memcpyD2H(host.data(),chosen->data(),host.size()*8);\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.selection.D2H.return\");\n/* ATTND1_OBSERVATION_END */\n"
+    },
+    {
+      "file": "NoV_tp16.cpp",
+      "id": "selection.host_remap",
+      "old": "auto remapped=selection_map_r302(host,count,chosen->size(1),request.past);",
+      "new": "\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.selection.host_remap.begin\");\n/* ATTND1_OBSERVATION_END */\nauto remapped=selection_map_r302(host,count,chosen->size(1),request.past);\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.selection.host_remap.return\");\n/* ATTND1_OBSERVATION_END */\n"
+    },
+    {
+      "file": "NoV_tp16.cpp",
+      "id": "selection.ids_alloc_hold_H2D",
+      "old": "auto ids=work.ids(logical);",
+      "new": "\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.selection.ids_alloc_hold_H2D.begin\");\n/* ATTND1_OBSERVATION_END */\nauto ids=work.ids(logical);\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.selection.ids_alloc_hold_H2D.return\");\n/* ATTND1_OBSERVATION_END */\n"
+    },
+    {
+      "file": "NoV_tp16.cpp",
+      "id": "history.begin",
+      "old": "auto selected_value=[&](){",
+      "new": "auto selected_value=[&](){\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.history.selected_value.begin\");\n/* ATTND1_OBSERVATION_END */\n"
+    },
+    {
+      "file": "NoV_tp16.cpp",
+      "id": "history.complete.return",
+      "old": "expanded={key_row->narrow({{0,0,prefix}}),v398?selected_value():value_row->narrow({{0,0,prefix}})};",
+      "new": "expanded={key_row->narrow({{0,0,prefix}}),v398?selected_value():value_row->narrow({{0,0,prefix}})};\n/* ATTND1_OBSERVATION_BEGIN */\nif(v398) glm_attention_detail_v1::mark(r,\"attnd1.history.selected_value.return\");\n/* ATTND1_OBSERVATION_END */\n"
+    },
+    {
+      "file": "NoV_tp16.cpp",
+      "id": "history.partial.return",
+      "old": "expanded={work.alloc({logical.size(),prepare_->local_heads(),256},rt::DataType::kBFloat16),v398?selected_value():work.alloc({logical.size(),prepare_->local_heads(),256},rt::DataType::kBFloat16)};",
+      "new": "expanded={work.alloc({logical.size(),prepare_->local_heads(),256},rt::DataType::kBFloat16),v398?selected_value():work.alloc({logical.size(),prepare_->local_heads(),256},rt::DataType::kBFloat16)};\n/* ATTND1_OBSERVATION_BEGIN */\nif(v398) glm_attention_detail_v1::mark(r,\"attnd1.history.selected_value.return\");\n/* ATTND1_OBSERVATION_END */\n"
+    },
+    {
+      "file": "NoV_tp16.cpp",
+      "id": "gather.key",
+      "old": "ex::submit<infini::ops::IndexSelect>(r,infini::ops::IndexSelect::DefaultConfig(r.device().type()),key_row,ids,int64_t{0},expanded.first);",
+      "new": "\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.gather.key.begin\");\n/* ATTND1_OBSERVATION_END */\nex::submit<infini::ops::IndexSelect>(r,infini::ops::IndexSelect::DefaultConfig(r.device().type()),key_row,ids,int64_t{0},expanded.first);\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.gather.key.return\");\n/* ATTND1_OBSERVATION_END */\n"
+    },
+    {
+      "file": "NoV_tp16.cpp",
+      "id": "gather.value_conditional",
+      "old": "if(!v398)ex::submit<infini::ops::IndexSelect>(r,infini::ops::IndexSelect::DefaultConfig(r.device().type()),value_row,ids,int64_t{0},expanded.second);",
+      "new": "\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.gather.value_conditional.begin\");\n/* ATTND1_OBSERVATION_END */\nif(!v398)ex::submit<infini::ops::IndexSelect>(r,infini::ops::IndexSelect::DefaultConfig(r.device().type()),value_row,ids,int64_t{0},expanded.second);\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.gather.value_conditional.return\");\n/* ATTND1_OBSERVATION_END */\n"
+    },
+    {
+      "file": "NoV_tp16.cpp",
+      "id": "attention.certified",
+      "old": "    result=sparse_attention_all_selected_decode_r601(r,prepared.query->narrow({{0,begin,count}}),expanded.first,expanded.second,1.f/16);\n   }else{",
+      "new": "\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.attention.certified.begin\");\n/* ATTND1_OBSERVATION_END */\nresult=sparse_attention_all_selected_decode_r601(r,prepared.query->narrow({{0,begin,count}}),expanded.first,expanded.second,1.f/16);\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.attention.certified.return\");\n/* ATTND1_OBSERVATION_END */\n\n   }else{"
+    },
+    {
+      "file": "NoV_tp16.cpp",
+      "id": "attention.selected",
+      "old": "if(count==1){result=sparse_attention_all_selected_decode_r601(r,prepared.query->narrow({{0,begin,count}}),expanded.first,expanded.second,1.f/16);}",
+      "new": "if(count==1){\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.attention.selected.begin\");\n/* ATTND1_OBSERVATION_END */\nresult=sparse_attention_all_selected_decode_r601(r,prepared.query->narrow({{0,begin,count}}),expanded.first,expanded.second,1.f/16);\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.attention.selected.return\");\n/* ATTND1_OBSERVATION_END */\n}"
+    },
+    {
+      "file": "NoV_tp16.cpp",
+      "id": "attention.result_copy",
+      "old": "attention->narrow({{0,begin,count}})->copy_from(r,result);",
+      "new": "\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.attention.result_copy.begin\");\n/* ATTND1_OBSERVATION_END */\nattention->narrow({{0,begin,count}})->copy_from(r,result);\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.attention.result_copy.return\");\n/* ATTND1_OBSERVATION_END */\n"
+    },
+    {
+      "file": "NoV_tp16.cpp",
+      "id": "output.forward",
+      "old": "auto projected=output_->forward(r,attention);",
+      "new": "\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.output.forward.begin\");\n/* ATTND1_OBSERVATION_END */\nauto projected=output_->forward(r,attention);\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.output.forward.return\");\n/* ATTND1_OBSERVATION_END */\n"
+    },
+    {
+      "file": "NoV_tp16.cpp",
+      "id": "output.original_stage_finish_or_stream_wait",
+      "old": "if(stageLease5680)stageLease5680->finish();else r.syncStream();",
+      "new": "\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.output.original_stage_finish_or_stream_wait.begin\");\n/* ATTND1_OBSERVATION_END */\nif(stageLease5680)stageLease5680->finish();else r.syncStream();\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.output.original_stage_finish_or_stream_wait.return\");\n/* ATTND1_OBSERVATION_END */\n"
+    },
+    {
+      "file": "NoV_tp16.cpp",
+      "id": "selection.branch",
+      "old": "if(complete_prefix){",
+      "new": "\n/* ATTND1_OBSERVATION_BEGIN */\nif(glm_attention_detail_v1::enabled(r)) glm_attention_detail_v1::mark(r,complete_prefix?\"attnd1.selection.complete_prefix\":\"attnd1.selection.partial_prefix\");\n/* ATTND1_OBSERVATION_END */\nif(complete_prefix){"
+    },
+    {
+      "file": "prepare_tp16.cpp",
+      "id": "projection.tuple",
+      "old": "std::string phase_r131;if(glm_sparse_r131::detailing())",
+      "new": "\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::tuple(r,\"projection\",x->size(0),rows_,columns_,offset_,size_t{0});\n/* ATTND1_OBSERVATION_END */\n std::string phase_r131;if(glm_sparse_r131::detailing())"
+    },
+    {
+      "file": "prepare_tp16.cpp",
+      "id": "projection.dispatch_once",
+      "old": "if(!fp8_cached_r809(r,out,packed,scale,weight_,scale_,offset_,size_t{0}))",
+      "new": "const bool ad_v1_cached = fp8_cached_r809(r,out,packed,scale,weight_,scale_,offset_,size_t{0});\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::dispatch(r,\"projection\",ad_v1_cached);\n/* ATTND1_OBSERVATION_END */\n if(!ad_v1_cached)"
+    },
+    {
+      "file": "prepare_tp16.cpp",
+      "id": "projection.original_success_fence",
+      "old": "decode_leases_r1354::success_fence(r);",
+      "new": "\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.projection.original_success_fence.begin\");\n/* ATTND1_OBSERVATION_END */\ndecode_leases_r1354::success_fence(r);\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.projection.original_success_fence.return\");\n/* ATTND1_OBSERVATION_END */\n"
+    },
+    {
+      "file": "prepare_tp16.cpp",
+      "id": "prepare.latent_original_stream_wait",
+      "old": "if(!expand){r.syncStream();return {query,{},{},resid,latent,rotated.second};}",
+      "new": "if(!expand){\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.prepare.latent_original_stream_wait.begin\");\n/* ATTND1_OBSERVATION_END */\nr.syncStream();\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.prepare.latent_original_stream_wait.return\");\n/* ATTND1_OBSERVATION_END */\nreturn {query,{},{},resid,latent,rotated.second};}"
+    },
+    {
+      "file": "prepare_tp16.cpp",
+      "id": "expand.original_stream_wait",
+      "old": "work.held.push_back(value);r.syncStream();return {key,value};",
+      "new": "work.held.push_back(value);\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.expand.original_stream_wait.begin\");\n/* ATTND1_OBSERVATION_END */\nr.syncStream();\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.expand.original_stream_wait.return\");\n/* ATTND1_OBSERVATION_END */\nreturn {key,value};"
+    },
+    {
+      "file": "output_tp16.cpp",
+      "id": "output.tuple",
+      "old": "// Each TP shard starts and ends on a 128-element activation block.",
+      "new": "\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::tuple(r,\"output\",tokens,size_t{6144},columns_,size_t{0},offset_);\n/* ATTND1_OBSERVATION_END */\n // Each TP shard starts and ends on a 128-element activation block."
+    },
+    {
+      "file": "output_tp16.cpp",
+      "id": "output.quant",
+      "old": "ex::submit<infini::ops::BlockQuantF8E4m3>(r,ex::RecordingPolicy::HostOnly,infini::ops::BlockQuantF8E4m3::DefaultConfig(r.device().type()),input,packed,local_scale);",
+      "new": "\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.output.quant.begin\");\n/* ATTND1_OBSERVATION_END */\nex::submit<infini::ops::BlockQuantF8E4m3>(r,ex::RecordingPolicy::HostOnly,infini::ops::BlockQuantF8E4m3::DefaultConfig(r.device().type()),input,packed,local_scale);\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.output.quant.return\");\n/* ATTND1_OBSERVATION_END */\n"
+    },
+    {
+      "file": "output_tp16.cpp",
+      "id": "output.scale_scatter",
+      "old": "r.setDeviceMemory(global_scale->data(),0xff,global_scale->nbytes());global_scale->narrow({{1,offset_/128,columns_/128}})->copy_from(r,local_scale);",
+      "new": "\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.output.scale_scatter.begin\");\n/* ATTND1_OBSERVATION_END */\nr.setDeviceMemory(global_scale->data(),0xff,global_scale->nbytes());global_scale->narrow({{1,offset_/128,columns_/128}})->copy_from(r,local_scale);\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.output.scale_scatter.return\");\n/* ATTND1_OBSERVATION_END */\n"
+    },
+    {
+      "file": "output_tp16.cpp",
+      "id": "output.dispatch_once",
+      "old": "if(!fp8_cached_r809(r,local,packed,global_scale,weight_,scale_,size_t{0},offset_))",
+      "new": "\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.output.projection.begin\");\n/* ATTND1_OBSERVATION_END */\nconst bool ad_v1_cached = fp8_cached_r809(r,local,packed,global_scale,weight_,scale_,size_t{0},offset_);\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::dispatch(r,\"output\",ad_v1_cached);\n/* ATTND1_OBSERVATION_END */\n if(!ad_v1_cached)"
+    },
+    {
+      "file": "output_tp16.cpp",
+      "id": "output.projection.return",
+      "old": "glm_layer_mark_r5670(r,\"attnout.TP.begin\");",
+      "new": "\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.output.projection.return\");\n/* ATTND1_OBSERVATION_END */\nglm_layer_mark_r5670(r,\"attnout.TP.begin\");"
+    },
+    {
+      "file": "output_tp16.cpp",
+      "id": "output.copy",
+      "old": "hidden->copy_from(r,local);",
+      "new": "\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.output.copy.begin\");\n/* ATTND1_OBSERVATION_END */\nhidden->copy_from(r,local);\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.output.copy.return\");\n/* ATTND1_OBSERVATION_END */\n"
+    },
+    {
+      "file": "output_tp16.cpp",
+      "id": "output.allreduce",
+      "old": "engine::distributed::allreduce_(r,hidden,hidden,infinicclSum,comm_);",
+      "new": "\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.output.allreduce.begin\");\n/* ATTND1_OBSERVATION_END */\nengine::distributed::allreduce_(r,hidden,hidden,infinicclSum,comm_);\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.output.allreduce.return\");\n/* ATTND1_OBSERVATION_END */\n"
+    },
+    {
+      "file": "output_tp16.cpp",
+      "id": "output.original_success_fence",
+      "old": "decode_leases_r1354::success_fence(r);",
+      "new": "\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.output.original_success_fence.begin\");\n/* ATTND1_OBSERVATION_END */\ndecode_leases_r1354::success_fence(r);\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.output.original_success_fence.return\");\n/* ATTND1_OBSERVATION_END */\n"
+    },
+    {
+      "file": "NoV_tp16.cpp",
+      "id": "history.dispatch.packed",
+      "old": "if(identity5775.packed&&::glm_selected_value_layer0::eligible(&r,count,logical.size())){",
+      "new": "if(identity5775.packed&&::glm_selected_value_layer0::eligible(&r,count,logical.size())){\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.history.dispatch.packed\");\n/* ATTND1_OBSERVATION_END */\n"
+    },
+    {
+      "file": "NoV_tp16.cpp",
+      "id": "history.dispatch.standard",
+      "old": "return v_on_demand_r400::selected_values(*prepare_,r,latent_row,rotary_row,ids,work.held);",
+      "new": "\n/* ATTND1_OBSERVATION_BEGIN */\nglm_attention_detail_v1::mark(r,\"attnd1.history.dispatch.standard\");\n/* ATTND1_OBSERVATION_END */\nreturn v_on_demand_r400::selected_values(*prepare_,r,latent_row,rotary_row,ids,work.held);"
+    },
+    {
+      "file": "NoV_tp16.cpp",
+      "id": "history.v398.metadata",
+      "old": "if(glm_attention_detail_v1::enabled(r)) glm_attention_detail_v1::mark(r,complete_prefix?\"attnd1.selection.complete_prefix\":\"attnd1.selection.partial_prefix\");",
+      "new": "if(glm_attention_detail_v1::enabled(r)) glm_attention_detail_v1::mark(r,complete_prefix?\"attnd1.selection.complete_prefix\":\"attnd1.selection.partial_prefix\");\nif(glm_attention_detail_v1::enabled(r)) glm_attention_detail_v1::mark(r,v398?\"attnd1.v398.enabled\":\"attnd1.v398.disabled\");"
+    }
+  ]
+}
