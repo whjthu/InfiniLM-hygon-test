@@ -27,3 +27,5 @@
 | T12.camera-head | A100 首步、25 步和第 20 步新进程恢复已核验。 [证据](../../results/bw1000/2026-11-12/training-vggt-original-A100-fresh-process20-to25-exact-recovery-independent.json) | 海光模型全文件校验通过，原 CO3D 输入传输待授权。 [证据](../../coordination/tasks/training-vggt-original-CO3D-inputs-v1.json) | 未验证 | 海光未验证 | 待实测 | 待实测 |
 
 InternVL 原A100参考补充：200/200捕获文件已完成全SHA、有限值、参数/优化器边界连续性独审；首步lr0故0/504参数改变，第二步504/504改变。该结果不替代海光同输入数值、恢复、正式性能或留出效果验收。证据：results/bw1000/2026-11-17/training-internvl-A100-original200-capture-values-independent-terminal.json，SHA256 9664da5de388ea4687a0e58493e75c72baed61ef96efc90444b2754b7ccdc060。
+
+LLaVA 原A100参考补充：200/200捕获文件已完成全SHA、有限值、参数/优化器边界连续性独审；首步lr0故0/504参数改变，第二步504/504改变。该结果不替代海光同输入数值、恢复、正式性能或留出效果验收。证据：results/bw1000/2026-11-17/training-llava-A100-original200-capture-values-independent-terminal.json，SHA256 e78b6ccea81130cf92af72cf7aa9497f65bb1c33cff71572eaebde7e86d4df4b。
