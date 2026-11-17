@@ -1,0 +1,15 @@
+--- a/arm_controller.py
++++ b/arm_controller.py
+@@ -19,0 +20 @@
++from snapshot_io import separate_logs, read_host_snapshot
+@@ -132,2 +133,2 @@
+-    with (RUN / (phase + ".log")).open("xb") as stream:
+-        child = subprocess.Popen(cmd, stdout=stream, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, start_new_session=True)
++    with separate_logs(RUN / (phase + ".stdout"), RUN / (phase + ".stderr")) as (stdout, stderr):
++        child = subprocess.Popen(cmd, stdout=stdout, stderr=stderr, stdin=subprocess.DEVNULL, start_new_session=True)
+@@ -312 +313 @@
+-        before = read(RUN / "pre.log")
++        before = read_host_snapshot(RUN / "pre.stdout", NODE, stage["pre"]["row"][0])
+@@ -318 +319 @@
+-                after = read(RUN / "post.log")
++                after = read_host_snapshot(RUN / "post.stdout", NODE, stage["post"]["row"][0])
