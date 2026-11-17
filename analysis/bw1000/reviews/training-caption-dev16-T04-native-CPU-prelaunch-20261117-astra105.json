@@ -1,0 +1,140 @@
+{
+  "review": "Astra105 independent local prelaunch source review",
+  "date": "2026-11-17",
+  "verdict": "ADOPT_SOURCE_FOR_ONCE_PUBLISHED_CPU_SCOPE",
+  "remaining_P1": [],
+  "current_native_CPU_qualification": false,
+  "Dataset_GO": false,
+  "training_GO": false,
+  "Model_GO": false,
+  "GPU_GO": false,
+  "pins": {
+    "MF.json": {
+      "path": "code/bw1000/training-caption-dev16-T04-native-CPU-v1/MF.json",
+      "bytes": 1426,
+      "SHA256": "f16460958e1001df686a7561942012cf8bca21ed21399ed866fefa618eaed68d"
+    },
+    "CLAIM.json": {
+      "path": "code/bw1000/training-caption-dev16-T04-native-CPU-v1/CLAIM.json",
+      "bytes": 3818,
+      "SHA256": "533dcf2e98a214c4fa7b407f4f6d023b799313fe3f624ad2b6027f2f7d25c506"
+    },
+    "SOURCE_PINS.json": {
+      "path": "code/bw1000/training-caption-dev16-T04-native-CPU-v1/SOURCE_PINS.json",
+      "bytes": 532,
+      "SHA256": "8b5140025c2bf15fd8eecca59eb0a356ea05309002ead1a9a70ba9e638cd47a3"
+    },
+    "check_native.py": {
+      "path": "code/bw1000/training-caption-dev16-T04-native-CPU-v1/check_native.py",
+      "bytes": 15787,
+      "SHA256": "450ddf4862d41e02c183e87c31a3ce0a00735d81e8838f9910f08fe3eedc6a54"
+    },
+    "receive_once.py": {
+      "path": "code/bw1000/training-caption-dev16-T04-native-CPU-v1/receive_once.py",
+      "bytes": 7425,
+      "SHA256": "06efa0a832cdfce624ddd9c1ca59b4d06f7bbb18601dc3b9d8e90b6f7a4aa967"
+    },
+    "launch_once.py": {
+      "path": "code/bw1000/training-caption-dev16-T04-native-CPU-v1/launch_once.py",
+      "bytes": 8547,
+      "SHA256": "35b3f8265ffe4250d5f40b289de88c71edca53e564b1d0bef381390f69b75ca5"
+    }
+  },
+  "reader_pins": {
+    "MF.json": {
+      "path": "code/bw1000/training-caption-dev16-T04-native-root-reader-v1/MF.json",
+      "bytes": 386,
+      "SHA256": "27e4d2503abfefebf5b7d936c7f91fbf555387783aba0d86f328bfc505ae6201"
+    },
+    "read_original.py": {
+      "path": "code/bw1000/training-caption-dev16-T04-native-root-reader-v1/read_original.py",
+      "bytes": 11324,
+      "SHA256": "5708056642075807ac5dfc0892ecb35d17faf54054b6256968281026787215fa"
+    },
+    "read_once.py": {
+      "path": "code/bw1000/training-caption-dev16-T04-native-root-reader-v1/read_once.py",
+      "bytes": 4726,
+      "SHA256": "d7fd84abe43a93a83a9b558d30b35519cbb6bac5b8e813f97a238ddb24090108"
+    }
+  },
+  "closure_verified": {
+    "producer_total_files_including_MF": 12,
+    "reader_total_files_including_MF": 4,
+    "all_manifest_bytes_SHA_match": true,
+    "all_python_AST_parse": true
+  },
+  "fixed_before_publication": [
+    {
+      "issue": "Receiver restarted the300-second clock after client preparation/upload",
+      "fix": "launch_once starts original epoch before publication checks; injected EPOCH controls receiver remaining wall+monotonic, install/work alarm270, child260, cleanup/accounting298 within whole300. Both CPU affinity cores exclude0/1 before installation.",
+      "source": [
+        "launch_once.py:45",
+        "launch_once.py:64",
+        "launch_once.py:108",
+        "launch_once.py:113",
+        "receive_once.py:5",
+        "receive_once.py:8",
+        "receive_once.py:13",
+        "receive_once.py:67",
+        "receive_once.py:77"
+      ]
+    },
+    {
+      "issue": "Metadata reader could trust unanchored remote provider/metadata lists and accept success with missing CPU receipt",
+      "fix": "Required --source-pins-sha256 supplied by wrapper from original source MF; checks all4 runtime source members plus SOURCE_PINS, then exact14 metadata and7 provider pins. Success requires original child+CPU receipt.",
+      "source": [
+        "read_once.py:20",
+        "read_once.py:25",
+        "read_once.py:30",
+        "read_once.py:38",
+        "read_original.py:38",
+        "read_original.py:68",
+        "read_original.py:78",
+        "read_original.py:118"
+      ]
+    },
+    {
+      "issue": "Native row evidence lacked explicit source image association and IDs value retention check",
+      "fix": "Reject duplicate id/image/content; validate exact user-only prompt and coco id/image slot; each output binds name/bytes/SHA to frozen DATA_MANIFEST. Collated input_ids equal original encoded IDs. Python device-open guard added without claiming native C I/O isolation.",
+      "source": [
+        "check_native.py:28",
+        "check_native.py:107",
+        "check_native.py:158",
+        "check_native.py:161",
+        "read_original.py:101"
+      ]
+    }
+  ],
+  "review_findings": {
+    "publication_and_once": "CLI actually git-shows published MF/CLAIM, verifies every local source byte and own clean state; source directory receives no runtime output. Fixed exclusive local/remote namespace blocks replay even after failed or UNKNOWN attempt. This review did not execute Git.",
+    "input_boundary": "Only16 original JPEGs2492125B plus fixed answer-free JSONL and DATA_MANIFEST; runtime source5/data18; bounded payload<=4MiB. No80reference captions uploaded. Original source/slot/SHA/size/dimensions retained. No media bytes read during this review.",
+    "native_boundary": "Reuse original350 framework b641edb0ad0f5104f18ba4ab45a247fbe1f7c495 and7Swift provider pins. New exact14metadata view contains no4weight shards. get_model_processor(load_model=False,download_model=False), offline environment, CPU eager processor; transformers mode, labelsNone,4096/262144 limits, no truncation. All16 encode/collator fields use original finite fingerprint function. New16 inference remains unqualified until actual execution; original train64 is not inherited.",
+    "resources": "Single client-origin300s includes Git/publication and upload; CPU260/supervisor270/cleanup reserve.2CPU excludes0/1;8GiB sampled process-group RSS stop threshold is not a hard RSS/commit limit. Ordinary existing SSH only, no new Slurm/service/GPU.",
+    "reader_independence": "No producer import, no Torch/model/native/media/processed-value recomputation. Independently checks original request/pub/epoch/owner, complete16 slots, frozen source pins, actual14metadata bytes, saved provider identities and finite/hash schema. JSON duplicates/nonfinite numbers rejected. Native-value finiteness is producer evidence, not a second value computation.",
+    "failure_denominator": "Known ORIGINAL_RETURNED nonzero failures with terminal remain eligible for metadata audit; wrapper does not require transport rc0/producer passed. All16 planned slots remain; actual_native_inference_rows stays0 unless full success independently satisfies gates. Missing/UNKNOWN terminal is not passed or retried.",
+    "ownership_boundary": "Original supervisor checks owned PGID/startticks and reaps group; reader documents this original terminal rather than claiming a fresh PID observation. Python audit/API guards and FD snapshots do not prove arbitrary native C file/device isolation or absence of SDK mappings.",
+    "scope_pending": "No model load/forward/generation/scorer/training; no Dataset or formal17 promotion. Photographer attribution/license remains pending and prior16oEmbed failures are retained."
+  },
+  "new_guard_check": {
+    "path": "local-only/training-caption-dev16-T04-native-Astra-new-guards-v1/result.json",
+    "bytes": 2065,
+    "SHA256": "e7cf89a5fb834f58ef9af47606b0992ac16097c494241843668127be44a822b4"
+  },
+  "new_guard_check_details": {
+    "normal": 4,
+    "reject": 11,
+    "execution_count": 1,
+    "scope": "AST-extracted pure stdlib validate_slot,strict_json,remaining/guard only",
+    "receiver_after_check_changes": "Only move existing affinity setup before installation and persist injected CLAIM_SHA256; tested budget helper bodies unchanged. No repeated test run."
+  },
+  "review_actual_actions": {
+    "remote_calls": 0,
+    "network_calls": 0,
+    "Git_calls": 0,
+    "Torch_imports": 0,
+    "native_calls": 0,
+    "real_JPEG_or_pt_reads": 0,
+    "old_tests_repeated": 0
+  },
+  "next_action": "Root may publish the exact frozen candidate and use its single once CLI under existing authorization/fresh admission; then original metadata reader. Any failure/UNKNOWN preserves16 and does not authorize replay or generation."
+}
