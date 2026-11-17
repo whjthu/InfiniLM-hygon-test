@@ -1,0 +1,157 @@
+{
+  "schema": "prelaunch_source_review_v1",
+  "reviewer": "astra105",
+  "review_date": "2026-11-17",
+  "state": "ADOPT_SOURCE_FOR_ROOT_PUBLICATION_AND_ONE_ORIGINAL_PROVISION",
+  "package": "code/bw1000/training-internvl-checkpoint-provision-v1",
+  "manifest": {
+    "bytes": 1466,
+    "SHA256": "7dcaf75d25a9e3d9061723be0cc52a63d2bb93ec139a226e984576dd07d1cb7a"
+  },
+  "claim": {
+    "bytes": 4306,
+    "SHA256": "ca0f36f87994b9a05af35a2cb81235eff6ecd35ffc99c653ce5104c5681100ce"
+  },
+  "files_including_manifest": 11,
+  "source_pins": {
+    "check_CPU.py": {
+      "bytes": 5632,
+      "SHA256": "43cf0ba2da0ca444111e801a7ec0013b2f732a711e1a523ccde12c3d80d89b4e"
+    },
+    "CLAIM.json": {
+      "bytes": 4306,
+      "SHA256": "ca0f36f87994b9a05af35a2cb81235eff6ecd35ffc99c653ce5104c5681100ce"
+    },
+    "PLAN.json": {
+      "bytes": 11351,
+      "SHA256": "51a4c44208927f4f6a0c41aec218c38257ecc49c844a021f92e9ffd448316309"
+    },
+    "protocol.py": {
+      "bytes": 12674,
+      "SHA256": "93c160faa3d4a9a1c9e91baee46bfa528fc16182147934ce377364e401690e9f"
+    },
+    "README.zh-CN.md": {
+      "bytes": 3206,
+      "SHA256": "fe956ae4e5e7cad262258ddb6ca178af9ec9f0441b2a91f180f313c2045bd406"
+    },
+    "reconcile_endpoint.py": {
+      "bytes": 6787,
+      "SHA256": "3d5895bf4ea43dedfa43245e59245b804579de1c1201777ded60a95359eccb04"
+    },
+    "reconcile_original.py": {
+      "bytes": 4306,
+      "SHA256": "bb0c8328d41f4be0eb1d5211465a75f127f15ebf6220cff788260feacbd0773e"
+    },
+    "relay_once.py": {
+      "bytes": 12340,
+      "SHA256": "f2777b557d4eaaee10ad4b4b25e7740cc5c0601f6413943b126daeaa801881ec"
+    },
+    "SOURCE_PROOF.json": {
+      "bytes": 1994,
+      "SHA256": "a5694b7ef3c68e147657fb634a88f740f6974e88dfeed1a4dbb1d5326439d09a"
+    },
+    "verify_package.py": {
+      "bytes": 2409,
+      "SHA256": "942ed9eaa048ee1488fd047db5c6467b50af5faecbdaf4f5523ec1c0d7aabb96"
+    }
+  },
+  "remaining_P1_blockers": [],
+  "source_edited_by_reviewer": false,
+  "closed_findings": [
+    {
+      "issue": "Timer killed SSH before finally and could lose forced flag",
+      "resolution": "Persistent forced_local_kills PID set written at each actual kill; transport_state also tests expired and READY; kill never proves remote terminal",
+      "source": "relay_once.py:94-108,208-225"
+    },
+    {
+      "issue": "Cross-login-host boot mismatch could falsely prove original process absent",
+      "resolution": "Every endpoint intent/READY/outcome has host; READY requires nonempty host; reconcile queries known PID only on same host; crosshost original_process_live=None and UNKNOWN, no secondhop",
+      "source": "protocol.py:82; relay_once.py:160; reconcile_endpoint.py:38-46,102"
+    },
+    {
+      "issue": "Outcome could share request context without matching endpoint owner",
+      "resolution": "Outcome mode/host/pid/startticks/uid/boot_id must all equal original intent",
+      "source": "reconcile_endpoint.py:87-88"
+    }
+  ],
+  "input_identity": {
+    "model_files": 17,
+    "whole_shards": 4,
+    "model_registry": {
+      "path": "coordination/training/internvl-original-model-files-v1.json",
+      "bytes": 8631,
+      "SHA256": "d993bab8eba061a9625b2a5cac01376a47b8dbdaf0842f94269ebb680c52b6ea"
+    },
+    "all17_bytes_SHA_and4header_pins_match_registry": true,
+    "initial_files": 8,
+    "initial_pin_constant_path": "code/bw1000/training-vlm-T03-T04-input-binding-candidate-v1/ORIGINAL_INITIAL_PINS.json",
+    "initial_pin_constant": {
+      "bytes": 5573,
+      "SHA256": "21cd27a2b4291986b110fb908888b8cf01546f70b51307c1c156b5bd33912b67"
+    },
+    "all8_per_rank_serialized_SHA_bytes_named_digest_match": true,
+    "local_reference": {
+      "path": "local-only/training-internvl-A100-input-fingerprints-independent-root-reader-v1/input-fingerprints.json",
+      "bytes": 25357,
+      "SHA256": "a52d848f052dfc0ccb42335a7ffa6a1982723fc2a82064fc612d7e1bfca1d959"
+    },
+    "canonical_reference_body_reread": false,
+    "reference_identity_basis": "Already independently derived/audited canonical64 source; existing declared25357B/a52d...pin reused, no new canonical math or payload read",
+    "total_files": 26,
+    "total_logical_payload_bytes": 18471312799,
+    "A100_existing_file_bytes": 18471287442
+  },
+  "source_findings": [
+    {
+      "area": "actual claim/publication gate",
+      "result": "Launcher gitshow exact published MF equals local, all MFmember SHA/bytes checked including CLAIM, provision_GO/max1/T03/6h/noGPU asserted; all declared published dependency pins resolved from same publication"
+    },
+    {
+      "area": "receiver-first and isolation",
+      "result": "Target exclusive namespace/owner/space READY is received before source process starts. Windows never lands weight bytes; one bounded1MiB bridge chunk. Both namespaces exclusive; incomplete members retained; no overwrite or repeated label"
+    },
+    {
+      "area": "source byte identity",
+      "result": "25 A100 original regularfiles: full expected SHA while streaming, shard8byte-length/headerSHA/tensor-count gate, O_NOFOLLOW sameFD fstat/path stable identity and EOF. Local reference separately exact25357B/SHA; no Torch/tensor decoding"
+    },
+    {
+      "area": "target byte identity",
+      "result": "Each incoming member expected wholeSHA+successful complete write/fsync/sameFD/inode/size, then exclusive final rename; receiver validates exact26/fullstream total/EOF/reference. This is stream+write identity, not second post-transfer disk-body hash"
+    },
+    {
+      "area": "budgets and cost",
+      "result": "One origin21600s propagated through both endpoint wall+monotonic+SIGALRM, bridge timer and remaining deadlines. Each endpoint2CPU affinity/nice10/RLIMIT_AS512MiB; AS is virtual address space not RSS cap. ActualrusageCPU/maxrss emitted; physical IO/wire unknown"
+    },
+    {
+      "area": "readonly reconciliation",
+      "result": "One separate90s original-context receipt/PID/targetstat scope, no payload hash/read/writes/resend/Slurm/GPU/service. Samehost-onlyPID+startticks/boot, target receiptstats plus all26 final/noincomplete checks; crosshost/permission/absentreceipt uncertainty not PASS"
+    }
+  ],
+  "limits": [
+    "Actual target presence/quota/permission/interpreter/admission remain unobserved until the one real invocation",
+    "statvfs is filesystem availability, not user quota; failure preserves exclusive partial namespace",
+    "18,471,312,799B/21600s requires >=855153.37 logicalB/s average before overhead; actual bandwidth UNKNOWN, no completion promise or new probe",
+    "2 endpoints x2cores x21600=86400 reserved CPU-core-seconds is an upper bound, not measured busy",
+    "Two SSH legs carry36942625598 logicalpayload bytes; physical wire/disk IO UNKNOWN",
+    "Windows SSH kill/255/timeout/unacknowledged endpoint retains UNKNOWN; original readonly reconcile only, no reconnect transfer/resume/renamed retry or cleanup",
+    "Crosshost ordinary target SSH may leave process-exit UNKNOWN even with shared complete receipts; no additional hop authorized by this review",
+    "No raw tensors decoded, no model/provider/optimizer/RNG/numerical/training/GPU qualification conferred by byte provision"
+  ],
+  "validation": {
+    "final_local_source_pins_and_AST": true,
+    "model_and_initial_small_pin_metadata_compared": true,
+    "implementation_CPU_result": "Root/monitor report original6normal18reject PASS; not rerun by reviewer",
+    "existing_CPU_tests_rerun": 0,
+    "old_large_terminal_or_weight_hashes_rerun": 0,
+    "source_payload_reads": 0,
+    "remote_calls": 0,
+    "Git_calls": 0,
+    "Torch_SDK_GPU_Model_calls": 0
+  },
+  "future_admission": [
+    "Root publishes exact finalsource/CLAIM before unique relay invocation",
+    "Preserve local+both endpoint originalrequest/host/owner/epoch/progress/outcome",
+    "Independent original source+receiver reconciliation must distinguish terminal bytes from UNKNOWN process exit",
+    "Only a later separate CPU/runtime source scope may use staged raw bytes; current GPU_GO/Model_GO/training_GO=false"
+  ]
+}
