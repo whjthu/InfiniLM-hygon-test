@@ -1,0 +1,9 @@
+# Original177 saved48 corrective schema audit
+
+Source only; ROOT_GO=false. No remote invocation, Native rebuild, model, SDK, device query or original data modification. Original177 FAILED and prior35-reader rejection remain immutable. Reads precisely16 fullSHA-pinned owner JSON files (271,318,667 bytes total), sequentially under stable file identity; only each original first diagnostic's3 saved frames are evaluated. No old35 reader replay, logs, screen regrade, or token performance extraction.
+
+Only source-proven complete-prefix, standard-v398, trueT1 history projection accepts M=past+1, N1792/K512, globalrank*1792 row offset, column0, contiguous-inferred stride512/1, past<8192. Other tuples retain M1 and exact frozen caller sequence. Full0 requires9 projections, shared3 requires7, with matching dispatch/fence counts and one output each. Last2 are generic FFN gate/up calls, proven by source and required original FFN.begin→gate_up.return marker indices. Aggregation keys retain caller_phase. Windows overlap; no exclusive attention/GPU occupancy claim. Unknown providers/raw strides stay UNKNOWN. Unsupported branches reject.
+
+One future published invocation only: launch_once.py --publication HEX40 --source-manifest-sha256 HEX64 --claim-sha256 HEX64. Publication/member/claim/old47map/task pins precede sole existing ordinary readonly SSH; unique local and remote namespaces prohibit replay after any attempt/UNKNOWN. Single client-origin200s, remote180/work175,2 CPUs excluding0/1, RLIMIT_AS3GiB address-space (not RSS), owner128MiB and total2GiB, report128KiB. No Slurm/service/driver query or terminate action. Root must explicitly review and adopt claim before launch.
+
+New tuple boundary check7normal/17reject and additional complete-frame count/phase check3normal/9reject passed once locally, zero actual owner reads. SOURCE_PROOF gives exact frozen source hashes/line references and result pins. No prior test fixture replay.

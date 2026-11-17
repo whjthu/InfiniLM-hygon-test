@@ -1,0 +1,83 @@
+{
+  "schema": "corrected48-parser-source-proof-v1",
+  "source_pins": [
+    {
+      "path": "code/bw1000/GLM-C1-layer-observer-r474/attention-detail-CPU-v1/source/prepare_tp16.cpp",
+      "bytes": 10725,
+      "SHA256": "360abc7cf7080a60199d6a5a5efd3fa39b896f03b00fb50a2f95fd31bb64434d"
+    },
+    {
+      "path": "code/bw1000/GLM-C1-layer-observer-r474/attention-detail-CPU-v1/source/NoV_tp16.cpp",
+      "bytes": 41610,
+      "SHA256": "71cd4d81ac3ac2525299a276589e1d45ccc94a8b75061dd4f8f80db078343f7b"
+    },
+    {
+      "path": "code/bw1000/GLM-C1-layer-observer-r474/attention-detail-CPU-v1/source/output_tp16.cpp",
+      "bytes": 5822,
+      "SHA256": "394ddc38981cbf22730a8c764e587c405a96785c8368a6b7de903042e809554e"
+    },
+    {
+      "path": "code/bw1000/GLM-C1-layer-observer-r474/attention-detail-CPU-v1/source/attention_detail_v1.hpp",
+      "bytes": 3071,
+      "SHA256": "a650ea87122dfec2d17afbf331647bee5698af62c8cf44bd13d1c1c19c1512ae"
+    },
+    {
+      "path": "code/bw1000/GLM-C1-layer-observer-r474/attention-detail-CPU-v1/BUILD_PLAN.json",
+      "bytes": 974609,
+      "SHA256": "7bb0a4ebc72612b00e4498ac0542dd258dacb853c1d151aad311637bd2365fca"
+    },
+    {
+      "path": "code/bw1000/GLM-C1-layer-observer-r474/ffn-window-observer-CPU-v1/routed_ffn_tp16.cpp",
+      "bytes": 21038,
+      "SHA256": "99f9062d0bdc832d5aa55b6907a9f73b9145b7789bedc3f9c69b77593560d188"
+    },
+    {
+      "path": "code/bw1000/GLM-C1-layer-observer-r474/ffn-window-observer-CPU-v1/build_once.py",
+      "bytes": 7709,
+      "SHA256": "fcf6195c7992b48ba10f96ce94fb0417cd0914b9925267e8242f039b37d57c32"
+    },
+    {
+      "path": "code/bw1000/GLM-C1-layer-observer-r474/ffn-window-observer-CPU-v1/SOURCE_FILES.json",
+      "bytes": 1383,
+      "SHA256": "54c01e84829d6ac1f301a7600c28f687691876daf1f98b40fca165c7642ba99e"
+    },
+    {
+      "path": "code/bw1000/GLM-V-on-demand-Model-integration-r403/selected_values_r400.hpp",
+      "bytes": 1930,
+      "SHA256": "50ece2ded22ce1e70ea55947972dd3f5f17cdee2dd39f9080f1bb08a3cae0489"
+    },
+    {
+      "path": "code/bw1000/GLM-V-on-demand-Model-integration-r403/chunk_geometry_r400.hpp",
+      "bytes": 450,
+      "SHA256": "a4234fd4e1c60e04e44117c16d579dc7002be242ffafa10ec66d7b7a451ad53e"
+    }
+  ],
+  "source_chain": {
+    "Native169": "184e60047ab0c1cd56e92509cce324348dee5d241ab6ad3e945f62fe0de8d0fa",
+    "reused_ffn_object": "/refactor/results/GLM474-ffn-window-observer-CPU-v1/routed_ffn_timed.o",
+    "reused_ffn_object_SHA256": "6f8652fdd91045f31b753d9706b2d354efca181a17f42a45aba5df3b90d67038"
+  },
+  "evidence": [
+    "CPU169 source/prepare_tp16.cpp14..18 rows/tp and globalrank*rows;20..40 generic positive-row Fp8Projection emits tuple/dispatch/fence without attention-stage gate.",
+    "prepare_tp16.cpp46..47 QA2048/6144,QB16384/2048 TP16,KA576/6144,KB28672/512 TP16;86..88 expand_cached preserves latent row count.",
+    "NoV_tp16.cpp344..386 complete_prefix logical IDs0..prefix-1 and v398 standard selected_values; r403 helper uses U rows with8192 block cap. Only observed complete-prefix standard branch and past<8192 accepted.",
+    "ffn-window-observer-CPU-v1/routed_ffn_tp16.cpp63 gate/up both generic Fp8Projection;68 calls gate then up;78 dense12288 givesN768;97 shared2048 givesN128;104/131 invoke dense/shared forward_local; build_once.py86..95 compiles same source to routed_ffn_timed.o reused by CPU169.",
+    "NoV206 wraps indexer forward in original attn.indexer.features begin/return. Corrected parser requires actual index windows for full-only2 indexer tuples; no shared indexer.",
+    "Projection count full3prepare+2indexer+1fresh+1history+2FFN=9; shared3prepare+1fresh+1history+2FFN=7. Same exact counts for generic success_fence. Output1 perlayer. FFN gate/up actual mark indices strictly between FFN.begin and FFN.local.gate_up.return.",
+    "Unknown kernel provider/raw strides remain UNKNOWN. Measured host/stream windows overlap/include enqueue/wait; FFN generic projection envelopes separated by caller_phase, never exclusive attention/GPUbusy.",
+    "Original177 FAILED and prior48observed/0schemavalid remain retained. Corrected saved48 schema does not qualify whole Model, rescore32screen or change33planned denominator."
+  ],
+  "checks": [
+    {
+      "path": "local-only/GLM474-original177-corrected-tuple-new-boundary-check-v1/result.json",
+      "bytes": 3241,
+      "SHA256": "54be86c8b33c69ae6be398579d50da3fb4cac45650e8538bd326cf26612f78e6"
+    },
+    {
+      "path": "local-only/GLM474-original177-corrected-count-phase-new-check-v1/result.json",
+      "bytes": 1649,
+      "SHA256": "3363f6e1d578a401d26a21d7719c00db76481fa07b2edb193548a34feb027269"
+    }
+  ],
+  "new_target_GPU_native_calls": 0
+}
