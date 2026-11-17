@@ -1,0 +1,7 @@
+# 原 dev16 获取失败的最简本地消费
+
+只针对请求6b6f69f382b24a129a997aac0e0e4d40及原71ee6ebb/claim2b3cc398的已知timeout失败。只读原intent/outcome/fetch-progress三件小JSON，对原partial作稳定lstat和全SHA；不连接、不解压、不重新选样、不修改原件、没有Git命令。
+
+核原300秒epoch、Job wait返回124/timed_out、2逻辑CPU/2GiB证据、worker-result/roster缺失、完整16分母，以及producer已读/已保存bytes与实际partial长度一致。没有recordedPID，因此Job已reaped基于root原执行session已终结和钉定guard代码先Popen.wait再返回；不虚构另一次PID存活扫描。ETag基于原固定header门禁及headersqualified，原progress没有独立保存实际ETag头。partial全SHA只证明现存prefix身份，未完成ZIP/CRC/decodedSHA或数据资格。
+
+输出仅新忽略L私有JSON和有界hash/计数摘要。原raw位于独占local-only且不在原发布12source中；本consumer不扫描Git索引或历史，不能把位置规则冒充完整Git对象审计。未来仅在本次partial身份消费通过、原作业终结和同ETag条件下另发新尾段scope，不能重放原全Range或延旧epoch。当前源码准备后交root审核，未执行消费。
