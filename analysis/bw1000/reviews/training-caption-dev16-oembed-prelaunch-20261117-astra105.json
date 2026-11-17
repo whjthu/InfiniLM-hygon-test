@@ -1,0 +1,98 @@
+{
+  "schema": "combined_producer_reader_prelaunch_review_v1",
+  "reviewer": "astra105",
+  "review_date": "2026-11-17",
+  "state": "ADOPT_AFTER_MINIMAL_SOURCE_GUARD_FIXES_PENDING_ROOT_PUBLICATION",
+  "producer": "code/bw1000/training-treasury-caption-dev16-oembed-credits-v1",
+  "producer_MF": {
+    "bytes": 905,
+    "SHA256": "a15b6ecb5fe09b2a313131420ec420a26a21de08aa52737b2eb54e0e8def36b1"
+  },
+  "claim": {
+    "bytes": 3264,
+    "SHA256": "ce2598cc1cfd6703a4c2e4c7095b420ff3e607f24a01be87d68c4d886c443db6"
+  },
+  "reader": "code/bw1000/training-treasury-caption-dev16-oembed-root-reader-v1",
+  "reader_MF": {
+    "bytes": 260,
+    "SHA256": "18f8e0115324f036e704c1cd909ebc969071d2185e946bbf11ed9d3135770e93"
+  },
+  "reader_source": {
+    "bytes": 14526,
+    "SHA256": "cb7058ba769d50ef2d97b773af530132c8462b9671df2135591bc127952a904b"
+  },
+  "reviewed_original": {
+    "producer_MF_SHA256": "f2e3969f28259c7400a3fb06ba95bae706b565518ecd1a2b8e0bc4c16e5c90a4",
+    "claim_SHA256": "13f230d06e33bd5ba746151ec86d753e6acc859f374075284e2bdfbeacab7b4d",
+    "reader_MF_SHA256": "0ff363a1f54a673cc8ac0c1da2ab5cb806c96a6086a1568679c28fc78497a911",
+    "actual_network_calls": 0
+  },
+  "closed_findings": [
+    {
+      "issue": "parse_constant alone permits standard JSON exponent overflow to float inf",
+      "fix": "Separate finite parse_float in producer and independent reader; nesting also rejected",
+      "state": "RESOLVED"
+    },
+    {
+      "issue": "Independent reader did not recheck persisted MIME/CL/TE/CE and actual body length",
+      "fix": "Own persisted_framing verifies saved fields and bounded actual bytecount before body attribution; headers explicitly not live independent HTTP observation",
+      "state": "RESOLVED"
+    },
+    {
+      "issue": "Explicit CC BY2 license_url could hide conflicting or uninterpreted extra license/rights/copyright declarations",
+      "fix": "Extra license/licence/licence_url/license_name/license_type/rights/copyright only accepted if same acknowledged URL; otherwise author/title retained and license/credits sourceproof remains pending, no numeric or prose mapping",
+      "state": "RESOLVED"
+    }
+  ],
+  "new_guard_CPU": {
+    "path": "local-only/training-caption-dev16-oembed-Astra-new-guards-v1/result.json",
+    "bytes": 1374,
+    "SHA256": "80b23b396557d80dd7d94c0cb77124951991600d3c474c18333418e2ed8e7cc2",
+    "normal": 10,
+    "rejected": 10,
+    "actual_HTTP": 0,
+    "Job_runs": 0,
+    "real_JSON_or_media_reads": 0,
+    "old_tests_rerun": 0
+  },
+  "retained_scope": {
+    "fixed_roster_slots": 16,
+    "max_GET_attempts_per_slot": 1,
+    "max_concurrency": 4,
+    "max_body_bytes_per_slot": 65536,
+    "max_total_body_bytes": 1048576,
+    "whole_epoch_seconds": 600,
+    "Job_CPU_cores": 2,
+    "Job_process_commit_limit_bytes": 2147483648,
+    "endpoint": "https://www.flickr.com/services/oembed/",
+    "same_Job_source_SHA256": "c52244b5c239852c09ec2b7c5bd6aa1ffa4056eaf4e822946aaac46c9cd12b71",
+    "no_HTTP_retry_fallback_redirect_backfill": true
+  },
+  "source_review_conclusions": [
+    "Normal certificate/hostname TLS and exact endpoint200 before body; no shortlink/image/photo-page GET; no keys/login",
+    "Known single length or bounded unknown/chunked read, conflicting framing rejected, unknown at64KiB fails without extra read",
+    "Duplicate JSON keys and literal nonfinite constants remain rejected; new exponent overflow gate closes finite gap",
+    "Response static image URL must contain frozen numeric photoID; author URL is primary Flickr owner path; optional web_page must match same owner/photoID; derived canonical URL is labelled derived rather than observed",
+    "Author/title and explicit current license have separate16-slot denominators; missing/nonphoto/optout/conflict no backfill",
+    "Independent reader imports no producer engine, rehashes raw per-slot JSON and recalculates association/license; original terminal/Job records and worker/progress counts preserved",
+    "Actual publication MF/CLAIM/clean-source checks and exclusive local-only namespace remain, no rerun or change of endpoint/resource"
+  ],
+  "remaining_P1_blockers": [],
+  "limitations": [
+    "oEmbed optional fields are not promised; even16 authors/title may leave0/16 current license proof",
+    "COCO license4 never supplies missing current license and any unknown extra declaration stays pending",
+    "Canonical photo link can be derived from actual oEmbed owner plus bound photoID, not a fetched photo-page assertion",
+    "Persisted response headers validated independently are still producer HTTP evidence, not a new independent network observation",
+    "passed flags distinguish terminal audit or author/title completion from license/full evaluation eligibility",
+    "Dataset_GO/training_GO/GPU_GO remain false; no native/scorer/near-duplicate/pixel qualification",
+    "2GiB is Job/process commit limit, not hard RSS"
+  ],
+  "actions": {
+    "source_changed_only_new_guards_docs_proof_and_pins": true,
+    "actual_HTTP_or_remote_calls": 0,
+    "Git_calls": 0,
+    "old_tests_rerun": 0,
+    "real_JSON_or_media_reads": 0,
+    "Job_runs": 0
+  }
+}

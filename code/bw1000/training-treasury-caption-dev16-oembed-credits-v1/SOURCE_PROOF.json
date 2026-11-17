@@ -1,0 +1,84 @@
+{
+  "state": "PREPARED_ONLY_ZERO_ACTUAL_PHOTO_OR_OEMBED_REQUESTS",
+  "public_docs_checked_UTC": "2026-11-17T10:51:20.046336+00:00",
+  "public_primary_docs": [
+    {
+      "url": "https://www.flickr.com/services/api/flickr.photos.getInfo.html",
+      "publisher": "Flickr developer documentation",
+      "finding": "The documented REST photo-info method requires an application key even though user authentication is unnecessary. Not used in this keyless scope."
+    },
+    {
+      "url": "https://www.flickr.com/services/developer/attributions/",
+      "publisher": "Flickr developer documentation",
+      "finding": "Attribution links author, work title and specific CC license; image metadata license alone does not identify the author."
+    },
+    {
+      "url": "https://www.flickr.com/services/api/misc.urls.html",
+      "publisher": "Flickr developer documentation",
+      "finding": "A photo short link is https://flic.kr/p/{base58-photo-id}; canonical photo paths use the owner and numeric photoID."
+    },
+    {
+      "url": "https://www.flickr.com/groups/api/discuss/72157616713786392/",
+      "publisher_role": "Implementation note linked by official Flickr URL documentation; not blanket status for every forum post",
+      "finding": "Linked base58 implementation note gives the Flickr alphabet. Pure integer conversion is used; no short-link HTTP request."
+    },
+    {
+      "url": "https://www.flickr.com/help/forum/en-us/72157630548606656/",
+      "publisher_role": "Flickr Staff phil dokas reply on official Help forum",
+      "finding": "Staff confirms oEmbed needs no API key; API-opted-out images may yield nonphoto responses. Such slots fail; no login or key workaround."
+    },
+    {
+      "url": "https://oembed.com/",
+      "publisher": "Primary oEmbed protocol specification",
+      "finding": "Flickr example contains title and author fields. Those fields are optional in the protocol; license is not a guaranteed standard response field."
+    },
+    {
+      "url": "https://oembed.com/providers.json",
+      "publisher": "Primary oEmbed provider registry, distinct from Flickr own docs",
+      "finding": "Flickr entry publishes HTTPS services/oembed/ and supports https flic.kr/p/* input scheme. Supports chosen endpoint/input pair; not a claim of current per-photo availability."
+    }
+  ],
+  "quotes_copied": 0,
+  "photo_page_JSON_LD_capability": "NOT_DOCUMENTED_NOT_USED",
+  "chosen_route": "One GET at https://www.flickr.com/services/oembed/?format=json&url=<urlencoded pure-computed official short URL> per frozen photoID. No request to flic.kr, photo page, image URL, REST getInfo or any key endpoint.",
+  "runtime_endpoint": "https://www.flickr.com/services/oembed/",
+  "maximum_requests": 16,
+  "maximum_concurrent_requests": 4,
+  "maximum_JSON_body_bytes_per_slot": 65536,
+  "maximum_total_JSON_body_bytes": 1048576,
+  "framing": "Single known Content-Length<=64KiB or bounded read up to64KiB of identity/chunked JSON. Unknown-length response at exact cap is rejected without extra read. Duplicate/conflicting framing rejected.",
+  "qualification": "Actual photo response/author name+author URL/title and same photoID/canonical association are separate from license. Only an actual explicit CC BY2 license_url is sourceproof; absent or conflicting field stays pending. Never fills it from COCOlicense4 or numeric application fields. Additional license/rights/copyright declarations outside the same explicit accepted URL stay uninterpreted/pending; no author/title loss.",
+  "full_credits_sourceproof": "Author/title/photo association plus actual explicit same CC BY2 URL; not promised in advance or inferred from standard optional fields.",
+  "source_chain": {
+    "metadata_publication": "966516e0026939c9a45fd20701c5d1a292cde14d",
+    "metadata_public_path": "results/bw1000/2026-11-17/training-caption-dev16-complete-member-and-private-roster-independent-terminal.json",
+    "metadata_SHA256": "47bfd69ac07f08ffae859f0abff58f3abcf2bf74fb5a00d0a42fc6e131b2230a",
+    "roster_SHA256": "96eaeb4b4bd5f52bcf6fbd39370f61fc1ed24ea22842dc77e15c69a5c1885627",
+    "actual_media_independent_result_SHA256": "9becb5ef8a50f5545af1f4bd387e06bf46d5b6415bf7401e0b3aa570f195c94f"
+  },
+  "raw_private_only": true,
+  "original_generic_dev16_not_domain_training_set": true,
+  "single_epoch_seconds": 600,
+  "Job_source_exact_copy_SHA256": "c52244b5c239852c09ec2b7c5bd6aa1ffa4056eaf4e822946aaac46c9cd12b71",
+  "worker_CPU_cores": 2,
+  "worker_process_and_job_commit_limit_bytes": 2147483648,
+  "RSS": "Actual OS observed separately, not promised identical to commit.",
+  "new_tests_run": 1,
+  "old_tests_repeated": 0,
+  "actual_new_Job_invocations": 0,
+  "actual_photo_or_oEmbed_HTTP_requests": 0,
+  "AST_only": false,
+  "Astra_source_review_fixes": [
+    "finite parse_float rejects exponent overflow without HTTP",
+    "independent persisted framing/actualbody check, not live headers",
+    "uninterpreted/conflicting extra license declarations retain author but not license qualification"
+  ],
+  "new_guard_check": {
+    "path": "local-only/training-caption-dev16-oembed-Astra-new-guards-v1/result.json",
+    "bytes": 1374,
+    "SHA256": "80b23b396557d80dd7d94c0cb77124951991600d3c474c18333418e2ed8e7cc2",
+    "normal": 10,
+    "rejected": 10,
+    "synthetic_only": true
+  }
+}
