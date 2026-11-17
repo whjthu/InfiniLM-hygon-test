@@ -1,0 +1,18 @@
+{
+  "implementation": "Independent T04 bounded chunk preparation only; no actual transfer or target existence assertion.",
+  "source_authority": {
+    "path": "code/bw1000/training-vlm-cuda-resume20-v1/cases/T04.sft-model-files.json",
+    "bytes": 7667,
+    "SHA256": "44a456bbc9e0c759ac8b0b784038b59780c1894ba818fa5eacd201b7665c08f1"
+  },
+  "metadata_terminal": {
+    "path": "results/bw1000/2026-11-17/training-T03-T04-metadata-v2-independent-terminal.json",
+    "SHA256": "ace58f39ad8ad7824032716e1aeadf7757d12215f8bc5bbba7b699b732a47857"
+  },
+  "data_flow": "source stable FD -> at most1MiB byte block -> bounded root pipe -> new target partial fsync; exact source range receipt required before link+unlink no-overwrite commit; final whole-file concatenation separately GO-gated.",
+  "system_cost": "Logical source body reads once total17,070,557,079B during transfer; receiver writes same. Final reads+writes this sum once more. Headers are transferred as original bytes, no special re-read. Actual physical IO/wire/RSS/throughput UNKNOWN until measured.",
+  "deferred": "All19 phases and18 final files have zero actual invocations; final assembly is not a Model consumer; root must review and publish before future invocation.",
+  "failure_contract": "Pre-namespace candidate hold/absent output is UNKNOWN, not not-executed. Partial outcome keeps original phase blocked. Same host+boot+startticks required for process observation; cross-host live=None.",
+  "GO_fields_default_false": true,
+  "deadline_delta": "phase0 original90s main-entry epoch includes Git admission (each timeout shrinks); endpoint work alarm first installs original-deadline hard self-exit and rearms remaining original wall/monotonic tail then raises; Popen held registration rechecks deadline before writes, kill errors isolated perchild. Future phase1..18 and final body scopes remain unapproved."
+}
