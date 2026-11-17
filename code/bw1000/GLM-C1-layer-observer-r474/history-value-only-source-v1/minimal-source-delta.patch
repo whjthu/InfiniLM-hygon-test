@@ -1,0 +1,55 @@
+--- original/glm_moe_dsa_attention_prepare.hpp
++++ candidate/glm_moe_dsa_attention_prepare.hpp
+@@ -21,6 +21,7 @@
+  Output forward(runtime::Runtime&,const runtime::Tensor&,const runtime::Tensor&)const;
+  Output forward_latent(runtime::Runtime&,const runtime::Tensor&,const runtime::Tensor&)const;
+  std::pair<runtime::Tensor,runtime::Tensor> expand_cached(runtime::Runtime&,const runtime::Tensor&latent,const runtime::Tensor&rotary_key)const;
++ runtime::Tensor expand_cached_values(runtime::Runtime&,const runtime::Tensor&latent,const runtime::Tensor&rotary_key)const;
+  size_t local_heads()const{return heads_;}
+ private:
+  Output prepare_impl(runtime::Runtime&,const runtime::Tensor&,const runtime::Tensor&,bool expand)const;
+--- original/prepare_tp16.cpp
++++ candidate/prepare_tp16.cpp
+@@ -97,4 +97,17 @@
+ /* ATTND1_OBSERVATION_END */
+ return {key,value};
+ }
++rt::Tensor AttentionPrepare::expand_cached_values(rt::Runtime&r,const rt::Tensor&latent,const rt::Tensor&rotary)const{
++ r.assertOwnerThread();if(!ready_||r.device()!=device_||r.isGraphRecording()||!latent||latent->device()!=device_||latent->dtype()!=rt::DataType::kBFloat16||latent->ndim()!=2||!latent->size(0)||latent->size(1)!=512||!latent->is_contiguous()||!rotary||rotary->device()!=device_||rotary->dtype()!=latent->dtype()||rotary->shape()!=rt::Shape{latent->size(0),1,64})throw std::invalid_argument("GLM selected latent/rotary cache geometry differs");
++ Work work{r};size_t tokens=latent->size(0);auto expanded=kb_->forward(r,latent)->view({tokens,heads_,448});work.held.push_back(expanded);// Value-only: full448 projection and V256 copy unchanged; unconsumed K materialization omitted.
++ auto value=expanded->narrow({{2,192,256}})->contiguous(r);work.held.push_back(value);
++/* ATTND1_OBSERVATION_BEGIN */
++glm_attention_detail_v1::mark(r,"attnd1.expand.original_stream_wait.begin");
++/* ATTND1_OBSERVATION_END */
++r.syncStream();
++/* ATTND1_OBSERVATION_BEGIN */
++glm_attention_detail_v1::mark(r,"attnd1.expand.original_stream_wait.return");
++/* ATTND1_OBSERVATION_END */
++return value;
+ }
++}
+--- original/NoV_tp16.cpp
++++ candidate/NoV_tp16.cpp
+@@ -4,6 +4,8 @@
+ #include "policy_r403.hpp"
+ #include "host_ids_r403.hpp"
+ #include "selected_values_r400.hpp"
++#include "history_value_only_v1.hpp"
++#include <cstdlib>
+ #include "packed_value_device_tp16.hpp"
+ #include "selected_value_phase.hpp"
+ #include <optional>
+@@ -364,6 +366,13 @@
+ /* ATTND1_OBSERVATION_BEGIN */
+ glm_attention_detail_v1::mark(r,"attnd1.history.dispatch.standard");
+ /* ATTND1_OBSERVATION_END */
++// Independent default-OFF candidate; observer state never controls mathematics.
++if(v398&&complete_prefix&&tokens==1&&requests.size()==1&&count==1&&request.past>0
++   &&logical.size()<=v_on_demand_r400::max_block_rows&&prepare_->local_heads()==4){
++ const char* value_only=std::getenv("GLM_HISTORY_VALUE_ONLY_V1");
++ if(value_only&&value_only[0]=='1'&&value_only[1]=='\0')
++  return history_value_only_v1::selected_values(*prepare_,r,latent_row,rotary_row,ids,work.held);
++}
+ return v_on_demand_r400::selected_values(*prepare_,r,latent_row,rotary_row,ids,work.held);
+    };
+    std::pair<rt::Tensor,rt::Tensor> expanded;
