@@ -1,0 +1,3 @@
+# T04 control45离线独审
+
+仅原16元数据件包和local receipt/固定identity roster/sourceMF；14件JSON核原序列化SHA、2日志仅metadata不读正文。45原caption/处理payload/图像和权重不读、不重新native/远端。原始45记录逐行核identity、label/mask/EOS和token元数据计数；监督token694是producer实际计数的一致性审核，不冒重读rawlabels。caption完整保留由原source pin+transform源码+hash-only provenance支持，不冒独立语义审。shareddev10仅资格复用，新actual分母45。root发布结果及后续source。
