@@ -1,0 +1,7 @@
+# Original metadata v1 failure reconciliation
+
+These two bounded read-only endpoint scripts were each executed once; the local consumer independently combines their saved receipts with the original transport and frozen published source. No source metadata/header repack, tensor load, new Slurm or receiver rerun is performed. The source completed its32,327,445 logical application bytes and36-member bundle; its recorded PID is absent. The receiver SSH returned1 with a real remote Python traceback inside parent_reservations, before own()/compressed input consumption. Its original transport UNKNOWN marker is preserved.
+
+The exact frozen call ordering, real Python exit, postdeadline absent target namespace and current owned parent receipts jointly reconcile receiver terminal failure with zero target metadata writes. Absence by itself never proves nonexecution. Both parents are currently RUNNING40 with320DCU each and matching numeric ownerUID; the raw queue username string did not equal getpwuid(). No new80-node union inventory or driverbusy sample was taken by this reconciliation.
+
+Root elapsed22.153s is an end-to-end transport window, not exclusive CPU time. Source logical read bytes are not physical filesystem IO: buffered Python reads and kernel readahead were not measured. No weight tensor payload or initial tensor was consumed or transmitted by the application. Named initial dependency data was computed inside the source bundle but was not delivered or durably retained by v1; target0/36 and16missing rows remain.
