@@ -1,0 +1,96 @@
+{
+  "state": "PRIMARY_SOURCE_RESEARCHED_CANDIDATE_ONLY_NO_ACQUISITION_OR_MODEL_PRODUCT",
+  "researched_date": "2026-11-18",
+  "selected_candidate": "NAVER CLOVA CORD-v2 full-receipt hierarchical parsing",
+  "other_candidates_started": 0,
+  "different_task": "Indonesian photographed retail/restaurant receipts -> released hierarchical JSON fields; not macroeconomic charts, Treasury tables, or generic COCO captions",
+  "project_scoped_prior_route_search": "No clovaai/cord or cord-v2 matches found in coordination/tasks, analysis/bw1000, code/bw1000 at research time; this is not a whole-disk search",
+  "publisher_and_authorship": {
+    "publisher": "Clova AI, NAVER Corp.; official naver-clova-ix dataset account",
+    "paper": "CORD: A Consolidated Receipt Dataset for Post-OCR Parsing, 2019 Document Intelligence Workshop at NeurIPS",
+    "authors": ["Seunghyun Park", "Seung Shin", "Bado Lee", "Junyeop Lee", "Jaeheung Surh", "Minjoon Seo", "Hwalsuk Lee"],
+    "official_repository_revision_observed": "327310ce58c1623255821d062b3a759ff3789e3c",
+    "official_HF_revision_observed": "7f0115a4b758a71d6473b8d085751692da2fef98",
+    "dataset_release_version": "CORD v2, publisher release table 2022-07-20",
+    "packaging_version_caveat": "dataset_infos reports 0.0.0; do not confuse this packaging field with the semantic CORD v2 release"
+  },
+  "rights": {
+    "license": "CC BY 4.0",
+    "primary_basis": "Official dataset repository LICENSE-CC-BY and release-wide statement, official naver-clova-ix/cord-v2 card and dataset_infos, not a third-party mirror or code-only license",
+    "released_images_and_annotations": "The publisher describes the release as receipt images plus OCR/semantic annotations and labels the released work CC BY4. This supports adaptation/training of released material subject to attribution and license conditions; it does not grant access to unreleased collection material",
+    "attribution": "Preserve CORD title/authors/NAVER CLOVA, original dataset and license links, version/source hashes and every preprocessing/annotation change notice",
+    "removed_fields_boundary": "Publisher removed store_info, payment_info and etc targets following Indonesian legal issues. Use only the released v2 gt_parse; do not reconstruct those removed classes, omitted identities or private 11k collection",
+    "actual_rights_manifest_qualified": false
+  },
+  "publisher_inventory_metadata_observed": {
+    "released_receipts": 1000,
+    "official_train": 800,
+    "official_validation": 100,
+    "official_test": 100,
+    "private_collection_not_released_scope": "over 11000 mentioned by publisher; not available training inventory",
+    "metadata_download_size_bytes": 2307284272,
+    "metadata_dataset_size_bytes": 2318326877,
+    "official_tree_total_rounded": "2.31 GB, four train Parquet files plus validation and test Parquet",
+    "measured_local_download_bytes": 0,
+    "byte_count_status": "publisher advertised metadata, not independently downloaded/file-hashed",
+    "columns": ["image", "ground_truth"],
+    "ground_truth_contract_observed": ["gt_parse", "meta.version", "meta.split", "meta.image_id", "meta.image_size"],
+    "representative_sample_evidence": "Official HF train preview exposes image plus nonempty gt_parse menu/sub_total/total hierarchy and training meta identity; no raw answer/image is copied into this public proposal",
+    "sample_image_bytes_or_legibility_verified": false,
+    "fixed_revision_raw_metadata_web_open": "The commit page was reachable; opening raw dataset_infos at that revision was unavailable through the web tool. Main metadata was readable. No claim of fixed raw SHA or per-row acquisition success"
+  },
+  "minimum_comparable_design": {
+    "selection_seed": "CORD-v2-domain-20261118",
+    "planned_train": 32,
+    "planned_dev": 16,
+    "planned_blind": 16,
+    "planned_full_receipt_tasks": 64,
+    "split_source": "Preserve official train/validation/test respectively; no official test used as train or calibration",
+    "planned_slot_rule": "Within each official split, rank ordinal 0..N-1 by SHA256(seed + ':' + immutable_revision + ':' + split + ':' + ordinal), take 32/16/16 before inspecting annotations/images/model results. Ordinals are planned slots, not invented actual image_ids. Actual row/image_id/media SHA mapping must be independently frozen after bounded staging",
+    "sampling_exclusions": "No selection by answer presence/value, OCR ease, image clarity, token length or generated quality; missing/corrupt/duplicate/overlength slots retain failure and are not backfilled",
+    "source_group": "One original receipt remains one group with its complete released gt_parse; no field/question fragments cross splits",
+    "content_dedup_pending": "Future custodian must hash actual media and predeclared near-duplicate fingerprints across all64 selected receipts and project hash-only inventories; cross-split collision retains all affected slots as failure. No actual media was inspected for this proposal",
+    "merchant_generalization_limit": "A reliable merchant/source-group ID is not provided by the observed public schema and relevant identity targets were removed. Official split plus media dedup cannot prove merchant/template-disjointness; do not claim unseen-merchant generalization or reconstruct removed store fields",
+    "representation_limit": "Only Indonesian photographed receipts from the released sample. Fixed random slots do not guarantee every shop type, language condition or layout. Report train/dev field/layout coverage after staging; never balance blind labels to make coverage look better"
+  },
+  "uniform_framework_input_contract": {
+    "first_provider": "current common-framework native qwen3_vl template/processor/collator; later other four VLM native-HF providers under their own frozen template and recipe",
+    "input": "One complete original receipt image plus fixed answer-free extraction instruction; no OCR transcripts, ground_truth, boxes or gold fields supplied as user input",
+    "train_supervision": "Original released gt_parse serialized as canonical JSON after FINAL: in assistant turn; preserve all released fields, strings, hierarchy and item multiplicity, with an explicit reversible formatting change record",
+    "dev_blind_gold": "Separate scoring custody, never uploaded to model inputs or train JSONL",
+    "full_image_and_tokens": "No crop/ROI substitution, omitted fields or silently truncated target. Native model preprocessing policy remains explicit; complete 4096-token template/target and natural EOS supervision must be checked, including image/user/padding masks. Failure is retained rather than shortening the task",
+    "generation_eligibility": "Only status COMPLETED with strictly typed natural_EOS=true and cap_hit=false may score as correct; missing/rejected/cap/non-EOS/untyped/invalid-JSON failures stay in all planned receipt denominators",
+    "formal17": "Do not modify original 8card BF16 batch1 accum4 recipes or official references. Any new domain budget/precision/card count/timing creates a separate comparable recipe",
+    "model_initialization": "Freeze exact base/processor/tokenizer/template/initial LoRA parameters, seed and ordered receipt exposures before training; none qualified for this candidate",
+    "training_loop_added": false
+  },
+  "task_metrics_not_loss": {
+    "primary": "Field-level micro precision/recall/F1 for complete released hierarchical parse, using frozen publisher JSONParseEvaluator semantics",
+    "secondary": "Mean publisher normalized-tree-edit-distance accuracy max(1-nTED,0), plus exact full-JSON/receipt success and JSON validity",
+    "denominators": "Fixed16 dev and16 blind receipts; invalid/non-EOS/cap/missing receipts receive zero per-receipt success/nTED accuracy and retain all gold fields as false negatives for field recall. Report every failure and full field counts; do not zip/drop missing predictions",
+    "scorer_status": "Official NAVER Donut util.py cal_f1/cal_acc source inspected through primary repository. Exact scorer commit/wholefileSHA/dependencies and malformed-output adapter are not yet frozen or run; no scorer qualification claimed",
+    "comparison": "Pair base and future domain checkpoint on identical frozen dev16, generation constraints and scorer; compare independent generic LoRA only when equal-budget nonleaking control inputs are actually ready. No existing sealed COCO16 route reopened",
+    "small_sample_limit": "16 receipt dev is engineering/pilot evidence, not official CORD100 test reproduction or broad transfer. Training loss is not receipt parsing ability"
+  },
+  "next_shortest_real_step_and_blockers": {
+    "primary_blocker": "No bounded immutable-revision path for extracting complete selected image+ground_truth rows has been validated. Official Parquet files are hundreds of MB; do not download full2.31GB or third-party re-encoded mirror to obtain64 slots",
+    "next_action": "Root may authorize a separately published metadata-only access claim: establish fixed-revision official per-row or exact Parquet range/row-group byte cost and identity before any media body GET. If source cannot provide bounded complete rows, keep this candidate BLOCKED; no blind-page scouting or alternate-source silent fallback",
+    "later_gates": ["raw media/annotation and rights identity", "source/media dedup and official split membership", "native full-input masks/EOS/readability", "fixed base/initial parameters and equal exposure budget", "first-step numerical and continuous25/full-state recovery", "paired task effect/general-control and blind evaluation"],
+    "current_domain_model_product": "NONE",
+    "root_GO": false,
+    "Dataset_GO": false,
+    "training_GO": false,
+    "GPU_GO": false
+  },
+  "primary_URLs": [
+    "https://github.com/clovaai/cord/tree/327310ce58c1623255821d062b3a759ff3789e3c",
+    "https://github.com/clovaai/cord/blob/327310ce58c1623255821d062b3a759ff3789e3c/LICENSE-CC-BY",
+    "https://github.com/clovaai/cord/blob/327310ce58c1623255821d062b3a759ff3789e3c/README.md",
+    "https://huggingface.co/datasets/naver-clova-ix/cord-v2",
+    "https://huggingface.co/datasets/naver-clova-ix/cord-v2/commit/7f0115a4b758a71d6473b8d085751692da2fef98",
+    "https://huggingface.co/datasets/naver-clova-ix/cord-v2/raw/main/dataset_infos.json",
+    "https://huggingface.co/datasets/naver-clova-ix/cord-v2/tree/main/data",
+    "https://github.com/clovaai/donut/blob/master/donut/util.py",
+    "https://creativecommons.org/licenses/by/4.0/"
+  ]
+}

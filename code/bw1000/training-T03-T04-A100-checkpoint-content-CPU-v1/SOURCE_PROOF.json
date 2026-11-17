@@ -1,0 +1,80 @@
+{
+  "state": "NEW_SOURCE_PREPARED_NO_ACTUAL_CONTENT_READ",
+  "actual_prior": {
+    "request": "2f7dbe5d898f469a80f580edd9b22656",
+    "publication": "c13dd3bcd8ad16d54ce17c61fe132f6ea741a182",
+    "local_outcome_SHA256": "4803a5b1c36b423ca8cb30677d715b7a7e643bdf0d233b9df6aa3dc00a284aae",
+    "local_stdout_SHA256": "7a1839a97ec5ea42ebacd9563e56e9d861144ea29f4307ef99a574ccc92b795f",
+    "remote_outcome_SHA256": "88a05d53c80c53810a5c0ed1bfd9e875436be64544db9cdc24f905da0c0e2a46",
+    "observed": "All four actual checkpoint dirs14member present and actual globalstep20/25; exact sizes from newly completed metadata stdout. No old checkpoint tensor bodies read locally."
+  },
+  "parameter_authorities_by_case": [
+    {
+      "case": "T03.sft",
+      "native_binding_path": "code/bw1000/training-internvl-A100-first-updates-v1/INTERNVL_NATIVE_BINDING.json",
+      "native_binding_SHA256": "2ff3b19fc433f38b2b9053787f1b458e70ada2457e1d1092f5beab3ae769a076",
+      "tensor_count_derivation": "len(trainable_manifest), unique names; same-case spec.case is required",
+      "parameter_elements_derivation": "sum each manifest row numel after checking product(shape)==numel",
+      "trainable_tensors": 504,
+      "trainable_elements": 43646976,
+      "structural_binding_only_not_initial_tensor_reload": true,
+      "actual_capture200_public_result": "results/bw1000/2026-11-17/training-internvl-A100-original200-capture-values-independent-terminal.json",
+      "actual_capture200_public_result_SHA256": "9664da5de388ea4687a0e58493e75c72baed61ef96efc90444b2754b7ccdc060",
+      "actual_observed_count_field": "ranks[0..7].updates[0..1].parameters_denominator=504; actual initial/update continuity already independently audited",
+      "no_adapter_size_based_schema_inference": true
+    },
+    {
+      "case": "T04.sft",
+      "native_binding_path": "code/bw1000/training-llava-A100-first-updates-v1/LLAVA_NATIVE_BINDING.json",
+      "native_binding_SHA256": "a21db6fb5d16796c5e1f2c43722e1c1cac5303782b732c1c1ba7d45f58bca823",
+      "tensor_count_derivation": "len(trainable_manifest), unique names; same-case spec.case is required",
+      "parameter_elements_derivation": "sum each manifest row numel after checking product(shape)==numel",
+      "trainable_tensors": 504,
+      "trainable_elements": 43646976,
+      "structural_binding_only_not_initial_tensor_reload": true,
+      "actual_capture200_public_result": "results/bw1000/2026-11-17/training-llava-A100-original200-capture-values-independent-terminal.json",
+      "actual_capture200_public_result_SHA256": "e78b6ccea81130cf92af72cf7aa9497f65bb1c33cff71572eaebde7e86d4df4b",
+      "actual_observed_count_field": "ranks[0..7].updates[0..1].parameters_denominator=504; actual initial/update continuity already independently audited",
+      "no_adapter_size_based_schema_inference": true
+    }
+  ],
+  "prior_schema": {
+    "producer_source": "code/bw1000/training-T03-T04-A100-resume-metadata-CPU-v1/inventory.py",
+    "producer_current_SHA256": "a8d7033f337cf0b8f21fb40833212249e9f2b8e50f508451da23166f5031f595",
+    "required_keys": [
+      "cases[].native_rank_metadata[0..7]",
+      "cases[].checkpoints[].small_JSON[trainer_state.json,args.json,adapter_config.json]"
+    ],
+    "basis": "Actual published producer creates these keys. Local stdout is a bounded summary, not a copy of full remote outcome. New worker hashes the actual prior outcome and validates these keys BEFORE any2.10GB file read; mismatch stops the new scope, no guessed schema fallback."
+  },
+  "safe_metadata_limits": {
+    "whole_hash_bytes": 2097688039,
+    "files": 56,
+    "archives": 40,
+    "safetensors": 4,
+    "JSON": 12,
+    "auxiliary_read_cap": 134217728,
+    "memory_AS_bytes": 536870912,
+    "epoch_seconds": 600,
+    "cores": [
+      2,
+      3
+    ]
+  },
+  "future_CUDA_resume_minimum": {
+    "GO": false,
+    "new_scope_required": true,
+    "unchanged_recipe": "8A100 BF16 per_device1 accum4 effective32,full4096; T03 SDPA/GC on, T04 eager/GC off; original model/template/labels/optimizer/schedule, globalstep20->25 only",
+    "new_source_deltas": [
+      "Allow only explicitly bound T03/T04 CUDA resume cases in a new frozen recipe/helper, not old T05-only entry",
+      "Dedicated CUDA observer validates8actual ranks/devices and same-case full named trainable manifest instead of HIP-only/10822656 MiniCPM guard",
+      "At restored step20 before first resumed microbatch verify model/optimizer/scheduler/all rankRNG and loader/sampler/accumulation boundary; checkpoint20 is candidate epoch boundary only until actual original loader length/saved trainer_state confirm it",
+      "Record all20microbatches per rank (160 total), five real updates, losses/gradient boundaries/newcheckpoint25 and cleanup; no original25step/capture replay",
+      "Authenticate exact full-file SHA from this content scope before any framework restore. Any PyTorch/NumPy RNG allowlist must be explicit and bounded, not arbitrary pickle execution",
+      "Compare resumed checkpoint25 parameter/optimizer/scheduler/RNG states to original25 using original numeric policy. Original tail input/RNG or gradient references still missing/unknown cannot be replaced by derived sampler guesses or declared as exact original match"
+    ],
+    "actual_original_tail_basis": "16 exact original native-rank JSON; new content scope reports actual field names/types and finite loss aliases only. First-two-update200capture is not a21..25 reference.",
+    "no_promotion_until": "Content identity independently audited; safe restore source/provider/inputs/fresh8card admission and original comparison evidence closed; no recovery/performance claim from CPU format scan."
+  },
+  "local_validation": "Two Python sources AST parsed only; no tests/framework imports/large file reads/SSH/GPU/Git."
+}
