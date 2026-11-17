@@ -1,0 +1,119 @@
+{
+  "schema": "GLM474-history-value-only-device-validation-v1",
+  "state": "SOURCE_READY_REQUIRES_ROOT_REVIEW_AND_EXPLICIT_DEVICE_ADOPTION",
+  "ROOT_GO": true,
+  "GPU_GO": true,
+  "device_validation_GO": true,
+  "CPU_compile_GO": false,
+  "Native_compile_GO": false,
+  "Model_GO": false,
+  "max_invocations": 1,
+  "label": "GLM474-history-value-only-device-validation-GPU-v1",
+  "parent": "1103606",
+  "whole_epoch_seconds": 660,
+  "worker_from_origin_seconds": 420,
+  "GPU_from_origin_seconds": 480,
+  "keeper_from_origin_seconds": 570,
+  "post_from_origin_seconds": 650,
+  "cleanup_deadline_from_origin_seconds": 660,
+  "resources": {
+    "pre": {
+      "nodes": [
+        "f13r1n05",
+        "f13r1n07"
+      ],
+      "CPU_each": 1,
+      "memory_MiB_each": 1024,
+      "GRES": 0,
+      "max_seconds": 60
+    },
+    "GPU": {
+      "node": "f13r1n05",
+      "CPU": 4,
+      "memory_MiB": 8192,
+      "physical_GPU_cards": 1
+    },
+    "keeper": {
+      "node": "f13r1n07",
+      "CPU": 2,
+      "memory_MiB": 1024,
+      "GRES": 0
+    },
+    "post": {
+      "nodes": [
+        "f13r1n05",
+        "f13r1n07"
+      ],
+      "CPU_each": 1,
+      "memory_MiB_each": 1024,
+      "GRES": 0,
+      "max_seconds": 60
+    }
+  },
+  "planned": {
+    "warm_pairs": 2,
+    "declared_pairs": 3,
+    "orders": [
+      "AB",
+      "BA",
+      "AB"
+    ],
+    "handle_rejections": 24,
+    "input_guards": 10,
+    "redzone_detector_checks": 6,
+    "normal_close": 1,
+    "weight_parameters": 10,
+    "weight_range_bytes": 64377280
+  },
+  "geometry": {
+    "TP": 1,
+    "heads": 64,
+    "capacity": 32768,
+    "selected_rows": [
+      1313,
+      1314,
+      8192
+    ],
+    "minimum_actual_free_device_bytes": 8589934592
+  },
+  "same_DSO_parent": "179B",
+  "CPU_evidence": {
+    "bytes": 9853,
+    "SHA256": "2557331ce9adcacd7b814ac924a15cbb6c9bf00aeb3fb9a224cf93c02f1373db"
+  },
+  "runtime_pins": {
+    "bytes": 9917,
+    "SHA256": "2c2835dbecaf1abb6fc40de67e480565d54b25bc27b3510dd4820e379392c27e"
+  },
+  "required_CPU_step": "1103606.182",
+  "current_DSO_SHA256": "f8b74a42b5aa3baa531df0734a34daf6785344882f794e1cc1fb67211e0556bc",
+  "qualification_limits": {
+    "graph_exercised": false,
+    "TP16_Model": false,
+    "global_Runtime_live_buffer_counter": null,
+    "component_numerical_qualified": false,
+    "performance_win": false
+  },
+  "source_transport_bytes_cap": 524288,
+  "payload_bytes_cap": 1048576,
+  "selected_actual_provider_bytes_cap": 268435456,
+  "selected_provider_file_bytes_cap": 134217728,
+  "weight_transport_to_PC": false,
+  "giant_V_export": false,
+  "preflight_requires": [
+    "numeric parent UID",
+    "active-step conflict-free n05+n07",
+    "current parent end beyond original deadline",
+    "fresh node PCI+KFD holders+sameUID FD visibility",
+    "fresh port43844 bindability",
+    "exact new label accounting dedup"
+  ],
+  "reservation": "Exclusive request intent then Slurm atomic resource allocation; only GPU+keeper terminal and separate clean post release; UNKNOWN never releases or replays.",
+  "control_scope": "exec_request_attempted tracks primary keeper/GPU submission. Verified false may still include an already recorded CPU preflight; never a claim of zero Slurm activity.",
+  "container_setup_implicit_SDK": "UNKNOWN; explicit validation invokes actual Native/driver/device and records selected providers",
+  "memory": "Slurm requested host memory; 8GiB native device-free floor is separate. No claim of hard process RSS cap.",
+  "historical_membership_not_current_occupancy": true,
+  "root_review": "OnlyoneexplicitTP1devicevalidation, notModel/perf. Actual182CPU and stable10ranges pinned; fresh resource+monotonic receipt, ownedcleanup, terminal+independentpost before release.",
+  "freshness": "Dispatch same-process monotonic RTT/start-to-reserve <=90s, pinned pre-return receipt for both nodes; keeper compares only n07 same-host/same-boot pre monotonic; GPU gate retains n05 same-host/same-boot monotonic. No cross-host wall or monotonic subtraction.",
+  "owned_child_cleanup": "Held Popen with start_new_session=True is the ownership anchor while unreaped, independent of owner-read/receipt success; TERM/KILL+wait on only that held process group."
+}
