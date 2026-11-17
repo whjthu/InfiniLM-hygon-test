@@ -44,11 +44,19 @@ def main(publication,manifest_sha):
          and prior['epoch']==binding['original_epoch'] and prior['deadline']==binding['original_deadline'], 'original terminal/pip-zero gate differs')
     need(all(not (G/binding['original_run']/name).exists() for name in ('pip.stdout','pip.stderr','worker-result.json')),
          'original pip or worker receipt unexpectedly exists; reconcile original, no completion')
+    # Distinct source correction after known local guard failure, before any network/pip.
+    for kind in ('outcome','worker'):
+        q=binding['prior_copy_guard_failure'][kind];raw=(G/q['path']).read_bytes()
+        need(len(raw)==q['bytes'] and hashlib.sha256(raw).hexdigest()==q['SHA256'],'prior local failure pin differs')
+    q=json.loads((G/binding['prior_copy_guard_failure']['outcome']['path']).read_bytes())
+    need(q['passed'] is False and q['job']['returncode']==1 and q['worker']['new_GETs_attempted']==0
+         and q['worker']['pip_attempted'] is False and q['worker']['error_reason']=='ORIGINAL_STABLE_FD_CHANGED',
+         'prior completion was not a known zero-network local guard failure')
     RUN.mkdir(mode=0o700)  # Exclusive: failure/timeout leaves original scope, never replay/overwrite.
     for name in ('wheels','overlay','tmp','mplconfig'):(RUN/name).mkdir()
     (RUN/'install-lock.json').write_bytes((D/'WHEEL_LOCK.json').read_bytes())
     (RUN/'intent.json').write_text(json.dumps(dict(publication=publication,MF_SHA256=manifest_sha,epoch=epoch,deadline=deadline,
-       original_failure=prior_pin,original_RUN_immutable=True,
+       original_failure=prior_pin,prior_copy_guard_failure=binding['prior_copy_guard_failure'],source_revision='fsid-fix-v2',original_RUN_immutable=True,
        python=str(PYTHON),CPU=2,memory_commit_limit_bytes=2*1024**3,total_owned_scope_cap_bytes=128*1024**2,
        new_GETs_max=3,new_network_bytes=4774303,original_v1_attempted_GETs=5,combined_GET_denominator=8,shared_runtime_changed=False,
        global_environment_changed=False,WDI_GETs=0,Torch_imports=0,GPU=0),indent=2)+'\n',encoding='utf8')

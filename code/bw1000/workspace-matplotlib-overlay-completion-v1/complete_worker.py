@@ -10,6 +10,7 @@ import time
 import urllib.request
 from overlay_env import D,G,RUN,OVERLAY,environment
 from job_guard import current_affinity
+from windows_copy_identity import verified_copy
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -31,9 +32,6 @@ def validate_response(status,headers,row,range_request=False):
     need(headers.get('Content-Length')==str(expected),'EXACT_BODY_LENGTH_REQUIRED')
     need(headers.get('Content-Encoding') in (None,'identity'),'ENCODED_RANGE_OR_BODY_FORBIDDEN')
     return expected
-
-
-def stable(value):return (value.st_dev,value.st_ino,value.st_size,value.st_mtime_ns,value.st_ctime_ns)
 
 
 def main(epoch):
@@ -62,21 +60,10 @@ def main(epoch):
         phase='COPY_ORIGINAL_FIVE_EXACT_PINS'
         for name,original in binding['original_files'].items():
             left();source=G/original['path'];target=RUN/'wheels'/lock['wheels'][name]['filename']
-            need(not source.is_symlink() and source.stat().st_size==original['bytes'],'ORIGINAL_PIN_TYPE_SIZE')
-            digest=hashlib.sha256();used=0
-            with source.open('rb',buffering=0) as incoming,target.open('xb') as output:
-                before=os.fstat(incoming.fileno())
-                while True:
-                    left();block=incoming.read(1024**2)
-                    if not block:break
-                    used+=len(block);need(used<=original['bytes'],'ORIGINAL_COPY_BYTE_CAP')
-                    digest.update(block);need(output.write(block)==len(block),'SHORT_LOCAL_COPY')
-                output.flush();os.fsync(output.fileno())
-                need(stable(before)==stable(os.fstat(incoming.fileno()))==stable(source.stat()),'ORIGINAL_STABLE_FD_CHANGED')
-            need(used==original['bytes'] and digest.hexdigest()==original['SHA256'],'ORIGINAL_LOCAL_COPY_SHA')
-            copied[name]=dict(bytes=used,SHA256=digest.hexdigest(),source_original_unchanged=True)
+            verified=verified_copy(source,target,original,check=left)
+            copied[name]=verified
             slots[name]['state']='PREFIX_COPIED' if name=='matplotlib' else 'WHOLE_VERIFIED'
-            if name!='matplotlib':whole[name]=dict(bytes=used,SHA256=digest.hexdigest())
+            if name!='matplotlib':whole[name]=dict(bytes=verified['bytes'],SHA256=verified['SHA256'])
             record_progress()
         opener=urllib.request.build_opener(NoRedirect())
         phase='THREE_NEW_EXACT_GETS'
