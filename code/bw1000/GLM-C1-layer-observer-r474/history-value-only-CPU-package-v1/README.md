@@ -1,0 +1,11 @@
+# Value-only CPU preparation — blocked
+
+This is local preparation, not a runnable target qualification. All GO flags are false. No launcher or compiler entry exists. `local_ready.py` verifies source pins and reports the exact blocking metadata; it never contacts a host or loads a library.
+
+CPU169 exact32 object order/SHA, original ENV, toolchain and71 provider baseline are bound. The original32 MD records were found locally in the explicitly referenced parent workspace file; no remote reread is needed. Original1087/1101/r131 commands establish16 historical recipes;16 remain missing, and latestselected-layer0bridge recipe still needs closure. MD/source/object paths cannot reconstruct absent macros,compiler options or GPUflags. `BLOCKERS.json` lists exactobjects/MD/source and the explicit recipe gaps. Twelve initiallyunmergedsource/header pins wereclosed fromthe alreadyreadoriginal1087/1101freshM receipts; thisdoesnot recovermissingcompileroptions. Missingrecipe receiptpaths/sizes/SHA are UNKNOWN: do not guess a directory's CPU-result filename or scan remote.
+
+`overlay_contract.py` supplies only pure path/argument/freshM validation helpers. A futurecompletepackage must materialize allprojectdependencies in oneexclusive coherentmirror. Allnine known prepareheader physicalpaths must refer tooneownedcandidateheader inode; originalquoteheader directories cannot remain as fallback. All32freshM complete before anycompile, rejectoriginalprojectescape andmixedold/newclassdefinition, thenrebuild everychangedsource/header/inlineconsumer. No fixedHOST/GPU/reuse count is asserted. GPUtranslation-unit codegen is not authorized by thisblockedpackage.
+
+FutureCPU budget remains originalsingle600sepoch,4CPU16GiB,Slurmminutefloor<=480,inside<=450/work<=430 fromsameorigin; serialcompiler. FulloriginalCABI+intentionalnewCXXexport,NEEDED/TLS/providers mustclose. Passive ldd children are not a proof of zeroimplicitSDK initialization. No Native dlopen/Model/component/device calls.
+
+`LOCAL_HEADER_INVENTORY.json` collects exact matching headers only from3 alreadyidentified frozen source directories. Candidate4source files match publishedvalue-only source. No source behavior changed and no passed6/6structuretests rerun.
