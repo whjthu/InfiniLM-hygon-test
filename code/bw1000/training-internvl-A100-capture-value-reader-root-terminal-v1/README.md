@@ -1,0 +1,5 @@
+# Original InternVL CPU audit terminal reader
+
+Executed once after CPU-v2 returned PASS. It independently checks the exact outcome, intent, frozen source8, eight original rank receipts and eight worker JSON files. No captured tensor is loaded again, no training or GPU is invoked, and no artifact bytes are exported. It verifies all8 ranks/200files/16updates/64microforwards and retains failed CPU-v1 as a separate terminal. Source/outcome/request pins refer only to this original. The original900/780s audit used2affinity cores and2Torch threads with one worker active; its sampled RSS limit is not a hard cgroup cap.
+
+The value audit checks finite values, exact initial parameter hash, name/shape/dtype inventory, parameter boundary continuity, optimizer state membership/shape/step and adjacent-boundary state hashes. It does not recompute AdamW or certify clipping tolerance, Hygon numerical alignment, fresh-process recovery, checkpoint10/20/25 contents, formal throughput or task effects. First update has lr0 and changes0/504 tensors; second update changes504/504 on all8ranks. These are observed, not assumed training acceptance.
