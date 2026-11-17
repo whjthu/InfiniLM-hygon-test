@@ -1,0 +1,123 @@
+{
+  "schema": "focused_prelaunch_review_v1",
+  "reviewer": "astra105",
+  "review_date": "2026-11-17",
+  "state": "ADOPT_SOURCE_AFTER_TWO_READER_FIXES_RUNTIME_ADMISSION_REQUIRED",
+  "package": "code/bw1000/GLM-C1-layer-observer-r474/full-model-attention-detail-v1",
+  "prior_review": {
+    "state": "FIX_BEFORE_PUBLICATION",
+    "package_manifest_SHA256": "f2a3d9e9dcfb022f630b025bbbd584335d77067770560d4287fa00906292a182",
+    "GPU_claim_SHA256": "21c026af5c9961bdbc333fef44a3bd213a41d18b0ee05bbf1de00975208465f7",
+    "published": false,
+    "target_invocations": 0,
+    "GPU_invocations": 0
+  },
+  "reviewed_pins": {
+    "PACKAGE_FILES.json": {
+      "path": "code/bw1000/GLM-C1-layer-observer-r474/full-model-attention-detail-v1/PACKAGE_FILES.json",
+      "bytes": 4116,
+      "SHA256": "66305b1795471d3610b623c985033ae20e96ffcc76984d139e84146749c3220b"
+    },
+    "GPU_RESOURCE_CLAIM.json": {
+      "path": "code/bw1000/GLM-C1-layer-observer-r474/full-model-attention-detail-v1/GPU_RESOURCE_CLAIM.json",
+      "bytes": 2472,
+      "SHA256": "43243ffe816a8d86c301870895a7d1aa39820a660e43ca0877dac5f97ef9baa5"
+    },
+    "SOURCE_MANIFEST.json": {
+      "path": "code/bw1000/GLM-C1-layer-observer-r474/full-model-attention-detail-v1/SOURCE_MANIFEST.json",
+      "bytes": 2196,
+      "SHA256": "750540468cd54a66443fd4f1751049ce1263f32a555c0fb450fdee253ed275a7"
+    },
+    "HOST_MANIFEST.json": {
+      "path": "code/bw1000/GLM-C1-layer-observer-r474/full-model-attention-detail-v1/HOST_MANIFEST.json",
+      "bytes": 664,
+      "SHA256": "a4bfc6556475b50d7cf5998d2a99d21f0b154d7429568adc3564c767cf59c18a"
+    },
+    "attention_evidence.py": {
+      "path": "code/bw1000/GLM-C1-layer-observer-r474/full-model-attention-detail-v1/attention_evidence.py",
+      "bytes": 7196,
+      "SHA256": "b6f93328160216eec22f875e62d61b4a430526a8bf442dff721f904ef9bed068"
+    },
+    "read_terminal.py": {
+      "path": "code/bw1000/GLM-C1-layer-observer-r474/full-model-attention-detail-v1/read_terminal.py",
+      "bytes": 6914,
+      "SHA256": "9cde23ad08004b5671a496004463095c2c9ca868a494002c7eb7a471f45baeff"
+    },
+    "check_candidate_CPU.py": {
+      "path": "code/bw1000/GLM-C1-layer-observer-r474/full-model-attention-detail-v1/check_candidate_CPU.py",
+      "bytes": 7991,
+      "SHA256": "7a62b5a924a6af3a6429a2d30d516f71206f20d47f7ab7300ee6158f1fb140b1"
+    }
+  },
+  "fixes": [
+    {
+      "issue": "Detail marker name did not prove its position within the named layer window",
+      "resolution": "attention_windows enumerates actual mark_index and requires begins[layer][1] < mark_index < ends[layer][1] before accepting it",
+      "state": "RESOLVED",
+      "source": "attention_evidence.py:40"
+    },
+    {
+      "issue": "Schema-valid zero/partial frame evidence could be labelled valid attention measurement",
+      "resolution": "attention_verdict separates schema validity from observed rank frames; only full48 is valid_attention_detail/MEASURED_FULL48; partial0/16/32 is UNKNOWN_INSUFFICIENT_C1_FRAMES without changing EOS",
+      "state": "RESOLVED",
+      "source": "read_terminal.py:16"
+    }
+  ],
+  "implementation_check_evidence": {
+    "path": "local-only/GLM474-attention-detail-full-model-candidate-Astra-fixes-v1/result.json",
+    "bytes": 2069,
+    "SHA256": "d2649a46f9e20bba0048b0e0781483f901c6521283e0c1bdbdc76f84e80ceeb4",
+    "normal_boundaries": 6,
+    "rejected_boundaries": 13,
+    "independently_rerun": false
+  },
+  "prior_full_source_review_retained": {
+    "package_members": 46,
+    "files_including_manifest": 47,
+    "all_original_package_member_hashes_matched": true,
+    "unchanged_frozen_INPUT_TRIAL_ENV_typed_scorer_and_lineage_files": 14,
+    "Native_CPU169_DSO": "184e60047ab0c1cd56e92509cce324348dee5d241ab6ad3e945f62fe0de8d0fa",
+    "Native_recompile_required": false,
+    "provider_denominator": 71,
+    "single_dispatch_origin_epoch": true,
+    "whole_seconds": 60000,
+    "GPU_seconds_cap": 57600,
+    "inside_seconds": 57300,
+    "work_seconds": 57000,
+    "strict_8GiB_floor": true,
+    "full_context": 32768,
+    "planned_requests": 33,
+    "unique_screens": 32,
+    "max_new_tokens": 4096,
+    "nodes": [
+      "f13r1n05",
+      "f13r1n07"
+    ],
+    "parent": "1103606",
+    "resource_mapping_SHA256": "36361b92773f8eda412132ea176c29e814e4620ea8392ff287e68d854d67f5c9"
+  },
+  "required_before_and_after_actual_launch": [
+    "Root publication of exact new package and claim",
+    "Actual same-container masked HOST preflight validates source/input/CPU169/71providers",
+    "Fresh parent owner/node membership, no overlapping step, unique namespace/labels/PID/port admission",
+    "Ownership snapshot after preflight; GPU gate requires same boot/PCI and <=90s age",
+    "One original dispatch only; UNKNOWN/failed scope must not be replayed",
+    "Original terminal accounting and independent post/owner-exit evidence required"
+  ],
+  "interpretation_limits": [
+    "Source adoption is not target preflight, Native Model numeric qualification or actual GPU result",
+    "0/partial frames retain all planned denominator and UNKNOWN measurement; successful metadata/schema alone is not48-frame coverage",
+    "Host and same-stream envelopes overlap; not exclusive GPU busy, kernel-provider proof, throughput gain or user SLO",
+    "Reserved maximum921600 DCU-seconds is not current measured busy"
+  ],
+  "review_actions": {
+    "local_source_read_and_small_evidence_hash": true,
+    "focused_AST_only": true,
+    "tests_rerun": 0,
+    "remote_calls": 0,
+    "Git_calls": 0,
+    "Torch_SDK_Model_GPU_calls": 0,
+    "new_reports_framework": false
+  },
+  "remaining_source_blockers": []
+}
