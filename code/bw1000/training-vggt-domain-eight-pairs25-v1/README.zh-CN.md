@@ -1,0 +1,15 @@
+# 八个固定训练双帧对的单次连续训练与恢复
+
+此 scope 只把上一份输入从2pair扩为8pair，原始VGGT权重、seed、camera_head训练范围、在线aggregator、BF16、AdamW及裁剪保持原配方。8pair由原near1对、原planar1对及同near录制新增6对组成，实际只有2个物理录制，near7/planar1。固定顺序详见数据bundle。输入扩充增加时间与视角覆盖，现有证据尚不能证明旧2pair的开发下降由过拟合造成。
+
+运行前已修正实际步骤的截止时间链。Slurm时限按原epoch余量向下取整到整分钟，GPU客户端上限1440秒内预留启动5秒，实际早期GPU时限最多23分钟。CPU步骤使用60秒Slurm时限和65秒客户端窗口。终态查询最多22秒，sacct自身timeout也按同一截止缩小，另外保留独立post的90秒和写回2秒。余量不足一个完整最短步骤时拒绝新步骤。check_deadline_CPU对真实step函数模拟8种早期、临近到期、过期和查询延迟场景，核实际argv与timeout，未执行Slurm。
+
+最多执行一次fresh continuous25和一次新进程checkpoint20恢复更新21–25，共30次真实update调用。前5步为计时预热、后20步计时，原固定学习率2e-5、梯度累积1。保存checkpoint10/20/25。八批游标为(global_step-1)%8，checkpoint10/20/25的next_batch_cursor分别2/4/1，第21步恢复后应取batch4。原完整checkpoint中的模型、optimizer、placement、RNG与实际8批张量身份全部复用canonical逻辑，模型及优化器数学实现字节未变。三个臂网格已缩为continuous与resume20两进程。
+
+新data_contract把8个manifest及65件供料文件固定，包含32个媒体文件，全部独立核SHA并隔离固定Cabinet/Teddy开发组及household盲组。原8批数据在CPU通过现有时间同步、基线、有效深度掩码和双向重投影门禁。新增深度来自固定Voxel51版本并核消息与CRC，仍缺这些深度与官方PNG的独立逐字节对照。源录制均适用TUM CC BY 4.0，保留IROS2012引用和转换来源。[官方数据与许可](https://cvg.cit.tum.de/data/datasets/rgbd-dataset) · [转换说明](https://huggingface.co/datasets/Voxel51/TUM-RGBD#parsing-decisions)
+
+原canonical backend SHA49bfe39…的训练更新、保存和恢复实现未改。新独立overlay只改变采集输入和报告物理场景计数，cached_valid_batches为8，sequence_count为2。目标端独立新namespace复用原393框架清单、上游及Torch/HIP provider，生成4件delta替换1个backend和新增3辅助模块。无需DSO编译。原checkpoint CPU hash16线程与实际分配4CPU的配置继承，记录工程开销，不能据此报告正式性能。
+
+本地check_contract_CPU验证了8个实际几何输入、真实canonical边界metadata与游标、21项坏契约及比较器坏loss/optimizer。第一次本地检查的AST锚点曾误匹配计数表达式，已修正后通过。它没有执行Torch训练或真实恢复。源码及source proof、CLAIM都独立新建，原scope与原件未改。实际部署前根协调者仍需普通发布新claim，并做fresh PCI/KFD/PID及namespace去重。调用父作业1087656/f11r4n19，1DCU、4CPU、64GiB，整轮epoch1800秒，GPU1440、inside1300，各子进程继承同截止时间；原terminal collector和独立post保持实际接入。SSH或提交unknown只查原request与label，不重放。
+
+唯一未来提交入口为submit_once.py，接受新完整发布SHA、现有已审SSH-helper.py以及私有data目录。先将本目录CLAIM.json发布到coordination/tasks/training-vggt-tum-eight-pairs25-recovery-v1.json。若这次训练和必要恢复合格，再另建一次固定dev3评分scope。若下一次开发效果继续退化，结束此小数据路线，不进行step或学习率扫描，不读取household。新增同录制pair不能声称新场景泛化或正式CO3D资格。
