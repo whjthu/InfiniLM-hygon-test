@@ -1,0 +1,73 @@
+{
+  "schema": "T03_T04_COMMON_CUDA_RESUME20_COMPARISON_V1",
+  "evidence": {
+    "T03": {
+      "path": "results/bw1000/2026-11-17/training-InternVL-eight-A100-resume20-five-updates-independent-drift.json",
+      "SHA256": "45ee7d53b679ff0d70c7f9cabac0690c9fc6bdff07034b687c6a3d0002c411ee"
+    },
+    "T04": {
+      "path": "results/bw1000/2026-11-17/training-LLaVA-eight-A100-resume20-five-updates-independent-exact.json",
+      "SHA256": "ce6a79581a9c60b332ec707c34cd7817834cc459bdfd1fead119aa62d330e112"
+    }
+  },
+  "same_common_source_publication": true,
+  "common_framework_members": 396,
+  "observed": {
+    "both_cases": {
+      "engineering_recovery_completed": true,
+      "ranks": 8,
+      "global_microbatches": 160,
+      "updates_per_rank": 5,
+      "checkpoint20_model_optimizer_scheduler_and_native_RNG_restore_exact": true,
+      "new_checkpoint25_saved_equals_live": true,
+      "scheduler_and_eight_final_saved_RNG_exact": true,
+      "normal_exit_and_owned_postclean": true
+    },
+    "T03": {
+      "original25_typed_adapter_optimizer_exact": false,
+      "adapter_max_abs": 1.0555515473242849e-05,
+      "optimizer_max_abs": 0.0015531963617831934,
+      "attention": "sdpa",
+      "gradient_checkpointing": true
+    },
+    "T04": {
+      "original25_typed_adapter_optimizer_exact": true,
+      "adapter_max_abs": 0.0,
+      "optimizer_max_abs": 0.0,
+      "attention": "eager",
+      "gradient_checkpointing": false
+    }
+  },
+  "interpretation": [
+    "The shared observer and native checkpoint20 restore path can reach exact original25 typed state for T04. T03 drift is retained separately; it is not a universally reproduced restore failure.",
+    "Architecture, attention and checkpointing differ simultaneously, so this comparison does not identify gradient checkpointing or a specific kernel as the T03 cause.",
+    "Exact final typed state does not supply the absent historical per-micro input/RNG/loss tail or qualify Hygon numerical recovery, formal throughput, heldout effect or stage acceptance."
+  ],
+  "next_actions": [
+    {
+      "priority": 1,
+      "action": "Root may update T04 A100 engineering recovery and original25 typed-state columns to PASS, keeping historical microtail/formal/Hygon/performance/effect columns false."
+    },
+    {
+      "priority": 2,
+      "action": "Preserve T03 drift and current exact sharder-source conclusion; choose a separately frozen causal diagnostic only after a source-based candidate is justified. Do not rerun T03/original25 or use arbitrary thresholds to turn drift into PASS."
+    }
+  ],
+  "root_task_status_suggestion": {
+    "task": "coordination/tasks/training-vlm-cuda-resume20-v1.json",
+    "T04_case_state": "ACTUAL_EIGHT_A100_FIVE_UPDATE_RECOVERY_ENGINEERING_PASS_ORIGINAL25_TYPED_EXACT",
+    "T03_case_state": "KEEP_EXISTING_ORIGINAL25_DRIFT",
+    "latest_result": "results/bw1000/2026-11-17/training-LLaVA-eight-A100-resume20-five-updates-independent-exact.json",
+    "latest_result_SHA256": "ce6a79581a9c60b332ec707c34cd7817834cc459bdfd1fead119aa62d330e112",
+    "actual_total_two_cases_GPU_model_runs": 2,
+    "no_running_claim": true,
+    "not_added_to_Hygon_busy_or_throughput": true
+  },
+  "no_new_remote_or_GPU_action": true,
+  "formal_recovery_qualified": false,
+  "formal_numerics": false,
+  "formal_performance": false,
+  "Hygon_GO": false,
+  "Model_GO": false,
+  "heldout_effect": false
+}
