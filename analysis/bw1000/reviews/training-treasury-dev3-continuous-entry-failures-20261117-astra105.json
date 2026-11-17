@@ -1,0 +1,207 @@
+{
+  "state": "ACTUAL_ENOSPC_CONFIRMED_PATH_UNKNOWN_NO_GPU_V4",
+  "reviewer": "astra_review_105",
+  "scope": "Local read/review only; no remote/Git/GPU/source repair",
+  "actual_request": "3012fc14dd404fe39ffd12ce838a1154",
+  "actual_source_publication": "99c1e7fda254da6a36042c320bd245f7db4ddfdf",
+  "evidence": {
+    "path": "local-only/training-qwen-treasury-explicit-dev3-gpu-v3-root-audit-v2/public-summary.json",
+    "SHA256": "9e7fb38f21bd6eb7a2eea92b91a2bf69367765bf2a5c645705e7ed32ec1ab18b",
+    "base_shortlog_evidence_SHA256": "574d4f9c355f6569f329097b8d74ddc189393f684467ee846fc894d1dcb4f66f",
+    "base_gpu_stderr_SHA256": "ce53c86db295e6276bf7d851c2049f1950259b486d733ce20ef00344ca8ddfa7",
+    "fatal_line": 2,
+    "fatal": "LLVM ERROR: IO failure on output stream: No space left on device"
+  },
+  "sources": {
+    "native_generation": {
+      "path": "code/bw1000/training-qwen-treasury-explicit-dev3-gpu-v3/native_generation.py",
+      "SHA256": "915601479cdd48d7fb3fce9db60c49e0b467644b5a62f133580945ecf84bd11f"
+    },
+    "arm_controller": {
+      "path": "code/bw1000/training-qwen-treasury-explicit-dev3-gpu-v3/arm_controller.py",
+      "SHA256": "53a2d2fc0cf5f1934edfc13e7fb3e77093d02792962429de1fb7a9cb8f0f7ccf"
+    },
+    "previous_input_probe": {
+      "path": "code/bw1000/training-qwen-treasury-dev3-v2-input-gate-CPU-v1/probe.py",
+      "SHA256": "9f258619c9ebc09782b4d83e202c599de5084a661753d7aab39e2eb4dfe6be23"
+    }
+  },
+  "actual_arms": {
+    "base": {
+      "gpu": [
+        "1087656.346",
+        "training-qwen-treasury-explicit-dev3-gpu-v3-base-gpu",
+        "FAILED",
+        "1:0",
+        "26",
+        "a01r4n14",
+        "cpu=8,gres/dcu=1,mem=64G,node=1"
+      ],
+      "post": [
+        "1087656.347",
+        "training-qwen-treasury-explicit-dev3-gpu-v3-base-post",
+        "COMPLETED",
+        "0:0",
+        "0",
+        "a01r4n14",
+        "cpu=2,mem=4G,node=1"
+      ],
+      "post_KFD_holders": 0,
+      "input_entry39_verified": true,
+      "model_manifest_files": 14,
+      "generated_rows": 0,
+      "missing_rows": 108,
+      "Model_constructed": "UNKNOWN"
+    },
+    "old_domain": {
+      "gpu": [
+        "1087656.345",
+        "training-qwen-treasury-explicit-dev3-gpu-v3-old_domain-gpu",
+        "FAILED",
+        "1:0",
+        "27",
+        "a01r4n16",
+        "cpu=8,gres/dcu=1,mem=64G,node=1"
+      ],
+      "post": [
+        "1087656.348",
+        "training-qwen-treasury-explicit-dev3-gpu-v3-old_domain-post",
+        "COMPLETED",
+        "0:0",
+        "0",
+        "a01r4n16",
+        "cpu=2,mem=4G,node=1"
+      ],
+      "post_KFD_holders": 0,
+      "input_entry39_verified": true,
+      "model_manifest_files": 14,
+      "generated_rows": 0,
+      "missing_rows": 108,
+      "Model_constructed": "UNKNOWN"
+    },
+    "domain": {
+      "gpu": [
+        "1103606.172",
+        "training-qwen-treasury-explicit-dev3-gpu-v3-domain-gpu",
+        "FAILED",
+        "1:0",
+        "31",
+        "f13r1n10",
+        "cpu=8,gres/dcu=1,mem=64G,node=1"
+      ],
+      "post": [
+        "1103606.173",
+        "training-qwen-treasury-explicit-dev3-gpu-v3-domain-post",
+        "COMPLETED",
+        "0:0",
+        "0",
+        "f13r1n10",
+        "cpu=2,mem=4G,node=1"
+      ],
+      "post_KFD_holders": 0,
+      "input_entry39_verified": true,
+      "model_manifest_files": 14,
+      "generated_rows": 0,
+      "missing_rows": 108,
+      "Model_constructed": "UNKNOWN"
+    }
+  },
+  "root_cause_boundary": {
+    "base_LLVM_ENOSPC_confirmed": true,
+    "other_arms_same_fatal_independently_proved": false,
+    "exact_filesystem_cache_or_inode_quota": "UNKNOWN",
+    "Model_construction": "UNKNOWN",
+    "API_import_error_proved": false,
+    "main_qualification_gap_is_actual_failure_cause": false
+  },
+  "history": {
+    "v1": "3 GPU failures: input namespace/media mismatch;324missing retained",
+    "v2": "HOST mixed stdout/stderr JSON failure;0newGPU;324missing retained;old UNKNOWN not rewritten",
+    "v3": "3 GPU failures;0generated/324missing;all postsC0/KFD0",
+    "new_native576": "New data432rows/576encodecalls/48images +2rowcollator only; no inference ENGINE/main qualification"
+  },
+  "source_line_findings": [
+    {
+      "source": "previous_input_probe",
+      "lines": [
+        65,
+        69
+      ],
+      "finding": "run_name=frozen_native_entry_gate; only bound_inputs called, no __main__/argparse/generate"
+    },
+    {
+      "source": "arm_controller",
+      "lines": [
+        238,
+        253
+      ],
+      "finding": "GPU worker input-entry gate checks bound_inputs only before Torch/HIP"
+    },
+    {
+      "source": "arm_controller",
+      "lines": [
+        266,
+        288
+      ],
+      "finding": "HIP assignment+model SHA precede actual sys.argv/run_path(__main__)"
+    },
+    {
+      "source": "native_generation",
+      "lines": [
+        57,
+        81
+      ],
+      "finding": "generate adds versions/ENGINEpins/providerimports/deviceguard/outputI/O before materialization; old input gate does not cover these"
+    },
+    {
+      "source": "native_generation",
+      "lines": [
+        90,
+        103
+      ],
+      "finding": "engine/config preparation and AdapterRequest after model load remain unqualified by pre-materialize main gate"
+    },
+    {
+      "source": "native_generation",
+      "lines": [
+        114,
+        121
+      ],
+      "finding": "actual argparse/main entry"
+    }
+  ],
+  "only_next_candidate": {
+    "kind": "CPU exact-container filesystem/cache capacity and write-route localization",
+    "placement": [
+      "1087656/a01r4n14",
+      "1087656/a01r4n16",
+      "1103606/f13r1n10"
+    ],
+    "devices": "0GRES and hidden GPUs",
+    "same_runtime": "v3 arm_controller.py175–193 exact contain/rocm/binds/PYTHONPATH/runtime; stdout and stderr separated",
+    "check": "Resolve actual container mount/cache/temp/output paths; filesystem available bytes+inodes+quota where readable; distinguish host vs contain namespace. Identify exact path/operation/errno with bounded existing tracing or new exclusively owned probe only if authorized. Do not infer /tmp from LLVM wording.",
+    "exit": "Require per-node original container mapping and evidence identifying exhausted write target or reproducible capacity failure. Unknown path, permission denial, inconsistent mounts or unexplained capacity => hold. Any later correction limited to newly owned explicit cache/output and reviewed capacity; no shared cleanup or GPUv4.",
+    "no_actions": [
+      "no deleting unknown/shared/tmp",
+      "no changing frozenv3",
+      "no newGPU/retry/rename",
+      "no API repair without actual exception"
+    ]
+  },
+  "later_main_gate_contract": {
+    "defaultOFF": true,
+    "shared_true_main": true,
+    "entry": "same sys.argv and runpy.run_path(...,run_name=__main__)",
+    "CPU": "no GPU-success mock; explicit HOST-only branch",
+    "coverage": "argparse/provider __file__+pins/required model+adapter paths/108IDs/output plan",
+    "stop": "before get_model_processor(load_model=True)",
+    "does_not_qualify": "load-dependent engine/adapter API or model/generation",
+    "depends_on": "capacity/cache cause resolved and root source review; not a second current repair candidate"
+  },
+  "missing_denominator_per_scope": 324,
+  "accuracy": null,
+  "optimization_round": false,
+  "GPU_GO": false,
+  "promotion": false,
+  "capture_value_reader": "PREPARED only,CPU_GO=false; no execution"
+}
