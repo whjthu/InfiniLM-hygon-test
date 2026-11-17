@@ -1,0 +1,366 @@
+"""Run a single frozen GLM FFN observation under the existing I02 job."""
+
+import argparse
+from datetime import datetime
+import json
+import os
+from pathlib import Path
+import re
+import secrets
+import hashlib
+import signal
+import subprocess
+import time
+
+from native_arm import ARMS
+from shared import D, HOST, NODES, PARENT, REQUIRED_FILES, H, load_pinned, namespace, require, save, verify_manifest
+from slurm_accounting import wait_terminal
+from verify_transport import INFINICCL_SHA256, RCCL_SHA256, network_channels
+from bootstrap import PORT as BOOTSTRAP_PORT
+from budget import GPU_SECONDS, INSIDE_SECONDS, PAIR_SECONDS, WORK_SECONDS, remaining, require_pair_capacity, slurm_seconds
+
+COLUMNS = "JobIDRaw,JobName%100,State,ExitCode,ElapsedRaw,NodeList,AllocTRES"
+PYTHON = "/usr/local/python3.12/bin/python3"
+ARM = "socket"
+ORIGIN_EPOCH = None
+ORIGINAL_MONO_END = None
+
+
+def query(*command, timeout=10):
+    if ORIGINAL_MONO_END is not None:
+        timeout = min(timeout, ORIGINAL_MONO_END-time.monotonic())
+    require(timeout > 0, 'original HOST epoch exhausted')
+    return subprocess.check_output(command, text=True, timeout=timeout).splitlines()
+
+
+def expand(nodes):
+    return set(query("scontrol", "show", "hostnames", nodes))
+
+
+def check_idle():
+    parents = query("squeue", "-h", "-j", PARENT, "-o", "%T|%N")
+    require(len(parents) == 1, "I02 allocation missing")
+    state, hosts = parents[0].split("|")
+    require(state == "RUNNING" and set(NODES) <= expand(hosts), "I02 allocation changed")
+    allocation = query('scontrol', 'show', 'job', PARENT, '-o')
+    require(len(allocation) == 1, 'original I02 parent identity missing')
+    fields = dict(word.split('=', 1) for word in allocation[0].split() if '=' in word)
+    owner = re.fullmatch(r'[^()]+\(([0-9]+)\)', fields.get('UserId', ''))
+    tres = dict(word.split('=', 1) for word in fields.get('AllocTRES', '').split(',') if '=' in word)
+    require(owner and int(owner[1]) == os.getuid() and fields.get('JobState') == 'RUNNING'
+            and fields.get('NumNodes') == tres.get('node') == '40' and tres.get('gres/dcu') == '320',
+            'actual I02 parent owner/count/reservation differs')
+    require(datetime.fromisoformat(fields["EndTime"]).timestamp()>=ORIGIN_EPOCH+PAIR_SECONDS+30,"parent deadline does not cover original epoch")
+    check_live_steps(query("scontrol", "show", "step", PARENT, "-o"))
+
+
+def check_live_steps(lines):
+    require(bool(lines), "controller returned no steps for the running allocation")
+    for line in lines:
+        fields = dict(word.split("=", 1) for word in line.split() if "=" in word)
+        step = fields.get("StepId", "")
+        require(re.fullmatch(re.escape(PARENT) + r"\.(?:[0-9]+|batch|extern)", step),
+                "unrecognized controller step")
+        if step.endswith((".batch", ".extern")):
+            continue
+        hosts = fields.get("NodeList")
+        require(hosts not in {None, "", "(null)", "None", "(none)"},
+                "controller step has unresolved nodes")
+        nodes = expand(hosts)
+        require(nodes and not (set(NODES) & nodes), "live or unresolved Slurm step overlaps I02 pair")
+
+
+def account(label, deadline):
+    remaining = deadline - time.monotonic()
+    require(remaining > 0, "accounting deadline exhausted")
+    rows = [line.split("|") for line in query(
+        "sacct", "-n", "-P", "-j", PARENT, "--format=" + COLUMNS,
+        timeout=min(10, remaining)) if "|" + label + "|" in line]
+    require(len(rows) <= 1, "duplicate step label")
+    if rows:
+        require(len(rows[0]) == 7 and re.fullmatch(PARENT + r"\.\d+", rows[0][0]),
+                "unexpected step accounting")
+    return rows[0] if rows else None
+
+
+def actual_resources(row, phase):
+    if not row or len(row) != 7:
+        return False
+    tres = dict(word.split('=', 1) for word in row[6].split(',') if '=' in word)
+    cpu = '128' if phase == 'gate' else '8' if phase == 'pre' else '2'
+    gpu = tres.get('gres/dcu', '0')
+    return tres.get('cpu') == cpu and tres.get('node') == '2' and gpu == ('16' if phase == 'gate' else '0')
+
+
+def command(label, phase, out):
+    gpu = phase == "gate"
+    return [
+        "srun", "--jobid=" + PARENT, "--job-name=" + label, "--exact", "--immediate=5",
+        "--nodes=2", "--ntasks=2", "--ntasks-per-node=1", "--distribution=block:block",
+        "--cpu-bind=none", "--nodelist=" + ",".join(NODES), "--kill-on-bad-exit=1",
+        "--cpus-per-task=" + ("64" if gpu else "4" if phase == "pre" else "1"), "--mem=" + ("224000M" if gpu else "8192M" if phase == "pre" else "1024M"),
+        "--gres=" + ("dcu:8" if gpu else "none"), "--time=" + str(slurm_seconds(ORIGIN_EPOCH, phase)//60),
+        PYTHON, "-B", str(D / "host_probe.py"), phase, str(out),
+    ]
+
+
+def run_step(label, phase, out, env, end):
+    before = time.monotonic()
+    require(ORIGIN_EPOCH is not None and ORIGINAL_MONO_END is not None, 'missing original dispatch epoch')
+    end = min(end, ORIGINAL_MONO_END-40)
+    require(before < end, "step budget exhausted")
+    log = out / (phase + ".log")
+    receipt = out / (phase + "-receipt.json")
+    result = dict(phase=phase, label=label, state="NOT_SUBMITTED", exec_request_attempted=False, terminal=False,
+                  passed=False, accounting_columns=COLUMNS.split(","), observations=[])
+    with receipt.open("x") as stream:
+        json.dump(result, stream)
+        stream.flush()
+        os.fsync(stream.fileno())
+    child = None
+    try:
+        with log.open("xb") as stream:
+            result.update(state="SUBMISSION_POSSIBLE",exec_request_attempted=True);save(receipt,result)
+            child = subprocess.Popen(command(label, phase, out), env=env, stdout=stream,
+                                     stderr=subprocess.STDOUT, start_new_session=True)
+            result["srun_PID"] = child.pid
+            stat = Path(f"/proc/{child.pid}/stat").read_text().rsplit(") ", 1)[1].split()
+            result["srun_startticks"] = int(stat[19])
+            save(receipt, result)
+            child.wait(timeout=max(.01, end - time.monotonic()))
+    except BaseException as exc:
+        result["error"] = type(exc).__name__ + ": " + str(exc)
+    finally:
+        if child is not None and child.poll() is None:
+            result["forced"] = True
+            for sig in (signal.SIGTERM, signal.SIGKILL):
+                try:
+                    os.killpg(child.pid, sig)
+                except ProcessLookupError:
+                    pass
+                try:
+                    child.wait(timeout=min(5, max(.01, ORIGINAL_MONO_END-time.monotonic()-25)))
+                    break
+                except subprocess.TimeoutExpired:
+                    continue
+        deadline = min(time.monotonic() + 24, ORIGINAL_MONO_END-5)
+
+        def observe():
+            row = account(label, deadline)
+            result["observations"].append(row)
+            save(receipt, result)
+            return row
+
+        try:
+            observed = wait_terminal(observe, deadline, interval=1, max_observations=16)
+            row = observed["row"]
+            result.update(terminal=observed["terminal_visible"], row=row)
+            result["passed"] = bool(
+                row and row[2:4] == ["COMPLETED", "0:0"] and child and child.returncode == 0
+                and "error" not in result and not result.get("forced") and expand(row[5]) == set(NODES)
+                and actual_resources(row, phase)
+            )
+        except BaseException as exc:
+            result["accounting_error"] = type(exc).__name__ + ": " + str(exc)
+        result["state"] = "TERMINAL" if result["terminal"] else "UNKNOWN"
+        result["seconds"] = time.monotonic() - before
+        save(receipt, result)
+    return result
+
+
+def evidence(out, phase, step):
+    result = {}
+    for node in NODES:
+        row = json.loads((out / phase / (node + ".json")).read_bytes())
+        if phase == "gate":
+            mapping = row["pci_to_kfd"]
+            require(set(mapping) == set(row["pci"]) and len(set(mapping.values())) == 8,
+                    "leased GPU identities differ")
+        require(row["step"] == step and row["node"] == node and row["kfd_holder_count"] == 0
+                and set(row["ports_bindable"]) == {"43843", "43844", str(BOOTSTRAP_PORT)}
+                and all(row["ports_bindable"].values()) and len(set(row["pci"])) == 8,
+                "GPU ownership evidence differs from accounting")
+        result[node] = row
+    return result
+
+
+def verify_released(pre, post):
+    for node in NODES:
+        require(pre[node]["pci"] == post[node]["pci"] and pre[node]["boot_id"] == post[node]["boot_id"]
+                and pre[node]["monotonic_ns"] <= post[node]["monotonic_ns"],
+                "post-run hardware identity changed")
+
+
+def verify_owners(out, arm, manifest, gpu_step, gate, cached_owners=None, cached_workers=None):
+    from model_evidence import audit_owners
+    from resident_trial import phases, schedule
+
+    inputs = json.loads((D / "INPUT_BINDING.json").read_bytes())
+    pins = inputs["private_plan"]["requests"]
+    owners = []
+    request_fields = ("ordinal", "case_id", "suite", "prompt_IDs_SHA256", "body_SHA256")
+    output_hashes = None
+    barrier_digests = None
+    uid_digests = None
+    providers = None
+    transport_logs = []
+    for node_index, node in enumerate(NODES):
+        worker = cached_workers[node_index] if cached_workers is not None else json.loads((out / f"worker-{node_index}.json").read_bytes())
+        require(worker["completed"] and worker["passed"] and worker["actual_GPU"] == gpu_step
+                and worker["identity"]["arm"] == arm and worker["identity"]["run_manifest_SHA256"] == manifest,
+                "leader did not complete the selected run")
+        require(not worker.get("forced_TERM") and not worker.get("forced_KILL")
+                and [row["phase"] for row in worker["rounds"]] == phases(),
+                "incomplete or forced leader shutdown")
+        digests = [row["digest"] for row in worker["rounds"]]
+        require(barrier_digests in (None, digests), "leader barrier digests differ")
+        barrier_digests = digests
+        pci = set()
+        for device in range(8):
+            rank = node_index * 8 + device
+            owner = cached_owners[rank] if cached_owners is not None else json.loads((out / f"owner-{rank:02d}.json").read_bytes())
+            require(owner["global_rank"] == rank and owner["node"] == node
+                    and owner["actual_GPU"] == gpu_step and owner["Native_arm"] == arm
+                    and owner["Native_SHA256"] == ARMS[arm][1] and owner["GPU_manifest_SHA256"] == manifest
+                    and owner["completed"] and owner["passed"] and owner["normal_close"]
+                    and owner["Runtime_weak_expired_CABI_assertion"] and owner["resets"] == 132
+                    and owner["attention_detail_optin"] is True
+                    and len(owner["requests"]) == 66 and owner["all78layers_loaded"]
+                    and owner["loaded_parameters"] == owner["checkpoint_key_count"] == 117060
+                    and owner["Native_forward_attempts"] == owner["Native_forward_completed"]
+                    and owner["driver_memory"]["min_observed"] >= 8 * 1024**3
+                    and not owner["driver_memory"]["errors"]
+                    and all(v["free"] >= 8 * 1024**3 for v in owner["memory_boundaries"]),
+                    "owner did not complete the selected run")
+            ids = owner["UID_SHA256"]
+            require(owner["transport"] == arm and len(ids) == 2 and ids[0] != ids[1]
+                    and all(re.fullmatch("[0-9a-f]{64}", digest) for digest in ids)
+                    and uid_digests in (None, ids), "owner transport or communicator IDs disagree")
+            uid_digests = ids
+            owner_providers = owner["transport_providers"]
+            expected = {"infiniccl": INFINICCL_SHA256, "rccl": RCCL_SHA256}
+            require({name: row["SHA256"] for name, row in owner_providers.items()} == expected
+                    and providers in (None, owner_providers), "owner transport providers disagree")
+            providers = owner_providers
+            with (out / f"owner-{rank:02d}.log").open("rb") as log:
+                transport_logs.append(log.read(1024 * 1024).decode("utf-8", errors="replace"))
+            for item, request in zip(schedule(), owner["requests"]):
+                pin = pins[item["case_index"]]
+                require(all(request[field] == pin[field] for field in request_fields)
+                        and request["diagnostic"] == item["diagnostic"]
+                        and request["completed"] and request["reset_before"] and request["reset_after"]
+                        and bool(request["natural_EOS"]) != bool(request["cap_hit"]),
+                        "rank request identity or completion differs")
+            hashes = [request["generated_token_ids_SHA256"] for request in owner["requests"]]
+            require(output_hashes in (None, hashes), "output hashes disagree across ranks")
+            output_hashes = hashes
+            pci.add(owner["physical_PCI"])
+            owners.append(owner)
+        require(pci == set(gate[node]["pci_to_kfd"]), "owner PCI differs from assigned KFD inventory")
+    ffn = audit_owners(owners, inputs, set(inputs["eos_token_ids"]))
+    require(ffn["owners"] == [owner["model_value_evidence"] for owner in owners],
+            "FFN owner evidence differs from the audit of original observations")
+    return dict(transport=arm, UID_SHA256=uid_digests, providers=providers,
+                model_value_observation={key: val for key, val in ffn.items() if key != "owners"},
+                network=network_channels("\n".join(transport_logs), arm),
+                channel_log_prefix_bytes_per_rank=1024 * 1024)
+
+
+def run_arm(run_id, claim_sha, source_sha, launch_epoch):
+    arm = ARM
+    require_pair_capacity(launch_epoch, 1)
+    label, container_out = namespace(run_id, arm)
+    out = HOST / "results" / label
+    check_idle()
+    for phase in ("pre", "gate", "post"):
+        require(account(label + "-" + phase, time.monotonic() + 12) is None, "step already submitted")
+    out.mkdir(mode=0o700)
+    for phase in ("pre", "gate", "post"):
+        (out / phase).mkdir(mode=0o700)
+    clean = {k: v for k, v in os.environ.items() if not k.startswith(
+        ("SLURM_", "PMI_", "PMIX_", "CUDA_", "HIP_", "ROCR_", "GPU_"))
+        or k in {"SLURM_CONF", "SLURM_CONF_SERVER"}}
+    clean["GLM470_EPOCH"] = str(launch_epoch)
+    pre = run_step(label + "-pre", "pre", out, clean, min(time.monotonic() + 150, ORIGINAL_MONO_END-600))
+    require(pre["passed"], "pre-run Slurm probe did not pass")
+    before = evidence(out, "pre", pre["row"][0])
+    for node in NODES:
+        check = json.loads((out/'pre'/(node+'-container.json')).read_bytes())
+        require(check['passed'] is True and check['Native_SHA256'] == ARMS[arm][1]
+                and check['actual_GPU'] == pre['row'][0] and check['node'] == node
+                and check['Native_loaded'] is False and check['provider_records'] == 71 and check['actual_project_provider_hashes']==8,
+                'new target CPU preflight did not qualify exact179B and inputs')
+    epoch = launch_epoch
+    require_pair_capacity(launch_epoch, 1)
+    transport_key = secrets.token_hex(32)
+    manifest = dict(schema="glm474-history-value-model-worker-v1", run_id=run_id, arm=arm, epoch=epoch,
+                    parent=PARENT, nodes=NODES, output=str(container_out), Native_SHA256=ARMS[arm][1],
+                    GPU_GO=True, Model_execution_authorized=True, Model_qualified=False,
+                    source_manifest_SHA256=source_sha, claim_SHA256=claim_sha,
+                    transport_key_SHA256=hashlib.sha256(bytes.fromhex(transport_key)).hexdigest())
+    verify_manifest(manifest, run_id, arm, epoch)
+    save(out / "RUN_MANIFEST.json", manifest)
+    manifest_sha = H(out / "RUN_MANIFEST.json")
+    env = dict(clean, GLM474_PAIR_ID=run_id, GLM474_PAIR_ARM=arm,
+               GLM470_EPOCH=str(epoch), GLM470_GPU_MF=manifest_sha,
+               GLM474_TRANSPORT=arm, GLM474_TRANSPORT_KEY=transport_key)
+    gpu = run_step(label + "-gate", "gate", out, env, time.monotonic() + remaining(epoch, GPU_SECONDS))
+    require(gpu["terminal"], "GPU accounting unresolved; reservation retained")
+    post = run_step(label + "-post", "post", out, clean, min(time.monotonic() + 45, ORIGINAL_MONO_END-30))
+    require(post["passed"], "post-run Slurm probe did not pass")
+    verify_released(before, evidence(out, "post", post["row"][0]))
+    require(gpu["passed"], "GPU step failed; post-run ownership checks passed")
+    gate = evidence(out, "gate", gpu["row"][0])
+    transport = verify_owners(out, arm, manifest_sha, gpu["row"][0], gate)
+    return gpu["row"][0], gate, transport
+
+
+def main():
+    global ORIGIN_EPOCH, ORIGINAL_MONO_END
+    parser = argparse.ArgumentParser()
+    parser.add_argument("run_id")
+    parser.add_argument("claim_sha256")
+    parser.add_argument("--launch-epoch", type=float, required=True)
+    args = parser.parse_args()
+    ORIGIN_EPOCH = args.launch_epoch
+    ORIGINAL_MONO_END = time.monotonic() + remaining(ORIGIN_EPOCH, PAIR_SECONDS)
+    require(remaining(ORIGIN_EPOCH, PAIR_SECONDS) > 0, 'original HOST deadline exhausted')
+    claim = load_pinned(D / "GPU_RESOURCE_CLAIM.json", args.claim_sha256)
+    resources = dict(GPU_cards=16, CPU_per_node=64, memory_MiB_per_node=224000,
+                     GPU_seconds=GPU_SECONDS, work_seconds=WORK_SECONDS,
+                     inside_seconds=INSIDE_SECONDS, whole_seconds=PAIR_SECONDS, model_context=32768,
+                     memory_floor_bytes=8 * 1024**3, max_new_tokens=4096, planned_requests_per_arm=66)
+    require(all(type(claim[k]) is int and claim[k] == v for k, v in resources.items()),
+            "wrong paired run resource claim")
+    require(claim["run_id"] == args.run_id and claim["parent"] == PARENT and claim["nodes"] == NODES
+            and claim["GPU_GO"] is True and claim["ROOT_GO"] is True and claim["Model_GO"] is True and claim["max_runs_per_arm"] == 1
+            and claim["native_arms"] == {k: v[1] for k, v in ARMS.items()}, "invalid paired claim")
+    require(claim["schema"] == "glm474-history-value-model-claim-v1", "wrong paired claim schema")
+    require(claim["arm_order"] == [ARM], "incorrect transport order")
+    require_pair_capacity(args.launch_epoch, 1)
+    source_sha = claim["source_manifest_SHA256"]
+    source = load_pinned(D / "SOURCE_MANIFEST.json", source_sha)
+    host_source = load_pinned(D / "HOST_MANIFEST.json", claim["host_manifest_SHA256"])
+    require(set(host_source["files_SHA256"]) == {
+        "host_launch.py", "host_container.sh", "host_probe.py", "snapshot.py", "slurm_accounting.py", "preflight.py", "preflight_inside.sh"
+    }, "incomplete HOST source manifest")
+    for files in (source["files_SHA256"], host_source["files_SHA256"]):
+        for name, digest in files.items():
+            require(Path(name).name == name and H(D / name) == digest, "packaged source differs")
+    require(source["files_SHA256"].keys() == REQUIRED_FILES, "incomplete worker manifest")
+    label, _ = namespace(args.run_id, ARM)
+    require(not (HOST / "results" / label).exists(), "run already reserved")
+    lock = HOST / "results" / ("GLM474-history-value-model-" + args.run_id + "-intent")
+    with lock.open("x") as stream:
+        json.dump(dict(claim=args.claim_sha256, PID=os.getpid(), epoch=args.launch_epoch,
+                       deadline=args.launch_epoch + PAIR_SECONDS, arms=[ARM]), stream)
+        stream.flush()
+        os.fsync(stream.fileno())
+    step, hardware, transport = run_arm(args.run_id, args.claim_sha256, source_sha, args.launch_epoch)
+    save(HOST / "results" / ("GLM474-history-value-model-" + args.run_id + "-progress.json"),
+         {ARM: dict(step=step, hardware=hardware, transport=transport)})
+    print(ARM, step, flush=True)
+
+
+if __name__ == "__main__":
+    main()

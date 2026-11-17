@@ -1,0 +1,15 @@
+# Existing179B Model history-value OFF/ON caller
+
+Source-only new namespace; ROOT/GPU/Model execution GO=false until root review/publication. No C++ changes, Native compilation or relink. This reuses the actual common179 B DSO containing the default-OFF NoV caller and expand_cached_values, not a fake TP16 component or replay177.
+
+One real loaded78layer/117060parameter Model on16 ranks, two real8GPU nodes, original world/TP unique-ID transport and owner lifetime. Each of the original33 requests runs OFF then ON after independent original reset and all-rank reset barrier:66 total,32 unique screen denominators per math arm. No request/token/floor reduction. Only the ON diagnostic enables the original lifetime3frames; OFF diagnostic and all64screens remain observer-off. All source/body/tokenizer/scorer pins and complete environment are kept. Packed JSONfalse/env0 is mandatory; exact history-value env0/1 is checked before every forward.
+
+The source-derived exposure test combines actual corrected observer tuples/branches, actual globalrank/localhead geometry, exact Native provider and per-forward env. ENV=1 alone is not exposure. Zero frames, earlyEOS or missing branches retain UNKNOWN/negative; never force generation. Original prompt ranges347..2949 leave the full4096budget inside32768. Screen19/29 already exceed topk2048 and do not promise completeprefix exposure; every row remains in quality/service denominators.
+
+The rank0 diagnostic pair saves only full-logit SHA for finalprefill and first3decodes, comparing only matching actual input prefixes. Raw logits are not exported. These diagnostics are excluded from screen timing. No tokenidentity quality requirement is imposed. Independent reader regrades original saved outputs, retains correct/wrong/cap/missing per32, and does not throw away original owner artifacts on launcher failure. Completion, actual exposure, numerical evidence and quality are separate fields; no automatic Model/performance promotion.
+
+One original60000s epoch starts at local CLI entry before publication checks/upload; inherited work57000/inside57300/GPU57600 are ceilings, not time-to-fill targets. Early normal finish closes immediately. Current parent/numericUID/deadline/members/active-step conflicts, exact namespace/labels, preflight, freshest same-node PCI/KFD/ports, original keeper/control terminal and separate post are mandatory. UNKNOWN is not replay permission. Parent1103606/n05+n07 resources stay16DCU/64CPU+224000MiB pernode;8GiB actual device-free floor remains. Existing Socket transport remains fixed; no new RCCL/IB baseline.
+
+Preflight checks actual179B/source/input and only8 original projectprovider bodies plus original17971provider records. It does not reopen giant39provider hashes or the failed exact4 interface read. The latter remains stopped. CPU179,177,185 histories and all original failures remain immutable.
+
+This package still needs root source/schema review and one fresh admitted dispatch. The separate terminal reader is source-ready; no target/preflight/model/SDK execution occurred during preparation.
