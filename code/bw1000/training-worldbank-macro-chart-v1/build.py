@@ -18,7 +18,9 @@ def renderer_preflight(plan):
     matplotlib.use('Agg',force=True)
     font=Path(matplotlib.get_data_path())/'fonts/ttf/DejaVuSans.ttf'
     need(font.is_file() and not font.is_symlink(),'Bundled renderer font unavailable')
-    return dict(versions=actual,font_SHA256=hashlib.sha256(font.read_bytes()).hexdigest(),font_file=font.as_posix())
+    font_sha=hashlib.sha256(font.read_bytes()).hexdigest()
+    need(font_sha==plan['renderer_font_SHA256'],'Frozen qualified renderer font changed before firstGET')
+    return dict(versions=actual,font_SHA256=font_sha,font_file=font.as_posix())
 
 
 def draw_chart(country_name,indicator,years,values,plan,renderer):
