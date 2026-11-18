@@ -53,7 +53,7 @@ def main(a):
     for name in [*mf['files'], 'SOURCE_FILES.json']:
         budget()
         body = (D / name).read_bytes()
-        need(git('show', a.publication + ':' + rel + '/' + name, budget=budget) == body, 'UNPUBLISHED_OR_DIRTY_SOURCE_BYTES')
+        need(git('cat-file', 'blob', a.publication + ':' + rel + '/' + name, budget=budget) == body, 'UNPUBLISHED_OR_DIRTY_SOURCE_BYTES')
         package[name] = base64.b64encode(body).decode('ascii')
     claim = (D / 'CLAIM.json').read_bytes()
     out = G / 'local-only' / (LABEL + '-original-dispatch')
