@@ -1,0 +1,88 @@
+{
+  "schema": "T03_PAIRED_DOMAIN_GENERIC_TRAINING_A100_V1",
+  "state": "SOURCE_ONLY_NOT_EXECUTED",
+  "root_GO": true,
+  "GPU_GO": true,
+  "CPU_GO": true,
+  "training_GO": true,
+  "Model_GO": false,
+  "formal17_GO": false,
+  "case": "T03.sft",
+  "pair_id": "c4794c72477f45aa939a82e1eb120cc5",
+  "arms": [
+    "domain",
+    "generic"
+  ],
+  "max_invocations_per_arm": 1,
+  "max_invocations_total": 2,
+  "replay_allowed": false,
+  "execution_order": "domain once25 -> actualC0+all8+independentterminal+cleanpost -> generic once25; anyUNKNOWN no replay",
+  "namespaces": {
+    "domain": "/home/whj/nvidia-baseline/alignment-assets/training-USGS-T03-fresh-domain-A100-v1",
+    "generic": "/home/whj/nvidia-baseline/alignment-assets/training-USGS-T03-fresh-control-A100-v1"
+  },
+  "resources": {
+    "GPU": 8,
+    "GPU_type": "original fixed8 A100-SXM4-40GB",
+    "CPU_min": 32,
+    "CPU_max": 64,
+    "exclude_CPU": [
+      0,
+      1
+    ],
+    "sampled_group_RSS_soft_limit_bytes": 274877906944,
+    "RSS_hard_limit": false,
+    "single_epoch_per_arm_seconds": 900,
+    "native_deadline_offset": 820,
+    "supervisor_stop_offset": 850,
+    "held_cleanup_deadline_offset": 880,
+    "alarm_offset": 890,
+    "client_timeout_offset": 895,
+    "allpreparation_upload_copy_input_views_admission_load_training_hashing_checkpoint_cleanup_sameepoch": true
+  },
+  "recipe": {
+    "framework_members": 404,
+    "world_size": 8,
+    "BF16": true,
+    "per_device_batch": 1,
+    "gradient_accumulation": 4,
+    "effective_batch": 32,
+    "unique_rows": 45,
+    "physical_view_rows": 800,
+    "native_updates_per_arm": 25,
+    "rank_microbatches": 100,
+    "global_micro_exposures": 800,
+    "max_length": 4096,
+    "max_pixels": 262144,
+    "attention": "sdpa",
+    "original_gradient_checkpointing_requested": true,
+    "native_Trainer_flag": false,
+    "checkpointing": "Original language-only native Swift lifecycle required at actual model",
+    "LoRA": {
+      "rank": 16,
+      "alpha": 32,
+      "dropout": 0.05
+    },
+    "trainable_tensors": 504,
+    "trainable_parameters": 43646976,
+    "optimizer": "Original AdamW and cosine plus one warmup step, no math change",
+    "checkpoints": [
+      10,
+      20,
+      25
+    ]
+  },
+  "initial": "All8 original rank-specific174821899B fileSHA and sharednamed086ece; qualifiedweights-onlyparameterrestore plus fullrankPython/NumPy/CPU/deviceRNG. Per rank2fullSHA scans349643798B and2weights-onlydeserializations with349175808Bparameterstorage plusRNG/metadata. Total logical file readbytes and physicaldiskIOUNKNOWN. No seed substitution or all8fileSHA equality.",
+  "inputs": "Qualifieddomain45/control45 nativeinputs reused. Buildboth800views in domaininstallation, no separateCPU job/re-encode; generic reuses exact same sealed views after domainqualification. Trainonly; dev/blind/goldinputsnotopened. Native55identitymetadata maybe parsed to filter45train, no new10devinputs/encodes.",
+  "tokens": "Equal25updates/800examples isnot equaltokens; recordactualinput+shifted-supervised tokens per realmicro/all8, genericCPU694unique45 only, domaineffectiveCPUcounterUNKNOWN.",
+  "optimizer_proof": "Allactual native moment/step tensor values mapped through realoptimizerparameterobjects tostable504names; fullvalueSHA across8ranks; rank0saved25safelyreloaded and comparednamedtypedvalues, plus original adapter/optimizer/scheduler actualvaluecomparison. Nohistoricalmissingliveoptimizerevidenceinvented.",
+  "failure_denominators": "Save100planned/rank andeveryattempt/input/forward/loss/privateprogress,25actualupdateIDs/checkpoints10/20/25,full8receipts; complete C0requires all8. Nativefailure/partial/UNKNOWNstayfailed, no nextcontrol or renamed replay.",
+  "costs": "Coldload, initializationSHA scans and2deserializations/rank, input audit, native updates, checkpoints andcleanup reported separately. Own scope notformal5warm20timing3rounds/noHygoncomparison. Firstdomainupdate latencyUNKNOWN; originalwarmupupdate1 LR0/firstparameterchange2.",
+  "qualification_limits": [
+    "OriginalT03recoverydrift remains UNKNOWNcause, not fixed by newfresh25",
+    "T04originaltrainingFAIL notinherited",
+    "Noeffect orformal17/performancequalification",
+    "USGSdev/blind/confirmationalreadyexposed, notnewblind"
+  ],
+  "source_only_validation": "AST+exactqualifiedsourcecopies only, nofixture/processor/Torch/model/GPU/remote execution."
+}
