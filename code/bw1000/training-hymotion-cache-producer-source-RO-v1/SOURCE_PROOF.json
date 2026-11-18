@@ -1,0 +1,47 @@
+{
+  "source_only": true,
+  "references": {
+    "coordination/tasks/training-hymotion-frame-contract-v1.json": {
+      "bytes": 2431,
+      "SHA256": "8b5d893200ee17aa2da6e536a135d67cdbac2ca6d162392d538cffaa9a574f0b"
+    },
+    "code/bw1000/training-hymotion-target-meta-CPU-v2/FRAMEWORK_FILES.json": {
+      "bytes": 54270,
+      "SHA256": "73434e85f547e3a4ca608f0e733b8b88bdba1de98fe5579538d7d1ebff40f41f"
+    },
+    "code/bw1000/training-vlm-cuda-resume20-v1/FRAMEWORK_ASSEMBLY.json": {
+      "bytes": 114851,
+      "SHA256": "636bdae9d1b75dcdfe545c0950b0d0dd36573ee317c8f3f30141a1712b5e1df3"
+    },
+    "code/bw1000/training-USGS-T04-fresh-control-A100-v1/INSTALL_PLAN.json": {
+      "bytes": 1860,
+      "SHA256": "e0e17d0fa2a2d461beb42710d560ec47043c03185762e8aa947bb7ab00f480a8"
+    },
+    "code/bw1000/training-hymotion-A100-transformer-meta-CPU-v1/MODEL_BINDING.json": {
+      "bytes": 2031,
+      "SHA256": "f729c08c92db016912750c440c032318461a95a450a585294f8725fbdc5464de"
+    },
+    "code/bw1000/training-hymotion-A100-transformer-meta-CPU-v1/hy_motion_training.py": {
+      "bytes": 49094,
+      "SHA256": "e23a88e0b78ec16ef76e7c4eb0b254452f0c21a4013f5c5be4cf5dec96e7bb27"
+    }
+  },
+  "new_source_trace_findings": [
+    {
+      "source": "FRAMEWORK_FILES.json + FRAMEWORK_ASSEMBLY.selected_source_members",
+      "fact": "Exact16055B producer7a8f... declared in both333 and393; source qualified_target_parent; not present in checked4 exactlocalcandidate bodies. No globaldisk/NFSabsence claim."
+    },
+    {
+      "source": "MODEL_BINDING.json.model_config.train_pipeline_args.train_frames",
+      "value": 360,
+      "limitation": "Modeldefault only; not proof of any128frame sample."
+    },
+    {
+      "source": "hy_motion_training.py._load_hy_motion_training_data/validate_hy_motion_cache/run_hy_motion_training line808",
+      "fact": "Cacheloader validates motion.shape=(cacheframes,201); training overrides pipeline train_frames with cachedtraining_data.frames. No60crop was identified in this consumer; cannot infer producer did not truncate."
+    }
+  ],
+  "sole_next_missing_source": "Pinned16055B cachedproducer body to identify originaldatasetmanifest/rawmotion loading and whether CLI truncates longmotion to60. True>=128sample path/length not yet evidenced.",
+  "no_remote_oldmeta_training_or_tensor_reads": true,
+  "new_tests": false
+}

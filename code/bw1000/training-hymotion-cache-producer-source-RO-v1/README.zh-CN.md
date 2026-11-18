@@ -1,0 +1,11 @@
+# T08缓存producer源码单文件追溯卡
+
+全GO=false、0远端/测试/Model。原60frames×128samples不能冒用户要求128frames，201维不变；不pad/插值/合成target。
+
+已在333FRAMEWORK_FILES与393→396 FRAMEWORK_ASSEMBLY双清单定位producer：generation/scripts/prepare_hy_motion_training_cache.py，16055B/7a8fceef0d4ba30c6676881d3c7dc59fed4c73b54e292d14b57bcdba1c40a203。当前T04 INSTALL_PLAN明确合格396框架父路径，故有唯一既知A100 exactphysical路径；当前存在性未复查。本机4个已知精确code/worktree候选无body，不作全存储缺失结论。
+
+现有consumer只有cache frames校验和pipeline train_frames被training_data.frames覆盖，model默认360也不证明真实长动作。未得到producer正文前，不能断定60来自上游截断还是原数据仅60，也不能列虚构>=128文件。下一最短动作仅本卡读一次已声明16055B源码，不读manifest/数据/tensor/model，不执行/import producer。
+
+root审/pub后翻root_GO/RO_GO、刷新MF：使用build_body.py生成新request/30s origin有界stdinbody，root先gitshow核对应pub MF再保存request/bodySHA/attempt，交既有授权A100-27普通SSH及BINDING中已知绝对Python。builder不启动SSH。远端2CPU（排0/1）/AS512MiB/30s/SIGALRM，exactstableFD/readSHA/noaliasfallback；stdout<=32KiB含源码b64仅落Lignored，root校验后存source.py供离线追溯，不把第三方正文入Git。任何失败/UNKNOWN留原request不重发，不改路径/主机重试。
+
+得到实际producer后先静态找真实motion来源、length/frames裁剪与参数，仅据其明示原datasetmanifest/生成记录准备下一小metadata卡；若真有>=128原动作，可新冻结共同128frame缓存与A100数值/25/恢复reference，始终与旧60frame结果分开，不能只变frames数字或宣训练通过。T08普通源码/CPU授权有效，本卡不需要重复用户审批，但root必须审后唯一实际调用。
