@@ -1,0 +1,1 @@
+原CPU189失败离线reader的实际执行bytes快照。原执行路径为local-only/T09-CPU189-independent-offline/consume_failure.py；其parents[2]按该原路径定位G，复现须按相同相对布局放置并输出到新的独占目录，不能从本快照目录直接重复执行。原输入仅8422B保存包与原worker源码；0remote/SDK/weight读取。passed表示失败证据独审通过，model_or_hash_passed=false。
