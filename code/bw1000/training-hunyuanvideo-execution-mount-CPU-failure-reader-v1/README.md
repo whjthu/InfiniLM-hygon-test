@@ -1,0 +1,7 @@
+# Original T09 CPU prelaunch failure consumption
+
+Offline-only, one newly saved failure/reconcile. No new v2, retry, remote/proc read, Slurm submit, signal or framework import. Read exact BINDING paths: four private client metadata/stderr records, one3620B reconcile bundle, one209B other-host identity observation, published source MF+launcher and three currentstatus/currenttask JSONs. Protected client0700 records require the already-authorized scoped read; never change ACL. Do not print private argv/stderr or endpoint details.
+
+`read_saved.py --output <new-result.json>` validates actual remotePythonexit1/UNKNOWN_ACTIVE_STEP against the uniquely published source guard before its only srun Popen, installed source intent/ready, missing launch/worker records and exactlabel accountingempty as a combined zero-work proof. It does not infer nonexecution merely from a missingreceipt. The actual Slurm row contains NodeList: rejecting nonnumeric1103606.TDB was correct failclosed behavior, not a proven Nodes/NodeList typo.
+
+Current only limited status/task searches for3940770/1103606.TDB are reported by JSON pointer; absent mapping stays UNKNOWN. Reported srun is onlogin02 while the candidate observer islogin01;0proc reads/0signals, never cross-host absence. Installer original host/boot/PID is separately retained UNKNOWN unless directly observed. GLM188 original reservation remains. This script does not repair the gate by ignoring an unknown step or turn the source/root installation into CPU/GPU/weight qualification.
