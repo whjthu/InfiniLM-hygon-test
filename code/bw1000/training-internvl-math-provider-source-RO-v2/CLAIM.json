@@ -1,0 +1,75 @@
+{
+  "state": "ROOT_ADOPTED_PASSIVE_EXACT_TWO_SOURCE_READ_IO_REPAIR",
+  "root_GO": true,
+  "READ_GO": true,
+  "endpoint_GO": {
+    "hygon_declared_base": true,
+    "a100_original": true
+  },
+  "GPU_GO": false,
+  "Model_GO": false,
+  "scope": "New necessary bounded IO repair only; exact same2 source paths/hash requirements, no fdopen/lazy file IO, one separate fresh epoch per adopted endpoint. Original v1 known failure immutable; A100 must not use old IO implementation.",
+  "resources_per_endpoint": {
+    "CPU": 2,
+    "exclude_CPUs": [
+      0,
+      1
+    ],
+    "GPU": 0,
+    "whole_seconds": 40,
+    "file_cap_bytes": 262144,
+    "two_file_cap_bytes": 524288,
+    "private_transport_cap_bytes": 786432,
+    "max_invocations": 1,
+    "memory_policy": {
+      "initial_VmSize_max_bytes": 1073741824,
+      "AS_floor_bytes": 268435456,
+      "AS_formula": "max(256MiB,initialVmSize+64MiB)",
+      "AS_ceiling_bytes": 2147483648,
+      "VmSize_and_VmRSS": "strict proc status kB nonnegative, taken before setrlimit",
+      "AS_is_RSS": false,
+      "64MiB_headroom_is_measured_peak": false,
+      "growth_probe_max_bytes": 2
+    }
+  },
+  "endpoint_policy": "Root chooses one fixed endpoint and persists one actual request/epoch before ordinary authenticated SSH. Different endpoint requires its own adopted endpoint_GO and request; missing/error never retries, scans, changes route or imports modules.",
+  "prerequisite": {
+    "original_CPU": "1087656.357 FAILED1:0, 0/64",
+    "request_id": "5bc524b1cd904e67ba36e0267db306a0",
+    "publication_prefix": "14740cdb",
+    "phase": "actual-meta-native-PEFT-and-language-GC",
+    "error_type": "ValueError",
+    "independent_reader_SHA256": "a06e1fde0a60bf2806569588502ce8dca3709547332bc522ab144a9d37838b89",
+    "message_SHA256": "1fb6728b3f307e21611ed179affb62f723fd07aa5b6a2b70c00be6ea41beb8b2"
+  },
+  "source_basis": {
+    "A100_exact_paths_and_SHA": "code/bw1000/training-internvl-A100-native-contract-CPU-v1/ORIGINAL_SOURCES.json",
+    "expected_math_mapping": "code/bw1000/training-internvl-target-native64-CPU-v3/NATIVE_BINDING.json:model_source_SHA256",
+    "declared_base_prefix": "results/bw1000/2026-11-11/training-vlm-original117-isolated-swift-runtime.json inventory.imports.transformers.module_path",
+    "prefix_evidence_SHA256": "c9ca983bca9629bc56bdc24de29a6ef663ee36ab090f490900282158ccb103e0"
+  },
+  "interpretation": "Only declared base source, not proof of CPU357's actual loaded module or which of its two hashes failed. Do not weaken expected hash or claim numerical qualification. Original CPU failure retained.",
+  "forbidden": [
+    "module import or execution",
+    "Torch/version.py or sixshadow queries",
+    "Apptainer",
+    "Slurm",
+    "GPU/SDK",
+    "weights",
+    "network HTTP",
+    "directory scan",
+    "alternate path or fallback",
+    "raw source body in Git",
+    "CPU or model replay"
+  ],
+  "prerequisite_v1_failure": {
+    "request_id": "d1450d7bd315497080afe98f1a00c579",
+    "publication_prefix": "db9302d",
+    "known_terminal": true,
+    "transport_returncode": 1,
+    "error_type": "MemoryError",
+    "at": "os.fdopen lazy IO",
+    "old_partial_read_progress": "UNKNOWN_NOT_BACKFILLED",
+    "old_request_replay": false
+  }
+}
