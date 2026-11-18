@@ -1,0 +1,86 @@
+{
+  "schema": "USGS_WIDE_THREE_SPLIT_SOURCE_PREPARATION_V2",
+  "state": "SOURCE_ONLY_NO_GET_NO_QUESTION_GOLD_GENERATION_NO_MODEL",
+  "root_GO": false,
+  "CPU_GO": false,
+  "source_GET_GO": false,
+  "Dataset_GO": false,
+  "training_GO": false,
+  "GPU_GO": false,
+  "Model_GO": false,
+  "actual_GETs": 0,
+  "actual_charts": 0,
+  "actual_QA": 0,
+  "actual_fixtures": 0,
+  "old_question_gold_or_predictions_read": false,
+  "original_250_source_metadata_only": true,
+  "old_dates_UTC": {
+    "old50": [
+      "2026-10-01T00:28:22.215+00:00",
+      "2026-10-02T20:26:00.563+00:00"
+    ],
+    "new200": [
+      "2026-09-01T01:29:11.420+00:00",
+      "2026-09-10T18:04:00.415+00:00"
+    ]
+  },
+  "new_fixed_window": "2020-01",
+  "overlap_with_known250": 0,
+  "original_inventory": {
+    "old50_used": 50,
+    "new200": 200,
+    "excluded_new": 152,
+    "eligible_new_events": 48,
+    "eligible_groups": 6,
+    "exposed_selected_events": 16,
+    "exposed_selected_groups": 5,
+    "unused_raw_events": 32,
+    "unused_events_inside_exposed_groups": 23,
+    "unexposed_groups": 1,
+    "unexposed_events": 9
+  },
+  "prior_sources": {
+    "old50": {
+      "path": "local-only/training-USGS-saved-body-root-reader-v1-original/source-records-private.json",
+      "bytes": 23081,
+      "SHA256": "dd3622c0ad907fd3e966833323c84789c94a395e1ae684415957dfa0289a8ff0"
+    },
+    "new200": {
+      "path": "local-only/training-USGS-independent-confirmation-source-v1-original/source-numerics-private.json",
+      "bytes": 91263,
+      "SHA256": "aec5e3b101c7d6a89bbec3783b0297ba413b349878ca284ff308791fd6762fa2"
+    },
+    "closure": {
+      "path": "local-only/training-USGS-independent-confirmation-source-v1-original/closure-selection-private.json",
+      "bytes": 138513,
+      "SHA256": "e7555535b9a110cc2cf113e7cb76c29f333c7413e1acb3804a9a45dbece49c90"
+    }
+  },
+  "official_primary_sources": [
+    "https://earthquake.usgs.gov/fdsnws/event/1/",
+    "https://earthquake.usgs.gov/earthquakes/feed/v1.0/geojson.php",
+    "https://www.usgs.gov/faqs/are-usgs-reportspublications-copyrighted"
+  ],
+  "official_docs_not_refetched": true,
+  "scope_limit": "First500 bounded fixed filtered history query; completeness not claimed; closure not absolute no-leakage proof; source-only static checks not runtime qualification",
+  "rule_changed_before_any_new_source_question_gold": true,
+  "prior_v1_executed": false,
+  "strong_closure_policy": "Strong edges: shared event alias OR both delta_time<=72h and great-circle distance<=500km. All historical250 events remain exclusion anchors. Preserve original2724 history edges by identity; use only their alias/near72h500km subset as old-old strong edges. Coarse30lat60lon is stratification/statistics only; geographic overlap allowed, not geographic OOD. New strong components never split.",
+  "group_allocation": "GroupID=SHA(canonical sorted eventIDs); stratum=min lexicographic coarse cell among group members. Sort strata; within stratum sort SHA(seed+groupID),groupID. Assign each whole group to the split minimizing (groups already assigned in this stratum, total groups already assigned, SHA(seed|stratum|groupID|split), split), over train/dev/blind. Then each split uses group-hash order and roundrobin nonoverlapping time/ID sorted <=5event windows, exactly10charts50QA and >=3groups each; insufficient STOP, no swaps/backfill/threshold changes.",
+  "geographic_overlap_allowed": true,
+  "geographic_OOD": false,
+  "historical_coarse_rule_preserved_for_old_results": true,
+  "new_dataset_planned": {
+    "charts": 30,
+    "QA": 150,
+    "train": 50,
+    "dev": 50,
+    "blind": 50
+  },
+  "cap_hit_policy": "ACCEPT_BOUNDED_FIRST500_ASCENDING_SAMPLE_RECORD_ACTUAL_FIRST_LAST_NO_MONTH_COMPLETENESS_CLAIM",
+  "prior_v1_source_manifest": {
+    "path": "code\\bw1000\\training-USGS-wide-dev-blind-source-v1\\MANIFEST.json",
+    "bytes": 2943,
+    "SHA256": "a8751399f26872a10c068012eb9f5f9b145422e91becddb141fd9a0fc2a1be0c"
+  }
+}

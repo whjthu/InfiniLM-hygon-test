@@ -1,0 +1,113 @@
+{
+  "schema": "USGS_WIDE_TRAIN_DEV_BLIND_SOURCE_V2",
+  "label": "training-USGS-wide-train-dev-blind-source-v2",
+  "root_GO": true,
+  "CPU_GO": true,
+  "source_GET_GO": true,
+  "Dataset_GO": false,
+  "training_GO": false,
+  "GPU_GO": false,
+  "Model_GO": false,
+  "URL": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2020-01-01T00:00:00Z&endtime=2020-01-31T23:59:59Z&minmagnitude=4.5&eventtype=earthquake&orderby=time-asc&limit=500&nodata=404",
+  "GETs": 1,
+  "normal_TLS": true,
+  "redirect": 0,
+  "retry": 0,
+  "authentication": false,
+  "proxy": false,
+  "rolling_feed": false,
+  "body_cap_bytes": 1048576,
+  "maximum_features": 500,
+  "query_URL_previously_requested": false,
+  "fixed_start_UTC": "2020-01-01T00:00:00+00:00",
+  "fixed_end_UTC": "2020-01-31T23:59:59+00:00",
+  "socket_timeout_cap_seconds": 45,
+  "whole_epoch_seconds": 120,
+  "CPU": 2,
+  "job_process_commit_bytes": 2147483648,
+  "seed": "USGS-wide-train-dev-blind-20261119-v2",
+  "grouping": {
+    "alias": true,
+    "near_time_hours": 72,
+    "near_distance_km": 500,
+    "transitive_closure_over_old_plus_new": true,
+    "coarse_lat30_lon60": "STRATIFICATION_AND_STATISTICS_ONLY_NOT_STRONG_EDGE",
+    "geographic_overlap_allowed": true,
+    "geographic_OOD_required": false
+  },
+  "old_source_rows": 250,
+  "charts": 30,
+  "QA": 150,
+  "QA_per_chart": 5,
+  "minimum_new_groups": 9,
+  "window_events_max": 5,
+  "PNG_pixels": [
+    512,
+    512
+  ],
+  "PNG_dpi": 100,
+  "PNG_per_file_cap_bytes": 1048576,
+  "PNG_total_cap_bytes": 10485760,
+  "total_new_local_bytes_cap": 20971520,
+  "renderer_versions": {
+    "Pillow": "13.0.0",
+    "matplotlib": "3.10.7",
+    "numpy": "2.3.5"
+  },
+  "font_SHA256": "3fdf69cabf06049ea70a00b5919340e2ce1e6d02b0cc3c4b44fb6801bd1e0d22",
+  "Software_metadata": "training-USGS-wide-train-dev-blind-source-v2",
+  "fixed_checkpoints": [
+    "initial",
+    "domain25",
+    "generic25"
+  ],
+  "checkpoint_updates": 25,
+  "generation_cap": 256,
+  "future_predictions": 300,
+  "scorer_unchanged": true,
+  "no_training_or_tuning": true,
+  "selection": "GroupID=SHA(canonical sorted eventIDs); stratum=min lexicographic coarse cell among group members. Sort strata; within stratum sort SHA(seed+groupID),groupID. Assign each whole group to the split minimizing (groups already assigned in this stratum, total groups already assigned, SHA(seed|stratum|groupID|split), split), over train/dev/blind. Then each split uses group-hash order and roundrobin nonoverlapping time/ID sorted <=5event windows, exactly10charts50QA and >=3groups each; insufficient STOP, no swaps/backfill/threshold changes.",
+  "leakage_limit": "New V2 strong-component exclusion uses shared event alias OR both <=72h and <=500km association, with transitive closure and no strong-component overlap across train/dev/blind or retained old250 anchors. Coarse30lat60lon only stratifies/reports geography; geographic overlap is allowed and geographic OOD is not required. Original2724 coarse-inclusive closure remains historical evidence for old results only. Incomplete aliases/catalogs and other correlations remain limitations; no absolute absence-of-leakage claim.",
+  "prior_sources": {
+    "old50": {
+      "path": "local-only/training-USGS-saved-body-root-reader-v1-original/source-records-private.json",
+      "bytes": 23081,
+      "SHA256": "dd3622c0ad907fd3e966833323c84789c94a395e1ae684415957dfa0289a8ff0"
+    },
+    "new200": {
+      "path": "local-only/training-USGS-independent-confirmation-source-v1-original/source-numerics-private.json",
+      "bytes": 91263,
+      "SHA256": "aec5e3b101c7d6a89bbec3783b0297ba413b349878ca284ff308791fd6762fa2"
+    },
+    "closure": {
+      "path": "local-only/training-USGS-independent-confirmation-source-v1-original/closure-selection-private.json",
+      "bytes": 138513,
+      "SHA256": "e7555535b9a110cc2cf113e7cb76c29f333c7413e1acb3804a9a45dbece49c90"
+    }
+  },
+  "split_requirements": {
+    "train": {
+      "minimum_groups": 3,
+      "charts": 10,
+      "QA": 50
+    },
+    "dev": {
+      "minimum_groups": 3,
+      "charts": 10,
+      "QA": 50
+    },
+    "blind": {
+      "minimum_groups": 3,
+      "charts": 10,
+      "QA": 50
+    }
+  },
+  "maximum_saved_closure_edges": 250000,
+  "evaluation_protocol": {
+    "bytes": 7944,
+    "SHA256": "db8dee8f981c54c304037cbb9b00d1669da10aee8d394bee4d60572da6dd87e6"
+  },
+  "strong_closure_policy": "Strong edges: shared event alias OR both delta_time<=72h and great-circle distance<=500km. All historical250 events remain exclusion anchors. Preserve original2724 history edges by identity; use only their alias/near72h500km subset as old-old strong edges. Coarse30lat60lon is stratification/statistics only; geographic overlap allowed, not geographic OOD. New strong components never split.",
+  "hit_cap_policy": "ACCEPT_BOUNDED_FIRST500_ASCENDING_SAMPLE_RECORD_ACTUAL_FIRST_LAST_NO_MONTH_COMPLETENESS_CLAIM",
+  "additional_train_policy": "Unselected groups/windows may be declared candidates only; no extra rendering/QA/training in this invocation"
+}

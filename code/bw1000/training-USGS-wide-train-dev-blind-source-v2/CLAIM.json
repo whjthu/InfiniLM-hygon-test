@@ -1,0 +1,92 @@
+{
+  "schema": "USGS_WIDE_TRAIN_DEV_BLIND_SOURCE_CLAIM_V2",
+  "label": "training-USGS-wide-train-dev-blind-source-v2",
+  "owner": "bw1000/root",
+  "namespace": "local-only/training-USGS-wide-train-dev-blind-source-v2-original",
+  "root_GO": true,
+  "CPU_GO": true,
+  "source_GET_GO": true,
+  "Dataset_GO": false,
+  "training_GO": false,
+  "GPU_GO": false,
+  "Model_GO": false,
+  "max_invocations": 1,
+  "replay_allowed": false,
+  "network": {
+    "GETs": 1,
+    "raw_max_bytes": 1048576,
+    "max_event_slots": 500,
+    "HEAD": 0,
+    "count": 0,
+    "redirect": 0,
+    "retry": 0,
+    "alternate_window_or_proxy": false
+  },
+  "resources": {
+    "CPU": 2,
+    "whole_seconds": 120,
+    "actual_WindowsJob_process_commit_bytes": 2147483648,
+    "actual_WindowsJob_job_commit_bytes": 2147483648,
+    "new_local_data_cap_bytes": 20971520
+  },
+  "fixed_window": "2020-01-01T00:00:00Z..2020-01-31T23:59:59Z",
+  "prior_sources": {
+    "old50": {
+      "path": "local-only/training-USGS-saved-body-root-reader-v1-original/source-records-private.json",
+      "bytes": 23081,
+      "SHA256": "dd3622c0ad907fd3e966833323c84789c94a395e1ae684415957dfa0289a8ff0"
+    },
+    "new200": {
+      "path": "local-only/training-USGS-independent-confirmation-source-v1-original/source-numerics-private.json",
+      "bytes": 91263,
+      "SHA256": "aec5e3b101c7d6a89bbec3783b0297ba413b349878ca284ff308791fd6762fa2"
+    },
+    "closure": {
+      "path": "local-only/training-USGS-independent-confirmation-source-v1-original/closure-selection-private.json",
+      "bytes": 138513,
+      "SHA256": "e7555535b9a110cc2cf113e7cb76c29f333c7413e1acb3804a9a45dbece49c90"
+    }
+  },
+  "frozen_selection": "GroupID=SHA(canonical sorted eventIDs); stratum=min lexicographic coarse cell among group members. Sort strata; within stratum sort SHA(seed+groupID),groupID. Assign each whole group to the split minimizing (groups already assigned in this stratum, total groups already assigned, SHA(seed|stratum|groupID|split), split), over train/dev/blind. Then each split uses group-hash order and roundrobin nonoverlapping time/ID sorted <=5event windows, exactly10charts50QA and >=3groups each; insufficient STOP, no swaps/backfill/threshold changes.",
+  "planned_splits": {
+    "train": {
+      "minimum_groups": 3,
+      "charts": 10,
+      "QA": 50
+    },
+    "dev": {
+      "minimum_groups": 3,
+      "charts": 10,
+      "QA": 50
+    },
+    "blind": {
+      "minimum_groups": 3,
+      "charts": 10,
+      "QA": 50
+    }
+  },
+  "maximum_saved_closure_edges": 250000,
+  "evaluation_protocol": {
+    "bytes": 7944,
+    "SHA256": "db8dee8f981c54c304037cbb9b00d1669da10aee8d394bee4d60572da6dd87e6"
+  },
+  "stopping": "Any identity/source/numeric/renderer/budget failure or fewer than3newstronggroups+10charts50QA in ANY train/dev/blind split: STOP retaining planned150 denominator; no retry/window/split-swap/threshold/backfill change",
+  "stage": "Data source/numeric/closure/render only; independent audit/nativeCPU/GPU eval/training remain separately gated",
+  "future_effect": {
+    "arms": [
+      "initial",
+      "domain25",
+      "generic25"
+    ],
+    "checkpoints_fixed": true,
+    "cap": 256,
+    "planned_total_predictions": 300,
+    "first_gold_after_all_sealed_and_independent_terminal": true
+  },
+  "formal17": false,
+  "domain_capability_qualified": false,
+  "strong_closure_policy": "Strong edges: shared event alias OR both delta_time<=72h and great-circle distance<=500km. All historical250 events remain exclusion anchors. Preserve original2724 history edges by identity; use only their alias/near72h500km subset as old-old strong edges. Coarse30lat60lon is stratification/statistics only; geographic overlap allowed, not geographic OOD. New strong components never split.",
+  "hit_cap_policy": "ACCEPT_BOUNDED_FIRST500_ASCENDING_SAMPLE_RECORD_ACTUAL_FIRST_LAST_NO_MONTH_COMPLETENESS_CLAIM",
+  "additional_train_policy": "Unselected groups/windows may be declared candidates only; no extra rendering/QA/training in this invocation",
+  "state": "ROOT_REVIEWED_ONCE_DATA_ONLY_NOT_EXECUTED"
+}
