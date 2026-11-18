@@ -1,0 +1,92 @@
+{
+  "state": "T03_PAIRED_DOMAIN_CONTROL_TRAINING_NOT_READY",
+  "case": "T03.sft",
+  "common_entry": "tools/hygon_training_recipe.py -> tools/hygon_vlm_recipe.build_launch in the same assembled common framework; new opt-in delta only, no training loop.",
+  "fixed_training": {
+    "GPUs": 8,
+    "precision": "BF16",
+    "per_device_batch": 1,
+    "gradient_accumulation": 4,
+    "effective_batch": 32,
+    "max_length": 4096,
+    "attention": "SDPA",
+    "gradient_checkpointing_requested": true,
+    "native_Trainer_flag": false,
+    "GC_lifecycle": "Preserve native Swift language-only preparation; do not force Trainer flag true or recompute frozen vision/projector.",
+    "LoRA_rank": 16,
+    "LoRA_alpha": 32,
+    "LoRA_dropout": 0.05,
+    "parameter_tensors": 504,
+    "parameter_elements": 43646976,
+    "optimizer": "Original AdamW/cosine and original warmup retained",
+    "updates_per_arm": 25,
+    "micro_exposures_per_arm": 800,
+    "unique_train_examples_per_arm": 45
+  },
+  "currently_qualified": {
+    "original_A100_native25": "Real original8GPU25updates and first2 numerical capture qualified; not domain training.",
+    "USGS_T03_domain_native_CPU": "45train/10user-onlydev fully retained with mask/EOS; actual model LoRA/freeze not qualified by CPU processor.",
+    "original_recovery": "Engineering new-process20->25 success; numerical drift vs continuous original25 retained, not full numerical recovery PASS."
+  },
+  "first_unblock": {
+    "kind": "One 0GPU read of exactly16 historical owner/progress JSONs",
+    "source": "read_initial_metadata.py",
+    "goal": "Close original initial.pt bytes/fullSHA/namedSHA per rank and all8 named initial equality; no tensor body read.",
+    "root_GO": false,
+    "initial_reference": "Original capture/rank-00/initial.pt only after actual read closes pins; seed42 is not a substitute."
+  },
+  "remaining_dependencies_in_order": [
+    "T03 generic-control45: frozen existing COCO64 selection metadata can be reused but native T04 encoding cannot. Qualify T03 exact45 supervision/FINAL/EOS/mask and actual token counts; shareddev10 is reuse, not new55.",
+    "Build fixed domain/control800-row views from their actual native45 pins; all occurrences/source_id and physical-row ledger are candidates, actual dataloader/rank order must be observed.",
+    "New T03 opt-in observer delta in common framework: remove T04 hard case/provider contract only in new namespace, preserve InternVL template/GC lifecycle, restore both arms from same original T03 initial snapshot, observe real initial named values/frozen boundaries/first2/800forward occurrences/all8 receipts/full named optimizer live digest.",
+    "Checkpoint10/20/25 and new-process20->25: save full optimizer/scheduler/all8 RNG/cursor/accum and compare actual tail input/loss/parameters using frozen model-specific thresholds. Old recovery drift/causeUNKNOWN retained; no invented relaxed threshold.",
+    "Publish exact new source/dependency/input/resource claim then fresh8A100 admission. No new GPU or paired training until parent review."
+  ],
+  "actual_token_budget": "Domain/control equal25updates and800micro-examples are not equal supervised tokens. Measure both actual token exposures; old domain55 does not expose a trustworthy effective-token total.",
+  "time_to_first_update": {
+    "measured_domain_or_control_latency_seconds": null,
+    "state": "UNKNOWN",
+    "original_native25_scope_wall_seconds": 241.09068762790412,
+    "original_recovery5_client_seconds": 166.49125003814697,
+    "caveat": "These include load/checkpoint/capture costs; do not divide by25 or5 to claim first-update latency. Original update1 LR0 leaves parameters unchanged; first genuine parameter change is update2."
+  },
+  "evaluation_boundary": "USGS dev10 is development data; both prior blind25 and independent confirmation25 are already EXPOSED across the program. They do not become fresh blind for InternVL. Do not read their gold/predictions here or claim domain ability from train loss. Original17 A100 recipes/results stay separate.",
+  "references": [
+    {
+      "path": "results/bw1000/2026-11-18/training-USGS-T03-native55-v2-CPU-independent-terminal.json",
+      "bytes": 5728,
+      "SHA256": "2473d7e1ece204cfbc9dd023ea45f5fc1e910c8049bb9f249cf0ca7f94ae5ea6"
+    },
+    {
+      "path": "results/bw1000/2026-11-17/training-internvl-original-A100-native25-first2-and-post-terminal.json",
+      "bytes": 1743,
+      "SHA256": "773c89144d4d308d34ebc17b43dad08e4920d928535de7a651079d368bd91b70"
+    },
+    {
+      "path": "results/bw1000/2026-11-17/training-internvl-A100-original200-capture-values-independent-terminal.json",
+      "bytes": 24144,
+      "SHA256": "9664da5de388ea4687a0e58493e75c72baed61ef96efc90444b2754b7ccdc060"
+    },
+    {
+      "path": "results/bw1000/2026-11-17/training-InternVL-eight-A100-resume20-five-updates-independent-drift.json",
+      "bytes": 6393,
+      "SHA256": "45ee7d53b679ff0d70c7f9cabac0690c9fc6bdff07034b687c6a3d0002c411ee"
+    },
+    {
+      "path": "code/bw1000/training-internvl-A100-first-updates-v1/INTERNVL_NATIVE_BINDING.json",
+      "bytes": 114987,
+      "SHA256": "2ff3b19fc433f38b2b9053787f1b458e70ada2457e1d1092f5beab3ae769a076"
+    },
+    {
+      "path": "code/bw1000/training-internvl-A100-first-updates-v1/FRAMEWORK_BUNDLE.json.gz",
+      "bytes": 1365259,
+      "SHA256": "d56292c3c313e615b690933f512a1719d5866a9371ca220c3242416487dafb3e"
+    },
+    {
+      "path": "code/bw1000/training-vlm-cuda-resume20-v1/cases/T03.sft-original-launch.json",
+      "bytes": 3553,
+      "SHA256": "7fefdc16f5519a998a94fdef703c2dd326b3c15e2e31d5a3735f6c4558269c67"
+    }
+  ],
+  "all_training_and_effect_GO": false
+}
