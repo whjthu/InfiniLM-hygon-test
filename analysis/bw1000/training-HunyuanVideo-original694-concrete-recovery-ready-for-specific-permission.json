@@ -1,0 +1,43 @@
+{
+  "schema": "T09_694_CONCRETE_RECOVERY_REVIEW_V1",
+  "observed_at_utc": "2026-11-18T02:43:33.917803+00:00",
+  "reviewer": "/root/astra_review_105",
+  "review": "COMPLETE_SOURCE_REVIEW_ONLY",
+  "source_manifest": {
+    "path": "code/bw1000/training-hunyuanvideo-original694-recovery-v1/SOURCE_FILES.json",
+    "bytes": 1985,
+    "SHA256": "08c5516907a0dfffee2314d5f1d43453bd5203caf97051145f0a713ebe7ced35"
+  },
+  "claim": {
+    "path": "code/bw1000/training-hunyuanvideo-original694-recovery-v1/CLAIM.json",
+    "bytes": 3486,
+    "SHA256": "4697b7bb90f333228ee18b46a2f4cd9451bc5f7761ac536b0cdf0b0c8f1942d7"
+  },
+  "root_GO": false,
+  "transfer_GO": false,
+  "GPU_GO": false,
+  "explicit_user_exception_received": false,
+  "actual_requests": 0,
+  "original_request": "694070604bdb409db0eb9bf76f0e9f0c",
+  "original_state": "UNKNOWN",
+  "old_replay_allowed": false,
+  "scope": "Only before.pt7149635B and inputs.pt1853149B, total9002784B at unchanged original target, global300seconds,2CPU each endpoint,0Slurm/GPU, no Windows payload disk",
+  "fix": "Own partial unlink and directory fsync occur before the existing unique final hash/stamp; no relaxed5field stability or extra payload read",
+  "new_regression": {
+    "path": "local-only/training-hunyuanvideo-original694-recovery-v1-localchecks/link-identity-order-first.json",
+    "bytes": 693,
+    "SHA256": "dee2739013a2ba338f748c75e701a7e919457cb2dd49f149144c3a5e4298a4bc",
+    "passed": 1
+  },
+  "needed_permission": "One action-specific exception to unknown-no-replay; old extra40node exception does not apply",
+  "no_overwrite": true,
+  "correct_existing_reused": true,
+  "mismatch_reject": true,
+  "new_unknown_stops": true,
+  "risks": [
+    "Unknown original writer may not honor new lock, may change final later; consumer must revalidate",
+    "Two files are individually no-replace, not a two-file atomic transaction",
+    "SSH close not terminal, NFS durability/quota/hardlink support unknown"
+  ],
+  "next": "Publish concrete allfalse source, then ask for exact one-time user exception; no execution before actual permission and new adopted claim publication"
+}
