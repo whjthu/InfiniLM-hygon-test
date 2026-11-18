@@ -18,7 +18,9 @@ def validate_rows(rows,media):
 def prepare(dataset,output,target_data,remaining):
     verify_source();plan=json.loads((D/'PLAN.json').read_bytes())
     need(json.loads((D/'CLAIM.json').read_bytes())['root_GO'] is True,'ROOT_PUBLICATION_BEFORE_BLIND_INPUT_READ')
-    need(not output.exists() and target_data.is_absolute(),'NEW_PRIVATE_VIEW')
+    target_data=PurePosixPath(target_data.as_posix())
+    need(not output.exists() and target_data.is_absolute() and '..' not in target_data.parts
+         and target_data==PurePosixPath(plan['namespace'])/'data','NEW_PRIVATE_VIEW')
     manifest=json.loads(pinned(dataset/'manifest-private.json',plan['dataset_manifest']))
     need(manifest['outputs']['blind/inputs.jsonl']==plan['blind_inputs'],'FROZEN_BLIND_INPUT_IDENTITY')
     raw=pinned(dataset/'blind/inputs.jsonl',plan['blind_inputs']);rows=[json.loads(x) for x in raw.splitlines()]

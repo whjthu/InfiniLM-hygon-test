@@ -56,7 +56,7 @@ def main(a):
         need(git('show', a.publication + ':' + rel + '/' + name, budget=budget) == body, 'UNPUBLISHED_OR_DIRTY_SOURCE_BYTES')
         package[name] = base64.b64encode(body).decode('ascii')
     claim = (D / 'CLAIM.json').read_bytes()
-    out = G / 'local-only' / (LABEL + '-original-dispatch')
+    out = G / 'local-only' / (LABEL + '-posix-path-corrected-dispatch')
     out.mkdir(mode=0o700, exist_ok=False)  # Even an UNKNOWN attempt can never be invoked again.
     budget(); request = uuid.uuid4().hex
     from prepare_inputs import prepare
