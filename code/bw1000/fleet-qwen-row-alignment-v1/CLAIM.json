@@ -1,0 +1,68 @@
+{
+  "owner": "bw1000/root/O01",
+  "request": "ddecbd778784498dbed4f6acdaf59d16",
+  "state": "PUBLISHED_FOR_SINGLE_BOUNDED_DISPATCH",
+  "operator_GO": true,
+  "formal_training_GO": false,
+  "allocated_cards": 640,
+  "planned_operator_cards": 608,
+  "excluded_foreign_KFD_by_parent": {
+    "1087656": [
+      "f11r2n15"
+    ],
+    "1103606": [
+      "f12r2n12"
+    ]
+  },
+  "reserved_native_by_parent": {
+    "1087656": [],
+    "1103606": [
+      "f13r1n05",
+      "f13r1n07"
+    ]
+  },
+  "protected_step": {
+    "id": "1103606.310",
+    "parent": "1103606",
+    "label": "GLM474-depth-observer-model-12d5bc02ca0a49a89db5c1628c64160b-socket-gate"
+  },
+  "max_invocations": 1,
+  "replay_allowed": false,
+  "source_basis": {
+    "path": "coordination/tasks/fleet-qwen-text-linear-forward-vjp-v2.json",
+    "bytes": 4417,
+    "SHA256": "47e4fd7fcefd8a961b8a0a2b1659c316d798a7c4a8d473bc683d9e117eb4a824"
+  },
+  "caller": {
+    "path": "results/bw1000/2026-11-20/training-qwen-original288-native-text-base-blas-pair-terminal.json",
+    "bytes": 17460,
+    "SHA256": "edefb1fc4243681b6a223cbd4358f01aac82bc56d3f28fae4f322a62aa5e4a7d"
+  },
+  "question": "Does row alignment remove the observed conventional BF16 numerical failures without changing any visible input rows?",
+  "geometries": [
+    [
+      186,
+      4096,
+      1024
+    ],
+    [
+      216,
+      12288,
+      4096
+    ],
+    [
+      216,
+      4096,
+      4096
+    ]
+  ],
+  "execution": "Native BF16 conventional linear, original M versus prefilled zero padding to 192 or 224 rows before GEMM, visible rows sliced before consumption. Timing includes padding. FP32 rounded reference, maximum absolute error 0.0625, repeat stability and zero discarded output. Compare every paired card; no automatic model promotion.",
+  "provenance": "Synthetic operands at measured Qwen caller shapes. API preference readback. No checkpoint, no dataset, no Model or formal training claims.",
+  "design": "Fresh allocated-node, step, duplicate and KFD admission; 8-card pilot, then up to 608 cards on 76 nodes; ABBA or BAAB with 256 forwards per block. Bound each step and preserve per-node receipts and KFD cleanup.",
+  "deadline_seconds": {
+    "worker": 440,
+    "Slurm_step": 540,
+    "whole_remote_controller": 660,
+    "client": 685
+  }
+}
