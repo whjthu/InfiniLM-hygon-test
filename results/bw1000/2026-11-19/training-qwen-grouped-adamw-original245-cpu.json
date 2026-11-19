@@ -1,0 +1,72 @@
+{
+  "state": "ACTUAL_GROUPED_ADAMW_NATIVE_CPU_FOUR_TESTS_PASS",
+  "original": {
+    "request": "06d4ca90f2374e47b9c8fa38be53a447",
+    "publication": "03a541c5a50d8d8b21a7f3b796a2a014b3ccbd18",
+    "payload_SHA256": "21eac2ced6230563ad5fc040d1e295172f4b66fdd818c911ed3a2dc72d1fa0e9",
+    "transport_rc": 0,
+    "stderr_SHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "actual": {
+      "request": "06d4ca90f2374e47b9c8fa38be53a447",
+      "rc": 0,
+      "accounting_columns": [
+        "JobIDRaw",
+        "JobName%100",
+        "State%40",
+        "ExitCode",
+        "ElapsedRaw",
+        "AllocTRES%160"
+      ],
+      "accounting": [
+        [
+          "1103606.245",
+          "training-qwen-grouped-fused-adamw-native-v1-cpu",
+          "COMPLETED",
+          "0:0",
+          "17",
+          "cpu=4,mem=8G,node=1"
+        ]
+      ],
+      "elapsed_seconds": 18.8775044195354,
+      "tests": [
+        "test_incompatible_group_refused_before_state_mutation",
+        "test_native_function_list_width_and_scheduler_horizon",
+        "test_native_fused_multistep_parity"
+      ],
+      "registry_pass": true,
+      "log_SHA256": "85810bf854b15eb1216e2d08add82400d63568626465ca2900f5ac34b55d6484",
+      "GPU_cards": 0,
+      "errors": []
+    }
+  },
+  "independent": {
+    "step": "1103606.245",
+    "log_SHA256": "85810bf854b15eb1216e2d08add82400d63568626465ca2900f5ac34b55d6484",
+    "test_names": [
+      "test_fresh_optimizer_and_scheduler_recovery",
+      "test_incompatible_group_refused_before_state_mutation",
+      "test_native_function_list_width_and_scheduler_horizon",
+      "test_native_fused_multistep_parity"
+    ],
+    "tests_ran": 4,
+    "aggregate_ok": true,
+    "native_registry_and_exact_providers": true,
+    "terminal_SHA256": "613a9cfe4387b601613729e62643e869bfdf340aaf169ba1dbb77238ad9649bd",
+    "GPU": 0
+  },
+  "scope": "Native CPU fused AdamW functional lists, two logical groups, four-update parity and reconstructed candidate optimizer and scheduler state",
+  "opt_in": "hygon-grouped-adamw-64",
+  "old_unfused_checkpoint_compatible": false,
+  "native_swift_optimizer_factory_exercised": false,
+  "cuda_or_HIP_device_calls": false,
+  "formal_training": false,
+  "review": {
+    "agent": "/root/astra_review_105",
+    "adopted": [
+      "keep width 64 as the only candidate",
+      "require candidate-mode checkpoint; no old unfused resume claim",
+      "validate actual Swift factory before original archived values and full model updates"
+    ],
+    "reason": "grouped runtime keeps logical optimizer and scheduler groups; numerical faults in native model forward remain separate"
+  }
+}
