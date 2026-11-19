@@ -1,0 +1,20 @@
+{
+  "state": "COMPLETE_ADOPTED",
+  "reviewer": "/root/astra_review_105",
+  "role": "Independent Astra local review",
+  "input_proof": {
+    "path": "results/bw1000/2026-11-19/training-qwen-math-sdpa-original383-386-accumulation21-boundary.json",
+    "bytes": 76537,
+    "SHA256": "a7dd2eded66bca518b04df8e219536a4fde9e480da3ac1caa97be9c33e8cffb4"
+  },
+  "review_scope": "Qwen math SDPA whole-model checkpoint recovery, zero-GPU checkpoint values, actual trace source and scope",
+  "adopted": {
+    "first": "Keep DDP, clipping and optimizer unmodified. Capture actual rank 1 layer 33 microbatch 1 and rank 4 layer 29 microbatch 2.",
+    "second": "Conclude between direct local VJP instability and native checkpoint-only instability only if real frozen input, upstream gradient, native weights and RNG are held identical. If neither replays differently, investigate full-context state rather than declaring the cause.",
+    "resource_choice": "Run local direct/checkpoint VJPs in the two already-loaded native rank processes after the two-microbatch stop. This avoids a second model load. Six peer ranks wait for the bounded clean exit. Restrict to native non-reentrant checkpoint or retain capture-only evidence.",
+    "next_release": "Only an identified earliest operation justifies one short native step21 intervention before a new 25-step recovery candidate."
+  },
+  "new_task": "coordination/tasks/training-qwen-local-decoder-vjp-v1.json",
+  "unknown_original_request_handling": "Separate original profiler request42 remains untouched.",
+  "old_negative_result_preserved": true
+}
