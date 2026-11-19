@@ -1,0 +1,18 @@
+{
+  "state": "COMPLETE_ADOPTED",
+  "review_agent": "/root/astra_review_105",
+  "past_causal_evidence": [
+    "results/bw1000/2026-11-19/training-sdxl-original398-adamw-gradient-attribution.json",
+    "results/bw1000/2026-11-19/training-sdxl-original402-a100-unet-boundary-attribution.json",
+    "results/bw1000/2026-11-19/training-sdxl-original406-a100-embedding-resnet-attribution.json"
+  ],
+  "adopted": {
+    "no_new_generic_trace": true,
+    "optimizer_and_clip_fixed": true,
+    "isolate_two_local_operators": "Same-platform original native at exact archived input/output boundary, CPU FP32 original primitives and separately computed CPU FP64 ideal and rounded result. Both references diagnostic. No GPU float64.",
+    "whole_step": "Only after local numeric evidence, use single-loaded 2x2 native baseline / norm only / time projection only / both, fixed original trainables/forward/backward/clip and AdamW. Compare full 1120 denominator and the frozen 5 percent update gate. Check prefix frozen and no information loss through detach.",
+    "stop": "If neither isolated nor combined intervention improves the full update, preserve all failed arms and deprioritize those local interventions."
+  },
+  "resource_decision": "One actual card on each original platform. Run verified-prefix local oracle first without full UNet loading, raw transfer or optimizer updates.",
+  "active_causal_scope": "coordination/tasks/training-sdxl-resnet-operator-oracle-v1.json"
+}

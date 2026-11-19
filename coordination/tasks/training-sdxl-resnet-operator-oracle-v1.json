@@ -1,0 +1,226 @@
+{
+  "owner": "bw1000/root",
+  "case": "T06.sft",
+  "request": "894cd04dcd054ea1bee926ff8c750bf2",
+  "GPU_GO": true,
+  "Model_GO": false,
+  "one_invocation_per_platform": true,
+  "cpu_qualification": {
+    "path": "results/bw1000/2026-11-19/training-sdxl-original400-unet-edge-hook-topology.json",
+    "SHA256": "75489eda8edb586a7aee31f14288b1f27460f2f45fc528e60c5f1d00abae5039"
+  },
+  "hygon": {
+    "node": "f11r4n11",
+    "parent": "1087656",
+    "DCU": 1,
+    "Slurm_cap_seconds": 780,
+    "whole_host_epoch_seconds": 1200
+  },
+  "a100": {
+    "alias": "a100-26",
+    "index": 4,
+    "uuid": "GPU-037ee7ad-687a-3165-48f8-4fe7015a6f04",
+    "pci": "00000000:A3:00.0",
+    "whole_host_epoch_seconds": 760,
+    "original_run": "/home/whj/nvidia-baseline/alignment-assets/hygon-sdxl-original-operand-provenance-v1",
+    "maximum_observed_idle_driver_MiB": 4,
+    "idle_two_samples_required": true
+  },
+  "baseline_archives": {
+    "hip": {
+      "sha256": "f44f0d40d198699fcd3a635bb8fc744b907dcba05d8fe2284a2967f34f0192a3",
+      "bytes": 73890269
+    },
+    "cuda": {
+      "sha256": "cc66c4df72306e54ff5806a2118ab4c2eefc9430ec6679c47c8da9b4640cfb2f",
+      "bytes": 73890269
+    }
+  },
+  "hip_policy": {
+    "bf16_reduction": true,
+    "tf32_matmul": false,
+    "tf32_cudnn": true
+  },
+  "cuda_policy": {
+    "bf16_reduction": true,
+    "tf32_matmul": false,
+    "tf32_cudnn": true
+  },
+  "expected_optimizer_updates_per_platform": 0,
+  "algorithm": "Observe 11 original native boundaries and explicit skip tensors, deduplicate aggregate adjoints by tensor object, compare fingerprints after exact same-platform observations.",
+  "raw_transfer_bytes": 0,
+  "performance_qualified": false,
+  "formal_acceptance": false,
+  "parent_boundary_pair": "results/bw1000/2026-11-19/training-sdxl-original402-a100-unet-boundary-attribution.json",
+  "reference": "c59a71095924edfdfb9ad7041b8ef32f747e7825557a313f72ad09a3b0b53036",
+  "model_config": "30ebc70750223e59006f7f2b4e1e6c102570aa19a9c4ae3e1fbe7591332dbae6",
+  "data_scope": "Read the existing same-host frozen first-step inputs and only the selected named F32 parameter ranges. Replay only the original native meta-bound embedding and first two operators, then compare independent CPU references. No full UNet execution. No trained values transferred.",
+  "parent_runtime_proof": "results/bw1000/2026-11-19/training-sdxl-original406-a100-embedding-resnet-attribution.json",
+  "verified_weight_ranges": {
+    "conv_in.weight": {
+      "shape": [
+        320,
+        4,
+        3,
+        3
+      ],
+      "dtype": "F32",
+      "bytes": 46080,
+      "sha256": "b4631565859e03dfd0c12e46e75ce01ceb30f04d0d7565424d8508fd5b38e8b7"
+    },
+    "conv_in.bias": {
+      "shape": [
+        320
+      ],
+      "dtype": "F32",
+      "bytes": 1280,
+      "sha256": "a81820300777004673a9f449c2a8fc20e3af5fda9074072096f2e4a61a40aac4"
+    },
+    "down_blocks.0.resnets.0.norm1.weight": {
+      "shape": [
+        320
+      ],
+      "dtype": "F32",
+      "bytes": 1280,
+      "sha256": "8d48ff55b14b5749f032eece0fbd3294f4ed2f73f5119eab256f9622c505f59d"
+    },
+    "down_blocks.0.resnets.0.norm1.bias": {
+      "shape": [
+        320
+      ],
+      "dtype": "F32",
+      "bytes": 1280,
+      "sha256": "9c3ac062b5f8801585a80428c25ec4cf08d150d17d3f1492f32542412063a0e2"
+    },
+    "down_blocks.0.resnets.0.time_emb_proj.weight": {
+      "shape": [
+        320,
+        1280
+      ],
+      "dtype": "F32",
+      "bytes": 1638400,
+      "sha256": "7de6b77b6c2ae79d440f1c68a2486d80407c9f454f222dba22a08503ccdd6959"
+    },
+    "down_blocks.0.resnets.0.time_emb_proj.bias": {
+      "shape": [
+        320
+      ],
+      "dtype": "F32",
+      "bytes": 1280,
+      "sha256": "6318867a1aec813e97af7b7a7ac2a5a4769a87fd987c4c6988c71b3e33349b9b"
+    },
+    "time_embedding.linear_1.weight": {
+      "shape": [
+        1280,
+        320
+      ],
+      "dtype": "F32",
+      "bytes": 1638400,
+      "sha256": "aa9fad42acde61338c5327f6426a4758c65cc25026129ef0b987db00e4086d5a"
+    },
+    "time_embedding.linear_1.bias": {
+      "shape": [
+        1280
+      ],
+      "dtype": "F32",
+      "bytes": 5120,
+      "sha256": "b3fded6df4dba5dac1111cafe9c51e7cb9329f5e24228dcf1b91fc7d923313e6"
+    }
+  },
+  "previous_observation_pins": {
+    "hip": {
+      "hidden": {
+        "shape": [
+          1,
+          320,
+          32,
+          32
+        ],
+        "dtype": "torch.bfloat16",
+        "SHA256": "3288eef1cb763410e6f4c83da63bc3dd875964c973b27f4cafe4b3d705491866"
+      },
+      "temb": {
+        "shape": [
+          1,
+          1280
+        ],
+        "dtype": "torch.bfloat16",
+        "SHA256": "822dafc05ab7d70a3fb6e159f5c24e06a0b8cd1a03d7d73b023597778bfcd956"
+      },
+      "linear_input": {
+        "shape": [
+          1,
+          1280
+        ],
+        "dtype": "torch.bfloat16",
+        "SHA256": "0f08513a029f0a4e12753fdbca0d9348b36ea35faefa47dc2efd314445d288af"
+      },
+      "norm1": {
+        "shape": [
+          1,
+          320,
+          32,
+          32
+        ],
+        "dtype": "torch.float32",
+        "SHA256": "ffe79cd36881cc932135dddbb5a018f2cfec7b5a909913a41c4b34ec2aabefbf"
+      },
+      "linear": {
+        "shape": [
+          1,
+          320
+        ],
+        "dtype": "torch.bfloat16",
+        "SHA256": "f235da4911d6a14791e29dda701111fa85536ee5aba6a4995c5a94fe76155817"
+      }
+    },
+    "cuda": {
+      "hidden": {
+        "shape": [
+          1,
+          320,
+          32,
+          32
+        ],
+        "dtype": "torch.bfloat16",
+        "SHA256": "3288eef1cb763410e6f4c83da63bc3dd875964c973b27f4cafe4b3d705491866"
+      },
+      "temb": {
+        "shape": [
+          1,
+          1280
+        ],
+        "dtype": "torch.bfloat16",
+        "SHA256": "822dafc05ab7d70a3fb6e159f5c24e06a0b8cd1a03d7d73b023597778bfcd956"
+      },
+      "linear_input": {
+        "shape": [
+          1,
+          1280
+        ],
+        "dtype": "torch.bfloat16",
+        "SHA256": "0f08513a029f0a4e12753fdbca0d9348b36ea35faefa47dc2efd314445d288af"
+      },
+      "norm1": {
+        "shape": [
+          1,
+          320,
+          32,
+          32
+        ],
+        "dtype": "torch.float32",
+        "SHA256": "532550a4b0822160ae0e5d21fc44e47d480ea9c683456e03945fa926046a02d9"
+      },
+      "linear": {
+        "shape": [
+          1,
+          320
+        ],
+        "dtype": "torch.bfloat16",
+        "SHA256": "75dd671826601d6fdc2edf4f33caff5dba65d297b6360b3335eb235a377f3dad"
+      }
+    }
+  },
+  "state": "SOURCE_READY_MATCHED_PREFIX_OPERATOR_CPU_ORACLES",
+  "manifest": "code/bw1000/training-sdxl-resnet-operator-oracle-v1/SOURCE_FILES.json"
+}
