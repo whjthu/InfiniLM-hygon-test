@@ -1,0 +1,61 @@
+{
+  "owner": "bw1000/root",
+  "request": "209b092293e4464ba1cbe1eacb85f1af",
+  "operator_GO": true,
+  "formal_training_GO": false,
+  "max_invocations": 1,
+  "parents": {
+    "1087656": 40,
+    "1103606": 40
+  },
+  "cards": 640,
+  "resource": {
+    "cpus_per_node": 24,
+    "host_memory_GiB_per_node": 48,
+    "DCU_per_node": 8,
+    "slurm_cap_seconds": 360,
+    "outer_epoch_cap_seconds": 495
+  },
+  "arms": {
+    "order": [
+      "native",
+      "packed",
+      "packed",
+      "native"
+    ],
+    "work_cutoff_offset_seconds": 292,
+    "busy_offsets_seconds": [
+      120,
+      151,
+      190,
+      229,
+      269
+    ],
+    "microbatches": 4,
+    "rank": 16,
+    "numeric_updates_per_arm": 3,
+    "threshold_absolute": 5e-05,
+    "max_norm": 1e-06,
+    "nonfinite_rejected": true,
+    "preclip_norm_relative_tolerance": 1e-05
+  },
+  "purpose": "Compare native foreach clipping with one packed FP32 norm before the same scalar AdamW after four BF16 LoRA microbatches.",
+  "data_scope": "Generated BF16 inputs; one independent HIP worker per device. No RCCL or model checkpoints.",
+  "reference": "results/bw1000/2026-11-19/fleet640-isolated-lora-original374-200-terminal.json",
+  "release_on_step_end": true,
+  "replay_allowed": false,
+  "prior_dispatch": "fleet-lora-gradient-collectives-v2",
+  "not_before": "Prior clipping steps terminal and fresh parent numbered-step admission; no overlap with prior workloads.",
+  "foreign_KFD": "Skip any affected node, verify and preserve foreign holders.",
+  "previous": {
+    "request": "d168cc58526e47c1bfe7319eb499e155",
+    "code": "8be532abce77fb40056739da96bc27cb30ed528b",
+    "steps": [
+      "1087656.396",
+      "1103606.205"
+    ],
+    "before_timing_error": "Warmup tried unpacking three values into two after all 624 numerical checks completed."
+  },
+  "state": "SOURCE_WARM_LOOP_CANDIDATE",
+  "manifest": "code/bw1000/fleet-lora-gradient-clipping-v2/SOURCE_FILES.json"
+}
