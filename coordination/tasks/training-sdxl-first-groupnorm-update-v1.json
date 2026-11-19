@@ -1,0 +1,90 @@
+{
+  "owner": "bw1000/root",
+  "case": "T06.sft",
+  "request": "2d945ec0fcbf4bdb9bf1632710c01b64",
+  "GPU_GO": true,
+  "formal_training_GO": false,
+  "hygon": {
+    "node": "f11r4n12",
+    "parent": "1087656",
+    "DCU": 1,
+    "Slurm_cap_seconds": 780,
+    "whole_host_epoch_seconds": 1200
+  },
+  "hip_policy": {
+    "bf16_reduction": true,
+    "tf32_matmul": false,
+    "tf32_cudnn": true
+  },
+  "original_reference_SHA256": "c59a71095924edfdfb9ad7041b8ef32f747e7825557a313f72ad09a3b0b53036",
+  "actual_prefix_source": {
+    "path": "results/bw1000/2026-11-19/training-sdxl-original412-groupnorm-native-propagation.json",
+    "SHA256": "757cc9dcd52225e9d3fc81a2f039dd19c50eabf09e69252b29ff47434dd74296",
+    "bytes": 12261
+  },
+  "intervention": {
+    "hidden": {
+      "shape": [
+        1,
+        320,
+        32,
+        32
+      ],
+      "dtype": "torch.bfloat16",
+      "SHA256": "3288eef1cb763410e6f4c83da63bc3dd875964c973b27f4cafe4b3d705491866"
+    },
+    "native_norm": {
+      "shape": [
+        1,
+        320,
+        32,
+        32
+      ],
+      "dtype": "torch.float32",
+      "SHA256": "ffe79cd36881cc932135dddbb5a018f2cfec7b5a909913a41c4b34ec2aabefbf"
+    },
+    "weight": {
+      "shape": [
+        320
+      ],
+      "dtype": "torch.bfloat16",
+      "SHA256": "619f6c17b09146f3df83dcdfba252beb03aa340e426404dcced9ce6c664dcb1a"
+    },
+    "bias": {
+      "shape": [
+        320
+      ],
+      "dtype": "torch.bfloat16",
+      "SHA256": "5eef551f5c65ec5b68d164ff15ba8b91fb4c542efb381c377bfcf0d2786c508a"
+    },
+    "replacement_norm": {
+      "shape": [
+        1,
+        320,
+        32,
+        32
+      ],
+      "dtype": "torch.float32",
+      "SHA256": "52cb5117c65e1adc815ddc26aa75bc6f68be990fae1104c94525a3e0e889f7d1"
+    },
+    "replacement_conv1": {
+      "shape": [
+        1,
+        320,
+        32,
+        32
+      ],
+      "dtype": "torch.bfloat16",
+      "SHA256": "348ab66a66815a91b15118c1554933b36345c423bd418f5102fb035f7ddb2153"
+    }
+  },
+  "complete_optimizer_updates_planned": 1,
+  "trainable_tensors": 1120,
+  "raw_transfer_bytes": 0,
+  "frozen_parameter_update_relative_L2_max": 0.05,
+  "performance_qualified": false,
+  "algorithm": "Replace the first frozen UNet GroupNorm only; use the original UNet training replay and A100 comparator.",
+  "separate_unknown_time_projection_request": "93cabeb70caa42df9d0b96418021ce00",
+  "state": "FROZEN_FULL_FIRST_STEP_HYGON_INTERVENTION_AWAITING_DISPATCH",
+  "manifest": "code/bw1000/training-sdxl-first-groupnorm-update-v1/SOURCE_FILES.json"
+}
