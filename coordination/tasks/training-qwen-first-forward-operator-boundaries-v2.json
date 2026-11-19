@@ -1,0 +1,63 @@
+{
+  "owner": "bw1000/root/T01",
+  "case": "T01.sft",
+  "request_id": "f43a6322e7984fcb91ea1f217c8a3449",
+  "label": "training-qwen-first-forward-operator-boundaries-v2",
+  "parent": "1103606",
+  "node": "f13r1n10",
+  "CPU": 64,
+  "DCU": 8,
+  "memory_MiB": 224000,
+  "whole_epoch_seconds": 1120,
+  "native_epoch_seconds": 720,
+  "previously_saved_first_microbatch_rank_count": 8,
+  "verified_trainable_values_per_rank": 504,
+  "layer_input_output_observed_ranks": [
+    0,
+    1,
+    4,
+    5
+  ],
+  "expected_named_boundaries_per_selected_rank": 74,
+  "forwards_per_rank": 4,
+  "backward": 0,
+  "optimizer_updates": 0,
+  "formal_performance": false,
+  "formal_training_GO": false,
+  "framework_commit": "096157e7b63f7e9cd60cb53f31b10f2810ac2ddc",
+  "max_invocations": 1,
+  "replay_allowed": false,
+  "original_double_resume_replayed": false,
+  "archive_step": "1087656.433",
+  "raw_tensor_export_bytes": 0,
+  "actual_scope": "One native model load for each of the eight ranks. Repeat the real first training forward twice in each process. Restore captured random generators and explicitly tracked model state. Check input, trainable values, and real math SDPA route. Terminate before the caller can execute backward.",
+  "controller_port": 29990,
+  "original_recorder_kept_and_validated": true,
+  "listener_hooks_removed_after_real_attach": true,
+  "predecessor": {
+    "path": "results/bw1000/2026-11-19/training-qwen-original226-partial-operator-boundary-terminal.json",
+    "bytes": 5118,
+    "SHA256": "5957d74ac654fdb1112e0e6ee5a7b3169c2bfbb223d101d62e3cf73c7c4fa457"
+  },
+  "same_shape_causal_change": "Keep original callback presence/order and detach its two owned observation hooks after validation.",
+  "original_terminal": {
+    "path": "results/bw1000/2026-11-19/training-qwen-original223-inprocess-first-forward-terminal.json",
+    "SHA256": "c99ec21ecb8454ec0676709d475e867e0d632e239c84604c6a9397c2f233490e"
+  },
+  "question": "Reproduce in-process drift and narrow rank 1 pre-decoder and rank 5 decoder 18 using the actual native operator boundaries.",
+  "original_repeated_run_replayed": false,
+  "diagnostic_pairs": [
+    "unchanged_coarse",
+    "coarse_plus_deferred_targets"
+  ],
+  "targeted_ranks": {
+    "1": "embedding, visual feature extraction and fusion",
+    "5": "decoder 18 attention and MLP"
+  },
+  "host_io_deferred_until_forward_returns": true,
+  "targeted_retained_logical_bytes_per_rank_max": 536870912,
+  "position_route_guard": "Accept the absent helper only with actual position IDs on the language-model entry.",
+  "layer_selection": "For rank5 focus the first differing coarse decoder output in this run, falling back to18. Selection occurs before either targeted forward.",
+  "state": "CLAIMED_ACTUAL_POSITION_ROUTE_AND_ADAPTIVE_LAYER",
+  "manifest": "code/bw1000/training-qwen-first-forward-operator-boundaries-v2/SOURCE_FILES.json"
+}
