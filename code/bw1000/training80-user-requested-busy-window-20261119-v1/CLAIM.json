@@ -1,0 +1,167 @@
+{
+  "schema": "training80-user-requested-busy-window-20261119-v1",
+  "root_GO": true,
+  "CPU_GO": true,
+  "GPU_GO": true,
+  "Model_GO": false,
+  "performance_GO": false,
+  "epoch_seconds": 180,
+  "points": 3,
+  "interval_s": 2,
+  "parents": [
+    "1087656",
+    "1103606"
+  ],
+  "nodes": 80,
+  "cards_per_node": 8,
+  "planned_card_points": 1920,
+  "maximum_invocations": 1,
+  "sources": {
+    "qualified_sampler": {
+      "path": "tools/sample_training80_busy.py",
+      "bytes": 6208,
+      "SHA256": "09fc94b7f527c159bd489bacbf7718dad8615ba61cd3f361a44f441da14a0430"
+    },
+    "old_controller": {
+      "path": "tools/collect_training80_busy_once.py",
+      "bytes": 8794,
+      "SHA256": "8f12677551adc166a3a5e0b6b2fa9e4814d730cfcb883aabaae5401d0d4a7ecb"
+    },
+    "ledger": {
+      "path": "coordination/training/training80-active-node-task-map-v1.json",
+      "bytes": 13304,
+      "SHA256": "36361b92773f8eda412132ea176c29e814e4620ea8392ff287e68d854d67f5c9"
+    }
+  },
+  "qualified_method_publication": "4afb948259050335310bc206da6c65c4a8045b7c",
+  "template_task": "coordination/tasks/training80-current-busy-window-v2.json",
+  "new_scope": "Fresh counter window explicitly requested by user on 2026-11-19; old Nov18 qualified window is historical, not a replay or inference about current busy.",
+  "old_unknown": {
+    "request": "34e44d3913754d7ab69c09f75bd91335",
+    "state": "UNKNOWN",
+    "replay": false,
+    "cancellation_or_release": false,
+    "namespace_reads": 0
+  },
+  "admission": {
+    "parent_numericUID_owner": true,
+    "parent_state": "RUNNING",
+    "per_parent_nodes": 40,
+    "per_parent_AllocTRES_DCU": 320,
+    "nodes_match_pinned_ledger": true,
+    "total_unique_nodes": 80,
+    "parent_EndTime_covers_deadline": true,
+    "allowed_current_steps": [
+      "batch",
+      "extern"
+    ],
+    "unknown_or_numbered_step": "STOP_WITHOUT_SUBMIT_OR_CANCEL",
+    "label_accounting_duplicate": "STOP",
+    "current_check_is_live": false
+  },
+  "controller": {
+    "CPU": 2,
+    "excluded_CPU": [
+      0,
+      1
+    ],
+    "RLIMIT_AS_bytes": 1073741824,
+    "nice": "max(inherited,10)",
+    "ordinary_SSH": true,
+    "new_service_or_poller": false
+  },
+  "node_steps": {
+    "maximum_steps": 2,
+    "nodes_per_step": 40,
+    "tasks_per_step": 40,
+    "tasks_per_node": 1,
+    "CPU_per_task": 1,
+    "memory_MiB_per_node": 256,
+    "GRES": "dcu:8",
+    "srun_time_s": 60,
+    "srun_flags": [
+      "--exact",
+      "--immediate=5",
+      "--kill-on-bad-exit=0"
+    ],
+    "overlap": false,
+    "GPU_allocation_per_node": 8,
+    "GPU_allocation_total": 640
+  },
+  "cost_caps": {
+    "node_CPU_seconds_reserved_max": 4800,
+    "controller_CPU_seconds_reserved_max": 360,
+    "aggregate_node_memory_MiB_reserved": 20480,
+    "counter_points_read": 1920,
+    "sample_bytes_max_per_node": 32768,
+    "node_metadata_bytes_total_max": 2621440,
+    "training_progress_from_sampling": false,
+    "sampling_CPU_is_not_GPU_busy": true,
+    "no_model_weight_SDK_provider_IO": true,
+    "GPU_card_seconds_scheduler_reserved_max": 38400,
+    "GPU_card_hours_scheduler_reserved_max": 10.666666666666666,
+    "GPU_compute_card_seconds": 0
+  },
+  "device_identity": {
+    "fresh_runtime": "80exact node identities each8DRM PCI<->KFD GPU/render/domain/location bijection, stable before/after sample",
+    "reuse_historical_per_node_PCI_as_current": false,
+    "physical_card_key": "(node,PCI); PCI may repeat across nodes",
+    "no_GPU_API_initialization": true,
+    "KFD_holder_PID_scan": false
+  },
+  "clock": {
+    "method": "Original qualified3point shared wall epoch; opened/closed within each planned point+1s",
+    "spacing_s": 2,
+    "window_span_s": 4,
+    "clock_sync_service_qualification": "NOT_MEASURED",
+    "no_cross_host_wall_elapsed_or_aligned_kernel_makespan": true,
+    "not_SM_occupancy_or_all_day_busy": true,
+    "output_clock_sync": "UNKNOWN_NOT_INDEPENDENTLY_MEASURED"
+  },
+  "deadline_cleanup": {
+    "origin": "run_once main before Git admission; sameepoch for sourceinstall/controller/srun/nodes/queries/accounting/output",
+    "newstep_requires_remaining_s": 85,
+    "controller_work_stop_offset_s": 145,
+    "cleanup_and_accounting_reserve_s": 35,
+    "terminal_query_timeout": "min8s, original remaining, ownterminalwindow remaining",
+    "held_srun_TERM_grace_s_max": 5,
+    "held_srun_KILL_reap_s_max": 3,
+    "local_SSH_stop_offset_s": 177,
+    "forced_local_SSH_or255": "UNKNOWN_NO_REPLAY"
+  },
+  "outputs": {
+    "namespace": "/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/training80-user-requested-busy-window-20261119-v1",
+    "exclusive": true,
+    "full_private_metadata_max_bytes": 4194304,
+    "bounded_stdout_max_bytes": 32768,
+    "failure_missing_conflict": "qualifiedfalse/current_driver_busy null; full640/1920 denominators remain; no synthetic PCI for missingnodes",
+    "distributions": {
+      "private": "Each card3point min/median/max/windowmean; actual observed(node,PCI) only",
+      "bounded_public": [
+        "planned640",
+        "observed/missingcards",
+        "windowmean min/median/max",
+        "strict>80cards",
+        "zero cards",
+        "task groups and training/inference/operator derived from ledger"
+      ],
+      "all_fullfleet_metrics_primary_unknown_unless_qualified": true
+    }
+  },
+  "actual_Slurm_steps": 0,
+  "actual_remote_invocations": 0,
+  "current_busy": "UNKNOWN_NOT_RUN",
+  "not_a_training_or_numeric_test": true,
+  "GPU_resource_GO": true,
+  "GPU_compute_GO": false,
+  "prior_terminal_evidence": [
+    {
+      "path": "results/bw1000/2026-11-18/training80-current640-original355-193-all1920-driver-busy-zero.json",
+      "bytes": 13049,
+      "SHA256": "738bc6caaa1b6b957bbf7dad54feb4153a5ed1a6acc691bc040d3928e906c682"
+    }
+  ],
+  "actual_resource_audit": "Each exactparent step:40CPU/40nodes/mem10GiB/gresdcu320 actualAllocTRES, originalNodeList match; ReqMem may beempty. C0andheldnormalcleanup required.",
+  "GPU_GO_scope": "Only normalSlurm640DCU resource allocation for readonlysysfs metadata and counters; GPU_compute/Model/performance remainfalse.",
+  "no_cancel_release_finish_of_any_old_request": true
+}
