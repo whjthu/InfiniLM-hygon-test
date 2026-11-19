@@ -1,0 +1,51 @@
+{
+  "owner": "bw1000/root/T01",
+  "state": "CLAIMED_TWO_NATIVE_UPDATES_WITH_PADDED_VPROJ_INPUT_GRADIENT",
+  "request_id": "4e306ff0a6a047f0977ae72b4b4035f7",
+  "label": "training-qwen-native-vproj-input-vjp-v1",
+  "parent": "1103606",
+  "node": "f13r1n10",
+  "CPU": 64,
+  "DCU": 8,
+  "memory_MiB": 224000,
+  "whole_epoch_seconds": 1720,
+  "native_epoch_seconds": 1320,
+  "framework_commit": "096157e7b63f7e9cd60cb53f31b10f2810ac2ddc",
+  "GPU_GO": true,
+  "formal_training_GO": false,
+  "formal_performance": false,
+  "max_invocations": 1,
+  "replay_allowed": false,
+  "original_recipe": "BF16, 8 ranks, batch 1/rank, accumulation 4, effective batch 32. Original max_steps 25 remains in optimizer and scheduler construction.",
+  "actual_training_scope": "Original Swift two captured steps on 8 ranks, 64 microbatches, and actual clipping, update and optimizer state; no native25 claim.",
+  "control": "Maintain .314 inherited policy for all other base calls including selected q_proj Lt and fixed visual Lt and Math SDPA. Only rank 1 decoder_06.v_proj, BF16 M186/4096/1024, uses differentiable allocated padding to 192 rows; fallback to original for other row counts. Report measured same input VJP against default geometry after first optimizer step.",
+  "checkpointing": "Preserve original recomputation and record actual eligible padded forward and recompute counts. Capture actual upstream and padded input gradient at this leaf; all hooks return None.",
+  "original_capture": "Use the existing recorder and actual detached first-two receipt with 25 artifacts per rank. Adapt its train-end boundary to 2 without a native25 completion marker.",
+  "planned_microbatches": 64,
+  "planned_updates": 2,
+  "formal_model_acceptance": false,
+  "prerequisite": {
+    "path": "results/bw1000/2026-11-20/training-qwen-original325-native-vproj-row-alignment-terminal.json",
+    "bytes": 17963,
+    "SHA256": "9f5db895ae6ea96dedea10b43881bd4a60485d5fc4d525ef659a4beb0be9780e"
+  },
+  "a100_reference": {
+    "path": "coordination/training/qwen-native-first-updates-reference-v1.json",
+    "bytes": 205875,
+    "SHA256": "69d4d0be56aee01209a219eac96defcd20a3c9b1bf542b7acf047a857b56a578"
+  },
+  "prior_failed_run": {
+    "path": "results/bw1000/2026-11-20/training-qwen-original299-CPU301-artifacts-and-A100-scalar-comparison.json",
+    "bytes": 3717,
+    "SHA256": "f16965ff3262cd5c15107a7a720ac11e788173352db8f54e691bc1fd56965b03"
+  },
+  "measured_native_sites": [
+    "decoder_06.v_proj:rank1,raw_first_microbatch"
+  ],
+  "sole_diagnostic_change": "Do not integrate or test reuse of the padded slab under autograd. Compare only isolated default/padded VJPs with the first real upstream and byte-identical frozen weight, keeping gradients on device.",
+  "prior_model_control": {
+    "path": "results/bw1000/2026-11-20/training-qwen-CPU316-original305-314-forward-and-optimizer-drift.json",
+    "bytes": 17798,
+    "SHA256": "ac48e1ea7a2e10d1fa583e5a7bad7acfa9c3bd40c253e5669bf30bdffc0e76ae"
+  }
+}
