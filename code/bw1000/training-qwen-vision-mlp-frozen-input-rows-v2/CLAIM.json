@@ -1,0 +1,36 @@
+{
+  "owner": "root/T01",
+  "request": "2970032f124b4d4ea557be4e27fd6a88",
+  "state": "CLAIMED_REAL_MLP_INPUT_F32_AND_AUTOCAST_BOUNDARY",
+  "parent": "1103606",
+  "node": "f13r1n10",
+  "DCU": 1,
+  "CPU": 8,
+  "memory_MiB": 32768,
+  "whole_seconds": 1200,
+  "GPU_GO": true,
+  "formal_training_GO": false,
+  "max_invocations": 1,
+  "replay_allowed": false,
+  "formal_performance": false,
+  "native_loader_SHA256": "ff4ae3f1a371181b2e8d385fbd6f176daa226629ecf2d215a423bec58df8d7a0",
+  "original_GPU_scope": {
+    "path": "results/bw1000/2026-11-19/training-qwen-original252-isolated-vision-repeatability.json",
+    "bytes": 9807,
+    "SHA256": "78aea7a2c6b04c5c9f279c5de3130d9340d2484e5a987a1b81e272389e9f947c"
+  },
+  "capture": "one connected original rank1 vision forward; capture float32 [640,1152], match original252 exact SHA before both native MLP paths",
+  "experiment": "repeat unchanged native MLP and the same MLP with independent contiguous groups of 128 rows. Both use captured BF16 tensor values and native operators.",
+  "operator_use": "fc1 1152\u21924304, approximate GELU, fc2 4304\u21921152; compare boundary values and host float32 linear references.",
+  "planned_value_replays": 8,
+  "separate_timing": "ABBA 5 warmup + 12 event samples per block, hooks off",
+  "row_chunk": 128,
+  "promote": false,
+  "expected_original_input_dtype": "float32",
+  "operator_autocast_dtype": "BF16",
+  "previous_failure": {
+    "path": "results/bw1000/2026-11-19/training-qwen-original255-mlp-input-dtype-rejection.json",
+    "bytes": 1715,
+    "SHA256": "b3b464ba9c6e4b6a6da875f1a0660e89d1a8800ce386466a7ea46cd7ff6105f4"
+  }
+}
