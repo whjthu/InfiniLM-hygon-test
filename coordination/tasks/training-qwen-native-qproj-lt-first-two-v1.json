@@ -1,0 +1,57 @@
+{
+  "owner": "bw1000/root/T01",
+  "state": "CLAIMED_REAL_TWO_UPDATES_WITH_SINGLE_QUERY_PROJECTION_PREFERENCE",
+  "request_id": "cdf485f822a64f1785581cc8b57693bd",
+  "label": "training-qwen-native-qproj-lt-first-two-v1",
+  "parent": "1103606",
+  "node": "f13r1n10",
+  "CPU": 64,
+  "DCU": 8,
+  "memory_MiB": 224000,
+  "whole_epoch_seconds": 1720,
+  "native_epoch_seconds": 1320,
+  "framework_commit": "096157e7b63f7e9cd60cb53f31b10f2810ac2ddc",
+  "GPU_GO": true,
+  "formal_training_GO": false,
+  "formal_performance": false,
+  "max_invocations": 1,
+  "replay_allowed": false,
+  "original_recipe": "BF16, 8 ranks, batch 1/rank, accumulation 4, effective batch 32. Original max_steps 25 remains in optimizer and scheduler construction.",
+  "actual_training_scope": "Run the original Swift forwards, backwards, clipping and optimizer; stop gracefully after capturing the first two updates.",
+  "control": "Relative to original step 1103606.299, keep visual FC2 Lt, deterministic math SDPA and inherited backward; narrow text Lt from all 252 frozen projections to only decoder_10.q_proj.",
+  "checkpointing": "Audit all 252 forwards and recomputation. Apply Lt only for the selected frozen BF16 projection and restore the inherited preference in finally.",
+  "original_capture": "Use the existing recorder and actual detached first-two receipt with 25 artifacts per rank. Adapt its train-end boundary to 2 without a native25 completion marker.",
+  "planned_microbatches": 64,
+  "planned_updates": 2,
+  "actual_updates": 0,
+  "formal_model_acceptance": false,
+  "prerequisite": {
+    "path": "results/bw1000/2026-11-20/fleet624-qwen-backward-preference-451-303-terminal.json",
+    "bytes": 4969,
+    "SHA256": "fdf0d4bc386a020151fa475c2daf83a887ab94188436767767e4e6afcc8cee34"
+  },
+  "a100_reference": {
+    "path": "coordination/training/qwen-native-first-updates-reference-v1.json",
+    "bytes": 205875,
+    "SHA256": "69d4d0be56aee01209a219eac96defcd20a3c9b1bf542b7acf047a857b56a578"
+  },
+  "prior_failed_run": {
+    "path": "results/bw1000/2026-11-20/training-qwen-original299-CPU301-artifacts-and-A100-scalar-comparison.json",
+    "bytes": 3717,
+    "SHA256": "f16965ff3262cd5c15107a7a720ac11e788173352db8f54e691bc1fd56965b03"
+  },
+  "difference": "Preserve optimizer max_steps=25 and all input, forward, backward and capture boundaries. Isolate the text scope change. Adapt exactly the pinned original performance finalizer on the verified two-update stop, so no 25-step timing report is generated.",
+  "actual_invocations": 0,
+  "source_manifest": {
+    "path": "code/bw1000/training-qwen-native-qproj-lt-first-two-v1/SOURCE_FILES.json",
+    "bytes": 2388,
+    "SHA256": "fc15b6dbfd4d0e3453f335d234941bec98c48c780d68f9ecbcae5d00b0f454bc"
+  },
+  "local_CPU_cases": {
+    "short_closure_positive": 1,
+    "short_closure_rejections": 6,
+    "selected_and_inherited": 2,
+    "restore_after_native_exception": 1,
+    "bad_weight_shape_rejected": 1
+  }
+}
