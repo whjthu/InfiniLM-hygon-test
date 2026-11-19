@@ -1,0 +1,31 @@
+{
+  "owner": "bw1000/root",
+  "case": "T06.sft",
+  "request": "c27094f52c784b91b8d456de3a619550",
+  "CPU_GO": true,
+  "GPU_GO": false,
+  "max_invocations": 1,
+  "physical_GPU": 0,
+  "cpu_count": 4,
+  "host_mem_MiB": 8192,
+  "parent": "1087656",
+  "node": "f11r4n11",
+  "slurm_seconds": 120,
+  "cluster_epoch_seconds": 220,
+  "evidence": "results/bw1000/2026-11-12/training-sdxl-original176-selected-backward-cancellation-and-cost.json",
+  "scope": "Reuse the archived A100 and Hygon T06 first-step snapshots already present on Hygon. Recompute the first AdamW step for both archived gradient inputs through the same CPU scalar BF16 optimizer and independent analytic CPU Float64 reference, quantify native update error by gradient sign and epsilon, with zero device work and no optimizer/model promotion.",
+  "archives": {
+    "A100": {
+      "bytes": 74257307,
+      "sha256": "c59a71095924edfdfb9ad7041b8ef32f747e7825557a313f72ad09a3b0b53036"
+    },
+    "Hygon": {
+      "bytes": 73890269,
+      "sha256": "f44f0d40d198699fcd3a635bb8fc744b907dcba05d8fe2284a2967f34f0192a3"
+    }
+  },
+  "policy_sha256": "075e86e54a3eeefb8d5aad219a23f16959d14bd42b22103cd5fe5302c823f6b5",
+  "qualification": "New optimizer counterfactual only. No model forward/backward, raw tensor transfer, training acceptance or runtime change.",
+  "state": "SOURCE_READY_CPU_ONLY",
+  "manifest": "code/bw1000/training-sdxl-adamw-first-step-counterfactual-v1/SOURCE_FILES.json"
+}
