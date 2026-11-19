@@ -1,0 +1,78 @@
+{
+  "owner": "root/T01",
+  "request": "ed3f44710fec437497b552a366bb9ac2",
+  "state": "CLAIMED_NATIVE_FC2_ONSITE_SHADOW",
+  "parent": "1103606",
+  "node": "f13r1n10",
+  "DCU": 1,
+  "CPU": 8,
+  "memory_MiB": 32768,
+  "whole_seconds": 1200,
+  "GPU_GO": true,
+  "formal_training_GO": false,
+  "formal_performance": false,
+  "max_invocations": 1,
+  "replay_allowed": false,
+  "boundary": "Original isolated vision encoder with exact original rank1 and control rank0 images; unchanged native math and autograd structure within each arm.",
+  "original_weight_payload_bytes": 1152776672,
+  "source_ranks": [
+    1
+  ],
+  "steps_per_rank": 8,
+  "actual_optimizer_updates_planned": 0,
+  "actual_backward_planned": 0,
+  "single_change": "Observation only: graph connected in all eight repeats. Eight native forwards observe 11 tensor boundaries per block, same original image and weights.",
+  "original_model_context": "Isolated PyTorch ROCm stage with BF16 autocast and original visual SDPA, no original Swift/DDP/outer model route.",
+  "references": [
+    "results/bw1000/2026-11-19/training-qwen-original229-native-vision-first-boundary.json",
+    "results/bw1000/2026-11-19/training-qwen-original232-vision-math-only-retains-drift.json"
+  ],
+  "original_full_model_unknown_request_not_reused": true,
+  "weight_or_raw_tensor_exports": 0,
+  "worker_requires_fresh_full_shard_SHA": true,
+  "original_metadata_receipt": {
+    "step": "1103606.250",
+    "state": "COMPLETED_00_REMOTE_STDOUT_JSON_WRAPPER_FAILED",
+    "tensor_values_exported": false
+  },
+  "original_pickle_declarations_have_image_grid_and_pixels": true,
+  "vision_weights_or_tensor_exports": 0,
+  "original_steps": [
+    "1103606.252",
+    "1103606.258"
+  ],
+  "prior": {
+    "path": "results/bw1000/2026-11-19/training-qwen-original267-all27-linear-first-drift.json",
+    "bytes": 3151,
+    "SHA256": "5e7a124a1361bc3aaed69d431b75d9d9d00b5c592dff52a7c2b11b0708e6acc2"
+  },
+  "promote": false,
+  "additional_boundary_count": 248,
+  "observed_native_boundaries": 308,
+  "defense_against_hook_artifacts": "Native ATen/MLP/attention calls unchanged. Hooks preserve refs and defer device-to-host reads, which changes tensor lifetime.",
+  "input_and_reference_bytes_exported": 0,
+  "objective": "Identify the earliest changed native operator boundary wherever it appears. Use first sample as the comparison anchor.",
+  "shared_original_loader": "training-qwen-vision-all-native-boundaries-v1",
+  "eight_full_vision_forwards": true,
+  "shadow_order": [
+    "ABBA",
+    "BAAB"
+  ],
+  "graph_connected_computation": true,
+  "shadow_locations": [
+    5,
+    20
+  ],
+  "maximum_shadow_calls": 8,
+  "one_change": "B executes an extra native Linear.forward on the same observed FC2 operand directly after the original operation, once at each documented site. A adds no duplicate operation. The hook returns None so only the original output drives the vision graph.",
+  "logical_input_layout": [
+    640,
+    4304
+  ],
+  "parameter_shape": [
+    1152,
+    4304
+  ],
+  "scope": "Native recurrence diagnostic. A second operation can perturb execution schedule and is not a candidate or a fix.",
+  "manifest": "code/bw1000/training-qwen-vision-fc2-inplace-shadow-v1/SOURCE_FILES.json"
+}

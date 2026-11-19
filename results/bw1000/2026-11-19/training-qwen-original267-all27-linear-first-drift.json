@@ -1,0 +1,110 @@
+{
+  "utc": "2026-11-19T15:46:37.247802+00:00",
+  "request": "c55289e3fbf3409e84d15d321f6eaadb",
+  "accounting_columns": [
+    "JobIDRaw",
+    "JobName%100",
+    "State%40",
+    "ExitCode",
+    "ElapsedRaw",
+    "AllocTRES%160"
+  ],
+  "accounting": [
+    [
+      "1103606.266",
+      "training-qwen-vision-all-native-boundaries-v1-pre",
+      "COMPLETED",
+      "0:0",
+      "0",
+      "cpu=2,mem=8G,node=1"
+    ],
+    [
+      "1103606.267",
+      "training-qwen-vision-all-native-boundaries-v1",
+      "COMPLETED",
+      "0:0",
+      "51",
+      "cpu=8,gres/dcu=1,mem=32G,node=1"
+    ],
+    [
+      "1103606.268",
+      "training-qwen-vision-all-native-boundaries-v1-post",
+      "COMPLETED",
+      "0:0",
+      "0",
+      "cpu=2,mem=8G,node=1"
+    ]
+  ],
+  "remote_intent": true,
+  "terminal_SHA256": "1ff831728398000ca1456f27b79085ecf25152b4d34916ed9397bc6dc81e955e",
+  "original_GPU_passed": true,
+  "original_post_clean": true,
+  "state": "ACTUAL_QWEN_VISION_ALL27_NATIVE_BOUNDARIES",
+  "step": "1103606.267",
+  "result_SHA256": "7e3b42100a6dc751cd168a510a72693310e86598e6772aeeadf2ff0c8d98a894",
+  "identity": {
+    "step": "1103606.267",
+    "node": "f13r1n10",
+    "PCI": "0000:09:00.0",
+    "runtime": "2.10.0",
+    "hip": "6.3.26113",
+    "name": "BW"
+  },
+  "vision_provider": "f39b3621fea3f757a01d2e00ebd3a2be3516b7df3048d862a365988aba9fa994",
+  "vision_weight_load_seconds": 8.966828724951483,
+  "peak_allocated_bytes": 2862746112,
+  "observed_blocks": 27,
+  "native_boundaries_before_consumed_outputs": 308,
+  "actual_forwards": 8,
+  "first_difference_counts": {
+    "same": 6,
+    "block_05_mlp_fc2": 1,
+    "block_20_mlp_fc2": 1
+  },
+  "first_differences": [
+    {
+      "repeat": 2,
+      "boundary": "block_05_mlp_fc2",
+      "shape": [
+        640,
+        1152
+      ],
+      "dtype": "torch.bfloat16",
+      "changed_elements": 123,
+      "max_abs": 0.032470703125,
+      "relative_L2": 0.0008672499758493644
+    },
+    {
+      "repeat": 3,
+      "boundary": "block_20_mlp_fc2",
+      "shape": [
+        640,
+        1152
+      ],
+      "dtype": "torch.bfloat16",
+      "changed_elements": 128,
+      "max_abs": 0.015625,
+      "relative_L2": 6.836468807985778e-05
+    }
+  ],
+  "unique_consumed_outputs": {
+    "final_pooler": 3,
+    "final_deepstack_0": 2,
+    "final_deepstack_1": 2,
+    "final_deepstack_2": 3
+  },
+  "formal_training": false,
+  "private_receipt": {
+    "name": "qwen-vision-all27-2026-11-19T15-46-37.247802+00-00.json",
+    "SHA256": "74a0037a41b327723020750a8aef884210a488b77d1e52e9970e35451927a35e",
+    "bytes": 1931
+  },
+  "reader": {
+    "path": "code/bw1000/training-qwen-vision-all-native-boundaries-v1-reader/read_terminal.py",
+    "bytes": 6054,
+    "SHA256": "e4944096bac179e49ac25089b3abaad948c907dfea6f532e8dcc186af581c4f1"
+  },
+  "observation_impact": "Native execution is unchanged. Deferred tensor retention still changes lifetimes and may affect execution context.",
+  "conclusion": "Two separate first divergence locations in the same semantic operator family: BF16 visual FC2 with matching earlier activation signatures. The backend kernel mechanism remains unproved.",
+  "promotion": false
+}
