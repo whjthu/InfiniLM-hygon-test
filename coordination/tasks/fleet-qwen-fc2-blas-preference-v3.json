@@ -1,0 +1,99 @@
+{
+  "owner": "bw1000/root/O01",
+  "request": "c049c1c2de624c97858d0d35e070bae2",
+  "state": "CLAIMED_EXPLICIT_HIPBLAS_PREFERENCES_GATED_ON_FULL_NODE",
+  "operator_GO": true,
+  "model_GO": false,
+  "formal_training_GO": false,
+  "max_invocations": 1,
+  "replay_allowed": false,
+  "allocated_cards": 640,
+  "planned_operator_cards": 624,
+  "excluded_foreign_KFD_by_parent": {
+    "1087656": [
+      "f11r2n15"
+    ],
+    "1103606": [
+      "f12r2n12"
+    ]
+  },
+  "reserved_native_by_parent": {
+    "1087656": [],
+    "1103606": []
+  },
+  "evidence": "results/bw1000/2026-11-19/training-qwen-original270-vision-fc2-onsite-shadow-terminal.json",
+  "question": "Do independent devices reproduce native BF16 FC2 output bit drift on fixed operands, and does explicit conventional BLAS preference change bit drift or event timings?",
+  "inputs": "Deterministically generated per-device data using four fixed paired BF16 operands. Original 640x4304 input, 1152x4304 weight and bias. No checkpoint parameters.",
+  "paired_blocks": "Full 8 blocks x 3072 per card. One node with 8 cards must complete 8 x 128 per card before fleet admission.",
+  "deadline_seconds": {
+    "worker": 440,
+    "Slurm_step": 540,
+    "whole_remote_controller": 660,
+    "client": 685
+  },
+  "borrowed_nodes_return_condition": "Owned numbered steps terminal and fresh PCI/KFD cleanup. No change to permanent ledger.",
+  "baseline_measured_fleet_window_utc": "2026-11-19T15:56:35+00:00",
+  "baseline_all_640_busy_percent": 0,
+  "backend_attribution": "Read-back of requested preference with fallback allowed. Actual kernel dispatch identity unproven.",
+  "no_replay_of_original_optimizer_sweep": true,
+  "previous_failure": {
+    "1087656": [
+      [
+        "1087656.446",
+        "qwen-fc2-pref-731c84962cb54945a9562bf400e2a6fb-1087656",
+        "FAILED",
+        "1:0",
+        "29",
+        "cpu=936,gres/dcu=312,mem=1872G,node=39"
+      ]
+    ],
+    "1103606": [
+      [
+        "1103606.273",
+        "qwen-fc2-pref-731c84962cb54945a9562bf400e2a6fb-1103606",
+        "FAILED",
+        "1:0",
+        "28",
+        "cpu=936,gres/dcu=312,mem=1872G,node=39"
+      ]
+    ]
+  },
+  "actual_CPU_provider": {
+    "initial": "_BlasBackend.Cublas",
+    "restored": "_BlasBackend.Cublas",
+    "probes": {
+      "default": {
+        "expected": "_BlasBackend.Default",
+        "called": "_BlasBackend.Cublaslt",
+        "get": "_BlasBackend.Cublaslt",
+        "rc": 0
+      },
+      "cublas": {
+        "expected": "_BlasBackend.Cublas",
+        "called": "_BlasBackend.Cublas",
+        "get": "_BlasBackend.Cublas",
+        "rc": 0
+      },
+      "cublaslt": {
+        "expected": "_BlasBackend.Cublaslt",
+        "called": "_BlasBackend.Cublaslt",
+        "get": "_BlasBackend.Cublaslt",
+        "rc": 0
+      },
+      "ck": {
+        "rc": 1,
+        "type": "RuntimeError"
+      }
+    },
+    "torch": "2.10.0",
+    "hip": "6.3.26113",
+    "provider_sha": "94f8fde8aa08235c9d06c0508dc68d94a004bf336a24130241df35bd28b68d6a"
+  },
+  "previous_failure_preserved": true,
+  "preference_A": "explicit cublas",
+  "preference_B": "explicit cublaslt",
+  "previous_single_DCU_failed_before_GPU": true,
+  "previous_single_DCU_account": "1103606.275|qwen-fc2-pilot-af3076881a5546cb819c49e6b9e5aa14|FAILED|1:0|1|cpu=8,gres/dcu=1,mem=12G,node=1",
+  "previous_single_DCU_failure": "Restricted 1-DCU cgroup cannot read unassigned devices in sysfs KFD topology. Whole-node preflight now matches the 8-DCU resource shape of each fleet node.",
+  "manifest": "code/bw1000/fleet-qwen-fc2-blas-preference-v3/SOURCE_FILES.json"
+}
