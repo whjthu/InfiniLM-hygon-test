@@ -73,7 +73,7 @@
       "original_cards": 8,
       "a100_reference": "A100 已独立核对两次更新及 25 步。",
       "target_evidence": "海光单节点八卡完成原配方 25 步；已独立核对检查点清单，另有张量内容对照。",
-      "target_numerics": "单投影候选在八卡上正常完成两次更新，独立核对了 64 个同输入微批和 200 份张量产物。与 A100 相比，最大 loss 相对差 4.20%，裁剪前梯度范数最大相对差 5.97%。逐元素数值门槛仍待实证。",
+      "target_numerics": "单投影候选在八卡上正常完成两次更新，独立核对了 64 个同输入微批和 200 份张量产物。与 A100 相比，最大 loss 相对差 4.20%，裁剪前梯度范数最大相对差 5.97%。逐元素数值门槛仍待实证。 两次海光实跑 64 份输入指纹一致，首个微批 rank 1 和 rank 5 在反向前已出现 logits 与 loss 差异。第一次零学习率更新保持参数一致，AdamW 状态已分叉。",
       "target_recovery": "160 个续训微批输入指纹一致，恢复数值仍未通过。上一组 rank 4 首个差异在第 31 层；本组第 2 微批首次定位到第 32 层 self_attn 的反向输入梯度，注意力前向、重算和传入梯度指纹一致。 新八卡 math SDPA 对照的 160/160 续训输入一致、27/160 loss 指纹一致，最终 adapter 和 AdamW 状态仍不同。",
       "target_performance": "待三轮同口径实测",
       "target_holdout_effect": "待留出集实测",
@@ -82,6 +82,11 @@
       "hygon_evidence": "results/bw1000/2026-11-14/training-qwen-1087656-220-native25-independent-terminal-and-checkpoint-inventory.json",
       "a100_median_updates_per_second": null,
       "supplemental_evidence": {
+        "native_pair_early_drift": {
+          "path": "results/bw1000/2026-11-20/training-qwen-CPU316-original305-314-forward-and-optimizer-drift.json",
+          "bytes": 17798,
+          "SHA256": "ac48e1ea7a2e10d1fa583e5a7bad7acfa9c3bd40c253e5669bf30bdffc0e76ae"
+        },
         "vision_math_policy_actual": {
           "path": "results/bw1000/2026-11-19/training-qwen-original232-vision-math-only-retains-drift.json",
           "bytes": 16523,
