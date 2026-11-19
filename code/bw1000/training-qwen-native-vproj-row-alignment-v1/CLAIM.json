@@ -1,0 +1,107 @@
+{
+  "owner": "bw1000/root/T01",
+  "case": "T01.sft",
+  "request_id": "04575952e2484ba78b1afdea64f93e9d",
+  "label": "training-qwen-native-vproj-row-alignment-v1",
+  "parent": "1103606",
+  "node": "f13r1n10",
+  "CPU": 64,
+  "DCU": 8,
+  "memory_MiB": 224000,
+  "whole_epoch_seconds": 1120,
+  "native_epoch_seconds": 720,
+  "previously_saved_first_microbatch_rank_count": 8,
+  "verified_trainable_values_per_rank": 504,
+  "layer_input_output_observed_ranks": [
+    0,
+    1,
+    4,
+    5
+  ],
+  "expected_named_boundaries_per_selected_rank": 74,
+  "forwards_per_rank": 4,
+  "backward": 0,
+  "optimizer_updates": 0,
+  "formal_performance": false,
+  "formal_training_GO": false,
+  "framework_commit": "096157e7b63f7e9cd60cb53f31b10f2810ac2ddc",
+  "max_invocations": 1,
+  "replay_allowed": false,
+  "original_double_resume_replayed": false,
+  "archive_step": "1087656.433",
+  "raw_tensor_export_bytes": 0,
+  "controller_port": 29998,
+  "original_recorder_kept_and_validated": true,
+  "listener_hooks_removed_after_real_attach": true,
+  "original_terminal": {
+    "path": "results/bw1000/2026-11-19/training-qwen-original223-inprocess-first-forward-terminal.json",
+    "SHA256": "c99ec21ecb8454ec0676709d475e867e0d632e239c84604c6a9397c2f233490e"
+  },
+  "original_repeated_run_replayed": false,
+  "host_io_deferred_until_forward_returns": true,
+  "targeted_retained_logical_bytes_per_rank_max": 536870912,
+  "position_route_guard": "Accept the absent helper only with actual position IDs on the language-model entry.",
+  "text_attention_remains_math": true,
+  "observed_ranks_for_vision_outputs": [
+    1
+  ],
+  "classification": "native model forward diagnostic",
+  "actual_library_dispatch_proven": false,
+  "previous_unknown_request_replayed": false,
+  "observed_ranks_for_decoder_suboperators": [
+    1,
+    5
+  ],
+  "decoder_indices": [
+    6,
+    10
+  ],
+  "max_retained_logical_bytes": 536870912,
+  "original_output_replaced": true,
+  "actual_optimizer_updates_planned": 0,
+  "no_replay_of_previous_full_graph_pair": true,
+  "controlled_difference": "Only rank 1 decoder_06.v_proj changes from unpadded 186 rows to differentiable allocated padding to 192. This leaf uses conventional in both arms. All other frozen text base calls and visual FC2 keep Lt. Original Math SDPA held fixed.",
+  "actual_scope": "One native Swift load, four complete all-rank first-microbatch forwards from the frozen rank archives, restore original RNG and mutable state each time. Gradient-enabled diagnostic, no backward and zero optimizer updates. First rank 1 native leaf operand stays on device and separately exercises native, allocated padding and reusable zero tail.",
+  "validated_base_text_linear_site_count": 252,
+  "visual_fixed_preference": "cublaslt",
+  "compared_text_base_arms": [
+    "native_rows",
+    "aligned_rows",
+    "aligned_rows",
+    "native_rows"
+  ],
+  "observed_branch_sites": {
+    "1": [
+      "decoder_06.v_proj"
+    ],
+    "5": [
+      "decoder_10.q_proj",
+      "decoder_06.mlp_down_proj"
+    ]
+  },
+  "measurable_predecessor": {
+    "path": "results/bw1000/2026-11-20/training-qwen-original285-native-decoder-six-ten-forward-terminal.json",
+    "bytes": 9774,
+    "SHA256": "8cbe4ecab1fb87f3da6b442b7914929f471708454b996ee36a9d80651617087a"
+  },
+  "qualification": "Native first-forward only. Compare complete all-rank logits and loss plus captured branch boundaries. Same-process read-back does not identify the device kernel.",
+  "actual_backward_planned": 0,
+  "full_model_target": "Numerical attribution, including untouched ranks, first layer difference, logits digest and actual loss. No training or performance promotion.",
+  "timing_target": "Only the isolated frozen v_proj forward with its actual operand. Reused slab includes D2D prefix copy and is used only under no_grad. Full-graph diagnostic retains normal gradient tracking and uses allocated padding.",
+  "rank1_padded_rows": 6,
+  "native_basis": {
+    "path": "results/bw1000/2026-11-20/training-qwen-original288-native-text-base-blas-pair-terminal.json",
+    "bytes": 17460,
+    "SHA256": "edefb1fc4243681b6a223cbd4358f01aac82bc56d3f28fae4f322a62aa5e4a7d"
+  },
+  "geometry_basis": {
+    "path": "results/bw1000/2026-11-20/fleet608-qwen-row-alignment-original458-321-terminal.json",
+    "bytes": 5461,
+    "SHA256": "6ca0b5d4adb6ac953d75084d79490c4c584634b43ab02069b4452461f217b651"
+  },
+  "reuse_basis": {
+    "path": "results/bw1000/2026-11-20/fleet608-qwen-vproj-padding-storage-original459-323-terminal.json",
+    "bytes": 3305,
+    "SHA256": "5c655d9cb7a141d3e8a8c75b347866458b21cc90fe7631dd14554c4c88f56b1a"
+  }
+}
