@@ -35,3 +35,5 @@ T03/T04 证据环境纠正：原 hygon_evidence 字段引用的64输入 caller �
 Qwen 原 8 卡首前向对照完成 32 次真实前向。两种视觉 FC2 BLAS 偏好各有 6/8 个 rank 的 logits 和 loss 在配对内一致。Lt 在 rank 1 的已观察视觉出口保持一致，但第 6 层 decoder 输出仍分叉。此候选暂不晋级。 [原 8 卡记录](../../results/bw1000/2026-11-20/training-qwen-original282-full-eight-card-vision-fc2-preferences-terminal.json)
 
 Qwen 原八卡 decoder 定点观测完成 64 次前向，6/8 个 rank 的 logits 和 loss 保持一致。其余两 rank 的首差分布在 V 投影、Q 投影、MLP 下投影及所选层之前。保留为训练数值诊断。 [实测记录](../../results/bw1000/2026-11-20/training-qwen-original285-native-decoder-six-ten-forward-terminal.json)
+
+Qwen Lt 候选在原八卡工作负载上完成两次更新，Slurm 保留原退出回调失败。CPU301 核验 200 件产物和 64 个完全匹配的输入，A100 输出摘要 0/64 一致。最大 loss 相对差 3.32%，裁剪前梯度范数 5.84%，第二次参数更新范数 0.140%。当前候选不晋级，逐元素数值和恢复仍未验收。 [CPU301 实测](../../results/bw1000/2026-11-20/training-qwen-original299-CPU301-artifacts-and-A100-scalar-comparison.json)
