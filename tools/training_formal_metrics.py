@@ -1,5 +1,6 @@
 """Recompute formal paired training acceptance from pinned scalar evidence."""
 import math
+from pathlib import PurePosixPath
 import statistics
 
 METRICS = {
@@ -31,6 +32,79 @@ def nonnegative(value):
 
 WARMUP_UPDATES = 5
 MEASURED_UPDATES = 20
+DP2_TIMING_BOUNDARY = (
+    'before first measured update through completed final two-rank checkpoint commit and barrier; '
+    'includes replicated-state checks and checkpoint IO; excludes loading and warmup'
+)
+
+
+def verify_hunyuan_dp2_a100_windows(case, audit, verify_raw):
+    """Recompute the engineering reference from the independently audited original windows."""
+    need(case['case'] == audit['case'] == 'T09.dp2' and case['original_cards'] == 2,
+         'DP2 timing evidence belongs to a different case')
+    report = audit['audit']
+    need(report['passed'] is True and audit['formal_A100_performance_accepted'] is False,
+         'incorrect state for the original DP2 engineering reference')
+    original = verify_raw(audit['reference'])['cases'][case['case']]
+    config = original['launch']['config']
+    need(all(config.get(k) == v for k, v in dict(world_size=2, sp=1, warmup_steps=WARMUP_UPDATES,
+                                               max_steps=MEASURED_UPDATES,
+                                               checkpoint_steps=[10, 20, 25]).items()),
+         'DP2 original launch uses a different geometry or training window')
+    repeats = original['runs']
+    need([r['repeat'] for r in repeats] == [1, 2, 3], 'DP2 original needs three reference repeats')
+    baselines = {name: run for name, run in report['runs'].items() if run['start'] == 0}
+    need(len(baselines) == len(repeats), 'DP2 reference includes missing or extra baseline windows')
+    artifacts_seen = set()
+    windows_seen = set()
+    rates = []
+    for original_run in repeats:
+        launch = original_run['launch']
+        result = original_run['result']
+        launch_path = PurePosixPath(launch['path'])
+        run_name = launch_path.parent.name
+        need(run_name in baselines and run_name not in windows_seen, 'DP2 reference run identity differs')
+        windows_seen.add(run_name)
+        run = baselines[run_name]
+        artifacts = run['original_artifacts']
+        need(run['run'] == run_name and run['configured_resume'] is None
+             and launch['sha256'] == case['launch_SHA256']
+             and artifacts['launch.json'] == launch and artifacts['result.json'] == result,
+             'DP2 audit and original result artifacts differ')
+        rows = run['windows']
+        need([row['rank'] for row in rows] == [0, 1]
+             and all(type(row['rank']) is int and row['steps'] == MEASURED_UPDATES
+                     and row['boundary'] == DP2_TIMING_BOUNDARY
+                     and nonnegative(row['seconds']) and row['seconds'] > 0 for row in rows),
+             'DP2 timing must use both complete rank windows at the original boundary')
+        final_ckpt = run['checkpoints']['25']
+        need([rank['rank'] for rank in final_ckpt['ranks']] == [0, 1]
+             and final_ckpt['marker_SHA256'] == artifacts['checkpoint-25/COMMITTED.json']['sha256'],
+             'DP2 timed window lacks the final pair checkpoint commit')
+        # Deterministic step traces may have identical bytes across repeats.
+        for name in ('result.json', 'rank-0/summary.json', 'rank-0/steps.ndjson',
+                     'rank-1/summary.json', 'rank-1/steps.ndjson', 'checkpoint-25/COMMITTED.json'):
+            pin = artifacts[name]
+            need(sha(pin['sha256']) and pin['path'] == (launch_path.parent / name).as_posix()
+                 and type(pin['bytes']) is int and pin['bytes'] > 0, 'DP2 timed artifact is unbound or reused')
+            if name in ('result.json', 'rank-0/summary.json', 'rank-1/summary.json'):
+                need(pin['sha256'] not in artifacts_seen, 'DP2 duplicated a timed summary across repeats')
+                artifacts_seen.add(pin['sha256'])
+        seconds = max(row['seconds'] for row in rows)
+        metrics = original_run['summary']['metrics']
+        rate = MEASURED_UPDATES / seconds
+        need(metrics['measurement_steps'] == MEASURED_UPDATES
+             and metrics['executed_warmup_steps'] == WARMUP_UPDATES
+             and metrics['performance_accepted'] is False and run['performance_accepted'] is False
+             and metrics['measurement_wall_seconds'] == seconds
+             and metrics['measurement_updates_per_second'] == run['measurement_updates_per_second'] == rate,
+             'DP2 reported duration or throughput differs from the slowest rank')
+        rates.append(rate)
+    median = statistics.median(rates)
+    need(median == original['A100_median_measurement_updates_per_second']
+         == report['baseline_median_updates_per_second'] == case['a100_median_updates_per_second'],
+         'DP2 matrix median differs from the three independently audited windows')
+    return median
 
 
 def complete_window(window):

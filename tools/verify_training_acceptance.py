@@ -4,7 +4,7 @@ import hashlib
 import json
 from pathlib import Path
 
-from training_formal_metrics import stage_three
+from training_formal_metrics import stage_three, verify_hunyuan_dp2_a100_windows
 from training_recovery import recovery_plan, verify_recovery
 
 
@@ -72,6 +72,7 @@ def verify(root):
         # Attachments are small summaries or manifests for private experiment receipts.
         return json.loads(pinned(path, digest))
 
+    a100_windows = {}
     for case in cases:
         if "recovery_plan" in case:
             recovery_plan(case, verify_formal_attachment)
@@ -81,6 +82,12 @@ def verify(root):
         for field in ("reference_evidence", "hygon_evidence"):
             path = case[field]
             require(path is None or path in pins, f"{case['case']}: unpinned {field}")
+        if "a100_rank_window_audit" in case:
+            path = case["a100_rank_window_audit"]
+            require(path == case["reference_evidence"] and path in pins,
+                    "missing original DP2 rank-window audit")
+            a100_windows[case["case"]] = verify_hunyuan_dp2_a100_windows(
+                case, json.loads(pinned(path, pins[path])), verify_formal_attachment)
         formal = case.get("formal_acceptance")
         if case["stage3_accepted"]:
             require(isinstance(formal, dict), f"{case['case']}: missing formal acceptance evidence")
@@ -112,7 +119,8 @@ def verify(root):
     markdown_ids = [line.split("|")[1].strip() for line in human.splitlines() if line.startswith("| T")
                     and line.split("|")[1].strip() != "用例"]
     require(markdown_ids == ids, "Markdown and JSON training case order differs")
-    return {"cases": len(ids), "stage3_passed": index["stage3_passed"], "evidence_files": len(pins)}
+    return {"cases": len(ids), "stage3_passed": index["stage3_passed"], "evidence_files": len(pins),
+            "verified_A100_engineering_medians_updates_per_second": a100_windows}
 
 
 def main():
