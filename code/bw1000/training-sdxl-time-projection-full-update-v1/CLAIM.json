@@ -1,0 +1,63 @@
+{
+  "owner": "bw1000/root",
+  "case": "T06.sft",
+  "request": "cad19b9c131d487dabafe26088a78ed4",
+  "GPU_GO": true,
+  "formal_training_GO": false,
+  "hygon": {
+    "node": "f11r4n12",
+    "parent": "1087656",
+    "DCU": 1,
+    "Slurm_cap_seconds": 780,
+    "whole_host_epoch_seconds": 1200
+  },
+  "hip_policy": {
+    "bf16_reduction": true,
+    "tf32_matmul": false,
+    "tf32_cudnn": true
+  },
+  "original_reference_SHA256": "c59a71095924edfdfb9ad7041b8ef32f747e7825557a313f72ad09a3b0b53036",
+  "actual_prefix_source": {
+    "path": "results/bw1000/2026-11-20/training-sdxl-original453-matched-time-projection-bias-rounding.json",
+    "bytes": 5509,
+    "SHA256": "91a676605595800ebe8b402008d9009fc34010f99c5080ea390ecf4554de78c2"
+  },
+  "intervention": {
+    "operand": {
+      "shape": [
+        1,
+        1280
+      ],
+      "dtype": "torch.bfloat16",
+      "SHA256": "0f08513a029f0a4e12753fdbca0d9348b36ea35faefa47dc2efd314445d288af"
+    },
+    "hip_original": {
+      "shape": [
+        1,
+        320
+      ],
+      "dtype": "torch.bfloat16",
+      "SHA256": "f235da4911d6a14791e29dda701111fa85536ee5aba6a4995c5a94fe76155817"
+    },
+    "a100_original": {
+      "shape": [
+        1,
+        320
+      ],
+      "dtype": "torch.bfloat16",
+      "SHA256": "75dd671826601d6fdc2edf4f33caff5dba65d297b6360b3335eb235a377f3dad"
+    }
+  },
+  "complete_optimizer_updates_planned": 1,
+  "trainable_tensors": 1120,
+  "raw_transfer_bytes": 0,
+  "frozen_parameter_update_relative_L2_max": 0.05,
+  "performance_qualified": false,
+  "algorithm": "After proving matching fixed BF16 operand and native HIP output, round dot to BF16 then add BF16 bias at only the first frozen SDXL ResNet time projection. Require exact A100 output before full real backward, clip and one step.",
+  "separate_unknown_time_projection_request": "93cabeb70caa42df9d0b96418021ce00",
+  "state": "CLAIMED_EXACT_TIME_PROJECTION_DEVICE_GATE_AND_ONE_FULL_UPDATE",
+  "full_update_scope": "Original frozen UNet and optimizer, same full realized first inputs, 1120 tensors. Stop before update on a projection hash mismatch.",
+  "original_unresolved_GPU_request_mapping": "Separate older component/staging request remains unreplayed.",
+  "attempt_limit": 1,
+  "claim_never_changes_GroupNorm": true
+}
