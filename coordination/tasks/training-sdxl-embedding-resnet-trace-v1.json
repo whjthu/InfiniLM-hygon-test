@@ -55,6 +55,22 @@
   "observer": "Original 19 visited modules, two conditioning branches and first Resnet. One actual fixed UNet forward/backward/AdamW update per platform, exact own-platform archived first-step verification.",
   "preflight": "A real BF16 CPU graph and original UNet meta topology before any assigned device starts.",
   "decision": "Trace the first unequal value. Treat an internal operation as the first observed source only when all inputs at its boundary compare identical.",
-  "state": "FIXED_INPUT_EMBEDDING_RESNET_COMPARISON_SOURCE_READY",
-  "manifest": "code/bw1000/training-sdxl-embedding-resnet-trace-v1/SOURCE_FILES.json"
+  "state": "ACTUAL_TWO_PLATFORM_FIRST_STEP_EMBEDDINGS_EXACT_RESNET_TWO_MATCHED_ACTIVATION_DIVERGENCES",
+  "manifest": "code/bw1000/training-sdxl-embedding-resnet-trace-v1/SOURCE_FILES.json",
+  "result": {
+    "path": "results/bw1000/2026-11-19/training-sdxl-original406-a100-embedding-resnet-attribution.json",
+    "SHA256": "522862b9aaa2cdeb51b81ee0a95a02913f45b7af7b0dc115812ae9d0a3628261",
+    "bytes": 18697
+  },
+  "Hygon_GPU_step": "1087656.406",
+  "A100_GPU_index": 4,
+  "per_platform_first_update_exact": true,
+  "matched_resnet_temb_and_input": true,
+  "first_resnet_matching_input_mismatch_outputs": [
+    "down_blocks.0.resnets.0.norm1#1.out",
+    "down_blocks.0.resnets.0.time_emb_proj#1.out"
+  ],
+  "numerical_gate_passed": false,
+  "stage3_accepted": false,
+  "next": "For the first GroupNorm and first ResNet time projection, capture actual runtime affine and weight/bias fingerprints, evaluate each original device output against a local CPU oracle on its own original operands, then isolate any proposed Hygon change in the complete original 1120-parameter first step."
 }
