@@ -31,3 +31,5 @@ InternVL 原A100参考补充：200/200捕获文件已完成全SHA、有限值、
 LLaVA 原A100参考补充：200/200捕获文件已完成全SHA、有限值、参数/优化器边界连续性独审；首步lr0故0/504参数改变，第二步504/504改变。该结果不替代海光同输入数值、恢复、正式性能或留出效果验收。证据：results/bw1000/2026-11-17/training-llava-A100-original200-capture-values-independent-terminal.json，SHA256 e78b6ccea81130cf92af72cf7aa9497f65bb1c33cff71572eaebde7e86d4df4b。
 
 T03/T04 证据环境纠正：原 hygon_evidence 字段引用的64输入 caller 结果实际来自A100 CPU，已移入 original_A100_CPU_caller_reference；两模型目标完整权重/initial及新CPU主入口资格尚未闭合，不能以原参考CPU结果代替。目标物理文件存在性仍UNKNOWN。差异审阅见 analysis/bw1000/training-T03-T04-target-admission-local-dependencies-20261117-astra105.json。
+
+Qwen 原 8 卡首前向对照完成 32 次真实前向。两种视觉 FC2 BLAS 偏好各有 6/8 个 rank 的 logits 和 loss 在配对内一致。Lt 在 rank 1 的已观察视觉出口保持一致，但第 6 层 decoder 输出仍分叉。此候选暂不晋级。 [原 8 卡记录](../../results/bw1000/2026-11-20/training-qwen-original282-full-eight-card-vision-fc2-preferences-terminal.json)
