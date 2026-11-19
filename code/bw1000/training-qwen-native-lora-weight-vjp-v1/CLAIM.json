@@ -1,0 +1,52 @@
+{
+  "owner": "bw1000/root/T01",
+  "state": "CLAIMED_NATIVE_QUERY_LORA_WEIGHT_GRADIENT_REPLAY",
+  "request_id": "b5e6125d8cba4ee3aebf610961ec47cd",
+  "label": "training-qwen-native-lora-weight-vjp-v1",
+  "parent": "1103606",
+  "node": "f13r1n10",
+  "CPU": 64,
+  "DCU": 8,
+  "memory_MiB": 224000,
+  "whole_epoch_seconds": 1720,
+  "native_epoch_seconds": 1320,
+  "framework_commit": "096157e7b63f7e9cd60cb53f31b10f2810ac2ddc",
+  "GPU_GO": true,
+  "formal_training_GO": false,
+  "formal_performance": false,
+  "max_invocations": 1,
+  "replay_allowed": false,
+  "original_recipe": "BF16, 8 ranks, batch 1/rank, accumulation 4, effective batch 32. Original max_steps 25 remains in optimizer and scheduler construction.",
+  "actual_training_scope": "Run the original Swift forwards, backwards, clipping and optimizer; stop gracefully after capturing the first two updates.",
+  "control": "Retain original .305 model math, loss, input, gradient checkpoint, optimizer and captured two-step plan. Observe the first real backward only, then compare isolated detached weight VJPs after the first real update. The comparison never returns a gradient to training.",
+  "checkpointing": "Audit all 252 forwards and recomputation. Apply Lt only for the selected frozen BF16 projection and restore the inherited preference in finally.",
+  "original_capture": "Use the existing recorder and actual detached first-two receipt with 25 artifacts per rank. Adapt its train-end boundary to 2 without a native25 completion marker.",
+  "planned_microbatches": 64,
+  "planned_updates": 2,
+  "formal_model_acceptance": false,
+  "prerequisite": {
+    "path": "results/bw1000/2026-11-20/fleet608-qwen-lora-weight-vjp-original452-312-terminal.json",
+    "bytes": 5199,
+    "SHA256": "26de03f68e9c71a7af90f645469233c9df23224445513af41b40bf84cd5a6cbe"
+  },
+  "a100_reference": {
+    "path": "coordination/training/qwen-native-first-updates-reference-v1.json",
+    "bytes": 205875,
+    "SHA256": "69d4d0be56aee01209a219eac96defcd20a3c9b1bf542b7acf047a857b56a578"
+  },
+  "prior_failed_run": {
+    "path": "results/bw1000/2026-11-20/training-qwen-original299-CPU301-artifacts-and-A100-scalar-comparison.json",
+    "bytes": 3717,
+    "SHA256": "f16965ff3262cd5c15107a7a720ac11e788173352db8f54e691bc1fd56965b03"
+  },
+  "measured_native_sites": [
+    "decoder_10.q_proj.lora_A.default",
+    "decoder_10.q_proj.lora_B.default"
+  ],
+  "sole_diagnostic_change": "First microbatch raw tensors remain on device until the isolated diagnostic, then are dropped. Compare actual native FP32 master gradients and separate BF16 autocast replays under conventional and Lt. No training backend change.",
+  "prior_model_control": {
+    "path": "results/bw1000/2026-11-20/training-qwen-original305-query-projection-two-updates-terminal.json",
+    "bytes": 4198,
+    "SHA256": "1b4de985c3625c54d0f26435d1e107d3e3f5f7ed2abf2f6e181ab1e76ef9a4d5"
+  }
+}
