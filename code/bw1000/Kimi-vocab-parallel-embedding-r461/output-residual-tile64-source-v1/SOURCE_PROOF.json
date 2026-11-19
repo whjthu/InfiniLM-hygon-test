@@ -1,0 +1,72 @@
+{
+  "model": "Kimi-K3",
+  "state": "SOURCE_AND_CPU_WIRING_CHECKED",
+  "baseline_source": {
+    "path": "code/bw1000/Kimi-vocab-parallel-embedding-r461/native/kimi_k3_text_model.cpp",
+    "bytes": 13464,
+    "SHA256": "914888f78997b3af1b23f265cc158f68d8eaf3a6fe24f19bd068681c48a3430a"
+  },
+  "observed_original_prefill": {
+    "path": "results/bw1000/2026-11-05/Kimi643-full-model-v4-floor-terminal.json",
+    "bytes": 10114,
+    "SHA256": "e905c21f551e6c4ee03036ae88dfb4dd4647f3ce5baaa3a2a4557605f5ca14f4"
+  },
+  "source_memory_census": {
+    "path": "code/bw1000/Kimi-vocab-parallel-embedding-r461/mixed-prefill-source-v1/PROOF.json",
+    "bytes": 18955,
+    "SHA256": "c2d6728a274bccf2472dcdfe7e741bf791a45d06a16f7efbd958b1c7c9526d13"
+  },
+  "baseline_Native_SHA256": "b8a64e2d7fbdf19150a4ef6d6aadda051fd96fe276a2bd233f00c07f1aed12f5",
+  "geometry": {
+    "TP": 32,
+    "PP": 1,
+    "batch": 1,
+    "tokens": 512,
+    "residuals": 9,
+    "hidden": 7168,
+    "dtype": "BF16"
+  },
+  "scope": "Only the original model's final attention-residual normalization and projection. Reconstruct all scores for the original full softmax and final GEMM with original values. Source candidate keeps one tile's explicit owners live through its fence.",
+  "source_allocation_model": {
+    "before": {
+      "normalized_BF16_bytes": 66060288,
+      "materialized_input_F32_bytes": 132120576,
+      "projection_rows": 4608
+    },
+    "per_tile": {
+      "normalized_BF16_bytes": 8257536,
+      "materialized_input_F32_bytes": 16515072,
+      "projection_rows": 576
+    },
+    "analytical_difference_of_two_requests_bytes": 173408256,
+    "additional_tile_score_bytes": 1152,
+    "new_tile_copies": 8,
+    "new_tile_stream_fences": 8,
+    "retains_original_full_scores": true,
+    "memory_deficit_original_bytes": 295698432,
+    "physical_device_peak_bytes": null,
+    "physical_saving_bytes": null,
+    "full_checkpoint_reload_justified": false
+  },
+  "tests": {
+    "command": "python -B check_residual_tiles.py",
+    "compiler": "local Windows g++ 8.3.0 C++17",
+    "actual_changed_method_compiled_against_recording_types": true,
+    "compiled_target_TU": false,
+    "ordered_tiles": 8,
+    "original_tiled_fixture_scores_equal": true,
+    "copy_failure_test": "tile 4 drains live owners before unwind",
+    "fallback_cases": 5,
+    "softmax_and_final_aggregation_unchanged_in_source": true
+  },
+  "stage": {
+    "actual_Slurm_steps": 0,
+    "actual_GPU": 0,
+    "Native_library_built": false,
+    "Native_runtime_called": false,
+    "numerical_equivalence_on_target": false,
+    "decode_performance_qualified": false,
+    "Model_GO": false,
+    "GPU_GO": false
+  }
+}
