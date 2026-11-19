@@ -1,0 +1,76 @@
+{
+  "schema": "USGS_MULTIEVENT_NEW_RECIPE_V2",
+  "label": "training-USGS-multievent-source-v2",
+  "root_GO": true,
+  "CPU_GO": true,
+  "source_GET_GO": true,
+  "Dataset_GO": false,
+  "training_GO": false,
+  "GPU_GO": false,
+  "Model_GO": false,
+  "URL": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2026-06-01T00:00:00Z&endtime=2026-06-30T23:59:59.999Z&minmagnitude=4.5&contributor=us&reviewstatus=reviewed&eventtype=earthquake&orderby=time-asc&limit=1000&nodata=404",
+  "maximum_GETs": 1,
+  "retry": 0,
+  "redirect": 0,
+  "normal_TLS": true,
+  "authentication": false,
+  "proxy": false,
+  "body_cap_bytes": 4194304,
+  "limit_stop_at": 1000,
+  "whole_seconds": 90,
+  "CPU": 2,
+  "Job_commit_bytes": 2147483648,
+  "local_total_cap_bytes": 20971520,
+  "seed": "USGS-multievent-June2026-v2-20261119",
+  "old_metadata_inventory_required": true,
+  "old_sources": [
+    {
+      "path": "local-only/training-USGS-saved-body-root-reader-v1-original/source-records-private.json",
+      "bytes": 23081,
+      "SHA256": "dd3622c0ad907fd3e966833323c84789c94a395e1ae684415957dfa0289a8ff0"
+    },
+    {
+      "path": "local-only/training-USGS-independent-confirmation-source-v1-original/source-numerics-private.json",
+      "bytes": 91263,
+      "SHA256": "aec5e3b101c7d6a89bbec3783b0297ba413b349878ca284ff308791fd6762fa2"
+    },
+    {
+      "path": "local-only/training-USGS-wide-train-dev-blind-source-v2-original/source-numerics-private.json",
+      "bytes": 230123,
+      "SHA256": "5b5e62c47cd52d122415da9b0aca06151a330650770d9e850fbdabb8f6146779"
+    }
+  ],
+  "closure": {
+    "old_plus_new_alias_and_near_hours": 72,
+    "near_distance_km": 500,
+    "new_internal_coarse_cell_lat_degrees": 30,
+    "new_internal_coarse_cell_lon_degrees": 60,
+    "split_before_QA": true,
+    "old_new_coarse_permanent_exclusion": false,
+    "minimum_new_groups": 8,
+    "minimum_dev_blind_groups": 2
+  },
+  "chart_slots": {
+    "train": 12,
+    "dev": 6,
+    "blind": 6
+  },
+  "window_rows": 6,
+  "minimum_window_events": 4,
+  "display_decimals": 2,
+  "require_nonconstant_displayed_magnitude_and_depth": true,
+  "selection": "First union all old/new aliases+72h500km; discard new components touching any old. Then new-only coarse30x60 closure; hash split groups 1/2 train,1/4 dev,rest blind. Partition chronological nonoverlapping six-row windows, reject short/constant INPUT windows before QA, hash order within split; take fixed slots or STOP without query/window/template substitution.",
+  "future_QA_per_chart": 6,
+  "future_QA_denominator": 144,
+  "future_generation_cap": 256,
+  "future_input_interface": "same common VLM messages/images, full user condition, no literal special EOS; native templates separately qualify",
+  "license": "USGS-produced numeric data public domain; no photos/illustrations/logo; derived local chart and programmatic labels explicitly modified, not official USGS figures",
+  "attribution": "Source: U.S. Geological Survey, Earthquake Catalog; preferred reported values as of frozen response snapshot. Charts generated locally.",
+  "noise": "Preferred magnitudes/depths can be revised; queried reviewed US contribution not complete catalog. Mixed magType reported numbers not interchangeable energy, hazard or impact. Snapshot/API version/generated/updated/body SHA frozen.",
+  "interpretation": "NEW spatial-temporal recipe; not legacy permanent coarse-cell isolation, not global new-region OOD or absolute leakage proof. Same places across months may remain correlated. Original17 and prior150 unchanged.",
+  "socket_timeout_cap_seconds": 45,
+  "Job_deadline_offset_seconds": 85,
+  "worker_work_deadline_offset_seconds": 82,
+  "controller_finalization_deadline_offset_seconds": 90,
+  "state": "ROOT_ADOPTED_ONCE_OFFICIAL_METADATA_ACQUISITION_AND_INPUT_SELECTION"
+}
