@@ -1,0 +1,184 @@
+{
+  "utc": "2026-11-19T16:15:53.681045+00:00",
+  "actual_scope": "Original frozen Qwen vision encoder, one archived rank-1 image, connected vision graph, output unchanged by wrapper; no backward",
+  "rows": [
+    [
+      "1103606.278",
+      "training-qwen-vision-fc2-preferred-blas-v1-pre",
+      "COMPLETED",
+      "0:0",
+      "0",
+      "cpu=2,mem=8G,node=1",
+      "f13r1n10"
+    ],
+    [
+      "1103606.279",
+      "training-qwen-vision-fc2-preferred-blas-v1",
+      "COMPLETED",
+      "0:0",
+      "65",
+      "cpu=8,gres/dcu=1,mem=32G,node=1",
+      "f13r1n10"
+    ],
+    [
+      "1103606.280",
+      "training-qwen-vision-fc2-preferred-blas-v1-post",
+      "COMPLETED",
+      "0:0",
+      "1",
+      "cpu=2,mem=8G,node=1",
+      "f13r1n10"
+    ]
+  ],
+  "accounting_columns": [
+    "JobIDRaw",
+    "JobName%110",
+    "State%40",
+    "ExitCode",
+    "ElapsedRaw",
+    "AllocTRES%140",
+    "NodeList"
+  ],
+  "identity": {
+    "step": "1103606.279",
+    "node": "f13r1n10",
+    "PCI": "0000:09:00.0",
+    "runtime": "2.10.0",
+    "hip": "6.3.26113",
+    "name": "BW"
+  },
+  "load_seconds": 8.962278035003692,
+  "peak_allocated_bytes": 2942437888,
+  "clean_post": true,
+  "worker_pin": {
+    "SHA256": "a1e3ba6b96b77beb978f29b539fb5f8b1a09c695b978f52e4f07ef20e231edce",
+    "bytes": 917745
+  },
+  "terminal_pin": {
+    "SHA256": "f92565d3c95aff36e6caa19df00d98b495277c8434f1e803ce5ad8016174d2cf",
+    "bytes": 2081240
+  },
+  "arms": {
+    "cublas": {
+      "forwards": 8,
+      "changed_forwards": 2,
+      "first_differences": [
+        {
+          "boundary": "block_12_mlp_fc2",
+          "shape": [
+            640,
+            1152
+          ],
+          "dtype": "torch.bfloat16",
+          "changed_elements": 59,
+          "max_abs": 0.0162353515625,
+          "relative_L2": 0.0002430557920247795
+        },
+        {
+          "boundary": "block_18_mlp_fc2",
+          "shape": [
+            640,
+            1152
+          ],
+          "dtype": "torch.bfloat16",
+          "changed_elements": 165,
+          "max_abs": 0.01220703125,
+          "relative_L2": 0.00020778168378466285
+        }
+      ],
+      "changed_downstream": {
+        "final_pooler": 2,
+        "final_deepstack_0": 0,
+        "final_deepstack_1": 1,
+        "final_deepstack_2": 2
+      },
+      "p50_vision_wall_seconds": 0.05286742700263858,
+      "raw_vision_wall_seconds": [
+        4.4353460050188005,
+        0.052731632022187114,
+        0.05288063199259341,
+        0.052719661965966225,
+        0.05297303292900324,
+        0.052929081954061985,
+        0.05285422201268375,
+        0.05273706209845841
+      ],
+      "p50_vision_wall_excluding_first_per_arm_seconds": 0.05285422201268375
+    },
+    "cublaslt": {
+      "forwards": 8,
+      "changed_forwards": 0,
+      "first_differences": [],
+      "changed_downstream": {
+        "final_pooler": 0,
+        "final_deepstack_0": 0,
+        "final_deepstack_1": 0,
+        "final_deepstack_2": 0
+      },
+      "p50_vision_wall_seconds": 0.054365016520023346,
+      "raw_vision_wall_seconds": [
+        0.43835788290016353,
+        0.054411316057667136,
+        0.054318716982379556,
+        0.054130376083776355,
+        0.0542415858944878,
+        0.0545766280265525,
+        0.05442447599489242,
+        0.05430712702218443
+      ],
+      "p50_vision_wall_excluding_first_per_arm_seconds": 0.054318716982379556
+    }
+  },
+  "first_cross_arm_anchor_change": null,
+  "cross_arm_changed_boundaries": 0,
+  "cross_arm_changed_outputs": [],
+  "inputs": {
+    "pixel": {
+      "shape": [
+        640,
+        1536
+      ],
+      "stride": [
+        1536,
+        1
+      ],
+      "dtype": "torch.float32",
+      "SHA256": "47909caba3befb16af43bab0214598480930e95e380bcd7c26689ba331a601f6",
+      "requires_grad": false
+    },
+    "grid": {
+      "shape": [
+        1,
+        3
+      ],
+      "stride": [
+        3,
+        1
+      ],
+      "dtype": "torch.int64",
+      "SHA256": "cce860251ab157160c8f510ab04130834cec300652336ac19800b4b2a2027209",
+      "requires_grad": false
+    },
+    "effective_pixel": {
+      "shape": [
+        640,
+        1536
+      ],
+      "stride": [
+        1536,
+        1
+      ],
+      "dtype": "torch.bfloat16",
+      "SHA256": "319fa213e308b67ea231da5e1f4b23de9f06ffe3dde0079ba498f6ad7f9c5a01",
+      "requires_grad": false
+    },
+    "vision_extra_names": []
+  },
+  "actual_library_dispatch_proven": false,
+  "formal_training": false,
+  "published_source_commit": "97c41d0e0c09f585211b12491766e171f765556d",
+  "actual_backward": 0,
+  "actual_updates": 0,
+  "model_GO": false,
+  "next_gate": "Full model graph same microbatch across eight original ranks, with only native vision FC2 BLAS prefererence as the paired change."
+}
