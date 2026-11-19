@@ -1,0 +1,15 @@
+# T04 new wide150 native CPU candidate
+
+Prepared only; root/CPU/read/GPU/training/Model/Dataset GO are false. No execution occurred during preparation.
+
+This single new A100 CPU scope uses the already installed actual404 framework and the original T04 OneVision native processor: `llava_onevision1_5`, eager attention, BF16, full4096, max_pixels262144. Original freeze/LoRA configuration is pinned but model construction and trainable initialization are not performed or qualified. Fourteen exact model metadata files, seven Swift providers and the three actual decorated encode wrappers are checked before use. No weights, forward/backward, GPU initialization, new GET or training.
+
+The independently qualified new dataset is exactly30charts/150rows. Train50 receives its frozen FINAL supervision; dev50 and blind50 retain only user input and must produce labels=None. All150 actual input/media IDs, native encoded/collated fingerprints, finiteness, full length, train masking/EOS and actual shifted supervised counts are recorded privately. The adapter never opens dev/blind label paths. No prompt, selection, parser, chart or answer changes and no filtering of degenerate charts.
+
+Actual404 comparison is399 identical old400 members, one dispatcher changed only by the explicit T03 optin, plus four T03-only files. It is not400 byte-identical members. Both dispatch source references are bundled for AST proof. This CPU worker imports unchanged `tools.hygon_vlm_recipe` directly and never calls the training dispatcher or new T03 plugins. Every actual404 runtime member is hashed before native import. No framework files are replaced.
+
+The proven new150 CPU controller is reused: exactly2 inherited allowed cores excluding0/1,8GiB sampled RSS soft stop (not reserved memory, hard limit or address-space cap); original300seconds includes Git/source/input preparation/upload/install. Native260, controller270, held cleanup282, tree285, hard alarm290, SSH295/reap298 all share one origin. Budget is the previously successful300second bound; no assumption that all150 T04 inputs fit120seconds. Existing namespace means STOP, UNKNOWN never permits replay. Publication gate checks fixed ordinary remote branch and exact source blobs before transport.
+
+`read_terminal.py` is pre-registered45second metadata-only independent consumer, root-adopted READ gate required. It binds publication/request/epoch/MF/claim, same-host/boot/startticks process exits, held/tree/post cleanup, all150 identities/provider pins, real train supervision and dev/blind labelsNone. It never reads input/media/gold/tensor bodies or reruns native math. Worker fingerprints remain producer observations, not independently recalculated tensors. Failure preserves all150 denominators. Author implementation is not independent review; root review/publication precedes any one actual request.
+
+Source-only preparation used no fixtures, Torch, raw data, model, network, remote or Git. A first AST-text assertion rejected parenthesized `ast.unparse` output; this local preparation failure is preserved. Final checks compare AST structure instead.
