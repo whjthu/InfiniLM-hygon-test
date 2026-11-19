@@ -1,0 +1,396 @@
+--- training-USGS-T04-wide150-native-CPU-v1/build_body.py
++++ training-USGS-T04-render144-native-CPU-v1/build_body.py
+@@ -1 +1 @@
+-"""Assemble exact source + private local150 adapter for one ordinary SSH stdin."""
++"""Assemble exact source + private exact28 render144 raw input stage for one ordinary SSH stdin."""
+@@ -4 +4 @@
+-from prepare_inputs import D,canonical,digest,need,pinned,prepare,verify_source
++from prepare_inputs import D,canonical,digest,need,pinned,stage,verify_source
+@@ -7,2 +7,2 @@
+-    need(claim['root_GO'] is True and claim['CPU_GO'] is True and claim['GPU_GO'] is False,'CPU_ADOPTED')
+-    adapter=private/'adapter';db=prepare(adapter,plan['namespace']+'/data',check)
++    need(claim['root_GO'] is True and claim['CPU_GO'] is True and claim['READ_GO'] is True and claim['GPU_GO'] is False,'CPU_ADOPTED')
++    rawdata=stage(check)
+@@ -12,7 +12,3 @@
+-    datanames=set(db['files'])|set(db['media'])|{'data-binding-private.json'};data={}
+-    for name in sorted(datanames):
+-        check();p=adapter/name
+-        if name=='data-binding-private.json':raw=canonical(db)
+-        else:raw=pinned(p,db['files'].get(name,db['media'].get(name)),2*1024**2,check)
+-        data[name]=base64.b64encode(raw).decode()
+-    payload=dict(case='T04.sft',request_id=request,publication=publication,epoch=epoch,source_manifest_SHA256=digest(rawmf),claim_SHA256=digest((D/'CLAIM.json').read_bytes()),package=package,data=data,data_binding_SHA256=digest(canonical(db)))
++    data={n:base64.b64encode(raw).decode() for n,raw in rawdata.items()}
++    data['input-only-manifest.json']=base64.b64encode((D/'INPUT_ONLY_MANIFEST.json').read_bytes()).decode()
++    payload=dict(case='T04.sft',request_id=request,publication=publication,epoch=epoch,source_manifest_SHA256=digest(rawmf),claim_SHA256=digest((D/'CLAIM.json').read_bytes()),package=package,data=data,input_only_manifest_SHA256=digest((D/'INPUT_ONLY_MANIFEST.json').read_bytes()))
+--- /dev/null
++++ training-USGS-T04-render144-native-CPU-v1/consume_once.py
+@@ -0,0 +1,57 @@
++"""New process: one ordinary SSH consumes original metadata only inside the original300 epoch."""
++import argparse,json,math,os,subprocess,time
++from pathlib import Path
++from prepare_inputs import D,canonical,digest,need,verify_source
++from submit_once import SSH
++
++def main(a):
++    verify_source();plan=json.loads((D/'PLAN.json').read_bytes());claim=json.loads((D/'CLAIM.json').read_bytes())
++    need(claim['READ_GO'] is claim['root_GO'] is True,'PUBLISHED_READER_ADOPTION')
++    need(a.run.name==plan['label']+'-original-dispatch' and a.run.parent.name=='local-only','EXACT_LOCAL_RUN')
++    def read(name):
++        from windows_read_identity import read_stable
++        size=(a.run/name).stat().st_size;need(0<size<=262144,'BOUNDED_LOCAL_METADATA');raw,_=read_stable(a.run/name,size,lambda:None,lambda n:None)
++        return json.loads(raw)
++    intent=read('intent.json');receipt=read('receipt.json');epoch=intent['epoch'];need(math.isfinite(epoch) and intent['deadline']==epoch+300,'SAME_ORIGINAL300')
++    for k in ['request_id','publication','epoch','deadline','source_manifest_SHA256','claim_SHA256','namespace','planned']:need(intent[k]==receipt[k],'PRODUCER_ORIGINAL_CONTEXT')
++    need(intent['namespace']==plan['namespace'] and intent['planned']==plan['planned'] and intent['source_manifest_SHA256']==digest((D/'SOURCE_FILES.json').read_bytes()) and intent['claim_SHA256']==digest((D/'CLAIM.json').read_bytes()),'EXACT_PUBLISHED_READER_CONTEXT')
++    folder=a.run/'consumer';folder.mkdir(mode=0o700)
++    child=None;attempted=False;reaped=False;forced=False;out=b'';err=b'';error=None;remote=None;start=time.monotonic();mono_end=start+max(0,epoch+295-time.time())
++    def left():
++        v=min(epoch+295-time.time(),mono_end-time.monotonic());need(v>0,'ORIGINAL_READER295_END');return v
++    try:
++        need(receipt['exec_request_attempted'] is True,'NO_REMOTE_NAMESPACE_CREATED_NO_READER_SSH')
++        need(left()>3,'INSUFFICIENT_READER_REAP_RESERVE')
++        script=plan['namespace']+'/src/read_terminal.py';output=plan['namespace']+'/independent-terminal-private.json';origin=time.time()
++        args=[script,'--scope',plan['namespace'],'--output',output,'--request-id',intent['request_id'],'--publication',intent['publication'],'--source-manifest-sha256',intent['source_manifest_SHA256'],'--claim-sha256',intent['claim_SHA256'],'--epoch',str(epoch),'--reader-origin',str(origin)]
++        code='import sys,runpy;sys.path.insert(0,'+repr(plan['namespace']+'/src')+');sys.argv='+repr(args)+';runpy.run_path('+repr(script)+',run_name="__main__")'
++        # Shell quoting, not JSON encoding; no arbitrary user text or payload is sent.
++        quoted="'"+code.replace("'","'\"'\"'")+"'"
++        argv=SSH[:-1]+['/home/whj/nvidia-baseline/env-vlm/bin/python -I -S -B -c '+quoted]
++        need(len(subprocess.list2cmdline(argv))<30000,'SHORT_READER_COMMANDLINE')
++        attempt=dict(intent,reader_origin=origin,reader_end=min(epoch+295,origin+35),ordinary_SSH_attempts=1,metadata_only=True,remote_output=output,replay_allowed=False)
++        with (folder/'attempt.json').open('xb') as f:f.write(canonical(attempt));f.flush();os.fsync(f.fileno())
++        attempted=True;child=subprocess.Popen(argv,stdin=subprocess.DEVNULL,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
++        out,err=child.communicate(timeout=min(35,left()))
++        need(len(out)+len(err)<=1024**2,'BOUNDED_READER_OUTPUT')
++        if child.returncode==0:remote=json.loads(out.decode().splitlines()[-1])
++        else:raise ValueError('ORIGINAL_READER_NONZERO')
++    except BaseException as e:error=dict(type=type(e).__name__,message_SHA256=digest(str(e).encode()))
++    finally:
++        if child is not None:
++            if child.poll() is None:
++                forced=True
++                try:child.kill()
++                except ProcessLookupError:pass
++            try:out,err=child.communicate(timeout=max(.001,min(3,epoch+298-time.time())))
++            except subprocess.TimeoutExpired:pass
++            reaped=child.poll() is not None
++        else:reaped=True
++    (folder/'stdout.private').write_bytes(out);(folder/'stderr.private').write_bytes(err)
++    producer_ok=receipt['state']=='RETURNED' and receipt['returncode']==0 and receipt['held_reaped'] is True and receipt['error'] is None and receipt['timeout'] is False and receipt['remote'] and receipt['remote']['passed'] is True
++    passed=bool(producer_ok and not error and reaped and not forced and remote and remote['metadata_verified'] is True and remote['native_preprocessing_qualified'] is True)
++    result=dict(intent,passed=passed,independent_metadata_verified=bool(remote and remote.get('metadata_verified')),native_preprocessing_qualified=bool(passed),producer_passed=bool(producer_ok),producer_failure_retained=not bool(producer_ok),reader=remote,reader_error=error,actual_reader_SSH_attempts=int(attempted),held_reader_reaped=reaped,forced_reader_kill=forced,reader_returncode=child.returncode if child else None,reader_stdout=dict(bytes=len(out),SHA256=digest(out)),reader_stderr=dict(bytes=len(err),SHA256=digest(err)),finished_epoch=time.time(),whole_scope_seconds=time.time()-epoch,GPU_GO=False,training_GO=False,Model_GO=False,Dataset_GO=False,replay_allowed=False)
++    with (a.run/'independent-result.json').open('xb') as f:f.write(canonical(result));f.flush();os.fsync(f.fileno())
++    print(json.dumps(dict(passed=passed,metadata_verified=result['independent_metadata_verified'],native_preprocessing_qualified=passed,reader_SSH_attempts=int(attempted))));return 0 if passed else 1
++if __name__=='__main__':
++    p=argparse.ArgumentParser();p.add_argument('--run',type=Path,required=True);raise SystemExit(main(p.parse_args()))
+--- training-USGS-T04-wide150-native-CPU-v1/install_and_run.py
++++ training-USGS-T04-render144-native-CPU-v1/install_and_run.py
+@@ -60 +60 @@
+-    need(type(epoch) in (int,float) and math.isfinite(epoch) and 0 < epoch <= time.time() < epoch+290, 'original epoch exhausted')
++    need(type(epoch) in (int,float) and math.isfinite(epoch) and 0 < epoch <= time.time() < epoch+248, 'original epoch exhausted')
+@@ -62 +62 @@
+-    original_remaining = epoch + 290 - time.time()
++    original_remaining = epoch + 248 - time.time()
+@@ -65 +65 @@
+-        need(min(epoch + 290 - time.time(), original_remaining - (time.monotonic() - mono)) > 0,
++        need(min(epoch + 248 - time.time(), original_remaining - (time.monotonic() - mono)) > 0,
+@@ -73 +73 @@
+-    scope = A / 'training-USGS-T04-wide150-native-CPU-v1'
++    scope = A / 'training-USGS-T04-render144-native-CPU-v1'
+@@ -79 +79 @@
+-            epoch=epoch, deadline=epoch + 300, planned_native_rows=150, source_manifest_SHA256=payload['source_manifest_SHA256'],
++            epoch=epoch, deadline=epoch + 300, planned_native_rows=144, source_manifest_SHA256=payload['source_manifest_SHA256'],
+@@ -97 +97 @@
+-             claim['root_GO'] is True and claim['CPU_GO'] is True and
++             claim['root_GO'] is True and claim['CPU_GO'] is True and claim['READ_GO'] is True and
+@@ -103,2 +103,2 @@
+-        allowed=sorted(set(os.sched_getaffinity(0))-{0,1});need(len(allowed)>=2,'EXACT2_CPU_ALLOWED')
+-        os.sched_setaffinity(0,set(allowed[:2]))
++        required=set(plan['fixed_CPU_affinity']);need(len(required)==2 and not required&{0,1} and required<=os.sched_getaffinity(0),'FIXED2_CPU_ALLOWED')
++        os.sched_setaffinity(0,required)
+@@ -106,8 +106,4 @@
+-        db_raw=data['data-binding-private.json'];need(digest(db_raw)==payload['data_binding_SHA256'],'PRIVATE_DATA_BINDING_PIN')
+-        db=json.loads(db_raw)
+-        need(db['target_data']==str(scope/'data') and db['planned']==plan['planned'] and db['media']==plan['media']
+-             and db['source_inputs']==plan['source_inputs'] and db['dataset_manifest_SHA256']==plan['dataset_manifest']['SHA256']
+-             and db['dataset_audit_SHA256']==plan['dataset_audit']['SHA256'] and db['dev_gold_read'] is False
+-             and db['blind_gold_read'] is False and db['blind_inputs_and_media_read'] is True,'DATA_SOURCE_AND_PRIVACY_BINDING')
+-        expected=set(db['files'])|set(db['media'])|{'data-binding-private.json'}
+-        need(set(data)==expected and len(db['media'])==30 and set(db['files'])=={x+'-swift.jsonl' for x in plan['planned']},'EXACT34_DATA_MEMBERS')
++        io_raw=package['INPUT_ONLY_MANIFEST.json'];need(digest(io_raw)==payload['input_only_manifest_SHA256'],'EXACT_INPUT_ONLY_MANIFEST_PIN')
++        io=json.loads(io_raw);expected=set(io['payloads'])|{'input-only-manifest.json'}
++        need(set(data)==expected and len(io['payloads'])==28 and data['input-only-manifest.json']==io_raw,'EXACT28_RAW_PLUS_METADATA')
++        need(all(x['read'] is x['upload'] is x['required_on_remote'] is False for x in io['omitted_heldout_gold'].values()),'NO_REMOTE_HELDOUT_GOLD_REQUIREMENT')
+@@ -117,5 +113,8 @@
+-            if name!='data-binding-private.json':
+-                pin=db['files'].get(name,db['media'].get(name));need(len(body)==pin['bytes'] and digest(body)==pin['SHA256'],'DATA_MEMBER_PIN')
+-            write(scope/'data'/name,body)
+-        for split in plan['planned']:
+-            need(db['files'][split+'-swift.jsonl']['rows']==50,'ALL150_INPUTS')
++            if name!='input-only-manifest.json':
++                pin=io['payloads'][name];need(len(body)==pin['bytes'] and digest(body)==pin['SHA256'],'RAW_INPUT_MEMBER_PIN')
++            write(scope/'input-only'/name,body)
++        import sys
++        sys.path.insert(0,str(scope/'src'))
++        from prepare_inputs import prepare_native
++        db=prepare_native(scope/'input-only',scope/'data',scope/'data',check)
++        db_raw=(scope/'data/data-binding-private.json').read_bytes()
+@@ -132,3 +131 @@
+-        allowed = sorted(set(os.sched_getaffinity(0)) - {0, 1})
+-        need(len(allowed) >= 2, 'two CPU cores required')
+-        os.sched_setaffinity(0, set(allowed[:2]))
++        need(os.sched_getaffinity(0)==required,'FIXED2_CPU_RETAINED')
+@@ -142 +139 @@
+-        need(time.time() < epoch + 240, 'no adequate native work reserve remains')
++        need(time.time() < epoch + 200, 'no adequate native work reserve remains')
+@@ -154 +151 @@
+-                      state='KNOWN_INSTALLATION_FAILURE_NO_REPLAY', planned_native_rows=150, error_type=type(error).__name__,
++                      state='KNOWN_INSTALLATION_FAILURE_NO_REPLAY', planned_native_rows=144, error_type=type(error).__name__,
+--- training-USGS-T04-wide150-native-CPU-v1/native_template_CPU.py
++++ training-USGS-T04-render144-native-CPU-v1/native_template_CPU.py
+@@ -23 +23 @@
+-    need(a.case == 'T04.sft' and a.epoch <= time.time() < a.deadline <= a.epoch + 260,
++    need(a.case == 'T04.sft' and a.epoch <= time.time() < a.deadline <= a.epoch + 220,
+@@ -32 +32 @@
+-    need(len(os.sched_getaffinity(0)) == 2 and not {0, 1} & os.sched_getaffinity(0), 'qualified2CPU excluding0/1 required')
++    need(os.sched_getaffinity(0) == set([6, 7]), 'qualified2CPU excluding0/1 required')
+@@ -41 +41 @@
+-        save('progress.json', dict(planned_train=50, planned_dev=50, planned_blind=50, completed_train=sum(r['split'] == 'train' for r in records),
++        save('progress.json', dict(planned_train=72, planned_dev=36, planned_blind=36, completed_train=sum(r['split'] == 'train' for r in records),
+@@ -60 +60 @@
+-    result = dict(passed=False, case=a.case, planned_train=50, planned_dev=50, planned_blind=50, actual_updates=0,
++    result = dict(passed=False, case=a.case, planned_train=72, planned_dev=36, planned_blind=36, actual_updates=0,
+@@ -82 +82 @@
+-             and data['dev_gold_read'] is False and data['blind_gold_read'] is False and data['blind_inputs_and_media_read'] is True and data['source_inputs']==plan['source_inputs'] and data['media']==plan['media'],
++             and data['dev_gold_read'] is False and data['blind_gold_read'] is False and data['blind_inputs_and_media_read'] is True and data['source_inputs']==plan['source_inputs'] and data['media']==plan['media'] and data['staged_payload_files']==28 and data['staged_payload_bytes']==1031596 and data['omitted_gold_required_on_remote'] is False,
+@@ -89 +89 @@
+-        for split, count in [('train', 50), ('dev', 50), ('blind',50)]:
++        for split, count in [('train', 72), ('dev', 36), ('blind',36)]:
+@@ -92 +92 @@
+-            need(len(split_rows[split]) == count, 'all150 input denominator required')
++            need(len(split_rows[split]) == count, 'all144 input denominator required')
+@@ -195 +195 @@
+-        need(len(records) == 150 and not denied and not fds() and not torch.cuda.is_initialized(), 'CPU scope/device/denominator failed')
++        need(len(records) == 144 and not denied and not fds() and not torch.cuda.is_initialized(), 'CPU scope/device/denominator failed')
+@@ -198 +198 @@
+-        result.update(passed=True, state='TRAIN50_SUPERVISED_DEV50_BLIND50_USER_ONLY_NATIVE_CPU', completed_train=50, completed_dev=50, completed_blind=50,
++        result.update(passed=True, state='TRAIN72_SUPERVISED_DEV36_BLIND36_USER_ONLY_NATIVE_CPU', completed_train=72, completed_dev=36, completed_blind=36,
+@@ -209 +209 @@
+-        result.update(error_type=type(error).__name__, error='NATIVE150_FAILED_SEE_PRIVATE_PIN',failure_private_SHA256=digest(private),phase=phase,
++        result.update(error_type=type(error).__name__, error='NATIVE144_FAILED_SEE_PRIVATE_PIN',failure_private_SHA256=digest(private),phase=phase,
+--- training-USGS-T04-wide150-native-CPU-v1/prepare_inputs.py
++++ training-USGS-T04-render144-native-CPU-v1/prepare_inputs.py
+@@ -1 +1 @@
+-"""Private local adapter: train50 supervised; dev/blind100 never open labels."""
++"""Private local adapter: train72 supervised; dev/blind72 never open labels."""
+@@ -28,3 +28,20 @@
+-def prepare(out,target_data,check):
+-    verify_source(check);plan=json.loads((D/'PLAN.json').read_bytes())
+-    target=PurePosixPath(target_data.as_posix() if hasattr(target_data,'as_posix') else target_data)
++
++def source_manifest(check):
++    plan=json.loads((D/'PLAN.json').read_bytes());v=json.loads((D/'INPUT_ONLY_MANIFEST.json').read_bytes())
++    need(v['payload_files']==28 and len(v['payloads'])==28 and v['planned']==plan['planned'] and v['source_manifest']==plan['dataset_manifest'],'EXACT_INPUT_ONLY28_MANIFEST')
++    need(all(x['read'] is x['upload'] is x['required_on_remote'] is False for x in v['omitted_heldout_gold'].values()) and len(v['omitted_heldout_gold'])==2,'HELDOUT_GOLD_NOT_REQUIRED')
++    return plan,v
++
++def stage(check):
++    verify_source(check);plan,v=source_manifest(check)
++    public=json.loads(pinned(G/plan['dataset_audit']['path'],plan['dataset_audit'],16384,check))
++    need(public['dataset_artifact_preparation_passed'] is True and public['images']==24 and public['QA']==144 and public['QA_split_counts']==plan['planned'] and public['independent_math_rows']==144 and public['independent_PNG_byte_dimension_structure_nonblank_pass']==24,'ACTUAL_RENDER144_DATA_ARTIFACT_PASS')
++    root=G/plan['dataset_root'];m=json.loads(pinned(root/'manifest-private.json',plan['dataset_manifest'],32768,check))
++    need(m['actual_images']==24 and m['actual_QA']==144 and m['actual_split_QA']==plan['planned'] and len(m['outputs'])==30 and all(m['outputs'][n]==p for n,p in v['payloads'].items()),'ORIGINAL_MANIFEST_BINDING')
++    # Only the explicit28 whitelist is opened. No inventory scan or heldout gold handle.
++    data={n:pinned(root/n,p,1024**2,check) for n,p in v['payloads'].items()}
++    need(len(data)==28 and sum(map(len,data.values()))==v['payload_bytes']==1031596,'EXACT28_RAW_PAYLOAD_BYTES')
++    return data
++
++def prepare_native(root,out,target_data,check):
++    verify_source(check);plan,v=source_manifest(check);target=PurePosixPath(str(target_data))
+@@ -32,7 +49,4 @@
+-    need(not out.exists(),'LOCAL_ADAPTER_ONCE');out.mkdir(mode=0o700)
+-    public=json.loads(pinned(G/plan['dataset_audit']['path'],plan['dataset_audit'],16384,check))
+-    need(public['data_integrity_qualified'] is True and public['verified']['verified_QA']==150 and public['verified']['verified_charts']==30,'ACTUAL150_DATA_INTEGRITY')
+-    root=G/plan['dataset_root'];manifest=json.loads(pinned(root/'manifest-private.json',plan['dataset_manifest'],32768,check))
+-    need(manifest['media']==plan['media'] and manifest['actual_inputs']==150,'ORIGINAL_MANIFEST_BINDING')
+-    protocol=json.loads(pinned(G/plan['protocol']['path'],plan['protocol'],16384,check))
+-    # Only the train labels path is constructed/read. No dev/blind label handle exists.
++    need(not out.exists(),'REMOTE_ADAPTER_ONCE');out.mkdir(mode=0o700)
++    staged=pinned(root/'input-only-manifest.json',dict(bytes=(D/'INPUT_ONLY_MANIFEST.json').stat().st_size,SHA256=digest((D/'INPUT_ONLY_MANIFEST.json').read_bytes())),32768,check)
++    need(json.loads(staged)==v,'EXACT_STAGED_INPUT_ONLY_METADATA')
++    protocol_pin=plan['protocol'];pinned(D/'render-contracts.reference.txt',protocol_pin,16384,check)
+@@ -40,3 +54,2 @@
+-    labels=[json.loads(x) for x in trainraw.splitlines()];gold={r['id']:r for r in labels}
+-    need(len(labels)==len(gold)==50,'TRAIN50_LABEL_DENOMINATOR')
+-    media={};files={};ordered={};bindings={};allids=set();chars={r['id']:r for r in plan['chart_binding']}
++    labels=[json.loads(x) for x in trainraw.splitlines()];gold={r['id']:r for r in labels};need(len(labels)==len(gold)==72,'TRAIN72_LABEL_DENOMINATOR')
++    media={};files={};ordered={};bindings={};allids=set();chars={r['id_SHA256']:r for r in plan['chart_binding']}
+@@ -46 +59,2 @@
+-    for split in ('train','dev','blind'):
++    kinds=['maximum_reported_number','minimum_reported_number','maximum_depth','minimum_depth','depth_change','reported_number_change']
++    for split,count in plan['planned'].items():
+@@ -48 +62 @@
+-        rows=[json.loads(x) for x in raw.splitlines()];need(len(rows)==50,'ALL50_SPLIT_INPUTS')
++        rows=[json.loads(x) for x in raw.splitlines()];need(len(rows)==count,'FULL_SPLIT_INPUTS')
+@@ -51,4 +65,4 @@
+-            check();need(set(r)=={'id','chart_group','source_group','messages','images'} and r['id'] not in allids,'SOURCE_SCHEMA_UNIQUE_ID')
+-            allids.add(r['id']);c=chars[r['chart_group']]
+-            need(c['split']==split and c['group']==r['source_group'] and r['images']==[c['media_name']],'EXACT_CHART_GROUP_MEDIA')
+-            seen_charts[c['id']]=seen_charts.get(c['id'],0)+1
++            check();need(set(r)=={'id','chart_id','group','kind','event_ids','images','messages','labels'} and r['labels'] is None and r['id'] not in allids,'RENDER144_SOURCE_SCHEMA_UNIQUE_ID')
++            allids.add(r['id']);chartsha=digest(r['chart_id'].encode());groupsha=digest(r['group'].encode());c=chars[chartsha]
++            need(c['split']==split and c['group_SHA256']==groupsha and r['images']==[c['media_name']] and r['event_ids']==['E%02d'%i for i in range(1,7)] and r['kind'] in kinds and r['id']==r['chart_id']+':q'+str(kinds.index(r['kind'])),'EXACT_CHART_GROUP_MEDIA_KIND')
++            seen_charts[chartsha]=seen_charts.get(chartsha,0)+1
+@@ -56 +70 @@
+-            user=r['messages'][0];need(user['role']=='user' and isinstance(user['content'],str) and user['content'].startswith('<image>\n') and user['content'].endswith(protocol['prompt_suffix']),'FROZEN_PROMPT_SUFFIX')
++            user=r['messages'][0];need(user['role']=='user' and isinstance(user['content'],str) and user['content'].startswith('<image>\n') and user['content'].endswith(' Answer FINAL: followed by the answer.'),'ORIGINAL_RENDER_PROMPT_UNMODIFIED')
+@@ -59,2 +73,2 @@
+-                label=gold[r['id']];need(label['data_status']=='QUALIFIED' and label['split']=='train' and label['chart_id']==r['chart_group'] and label['group']==r['source_group'] and user['content']=='<image>\n'+label['question']+protocol['prompt_suffix'],'TRAIN_EXACT_LABEL_JOIN')
+-                answer=label['answer'];pattern=r'-?(?:0|[1-9][0-9]*)\.[0-9]{2}' if label['answer_type']=='decimal2' else r'E[0-9]{2}(?: E[0-9]{2})*'
++                label=gold[r['id']];need(label['data_status']=='QUALIFIED' and label['chart_id']==r['chart_id'] and label['group']==r['group'] and label['kind']==r['kind'] and label['event_ids']==r['event_ids'] and user['content']=='<image>\n'+label['question'],'TRAIN_EXACT_LABEL_JOIN')
++                answer=label['answer'];pattern=r'-?(?:0|[1-9][0-9]*)\.[0-9]{2}' if label['answer_type']=='decimal2' else r'E0[1-6](?: E0[1-6])*'
+@@ -63,5 +77,5 @@
+-            name=c['media_name'];adapted.append(dict(id=r['id'],messages=messages,images=[str(target/name)]))
+-            ordered[split].append(digest(r['id'].encode()))
+-            bindings[split].append(dict(source_id_SHA256=ordered[split][-1],source_row_SHA256=digest(canonical(r)),adapter_row_SHA256=digest(canonical(adapted[-1])),media_name=name,media_SHA256=plan['media'][name]['SHA256'],chart_SHA256=digest(c['id'].encode()),group_SHA256=digest(c['group'].encode())))
+-        need(len(seen_charts)==10 and set(seen_charts.values())=={5},'TEN_CHARTS_FIVE_QA_EACH')
+-        body=b''.join(canonical(r) for r in adapted);name=split+'-swift.jsonl';write(name,body);files[name]=dict(bytes=len(body),SHA256=digest(body),rows=50)
++            name=c['media_name'];adapted.append(dict(id=r['id'],messages=messages,images=[str(target/name)]));ordered[split].append(digest(r['id'].encode()))
++            bindings[split].append(dict(source_id_SHA256=ordered[split][-1],source_row_SHA256=digest(canonical(r)),adapter_row_SHA256=digest(canonical(adapted[-1])),media_name=name,media_SHA256=plan['media'][name]['SHA256'],chart_SHA256=chartsha,group_SHA256=groupsha))
++        need(len(seen_charts)==plan['charts_per_split'][split] and set(seen_charts.values())=={6},'ALL_CHARTS_SIX_QA_EACH')
++        body=b''.join(canonical(r) for r in adapted);name=split+'-swift.jsonl';write(name,body);files[name]=dict(bytes=len(body),SHA256=digest(body),rows=count)
++    need(len(allids)==144,'ALL144_UNIQUE_INPUTS')
+@@ -71,3 +85,2 @@
+-    binding=dict(passed=True,target_data=str(target),dataset_manifest_SHA256=plan['dataset_manifest']['SHA256'],dataset_audit_SHA256=plan['dataset_audit']['SHA256'],source_inputs=plan['source_inputs'],train_labels_pin=plan['train_labels'],protocol_SHA256=plan['protocol']['SHA256'],files=files,media=media,ordered_source_id_SHA256=ordered,row_bindings=bindings,planned=plan['planned'],train_labels_read=True,dev_gold_read=False,blind_gold_read=False,blind_inputs_and_media_read=True,model_predictions=0,scores=0)
+-    body=canonical(binding);need(len(body)<=262144,'SMALL_BINDING');write('data-binding-private.json',body)
+-    return binding
++    binding=dict(passed=True,target_data=str(target),dataset_manifest_SHA256=plan['dataset_manifest']['SHA256'],dataset_audit_SHA256=plan['dataset_audit']['SHA256'],source_inputs=plan['source_inputs'],train_labels_pin=plan['train_labels'],protocol_SHA256=plan['protocol']['SHA256'],files=files,media=media,ordered_source_id_SHA256=ordered,row_bindings=bindings,planned=plan['planned'],train_labels_read=True,dev_gold_read=False,blind_gold_read=False,blind_inputs_and_media_read=True,model_predictions=0,scores=0,input_only_manifest_SHA256=digest(staged),staged_payload_files=28,staged_payload_bytes=v['payload_bytes'],omitted_gold_required_on_remote=False)
++    body=canonical(binding);need(len(body)<=262144,'SMALL_BINDING');write('data-binding-private.json',body);return binding
+--- training-USGS-T04-wide150-native-CPU-v1/read_terminal.py
++++ training-USGS-T04-render144-native-CPU-v1/read_terminal.py
+@@ -6,3 +6,3 @@
+-    need(math.isfinite(a.reader_origin) and 0<a.reader_origin<=time.time()<a.reader_origin+45,'READER_ORIGINAL45')
+-    started=time.monotonic();left=a.reader_origin+45-time.time()
+-    def check():need(min(a.reader_origin+45-time.time(),left-(time.monotonic()-started))>0,'READER_DEADLINE')
++    reader_end=min(a.epoch+295,a.reader_origin+35);need(math.isfinite(a.reader_origin) and a.epoch<=a.reader_origin<=time.time()<reader_end,'READER_SAME_ORIGINAL300')
++    started=time.monotonic();left=reader_end-time.time()
++    def check():need(min(reader_end-time.time(),left-(time.monotonic()-started))>0,'READER_DEADLINE')
+@@ -11 +11 @@
+-    allowed=sorted(os.sched_getaffinity(0)-{0,1});need(len(allowed)>=2,'READER2CPU');os.sched_setaffinity(0,set(allowed[:2]))
++    required=set([6, 7]);need(required<=os.sched_getaffinity(0),'READER_FIXED2CPU');os.sched_setaffinity(0,required)
+@@ -40 +40 @@
+-    result=dict(request_id=a.request_id,publication=a.publication,epoch=a.epoch,deadline=a.epoch+300,planned=plan['planned'],completed={s:0 for s in plan['planned']},missing={s:50 for s in plan['planned']},metadata_verified=False,native_preprocessing_qualified=False,process_terminal='UNKNOWN',GPU_GO=False,training_GO=False,Model_GO=False,model_freeze_or_initialization_qualified=False,tensor_math_independently_recomputed=False,new_native_calls=0,reader_inputs_or_media_read=False,reader_labels_or_gold_read=False,replay_allowed=False)
++    result=dict(request_id=a.request_id,publication=a.publication,epoch=a.epoch,deadline=a.epoch+300,planned=plan['planned'],completed={s:0 for s in plan['planned']},missing=dict(plan['planned']),metadata_verified=False,native_preprocessing_qualified=False,process_terminal='UNKNOWN',GPU_GO=False,training_GO=False,Model_GO=False,model_freeze_or_initialization_qualified=False,tensor_math_independently_recomputed=False,new_native_calls=0,reader_inputs_or_media_read=False,reader_labels_or_gold_read=False,replay_allowed=False)
+@@ -64,2 +64,2 @@
+-            n=progress['completed_'+s];need(type(n) is int and 0<=n<=50 and progress['planned_'+s]==50,'FULL150_DENOMINATOR')
+-            result['completed'][s]=n;result['missing'][s]=50-n
++            n=progress['completed_'+s];need(type(n) is int and 0<=n<=plan['planned'][s] and progress['planned_'+s]==plan['planned'][s],'FULL144_DENOMINATOR')
++            result['completed'][s]=n;result['missing'][s]=plan['planned'][s]-n
+@@ -69 +69 @@
+-        result.update(metadata_verified=True,state='KNOWN_CPU_FAILURE_ORIGINAL150_DENOMINATOR',failure_type=(out.get('failure') or {}).get('type'),worker_returncode=out['worker_returncode'],producer_failure_retained=True,post=post)
++        result.update(metadata_verified=True,state='KNOWN_CPU_FAILURE_ORIGINAL144_DENOMINATOR',failure_type=(out.get('failure') or {}).get('type'),worker_returncode=out['worker_returncode'],producer_failure_retained=True,post=post)
+@@ -75,2 +75,2 @@
+-    need(intent['CPU_affinity'] and len(intent['CPU_affinity'])==2 and not set(intent['CPU_affinity'])&{0,1},'ACTUAL_CPU2')
+-    need(native and native['passed'] is True and native['epoch']==a.epoch and native['deadline']==a.epoch+260 and native['denied_attempts']==[] and native['actual_updates']==0 and native['model_constructed'] is False and native['actual_model_freeze_or_trainable_initialization_qualified'] is False,'CPU_ONLY_NATIVE')
++    need(intent['CPU_affinity'] and intent['CPU_affinity']==plan['fixed_CPU_affinity'],'ACTUAL_CPU2')
++    need(native and native['passed'] is True and native['epoch']==a.epoch and native['deadline']==a.epoch+220 and native['denied_attempts']==[] and native['actual_updates']==0 and native['model_constructed'] is False and native['actual_model_freeze_or_trainable_initialization_qualified'] is False,'CPU_ONLY_NATIVE')
+@@ -80 +80 @@
+-    need(progress['failed'] is False and all(native['planned_'+s]==native['completed_'+s]==result['completed'][s]==50 for s in plan['planned']),'ALL150_COMPLETED')
++    need(progress['failed'] is False and all(native['planned_'+s]==native['completed_'+s]==result['completed'][s]==plan['planned'][s] for s in plan['planned']),'ALL144_COMPLETED')
+@@ -82 +82 @@
+-    need(data['planned']==plan['planned'] and data['media']==plan['media'] and data['source_inputs']==plan['source_inputs'] and data['dataset_audit_SHA256']==plan['dataset_audit']['SHA256'] and data['dataset_manifest_SHA256']==plan['dataset_manifest']['SHA256'] and data['dev_gold_read'] is False and data['blind_gold_read'] is False,'FROZEN_DATA_BINDING')
++    need(data['planned']==plan['planned'] and data['media']==plan['media'] and data['source_inputs']==plan['source_inputs'] and data['dataset_audit_SHA256']==plan['dataset_audit']['SHA256'] and data['dataset_manifest_SHA256']==plan['dataset_manifest']['SHA256'] and data['dev_gold_read'] is False and data['blind_gold_read'] is False and data['staged_payload_files']==28 and data['staged_payload_bytes']==1031596 and data['omitted_gold_required_on_remote'] is False and data['input_only_manifest_SHA256']==digest(source['INPUT_ONLY_MANIFEST.json']),'FROZEN_DATA_BINDING')
+@@ -89 +89 @@
+-    need(len(rows)==150 and pins['run/native/native-identities-private.json']['SHA256']==native['identities_SHA256'],'ALL150_IDENTITIES_ORIGINAL_PIN')
++    need(len(rows)==144 and pins['run/native/native-identities-private.json']['SHA256']==native['identities_SHA256'],'ALL144_IDENTITIES_ORIGINAL_PIN')
+@@ -92,2 +92,2 @@
+-        split=('train','dev','blind')[i//50];ordinal=i%50;b=data['row_bindings'][split][ordinal]
+-        need(row['split']==split and row['ordinal']==ordinal and row['source_id_SHA256']==data['ordered_source_id_SHA256'][split][ordinal]==b['source_id_SHA256'] and row['source_id_SHA256'] not in seen,'ALL150_ORDERED_IDENTITIES');seen.add(row['source_id_SHA256'])
++        split,ordinal=[(s,j) for s,n in plan['planned'].items() for j in range(n)][i];b=data['row_bindings'][split][ordinal]
++        need(row['split']==split and row['ordinal']==ordinal and row['source_id_SHA256']==data['ordered_source_id_SHA256'][split][ordinal]==b['source_id_SHA256'] and row['source_id_SHA256'] not in seen,'ALL144_ORDERED_IDENTITIES');seen.add(row['source_id_SHA256'])
+@@ -105 +105 @@
+-    result.update(metadata_verified=True,native_preprocessing_qualified=True,state='NEW_T04_TRAIN50_DEV50_BLIND50_NATIVE_CPU_PASS',effective_supervised_tokens=tokens,finite_fields=150,labels_None=100,train_supervised_EOS=50,unique_media=30,groups=30,framework_files=404,CPU_wall_seconds=native['CPU_wall_seconds'],sampled_group_RSS_peak_bytes=out['observed_group_RSS_peak_bytes'],RSS_hard_limit=False,source_API_observations=api)
++    result.update(metadata_verified=True,native_preprocessing_qualified=True,state='NEW_T04_TRAIN72_DEV36_BLIND36_NATIVE_CPU_PASS',effective_supervised_tokens=tokens,finite_fields=144,labels_None=72,train_supervised_EOS=72,unique_media=24,groups=7,framework_files=404,CPU_wall_seconds=native['CPU_wall_seconds'],sampled_group_RSS_peak_bytes=out['observed_group_RSS_peak_bytes'],RSS_hard_limit=False,source_API_observations=api)
+@@ -116 +116 @@
+-    except BaseException as e:r=dict(metadata_verified=False,native_preprocessing_qualified=False,planned=dict(train=50,dev=50,blind=50),error_type=type(e).__name__,error_message_SHA256=digest(str(e).encode()),process_terminal='UNKNOWN',GPU_GO=False,training_GO=False,Model_GO=False)
++    except BaseException as e:r=dict(metadata_verified=False,native_preprocessing_qualified=False,planned=dict(train=72,dev=36,blind=36),error_type=type(e).__name__,error_message_SHA256=digest(str(e).encode()),process_terminal='UNKNOWN',GPU_GO=False,training_GO=False,Model_GO=False)
+--- training-USGS-T04-wide150-native-CPU-v1/run_CPU_once.py
++++ training-USGS-T04-render144-native-CPU-v1/run_CPU_once.py
+@@ -21 +21 @@
+-    need(all(math.isfinite(v) for v in [epoch, now]) and 0 < epoch <= now < epoch + 260,
++    need(all(math.isfinite(v) for v in [epoch, now]) and 0 < epoch <= now < epoch + 220,
+@@ -23,4 +23,4 @@
+-    return dict(epoch=epoch, deadline=epoch + 300, work_deadline=epoch + 260,
+-                supervisor_stop=epoch + 270, held_cleanup_deadline=epoch + 282,
+-                registry_cleanup_deadline=epoch + 285, alarm_deadline=epoch + 290,
+-                client_deadline=epoch + 295)
++    return dict(epoch=epoch, deadline=epoch + 300, work_deadline=epoch + 220,
++                supervisor_stop=epoch + 230, held_cleanup_deadline=epoch + 242,
++                registry_cleanup_deadline=epoch + 245, alarm_deadline=epoch + 248,
++                client_deadline=epoch + 250)
+@@ -56 +56 @@
+-    affinity = sorted(os.sched_getaffinity(0) - {0, 1}); need(len(affinity) >= 2, 'two allowed CPU cores excluding0/1 unavailable')
++    affinity = [6, 7]; need(set(affinity)<=os.sched_getaffinity(0), 'fixed CPU mask unavailable')
+@@ -69 +69 @@
+-    save('intent.json', dict(case=a.case, planned_train=50, planned_dev=50, planned_blind=50, request_id=a.request_id, publication=a.publication, **clock, owner=owner,
++    save('intent.json', dict(case=a.case, planned_train=72, planned_dev=36, planned_blind=36, request_id=a.request_id, publication=a.publication, **clock, owner=owner,
+@@ -100,0 +101,5 @@
++        # Hard tail remains bound to this original epoch; cleanup exceptions cannot swallow it.
++        signal.signal(signal.SIGALRM, lambda *_: os._exit(124))
++        tail_remaining = min(clock['alarm_deadline'] - time.time(), mono - time.monotonic() - (clock['deadline'] - clock['alarm_deadline']))
++        if tail_remaining <= 0: os._exit(124)
++        signal.setitimer(signal.ITIMER_REAL, tail_remaining)
+@@ -102 +107 @@
+-        # always shrinking to the same origin's held282/registry285 reserves.
++        # always shrinking to the same origin's held242/registry245 reserves.
+@@ -144,2 +149,2 @@
+-            and native_result['completed_train'] == 50 and native_result['completed_dev'] == 50 and native_result['completed_blind'] == 50)
+-        outcome = dict(case=a.case, planned_train=50, planned_dev=50, planned_blind=50, request_id=a.request_id, publication=a.publication, **clock, finished=time.time(),
++            and native_result['completed_train'] == 72 and native_result['completed_dev'] == 36 and native_result['completed_blind'] == 36)
++        outcome = dict(case=a.case, planned_train=72, planned_dev=36, planned_blind=36, request_id=a.request_id, publication=a.publication, **clock, finished=time.time(),
+--- training-USGS-T04-wide150-native-CPU-v1/submit_once.py
++++ training-USGS-T04-render144-native-CPU-v1/submit_once.py
+@@ -2 +2 @@
+-import argparse,hashlib,json,os,re,subprocess,time,uuid
++import argparse,hashlib,json,os,re,subprocess,sys,time,uuid
+@@ -10 +10 @@
+-        v=min(epoch+295-time.time(),mono+295-time.monotonic());need(v>0,'ORIGINAL295_CLIENT_STOP');return v
++        v=min(epoch+250-time.time(),mono+250-time.monotonic());need(v>0,'ORIGINAL250_PRODUCER_STOP');return v
+@@ -49 +49 @@
+-                reserve=max(0,min(3,mono+298-time.monotonic()))
++                reserve=max(0,min(3,mono+253-time.monotonic()))
+@@ -62,2 +62,14 @@
+-    print(json.dumps(dict(request_id=request,state=state,passed=bool(remote and remote.get('passed') is True),held_reaped=reaped)))
+-    return 0 if remote and remote.get('passed') is True and reaped and not error else 1
++    independent=None;consumer_error=None
++    try:
++        remaining=min(epoch+299-time.time(),mono+299-time.monotonic());need(remaining>0,'ORIGINAL_CONSUMER_EPOCH_RESERVE')
++        command=[sys.executable,'-B','-X','utf8',str(D/'consume_once.py'),'--run',str(L)]
++        save('consumer-intent.json',dict(intent,newprocess_command=command,max_invocations=1,original_end=epoch+299))
++        cr=subprocess.run(command,capture_output=True,timeout=remaining)
++        (L/'consumer.stdout.private').write_bytes(cr.stdout);(L/'consumer.stderr.private').write_bytes(cr.stderr)
++        need(len(cr.stdout)+len(cr.stderr)<=1024**2,'BOUNDED_CONSUMER_LOG')
++        if (L/'independent-result.json').is_file():independent=json.loads((L/'independent-result.json').read_bytes())
++        need(cr.returncode==0 and independent and independent['passed'] is True,'INDEPENDENT_ORIGINAL_CPU_CLOSURE')
++    except BaseException as e:consumer_error=dict(type=type(e).__name__,message_SHA256=digest(str(e).encode()))
++    passed=bool(remote and remote.get('passed') is True and reaped and not error and independent and independent.get('passed') is True and consumer_error is None)
++    closure=dict(intent,passed=passed,producer_passed=bool(remote and remote.get('passed') is True and reaped and not error),independent_metadata_verified=bool(independent and independent.get('independent_metadata_verified')),native_preprocessing_qualified=passed,consumer_error=consumer_error,state=state,finished_epoch=time.time(),whole_scope_seconds=time.monotonic()-mono,GPU_GO=False,training_GO=False,Model_GO=False,Dataset_GO=False,replay_allowed=False)
++    save('closure.json',closure);print(json.dumps(closure));return 0 if passed else 1
+--- training-USGS-T04-wide150-native-CPU-v1/verify_package.py
++++ training-USGS-T04-render144-native-CPU-v1/verify_package.py
+@@ -10 +10 @@
+-    else:need(claim['root_GO'] and claim['CPU_GO'],'ROOT_CPU_ADOPTED')
++    else:need(claim['root_GO'] and claim['CPU_GO'] and claim['READ_GO'],'ROOT_CPU_READER_ADOPTED')
+@@ -12 +12 @@
+-    need(plan['planned']==dict(train=50,dev=50,blind=50) and plan['CPU']==2 and plan['GPU']==0 and plan['whole_seconds']==300 and plan['work_seconds']==260 and plan['RSS_soft_bytes']==8*1024**3 and plan['RSS_hard_limit'] is False,'EXACT_NEW_RESOURCE_DENOMINATOR')
++    need(plan['planned']==dict(train=72,dev=36,blind=36) and plan['CPU']==2 and plan['GPU']==0 and plan['whole_seconds']==300 and plan['work_seconds']==220 and plan['RSS_soft_bytes']==8*1024**3 and plan['RSS_hard_limit'] is False,'EXACT_NEW_RESOURCE_DENOMINATOR')
+@@ -30 +30,6 @@
+-    need(len(plan['media'])==30 and sum(x['bytes'] for x in plan['media'].values())==919823 and plan['data_counts']['actual_inputs']==150,'ACTUAL_NEW_MEDIA_PINS')
++    need(len(plan['media'])==24 and sum(x['bytes'] for x in plan['media'].values())==895438 and plan['data_counts']['actual_inputs']==144,'ACTUAL_NEW_MEDIA_PINS')
++    io=json.loads((D/'INPUT_ONLY_MANIFEST.json').read_bytes());need(io['payload_files']==len(io['payloads'])==28 and io['payload_bytes']==1031596 and io['planned']==plan['planned'],'EXACT28_PAYLOADS')
++    need(set(io['payloads'])==set(plan['media'])|{s+'/inputs.jsonl' for s in plan['planned']}|{'train/labels-private.jsonl'},'EXPLICIT_NO_HELDOUT_GOLD_PAYLOADS')
++    need(len(io['omitted_heldout_gold'])==2 and all(r['read'] is r['upload'] is r['required_on_remote'] is False for r in io['omitted_heldout_gold'].values()),'OMITTED_GOLD_NOT_REQUIRED')
++    need(plan['fixed_CPU_affinity']==[6, 7] and plan['cases']['T04.sft']['native_spec']['training']['gradient_checkpointing'] is False,'ORIGINAL_False_FIXED_CPU')
++    pinned(D/'render-contracts.reference.txt',plan['protocol'],16384,check)
+@@ -38 +43 @@
+-    return dict(source_members=len(json.loads((D/'SOURCE_FILES.json').read_bytes())['files']),python_AST=len(parsed),framework404=True,metadata14=True,Swift7=True,wrappers3=True,planned150=True,prepared=prepared,executed_native=False)
++    return dict(source_members=len(json.loads((D/'SOURCE_FILES.json').read_bytes())['files']),python_AST=len(parsed),framework404=True,metadata14=True,Swift7=True,wrappers3=True,planned144=True,prepared=prepared,executed_native=False)
