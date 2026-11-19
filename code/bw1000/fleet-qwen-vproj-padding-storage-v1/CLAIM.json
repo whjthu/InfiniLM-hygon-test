@@ -1,0 +1,58 @@
+{
+  "owner": "bw1000/root/O01",
+  "request": "d3017d3b64ee4ecaace6eb2921a664f8",
+  "state": "PUBLISHED_FOR_SINGLE_BOUNDED_DISPATCH",
+  "operator_GO": true,
+  "formal_training_GO": false,
+  "allocated_cards": 640,
+  "planned_operator_cards": 608,
+  "excluded_foreign_KFD_by_parent": {
+    "1087656": [
+      "f11r2n15"
+    ],
+    "1103606": [
+      "f12r2n12"
+    ]
+  },
+  "reserved_native_by_parent": {
+    "1087656": [],
+    "1103606": [
+      "f13r1n05",
+      "f13r1n07"
+    ]
+  },
+  "protected_step": {
+    "id": "1103606.310",
+    "parent": "1103606",
+    "label": "GLM474-depth-observer-model-12d5bc02ca0a49a89db5c1628c64160b-socket-gate"
+  },
+  "max_invocations": 1,
+  "replay_allowed": false,
+  "caller": {
+    "path": "results/bw1000/2026-11-20/training-qwen-original288-native-text-base-blas-pair-terminal.json",
+    "bytes": 17460,
+    "SHA256": "edefb1fc4243681b6a223cbd4358f01aac82bc56d3f28fae4f322a62aa5e4a7d"
+  },
+  "provenance": "Synthetic operands at measured Qwen caller shapes. API preference readback. No checkpoint, no dataset, no Model or formal training claims.",
+  "deadline_seconds": {
+    "worker": 440,
+    "Slurm_step": 540,
+    "whole_remote_controller": 660,
+    "client": 685
+  },
+  "source_basis": {
+    "path": "results/bw1000/2026-11-20/fleet608-qwen-row-alignment-original458-321-terminal.json",
+    "bytes": 5461,
+    "SHA256": "6ca0b5d4adb6ac953d75084d79490c4c584634b43ab02069b4452461f217b651"
+  },
+  "exact_geometry": [
+    186,
+    4096,
+    1024
+  ],
+  "question": "Can an exclusive reusable zero-tail input slab reduce the measured row padding overhead, with equivalent output and D2D copy included?",
+  "design": "2 distinct operand pairs in an 8-card pilot, then 384 distinct seeded input/weight pairs per admitted card. Per-pair alternating order. Native BF16 M=192 for both arms, same M=186 visible rows. F32 rounded reference, paired bit comparison, timing group of 8 calls and padding/scratch tails verified. No model update.",
+  "candidate": "A single synchronous worker owns one persistent BF16 slab. The first 186 rows are copied in on every call and the remaining rows are initialized to zero once. Default comparison allocates and pads on every call.",
+  "limit": "Up to 233472 paired cases, 14942208 timed calls across 608 DCU. The expected denominator is preserved. Outcome requires actual calls, not assigned GPU count.",
+  "qualification": "Isolated synchronous inference-like F.linear. No autograd lifetime or shared workspace proof. No model or training promotion."
+}
