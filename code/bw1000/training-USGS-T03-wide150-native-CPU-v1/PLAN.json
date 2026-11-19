@@ -1,0 +1,676 @@
+{
+  "versions": {
+    "torch": "2.8.0a0+5228986c39.nv25.6",
+    "transformers": "5.12.1",
+    "ms-swift": "4.4.2",
+    "peft": "0.19.1",
+    "accelerate": "1.14.0"
+  },
+  "cases": {
+    "T03.sft": {
+      "launch_file": "T03.sft-original-launch.json",
+      "launch_pin": {
+        "bytes": 3553,
+        "SHA256": "7fefdc16f5519a998a94fdef703c2dd326b3c15e2e31d5a3735f6c4558269c67"
+      },
+      "native_binding_original_repository_path": "code/bw1000/training-vlm-cuda-resume20-v1/cases/T03.sft-native-binding.json",
+      "native_binding_pin": {
+        "bytes": 114987,
+        "SHA256": "2ff3b19fc433f38b2b9053787f1b458e70ada2457e1d1092f5beab3ae769a076"
+      },
+      "native_spec": {
+        "case": "T03.sft",
+        "original_launch_SHA256": "7fefdc16f5519a998a94fdef703c2dd326b3c15e2e31d5a3735f6c4558269c67",
+        "training": {
+          "max_steps": 25,
+          "gradient_accumulation_steps": 4,
+          "per_device_train_batch_size": 1,
+          "save_steps": 10,
+          "save_total_limit": 3,
+          "learning_rate": 0.0001,
+          "weight_decay": 0.1,
+          "adam_beta1": 0.9,
+          "adam_beta2": 0.95,
+          "adam_epsilon": 1e-08,
+          "warmup_ratio": 0.03,
+          "bf16": true,
+          "fp16": false,
+          "gradient_checkpointing": true,
+          "max_grad_norm": 1.0,
+          "optim": "adamw_torch",
+          "lr_scheduler_type": "cosine"
+        },
+        "effective_warmup_steps": 1,
+        "model_class": "InternVLForConditionalGeneration",
+        "attention": "sdpa",
+        "frozen_paths": [
+          "model.vision_tower",
+          "model.multi_modal_projector"
+        ],
+        "language_path": "model.language_model",
+        "lora": {
+          "r": 16,
+          "lora_alpha": 32,
+          "lora_dropout": 0.05,
+          "bias": "none"
+        }
+      },
+      "resolved_template": "internvl_hf",
+      "model_type": "internvl",
+      "attention": "sdpa",
+      "metadata_files": 13,
+      "model_metadata": {
+        "at_UTC": "2026-11-12T10:12:44.817722+00:00",
+        "model_root": "/mnt/data/nvidia-baseline-20261010/inputs/models/InternVL3_5-8B-HF",
+        "files": {
+          "config.json": {
+            "bytes": 2998,
+            "SHA256": "32a9a726c8fd4d2386038bb1eab9fd34c6e04cf89c070e44aab346a41d9454e6"
+          },
+          "model.safetensors.index.json": {
+            "bytes": 79937,
+            "SHA256": "b15fa5f358beeadf2901d180db961be52ec0c1a0f17fcdb064e4e9c304f77d1b"
+          },
+          "generation_config.json": {
+            "bytes": 121,
+            "SHA256": "b17e2c6813e1f5e4de267a4c7697b46f69ba7ba95643c8253ad671fab7d7271c"
+          },
+          "preprocessor_config.json": {
+            "bytes": 666,
+            "SHA256": "af09ffbe57900d5ae07f93f4c20693559a272e32fa6c5f816132cb71985aac98"
+          },
+          "processor_config.json": {
+            "bytes": 72,
+            "SHA256": "3511f4ae65c2fa5c1ab6a0fb2bb2fe767d6f0ee53ba412953b33acc892327c2a"
+          },
+          "tokenizer_config.json": {
+            "bytes": 7614,
+            "SHA256": "5d109a013cdc2b9b5914dbd9564e8e1ef591b91c4d5d5584a00b1f01f28c0749"
+          },
+          "special_tokens_map.json": {
+            "bytes": 877,
+            "SHA256": "e847a86633f2470a0d9fed41b5a36ff1f4435050929aa80b28c41d28420501b2"
+          },
+          "tokenizer.json": {
+            "bytes": 11424484,
+            "SHA256": "7b9d18660f656ae5a87df2d5d6ed990e80f292d3473c1a35cae8259a5d28cd67"
+          },
+          "added_tokens.json": {
+            "bytes": 913,
+            "SHA256": "21d196327bf587cb24ec39db1dbe52cd68d243fdde8bc60dff2c867261b703fe"
+          },
+          "merges.txt": {
+            "bytes": 1671853,
+            "SHA256": "8831e4f1a044471340f7c0a83d7bd71306a5b867e95fd870f74d0c5308a904d5"
+          },
+          "vocab.json": {
+            "bytes": 2776833,
+            "SHA256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910"
+          },
+          "chat_template.jinja": {
+            "bytes": 481,
+            "SHA256": "b3e3fa7cdeceec1d3dfe0d17b77724baf3857714e688f3a700261567e96140eb"
+          },
+          "video_preprocessor_config.json": {
+            "bytes": 1345,
+            "SHA256": "b7f9c784a27f30ddb3fc78fca353ab6ce982c2a263b702e2547302e8c1e0087a"
+          }
+        },
+        "total_metadata_bytes": 15968194,
+        "model_weight_values_read": false,
+        "Torch_imported": false,
+        "GPU_calls": 0
+      },
+      "Swift_sources": {
+        "swift/model/model_arch.py": {
+          "bytes": 24517,
+          "SHA256": "3358c765a3b6eaea9c6a1555dd6ee93d20aead6738f975cce0e61d6df0a28765"
+        },
+        "swift/trainers/mixin.py": {
+          "bytes": 64818,
+          "SHA256": "6b6de2e7503ce414cb837961e1355be41a56787ecca502e8570bfcfa36c15ab9"
+        },
+        "swift/pipelines/train/tuner.py": {
+          "bytes": 18778,
+          "SHA256": "eaccb40ba11e132d647022d940ab6f396a36ac3227640be536fb0510a9e89fe8"
+        },
+        "swift/template/base.py": {
+          "bytes": 107643,
+          "SHA256": "cc1629c8a84b764b530895692e4e04322aa6732281be229efce9e98752e113cc"
+        },
+        "swift/trainers/seq2seq_trainer.py": {
+          "bytes": 12688,
+          "SHA256": "28fe9cb927390ad423add8b98411a90fb2d1c801ead124b354802bdd0779ecf6"
+        },
+        "swift/model/models/internlm.py": {
+          "bytes": 26830,
+          "SHA256": "2a7c7aa46d341450ebb5d28d8bad149b784f8bcb9dff5fd123594ddd0a234580"
+        },
+        "swift/template/templates/internvl.py": {
+          "bytes": 17078,
+          "SHA256": "6795d6f8bc646bd791dc8669a252efe64a8d546ae65768f552a0f29be2deb803"
+        }
+      },
+      "trainable_manifest_tensors": 504,
+      "trainable_manifest_parameters": 43646976,
+      "actual_model_freeze_qualified_by_this_CPU_scope": false,
+      "actual_wrapper_qualification_for_new_domain_pending": true
+    }
+  },
+  "label": "training-USGS-T03-wide150-native-CPU-v1",
+  "namespace": "/home/whj/nvidia-baseline/alignment-assets/training-USGS-T03-wide150-native-CPU-v1",
+  "framework": "/home/whj/nvidia-baseline/alignment-assets/training-USGS-T03-fresh-domain-A100-v1/framework",
+  "framework_members": 404,
+  "dataset_root": "local-only/training-USGS-wide-train-dev-blind-source-v2-original/dataset",
+  "dataset_manifest": {
+    "bytes": 23914,
+    "SHA256": "81aaa0805d9588a9824ab0e647b3e870be8a2a4e125f1f8600a7e757c11f37b0"
+  },
+  "dataset_audit": {
+    "path": "results/bw1000/2026-11-19/training-USGS-original500-three-split150-independent-integrity-pass.json",
+    "bytes": 7498,
+    "SHA256": "317da79e4f2d6d055e1ab4ad2b711e73ea05217267db2b5a49442cccec2dcceb",
+    "publication": "e144f6c9ee4852bba25be620755e9163efc04a1b"
+  },
+  "protocol": {
+    "path": "code/bw1000/training-USGS-wide-train-dev-blind-source-v2/EVALUATION_PROTOCOL.json",
+    "bytes": 7944,
+    "SHA256": "db8dee8f981c54c304037cbb9b00d1669da10aee8d394bee4d60572da6dd87e6"
+  },
+  "planned": {
+    "train": 50,
+    "dev": 50,
+    "blind": 50
+  },
+  "charts_per_split": 10,
+  "whole_seconds": 300,
+  "work_seconds": 260,
+  "supervisor_stop_seconds": 270,
+  "RSS_soft_bytes": 8589934592,
+  "RSS_hard_limit": false,
+  "CPU": 2,
+  "GPU": 0,
+  "source_inputs": {
+    "train": {
+      "SHA256": "8a2cc14c3cc2922f172c358ccf1e4e93a6f2c830a5c2aab63d5a2f4ea93ca81d",
+      "bytes": 36470,
+      "rows": 50
+    },
+    "dev": {
+      "SHA256": "f748159535ad2c71d6848fc4ed3d9f5589698a6b7e36b6a6e2f45610aeadf91a",
+      "bytes": 36370,
+      "rows": 50
+    },
+    "blind": {
+      "SHA256": "54066333bd545743e4a610f89b10fc589d4bbc4c0701671048bbe86d54774ff8",
+      "bytes": 36470,
+      "rows": 50
+    }
+  },
+  "train_labels": {
+    "SHA256": "a2c0cdc063651de0fd9aa57387f5225e4a33865b47e1e136a1d7f4e06e42e986",
+    "bytes": 30897,
+    "rows": 50
+  },
+  "media": {
+    "blind/media/020.png": {
+      "SHA256": "d22d42da5c190d36832667f559de2d072a8fef4655b672e153f5d5f333a5f6aa",
+      "bytes": 28283,
+      "height": 512,
+      "name": "blind/media/020.png",
+      "width": 512
+    },
+    "blind/media/021.png": {
+      "SHA256": "099a3f7eb6466261143791557381ad95c20316e8f26c292eb6ab7ea21ad9d4cc",
+      "bytes": 32823,
+      "height": 512,
+      "name": "blind/media/021.png",
+      "width": 512
+    },
+    "blind/media/022.png": {
+      "SHA256": "356b5bd25c2a6c76871cd7e3c2892b4f7c443fb09c6133901d33c57492cdcc06",
+      "bytes": 31311,
+      "height": 512,
+      "name": "blind/media/022.png",
+      "width": 512
+    },
+    "blind/media/023.png": {
+      "SHA256": "ebf202e6f842d26bad5855854f490e42fab95035e0ba56bc88b9251a483b3a8e",
+      "bytes": 28459,
+      "height": 512,
+      "name": "blind/media/023.png",
+      "width": 512
+    },
+    "blind/media/024.png": {
+      "SHA256": "f7469d4a5e19da2613f6dd98cdb7ab04c1771f2cb2e5f9e6c8b8defd6a075804",
+      "bytes": 31458,
+      "height": 512,
+      "name": "blind/media/024.png",
+      "width": 512
+    },
+    "blind/media/025.png": {
+      "SHA256": "409a18c288f75397b5b491a9901bfb2cf6963cd387ec5d22240fba3c327c77bd",
+      "bytes": 28173,
+      "height": 512,
+      "name": "blind/media/025.png",
+      "width": 512
+    },
+    "blind/media/026.png": {
+      "SHA256": "003594f31935d9422ebf589e36576468a4299e9fe1f33a8d21a2ae4c508f978e",
+      "bytes": 31597,
+      "height": 512,
+      "name": "blind/media/026.png",
+      "width": 512
+    },
+    "blind/media/027.png": {
+      "SHA256": "61b49c5f2f4f23912b7b05e780885f61f275acbda8da9d96a747e93b91d12201",
+      "bytes": 40700,
+      "height": 512,
+      "name": "blind/media/027.png",
+      "width": 512
+    },
+    "blind/media/028.png": {
+      "SHA256": "722d71e4d8712a193c342a62affc6476f423e50c646d7f8dc5921073cca9fd74",
+      "bytes": 28530,
+      "height": 512,
+      "name": "blind/media/028.png",
+      "width": 512
+    },
+    "blind/media/029.png": {
+      "SHA256": "30bfde7c9735b09a40a29655496c225b6d0e3f43cbe3fb32be5d85af0a801da4",
+      "bytes": 35978,
+      "height": 512,
+      "name": "blind/media/029.png",
+      "width": 512
+    },
+    "dev/media/010.png": {
+      "SHA256": "b40360d9e6feb6fa8f87cdb263d35ac1dbf5f683794c8724c4aa145a71d56b21",
+      "bytes": 28280,
+      "height": 512,
+      "name": "dev/media/010.png",
+      "width": 512
+    },
+    "dev/media/011.png": {
+      "SHA256": "d78487a3a176ef5555bc46b0faf8bbd7e52dc7db2d288c2ed320e0fa43ada68f",
+      "bytes": 28363,
+      "height": 512,
+      "name": "dev/media/011.png",
+      "width": 512
+    },
+    "dev/media/012.png": {
+      "SHA256": "e19358fb8a6a55335a60cca41e04247a3a645da5a2fb6d6760997e9c08e31aa6",
+      "bytes": 39849,
+      "height": 512,
+      "name": "dev/media/012.png",
+      "width": 512
+    },
+    "dev/media/013.png": {
+      "SHA256": "0c9e3da07a201a10c35171df65d4de2b266d59bc6775938d1f015b5ede46a3c2",
+      "bytes": 28479,
+      "height": 512,
+      "name": "dev/media/013.png",
+      "width": 512
+    },
+    "dev/media/014.png": {
+      "SHA256": "5f3a0c76c609150a00a73ec9a2ff307eaa1f8f29993dc49ba7ca42c13acfa2b5",
+      "bytes": 28212,
+      "height": 512,
+      "name": "dev/media/014.png",
+      "width": 512
+    },
+    "dev/media/015.png": {
+      "SHA256": "e30a5044381e4b4ea83c453aa2359e831fbba4f1dd8c7abdca3bdfec287c2471",
+      "bytes": 28057,
+      "height": 512,
+      "name": "dev/media/015.png",
+      "width": 512
+    },
+    "dev/media/016.png": {
+      "SHA256": "cef68fa26d08106273050fbfd1c236f6986127a3f90dcdd93319d024ae3fbee4",
+      "bytes": 28381,
+      "height": 512,
+      "name": "dev/media/016.png",
+      "width": 512
+    },
+    "dev/media/017.png": {
+      "SHA256": "4593bab05abdd5381bc78086558b340e7432a2fc2be7071e9bbbecd1debf39ae",
+      "bytes": 28565,
+      "height": 512,
+      "name": "dev/media/017.png",
+      "width": 512
+    },
+    "dev/media/018.png": {
+      "SHA256": "5e93cd53e72dadd82c6d9b8eaf6e2825fe625e83586c854cffc3985a54fefbbc",
+      "bytes": 28212,
+      "height": 512,
+      "name": "dev/media/018.png",
+      "width": 512
+    },
+    "dev/media/019.png": {
+      "SHA256": "b94042c9290ab110e844de61598ad350b44ce2a919453c90a7d57e17a7f6f1ad",
+      "bytes": 40535,
+      "height": 512,
+      "name": "dev/media/019.png",
+      "width": 512
+    },
+    "train/media/000.png": {
+      "SHA256": "4c7a789dd70a9e49a03c503b086a4c28ea6d172014e43043a20a2fafc3e6abbf",
+      "bytes": 28326,
+      "height": 512,
+      "name": "train/media/000.png",
+      "width": 512
+    },
+    "train/media/001.png": {
+      "SHA256": "57204962151ae41613aa38f1385800b149e13d7129238506180ed641688fda10",
+      "bytes": 28183,
+      "height": 512,
+      "name": "train/media/001.png",
+      "width": 512
+    },
+    "train/media/002.png": {
+      "SHA256": "2e9786d52d7f00d6f2cfba2555bfd5929418e8e276da38df9c6d318d7cd9117a",
+      "bytes": 30013,
+      "height": 512,
+      "name": "train/media/002.png",
+      "width": 512
+    },
+    "train/media/003.png": {
+      "SHA256": "e28aea294d5118dd982fb5fe42da000fb27416905257e978bda37cdf9a6b8aca",
+      "bytes": 28255,
+      "height": 512,
+      "name": "train/media/003.png",
+      "width": 512
+    },
+    "train/media/004.png": {
+      "SHA256": "4064590829044d524f13482d05807a7247ef483327a6ed3020c8304a391b528c",
+      "bytes": 38685,
+      "height": 512,
+      "name": "train/media/004.png",
+      "width": 512
+    },
+    "train/media/005.png": {
+      "SHA256": "7cd67c9615a4976f4c90e70dc535213abfc9ed00bf51f84ba334c51163822169",
+      "bytes": 28195,
+      "height": 512,
+      "name": "train/media/005.png",
+      "width": 512
+    },
+    "train/media/006.png": {
+      "SHA256": "d44343e943157e11571c28ce37458277cb430b385023107ba18c5f7a560b6e13",
+      "bytes": 28581,
+      "height": 512,
+      "name": "train/media/006.png",
+      "width": 512
+    },
+    "train/media/007.png": {
+      "SHA256": "9e6296e9d0d9d353fa47be08852082c6c79854f38322bd1a2109e85e4ad1c950",
+      "bytes": 28451,
+      "height": 512,
+      "name": "train/media/007.png",
+      "width": 512
+    },
+    "train/media/008.png": {
+      "SHA256": "4880c782034853623db4d09b933a42dea5682463faebc5af689dab9842532f4a",
+      "bytes": 28358,
+      "height": 512,
+      "name": "train/media/008.png",
+      "width": 512
+    },
+    "train/media/009.png": {
+      "SHA256": "3bc68b803f6e616f4ea9370401375a603e7bf03fd2e399cce45939fa54591d34",
+      "bytes": 28531,
+      "height": 512,
+      "name": "train/media/009.png",
+      "width": 512
+    }
+  },
+  "data_counts": {
+    "actual_charts": 30,
+    "actual_inputs": 150,
+    "selected_events": 55,
+    "selected_groups": 30,
+    "PNG_bytes": 919823
+  },
+  "chart_binding": [
+    {
+      "id": "usgs-wide:f4e234a23319ba0f9c2a275e07492d669799fc636b911c2364f8371e792cfbbe:0",
+      "group": "f4e234a23319ba0f9c2a275e07492d669799fc636b911c2364f8371e792cfbbe",
+      "split": "train",
+      "source_events": 1,
+      "planned_QA": 5,
+      "media_name": "train/media/000.png"
+    },
+    {
+      "id": "usgs-wide:ab94b93043347623de580a83a4fedd275a4c42a4b7f1b584a0db495910018bbf:0",
+      "group": "ab94b93043347623de580a83a4fedd275a4c42a4b7f1b584a0db495910018bbf",
+      "split": "train",
+      "source_events": 1,
+      "planned_QA": 5,
+      "media_name": "train/media/001.png"
+    },
+    {
+      "id": "usgs-wide:d73c105c32f03a7e674fbaf64c08fc038adb40120872ceb66ddc0a92d5343e19:0",
+      "group": "d73c105c32f03a7e674fbaf64c08fc038adb40120872ceb66ddc0a92d5343e19",
+      "split": "train",
+      "source_events": 2,
+      "planned_QA": 5,
+      "media_name": "train/media/002.png"
+    },
+    {
+      "id": "usgs-wide:f235434011f0ced859c703c583ade04f393bcb25fa6baee2abcc74ae527fe4be:0",
+      "group": "f235434011f0ced859c703c583ade04f393bcb25fa6baee2abcc74ae527fe4be",
+      "split": "train",
+      "source_events": 1,
+      "planned_QA": 5,
+      "media_name": "train/media/003.png"
+    },
+    {
+      "id": "usgs-wide:0dfba7fc413248281e9c6aea41f10fa47952711c10b1366407d5d93ce120e819:0",
+      "group": "0dfba7fc413248281e9c6aea41f10fa47952711c10b1366407d5d93ce120e819",
+      "split": "train",
+      "source_events": 5,
+      "planned_QA": 5,
+      "media_name": "train/media/004.png"
+    },
+    {
+      "id": "usgs-wide:5fdb3fe7339ed12343902e8128243cab670bac1f6aaf7b997a4cab44af21a5b3:0",
+      "group": "5fdb3fe7339ed12343902e8128243cab670bac1f6aaf7b997a4cab44af21a5b3",
+      "split": "train",
+      "source_events": 1,
+      "planned_QA": 5,
+      "media_name": "train/media/005.png"
+    },
+    {
+      "id": "usgs-wide:665ec144703a168bb7001532d6eba4aa325a782005f5f2ea119395ab3f1cde9f:0",
+      "group": "665ec144703a168bb7001532d6eba4aa325a782005f5f2ea119395ab3f1cde9f",
+      "split": "train",
+      "source_events": 1,
+      "planned_QA": 5,
+      "media_name": "train/media/006.png"
+    },
+    {
+      "id": "usgs-wide:ea9a08408794ed006ce03916e7f9d74ff845818261df56345e218f7666b25efb:0",
+      "group": "ea9a08408794ed006ce03916e7f9d74ff845818261df56345e218f7666b25efb",
+      "split": "train",
+      "source_events": 1,
+      "planned_QA": 5,
+      "media_name": "train/media/007.png"
+    },
+    {
+      "id": "usgs-wide:00ea24e5d1b0e30644a4ba15ec893cf73cd89ba45076a0dc362af6efefc5c58e:0",
+      "group": "00ea24e5d1b0e30644a4ba15ec893cf73cd89ba45076a0dc362af6efefc5c58e",
+      "split": "train",
+      "source_events": 1,
+      "planned_QA": 5,
+      "media_name": "train/media/008.png"
+    },
+    {
+      "id": "usgs-wide:24ba39fd77954ac1a28d3028c3048f073a40caa6f672199e8992b4c9b326d5f2:0",
+      "group": "24ba39fd77954ac1a28d3028c3048f073a40caa6f672199e8992b4c9b326d5f2",
+      "split": "train",
+      "source_events": 1,
+      "planned_QA": 5,
+      "media_name": "train/media/009.png"
+    },
+    {
+      "id": "usgs-wide:04d51fafad9d67f32b88c0eeb59fb9e410b6b064edb683917981da7c64c6497d:0",
+      "group": "04d51fafad9d67f32b88c0eeb59fb9e410b6b064edb683917981da7c64c6497d",
+      "split": "dev",
+      "source_events": 1,
+      "planned_QA": 5,
+      "media_name": "dev/media/010.png"
+    },
+    {
+      "id": "usgs-wide:ba6095fef276419918b71917a4b80a73656ae461e69eaea049bc24769377bcb0:0",
+      "group": "ba6095fef276419918b71917a4b80a73656ae461e69eaea049bc24769377bcb0",
+      "split": "dev",
+      "source_events": 1,
+      "planned_QA": 5,
+      "media_name": "dev/media/011.png"
+    },
+    {
+      "id": "usgs-wide:35593022c9b7428ba24f6e06fe36d4427870c0f1353949da0e2b772aecdff756:0",
+      "group": "35593022c9b7428ba24f6e06fe36d4427870c0f1353949da0e2b772aecdff756",
+      "split": "dev",
+      "source_events": 5,
+      "planned_QA": 5,
+      "media_name": "dev/media/012.png"
+    },
+    {
+      "id": "usgs-wide:4228f7ce6adfc2d30196531b965eec07d3036f5f0b8b364cfbf1e283c4e09b80:0",
+      "group": "4228f7ce6adfc2d30196531b965eec07d3036f5f0b8b364cfbf1e283c4e09b80",
+      "split": "dev",
+      "source_events": 1,
+      "planned_QA": 5,
+      "media_name": "dev/media/013.png"
+    },
+    {
+      "id": "usgs-wide:9baead36c68477069c27ae9b4c61a949e2f0d3d261f7b2622ea91ace7bdd9cf9:0",
+      "group": "9baead36c68477069c27ae9b4c61a949e2f0d3d261f7b2622ea91ace7bdd9cf9",
+      "split": "dev",
+      "source_events": 1,
+      "planned_QA": 5,
+      "media_name": "dev/media/014.png"
+    },
+    {
+      "id": "usgs-wide:9b026bb5773b483126b8d717c7d20502bd74d83673133bef62306144d8a9fbfe:0",
+      "group": "9b026bb5773b483126b8d717c7d20502bd74d83673133bef62306144d8a9fbfe",
+      "split": "dev",
+      "source_events": 1,
+      "planned_QA": 5,
+      "media_name": "dev/media/015.png"
+    },
+    {
+      "id": "usgs-wide:e7a528a446ef35a1ec2d279274d59334650277597268d1ec1188ad7dacdf73a4:0",
+      "group": "e7a528a446ef35a1ec2d279274d59334650277597268d1ec1188ad7dacdf73a4",
+      "split": "dev",
+      "source_events": 1,
+      "planned_QA": 5,
+      "media_name": "dev/media/016.png"
+    },
+    {
+      "id": "usgs-wide:188faf6623a702fff3284a1251a6302445e6e051729ee61c760f322b99dbb546:0",
+      "group": "188faf6623a702fff3284a1251a6302445e6e051729ee61c760f322b99dbb546",
+      "split": "dev",
+      "source_events": 1,
+      "planned_QA": 5,
+      "media_name": "dev/media/017.png"
+    },
+    {
+      "id": "usgs-wide:1c3528faf2703e28fd90a0b5b3c579d180b519d055a41e0a163bcdc477c90e42:0",
+      "group": "1c3528faf2703e28fd90a0b5b3c579d180b519d055a41e0a163bcdc477c90e42",
+      "split": "dev",
+      "source_events": 1,
+      "planned_QA": 5,
+      "media_name": "dev/media/018.png"
+    },
+    {
+      "id": "usgs-wide:bca0724b94df01288a7680787379cad63bbdeb6605645c73907aac0b664852ff:0",
+      "group": "bca0724b94df01288a7680787379cad63bbdeb6605645c73907aac0b664852ff",
+      "split": "dev",
+      "source_events": 5,
+      "planned_QA": 5,
+      "media_name": "dev/media/019.png"
+    },
+    {
+      "id": "usgs-wide:5fc6ac9e369f5ba384d6388cad2e99541a333f23f99437592f80272dab9a8a2b:0",
+      "group": "5fc6ac9e369f5ba384d6388cad2e99541a333f23f99437592f80272dab9a8a2b",
+      "split": "blind",
+      "source_events": 1,
+      "planned_QA": 5,
+      "media_name": "blind/media/020.png"
+    },
+    {
+      "id": "usgs-wide:675a624a75f1a30e9feb588ec79efa0d733cd0cfbe9d66fa07fe3fe375c8f5f4:0",
+      "group": "675a624a75f1a30e9feb588ec79efa0d733cd0cfbe9d66fa07fe3fe375c8f5f4",
+      "split": "blind",
+      "source_events": 3,
+      "planned_QA": 5,
+      "media_name": "blind/media/021.png"
+    },
+    {
+      "id": "usgs-wide:f9277240565d0efea7d0abc9a44366ea7ef5b04d0742f5e68ebf124ec7aece18:0",
+      "group": "f9277240565d0efea7d0abc9a44366ea7ef5b04d0742f5e68ebf124ec7aece18",
+      "split": "blind",
+      "source_events": 2,
+      "planned_QA": 5,
+      "media_name": "blind/media/022.png"
+    },
+    {
+      "id": "usgs-wide:67ee28f1686c90637dd83918b95e5c7019f92df9aab41982dde0b09bbd046f31:0",
+      "group": "67ee28f1686c90637dd83918b95e5c7019f92df9aab41982dde0b09bbd046f31",
+      "split": "blind",
+      "source_events": 1,
+      "planned_QA": 5,
+      "media_name": "blind/media/023.png"
+    },
+    {
+      "id": "usgs-wide:bb915f11b62071a80504e504ec026edf07e1fc32bb21fce67b228999bd5f8114:0",
+      "group": "bb915f11b62071a80504e504ec026edf07e1fc32bb21fce67b228999bd5f8114",
+      "split": "blind",
+      "source_events": 2,
+      "planned_QA": 5,
+      "media_name": "blind/media/024.png"
+    },
+    {
+      "id": "usgs-wide:e764b7ca46588a8b6f61b7a836fd0470d74b9e6fc27be27c5b2883b474854d6c:0",
+      "group": "e764b7ca46588a8b6f61b7a836fd0470d74b9e6fc27be27c5b2883b474854d6c",
+      "split": "blind",
+      "source_events": 1,
+      "planned_QA": 5,
+      "media_name": "blind/media/025.png"
+    },
+    {
+      "id": "usgs-wide:f41636472f451dc488a5ae9f795383ac4e14c5ac370031d62a11926d3bee34a2:0",
+      "group": "f41636472f451dc488a5ae9f795383ac4e14c5ac370031d62a11926d3bee34a2",
+      "split": "blind",
+      "source_events": 2,
+      "planned_QA": 5,
+      "media_name": "blind/media/026.png"
+    },
+    {
+      "id": "usgs-wide:5bce5e2a7ef318398456bf8203c2aaf90e3857277ba0741397960144a842817f:0",
+      "group": "5bce5e2a7ef318398456bf8203c2aaf90e3857277ba0741397960144a842817f",
+      "split": "blind",
+      "source_events": 5,
+      "planned_QA": 5,
+      "media_name": "blind/media/027.png"
+    },
+    {
+      "id": "usgs-wide:f406eb5f646a5936db1417f45aadb01694a7e34b6405ffcd3cc1d9324767e16a:0",
+      "group": "f406eb5f646a5936db1417f45aadb01694a7e34b6405ffcd3cc1d9324767e16a",
+      "split": "blind",
+      "source_events": 1,
+      "planned_QA": 5,
+      "media_name": "blind/media/028.png"
+    },
+    {
+      "id": "usgs-wide:1ad1368880339c1e75369109fa298cb3c1fdbf1ff09fd5b8ed1171554599b649:0",
+      "group": "1ad1368880339c1e75369109fa298cb3c1fdbf1ff09fd5b8ed1171554599b649",
+      "split": "blind",
+      "source_events": 4,
+      "planned_QA": 5,
+      "media_name": "blind/media/029.png"
+    }
+  ]
+}
