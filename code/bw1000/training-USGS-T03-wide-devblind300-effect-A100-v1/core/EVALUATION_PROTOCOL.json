@@ -1,0 +1,133 @@
+{
+  "schema": "USGS_WIDE_TRAIN_DEV_BLIND_PREREGISTERED_PROTOCOL_V2",
+  "root_GO": false,
+  "GPU_GO": false,
+  "training_GO": false,
+  "Model_GO": false,
+  "scope": "Independently reserved train/dev/new-blind splits, each50QA. Training is a separately authorized later stage. Old dev10, oldblind25 and confirmation25/75 are exposed and never relabelled blind; old scores remain frozen.",
+  "prompt_suffix": "\nGive the final answer on the last nonempty line as FINAL: <answer>. Use the units displayed in the chart for numeric answers. For tied events output every event ID in ascending order separated by single spaces. Do not place any text after that final line.",
+  "arms": [
+    "initial",
+    "domain25",
+    "generic25"
+  ],
+  "checkpoint_updates": 25,
+  "checkpoint_bindings": {
+    "initial": {
+      "SHA256": "2a0df4d5fdd4d793d47859f7e6ee9102cd3324199f90d0ed34760d3c7198612f",
+      "bytes": 174821899,
+      "path": "/home/whj/nvidia-baseline/alignment-assets/hygon-internvl-A100-first-updates-v1/capture/rank-00/initial.pt",
+      "named_SHA256": "086ece33e01ff3454ba54f90cb0d30478ed71f172dedc70b1c076e2babd27137"
+    },
+    "domain25": {
+      "root": "/home/whj/nvidia-baseline/alignment-assets/training-USGS-T03-fresh-domain-A100-v1/run/train/checkpoint-25",
+      "checkpoint_manifest": {
+        "SHA256": "c3cf99a183acd702bd9f023d77dcb96d1fb28999a38482426f526e8a78cd169f",
+        "bytes": 1677,
+        "path": "/home/whj/nvidia-baseline/alignment-assets/training-USGS-T03-fresh-domain-A100-v1/run/witness/rank-00/checkpoint-25-files.json"
+      },
+      "adapter_tree_SHA256": "7545b3a77a29cc88ca0b484fafd1e9234869b2730adb470c7fd0bd76c267acb0",
+      "actual_updates": 25,
+      "actual_terminal_qualified": true,
+      "saved_adapter_source_qualified": true,
+      "initial_named_SHA256": "086ece33e01ff3454ba54f90cb0d30478ed71f172dedc70b1c076e2babd27137",
+      "body_read_scope": "Frozen native producer safe reload equals live; independent metadata reader only"
+    },
+    "generic25": {
+      "root": "/home/whj/nvidia-baseline/alignment-assets/training-USGS-T03-fresh-control-A100-v1/run/train/checkpoint-25",
+      "checkpoint_manifest": {
+        "SHA256": "dc582873daa1e192493bd7e2542120555a2f6e03f0837bf8df3c785ba49dbdf3",
+        "bytes": 1678,
+        "path": "/home/whj/nvidia-baseline/alignment-assets/training-USGS-T03-fresh-control-A100-v1/run/witness/rank-00/checkpoint-25-files.json"
+      },
+      "adapter_tree_SHA256": "58fa4b181e4430b9355f3a3802e0064c91c505869c7f2e5d4a5dc507afe2cf81",
+      "actual_updates": 25,
+      "actual_terminal_qualified": true,
+      "saved_adapter_source_qualified": true,
+      "initial_named_SHA256": "086ece33e01ff3454ba54f90cb0d30478ed71f172dedc70b1c076e2babd27137",
+      "body_read_scope": "Frozen native producer safe reload equals live; independent metadata reader only"
+    }
+  },
+  "initial_named_SHA256": "086ece33e01ff3454ba54f90cb0d30478ed71f172dedc70b1c076e2babd27137",
+  "generation": {
+    "max_new_tokens": 256,
+    "do_sample": false,
+    "num_beams": 1,
+    "batch": 1,
+    "seed": 42,
+    "natural_EOS_required": true,
+    "cap_is_failure": true,
+    "full_input": true,
+    "no_question_truncation": true,
+    "shared_prompt_and_budget_all_arms": true
+  },
+  "strict_format_adherence": "Exact original strictFINAL syntax: whole trimmed output is one line FINAL: plus decimal2 or Edd IDs separated by single spaces. No newline. Natural EOS and no cap are additionally required; correctness and duplicate/unknown labels are separate content checks.",
+  "content_correctness": "Before any gold read: choose the final nonempty line only. Exactly one FINAL: marker, if present, must prefix that final line; multiple or misplaced markers fail. No numeric search, no gold-dependent candidate choice, no LLM judge. Whole remaining span must match the pre-registered task grammar. Numeric Decimal equality, not rounding; depth accepts km/kilometer(s)/kilometre(s) or m/meter(s)/metre(s), m scaled by exact0.001. Reported magnitude is dimensionless only. Event IDs are case-insensitive Edd, unique, members of the input chart; whitespace/comma separators allowed, sorted to table order. Other explanations/units/scientific notation/thousands separators rejected.",
+  "numerical_normalization": "Accept alternative decimal spellings of exact displayed Decimal2 values; reject sub-cent precision that would need rounding; normalize signed zero. Content parser never receives gold.",
+  "metrics": {
+    "all_planned_slots_denominator": true,
+    "report": [
+      "content_accuracy",
+      "strict_FINAL_adherence",
+      "parse_failure",
+      "missing",
+      "cap",
+      "natural_EOS",
+      "per_kind",
+      "per_group",
+      "paired_delta",
+      "group_cluster_interval"
+    ],
+    "statistical_unit": "closure component; report charts and correlated question counts; no semantic/domaincapability PASS from style-only baseline failures"
+  },
+  "stages": [
+    "This bounded data-only source/strong-closure/whole-group stratified train/dev/blind assignment/render/gold generation after root source publication and preregistration seal",
+    "Separate independent source/numeric/chart qualification; no model",
+    "Separate InternVL actual native CPU full-input identity; no inherited qualification",
+    "New fixed-checkpoint development evaluation and sealing/independent terminal before dev gold",
+    "Freeze any developer decisions; blind inputs run once only; all outputs seal and terminal consumer before first blind gold"
+  ],
+  "prohibitions": [
+    "No rescore or parser replacement of prior T03 dev10 scores",
+    "No blind-derived prompt/parser/checkpoint/threshold selection",
+    "No retuning or retraining within this source task",
+    "Not TextVQA/CIDEr or formal17 acceptance"
+  ],
+  "parser_source": {
+    "bytes": 3283,
+    "SHA256": "5dce77a93bc557bb3c6aee479ca4775d5862190896ecfca5c68f171cb65f98c6"
+  },
+  "legacy_frozen_scorer": {
+    "score_once.py": {
+      "bytes": 2760,
+      "SHA256": "f8ccc667c6343ab7eeda6795e76896bd21d0310c32fcbf6e295e066989fe4c8b"
+    },
+    "contracts.py": {
+      "bytes": 5945,
+      "SHA256": "1488b473f98ea0227964f7e8d1d9282e045cf9dcdb0548b4b9c8cd180feb344d"
+    }
+  },
+  "data_splits": {
+    "train": {
+      "minimum_groups": 3,
+      "charts": 10,
+      "QA": 50
+    },
+    "dev": {
+      "minimum_groups": 3,
+      "charts": 10,
+      "QA": 50
+    },
+    "blind": {
+      "minimum_groups": 3,
+      "charts": 10,
+      "QA": 50
+    }
+  },
+  "source_closure_policy": "Strong edges: shared event alias OR both delta_time<=72h and great-circle distance<=500km. All historical250 events remain exclusion anchors. Preserve original2724 history edges by identity; use only their alias/near72h500km subset as old-old strong edges. Coarse30lat60lon is stratification/statistics only; geographic overlap allowed, not geographic OOD. New strong components never split.",
+  "group_allocation": "GroupID=SHA(canonical sorted eventIDs); stratum=min lexicographic coarse cell among group members. Sort strata; within stratum sort SHA(seed+groupID),groupID. Assign each whole group to the split minimizing (groups already assigned in this stratum, total groups already assigned, SHA(seed|stratum|groupID|split), split), over train/dev/blind. Then each split uses group-hash order and roundrobin nonoverlapping time/ID sorted <=5event windows, exactly10charts50QA and >=3groups each; insufficient STOP, no swaps/backfill/threshold changes.",
+  "geographic_overlap_allowed": true,
+  "geographic_OOD_claim": false,
+  "train_split_policy": "50QA reserved for separately authorized later domain training; no training now; no blind data/gold for training or selection. Existing three fixed checkpoints remain the evaluation comparison until a separately preregistered training/evaluation stage.",
+  "source_sample_policy": "ACCEPT_BOUNDED_FIRST500_ASCENDING_SAMPLE_RECORD_ACTUAL_FIRST_LAST_NO_MONTH_COMPLETENESS_CLAIM"
+}
