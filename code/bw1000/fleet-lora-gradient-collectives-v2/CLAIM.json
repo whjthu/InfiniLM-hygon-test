@@ -1,0 +1,53 @@
+{
+  "owner": "bw1000/root",
+  "request": "637d2394b13a4b18a6854b9c9580a2fb",
+  "operator_GO": true,
+  "max_invocations": 1,
+  "parents": {
+    "1087656": 40,
+    "1103606": 40
+  },
+  "cards": 640,
+  "formal_training_GO": false,
+  "scope": "80 independent, physical eight-card RCCL groups on the two owned allocations. One process per DCU. No cross-node collective.",
+  "hypothesis": "One packed FP32 all-reduce for the two LoRA gradients reduces single-node synchronization cost after four accumulated BF16 microbatches.",
+  "admission": "Fresh exact membership, empty numbered step inventory, per-node KFD/PCI and holder gate, no overlap. Use existing allocations.",
+  "order": [
+    "separate",
+    "packed",
+    "packed",
+    "separate"
+  ],
+  "resource": {
+    "cpus_per_node": 24,
+    "host_mem_GiB_per_node": 48,
+    "DCU_per_node": 8,
+    "slurm_cap_seconds": 360,
+    "outer_cap_seconds": 495
+  },
+  "reference": "results/bw1000/2026-11-19/fleet640-lora-adamw-original381-201-terminal.json",
+  "data": "Generated BF16 inputs and targets, rank-16 LoRA geometries. No real model weights or formal training performance.",
+  "numerics": {
+    "steps_per_arm": 3,
+    "absolute_limit": 5e-05,
+    "oracle": "CPU float64 mean of eight original local FP32 gradients; exact replica post-update state within arm"
+  },
+  "busy_offsets": [
+    120,
+    151,
+    190,
+    229,
+    269
+  ],
+  "release_on_step_end": true,
+  "replay_allowed": false,
+  "previous": {
+    "request": "f7c28156cbab4760b58ff62ddb046f041",
+    "stage": "RUN_ID_OR_SINGLE_EPOCH",
+    "request_length": 33,
+    "submitted_slurm_steps": 0,
+    "code": "956f36a394c8c7102b7f51edaae398f66f821f02",
+    "stderr_SHA256": "38179e4de6c5d21c065d4c41199a3a5be8d432315ab4b5d8fc41767fdfaf622b"
+  },
+  "host_epoch": "One epoch set by login node upon receiving the approved source. Windows time is used only for local observation."
+}
