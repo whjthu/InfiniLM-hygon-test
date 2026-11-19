@@ -1,0 +1,43 @@
+{
+  "owner": "bw1000/root/O01",
+  "request": "c50c4b1fa7a84c28aeea3f9bce3a3c12",
+  "state": "CLAIMED_BACKWARD_BLAS_PREFERENCE_ON_MATCHED_QWEN_GEOMETRIES",
+  "operator_GO": true,
+  "formal_training_GO": false,
+  "allocated_cards": 640,
+  "planned_operator_cards": 624,
+  "excluded_foreign_KFD_by_parent": {
+    "1087656": [
+      "f11r2n15"
+    ],
+    "1103606": [
+      "f12r2n12"
+    ]
+  },
+  "reserved_native_by_parent": {
+    "1087656": [],
+    "1103606": []
+  },
+  "max_invocations": 1,
+  "replay_allowed": false,
+  "basis": {
+    "path": "results/bw1000/2026-11-20/fleet-qwen-text-linear-original450-296-terminal.json",
+    "bytes": 1800,
+    "SHA256": "aeed5853c6d899779bb794f6df562b2fca32cdb5ff524d5cb13afe260b4b72a0"
+  },
+  "previous_steps": [
+    "1087656.450",
+    "1103606.296"
+  ],
+  "question": "With the forward preference fixed to Lt, does switching the input VJP preference change BF16 error and event timing?",
+  "inputs": "Three original observed Qwen shapes/strides from previous evidence; same locked synthetic BF16 components within each card.",
+  "design": "One pilot node, eight DCUs. One independent measurement process per physical DCU; ABBA or BAAB per rank. Two warmup and 256 measured calls per block. GPU FP32 rounded to BF16 used as a component reference. Keep 0.0625 maximum absolute threshold. Include all runtime and numerical failures.",
+  "timing_scope": "VJP event interval includes the backend preference switch and dispatch gap; records enclosing time only. Driver samples are separate.",
+  "qualification": "API preference readback only; kernel identity and model numerical acceptance remain unverified.",
+  "deadline_seconds": {
+    "worker": 440,
+    "Slurm_step": 540,
+    "whole_remote_controller": 660,
+    "client": 685
+  }
+}
