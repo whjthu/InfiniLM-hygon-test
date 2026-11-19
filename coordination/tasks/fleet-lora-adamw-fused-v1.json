@@ -1,0 +1,67 @@
+{
+  "owner": "bw1000/root/O01",
+  "request": "d8175ef68aaf4b2594f6b15ff98c26ce",
+  "operator_GO": true,
+  "model_GO": false,
+  "formal_training_GO": false,
+  "max_invocations": 1,
+  "state": "CLAIMED_FOREACH_VERSUS_FUSED_ADAMW",
+  "parents": {
+    "1087656": 40,
+    "1103606": 40
+  },
+  "allocated_cards": 640,
+  "planned_cards": 624,
+  "excluded_foreign_KFD_by_parent": {
+    "1087656": [
+      "f11r2n15"
+    ],
+    "1103606": [
+      "f12r2n12"
+    ]
+  },
+  "deadline_seconds": {
+    "Slurm_step": 870,
+    "remote_controller": 900,
+    "client": 925
+  },
+  "purpose": "Test whether native fused AdamW reduces optimizer event time and full-step time versus the foreach baseline under the same model-shaped BF16 LoRA accumulation and clipping.",
+  "reference": "results/bw1000/2026-11-19/fleet624-adamw-foreach-original420-209-terminal.json",
+  "workload": {
+    "bfloat16": true,
+    "LoRA_rank": 16,
+    "gradient_accumulation": 4,
+    "input_rows": [
+      512,
+      1024
+    ],
+    "hidden": 4096,
+    "projection_widths": [
+      1024,
+      4096,
+      12288
+    ],
+    "adamw_parameters_unchanged": true,
+    "native_foreach_clipping": true,
+    "numeric_updates_per_arm": 3,
+    "maximum_absolute_delta": 5e-05,
+    "paired_order": [
+      "foreach",
+      "fused",
+      "fused",
+      "foreach"
+    ],
+    "driver_window_offsets": [
+      120,
+      240,
+      380,
+      520,
+      660
+    ],
+    "independent_per_device": true,
+    "synthetic_operator_inputs": true
+  },
+  "gpu_admission": "Exact two 40-node leases, no active competing Slurm steps, and fresh PCI/KFD gate on admitted nodes. Preserve excluded nodes until ownership is cleared.",
+  "release": "Stop after the finite comparison. Join and independently verify each step and device cleanup.",
+  "manifest": "code/bw1000/fleet-lora-adamw-fused-v1/SOURCE_FILES.json"
+}
