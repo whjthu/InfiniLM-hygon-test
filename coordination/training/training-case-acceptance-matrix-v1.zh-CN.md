@@ -37,3 +37,12 @@ Qwen 原 8 卡首前向对照完成 32 次真实前向。两种视觉 FC2 BLAS �
 Qwen 原八卡 decoder 定点观测完成 64 次前向，6/8 个 rank 的 logits 和 loss 保持一致。其余两 rank 的首差分布在 V 投影、Q 投影、MLP 下投影及所选层之前。保留为训练数值诊断。 [实测记录](../../results/bw1000/2026-11-20/training-qwen-original285-native-decoder-six-ten-forward-terminal.json)
 
 Qwen Lt 候选在原八卡工作负载上完成两次更新，Slurm 保留原退出回调失败。CPU301 核验 200 件产物和 64 个完全匹配的输入，A100 输出摘要 0/64 一致。最大 loss 相对差 3.32%，裁剪前梯度范数 5.84%，第二次参数更新范数 0.140%。当前候选不晋级，逐元素数值和恢复仍未验收。 [CPU301 实测](../../results/bw1000/2026-11-20/training-qwen-original299-CPU301-artifacts-and-A100-scalar-comparison.json)
+
+
+## 断点恢复验收证据
+
+恢复计划随各用例原启动哈希冻结。已登记 HunyuanVideo SFT 和 VGGT 的第 20 步恢复，以及 HunyuanVideo DP2 的第 10、20 步双 rank 恢复。三个原参考均覆盖 25 步和第 10、20、25 步检查点。DP2 按逻辑参数指纹比较，允许同一逻辑状态的序列化文件字节不同。
+
+正式验收的恢复附件引用完整连续运行和每个规定检查点的新进程运行。记录实际检查点清单、每 rank 独立进程身份、恢复后的参数、优化器、调度器、随机状态、数据游标和梯度累积位置。验收程序逐更新比较每 rank 的输入指纹与 loss，并核对第 25 步参数。采用原配方规定的非零允差时，参数误差附件同时绑定两份运行收据及其最终参数。原 A100 证据用于固定计划与比较口径，海光结果仍待实测。
+
+运行 `python -B tools/verify_training_acceptance.py .` 可复核矩阵和已登记证据。

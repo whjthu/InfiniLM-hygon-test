@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 from training_formal_metrics import stage_three
+from training_recovery import recovery_plan, verify_recovery
 
 
 TRAINING_GROUPS = {f"T{i:02d}" for i in range(1, 13)}
@@ -72,6 +73,8 @@ def verify(root):
         return json.loads(pinned(path, digest))
 
     for case in cases:
+        if "recovery_plan" in case:
+            recovery_plan(case, verify_formal_attachment)
         for evidence in case.get("supplemental_evidence", {}).values():
             path, sha = evidence["path"], evidence["SHA256"]
             require(pins.setdefault(path, sha) == sha, f"conflicting evidence hashes: {path}")
@@ -93,6 +96,8 @@ def verify(root):
                 require(result["case"] == case["case"] and result["framework_commit"] == matrix["framework_commit"]
                         and result["gate"] == gate and result["passed"] is True,
                         f"{case['case']}: wrong or failed {gate} gate")
+                if gate == "recovery":
+                    verify_recovery(case, matrix["framework_commit"], result, verify_formal_attachment)
             item = formal["metrics_evidence"]
             path, digest = item["path"], item["SHA256"]
             require(path not in gate_paths, f"{case['case']}: duplicate metrics evidence")
