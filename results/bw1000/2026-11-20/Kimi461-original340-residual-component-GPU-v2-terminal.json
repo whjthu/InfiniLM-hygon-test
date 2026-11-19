@@ -1,0 +1,379 @@
+{
+  "experiment": "Kimi-K3 output residual tile-64, original GPU comparison",
+  "state": "TERMINAL_ALL_THREE_SAME_DEVICE_PAIRS_NUMERICAL_MATCH_KEEP_DEFAULT_OFF",
+  "independent_audit": "Verified Slurm pre/GPU/post and raw output digests, then reran the frozen CPU comparator against each original full pair.",
+  "scope": {
+    "kind": "Single physical device, controlled signed BF16 residual with original checkpoint norm and projection weights",
+    "residual_shape": [
+      512,
+      9,
+      7168
+    ],
+    "output_shape": [
+      512,
+      7168
+    ],
+    "reused_checkpoint_weight_bytes": 28672,
+    "component_SHA256": "298ec0177a82d016e6fc8e49599c6450d88a6ab300856637acb023a14007713f",
+    "input_receipt_SHA256": "a2d7499f07e4e58eea68bf33b59e7e2794fd8314c0ec94fe53ffc1173c07724c",
+    "arms_complete": 6,
+    "arms_planned": 6,
+    "pairs_complete": 3,
+    "pairs_planned": 3,
+    "GPU_launches": 1
+  },
+  "previous": {
+    "failed_already_counted": "1103606.333",
+    "stage_diagnosis": "1103606.337",
+    "different_instrumented_DSO": true
+  },
+  "conclusion": {
+    "sampled_free_headroom_gain_bytes_each_pair": 182452224,
+    "sampled_free_headroom_gain_MiB_each_pair": 174,
+    "prior_model_643_observed_floor_deficit_bytes": 295698432,
+    "steady_state_speedup_established": false,
+    "default_enabled": false,
+    "model_go": false,
+    "service_go": false,
+    "interpretation": "The candidate delivers more free memory at the measured component boundaries. Timing moves in both directions across pairs; no stable speedup is established. The sampled component gain is smaller than the old model's 282 MiB sampled deficit, and applicability to the full-model peak is unknown.",
+    "timing_scope": "Each arm starts a new process. Library startup is separate. Dispatch includes first-use operator work. Memory is sampled at three arm boundaries and is not a transient peak measurement."
+  },
+  "observed_UTC": "2026-11-19T23:25:34.772104+00:00",
+  "accounting_columns": "JobIDRaw,JobName%100,State%40,ExitCode,ElapsedRaw,NodeList,AllocTRES%160",
+  "original_accounting": [
+    [
+      "1103606.339",
+      "Kimi461-output-residual-component-GPU-v2-pre",
+      "COMPLETED",
+      "0:0",
+      "1",
+      "f13r1n01",
+      "cpu=1,mem=512M,node=1"
+    ],
+    [
+      "1103606.340",
+      "Kimi461-output-residual-component-GPU-v2",
+      "COMPLETED",
+      "0:0",
+      "230",
+      "f13r1n01",
+      "cpu=4,gres/dcu=1,mem=8G,node=1"
+    ],
+    [
+      "1103606.341",
+      "Kimi461-output-residual-component-GPU-v2-post",
+      "COMPLETED",
+      "0:0",
+      "0",
+      "f13r1n01",
+      "cpu=1,mem=512M,node=1"
+    ]
+  ],
+  "claim_SHA256": "5bff0fc3ea0fd463b47b824ac20ba43a042c22446096b343d78c5b1f1768a23e",
+  "source": {
+    "publication": "36ba0b25abd1148108cfcd456887dcf00e5b170e",
+    "source_manifest_SHA256": "39c12b29b3fabb96d8397a4191963429c2ffa5e235decb2e938cc0534eda1e59",
+    "epoch": 1795129795.7630162,
+    "deadline": 1795130645.7630162,
+    "GPU_cards": 1,
+    "parent": "1103606",
+    "node": "f13r1n01"
+  },
+  "device_PCI": "0000:09:00.0",
+  "pre_and_post_KFD_and_PID_clear": true,
+  "artifacts": {
+    "intent.json": {
+      "bytes": 288,
+      "SHA256": "4cfe9ad294886d93213617d1a320e5ebd7328ff8b1457482af3f6a6ba45c614b"
+    },
+    "controller-result.json": {
+      "bytes": 935,
+      "SHA256": "feb08f9f51f8bbc383e27265a37dc5e9c8d63ba00f937f37c19fdb7475834aaa"
+    },
+    "pre.json": {
+      "bytes": 334,
+      "SHA256": "5c7604c8ee95b92667e5ef6b07dc7baceef41657735593941d199c8fb14b6a63"
+    },
+    "worker-result.json": {
+      "bytes": 6624,
+      "SHA256": "3439b69ff443dcc86af27c235c182af44e15d3f71d94e0abe0c19be6fd4b851b"
+    },
+    "arm-0/result.json": {
+      "bytes": 1487,
+      "SHA256": "c9ef92cde7d83a52f2a13db87ae91470d4788690ccc643b6bd343272a88c4172"
+    },
+    "arm-0/startup.json": {
+      "bytes": 141,
+      "SHA256": "74c4157d1f6930cc87e8a9ca9b2e4f31787be875f27a4653a64b74c1eecd0b24"
+    },
+    "arm-1/result.json": {
+      "bytes": 1486,
+      "SHA256": "c2109d8b67c57add93e93f3bd859aed47f234f7a3996f6aa42301326cc2e1905"
+    },
+    "arm-1/startup.json": {
+      "bytes": 141,
+      "SHA256": "45aa429aa0b5f05ae2a010ab655b9a9c29b106547bfc73882f25dc79b06084dc"
+    },
+    "arm-2/result.json": {
+      "bytes": 1493,
+      "SHA256": "c5dac1f3452ec30407008bce7b0dc3a6e0df660aabf227cc1b215ba14314099c"
+    },
+    "arm-2/startup.json": {
+      "bytes": 147,
+      "SHA256": "b06abcf43656344c04cef60c849f4175dad5e907bba2d687fc4f262862265625"
+    },
+    "arm-3/result.json": {
+      "bytes": 1478,
+      "SHA256": "9bc858fbe94f9cb6f007afd6b1a05a32f943e86b6f0296af419044055766563c"
+    },
+    "arm-3/startup.json": {
+      "bytes": 132,
+      "SHA256": "662de833144841e6caabc9ae09e6215b22bd746e94cb6d2e8a8920d0f8081a82"
+    },
+    "arm-4/result.json": {
+      "bytes": 1483,
+      "SHA256": "bcb39761b0959fa195ee044f9e3e9477015ec2743cea24ed6dd5a5fdf342f242"
+    },
+    "arm-4/startup.json": {
+      "bytes": 139,
+      "SHA256": "ff5131f1549682dd8533afe54f8ad11425ac7fb3f6be15c5b10579fb9330fbb8"
+    },
+    "arm-5/result.json": {
+      "bytes": 1479,
+      "SHA256": "2b139b402e9fb5f9edadb68e17e624bde8ddea89fd649c1ce472f37f36315442"
+    },
+    "arm-5/startup.json": {
+      "bytes": 133,
+      "SHA256": "a8763a14a1758e9c07f5c3f7e758af3f23570268dcf9fb5c4bd41c4e5ea59f4d"
+    }
+  },
+  "arms": [
+    {
+      "ordinal": 0,
+      "mode": 0,
+      "output_SHA256": "ce0cde62d5e58643033de79710e51f1edc9ea7a43aba7ebbf285bb20e7519a2b",
+      "output_bytes": 7340032,
+      "dynamic_load_seconds": 28.299213086,
+      "inputs_and_hash_seconds": 0.10084051100000001,
+      "seconds": {
+        "dispatch_through_sync": 3.182860936,
+        "post_dispatch_audit": 0.016887762,
+        "full_CABI_before_destroy": 3.286808655
+      },
+      "sampled_driver_free_total": [
+        [
+          68333600768,
+          68702699520
+        ],
+        [
+          68109205504,
+          68702699520
+        ],
+        [
+          67712843776,
+          68702699520
+        ]
+      ]
+    },
+    {
+      "ordinal": 1,
+      "mode": 1,
+      "output_SHA256": "ce0cde62d5e58643033de79710e51f1edc9ea7a43aba7ebbf285bb20e7519a2b",
+      "output_bytes": 7340032,
+      "dynamic_load_seconds": 27.692119894,
+      "inputs_and_hash_seconds": 0.09485641600000001,
+      "seconds": {
+        "dispatch_through_sync": 3.17251764,
+        "post_dispatch_audit": 0.016944442,
+        "full_CABI_before_destroy": 3.268079648
+      },
+      "sampled_driver_free_total": [
+        [
+          68333600768,
+          68702699520
+        ],
+        [
+          68109205504,
+          68702699520
+        ],
+        [
+          67895296000,
+          68702699520
+        ]
+      ]
+    },
+    {
+      "ordinal": 2,
+      "mode": 1,
+      "output_SHA256": "ce0cde62d5e58643033de79710e51f1edc9ea7a43aba7ebbf285bb20e7519a2b",
+      "output_bytes": 7340032,
+      "dynamic_load_seconds": 27.768406695000003,
+      "inputs_and_hash_seconds": 0.09478768600000001,
+      "seconds": {
+        "dispatch_through_sync": 3.181752913,
+        "post_dispatch_audit": 0.016884552,
+        "full_CABI_before_destroy": 3.281268821
+      },
+      "sampled_driver_free_total": [
+        [
+          68333600768,
+          68702699520
+        ],
+        [
+          68109205504,
+          68702699520
+        ],
+        [
+          67895296000,
+          68702699520
+        ]
+      ]
+    },
+    {
+      "ordinal": 3,
+      "mode": 0,
+      "output_SHA256": "ce0cde62d5e58643033de79710e51f1edc9ea7a43aba7ebbf285bb20e7519a2b",
+      "output_bytes": 7340032,
+      "dynamic_load_seconds": 28.37311245,
+      "inputs_and_hash_seconds": 0.094620705,
+      "seconds": {
+        "dispatch_through_sync": 3.147162647,
+        "post_dispatch_audit": 0.017242623,
+        "full_CABI_before_destroy": 3.243789088
+      },
+      "sampled_driver_free_total": [
+        [
+          68333600768,
+          68702699520
+        ],
+        [
+          68109205504,
+          68702699520
+        ],
+        [
+          67712843776,
+          68702699520
+        ]
+      ]
+    },
+    {
+      "ordinal": 4,
+      "mode": 0,
+      "output_SHA256": "ce0cde62d5e58643033de79710e51f1edc9ea7a43aba7ebbf285bb20e7519a2b",
+      "output_bytes": 7340032,
+      "dynamic_load_seconds": 28.005750905000003,
+      "inputs_and_hash_seconds": 0.094635336,
+      "seconds": {
+        "dispatch_through_sync": 3.1727202,
+        "post_dispatch_audit": 0.016911132,
+        "full_CABI_before_destroy": 3.267649666
+      },
+      "sampled_driver_free_total": [
+        [
+          68333600768,
+          68702699520
+        ],
+        [
+          68109205504,
+          68702699520
+        ],
+        [
+          67712843776,
+          68702699520
+        ]
+      ]
+    },
+    {
+      "ordinal": 5,
+      "mode": 1,
+      "output_SHA256": "ce0cde62d5e58643033de79710e51f1edc9ea7a43aba7ebbf285bb20e7519a2b",
+      "output_bytes": 7340032,
+      "dynamic_load_seconds": 28.140709472,
+      "inputs_and_hash_seconds": 0.094460045,
+      "seconds": {
+        "dispatch_through_sync": 3.146885356,
+        "post_dispatch_audit": 0.016626381,
+        "full_CABI_before_destroy": 3.243191655
+      },
+      "sampled_driver_free_total": [
+        [
+          68333600768,
+          68702699520
+        ],
+        [
+          68109205504,
+          68702699520
+        ],
+        [
+          67895296000,
+          68702699520
+        ]
+      ]
+    }
+  ],
+  "pairs": [
+    {
+      "baseline_ordinal": 0,
+      "tiled_ordinal": 1,
+      "numerical": {
+        "words": 3670016,
+        "changed_words": 0,
+        "max_abs": 0,
+        "relative_l2": 0,
+        "max_abs_over_reference_peak": 0,
+        "baseline_SHA256": "ce0cde62d5e58643033de79710e51f1edc9ea7a43aba7ebbf285bb20e7519a2b",
+        "tiled_SHA256": "ce0cde62d5e58643033de79710e51f1edc9ea7a43aba7ebbf285bb20e7519a2b"
+      },
+      "tiled_over_baseline": {
+        "dispatch_through_sync": 0.9967503148243106,
+        "post_dispatch_audit": 1.0033562765747173,
+        "full_CABI_before_destroy": 0.9943017653396071
+      },
+      "sampled_min_free_delta_bytes": 182452224
+    },
+    {
+      "baseline_ordinal": 3,
+      "tiled_ordinal": 2,
+      "numerical": {
+        "words": 3670016,
+        "changed_words": 0,
+        "max_abs": 0,
+        "relative_l2": 0,
+        "max_abs_over_reference_peak": 0,
+        "baseline_SHA256": "ce0cde62d5e58643033de79710e51f1edc9ea7a43aba7ebbf285bb20e7519a2b",
+        "tiled_SHA256": "ce0cde62d5e58643033de79710e51f1edc9ea7a43aba7ebbf285bb20e7519a2b"
+      },
+      "tiled_over_baseline": {
+        "dispatch_through_sync": 1.010990936878643,
+        "post_dispatch_audit": 0.9792333799793687,
+        "full_CABI_before_destroy": 1.0115543063939179
+      },
+      "sampled_min_free_delta_bytes": 182452224
+    },
+    {
+      "baseline_ordinal": 4,
+      "tiled_ordinal": 5,
+      "numerical": {
+        "words": 3670016,
+        "changed_words": 0,
+        "max_abs": 0,
+        "relative_l2": 0,
+        "max_abs_over_reference_peak": 0,
+        "baseline_SHA256": "ce0cde62d5e58643033de79710e51f1edc9ea7a43aba7ebbf285bb20e7519a2b",
+        "tiled_SHA256": "ce0cde62d5e58643033de79710e51f1edc9ea7a43aba7ebbf285bb20e7519a2b"
+      },
+      "tiled_over_baseline": {
+        "dispatch_through_sync": 0.9918571943406795,
+        "post_dispatch_audit": 0.9831619196160257,
+        "full_CABI_before_destroy": 0.99251510611603
+      },
+      "sampled_min_free_delta_bytes": 182452224
+    }
+  ],
+  "median_ratios": {
+    "dispatch_through_sync": 0.9967503148243106,
+    "post_dispatch_audit": 0.9831619196160257,
+    "full_CABI_before_destroy": 0.9943017653396071
+  },
+  "actual_checkpoint_bytes_read": 0
+}
