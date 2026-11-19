@@ -84,10 +84,10 @@ def node_run(directory, identity, epoch):
     for sig in (signal.SIGTERM, signal.SIGINT, signal.SIGHUP):
         signal.signal(sig, interrupted)
     with tempfile.TemporaryDirectory(prefix="lora-collective-",dir="/tmp") as local:
-        return supervise(directory, identity, epoch, Path(local)/"store")
+        return supervise(directory, identity, epoch, Path(local)/"store", inventory)
 
 
-def supervise(directory, identity, epoch, rendezvous):
+def supervise(directory, identity, epoch, rendezvous, inventory):
     children = {}
     logs = []
     error = None
