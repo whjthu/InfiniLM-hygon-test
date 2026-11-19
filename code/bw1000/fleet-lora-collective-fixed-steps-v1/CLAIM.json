@@ -1,0 +1,55 @@
+{
+  "owner": "bw1000/root/O01",
+  "request": "da232e2477b2422092d62b3c11403725",
+  "operator_GO": true,
+  "model_GO": false,
+  "formal_training_GO": false,
+  "max_invocations": 1,
+  "parents": {
+    "1087656": [
+      "f12r3n17",
+      "f12r3n18"
+    ],
+    "1103606": [
+      "f12r2n10",
+      "f12r2n11"
+    ]
+  },
+  "physical_cards": 32,
+  "node_cards": 8,
+  "cpus_per_node": 24,
+  "memory_GiB_per_node": 48,
+  "prior": "results/bw1000/2026-11-19/fleet640-gradient-collectives-394-203-timeout.json",
+  "scope": "Four independently rendezvoused eight-device RCCL groups. No transport across nodes.",
+  "question": "Can fixed paired updates complete on the same LoRA gradient operator without consuming timed blocks during startup?",
+  "changes": [
+    "Use the original PyTorch FileStore on one private node-local filesystem directory per group.",
+    "Start fixed-count ABBA after the original numerical and replica gate. Retain the real elapsed setup and math boundaries."
+  ],
+  "components": {
+    "shape": [
+      512,
+      4096,
+      4096
+    ],
+    "microbatches": 4,
+    "rank": 16,
+    "abs_tolerance": 5e-05,
+    "numeric_updates_per_arm": 3,
+    "block_order": [
+      "separate",
+      "packed",
+      "packed",
+      "separate"
+    ],
+    "warm_updates_per_block": 3,
+    "timed_updates_per_block": 12
+  },
+  "resources": {
+    "controller_seconds": 420,
+    "Slurm_cap_seconds": 360,
+    "worker_deadline_seconds": 325,
+    "RCCL_timeout_seconds": 45
+  },
+  "qualification": "Operator diagnosis before expansion. Synthetic activation inputs and no model optimizer qualification."
+}
