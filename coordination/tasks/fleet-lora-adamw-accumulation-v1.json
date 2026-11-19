@@ -1,0 +1,46 @@
+{
+  "owner": "bw1000/root",
+  "request": "ce26ec2a31807eba83b9f962c0f23cff",
+  "operator_GO": true,
+  "formal_training_GO": false,
+  "max_invocations": 1,
+  "parents": {
+    "1087656": 40,
+    "1103606": 40
+  },
+  "cards": 640,
+  "resource": {
+    "cpus_per_node": 24,
+    "host_memory_GiB_per_node": 48,
+    "DCU_per_node": 8,
+    "slurm_cap_seconds": 360,
+    "outer_epoch_cap_seconds": 495
+  },
+  "arms": {
+    "order": [
+      "scalar",
+      "foreach",
+      "foreach",
+      "scalar"
+    ],
+    "work_cutoff_offset_seconds": 292,
+    "busy_offsets_seconds": [
+      120,
+      151,
+      190,
+      229,
+      269
+    ],
+    "microbatches": 4,
+    "rank": 16,
+    "numeric_updates_per_arm": 3,
+    "threshold_absolute": 5e-05
+  },
+  "purpose": "Qualify and time real scalar/foreach AdamW updates after BF16 LoRA forward/backward and four-microbatch FP32 accumulation, and measure fleet busy during useful work.",
+  "data_scope": "Deterministic generated inputs and frozen matrices. No model checkpoints, real training examples, or distributed gradient collectives.",
+  "reference": "results/bw1000/2026-11-19/fleet640-isolated-lora-original374-200-terminal.json",
+  "release_on_step_end": true,
+  "replay_allowed": false,
+  "manifest": "code/bw1000/fleet-lora-adamw-accumulation-v1/SOURCE_FILES.json",
+  "state": "CLAIMED_BEFORE_DISPATCH"
+}
