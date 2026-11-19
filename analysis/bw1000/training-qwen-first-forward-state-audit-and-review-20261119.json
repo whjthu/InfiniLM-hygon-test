@@ -1,0 +1,128 @@
+{
+  "review": "COMPLETE_ADOPTED",
+  "reviewer": "/root/astra_review_105",
+  "evidence": [
+    {
+      "path": "results/bw1000/2026-11-19/fleet624-adamw-fused-original436-217-terminal.json",
+      "bytes": 4344,
+      "SHA256": "7caf90c66a8425bf23b177e1abfdc94564780915d52977cacb17a618e3244198"
+    },
+    {
+      "path": "results/bw1000/2026-11-19/qwen-original438-real-gradient-adamw-terminal.json",
+      "bytes": 10304,
+      "SHA256": "26ca2b6ca769c5d42604ac6a479c2956c269b724e7722aacb7b46231a92c549c"
+    },
+    {
+      "path": "results/bw1000/2026-11-19/training-qwen-original429-433-first-forward-before-update-cpu218.json",
+      "bytes": 9695,
+      "SHA256": "8f5bbc1dc650ed561ff19c9a47a8e17c5760c7973ec1b3d608f488d8b61abaf4"
+    }
+  ],
+  "observed_native_state_write_sites": {
+    "qwen": {
+      "path": "models/qwen3_vl/modeling_qwen3_vl.py",
+      "SHA256": "f39b3621fea3f757a01d2e00ebd3a2be3516b7df3048d862a365988aba9fa994",
+      "bytes": 74723,
+      "self_assignments_and_buffer_writes": [
+        {
+          "class_name": "Qwen3VLModel",
+          "method": "compute_3d_position_ids",
+          "locations": [
+            [
+              1139,
+              "rope_deltas"
+            ]
+          ]
+        }
+      ]
+    },
+    "rope": {
+      "path": "modeling_rope_utils.py",
+      "SHA256": "f370d8588169c07fc5245ddb83d9a29282f670f98d99a4d7fa814a777649f3d5",
+      "bytes": 58066,
+      "self_assignments_and_buffer_writes": [
+        {
+          "class_name": null,
+          "method": "dynamic_rope_update",
+          "locations": [
+            [
+              73,
+              "register_buffer"
+            ],
+            [
+              79,
+              "register_buffer"
+            ],
+            [
+              102,
+              "attention_scaling"
+            ],
+            [
+              109,
+              "register_buffer"
+            ],
+            [
+              116,
+              "register_buffer"
+            ]
+          ]
+        },
+        {
+          "class_name": "RotaryEmbeddingConfigMixin",
+          "method": "convert_rope_params_to_dict",
+          "locations": [
+            [
+              708,
+              "rope_parameters"
+            ],
+            [
+              709,
+              "rope_parameters"
+            ],
+            [
+              722,
+              "ignore_keys_at_rope_validation"
+            ]
+          ]
+        },
+        {
+          "class_name": "RotaryEmbeddingConfigMixin",
+          "method": "standardize_rope_params",
+          "locations": [
+            [
+              775,
+              "rope_parameters"
+            ]
+          ]
+        }
+      ]
+    }
+  },
+  "provider_reader": {
+    "path": "code/bw1000/training-qwen-original-first-forward-values-v1-reader/inspect_native_state_writes.py",
+    "bytes": 1503,
+    "SHA256": "5242f9f8128db52f2074c0cc5f9aabce1e5bfeef7f864783d35c3b102a15b7c7"
+  },
+  "target_private_receipt": {
+    "path": "local-only/training-qwen-original-first-forward-values-v1/installed-provider-forward-state-writes.json",
+    "bytes": 997,
+    "SHA256": "23bb1839a55218d1a617be2933cb90ff2cec9bb06cab09ad5f3bcd89ef87b1a9"
+  },
+  "priority": "First-forward repeated replay on the same eight-rank training initialization, retaining train mode and original math SDPA. Verify native execution and exact input and initial state before each call. No optimizer step in the diagnostic.",
+  "required_pre_call_snapshot": [
+    "Python RNG",
+    "NumPy RNG",
+    "PyTorch CPU RNG",
+    "current rank DCU RNG",
+    "model training mode and autocast",
+    "Qwen3VLModel.rope_deltas",
+    "registered rotary buffers and known dynamic-RoPE scaler and cache-length state",
+    "input cache object and mutable tensor version guards"
+  ],
+  "interpretation": "Identical first-call inputs with divergent native outputs place the observed discrepancy before the optimizer. The static inspection only inventories explicit self writes and selected registration calls in these two sources. It cannot prove all downstream state is captured.",
+  "if_repeated_forward_matches": "Keep inter-process reproducibility and native checkpoint recovery pending. Do not characterize this as recovery passing.",
+  "if_repeated_forward_differs": "Use first matching input / nonmatching output boundary per rank, preserving all selected runs.",
+  "original_double_resume_request_replay_allowed": false,
+  "classification": "source readiness only",
+  "actual_new_GPU_calls": 0
+}
