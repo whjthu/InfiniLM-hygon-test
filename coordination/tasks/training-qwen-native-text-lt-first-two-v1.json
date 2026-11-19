@@ -1,0 +1,43 @@
+{
+  "owner": "bw1000/root/T01",
+  "state": "CLAIMED_ORIGINAL_RECIPE_FIRST_TWO_REAL_UPDATES_WITH_LT_LEAVES",
+  "request_id": "a73c84962cb04e98a16c3dbe4f850271",
+  "label": "training-qwen-native-text-lt-first-two-v1",
+  "parent": "1103606",
+  "node": "f13r1n10",
+  "CPU": 64,
+  "DCU": 8,
+  "memory_MiB": 224000,
+  "whole_epoch_seconds": 1720,
+  "native_epoch_seconds": 1320,
+  "framework_commit": "096157e7b63f7e9cd60cb53f31b10f2810ac2ddc",
+  "GPU_GO": true,
+  "formal_training_GO": false,
+  "formal_performance": false,
+  "max_invocations": 1,
+  "replay_allowed": false,
+  "original_recipe": "BF16, 8 ranks, batch 1/rank, accumulation 4, effective batch 32. Original max_steps 25 remains in optimizer and scheduler construction.",
+  "actual_training_scope": "Run the original Swift forwards, backwards, clipping and optimizer; stop gracefully after capturing the first two updates.",
+  "control": "Use the .288 visual Lt and text Math SDPA; opt in to Lt on the 252 frozen BF16 text leaves only. Unchanged LoRA branches.",
+  "checkpointing": "Patch leaf forwards throughout the two-step run; separately account checkpoint recomputation. Restore inherited preference after each leaf call.",
+  "original_capture": "Use the existing recorder and actual detached first-two receipt with 25 artifacts per rank. Adapt its train-end boundary to 2 without a native25 completion marker.",
+  "planned_microbatches": 64,
+  "planned_updates": 2,
+  "actual_updates": 0,
+  "formal_model_acceptance": false,
+  "prerequisite": {
+    "path": "results/bw1000/2026-11-20/training-qwen-original288-native-text-base-blas-pair-terminal.json",
+    "bytes": 17460,
+    "SHA256": "edefb1fc4243681b6a223cbd4358f01aac82bc56d3f28fae4f322a62aa5e4a7d"
+  },
+  "a100_reference": {
+    "path": "coordination/training/qwen-native-first-updates-reference-v1.json",
+    "bytes": 205875,
+    "SHA256": "69d4d0be56aee01209a219eac96defcd20a3c9b1bf542b7acf047a857b56a578"
+  },
+  "source": {
+    "path": "code/bw1000/training-qwen-native-text-lt-first-two-v1/SOURCE_FILES.json",
+    "bytes": 2387,
+    "SHA256": "664002270144c8b5e977c1250f5b24c874299df1f1bed976f476eff67eca7c6c"
+  }
+}
