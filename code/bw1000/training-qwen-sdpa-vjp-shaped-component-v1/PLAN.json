@@ -1,0 +1,175 @@
+{
+  "request": "3207bb7afb234e4bb623fca9b5cceafa",
+  "label": "qwen-native-sdpa-vjp-geometry-261119",
+  "node": "a01r4n14",
+  "parent": "1087656",
+  "geometry": {
+    "batch": 1,
+    "tokens": 283,
+    "query_heads": 32,
+    "kv_heads": 8,
+    "head_dim": 128,
+    "dtype": "BF16"
+  },
+  "repeat": 6,
+  "provider_sha": "87f933d1a2d8508df572da5c0748c6b24c22ff2b625796949957dcd86cc57564",
+  "source_geometry": {
+    "config": {
+      "bytes": 1474,
+      "sha256": "5cd452860dc1e9c29dd71cc3cef7f39b338b7a40793f7a260655c2d3568f3661"
+    },
+    "text": {
+      "num_hidden_layers": 36,
+      "num_attention_heads": 32,
+      "num_key_value_heads": 8,
+      "head_dim": 128,
+      "hidden_size": 4096,
+      "attention_dropout": 0,
+      "max_position_embeddings": 262144
+    },
+    "boundaries": {
+      "resumed": {
+        "pin": {
+          "bytes": 32568,
+          "sha256": "8c6a40833dbe8cd2fdb4e75a3a698cb23ab8297803762c8dd5bbab77e0d1859a"
+        },
+        "ordinal": 2,
+        "complete": true,
+        "fields": {
+          "input": {
+            "shape": [
+              1,
+              283,
+              4096
+            ],
+            "stride": [
+              1159168,
+              4096,
+              1
+            ],
+            "dtype": "torch.bfloat16"
+          },
+          "output": {
+            "shape": [
+              1,
+              283,
+              4096
+            ],
+            "stride": [
+              1159168,
+              4096,
+              1
+            ],
+            "dtype": "torch.bfloat16"
+          },
+          "recompute_input": {
+            "shape": [
+              1,
+              283,
+              4096
+            ],
+            "stride": [
+              1159168,
+              4096,
+              1
+            ],
+            "dtype": "torch.bfloat16"
+          },
+          "recompute_output": {
+            "shape": [
+              1,
+              283,
+              4096
+            ],
+            "stride": [
+              1159168,
+              4096,
+              1
+            ],
+            "dtype": "torch.bfloat16"
+          },
+          "grad_output": {
+            "shape": [
+              1,
+              283,
+              4096
+            ],
+            "stride": [
+              1159168,
+              4096,
+              1
+            ],
+            "dtype": "torch.bfloat16"
+          },
+          "grad_input": {
+            "shape": [
+              1,
+              283,
+              4096
+            ],
+            "stride": [
+              1159168,
+              4096,
+              1
+            ],
+            "dtype": "torch.bfloat16"
+          }
+        }
+      },
+      "continuous": null
+    },
+    "providers": {
+      "integrations/sdpa_attention.py": {
+        "pin": {
+          "bytes": 4851,
+          "sha256": "87f933d1a2d8508df572da5c0748c6b24c22ff2b625796949957dcd86cc57564"
+        },
+        "calls": [
+          {
+            "name": "torch.nn.functional.scaled_dot_product_attention",
+            "keys": [
+              "attn_mask",
+              "dropout_p",
+              "scale",
+              "is_causal",
+              null
+            ]
+          },
+          {
+            "name": "use_gqa_in_sdpa",
+            "keys": []
+          },
+          {
+            "name": "repeat_kv",
+            "keys": []
+          },
+          {
+            "name": "repeat_kv",
+            "keys": []
+          }
+        ]
+      },
+      "models/qwen3_vl/modeling_qwen3_vl.py": {
+        "pin": {
+          "bytes": 74723,
+          "sha256": "f39b3621fea3f757a01d2e00ebd3a2be3516b7df3048d862a365988aba9fa994"
+        },
+        "calls": [
+          {
+            "name": "repeat_kv",
+            "keys": []
+          },
+          {
+            "name": "repeat_kv",
+            "keys": []
+          }
+        ]
+      }
+    }
+  },
+  "original_branch_evidence": {
+    "path": "results/bw1000/2026-11-14/training-qwen-1087656-270-branches21-paired-terminal.json",
+    "bytes": 5159,
+    "SHA256": "b2872753c8a8cf40fc5d8e35b1b0c85fc194ee6bcb0776af96f5c4977d532c35"
+  }
+}
