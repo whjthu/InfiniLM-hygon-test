@@ -1,6 +1,6 @@
 {
   "owner": "root/O01+I02",
-  "state": "CLAIMED_TP16_F32_COPY_VS_DISJOINT_OUTPUT",
+  "state": "TERMINAL_16_RANK_F32_EXACT_SUM_COPY_CHANGE_MIXED_SMALL_TIMING",
   "title": "GLM474-TP16-FFN-f32-copy-free-pair-v1",
   "source": "code/bw1000/GLM-C1-layer-observer-r474/GLM474-TP16-FFN-f32-copy-free-pair-v1",
   "source_SHA256": {
@@ -26,10 +26,10 @@
     "results/bw1000/2026-11-14/GLM474-TP16-tcp-transport-pair-v2-original-terminal.json": "3f56e6f5426e10aab59df17eea15a8626bdcc844848b3b612869e63cb7b7c558",
     "results/bw1000/2026-11-20/GLM474-original310-live-depth-48-rank-frames-and-call-budget.json": "a4201149e076c1195e1e0e66718073f72ae816ab96c6858b524ad2a3a6055ad7"
   },
-  "GPU_GO": true,
+  "GPU_GO": false,
   "Model_GO": false,
   "max_experiment_invocations": 1,
-  "actual_experiment_invocations": 0,
+  "actual_experiment_invocations": 1,
   "replay_allowed": false,
   "parent": "1103606",
   "nodes": [
@@ -60,5 +60,14 @@
   "protect_original_step": "1103606.310",
   "changes": "Only eliminate explicit D2D copy using disjoint send and receive. Both variants retain 256-byte guards, exact source and output, separate storage, post-SUM sync and the pinned route. The Model cast is outside the measurement.",
   "measured_calls_per_block": 20,
-  "warm_calls_per_block": 5
+  "warm_calls_per_block": 5,
+  "actual_GPU": "1103606.318",
+  "actual_post": "1103606.319",
+  "original_request": "3b16bbd96a90437893969cb103ba966f",
+  "result": {
+    "path": "results/bw1000/2026-11-20/GLM474-original318-F32-collective-copy-vs-disjoint-output.json",
+    "bytes": 10014,
+    "SHA256": "0b93622b3f5622b377f86f3d1e35fdc9296a62b31ff6aa537c74dc209c084573"
+  },
+  "decision": "Keep the original production path. Direct output shows a small mixed-sign component difference for decode, and nearly unchanged wall time at 512 rows."
 }
