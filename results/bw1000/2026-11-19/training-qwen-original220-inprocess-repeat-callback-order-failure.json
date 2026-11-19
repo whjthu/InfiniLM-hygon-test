@@ -1,0 +1,54 @@
+{
+  "state": "TERMINAL_CALLBACK_ORDER_REJECTED_BEFORE_FIRST_FORWARD",
+  "preview_source_commit": "ae754a49ca764eef58a74dfd72efc7de3a942249",
+  "actual_accounting": [
+    [
+      "1103606.219",
+      "training-qwen-native-inprocess-first-forward-v1-pre",
+      "COMPLETED",
+      "0:0",
+      "0",
+      "f13r1n10",
+      "cpu=2,mem=4G,node=1"
+    ],
+    [
+      "1103606.220",
+      "training-qwen-native-inprocess-first-forward-v1",
+      "FAILED",
+      "1:0",
+      "90",
+      "f13r1n10",
+      "cpu=64,gres/dcu=8,mem=224000M,node=1"
+    ],
+    [
+      "1103606.221",
+      "training-qwen-native-inprocess-first-forward-v1-post",
+      "COMPLETED",
+      "0:0",
+      "0",
+      "f13r1n10",
+      "cpu=2,mem=4G,node=1"
+    ]
+  ],
+  "request": "81f5ca737e0146278c043e801260f290",
+  "observed_UTC": "2026-11-19T13:37:34.759931+00:00",
+  "rank_failures": 8,
+  "rank_replay_receipts": 0,
+  "backward_calls_observed": 0,
+  "optimizer_calls_observed": 0,
+  "post_clean": true,
+  "reason": "The initialization callback requires the uniquely registered NativeFirstUpdates recorder to follow it. The V1 invocation removed the recorder when installing the diagnostic.",
+  "corrected_change": "Preserve original callback registration and sequence. Add the replay last and detach only the authorized capture hooks after NativeFirstUpdates has validated and attached them.",
+  "source_reader": {
+    "path": "code/bw1000/training-qwen-native-inprocess-first-forward-v1-reader/read_terminal.py",
+    "bytes": 3549,
+    "SHA256": "36a1d3efdc49528acd93160c0fc734898a2f39d878b61cd59c0ed6e1a932506f"
+  },
+  "private_evidence": {
+    "path": "local-only/training-qwen-native-inprocess-first-forward-v1/observe-2026-11-19T13-37-34.759931+00-00.json",
+    "bytes": 3113,
+    "SHA256": "e370a1920f2d5b375d0f16568cefe9ef96eee351e00f4a79416daff9ba556d31"
+  },
+  "actual_step": "1103606.220",
+  "model_forward_qualified": false
+}
