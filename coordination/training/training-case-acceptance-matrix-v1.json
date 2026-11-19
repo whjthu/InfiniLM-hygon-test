@@ -1,5 +1,5 @@
 {
-  "coordination_snapshot": "2026-11-19: T03 CPU360 and T04 CPU378 validated target native input and PEFT structure. Prior A100 recoveries retained. Target formal stage 3 remains unqualified.",
+  "coordination_snapshot": "2026-11-19: T03 CPU360 and T04 CPU378 validated target native input and PEFT structure. Prior A100 recoveries retained. Target formal stage 3 remains unqualified. 2026-11-20: T01 eight-rank single-projection diagnostic and independent two-update audit completed; summary-only A100 comparison.",
   "framework_commit": "fb1e2ee1a33a8f9fc5dda7c769fefcb1f69191e8",
   "entry": "tools/hygon_training_recipe.py",
   "node_ledger": {
@@ -73,7 +73,7 @@
       "original_cards": 8,
       "a100_reference": "A100 已独立核对两次更新及 25 步。",
       "target_evidence": "海光单节点八卡完成原配方 25 步；已独立核对检查点清单，另有张量内容对照。",
-      "target_numerics": "已采集训练张量并记录对 A100 的标量差异；数值门槛待验。",
+      "target_numerics": "单投影候选在八卡上正常完成两次更新，独立核对了 64 个同输入微批和 200 份张量产物。与 A100 相比，最大 loss 相对差 4.20%，裁剪前梯度范数最大相对差 5.97%。逐元素数值门槛仍待实证。",
       "target_recovery": "160 个续训微批输入指纹一致，恢复数值仍未通过。上一组 rank 4 首个差异在第 31 层；本组第 2 微批首次定位到第 32 层 self_attn 的反向输入梯度，注意力前向、重算和传入梯度指纹一致。 新八卡 math SDPA 对照的 160/160 续训输入一致、27/160 loss 指纹一致，最终 adapter 和 AdamW 状态仍不同。",
       "target_performance": "待三轮同口径实测",
       "target_holdout_effect": "待留出集实测",
@@ -249,6 +249,16 @@
           "SHA256": "5b0ae72fe0a16e535cc5bf1103a122d052bbf642dd5a964d022d0fa3f3824320",
           "formal_training": false,
           "recovery_qualified": false
+        },
+        "single_text_query_native_terminal": {
+          "path": "results/bw1000/2026-11-20/training-qwen-original305-query-projection-two-updates-terminal.json",
+          "bytes": 4198,
+          "SHA256": "1b4de985c3625c54d0f26435d1e107d3e3f5f7ed2abf2f6e181ab1e76ef9a4d5"
+        },
+        "single_text_query_tensor_audit_and_a100_scalars": {
+          "path": "results/bw1000/2026-11-20/training-qwen-original305-CPU307-audited-A100-scalars.json",
+          "bytes": 5979,
+          "SHA256": "640f8339a6e684ecc0580dcbe8a980767ee5e0b58e4323cd8376cd0fc5af4531"
         }
       }
     },
