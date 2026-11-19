@@ -1,0 +1,7 @@
+# GLM depth-stratified TP16 model observation
+
+Use the independently verified CPU308 library. The existing typed TP16/PP1 owner loads all 117060 parameters, keeps the 32768 context, the 4096 generation cap, the frozen 66-request OFF/ON schedule, the two diagnostic requests and the 32 screen cases per math arm. The measured change is expanded attention and MoE timing coverage on one full-indexer and one shared-indexer sparse layer per explicitly marked ON diagnostic continuation. The three pre-registered pairs are 18/19, 38/40 and 66/69 in order of observed frame. Natural early EOS retains missing coverage.
+
+The run keeps the original 16 cards, socket transport, strict 8 GiB driver floor, same original request boundaries, exact source and input checks, one bounded epoch and separate post-run ownership checks. Only the new diagnostic can acquire its three lifetime frames. Screen requests remain observer-disabled. A source ceiling of 454 events fits the original 512-event pool. Observed windows include host enqueue and synchronization time, and rank samples share the same model execution. The result can establish exposure and prioritize a candidate using absolute elapsed costs. It provides no exclusive GPU time or end-to-end performance qualification by itself.
+
+The separate terminal reader consumes only the current attempt after actual Slurm terminal accounting. Raw weights, outputs and per-rank traces stay on the cluster.
