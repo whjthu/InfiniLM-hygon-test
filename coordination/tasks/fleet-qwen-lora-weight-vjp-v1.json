@@ -1,0 +1,56 @@
+{
+  "owner": "bw1000/root/O01",
+  "request": "dcdc2948d9834aa0b6788e32b40d3fde",
+  "state": "CLAIMED_ACTUAL_LORA_WEIGHT_GRADIENT_GEOMETRY_COMPONENT_COMPARISON",
+  "operator_GO": true,
+  "formal_training_GO": false,
+  "allocated_cards": 640,
+  "planned_operator_cards": 608,
+  "excluded_foreign_KFD_by_parent": {
+    "1087656": [
+      "f11r2n15"
+    ],
+    "1103606": [
+      "f12r2n12"
+    ]
+  },
+  "reserved_native_by_parent": {
+    "1087656": [],
+    "1103606": [
+      "f13r1n05",
+      "f13r1n07"
+    ]
+  },
+  "max_invocations": 1,
+  "replay_allowed": false,
+  "basis": {
+    "path": "results/bw1000/2026-11-20/fleet624-qwen-backward-preference-451-303-terminal.json",
+    "bytes": 4969,
+    "SHA256": "fdf0d4bc386a020151fa475c2daf83a887ab94188436767767e4e6afcc8cee34"
+  },
+  "previous_steps": [
+    "1087656.451",
+    "1103606.303"
+  ],
+  "question": "Which BLAS preference produces stable and faster rank-16 LoRA weight gradients while the forward preference is held at Lt?",
+  "inputs": "Synthetic BF16 inputs with frozen-training LoRA rank 16 and previous Qwen observed token counts and projection extents. Isolated A and B linear weights; no model weights or scaled/dropout training trajectory.",
+  "design": "One eight-card pilot, then 76 qualified idle nodes. Per-card ABBA or BAAB, two warmups and 256 calls per block, with a rounded FP32 weight-gradient reference and the inherited 0.0625 maximum absolute gate. Keep every failed card in the denominator.",
+  "timing_scope": "Device event envelope includes host preference setter and weight-gradient dispatch. Independent sysfs driver busy samples.",
+  "qualification": "API preference readback only; kernel identity and model numerical acceptance remain unverified.",
+  "deadline_seconds": {
+    "worker": 440,
+    "Slurm_step": 540,
+    "whole_remote_controller": 660,
+    "client": 685
+  },
+  "protected_step": {
+    "id": "1103606.310",
+    "parent": "1103606",
+    "label": "GLM474-depth-observer-model-12d5bc02ca0a49a89db5c1628c64160b-socket-gate"
+  },
+  "source_manifest": {
+    "path": "code/bw1000/fleet-qwen-lora-weight-vjp-v1/SOURCE_FILES.json",
+    "bytes": 1403,
+    "SHA256": "fa07ffb0c327de505ba809b8b975031cd8ae3ea8ae61bd8c52ab4d5c4ea5a021"
+  }
+}
