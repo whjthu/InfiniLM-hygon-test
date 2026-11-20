@@ -1,4 +1,5 @@
 from io import BytesIO
+import json
 from pathlib import Path
 import tempfile
 import unittest
@@ -6,7 +7,9 @@ import unittest
 import numpy as np
 from PIL import Image
 
-from bind_vggt_tum_dev_rgb import bind_pairs, calibration, parse_rgb_index, pin_frames, rectify_rgb
+from bind_vggt_tum_dev_rgb import (
+    ANCHOR_SHA, bind_pairs, calibration, parse_rgb_index, pin_frames, rectify_rgb, sha, validate_archive_receipt,
+)
 
 
 class TumRgbBinding(unittest.TestCase):
@@ -42,6 +45,22 @@ class TumRgbBinding(unittest.TestCase):
             rows = [{"state": "RGB_INDEX_MATCHED", "frames": ["rgb/1.0.png", "rgb/1.2.png"]}]
             pin_frames(rows, Path(tmp))
             self.assertEqual(rows[0]["state"], "RGB_MEDIA_MISSING_OR_INVALID")
+
+    def test_archive_binding_requires_a_completed_matching_stream_record(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            index = b"100.1 rgb/100.1.png\n"
+            expected = {"rgb/100.1.png": {"SHA256": "0" * 64, "bytes": 1}}
+            record = dict(passed=True, sequence="freiburg1_plant",
+                          archive="https://webshare.cvg.cit.tum.de/g/rgbd/dataset/freiburg1/rgbd_dataset_freiburg1_plant.tgz",
+                          frozen_anchor_SHA256=ANCHOR_SHA, rgb_index_sha256=sha(index), selected_frames=expected)
+            path = root / "official-stream-receipt-private.json"
+            path.write_text(json.dumps(record), encoding="utf-8")
+            self.assertEqual(validate_archive_receipt("freiburg1_plant", root, index), expected)
+            record["passed"] = False
+            path.write_text(json.dumps(record), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "archive stream"):
+                validate_archive_receipt("freiburg1_plant", root, index)
 
 
 if __name__ == "__main__":

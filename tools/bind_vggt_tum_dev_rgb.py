@@ -149,7 +149,19 @@ def pin_frames(rows, media):
             row["state"] = "RGB_PNG_BYTES_BOUND"
 
 
-def bind(source, output, media_root=None):
+def validate_archive_receipt(sequence, root, index):
+    receipt = json.loads(read_bounded(root / "official-stream-receipt-private.json", 65536))
+    family = sequence.split("_", 1)[0]
+    archive = f"https://webshare.cvg.cit.tum.de/g/rgbd/dataset/{family}/rgbd_dataset_{sequence}.tgz"
+    if (receipt["passed"] is not True or receipt["sequence"] != sequence or receipt["archive"] != archive
+            or receipt["frozen_anchor_SHA256"] != ANCHOR_SHA or receipt["rgb_index_sha256"] != sha(index)):
+        raise ValueError("original TUM archive stream or RGB index identity differs")
+    return receipt["selected_frames"]
+
+
+def bind(source, output, media_root=None, archive_root=None):
+    if archive_root is not None and media_root is not None:
+        raise ValueError("archive and independent media roots cannot be combined")
     raw = read_bounded(source / "dev-anchor-plan-private.json", 8192)
     if sha(raw) != ANCHOR_SHA:
         raise ValueError("frozen pose plan changed")
@@ -159,9 +171,18 @@ def bind(source, output, media_root=None):
     result = {}
     summary = {}
     for sequence in CALIBRATION:
-        index = read_bounded(source / f"{sequence}-rgb.txt", 3 * 1024**2)
+        index_path = archive_root / sequence / "rgb.txt" if archive_root else source / f"{sequence}-rgb.txt"
+        index = read_bounded(index_path, 3 * 1024**2)
         rgb = parse_rgb_index(index)
         rows = bind_pairs(anchors[sequence], rgb)
+        if archive_root is not None:
+            archive_frames = validate_archive_receipt(sequence, archive_root / sequence, index)
+            pin_frames(rows, archive_root / sequence)
+            for row in rows:
+                if row["state"] == "RGB_PNG_BYTES_BOUND" and any(
+                        archive_frames.get(pin["path"]) != {"bytes": pin["bytes"], "SHA256": pin["SHA256"]}
+                        for pin in row["media"]):
+                    raise ValueError("bound original RGB bytes differ from the stream receipt")
         if media_root is not None:
             pin_frames(rows, media_root / sequence)
         result[sequence] = dict(calibration=calibration(sequence), windows=rows, original_rgb_index_SHA256=sha(index))
@@ -179,8 +200,9 @@ def main():
     parser.add_argument("source", type=Path)
     parser.add_argument("output", type=Path)
     parser.add_argument("--media-root", type=Path)
+    parser.add_argument("--archive-root", type=Path)
     args = parser.parse_args()
-    print(json.dumps(bind(args.source, args.output, args.media_root), sort_keys=True))
+    print(json.dumps(bind(args.source, args.output, args.media_root, args.archive_root), sort_keys=True))
 
 
 if __name__ == "__main__":
