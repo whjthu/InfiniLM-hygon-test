@@ -1,0 +1,54 @@
+{
+  "owner": "bw1000/root",
+  "case": "T06.sft",
+  "request": "c59d3373987648b8baf181deb9f37ea9",
+  "GPU_GO": true,
+  "formal_training_GO": false,
+  "hygon": {
+    "node": "f11r4n12",
+    "parent": "1087656",
+    "DCU": 1,
+    "Slurm_cap_seconds": 780,
+    "whole_host_epoch_seconds": 1200
+  },
+  "hip_policy": {
+    "bf16_reduction": true,
+    "tf32_matmul": false,
+    "tf32_cudnn": true
+  },
+  "original_reference_SHA256": "c59a71095924edfdfb9ad7041b8ef32f747e7825557a313f72ad09a3b0b53036",
+  "intervention": {
+    "a100_raw_prediction_SHA256": "bf109824fdebe28e89ec2de07da53eb84151b426568f1734995231838c93eb59",
+    "a100_original_adjoint_SHA256": "2f9a102ac5affbdc77590c1dbe2908e942da4d218d9dbad3adae554c59987f36",
+    "hip_raw_prediction_SHA256": "8edb12bd77ea3f7c193513551f904f168bf473239c37a2e23a90e87548a86df3",
+    "hip_original_adjoint_SHA256": "402bd0e3f96099dff8702e93a3dfff6c08fddeac7a296af16ae1140ae49f2d69"
+  },
+  "complete_optimizer_updates_planned": 1,
+  "trainable_tensors": 1120,
+  "raw_transfer_bytes": 0,
+  "frozen_parameter_update_relative_L2_max": 0.05,
+  "performance_qualified": false,
+  "state": "CLAIMED_FIRST_UPDATE_WITH_EXACT_A100_LOSS_ADJOINT",
+  "full_update_scope": "Counterfactual only: does the earliest observed backward boundary explain the >5% full-step update discrepancy? No raw exports, alternative optimizer, smaller input, or formal qualification.",
+  "attempt_limit": 1,
+  "operator_proof_source": {
+    "path": "results/bw1000/2026-11-19/training-sdxl-original402-a100-unet-boundary-attribution.json",
+    "bytes": 17266,
+    "SHA256": "94e3cbd1e294729605a5b35f388a74217b15fa32e94a30b06c85d6cdbf870549"
+  },
+  "target_CPU_formula_proof": {
+    "reference_SHA256": "c59a71095924edfdfb9ad7041b8ef32f747e7825557a313f72ad09a3b0b53036",
+    "prediction_SHA256": "bf109824fdebe28e89ec2de07da53eb84151b426568f1734995231838c93eb59",
+    "A100_original_adjoint_SHA256": "2f9a102ac5affbdc77590c1dbe2908e942da4d218d9dbad3adae554c59987f36",
+    "formula_SHA256": "2f9a102ac5affbdc77590c1dbe2908e942da4d218d9dbad3adae554c59987f36",
+    "formula_and_local_autograd_exact": true,
+    "gradient_bytes": 8192,
+    "GPU_initialized": false
+  },
+  "original_default_failure": {
+    "path": "results/bw1000/2026-11-19/training-sdxl-original398-adamw-gradient-attribution.json",
+    "bytes": 11963,
+    "SHA256": "4454964187fd83ca319aa60c3db97438a10a094df5c656916e64fd1af6162cf6"
+  },
+  "algorithm": "Keep original HIP forward and scalar loss. At the single BF16 UNet output only, prove the native prediction and gradient hashes match the original HIP trace, then substitute the bit-exact original A100 MSE gradient independently reconstructed from the staged, unchanged reference. Preserve full original clipping and AdamW, and all 1120 trained tensors."
+}
