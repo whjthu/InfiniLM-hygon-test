@@ -1,0 +1,82 @@
+{
+  "schema": "gemma-domain-continuous-and-resumed-command-pair-v1",
+  "registered_case": "T02.sft",
+  "base_framework_commit": "a68952cb2285d6593b665147249d14ec1f8cecbc",
+  "builder": {
+    "path": "tools/prepare_gemma_domain_pair.py",
+    "SHA256": "3cb3c57dc2cbadf59998dc79f8757378014a1102d6f16af769bc9f60ca6a9bf9",
+    "bytes": 4218
+  },
+  "parent_resume_overlay": {
+    "path": "code/bw1000/training-gemma-usgs-shared-resume-v1/OVERLAY.json",
+    "SHA256": "04d63644a93bc97240dcaca7bdb6c0069fdc816d86925782faf80c7e93c5ba52",
+    "bytes": 1623
+  },
+  "files": {
+    "tools/hygon_vlm_recipe.py": {
+      "SHA256": "59577b7f4e277aa47a70ed9f874cb1c8b555203460419d8f7c8bec212f8f516e",
+      "bytes": 16607
+    },
+    "vlm/runtime/resume_cursor.py": {
+      "SHA256": "565c25dde2fd66b248648e83722a5b149b783dec9f323efa050d2cf0eebc760e",
+      "bytes": 5967
+    },
+    "vlm/runtime/resume_witness.py": {
+      "SHA256": "4454f738caa07554caa5054234414941e07431416ac8ca3d6b5a3368a14bb02c",
+      "bytes": 20976
+    },
+    "vlm/plugins/gemma_domain_resume.py": {
+      "SHA256": "390dc6e6d2ec0078fd1ce672aefdf0525fab5b55ec965ec6f2c5d87ac542ca6f",
+      "bytes": 4439
+    },
+    "vlm/plugins/gemma_domain_continuous.py": {
+      "SHA256": "bdb42a51e576b52f90ce67c6d378fc4c73f8ce2c092b3599f259b1d21f9e5b4d",
+      "bytes": 8661
+    },
+    "vlm/runtime/vlm_update_contract.py": {
+      "SHA256": "e973c0e48f9538996953922cfaf7e5c1f7c3a2aed81fb3f8be71c95d0afa6f95",
+      "bytes": 1438
+    }
+  },
+  "initial_trainable_identity": {
+    "path": "coordination/tasks/training-gemma-original-initial-trainables-v1.json",
+    "SHA256": "55c20e5894a033a5f2a883407ca6ab86bd1d52b26e1c9bf1605b37c26a9cbb30",
+    "bytes": 3361
+  },
+  "required_state": {
+    "world_size": 8,
+    "continuous_updates": 25,
+    "resume_from": 20,
+    "resumed_updates": 5,
+    "checkpoint_steps": [
+      10,
+      20,
+      25
+    ],
+    "expected_actual_loader_batches_per_rank": 100,
+    "accumulation": 4,
+    "continuous_config_fields": [
+      "case",
+      "dataset_SHA256",
+      "binding",
+      "initial_trainables"
+    ],
+    "resumed_config_fields": [
+      "case",
+      "dataset_SHA256",
+      "checkpoint_step",
+      "binding",
+      "checkpoint",
+      "checkpoint_files"
+    ]
+  },
+  "verified_local": {
+    "independent_arm_commands": 2,
+    "paired_plan_tests_passed": 2,
+    "shared_resume_tests_passed": 5
+  },
+  "actual_train_updates": 0,
+  "actual_target_Slurm_steps": 0,
+  "actual_target_restores": 0,
+  "training_ready": false
+}
