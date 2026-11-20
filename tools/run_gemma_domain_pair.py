@@ -16,7 +16,9 @@ import time
 from compare_gemma_domain_recovery import compare, read_receipt, require
 from install_gemma_domain_framework import BASE_MANIFEST, base_files, candidate_files, exact_source
 from prepare_gemma_domain_pair import candidate
-from read_gemma_domain_terminal import DATASET_SHA, NODE, PARENT, REQUIRED_CHECKPOINT_FILES, token
+from read_gemma_domain_terminal import (
+    DATASET_SHA, LABEL, NODE, REQUIRED_CHECKPOINT_FILES, bound_step, numbered_step, token,
+)
 
 
 OWNED_HELPER = (
@@ -97,11 +99,10 @@ def ownership(repo):
     return scope
 
 
-def verify_devices(repo, root, run, receipts):
-    before = read_receipt(root, Path("before.json"), receipts)
-    require(receipts["before.json"] == run["before_receipt_SHA256"]
-            and before["step"] == run["steps"]["pre"] and before["node"] == NODE
-            and before["kfd_holder_count"] == 0 and before["full_fd_inventory_performed"] is True,
+def verify_devices(repo, root, run, before):
+    require(before["step"] == run["steps"]["pre"] and before["node"] == NODE
+            and before["kfd_holder_count"] == 0 and before["full_fd_inventory_performed"] is True
+            and before["master_port"] == run["master_port"] and before["master_port_available"] is True,
             "original independent admission snapshot differs")
     scope = pinned_module(repo, DEVICE_HELPER, "gemma_device_snapshot")
     scope["NODE"] = NODE
@@ -206,9 +207,14 @@ def execute(repo, root, intent_sha):
     run = read_receipt(root, Path("intent.json"), receipts)
     step = os.environ.get("SLURM_JOB_ID", "") + "." + os.environ.get("SLURM_STEP_ID", "")
     require(receipts["intent.json"] == intent_sha and token(run["request_id"], 32)
-            and run["steps"]["gpu"] == step and step.startswith(PARENT + ".")
-            and step.split(".")[1].isdecimal() and socket.gethostname().split(".")[0] == NODE,
+            and run["label"] == LABEL and "steps" not in run and numbered_step(step)
+            and socket.gethostname().split(".")[0] == NODE,
             "worker is outside the original Gemma Slurm step")
+    before = read_receipt(root, Path("before.json"), receipts)
+    pre = bound_step(before, run["request_id"], intent_sha)
+    require(step != pre, "GPU worker and preflight may not share a Slurm step")
+    write_json(root / "gpu-step-binding.json", dict(step=step, node=NODE, pre_step=pre,
+        request_id=run["request_id"], intent_SHA256=intent_sha, before_SHA256=receipts["before.json"]))
     now = time.time()
     epoch, deadline, maximum = (run[key] for key in ("epoch", "native_deadline", "maximum_seconds"))
     require(all(math.isfinite(v) for v in (epoch, deadline, maximum)) and epoch <= now
@@ -244,7 +250,8 @@ def execute(repo, root, intent_sha):
     require(sha_file(Path(run["initial_trainables"]), check)["SHA256"]
             == "b85fdfc7e3a7866cbc85575793f8621a314229aa6f9dcc471a75fdc028dee94b",
             "actual original Gemma initialization is absent")
-    verify_devices(repo, root, run, receipts)
+    run = dict(run, steps={"pre": pre, "gpu": step})
+    verify_devices(repo, root, run, before)
     owned = ownership(repo)
     shared = dict(case="T02.sft", dataset_SHA256=DATASET_SHA, binding=run["gemma_binding"])
     cfg = dict(shared, initial_trainables=run["initial_trainables"])

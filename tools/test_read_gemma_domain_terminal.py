@@ -26,7 +26,7 @@ def fixture(root):
     manifest = json.dumps(dict(registered_case="T02.sft", base_framework_commit=FRAMEWORK,
         required_state=dict(world_size=8, continuous_updates=25, resume_from=20, resumed_updates=5))).encode()
     steps = dict(pre="1103606.810", gpu="1103606.811", post="1103606.812")
-    binding = dict(request_id=REQUEST, publication=PUBLICATION, label=LABEL, steps=steps,
+    binding = dict(request_id=REQUEST, publication=PUBLICATION, label=LABEL,
                    framework_base=FRAMEWORK, dataset_SHA256=DATASET_SHA, master_port=29920,
                    pair_manifest_SHA256=digest(manifest))
     write_json(root / "intent.json", binding)
@@ -36,12 +36,21 @@ def fixture(root):
                 "cpu=64,node=1,gres/dcu=8" if phase == "gpu" else "cpu=2,node=1"]
         for phase, step in steps.items()
     }
-    write_json(root / "terminal-accounting.json", dict(request_id=REQUEST, columns=columns, rows=rows))
-    for phase, name, time in (("pre", "before.json", 100), ("post", "after.json", 900)):
-        write_json(root / name, dict(node=NODE, step=steps[phase], pci=[f"0000:{i:02x}:00.0" for i in range(1, 9)],
-            boot_id="11111111-1111-1111-1111-111111111111", kfd_holder_count=0, full_fd_inventory_performed=True,
-            master_port=29920, master_port_available=True, monotonic_ns=time,
-            owned_registry_present=True, owned_processes_remaining=[]))
+    intent_sha = digest((root / "intent.json").read_bytes())
+    stage = dict(node=NODE, request_id=REQUEST, intent_SHA256=intent_sha)
+    common = dict(stage, pci=[f"0000:{i:02x}:00.0" for i in range(1, 9)],
+        boot_id="11111111-1111-1111-1111-111111111111", kfd_holder_count=0, full_fd_inventory_performed=True,
+        master_port=29920, master_port_available=True)
+    before = root / "before.json"
+    write_json(before, dict(common, step=steps["pre"], monotonic_ns=100))
+    gpu = root / "gpu-step-binding.json"
+    write_json(gpu, dict(stage, step=steps["gpu"], pre_step=steps["pre"], before_SHA256=digest(before.read_bytes())))
+    gpu_sha = digest(gpu.read_bytes())
+    after = root / "after.json"
+    write_json(after, dict(common, step=steps["post"], monotonic_ns=900, owned_registry_present=True,
+                           owned_processes_remaining=[], gpu_step=steps["gpu"], gpu_step_binding_SHA256=gpu_sha))
+    write_json(root / "terminal-accounting.json", dict(request_id=REQUEST, intent_SHA256=intent_sha, columns=columns,
+        rows=rows, gpu_step_binding_SHA256=gpu_sha, after_SHA256=digest(after.read_bytes())))
     rank_fixture(root)
     for arm, checkpoints in (("continuous", [10, 20, 25]), ("resumed", [25])):
         kind = "continuous-witness" if arm == "continuous" else "resume-witness"
@@ -66,7 +75,7 @@ def fixture(root):
                 (checkpoint / name).write_bytes(payload)
                 pins[name] = dict(SHA256=digest(payload), bytes=len(payload))
             write_json(root / f"{arm}-checkpoint-{step}-files.json", dict(global_step=step, files=pins))
-    return manifest, dict(request=REQUEST, publication=PUBLICATION, intent_sha=digest((root / "intent.json").read_bytes()))
+    return manifest, dict(request=REQUEST, publication=PUBLICATION, intent_sha=intent_sha)
 
 
 class GemmaOriginalTerminal(unittest.TestCase):
@@ -101,7 +110,26 @@ class GemmaOriginalTerminal(unittest.TestCase):
             value = json.loads(after.read_bytes())
             value["owned_processes_remaining"] = [123]
             write_json(after, value)
+            accounting = json.loads(account.read_bytes())
+            accounting["after_SHA256"] = digest(after.read_bytes())
+            write_json(account, accounting)
             with self.assertRaisesRegex(ValueError, "post-cleanup"):
+                read_terminal(root, manifest, **binding)
+
+    def test_rejects_foreign_or_reused_step_capture(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest, binding = fixture(root)
+            gpu = root / "gpu-step-binding.json"
+            captured = json.loads(gpu.read_bytes())
+            captured["request_id"] = "c" * 32
+            write_json(gpu, captured)
+            with self.assertRaisesRegex(ValueError, "does not belong"):
+                read_terminal(root, manifest, **binding)
+            captured["request_id"] = REQUEST
+            captured["step"] = captured["pre_step"]
+            write_json(gpu, captured)
+            with self.assertRaisesRegex(ValueError, "do not form"):
                 read_terminal(root, manifest, **binding)
 
     def test_rejects_unbound_rank_or_corrupted_trainer_state(self):

@@ -26,6 +26,30 @@ def token(value, size):
     return isinstance(value, str) and len(value) == size and re.fullmatch(r"[0-9a-f]+", value) is not None
 
 
+
+def numbered_step(value):
+    return isinstance(value, str) and re.fullmatch(fr"{PARENT}\.[0-9]+", value) is not None
+
+
+def bound_step(receipt, request, intent_sha):
+    require(receipt["request_id"] == request and receipt["intent_SHA256"] == intent_sha
+            and receipt["node"] == NODE and numbered_step(receipt["step"]),
+            "Slurm receipt does not belong to the original request")
+    return receipt["step"]
+
+
+def bind_original_steps(binding, intent_sha, before, gpu, after, evidence):
+    request = binding["request_id"]
+    ids = {phase: bound_step(receipt, request, intent_sha)
+           for phase, receipt in (("pre", before), ("gpu", gpu), ("post", after))}
+    require(len(set(ids.values())) == 3 and gpu["pre_step"] == ids["pre"]
+            and gpu["before_SHA256"] == evidence["before.json"]
+            and after["gpu_step"] == ids["gpu"]
+            and after["gpu_step_binding_SHA256"] == evidence["gpu-step-binding.json"],
+            "preflight, native worker and post step do not form one original request")
+    return dict(binding, steps=ids)
+
+
 def terminal_phases(binding, accounting):
     columns, rows = accounting["columns"], accounting["rows"]
     ids = binding["steps"]
@@ -36,7 +60,7 @@ def terminal_phases(binding, accounting):
     verified = {}
     for phase, cards in PHASES.items():
         expected_id = ids[phase]
-        require(isinstance(expected_id, str) and re.fullmatch(fr"{PARENT}\.[0-9]+", expected_id) is not None,
+        require(numbered_step(expected_id),
                 "Slurm step is outside the frozen parent")
         result = completed_numbered_step(columns, rows[phase], expected_id, scope=phase)
         require(result["JobName"] == f"{LABEL}-{phase}" and result["NodeList"] == NODE
@@ -117,6 +141,7 @@ def read_terminal(root, pair_manifest, *, request, publication, intent_sha):
     require(evidence["intent.json"] == intent_sha and binding["request_id"] == request
             and binding["publication"] == publication and binding["framework_base"] == FRAMEWORK
             and binding["dataset_SHA256"] == DATASET_SHA and binding["label"] == LABEL
+            and "steps" not in binding
             and type(binding["master_port"]) is int and 1024 <= binding["master_port"] <= 65535,
             "original Gemma request binding differs")
     manifest = json.loads(pair_manifest)
@@ -125,10 +150,15 @@ def read_terminal(root, pair_manifest, *, request, publication, intent_sha):
             and manifest["registered_case"] == "T02.sft" and manifest["base_framework_commit"] == FRAMEWORK
             and (gates["world_size"], gates["continuous_updates"], gates["resume_from"],
                  gates["resumed_updates"]) == (8, 25, 20, 5), "paired command manifest differs")
-    accounting = read_receipt(root, Path("terminal-accounting.json"), evidence)
-    require(accounting["request_id"] == request, "accounting belongs to a different request")
-    phases = terminal_phases(binding, accounting)
     before, after = [read_receipt(root, Path(name), evidence) for name in ("before.json", "after.json")]
+    gpu = read_receipt(root, Path("gpu-step-binding.json"), evidence)
+    binding = bind_original_steps(binding, intent_sha, before, gpu, after, evidence)
+    accounting = read_receipt(root, Path("terminal-accounting.json"), evidence)
+    require(accounting["request_id"] == request and accounting["intent_SHA256"] == intent_sha
+            and accounting["gpu_step_binding_SHA256"] == evidence["gpu-step-binding.json"]
+            and accounting["after_SHA256"] == evidence["after.json"],
+            "accounting belongs to a different original request or cleanup evidence")
+    phases = terminal_phases(binding, accounting)
     valid_post(binding, before, after)
     for arm, steps in (("continuous", (10, 20, 25)), ("resumed", (25,))):
         for step in steps:
