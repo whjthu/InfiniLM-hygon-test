@@ -21,6 +21,9 @@ ARCHIVES = {
 }
 PREFIX = 16 * 1024**2
 MAX_INDEX = 3 * 1024**2
+RECOVERY_SEQUENCE = "freiburg2_dishes"
+RECOVERY_SECONDS = 6000
+ORIGINAL_TIMEOUT_SHA = "946c4435f9b2ce155584420c9f348eaf5970a3072e7d3fa38e8c4324f8412be3"
 
 
 class ArchiveInput:
@@ -114,7 +117,29 @@ def scan_archive(stream, sequence, anchors, output):
                 original_png_writes=len(retained), selected_frames={p: retained[p] for p in sorted(wanted)})
 
 
-def extract_source(sequence, source, output, seconds):
+def recovery_budget(sequence, seconds, original_timeout):
+    if original_timeout is None:
+        if not 60 <= seconds <= 3600:
+            raise ValueError("ordinary archive budget must be 60–3600 seconds")
+        return None
+    if sequence != RECOVERY_SEQUENCE or seconds != RECOVERY_SECONDS:
+        raise ValueError("recovery is pinned to the Freiburg 2 timeout and 6000-second budget")
+    raw = read_bounded(original_timeout, 65536)
+    receipt_sha = hashlib.sha256(raw).hexdigest()
+    if receipt_sha != ORIGINAL_TIMEOUT_SHA:
+        raise ValueError("original timeout receipt SHA differs")
+    d = json.loads(raw)
+    if (d["sequence"] != sequence or d["passed"] is not False or d["failure_type"] != "TimeoutError"
+            or d["actual_compressed_bytes_read"] != 1198260224 or d["frozen_anchor_SHA256"] != ANCHOR_SHA
+            or d["archive_written_to_disk"] is not False):
+        raise ValueError("expected the original terminal timeout with no retained compressed prefix")
+    return receipt_sha
+
+
+def extract_source(sequence, source, output, seconds, original_timeout=None):
+    recovery = recovery_budget(sequence, seconds, original_timeout)
+    if original_timeout is not None and output.resolve() == original_timeout.parent.resolve():
+        raise ValueError("use a distinct output directory for the explicit recovery")
     anchor_raw = read_bounded(source / "dev-anchor-plan-private.json", 8192)
     if hashlib.sha256(anchor_raw).hexdigest() != ANCHOR_SHA:
         raise ValueError("frozen anchor file differs")
@@ -129,6 +154,8 @@ def extract_source(sequence, source, output, seconds):
     reader = None
     summary = {"sequence": sequence, "archive": url, "verified_official_length": size,
                "frozen_anchor_SHA256": ANCHOR_SHA, "archive_written_to_disk": False, "passed": False}
+    if recovery is not None:
+        summary.update(prior_timeout_receipt_SHA256=recovery, budget_seconds=seconds, compressed_resume=False)
     try:
         with urllib.request.urlopen(request, timeout=35) as response:
             if (response.geturl() != url or response.status not in (200, 206)
@@ -158,10 +185,10 @@ def main():
     parser.add_argument("source", type=Path)
     parser.add_argument("output", type=Path)
     parser.add_argument("--seconds", type=int, default=3600)
+    parser.add_argument("--recover-original-timeout", type=Path)
     args = parser.parse_args()
-    if not 60 <= args.seconds <= 3600:
-        parser.error("one original archive read must use a 60–3600 second bound")
-    raise SystemExit(0 if extract_source(args.sequence, args.source, args.output, args.seconds) else 1)
+    raise SystemExit(0 if extract_source(args.sequence, args.source, args.output, args.seconds,
+                                         args.recover_original_timeout) else 1)
 
 
 if __name__ == "__main__":
