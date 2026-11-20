@@ -1,0 +1,68 @@
+{
+  "owner": "bw1000/root/O01",
+  "request": "7448e1d277f54b36b6a2cba5d3e77b67",
+  "state": "CLAIMED_ORIGINAL_SHAPE_BF16_INPUT_GRADIENT_ALIGNMENT",
+  "operator_GO": true,
+  "formal_training_GO": false,
+  "allocated_cards": 640,
+  "planned_operator_cards": 600,
+  "max_invocations": 1,
+  "replay_allowed": false,
+  "excluded_foreign_KFD_by_parent": {
+    "1087656": [
+      "f11r2n15"
+    ],
+    "1103606": [
+      "f12r2n12"
+    ]
+  },
+  "reserved_native_by_parent": {
+    "1087656": [
+      "f11r4n09",
+      "f11r4n10"
+    ],
+    "1103606": [
+      "f13r1n10"
+    ]
+  },
+  "allowed_existing_steps": {
+    "1103606": {
+      "node": "f13r1n10",
+      "labels": [
+        "training-qwen-native-vproj-native-row-vjp-v1",
+        "training-qwen-native-vproj-native-row-vjp-v1-pre",
+        "training-qwen-native-vproj-native-row-vjp-v1-post"
+      ]
+    }
+  },
+  "deadline_seconds": {
+    "worker": 440,
+    "Slurm_step": 540,
+    "whole_remote_controller": 660,
+    "client": 685
+  },
+  "caller": {
+    "site": "Qwen3-VL T01 rank1 decoder_06.v_proj",
+    "forward_MKN": [
+      186,
+      4096,
+      1024
+    ],
+    "input_gradient_MKN": [
+      186,
+      1024,
+      4096
+    ],
+    "source": "results/bw1000/2026-11-20/training-qwen-original325-native-vproj-row-alignment-terminal.json",
+    "SHA256": "9f5db895ae6ea96dedea10b43881bd4a60485d5fc4d525ef659a4beb0be9780e"
+  },
+  "design": "Compare original M186 versus zero padded M192 BF16 dY @ W, including dY allocation and copy, in alternating order. Each physical device has a distinct per-parent rank/seed namespace. Compare each candidate against BF16-rounded F32. This backward geometry complements the earlier forward-storage and fixed-backward-preference studies. Eight real pilot devices before the large cohort.",
+  "denominators": {
+    "pilot_cards": 8,
+    "pilot_cases_per_card": 2,
+    "fleet_cards": 600,
+    "fleet_cases_per_card": 384,
+    "measured_calls_per_arm_case": 32
+  },
+  "promotion": "Both arms are isolated direct GEMMs with generated operands. Do not promote without the native input VJP witness, exact original update/recovery, and normal-case regression."
+}
