@@ -97,26 +97,43 @@ class SharedResumeIntegrationTests(unittest.TestCase):
         registry = {}
         config = {"case": "T02.sft", "checkpoint_step": 20,
                   "dataset_SHA256": "74fd9aad043441b7e29578223605a0030a93c5c9614057707b381175cda9a0cc"}
-        witness = Mock()
+        constructor = Mock()
+        witness = type("ResumeWitness", (), {"__init__": constructor})
+        trainer = SimpleNamespace(skip_first_batches=lambda loader, count: loader[count:])
         modules = {
             "torch": SimpleNamespace(),
+            "transformers": SimpleNamespace(trainer=trainer),
+            "transformers.trainer": trainer,
             "swift.callbacks": SimpleNamespace(TrainerCallback=object, callbacks_map=registry),
             "vlm.runtime.first_update_capture": SimpleNamespace(remaining=Mock()),
             "vlm.runtime.native_recipe_contract": SimpleNamespace(validate_native_recipe=Mock()),
             "vlm.runtime.resume_cursor": SimpleNamespace(read_pinned_json=Mock(return_value=config)),
-            "vlm.runtime.resume_witness": SimpleNamespace(ResumeWitness=witness),
+            "vlm.runtime.resume_witness": SimpleNamespace(ResumeWitness=witness, rng_fingerprint=Mock(),
+                                                          rng_values=Mock()),
         }
         env = {"NATIVE_RESUME_CONFIG": "fixture", "NATIVE_RESUME_CONFIG_SHA256": "fixture",
                "RANK": "0", "LOCAL_RANK": "0"}
         path = "vlm/plugins/gemma_domain_resume.py"
         with patch.dict(sys.modules, modules), patch.dict(os.environ, env):
-            load(self.files[path], path)
+            module = load(self.files[path], path)
             callback = registry["gemma_domain_resume_witness"]()
             for length in (9, 99):
                 with self.subTest(length=length), self.assertRaisesRegex(ValueError, "actual 100-batch"):
                     callback.on_train_begin(SimpleNamespace(max_steps=25), SimpleNamespace(global_step=20),
                                             None, train_dataloader=range(length))
-            witness.assert_not_called()
+            constructor.assert_not_called()
+            original_skip = trainer.skip_first_batches
+            trace = Mock()
+            seen, finish = module["observe_native_skip"](trainer, trace, 0)
+            with self.assertRaisesRegex(ValueError, "different Gemma loader cursor"):
+                trainer.skip_first_batches(range(100), 79)
+            self.assertEqual(trainer.skip_first_batches(range(100), 80), range(80, 100))
+            trace.write.assert_called_once_with("native-data-skip.json", dict(rank=0, before=100, skipped=80, after=20))
+            self.assertTrue(seen)
+            with self.assertRaisesRegex(ValueError, "different Gemma loader cursor"):
+                trainer.skip_first_batches(range(100), 80)
+            finish()
+            self.assertIs(trainer.skip_first_batches, original_skip)
 
 
 if __name__ == "__main__":

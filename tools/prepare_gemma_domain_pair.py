@@ -15,7 +15,7 @@ ORIGINAL = (
 EXTRAS = {
     "vlm/plugins/gemma_domain_continuous.py": (
         "code/bw1000/training-gemma-usgs-shared-resume-v1/gemma_domain_continuous.py",
-        "bdb42a51e576b52f90ce67c6d378fc4c73f8ce2c092b3599f259b1d21f9e5b4d",
+        "b0368efd15e91fc53e5ff6451ddbc5c7ca5e807e14c0ec16c894c629aabb3e63",
     ),
     "vlm/runtime/vlm_update_contract.py": (
         "code/bw1000/training-qwen-usgs-exposure25-resume20-hip-v1/update_contract.py",

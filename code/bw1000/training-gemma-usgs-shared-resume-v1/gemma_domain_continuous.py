@@ -61,6 +61,9 @@ class GemmaDomainContinuous(TrainerCallback):
             file_bytes=119430531, file_SHA256=INITIAL_FILE_SHA, named_SHA256=INITIAL_VALUES_SHA,
         )
         self.write("initialization.json", proof)
+        startticks = int(Path("/proc/self/stat").read_text().split(") ", 1)[1].split()[19])
+        self.write("owner.json", dict(PID=os.getpid(), PGID=os.getpgrp(), rank=self.rank, local_rank=local,
+                                     startticks=startticks, epoch=self.epoch, deadline=self.deadline))
         self.write("frozen-boundaries.json", frozen)
         self.previous_adapter = self.adapter()
         self.progress()

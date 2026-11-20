@@ -26,7 +26,7 @@ MID_EPOCH_HELPER = (
 )
 GEMMA_WITNESS = (
     "code/bw1000/training-gemma-usgs-shared-resume-v1/gemma_domain_resume.py",
-    "390dc6e6d2ec0078fd1ce672aefdf0525fab5b55ec965ec6f2c5d87ac542ca6f",
+    "188e07812f9b3c9f5916da520f05785e6e7c6c34b95225b75440e78ce777fa01",
 )
 
 ORIGINAL_GATE = b'''        if (case != "T05.sft" or len(observers) != 1
