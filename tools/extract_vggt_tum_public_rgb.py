@@ -2,13 +2,16 @@
 
 import argparse
 from bisect import bisect_left
+from contextlib import closing
 import hashlib
+from http.client import IncompleteRead, RemoteDisconnected
 import io
 import json
 from pathlib import Path
 import re
 import tarfile
 import time
+import urllib.error
 import urllib.request
 
 from bind_vggt_tum_dev_rgb import ANCHOR_SHA, MAX_IMAGE_BYTES, MAX_TIME_ERROR, bind_pairs, parse_rgb_index, read_bounded
@@ -24,6 +27,86 @@ MAX_INDEX = 3 * 1024**2
 RECOVERY_SEQUENCE = "freiburg2_dishes"
 RECOVERY_SECONDS = 6000
 ORIGINAL_TIMEOUT_SHA = "946c4435f9b2ce155584420c9f348eaf5970a3072e7d3fa38e8c4324f8412be3"
+SOCKET_TIMEOUT_SHA = "ef2c72fe4b75b1af8f63158b24b82274cfc56ba01ab70fd8ab1c1fbe0d1b9c86"
+DISHES_ETAG = '"5a7e0110-4ae2a216577c0"'
+RANGE_BYTES = 64 * 1024**2
+RANGE_RETRIES = 8
+
+
+class RangedArchive:
+    """Keep the gzip consumer alive while the HTTP connection moves across exact ranges."""
+
+    def __init__(self, url, size, etag, deadline, *, opener=urllib.request.urlopen,
+                 clock=time.monotonic, segment_bytes=RANGE_BYTES, retry_limit=RANGE_RETRIES):
+        self.url = url
+        self.size = size
+        self.etag = etag
+        self.deadline = deadline
+        self.opener = opener
+        self.clock = clock
+        self.segment_bytes = segment_bytes
+        self.retry_limit = retry_limit
+        self.offset = self.stop = self.retries = self.requests = 0
+        self.response = None
+
+    def close(self):
+        if self.response is not None:
+            self.response.close()
+            self.response = None
+
+    def connect(self, timeout):
+        self.stop = min(self.offset + self.segment_bytes, self.size)
+        requested = f"bytes={self.offset}-{self.stop-1}"
+        expected = f"bytes {self.offset}-{self.stop-1}/{self.size}"
+        req = urllib.request.Request(self.url, headers={"Range": requested, "If-Match": self.etag,
+                                                         "Accept-Encoding": "identity"})
+        self.requests += 1
+        response = self.opener(req, timeout=timeout)
+        if (response.status != 206 or response.geturl() != self.url or response.headers.get("ETag") != self.etag
+                or response.headers.get("Content-Range") != expected
+                or response.headers.get("Content-Length") != str(self.stop-self.offset)
+                or response.headers.get("Content-Encoding") not in (None, "identity")):
+            response.close()
+            raise ValueError("official archive range or immutable object identity differs")
+        self.response = response
+
+    def recover(self, error):
+        self.close()
+        self.retries += 1
+        if self.retries > self.retry_limit:
+            raise TimeoutError("official archive exhausted the bounded range reconnects") from error
+
+    def read(self, amount):
+        target = min(self.offset + amount, self.size)
+        parts = []
+        while self.offset < target:
+            remaining = self.deadline - self.clock()
+            if remaining <= 0:
+                raise TimeoutError("official archive range budget exhausted")
+            try:
+                if self.response is None:
+                    self.connect(min(35.0, remaining))
+                wanted = min(target, self.stop) - self.offset
+                raw = self.response.read(wanted)
+            except urllib.error.HTTPError as error:
+                error.close()
+                if error.code not in (408, 429, 500, 502, 503, 504):
+                    raise
+                self.recover(error)
+                continue
+            except (TimeoutError, ConnectionError, IncompleteRead, RemoteDisconnected, urllib.error.URLError) as error:
+                self.recover(error)
+                continue
+            if not raw:
+                self.recover(EOFError("official range ended before the expected boundary"))
+                continue
+            if len(raw) > wanted:
+                raise ValueError("official range returned bytes beyond the request")
+            self.offset += len(raw)
+            parts.append(raw)
+            if self.offset == self.stop:
+                self.close()
+        return b"".join(parts)
 
 
 class ArchiveInput:
@@ -136,10 +219,29 @@ def recovery_budget(sequence, seconds, original_timeout):
     return receipt_sha
 
 
-def extract_source(sequence, source, output, seconds, original_timeout=None):
+def socket_recovery(sequence, socket_timeout, original_timeout):
+    if socket_timeout is None:
+        return None
+    if original_timeout is None or sequence != RECOVERY_SEQUENCE:
+        raise ValueError("range recovery requires both prior terminal receipts")
+    raw = read_bounded(socket_timeout, 65536)
+    identity = hashlib.sha256(raw).hexdigest()
+    if identity != SOCKET_TIMEOUT_SHA:
+        raise ValueError("original socket timeout receipt SHA differs")
+    prior = json.loads(raw)
+    if (prior["sequence"] != sequence or prior["passed"] is not False
+            or prior["failure_type"] != "TimeoutError" or prior["failure"] != "The read operation timed out"
+            or prior["prior_timeout_receipt_SHA256"] != ORIGINAL_TIMEOUT_SHA):
+        raise ValueError("expected the original terminated socket timeout")
+    return identity
+
+
+def extract_source(sequence, source, output, seconds, original_timeout=None, socket_timeout=None):
     recovery = recovery_budget(sequence, seconds, original_timeout)
-    if original_timeout is not None and output.resolve() == original_timeout.parent.resolve():
-        raise ValueError("use a distinct output directory for the explicit recovery")
+    socket_recovery_sha = socket_recovery(sequence, socket_timeout, original_timeout)
+    for previous in (original_timeout, socket_timeout):
+        if previous is not None and output.resolve() == previous.parent.resolve():
+            raise ValueError("use a distinct output directory for the explicit recovery")
     anchor_raw = read_bounded(source / "dev-anchor-plan-private.json", 8192)
     if hashlib.sha256(anchor_raw).hexdigest() != ANCHOR_SHA:
         raise ValueError("frozen anchor file differs")
@@ -156,9 +258,15 @@ def extract_source(sequence, source, output, seconds, original_timeout=None):
                "frozen_anchor_SHA256": ANCHOR_SHA, "archive_written_to_disk": False, "passed": False}
     if recovery is not None:
         summary.update(prior_timeout_receipt_SHA256=recovery, budget_seconds=seconds, compressed_resume=False)
+    ranged = None
+    if socket_recovery_sha is not None:
+        ranged = RangedArchive(url, size, DISHES_ETAG, started + seconds)
+        summary.update(prior_socket_timeout_receipt_SHA256=socket_recovery_sha,
+                       HTTP_range_ETag=DISHES_ETAG, HTTP_range_segment_bytes=RANGE_BYTES,
+                       HTTP_range_reconnect_budget=RANGE_RETRIES)
     try:
-        with urllib.request.urlopen(request, timeout=35) as response:
-            if (response.geturl() != url or response.status not in (200, 206)
+        with (closing(ranged) if ranged else urllib.request.urlopen(request, timeout=35)) as response:
+            if ranged is None and (response.geturl() != url or response.status not in (200, 206)
                     or response.headers.get("Content-Length") != str(size)
                     or (response.status == 206 and response.headers.get("Content-Range") != f"bytes 0-{size-1}/{size}")):
                 raise ValueError("original archive identity or range differs")
@@ -173,6 +281,9 @@ def extract_source(sequence, source, output, seconds, original_timeout=None):
         summary["failure"] = str(error)[:180]
     summary.update(actual_compressed_bytes_read=reader.count if reader else 0,
                    wall_seconds=time.monotonic() - started)
+    if ranged is not None:
+        summary.update(HTTP_range_requests=ranged.requests, HTTP_range_reconnects=ranged.retries,
+                       HTTP_confirmed_offset=ranged.offset)
     with (output / "official-stream-receipt-private.json").open("x", encoding="utf-8") as dest:
         json.dump(summary, dest, sort_keys=True)
     print(json.dumps({k: v for k,v in summary.items() if k != "selected_frames"}, sort_keys=True), flush=True)
@@ -186,9 +297,10 @@ def main():
     parser.add_argument("output", type=Path)
     parser.add_argument("--seconds", type=int, default=3600)
     parser.add_argument("--recover-original-timeout", type=Path)
+    parser.add_argument("--recover-socket-timeout", type=Path)
     args = parser.parse_args()
     raise SystemExit(0 if extract_source(args.sequence, args.source, args.output, args.seconds,
-                                         args.recover_original_timeout) else 1)
+                                         args.recover_original_timeout, args.recover_socket_timeout) else 1)
 
 
 if __name__ == "__main__":
