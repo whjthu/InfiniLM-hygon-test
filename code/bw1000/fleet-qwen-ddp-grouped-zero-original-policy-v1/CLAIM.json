@@ -1,0 +1,42 @@
+{
+  "owner": "bw1000/root/O01",
+  "request": "e96dcfc1c3aa4437976c7dc088bf271f",
+  "state": "CLAIMED_8_DCU_PILOT_THEN_608_DCU_LONGER_PAIR_DIRECT_RESET_COMPARISON",
+  "operator_GO": true,
+  "formal_training_GO": false,
+  "allocated_cards": 640,
+  "planned_operator_cards": 608,
+  "max_invocations": 1,
+  "replay_allowed": false,
+  "excluded_foreign_KFD_by_parent": {
+    "1087656": [
+      "f11r2n15"
+    ],
+    "1103606": [
+      "f12r2n12"
+    ]
+  },
+  "reserved_native_by_parent": {
+    "1087656": [
+      "f11r4n09",
+      "f11r4n10"
+    ],
+    "1103606": []
+  },
+  "allowed_existing_steps": {},
+  "design": "One gradient reset policy change with DDP views and 25 MiB cap fixed: original set-to-none versus grouped in-place zeroing. ABBA, 45 fixed measured updates per block after the original 3 warmups and full two-update numeric check. Four microbatches and identical optimizer and inputs. Measure paired total step time, peak and steady allocation, and synchronized physical-card utilization. Eight-card numeric pilot qualifies exact same policies first.",
+  "rationale": "Serial retention and grouped retention each had isolated evidence, but comparing those two successive ratios or memory deltas cannot establish a direct baseline-relative effect. This pair directly measures the complete reset-policy decision at the same Qwen shapes and longer recording duration.",
+  "prerequisite": {
+    "path": "results/bw1000/2026-11-20/fleet600-Qwen-DDP-foreach-zero-original483-365-terminal.json",
+    "bytes": 3828,
+    "SHA256": "4070b8b51a5dabb6aa7aa210eeeceea606050d314acc65d0e39bd8726786d6e3"
+  },
+  "budget": {
+    "controller_seconds": 880,
+    "client_seconds": 905,
+    "pilot_seconds": 195,
+    "fleet_worker_seconds_from_controller_epoch": 490
+  },
+  "resource_policy": "Retain the two external KFD node and two unreconciled MiniCPM node exclusions. The prior SDXL node has fresh successful independent post cleanup and is eligible for a new full-device admission gate.",
+  "formal_qualification": "Operator check only. No formal model quality or service claims. Keep all pilot, fleet, and denied card or step denominators."
+}

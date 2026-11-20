@@ -520,6 +520,11 @@
           "path": "results/bw1000/2026-11-20/training-sdxl-original475-A100-loss-adjoint-full-update-terminal.json",
           "bytes": 9496,
           "SHA256": "4ce851083e8033ad50a6aac6ea1973af1efdda596626d2e8ca104ec023575918"
+        },
+        "lora_B_FP32_original480": {
+          "path": "results/bw1000/2026-11-20/training-sdxl-original480-FP32-LoRA-B-gradient-full-update-terminal.json",
+          "bytes": 4749,
+          "SHA256": "235e3333fcd684f04286f3c054ab7475a0adc309c3090b3ce73988eaa5d36b44"
         }
       },
       "model": "SDXL 1.0",
@@ -527,7 +532,7 @@
       "original_cards": 1,
       "a100_reference": "A100 固定输入和原数值策略已绑定。",
       "target_evidence": "海光执行真实首步。单独替换首个 GroupNorm 后参数更新相对 L2 为 20.05%，原路径 19.27%，门槛 5%。 单独替换时间投影的舍入顺序后，海光投影逐位匹配 A100，完整 1120 个张量的参数更新误差仍为 19.82%。",
-      "target_numerics": "失败，参数更新门槛 把 UNet 输出处的损失梯度精确替换成 A100 原梯度后，首步参数更新相对 L2 误差为 20.21%，仍超过 5% 门槛。",
+      "target_numerics": "失败，参数更新门槛 把 UNet 输出处的损失梯度精确替换成 A100 原梯度后，首步参数更新相对 L2 误差为 20.21%，仍超过 5% 门槛。 560 处 LoRA B 权重梯度改用 FP32 重算并转回 BF16，只改变 2,662,400 个元素中的 33 个，完整参数更新误差仍为 19.27%。",
       "target_recovery": "未验证",
       "target_performance": "待三轮同口径实测",
       "target_holdout_effect": "待留出集实测",
