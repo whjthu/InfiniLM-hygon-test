@@ -13,3 +13,17 @@ python -B tools/vggt_co3d_effect.py --ledger-root LEDGER --plan PLAN.json --plan
 `co3d-metric-rows.json` 可作为 `holdout.metrics`。三个指标使用同一 `dataset_SHA256` 和 `scorer_SHA256`。计分回放需要在有权访问原件的位置读取冻结清单与每组角误差，用同一脚本重算。正式验收还需核对 CO3D 原测试标注、媒体与训练集隔离，以及三组从实际检查点运行同一姿态评估流程的原始证据。沿用原项目 CO3D 数据范围时，公开评估的全量类别得分不充当项目 A100 基线。[官方 CO3D 评估说明](https://github.com/facebookresearch/vggt/blob/4b8be14b574b58c91ecd699122daf3d8004901d4/evaluation/README.md)
 
 本机通过 4 项工具回归和 25 项现有效果及性能验证器回归。另按官方 NumPy 直方图结构交叉核对 1,215 组含边界和随机值的分布，最大绝对差为 `2.22e-16`。本轮输入为合成角误差，实际测试集的三组模型预测和效果结论仍缺原件。
+
+## 从已保存的相机外参生成逐对角误差
+
+`tools/vggt_co3d_pose_receipts.py` 读取同一计划下的真值及三组推理外参。每份 JSON 记录 `coordinates=opencv-world-to-camera-3x4`、`evaluation_plan_SHA256` 和 `sequences`。每个序列包含 `category`、`sequence` 与按计划排序的 `frames`，每帧提供 `frame_id` 及 `extrinsic`。三份预测还记录 `arm`、`checkpoint_SHA256` 和 `pose_evaluator_commit`，逐帧标记 `status=scored` 或 `status=failed`。失败帧提供 `reason` 并省略 `extrinsic`。模型外参清单使用 `evaluation_plan_SHA256` 与 `arms`，每组都给出外参文件 `path`、`SHA256` 和 `checkpoint_SHA256`。
+
+转换器在 CPU 上计算 `E_i · inverse(E_j)`，输出相对旋转角误差及允许平移符号歧义的方向误差。零平移在方向统计中记为 90°，显式失败帧对应的全部图像对保留为失败。清单不全或外参不是有效刚体变换时停止计分。本实现与官方公式使用同一几何约定，角度浮点值和阈值附近的舍入仍需用真实原件复核。[官方相对姿态计算](https://github.com/facebookresearch/vggt/blob/4b8be14b574b58c91ecd699122daf3d8004901d4/evaluation/test_co3d.py#L59-L177)
+
+```text
+python -B tools/vggt_co3d_pose_receipts.py --plan PLAN.json --plan-sha256 PLAN_SHA --truth TRUTH.json --truth-sha256 TRUTH_SHA --poses POSES.json --poses-sha256 POSES_SHA --output ANGLES
+```
+
+将 `ANGLES/pair-predictions.json` 及返回的 SHA-256 交给汇总器。该清单同时绑定真值外参、三组原始预测清单和转换器源码。模型推理、原标注转换与训练集隔离需由原件证据核定。此入口仅处理已获授权的现地外参，无需读取或转移图片、模型权重或历史训练输入文件。
+
+本机通过 8 项 CO3D 回归，包含从三组外参到三个指标的完整链路。另用独立 4×4 逆矩阵、旋转 Frobenius 距离及平移叉积，对照 512 组随机刚体变换。最大绝对误差分别为旋转 `7.71e-12` 度与平移 `1.47e-12` 度。测试为合成 CPU 输入，实际检查点和留出结果仍待执行。
