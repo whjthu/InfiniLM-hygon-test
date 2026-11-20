@@ -35,10 +35,12 @@ def require(condition, reason):
         raise ValueError(reason)
 
 
-def digest(path, expected=None):
+def digest(path, expected=None, remaining=None):
     value = sha256()
     with path.open('rb') as stream:
         for chunk in iter(lambda: stream.read(1024 * 1024), b''):
+            if remaining is not None:
+                remaining()
             value.update(chunk)
     actual = value.hexdigest()
     require(expected is None or actual == expected, f'bytes differ for {path.name}')
@@ -111,13 +113,14 @@ def parse_readelf(dynamic, symbols):
                tuple(paths), frozenset(exports), frozenset(imports))
 
 
-def passive_elf(path, readelf):
+def passive_elf(path, readelf, remaining=None):
     env = {key: value for key, value in os.environ.items() if not key.startswith(('LD_', 'DYLD_'))}
     env['LC_ALL'] = 'C'
 
     def report(option):
+        timeout = 20 if remaining is None else min(20, remaining())
         return subprocess.check_output([str(readelf), '--wide', option, '--', str(path)],
-                                       env=env, timeout=20, encoding='utf-8')
+                                       env=env, timeout=timeout, encoding='utf-8')
     return parse_readelf(report('--dynamic'), report('--dyn-syms'))
 
 
@@ -170,7 +173,7 @@ def verify_relinked(probe, baseline, needed):
             'relinked probe must change only the pinned Native dependency')
 
 
-def audit(refactor_root, verify=False):
+def audit(refactor_root, verify=False, *, remaining=None, output_reserved=False):
     def artifact(container_path):
         return refactor_root.joinpath(*PurePosixPath(container_path).relative_to('/refactor').parts)
 
@@ -189,12 +192,15 @@ def audit(refactor_root, verify=False):
         CANDIDATE_NATIVE: candidate_sha,
     }
     for name, value in pins.items():
-        digest(artifact(name), value)
-    digest(Path(READELF), plan['tools'][READELF]['sha256'])
-    digest(Path(COMPILER), plan['tools'][COMPILER]['sha256'])
-    baseline = passive_elf(artifact(plan['candidate'] + '/' + link['output']), READELF)
-    proposed = expected_probe(baseline, passive_elf(artifact(reference), READELF),
-                              passive_elf(artifact(CANDIDATE_NATIVE), READELF), link,
+        digest(artifact(name), value, remaining)
+    digest(Path(READELF), plan['tools'][READELF]['sha256'], remaining)
+    digest(Path(COMPILER), plan['tools'][COMPILER]['sha256'], remaining)
+
+    def inspect(container_path):
+        return passive_elf(artifact(container_path), READELF, remaining)
+
+    baseline = inspect(plan['candidate'] + '/' + link['output'])
+    proposed = expected_probe(baseline, inspect(reference), inspect(CANDIDATE_NATIVE), link,
                               original['needed'], receipt['NEEDED'])
     result = dict(candidate_receipt_SHA256=CANDIDATE_RECEIPT_SHA, input_SHA256=pins,
                   linker_argv=link_argv(plan, link), expected_DT_NEEDED=proposed,
@@ -205,13 +211,13 @@ def audit(refactor_root, verify=False):
                   actual_GPU_calls=0, runtime_provider_verified=False, GPU_GO=False, Model_GO=False)
     if verify:
         output = artifact(RELINKED_PROBE)
-        output_sha = digest(output)
-        verify_relinked(passive_elf(output, READELF), baseline, proposed)
-        result.update(relinked_probe_SHA256=digest(output, output_sha), relinked_probe_passive_verified=True)
-    else:
+        output_sha = digest(output, remaining=remaining)
+        verify_relinked(inspect(RELINKED_PROBE), baseline, proposed)
+        result.update(relinked_probe_SHA256=digest(output, output_sha, remaining), relinked_probe_passive_verified=True)
+    elif not output_reserved:
         require(not artifact(OUTPUT).exists(), 'output namespace exists; reconcile the original link')
     for name, value in pins.items():
-        digest(artifact(name), value)
+        digest(artifact(name), value, remaining)
     return result
 
 
