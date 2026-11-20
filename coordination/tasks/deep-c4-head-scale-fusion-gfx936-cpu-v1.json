@@ -1,0 +1,93 @@
+{
+  "owner": "root/operator_compile_tuning",
+  "label": "DeepC4-head-scale-fusion-gfx936-CPU-v1",
+  "state": "LOCAL_NUMERIC_VERIFIED_DISTINCT_TARGET_COMPILE_SCOPE",
+  "parent": "1103606",
+  "node": "f13r2n02",
+  "manifest_SHA256": "4e2f50a654a81f0d2aaf14bac9370303f604cb5ffdae29851039a2f886a9ca51",
+  "source": "code/bw1000/Deep-C4-causal-consumer-r483/head-scale-fusion-CPU-v1",
+  "CPU": 4,
+  "memory_MiB": 8192,
+  "GPU": 0,
+  "Slurm_seconds": 300,
+  "once": true,
+  "replay_allowed": false,
+  "CPU_GO": true,
+  "GPU_GO": false,
+  "Model_GO": false,
+  "new_GPU_translation_units": 1,
+  "variant_ids": [
+    {
+      "items_per_thread": 1,
+      "candidate_ID": "edb1f9dff6f65fade9e0f6b4f2b6c951b3f98788faa9e4db2d0acf7e2a419107",
+      "export": "deep_c4_head_scale_i1_v1"
+    },
+    {
+      "items_per_thread": 4,
+      "candidate_ID": "9171d6748be14cc4fc22134e69ad6bd01393fa543f7f51d525744d94faf793f4",
+      "export": "deep_c4_head_scale_i4_v1"
+    }
+  ],
+  "control_shapes": [
+    {
+      "T": 1,
+      "heads": 8,
+      "purpose": "actual TP8 T1",
+      "elements": 8,
+      "grid_i1": 1,
+      "grid_i4": 1,
+      "logical_temp_bytes_elided": 64
+    },
+    {
+      "T": 512,
+      "heads": 8,
+      "purpose": "TP8 prefill control",
+      "elements": 4096,
+      "grid_i1": 32,
+      "grid_i4": 8,
+      "logical_temp_bytes_elided": 32768
+    },
+    {
+      "T": 1,
+      "heads": 64,
+      "purpose": "TP1 component control",
+      "elements": 64,
+      "grid_i1": 1,
+      "grid_i4": 1,
+      "logical_temp_bytes_elided": 512
+    },
+    {
+      "T": 512,
+      "heads": 64,
+      "purpose": "TP1 fixed r483 schedule control",
+      "elements": 32768,
+      "grid_i1": 256,
+      "grid_i4": 64,
+      "logical_temp_bytes_elided": 262144
+    }
+  ],
+  "path_to_build_receipt": "/refactor/candidates/DeepC4-head-scale-fusion-gfx936-CPU-v1/CPU-result.json",
+  "local_result_SHA256": "d1d2c0f7f8d0ec0d4318797692d78647572f1315e7d15182373bc34f846d8953",
+  "source_SHA256": "4f54ae7ff3a20dacbafeee85437a4eda1cc6b8dfdda7a418eb0b6ee97f26464d",
+  "actual_target_compiles": 0,
+  "actual_GPU_steps": 0,
+  "provider_switch": "none until new model integration and device evidence",
+  "original_actual_profile": {
+    "path": "analysis/bw1000/Deep-r467-post1498-main-phase-decision.json",
+    "SHA256": "7ffef1122f09ecaaf319da3f55c9e7b76d21ceaf4e086a99106a9016691c2da4",
+    "window_ms_min_median_max": {
+      "8499": [
+        10.664073,
+        10.9346335,
+        11.480276
+      ],
+      "8500": [
+        10.540955,
+        11.0135935,
+        11.303537
+      ]
+    },
+    "scope": "enclosure includes projection, RoPE, feature and status; no exclusive cost assigned"
+  },
+  "mathematical_reference": "Cast BF16 to FP32, multiply by FP32 score scalar, store rounded intermediate, multiply FP32 query scale and compare finite bitwise"
+}

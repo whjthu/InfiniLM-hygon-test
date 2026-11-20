@@ -209,9 +209,6 @@ def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(
                  for name, cards in placement.items()) and wanted, 'candidate requires explicit known nodes and device counts')
         row = dict(id=ident, case=job.get('case'), kind=kind, candidate_state=state, placement=placement,
                    requested_DCU=sum(placement.values()), next_action=job['next_action'])
-        if 'evidence' in job:
-            pin_file(repo, job['evidence'], ('coordination/tasks/', 'analysis/bw1000/', 'results/bw1000/', 'local-only/'))
-            row['evidence'] = job['evidence']
         if kind == 'training':
             need(isinstance(job.get('case'), str) and job['case'].startswith('T') and
                  type(job['min_updates']) is int and job['min_updates'] >= 1,
@@ -223,8 +220,11 @@ def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(
             workload_ids.add(work)
             request_ids.add(request)
             row['request'] = request
-        if state == 'ready':
-            try:
+        try:
+            if 'evidence' in job:
+                row['evidence'] = job['evidence']
+                pin_file(repo, job['evidence'], ('coordination/tasks/', 'analysis/bw1000/', 'results/bw1000/', 'local-only/'))
+            if state == 'ready':
                 state = verify_launch(repo, job)
                 if state == 'ready':
                     command = invocation(repo, job)
@@ -232,9 +232,9 @@ def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(
                         state = 'manual_launcher_binding_required'
                     else:
                         row['invocation'] = command
-            except (OSError, ValueError, SyntaxError) as exc:
-                state = 'invalid_launch_evidence'
-                row['launch_evidence_error'] = str(exc)
+        except (OSError, ValueError, SyntaxError) as exc:
+            state = 'invalid_launch_evidence'
+            row['launch_evidence_error'] = str(exc)
         row['candidate_state'] = state
         row['dispatch_state'] = state
         if state == 'ready':

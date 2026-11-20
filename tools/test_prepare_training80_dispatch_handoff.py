@@ -103,6 +103,19 @@ cli.add_argument('--request-id')
         self.assertEqual([packet['candidate'] for packet in result['coordinator_handoffs']], [automatic['id']])
         self.assertEqual(result['outstanding_training_ready'], 1)
 
+    def test_stale_supporting_evidence_rejects_only_its_candidate(self):
+        stale = self.trial()
+        current = self.trial(index=2)
+        stale['evidence'] = self.fleet.put('coordination/tasks/stale.json', {'state': 'blocked'})
+        self.fleet.put(stale['evidence']['path'], {'state': 'updated'})
+
+        result = self.handoff([stale, current])
+
+        self.assertEqual(result['invalid_launch_evidence'], {stale['id']: 'candidate evidence SHA256 differs'})
+        self.assertEqual([packet['candidate'] for packet in result['coordinator_handoffs']], [current['id']])
+        self.assertEqual(result['outstanding_training_ready'], 1)
+        self.assertEqual(result['actual_dispatched_DCU'], 0)
+
     def test_five_candidates_including_unbound_launcher_leave_one_ready_deficit(self):
         jobs = [self.trial(index=index) for index in range(1, 5)]
         jobs.append(self.trial('def main(publication, bundle): pass\n', index=5))
