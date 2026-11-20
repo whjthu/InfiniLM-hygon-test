@@ -1,6 +1,7 @@
 """Report 80-node coverage and prioritize evidence-bound work for the dispatcher."""
 
 import argparse
+import ast
 from collections import Counter
 from contextlib import closing
 from hashlib import sha256
@@ -12,6 +13,7 @@ import sqlite3
 import time
 
 from tuning_queue import ACTIVE, SNAPSHOT_MAX_AGE_S, TRAINING80_LEDGER, digest, training80_inventory
+from verify_training80_manifest import verify_package_members
 
 
 REPO = Path(__file__).resolve().parents[1]
@@ -46,6 +48,38 @@ def pin_file(repo, reference, prefixes):
     need(hex_value(reference['SHA256'], 64) and sha256(raw).hexdigest() == reference['SHA256'],
          'candidate evidence SHA256 differs')
     return raw
+
+
+def invocation(repo, job):
+    """Check entry-point syntax while leaving imports and transport to the coordinator."""
+    repo = repo.resolve()
+    launch = job['launch']
+    path = launch['launcher']['path']
+    raw = pin_file(repo, launch['launcher'], ('code/bw1000/', 'tools/'))
+    tree = ast.parse(raw, filename=path)
+    functions = [node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == 'main']
+    if len(functions) != 1:
+        return None
+    signature = functions[0].args
+    if signature.posonlyargs or signature.kwonlyargs or signature.vararg or signature.kwarg:
+        return None
+    arguments = tuple(arg.arg for arg in signature.args)
+    if arguments == ('publication', 'transport') and not signature.defaults:
+        return dict(kind='coordinator_callback', entry='main', arguments=[launch['publication_commit']],
+                    injected_keyword='transport')
+    if (arguments == ('publication', 'request', 'transport') and len(signature.defaults) == 1 and
+            isinstance(signature.defaults[0], ast.Constant) and signature.defaults[0].value is None):
+        return dict(kind='coordinator_callback', entry='main',
+                    arguments=[launch['publication_commit'], launch['request']], injected_keyword='transport')
+    if arguments == ('publication', 'claim_sha256', 'request') and not signature.defaults:
+        flags = ('--publication', '--claim-sha256', '--request-id')
+        cli_args = {node.args[0].value for node in ast.walk(tree) if isinstance(node, ast.Call) and
+                    isinstance(node.func, ast.Attribute) and node.func.attr == 'add_argument' and node.args and
+                    isinstance(node.args[0], ast.Constant) and isinstance(node.args[0].value, str)}
+        if cli_args == set(flags):
+            return dict(kind='authenticated_host_python', arguments=[flags[0], launch['publication_commit'],
+                        flags[1], launch['claim']['SHA256'], flags[2], launch['request']])
+    return None
 
 
 def fleet_view(snapshot, now, boot_anchor, ledger_path):
@@ -105,8 +139,10 @@ def verify_launch(repo, job):
          claim.get(launch['authorization_key']) is True and
          launch['authorization_key'] in ('GPU_GO', 'operator_GO', 'training_GO', 'Model_GO', 'model_GO'),
          'published claim does not authorize this exact request')
-    pin_file(repo, launch['manifest'], ('code/bw1000/',))
     pin_file(repo, launch['launcher'], ('code/bw1000/', 'tools/'))
+    package = Path(launch['manifest']['path']).parent
+    package_refs = [ref for ref in (launch['claim'], launch['launcher']) if Path(ref['path']).is_relative_to(package)]
+    verify_package_members(repo, launch['manifest'], required_files=package_refs)
     bindings = {
         'publication_receipt': dict(state='PUBLISHED_MATCHED', publication_commit=launch['publication_commit'],
                                     claim_SHA256=launch['claim']['SHA256'], manifest_SHA256=launch['manifest']['SHA256'],
@@ -150,8 +186,7 @@ def read_queue_holds(path):
     return result
 
 
-def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(), now=None, boot_anchor=None,
-         dispatch_gate=None):
+def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(), now=None, boot_anchor=None):
     repo = repo.resolve()
     now = time.monotonic() if now is None else now
     boot_anchor = time.time() - time.monotonic() if boot_anchor is None else boot_anchor
@@ -190,6 +225,12 @@ def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(
             row['request'] = request
         if state == 'ready':
             state = verify_launch(repo, job)
+            if state == 'ready':
+                invocation_plan = invocation(repo, job)
+                if invocation_plan is None:
+                    state = 'manual_launcher_binding_required'
+                else:
+                    row['invocation'] = invocation_plan
         row['candidate_state'] = state
         row['dispatch_state'] = state
         if state == 'ready':
@@ -205,8 +246,6 @@ def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(
                 row['dispatch_state'] = 'awaiting_device_or_port_clearance'
             elif held.intersection(wanted):
                 row['dispatch_state'] = 'awaiting_original_queue_release'
-            elif dispatch_gate is not None and not dispatch_gate(job):
-                row['dispatch_state'] = 'manual_launcher_binding_required'
             elif occupied.intersection(wanted):
                 row['dispatch_state'] = 'awaiting_nonoverlapping_nodes'
             else:

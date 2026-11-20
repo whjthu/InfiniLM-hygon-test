@@ -1,46 +1,13 @@
 """Build a read-only handoff from an original 80-node receipt to a frozen launcher."""
 
 import argparse
-import ast
 import json
 from pathlib import Path
 import time
 
-from report_training80_backlog import (BACKLOG, QUEUE_DB, REPO, need, pin_file,
-                                      plan, read_queue_holds)
+from report_training80_backlog import (BACKLOG, QUEUE_DB, REPO, need, plan,
+                                      read_queue_holds)
 from tuning_queue import SNAPSHOT_MAX_AGE_S, digest
-
-
-def invocation(repo, job):
-    """Check entry-point syntax while leaving imports and transport to the coordinator."""
-    repo = repo.resolve()
-    launch = job['launch']
-    path = launch['launcher']['path']
-    raw = pin_file(repo, launch['launcher'], ('code/bw1000/', 'tools/'))
-    tree = ast.parse(raw, filename=path)
-    functions = [node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == 'main']
-    if len(functions) != 1:
-        return None
-    signature = functions[0].args
-    if signature.posonlyargs or signature.kwonlyargs or signature.vararg or signature.kwarg:
-        return None
-    arguments = tuple(arg.arg for arg in signature.args)
-    if arguments == ('publication', 'transport') and not signature.defaults:
-        return dict(kind='coordinator_callback', entry='main', arguments=[launch['publication_commit']],
-                    injected_keyword='transport')
-    if (arguments == ('publication', 'request', 'transport') and len(signature.defaults) == 1 and
-            isinstance(signature.defaults[0], ast.Constant) and signature.defaults[0].value is None):
-        return dict(kind='coordinator_callback', entry='main',
-                    arguments=[launch['publication_commit'], launch['request']], injected_keyword='transport')
-    if arguments == ('publication', 'claim_sha256', 'request') and not signature.defaults:
-        flags = ('--publication', '--claim-sha256', '--request-id')
-        cli_args = {node.args[0].value for node in ast.walk(tree) if isinstance(node, ast.Call) and
-                    isinstance(node.func, ast.Attribute) and node.func.attr == 'add_argument' and node.args and
-                    isinstance(node.args[0], ast.Constant) and isinstance(node.args[0].value, str)}
-        if cli_args == set(flags):
-            return dict(kind='authenticated_host_python', arguments=[flags[0], launch['publication_commit'],
-                        flags[1], launch['claim']['SHA256'], flags[2], launch['request']])
-    return None
 
 
 def zone_coverage(snapshot, report):
@@ -81,19 +48,10 @@ def zone_coverage(snapshot, report):
 def build_handoff(snapshot, backlog, *, repo=REPO, holds=(), selected=None, now=None, boot_anchor=None):
     repo = repo.resolve()
     now = time.monotonic() if now is None else now
-    commands = {}
-
-    def supports_launcher(job):
-        command = invocation(repo, job)
-        if command is None:
-            return False
-        commands[job['id']] = command
-        return True
-
-    report = plan(snapshot, backlog, repo=repo, holds=holds, now=now, boot_anchor=boot_anchor,
-                  dispatch_gate=supports_launcher)
+    report = plan(snapshot, backlog, repo=repo, holds=holds, now=now, boot_anchor=boot_anchor)
     zones, owners = zone_coverage(snapshot, report)
     jobs = {job['id']: job for job in backlog['items']}
+    rows = {row['id']: row for row in report['rows']}
     proposed = report['proposed_for_root']
     if selected is not None:
         need(selected in proposed, 'selected candidate has no current device-admitted nonoverlapping proposal')
@@ -118,7 +76,7 @@ def build_handoff(snapshot, backlog, *, repo=REPO, holds=(), selected=None, now=
                           expires_local_monotonic=expires, boot_epoch_anchor=receipt['boot_epoch_anchor'],
                           placement_by_parent=placement, requested_DCU=sum(job['placement'].values()),
                           claim=launch['claim'], manifest=launch['manifest'], launcher=launch['launcher'],
-                          attempt_receipts=launch['attempt_receipts'], invocation=commands[ident])
+                          attempt_receipts=launch['attempt_receipts'], invocation=rows[ident]['invocation'])
             packet['handoff_SHA256'] = digest(packet)
             packets.append(packet)
     return dict(advisory=True, actual_dispatched_DCU=0, allocation_DCU=report['allocated_DCU'],

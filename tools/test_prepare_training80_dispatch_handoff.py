@@ -2,7 +2,8 @@ from hashlib import sha256
 import json
 import unittest
 
-from prepare_training80_dispatch_handoff import build_handoff, invocation
+from prepare_training80_dispatch_handoff import build_handoff
+from report_training80_backlog import invocation
 import test_report_training80_backlog as fixture
 from tuning_queue import digest
 
@@ -20,9 +21,14 @@ class HandoffTest(unittest.TestCase):
         payload = source.encode()
         (self.fleet.repo / launcher['path']).write_bytes(payload)
         launcher['SHA256'] = sha256(payload).hexdigest()
+        manifest_ref = launch['manifest']
+        manifest = json.loads((self.fleet.repo / manifest_ref['path']).read_bytes())
+        manifest['files_SHA256']['launch.py'] = launcher['SHA256']
+        launch['manifest'] = self.fleet.put(manifest_ref['path'], manifest)
         receipt = launch['publication_receipt']
         value = json.loads((self.fleet.repo / receipt['path']).read_bytes())
         value['launcher_SHA256'] = launcher['SHA256']
+        value['manifest_SHA256'] = launch['manifest']['SHA256']
         launch['publication_receipt'] = self.fleet.put(receipt['path'], value)
         return job
 
@@ -82,9 +88,12 @@ cli.add_argument('--request-id')
 
     def test_unsupported_launcher_stays_manual(self):
         job = self.trial('def main(publication, ssh_helper, bundle): pass\n')
-        result = self.handoff([job])
-        self.assertEqual(result['manual_launcher_binding_required'], [job['id']])
-        self.assertEqual(result['coordinator_handoffs'], [])
+        for snapshot in (self.fleet.verified_snapshot(), self.fleet.membership):
+            result = self.handoff([job], snapshot=snapshot)
+            self.assertEqual(result['manual_launcher_binding_required'], [job['id']])
+            self.assertEqual(result['outstanding_training_ready'], 0)
+            self.assertEqual(result['training_ready_deficit'], 5)
+            self.assertEqual(result['coordinator_handoffs'], [])
 
     def test_manual_launcher_leaves_its_nodes_available_for_next_candidate(self):
         manual = self.trial('def main(publication, ssh_helper, bundle): pass\n')
@@ -92,7 +101,15 @@ cli.add_argument('--request-id')
         result = self.handoff([manual, automatic])
         self.assertEqual(result['manual_launcher_binding_required'], [manual['id']])
         self.assertEqual([packet['candidate'] for packet in result['coordinator_handoffs']], [automatic['id']])
-        self.assertEqual(result['outstanding_training_ready'], 2)
+        self.assertEqual(result['outstanding_training_ready'], 1)
+
+    def test_five_candidates_including_unbound_launcher_leave_one_ready_deficit(self):
+        jobs = [self.trial(index=index) for index in range(1, 5)]
+        jobs.append(self.trial('def main(publication, bundle): pass\n', index=5))
+        result = self.handoff(jobs, snapshot=self.fleet.membership)
+        self.assertEqual(result['outstanding_training_ready'], 4)
+        self.assertEqual(result['training_ready_deficit'], 1)
+        self.assertEqual(result['coordinator_handoffs'], [])
 
     def test_queue_hold_prevents_selected_handoff(self):
         job = self.trial()

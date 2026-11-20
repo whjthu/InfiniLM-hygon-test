@@ -60,8 +60,14 @@ class BacklogTest(unittest.TestCase):
         placement = {node: 8 if kind == 'training' else 1}
         minimum = 1 if kind == 'training' else None
         claim = self.put(f'{base}/CLAIM.json', dict(request=request, GPU_GO=True))
-        manifest = self.put(f'{base}/SOURCE_FILES.json', dict(files=[]))
-        launcher = self.put(f'{base}/launch.py', '')
+        launcher_path = self.repo / base / 'launch.py'
+        launcher_bytes = b'def main(publication, request, transport=None): pass\n'
+        launcher_path.write_bytes(launcher_bytes)
+        launcher = dict(path=f'{base}/launch.py', SHA256=sha256(launcher_bytes).hexdigest())
+        dependency = self.put(f'{base}/config.json', dict(context=4096))
+        manifest = self.put(f'{base}/SOURCE_FILES.json', dict(files_SHA256={
+            Path(ref['path']).name: ref['SHA256'] for ref in (claim, launcher, dependency)
+        }))
         publication = self.put(f'{prefix}/publication.json', dict(
             request=request, state='PUBLISHED_MATCHED', publication_commit=commit, claim_SHA256=claim['SHA256'],
             manifest_SHA256=manifest['SHA256'], launcher_SHA256=launcher['SHA256']))
@@ -124,6 +130,13 @@ class BacklogTest(unittest.TestCase):
         self.put(first['launch']['publication_receipt']['path'], dict(incorrect=True))
         with self.assertRaisesRegex(ValueError, 'evidence SHA256'):
             self.run_plan(first)
+
+    def test_frozen_manifest_without_its_original_member_bytes_is_rejected(self):
+        job = self.trial()
+        target = Path(job['launch']['manifest']['path']).parent / 'config.json'
+        self.put(target, dict(context=2048))
+        with self.assertRaisesRegex(ValueError, 'source member bytes differ: config.json'):
+            self.run_plan(job)
 
     def test_receipt_payload_and_boot_anchor_checked(self):
         job = self.trial()
