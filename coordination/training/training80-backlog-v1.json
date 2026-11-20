@@ -1,0 +1,243 @@
+{
+  "minimum_ready_training": 5,
+  "items": [
+    {
+      "id": "qwen-treasury-five-updates",
+      "case": "T01.sft",
+      "kind": "training",
+      "state": "reconcile",
+      "priority": 10,
+      "placement": {
+        "a01r4n16": 8
+      },
+      "next_action": "对账原请求 df40e4bcd2dd4c92994a2a362e875729 的控制器及 Slurm 终态。通过后用原五步检查点做独立领域评分。",
+      "min_updates": 5,
+      "evidence": {
+        "path": "local-only/training-qwen-treasury-explicit-continuous-hip-v1-dispatch/request.json",
+        "SHA256": "731fe3e245079e1dc36f23b3d339584bf57940025d091b4dd44d76194c513929"
+      }
+    },
+    {
+      "id": "gemma-original-native-first-update",
+      "case": "T02.sft",
+      "kind": "training",
+      "state": "blocked",
+      "priority": 20,
+      "placement": {
+        "a14r1n11": 8
+      },
+      "next_action": "目标 16 个模型文件已核验。等待原始 LoRA 初始可训练参数的精确导出准入，随后冻结 8 卡首步。",
+      "min_updates": 1,
+      "evidence": {
+        "path": "coordination/tasks/training-gemma-original-initial-trainables-v1.json",
+        "SHA256": "55c20e5894a033a5f2a883407ca6ab86bd1d52b26e1c9bf1605b37c26a9cbb30"
+      }
+    },
+    {
+      "id": "internvl-original-native-first-update",
+      "case": "T03.sft",
+      "kind": "training",
+      "state": "blocked",
+      "priority": 30,
+      "placement": {
+        "a14r3n04": 8
+      },
+      "next_action": "闭合完整目标权重和原初始状态，再发布已核验 64 条原输入的 8 卡首步。",
+      "min_updates": 1,
+      "evidence": {
+        "path": "coordination/tasks/training-internvl-target-native64-CPU-v5.json",
+        "SHA256": "c530b9b0e53fe1943cd8549ed8ade663de52c8008de854372e38c83c73734014"
+      }
+    },
+    {
+      "id": "llava-original-native-first-update",
+      "case": "T04.sft",
+      "kind": "training",
+      "state": "blocked",
+      "priority": 40,
+      "placement": {
+        "a14r3n14": 8
+      },
+      "next_action": "先完成权重第 1 和第 3 片原请求对账及整片校验；核对初始 LoRA 状态后才派发首步。",
+      "min_updates": 1,
+      "evidence": {
+        "path": "coordination/tasks/training-T04-public-official-shard03-verified-suffix-v3.json",
+        "SHA256": "88fefc3bb18d0ac8da39a3cf44cd4f5a2654042560174c294a46e38b7814ceb0"
+      }
+    },
+    {
+      "id": "minicpm-native-first-boundary",
+      "case": "T05.sft",
+      "kind": "training",
+      "state": "reconcile",
+      "priority": 50,
+      "placement": {
+        "f11r4n09": 8
+      },
+      "next_action": "查原请求和槽位的实际 GPU 步骤、终态与清理，后续只使用保持八卡原配方的独立新问题。",
+      "min_updates": 1,
+      "evidence": {
+        "path": "coordination/tasks/training-minicpm-original5843-fresh-reconcile-RO-v1.json",
+        "SHA256": "7678e8796a8f73749277f32c69983c73d80ae7db4c8f2c5adde629d629b00243"
+      }
+    },
+    {
+      "id": "sdxl-native-update-new-attribution",
+      "case": "T06.sft",
+      "kind": "training",
+      "state": "blocked",
+      "priority": 60,
+      "placement": {
+        "f11r4n11": 1
+      },
+      "next_action": "复用原 540 数值对照，冻结新的第一差异诊断和一个数学变量。现有卷积 VJP 整体更新仍越过 5% 阈值。",
+      "min_updates": 1,
+      "evidence": {
+        "path": "results/bw1000/2026-11-20/training-sdxl-original540-frozen-conv-dgrad-fp32-terminal.json",
+        "SHA256": "6087e09a1ae922399aec05e8d317a293d0ce4386336f1947db96ab07567c4378"
+      }
+    },
+    {
+      "id": "zimage-original-training-fusion-first-update",
+      "case": "T07.sft",
+      "kind": "training",
+      "state": "blocked",
+      "priority": 70,
+      "placement": {
+        "f11r4n13": 1
+      },
+      "next_action": "核对实际目标 HIP FlashAttention 和安装配置，闭合原底座、预置 adapter、融合结果及 COCO20 后，执行真实首步。",
+      "min_updates": 1,
+      "evidence": {
+        "path": "coordination/tasks/training-zimage-target-native-meta-CPU-v3.json",
+        "SHA256": "42b1c9fc8e7b169989ef2e06fb5f5e7fe7f134165d6b6e7efceb866fc7a6fc66"
+      }
+    },
+    {
+      "id": "hymotion-original-128-frame-first-update",
+      "case": "T08.flow-matching-lora",
+      "kind": "training",
+      "state": "blocked",
+      "priority": 80,
+      "placement": {
+        "f11r4n15": 1
+      },
+      "next_action": "确认原 128 帧实际缓存及 201 维目标，完成同输入首步冻结。60 帧证据只有单独的参考范围。",
+      "min_updates": 1,
+      "evidence": {
+        "path": "coordination/tasks/training-hymotion-frame-contract-v1.json",
+        "SHA256": "8b5d893200ee17aa2da6e536a135d67cdbac2ca6d162392d538cffaa9a574f0b"
+      }
+    },
+    {
+      "id": "hunyuanvideo-original-fixed-first-update",
+      "case": "T09.sft",
+      "kind": "training",
+      "state": "blocked",
+      "priority": 90,
+      "placement": {
+        "f11r4n17": 1
+      },
+      "next_action": "核对原回放传输及目标 before.pt、inputs.pt 的实际身份，权重通过后只执行已绑定的原首步。",
+      "min_updates": 1,
+      "evidence": {
+        "path": "coordination/tasks/training-hunyuanvideo-sft-fixed-input-replay-v1.json",
+        "SHA256": "88088bd46d7a3219945d0e4db478196efbb6586c20969fce4d241e6fbf201c7e"
+      }
+    },
+    {
+      "id": "trellis-original-paired-first-update",
+      "case": "T10.shape-flow-lora",
+      "kind": "training",
+      "state": "blocked",
+      "priority": 100,
+      "placement": {
+        "a14r2n02": 1
+      },
+      "next_action": "闭合已绑定的 A100 原始配对操作数，先做独立 CPU 前置核验，再确定真实首步的单变量对照。",
+      "min_updates": 1,
+      "evidence": {
+        "path": "coordination/tasks/training-t10-trellis-paired-operands-CPU-v1.json",
+        "SHA256": "882bec2f3cfe8ed0d7f60a95153b79d8dca72e31781d0eb56bfe283043a7fc63"
+      }
+    },
+    {
+      "id": "sf3d-original-material-head-update",
+      "case": "T11.material-head",
+      "kind": "training",
+      "state": "blocked",
+      "priority": 110,
+      "placement": {
+        "f11r2n15": 1
+      },
+      "next_action": "完整权重需核验；节点另有 KFD holder，完成真实检查后只可按原 36 张量、2644871 参数首步派发。",
+      "min_updates": 1,
+      "evidence": {
+        "path": "coordination/tasks/training-t11-sf3d-original-weights-v1.json",
+        "SHA256": "4efb7d96bb93c1fbcb6952b539e1598388aa149445cf7a0d3ad0b0e910954dee"
+      }
+    },
+    {
+      "id": "vggt-tum-eight-pair-training",
+      "case": "T12.camera-head",
+      "kind": "training",
+      "state": "reconcile",
+      "priority": 120,
+      "placement": {
+        "f11r4n19": 1
+      },
+      "next_action": "对账原请求 c55668b8ef104a9cb18be34d94251351 的 25 步与恢复结果。有效结果可衔接独立留出配对评分。",
+      "min_updates": 25,
+      "evidence": {
+        "path": "local-only/training-vggt-tum-eight-pairs25-recovery-v1-dispatch/request.json",
+        "SHA256": "32ed148dc6782010f6aa87e8faf29b1fec101c0b838ba863b21083f9bbabfe1c"
+      }
+    },
+    {
+      "id": "vggt-tum-continuous25-dev3",
+      "case": "T12.camera-head",
+      "kind": "validation",
+      "state": "reconcile",
+      "priority": 130,
+      "placement": {
+        "f11r4n19": 1
+      },
+      "next_action": "对账原请求 89742fc58fc644499770300a619cf7ec 的双臂三对开发集评分。待独立盲测单独登记。",
+      "evidence": {
+        "path": "local-only/training-vggt-tum-continuous25-dev3-v1-dispatch/request.json",
+        "SHA256": "d9d87f26699d9a42decf63f0e60f304a32fc433116b82eae8112975802c2e552"
+      }
+    },
+    {
+      "id": "llava-official-shard03-suffix",
+      "case": "T04.sft",
+      "kind": "data",
+      "state": "blocked",
+      "priority": 140,
+      "placement": {
+        "a14r3n14": 1
+      },
+      "next_action": "确认修正接收握手的已发布版本、原唯一标签和接收身份。文件传输属于数据准备。",
+      "evidence": {
+        "path": "coordination/tasks/training-T04-public-official-shard03-verified-suffix-v3.json",
+        "SHA256": "88fefc3bb18d0ac8da39a3cf44cd4f5a2654042560174c294a46e38b7814ceb0"
+      }
+    },
+    {
+      "id": "vggt-directed-translation-alternate-native45",
+      "case": "T12.domain",
+      "kind": "training",
+      "state": "submitted",
+      "priority": 3,
+      "placement": {
+        "f13r4n09": 1
+      },
+      "next_action": "跟踪原1103606.479及其实际更新、恢复、终态和清理。若结束，继续独立留出评测。",
+      "min_updates": 45,
+      "evidence": {
+        "path": "results/bw1000/2026-11-20/training-vggt-directed-alternate-original479-first-running.json",
+        "SHA256": "4df8287429602ada722130d957b1469c9d77dd1b4bbfd7fb44f60fca89775d80"
+      }
+    }
+  ]
+}
