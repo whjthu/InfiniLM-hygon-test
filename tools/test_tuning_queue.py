@@ -9,7 +9,7 @@ import time
 import unittest
 from unittest.mock import patch
 
-from tuning_queue import Queue,canonical,digest,expand,select_next_rung,receive_snapshot
+from tuning_queue import TRAINING80_LEDGER,Queue,canonical,digest,expand,refit_provisional_loans,select_next_rung,receive_snapshot,sha
 ROOT=Path(__file__).resolve().parents[1]
 
 class TuningTest(unittest.TestCase):
@@ -101,6 +101,363 @@ class TuningTest(unittest.TestCase):
         self.fleet['local_receipt']['payload_SHA256']=digest({k:v for k,v in self.fleet.items()if k!='local_receipt'})
         self.assertEqual(self.q.plan(self.fleet)['jobs'][0]['nodes'],['node2','node3'])
 
+    def training80_payload(self):
+        ledger = json.loads(TRAINING80_LEDGER.read_bytes())
+        parents = {}
+        nodes = {}
+        for job in ledger['jobs']:
+            parent = job['JobId']
+            coverage = {}
+            parents[parent] = dict(state='RUNNING', nodes=40, allocated_DCU=320, ledger_exact=True,
+                                   owned_by_observer=True, step_locations_exact=True, active_steps={},
+                                   coverage_by_group_and_node=coverage)
+            for zone, group in ledger['groups'].items():
+                coverage[zone] = {}
+                for name in group['allocations'][parent]:
+                    coverage[zone][name] = dict(state='NO_NUMBERED_STEP',
+                                               numbered_step_assigned_DCU_bounds=[0, 0])
+                    nodes[name] = dict(parent=parent, zone=zone,
+                                       PCIs=[f'0000:{bus:02x}:00.0' for bus in range(8)],
+                                       device_probe_observed=True, ports_checked=[], occupied_ports=[],
+                                       KFD_clean=True, PID_clean=True, ports_clean=True,
+                                       membership_valid=True, active_steps=[])
+        membership = dict(ledger_SHA256=sha(TRAINING80_LEDGER), parents=parents,
+                          distinct_nodes=80, allocated_DCU=640, membership_qualified=True)
+        return dict(observed_epoch=time.time(), complete=True, total_cards=640,
+                    membership=membership, nodes=nodes)
+
+    def training80_ready(self, payload, zone, count, label, *, parents=None, ports=(), donors=()):
+        binding = dict(zone=zone, nodes_required=count, publication_commit='a'*40,
+                       allowed_nodes=[name for name, row in payload['nodes'].items()
+                                      if row['zone'] == zone or row['zone'] in donors],
+                       required_ports=list(ports))
+        if parents is not None:
+            binding['allowed_parents'] = parents
+        if donors:
+            binding.update(backfill_zones=list(donors), deadline_s=300)
+        ident = digest([label, binding])
+        self.q.db.execute('INSERT INTO runs VALUES(?,?,?,?,?,?,?,?,?)',
+                          (ident, self.rows[0]['id'], 'component', 'READY', canonical(binding).decode(),
+                           '[]', None, None, time.time()))
+        return ident
+
+    def test_training80_can_plan_all_nodes_without_cross_parent_steps(self):
+        payload = self.training80_payload()
+        parents = payload['membership']['parents']
+        for parent, observation in parents.items():
+            for zone, nodes in observation['coverage_by_group_and_node'].items():
+                self.training80_ready(payload, zone, len(nodes), parent, parents=[parent])
+        fleet = receive_snapshot(payload, time.monotonic(), 'training80-fixture', 'a'*64)
+        plan = self.q.plan(fleet)
+        selected = [name for job in plan['jobs'] for name in job['nodes']]
+        self.assertEqual(len(plan['jobs']), 32)
+        self.assertEqual((len(selected), set(selected)), (80, set(payload['nodes'])))
+        self.assertEqual(plan['selected_cards'], 640)
+        self.assertEqual(plan['actual_submitted_cards'], 0)
+        self.assertIsNone(plan['busy_percent'])
+        self.assertEqual(plan['unplaced_ready_runs'], [])
+        self.assertTrue(all(set(states) == {'planned'} for parents in plan['node_coverage'].values()
+                            for states in parents.values()))
+        for job in plan['jobs']:
+            self.assertEqual({payload['nodes'][name]['parent'] for name in job['nodes']}, {job['parent']})
+        self.q.reserve(plan, fleet)
+        self.assertEqual(self.q.summary()['runs'], {'RESERVED': 32})
+
+    def test_training80_explains_unplaced_nodes_and_ready_runs(self):
+        payload = self.training80_payload()
+        parent = min(payload['membership']['parents'])
+        parents = payload['membership']['parents']
+        own = parents[parent]['coverage_by_group_and_node']
+        reserved, planned = sorted(own['T01'])
+        active, unobserved = sorted(own['T02'])
+        unclean, unmatched = sorted(own['T03'])
+        held = self.training80_ready(payload, 'T01', 1, 'held', parents=[parent])
+        self.q.db.execute('UPDATE runs SET state=?, nodes=? WHERE id=?',
+                          ('UNKNOWN', json.dumps([reserved]), held))
+        parents[parent]['active_steps'][parent + '.123'] = {'member_nodes': [active]}
+        payload['nodes'][unobserved]['device_probe_observed'] = False
+        payload['nodes'][unclean]['PID_clean'] = False
+        self.training80_ready(payload, 'T01', 1, 'next', parents=[parent])
+        waiting = self.training80_ready(payload, 'T03', 2, 'needs-two', parents=[parent])
+        fleet = receive_snapshot(payload, time.monotonic(), 'training80-fixture', 'a'*64)
+
+        plan = self.q.plan(fleet)
+        coverage = plan['node_coverage']
+        self.assertEqual(coverage['T01'][parent], {'queue_held': [reserved], 'planned': [planned]})
+        self.assertEqual(coverage['T02'][parent], {'slurm_step_present_or_unverified': [active],
+                                                   'admission_unverified': [unobserved]})
+        self.assertEqual(coverage['T03'][parent], {'device_cleanliness_unconfirmed': [unclean],
+                                                   'available_without_placement': [unmatched]})
+        nodes = [node for parents_by_zone in coverage.values() for states in parents_by_zone.values()
+                 for names in states.values() for node in names]
+        self.assertCountEqual(nodes, payload['nodes'].keys())
+        self.assertEqual(plan['unplaced_ready_runs'], [dict(run=waiting, zone='T03', nodes_required=2)])
+        self.assertEqual(plan['selected_cards'], 8)
+        self.assertEqual(plan['actual_submitted_cards'], 0)
+
+    def test_training80_fills_both_donor_pools_without_displacing_local_work(self):
+        payload = self.training80_payload()
+        first, other = sorted(payload['membership']['parents'])
+        for row in payload['nodes'].values():
+            if row['parent'] == first and row['zone'] == 'T02':
+                row['ports_checked'] = [44000]
+        early = self.training80_ready(payload, 'O01', 1, 'early', parents=[first], ports=[44000], donors=['T02'])
+        for parent, observation in payload['membership']['parents'].items():
+            for zone, nodes in observation['coverage_by_group_and_node'].items():
+                if zone != 'T02':
+                    self.training80_ready(payload, zone, len(nodes), parent, parents=[parent])
+        own = self.training80_ready(payload, 'T02', 1, 'own', parents=[first])
+        self.training80_ready(payload, 'O01', 2, 'second-parent', parents=[other], donors=['T02'])
+        fleet = receive_snapshot(payload, time.monotonic(), 'training80-backfill-fixture', 'a'*64)
+
+        plan = self.q.plan(fleet)
+        selected = [node for job in plan['jobs'] for node in job['nodes']]
+        self.assertEqual((len(selected), set(selected)), (80, set(payload['nodes'])))
+        self.assertEqual(plan['actual_submitted_cards'], 0)
+        self.assertIsNone(plan['busy_percent'])
+        loans = [job for job in plan['jobs'] if 'backfill' in job]
+        self.assertEqual([(job['parent'], len(job['nodes'])) for job in loans], [(first, 1), (other, 2)])
+        self.assertEqual(loans[0]['run'], early)
+        own_job = next(job for job in plan['jobs'] if job['run'] == own)
+        self.assertNotIn('backfill', own_job)
+        self.assertEqual(own_job['parent'], first)
+
+        self.q.reserve(plan, fleet)
+        row = self.q.db.execute('SELECT data FROM events WHERE run=? AND kind="reserved"', (early,)).fetchone()
+        self.assertEqual(json.loads(row['data'])['backfill'],
+                         dict(donor_zone='T02', borrower_zone='O01', deadline_s=300,
+                              return_condition='actual_terminal_and_post_clean'))
+        self.q.submission(early, dict(request_id='request1', intent='original-intent', parent=first), unknown=True)
+        waiting = self.training80_ready(payload, 'T02', 1, 'wait-for-return', parents=[first])
+        self.assertEqual(self.q.plan(fleet)['jobs'], [])
+        with self.assertRaisesRegex(ValueError, 'terminal and post'):
+            self.q.finish(early, dict(self.result(), parent=first, post_clean=False))
+        self.q.finish(early, dict(self.result(), parent=first))
+        next_job, = self.q.plan(fleet)['jobs']
+        self.assertEqual((next_job['run'], next_job['nodes']), (waiting, loans[0]['nodes']))
+
+    def test_training80_backfill_respects_donor_assignment_ports_and_opt_in(self):
+        payload = self.training80_payload()
+        parent = '1087656'
+        self.training80_ready(payload, 'I01', 4, 'owner', parents=[parent])
+        self.training80_ready(payload, 'I01', 1, 'no-opt-in', parents=[parent])
+        self.training80_ready(payload, 'I01', 2, 'partial-donor', parents=[parent], donors=['T02'])
+        self.training80_ready(payload, 'I01', 1, 'unchecked-port', parents=[parent], ports=[44001], donors=['T02'])
+        available = self.training80_ready(payload, 'I01', 1, 'verified-port', parents=[parent], ports=[44002],
+                                          donors=['T02'])
+        observation = payload['membership']['parents'][parent]
+        active, clean = sorted(observation['coverage_by_group_and_node']['T02'])
+        observation['active_steps'][parent + '.123'] = {'member_nodes': [active]}
+        payload['nodes'][clean].update(ports_checked=[44002])
+        fleet = receive_snapshot(payload, time.monotonic(), 'training80-backfill-fixture', 'a'*64)
+
+        loans = [job for job in self.q.plan(fleet)['jobs'] if 'backfill' in job]
+        self.assertEqual([(job['run'], job['nodes']) for job in loans], [(available, [clean])])
+
+    def test_training80_refits_single_node_loans_across_donors(self):
+        payload = self.training80_payload()
+        first, other = sorted(payload['membership']['parents'])
+        slots = [('T02', first, [44000, 44002]), ('T03', first, [44000, 44001]),
+                 ('T04', other, [44001])]
+        nodes = []
+        for zone, parent, ports in slots:
+            node = min(name for name, row in payload['nodes'].items()
+                       if row['zone'] == zone and row['parent'] == parent)
+            payload['nodes'][node]['ports_checked'] = ports
+            nodes.append(node)
+
+        flexible = self.training80_ready(payload, 'O01', 1, 'flexible', parents=[first],
+                                         ports=[44000], donors=['T02', 'T03'])
+        bridge = self.training80_ready(payload, 'O01', 1, 'bridge', parents=[first, other],
+                                       ports=[44001], donors=['T03', 'T04'])
+        fixed = self.training80_ready(payload, 'O01', 1, 'fixed', parents=[first],
+                                      ports=[44002], donors=['T02'])
+        fleet = receive_snapshot(payload, time.monotonic(), 'training80-backfill-fixture', 'a'*64)
+
+        plan = self.q.plan(fleet)
+        self.assertEqual([(job['run'], *job['nodes'], job['parent'], job['backfill']['donor_zone'])
+                          for job in plan['jobs']],
+                         [(flexible, nodes[1], first, 'T03'), (bridge, nodes[2], other, 'T04'),
+                          (fixed, nodes[0], first, 'T02')])
+        self.assertEqual(plan['selected_cards'], 24)
+        self.assertEqual(plan['actual_submitted_cards'], 0)
+        self.q.reserve(plan, fleet)
+        self.assertEqual(self.q.reserved_parent(bridge), other)
+
+    def test_training80_refits_two_node_loans_through_two_authorized_donors(self):
+        payload = self.training80_payload()
+        first, other = sorted(payload['membership']['parents'])
+        for info in payload['nodes'].values():
+            if (info['parent'], info['zone']) in ((other, 'T04'), (first, 'T02'), (first, 'T03')):
+                info['ports_checked'] = [44001]
+        flexible = self.training80_ready(payload, 'O01', 2, 'two-node-flex', parents=[first],
+                                         ports=[44001], donors=['T02', 'T03'])
+        bridge = self.training80_ready(payload, 'O01', 2, 'two-node-bridge', parents=[first, other],
+                                       ports=[44001], donors=['T03', 'T04'])
+        fixed = self.training80_ready(payload, 'O01', 2, 'two-node-fixed', parents=[first],
+                                      ports=[44001], donors=['T02'])
+        fleet = receive_snapshot(payload, time.monotonic(), 'training80-multi-refit', 'c'*64)
+
+        plan = self.q.plan(fleet)
+        self.assertEqual([(j['run'], j['backfill']['donor_zone'], j['parent']) for j in plan['jobs']],
+                         [(flexible, 'T03', first), (bridge, 'T04', other), (fixed, 'T02', first)])
+        self.assertEqual(len({node for job in plan['jobs'] for node in job['nodes']}), 6)
+        self.assertEqual(plan['selected_cards'], 48)
+        self.q.reserve(plan, fleet)
+        self.assertEqual(self.q.reserved_parent(bridge), other)
+
+    def test_training80_two_node_refit_never_moves_an_active_loan(self):
+        payload = self.training80_payload()
+        first = min(payload['membership']['parents'])
+        for info in payload['nodes'].values():
+            if info['parent'] == first and info['zone'] in ('T02', 'T03'):
+                info['ports_checked'] = [44001]
+        original = self.training80_ready(payload, 'O01', 2, 'first-loan', parents=[first],
+                                         ports=[44001], donors=['T02', 'T03'])
+        fleet = receive_snapshot(payload, time.monotonic(), 'training80-existing-loan', 'd'*64)
+        plan = self.q.plan(fleet)
+        self.q.reserve(plan, fleet)
+        self.q.submission(original, dict(request_id='original', intent='original', parent=first), unknown=True)
+        self.training80_ready(payload, 'O01', 2, 'blocked', parents=[first], ports=[44001], donors=['T02'])
+
+        result = self.q.plan(fleet)
+        self.assertEqual(result['jobs'], [])
+        self.assertEqual(self.q.dispatch_state(original)['nodes'], plan['jobs'][0]['nodes'])
+
+    def test_partial_refit_at_search_limit_keeps_the_valid_existing_plan(self):
+        borrower = dict(zone='O01', nodes_required=2, deadline_s=300)
+        first = dict(run='first', nodes=['a', 'b'], parent='1087656',
+                     backfill=dict(donor_zone='T01', borrower_zone='O01', deadline_s=300,
+                                   return_condition='actual_terminal_and_post_clean'))
+        second = dict(run='second')
+        parent = '1087656'
+        free = {('T01', parent): ['a', 'b'], ('T02', parent): ['c', 'd']}
+        waiting = [(first, borrower, {'a', 'b', 'c', 'd'}, [parent], ['T01', 'T02']),
+                   (second, borrower, {'a', 'b'}, [parent], ['T01'])]
+        original = copy.deepcopy(first)
+        self.assertEqual(refit_provisional_loans(waiting, free, [first], maximum_choices=1), [])
+        self.assertEqual(first, original)
+        self.assertEqual(second, {'run': 'second'})
+
+    def test_training80_backfill_rejects_unbound_donor_and_deadline(self):
+        payload = self.training80_payload()
+        ident = self.training80_ready(payload, 'I01', 1, 'loan', parents=['1087656'], donors=['T02'])
+        base = json.loads(self.q.db.execute('SELECT binding FROM runs WHERE id=?', (ident,)).fetchone()[0])
+        fleet = receive_snapshot(payload, time.monotonic(), 'training80-backfill-fixture', 'a'*64)
+        for changes, reason in [({'backfill_zones': ['I01']}, 'invalid training80 backfill zones'),
+                                ({'backfill_zones': ['T02', 'T02']}, 'invalid training80 backfill zones'),
+                                ({'backfill_zones': ['T99']}, 'invalid training80 backfill zones'),
+                                ({'deadline_s': 0}, 'bounded run deadline')]:
+            with self.subTest(changes=changes):
+                self.q.db.execute('UPDATE runs SET binding=? WHERE id=?',
+                                  (canonical(dict(base, **changes)).decode(), ident))
+                with self.assertRaisesRegex(ValueError, reason):
+                    self.q.plan(fleet)
+
+    def test_training80_keeps_occupied_nodes_and_unknown_reservations_out(self):
+        payload = self.training80_payload()
+        parents = payload['membership']['parents']
+        first, other = sorted(parents)
+        coverage = parents[other]['coverage_by_group_and_node']['I01']
+        occupied = next(iter(coverage))
+        coverage[occupied] = dict(state='PARTIALLY_ASSIGNED', numbered_step_assigned_DCU_bounds=[2, 2])
+        self.training80_ready(payload, 'I01', 5, 'cross-parent', parents=list(parents))
+        self.training80_ready(payload, 'I01', 1, 'unbound')
+        smaller = self.training80_ready(payload, 'I01', 2, 'pack', parents=list(parents))
+        fleet = receive_snapshot(payload, time.monotonic(), 'training80-fixture', 'a'*64)
+        plan = self.q.plan(fleet)
+        self.assertEqual([(job['run'], job['parent']) for job in plan['jobs']], [(smaller, other)])
+        self.assertNotIn(occupied, plan['jobs'][0]['nodes'])
+        self.q.reserve(plan, fleet)
+        handle = dict(request_id='request1', intent='original-intent', parent=first)
+        with self.assertRaisesRegex(ValueError, 'submission parent differs'):
+            self.q.submission(smaller, handle, unknown=True)
+        self.q.submission(smaller, dict(handle, parent=other), unknown=True)
+        larger = self.training80_ready(payload, 'I01', 4, 'whole-group', parents=list(parents))
+        plan = self.q.plan(fleet)
+        self.assertEqual([(job['run'], job['parent']) for job in plan['jobs']], [(larger, first)])
+        self.q.reserve(plan, fleet)
+        self.training80_ready(payload, 'I01', 2, 'keep-unknown', parents=[other])
+        self.assertEqual(self.q.plan(fleet)['jobs'], [])
+        self.assertEqual(self.q.summary()['runs'], {'READY': 3, 'RESERVED': 1, 'UNKNOWN': 1})
+        with self.assertRaisesRegex(ValueError, 'terminal parent differs'):
+            self.q.finish(smaller, dict(self.result(), parent=first))
+        self.assertEqual(self.q.plan(fleet)['jobs'], [])
+        self.q.finish(smaller, dict(self.result(), parent=other))
+        self.assertEqual([job['parent'] for job in self.q.plan(fleet)['jobs']], [other])
+
+    def test_training80_rejects_incomplete_or_mismatched_placement(self):
+        for fault, message in [('ledger', 'bind the active node ledger'), ('parent', 'parent or group drift'),
+                               ('missing_node', 'device inventory differs'), ('owner', 'parent ownership'),
+                               ('unlocated_step', 'step locations are unverified'),
+                               ('foreign_node_step', 'step escaped its parent')]:
+            with self.subTest(fault=fault):
+                payload = self.training80_payload()
+                name = next(iter(payload['nodes']))
+                parent = payload['nodes'][name]['parent']
+                observation = payload['membership']['parents'][parent]
+                if fault == 'ledger':
+                    payload['membership']['ledger_SHA256'] = '0'*64
+                elif fault == 'parent':
+                    payload['nodes'][name]['parent'] = next(key for key in payload['membership']['parents'] if key != parent)
+                elif fault == 'missing_node':
+                    del payload['nodes'][name]
+                elif fault == 'owner':
+                    observation['owned_by_observer'] = False
+                elif fault == 'unlocated_step':
+                    observation['step_locations_exact'] = False
+                else:
+                    observation['active_steps'][parent + '.123'] = {'member_nodes': ['foreign-node']}
+                fleet = receive_snapshot(payload, time.monotonic(), 'training80-fixture', 'a'*64)
+                with self.assertRaisesRegex(ValueError, message):
+                    self.q.plan(fleet)
+
+    def test_training80_port_conflict_does_not_block_unrelated_task(self):
+        payload = self.training80_payload()
+        nodes = payload['nodes']
+        parent = '1087656'
+        group = [node for node in nodes.values() if node['parent'] == parent and node['zone'] == 'T01']
+        for node in group:
+            node.update(ports_checked=[43000, 43001], occupied_ports=[43000], ports_clean=False)
+        self.training80_ready(payload, 'T01', 2, 'occupied', parents=[parent], ports=[43000])
+        self.training80_ready(payload, 'T01', 2, 'unverified', parents=[parent], ports=[43002])
+        ready = self.training80_ready(payload, 'T01', 2, 'available', parents=[parent], ports=[43001])
+        fleet = receive_snapshot(payload, time.monotonic(), 'training80-fixture', 'a'*64)
+        self.assertEqual([job['run'] for job in self.q.plan(fleet)['jobs']], [ready])
+
+    def test_training80_refits_flexible_run_to_other_parent(self):
+        payload = self.training80_payload()
+        first, other = sorted(payload['membership']['parents'])
+        flexible = self.training80_ready(payload, 'T01', 2, 'flex', parents=[first, other])
+        fixed = self.training80_ready(payload, 'T01', 2, 'fixed', parents=[first])
+        fleet = receive_snapshot(payload, time.monotonic(), 'training80-fixture', 'a'*64)
+
+        plan = self.q.plan(fleet)
+        self.assertEqual([(job['run'], job['parent']) for job in plan['jobs']],
+                         [(flexible, other), (fixed, first)])
+        self.assertEqual(plan['selected_cards'], 32)
+        self.q.reserve(plan, fleet)
+        self.assertEqual(self.q.reserved_parent(flexible), other)
+        self.assertEqual(self.q.reserved_parent(fixed), first)
+
+    def test_training80_refits_for_port_and_preserves_fifo_when_a_run_cannot_fit(self):
+        payload = self.training80_payload()
+        parent = '1087656'
+        zone = 'I01'
+        nodes = sorted(name for name, row in payload['nodes'].items()
+                       if row['parent'] == parent and row['zone'] == zone)
+        payload['nodes'][nodes[0]]['ports_checked'] = [43000]
+        flexible = self.training80_ready(payload, zone, 2, 'flex', parents=[parent])
+        self.training80_ready(payload, zone, 3, 'too-big', parents=[parent])
+        fixed = self.training80_ready(payload, zone, 1, 'port', parents=[parent], ports=[43000])
+        tail = self.training80_ready(payload, zone, 1, 'tail', parents=[parent])
+        fleet = receive_snapshot(payload, time.monotonic(), 'training80-fixture', 'a'*64)
+
+        plan = self.q.plan(fleet)
+        self.assertEqual([job['run'] for job in plan['jobs']], [flexible, fixed, tail])
+        self.assertEqual(plan['jobs'][1]['nodes'], [nodes[0]])
+        self.assertEqual(sorted(node for job in plan['jobs'] for node in job['nodes']), nodes)
+
     def test_concurrent_reservation_one_winner(self):
         self.ready();plan=self.q.plan(self.fleet);results=[]
         def reserve():
@@ -112,6 +469,172 @@ class TuningTest(unittest.TestCase):
         for t in threads:t.start()
         for t in threads:t.join()
         self.assertEqual(sorted(results),[False,True])
+
+    def claimable_reservation(self):
+        ident = self.ready()
+        plan = self.q.plan(self.fleet)
+        ticket = self.q.reserve(plan, self.fleet, claimable=True)[ident]
+        handle = dict(request_id='request1', intent='original-intent', nodes=plan['jobs'][0]['nodes'])
+        return ident, ticket, handle
+
+    def test_released_ticket_cannot_claim_new_reservation(self):
+        ident, ticket, handle = self.claimable_reservation()
+        self.assertEqual(self.q.dispatch_state(ident)['reservation']['dispatch_ticket'], ticket)
+        with self.assertRaisesRegex(ValueError, 'claim dispatch'):
+            self.q.submission(ident, handle)
+        self.q.release_unclaimed(ident, ticket)
+        self.assertEqual(self.q.dispatch_state(ident), dict(state='READY', nodes=[], handle=None, reservation=None))
+        payload = {key: value for key, value in self.fleet.items() if key != 'local_receipt'}
+        fresh = receive_snapshot(payload, time.monotonic(), 'second-fixture', 'b'*64)
+        new_ticket = self.q.reserve(self.q.plan(fresh), fresh, claimable=True)[ident]
+        self.assertNotEqual(ticket, new_ticket)
+        with self.assertRaisesRegex(ValueError, 'ticket required'):
+            self.q.claim_dispatch(ident, ticket, handle)
+        self.q.claim_dispatch(ident, new_ticket, handle)
+        self.assertEqual(self.q.dispatch_state(ident)['handle'], handle)
+
+    def test_claimed_nodes_stay_reserved_after_lost_launcher(self):
+        ident, ticket, handle = self.claimable_reservation()
+        with self.assertRaisesRegex(ValueError, 'dispatch nodes'):
+            self.q.claim_dispatch(ident, ticket, dict(handle, nodes=['elsewhere']))
+        self.q.claim_dispatch(ident, ticket, handle)
+        self.q.db.close()
+        self.q = Queue(self.path)
+        self.addCleanup(self.q.db.close)
+        self.assertEqual(self.q.dispatch_state(ident)['state'], 'DISPATCHING')
+        with self.assertRaisesRegex(ValueError, 'unclaimed reservation'):
+            self.q.release_unclaimed(ident, ticket)
+        with self.assertRaisesRegex(ValueError, 'different execution identity'):
+            self.q.submission(ident, dict(handle, request_id='retry'))
+        waiting = self.ready('waiting', count=4)
+        self.assertEqual(self.q.plan(self.fleet)['jobs'], [])
+        with self.assertRaisesRegex(ValueError, 'post'):
+            self.q.finish(ident, dict(self.result(), post_clean=False))
+        self.q.finish(ident, self.result())
+        self.assertEqual([job['run'] for job in self.q.plan(self.fleet)['jobs']], [waiting])
+
+    def test_claim_and_release_one_winner(self):
+        ident, ticket, handle = self.claimable_reservation()
+        barrier = threading.Barrier(2)
+        winners = []
+
+        def compete(action, state, *args):
+            queue = Queue(self.path)
+            try:
+                barrier.wait(timeout=10)
+                getattr(queue, action)(ident, ticket, *args)
+                winners.append(state)
+            except ValueError:
+                pass
+            finally:
+                queue.db.close()
+
+        claim = threading.Thread(target=compete, args=('claim_dispatch', 'DISPATCHING', handle))
+        release = threading.Thread(target=compete, args=('release_unclaimed', 'READY'))
+        for thread in claim, release:
+            thread.start()
+        for thread in claim, release:
+            thread.join(timeout=15)
+            self.assertFalse(thread.is_alive())
+        self.assertEqual(winners, [self.q.dispatch_state(ident)['state']])
+
+    def test_claimed_submission_keeps_original_identity_and_nodes(self):
+        ident, ticket, handle = self.claimable_reservation()
+        self.q.claim_dispatch(ident, ticket, handle)
+        with self.assertRaisesRegex(ValueError, 'submission nodes'):
+            self.q.submission(ident, dict(handle, nodes=['elsewhere']))
+        actual = dict(request_id=handle['request_id'], intent=handle['intent'], transport_request_id='transport-1')
+        self.q.submission(ident, actual, unknown=True)
+        state = self.q.dispatch_state(ident)
+        self.assertEqual(state['state'], 'UNKNOWN')
+        self.assertEqual(state['handle'], {**handle, **actual})
+
+    def test_legacy_reservation_requires_original_resolution(self):
+        ident = self.ready()
+        self.q.reserve(self.q.plan(self.fleet), self.fleet)
+        with self.assertRaisesRegex(ValueError, 'unclaimed reservation'):
+            self.q.release_unclaimed(ident, 'proposed-ticket')
+        self.assertEqual(self.q.dispatch_state(ident)['state'], 'RESERVED')
+
+    def test_expired_ticket_can_release_but_cannot_start(self):
+        ident, ticket, handle = self.claimable_reservation()
+        later, wall = time.monotonic() + 61, time.time() + 61
+        with patch('tuning_queue.time.monotonic', return_value=later), patch('tuning_queue.time.time', return_value=wall):
+            with self.assertRaisesRegex(ValueError, 'admission expired'):
+                self.q.claim_dispatch(ident, ticket, handle)
+            self.q.release_unclaimed(ident, ticket)
+        self.assertEqual(self.q.dispatch_state(ident)['state'], 'READY')
+
+    def test_training80_replans_expired_unclaimed_nodes_with_new_ticket(self):
+        payload = self.training80_payload()
+        parent = '1087656'
+        ident = self.training80_ready(payload, 'T01', 2, 'expired', parents=[parent])
+        original_snapshot = receive_snapshot(payload, time.monotonic(), 'training80-first', 'a'*64)
+        prior_plan = self.q.plan(original_snapshot)
+        old_ticket = self.q.reserve(prior_plan, original_snapshot, claimable=True)[ident]
+        handle = dict(request_id='original', intent='original', parent=parent, nodes=prior_plan['jobs'][0]['nodes'])
+        self.assertEqual(self.q.plan(original_snapshot)['jobs'], [])
+
+        later, wall = time.monotonic() + 61, time.time() + 61
+        with patch('tuning_queue.time.monotonic', return_value=later), patch('tuning_queue.time.time', return_value=wall):
+            with self.assertRaisesRegex(ValueError, 'fresh'):
+                self.q.plan(original_snapshot)
+            fresh = receive_snapshot(payload, later, 'training80-second', 'b'*64)
+            plan = self.q.plan(fresh)
+            self.assertEqual(list(plan['expired_unclaimed_reservations']), [ident])
+            self.assertEqual(plan['jobs'], prior_plan['jobs'])
+            self.assertEqual(self.q.dispatch_state(ident)['state'], 'RESERVED')
+            with self.assertRaisesRegex(ValueError, 'new dispatch ticket'):
+                self.q.reserve(plan, fresh)
+            self.assertEqual(self.q.dispatch_state(ident)['reservation']['dispatch_ticket'], old_ticket)
+            new_ticket = self.q.reserve(plan, fresh, claimable=True)[ident]
+            self.assertNotEqual(old_ticket, new_ticket)
+            with self.assertRaisesRegex(ValueError, 'ticket required'):
+                self.q.claim_dispatch(ident, old_ticket, handle)
+            self.q.claim_dispatch(ident, new_ticket, dict(handle, request_id='fresh'))
+            self.assertEqual(self.q.dispatch_state(ident)['state'], 'DISPATCHING')
+        self.assertEqual([row[0] for row in self.q.db.execute('SELECT kind FROM events WHERE run=? ORDER BY seq', (ident,))],
+                         ['reserved', 'expired_unclaimed', 'reserved', 'dispatch_claimed'])
+
+    def test_expiry_reconciliation_preserves_claimed_unknown_and_legacy_nodes(self):
+        legacy = self.ready('legacy', zone='Kimi', count=4)
+        self.q.reserve(self.q.plan(self.fleet), self.fleet)
+        claimed, claimed_ticket, handle = self.claimable_reservation()
+        self.q.claim_dispatch(claimed, claimed_ticket, handle)
+        unknown = self.ready('unknown', zone='DeepSeek', count=8)
+        expired = self.ready('expired', zone='GLM', count=2)
+        prior_plan = self.q.plan(self.fleet)
+        tickets = self.q.reserve(prior_plan, self.fleet, claimable=True)
+        unknown_job = next(job for job in prior_plan['jobs'] if job['run'] == unknown)
+        unknown_handle = dict(request_id='unknown', intent='unknown', nodes=unknown_job['nodes'])
+        self.q.claim_dispatch(unknown, tickets[unknown], unknown_handle)
+        self.q.submission(unknown, unknown_handle, unknown=True)
+        later, wall = time.monotonic() + 61, time.time() + 61
+        with patch('tuning_queue.time.monotonic', return_value=later), patch('tuning_queue.time.time', return_value=wall):
+            payload = {key: value for key, value in self.fleet.items() if key != 'local_receipt'}
+            fresh = receive_snapshot(payload, later, 'after-expiry', 'b'*64)
+            plan = self.q.plan(fresh)
+            self.assertEqual(list(plan['expired_unclaimed_reservations']), [expired])
+            self.q.reserve(plan, fresh, claimable=True)
+            self.assertEqual(self.q.dispatch_state(claimed)['state'], 'DISPATCHING')
+            self.assertEqual(self.q.dispatch_state(unknown)['state'], 'UNKNOWN')
+            self.assertEqual(self.q.dispatch_state(legacy)['state'], 'RESERVED')
+            self.assertIsNone(self.q.dispatch_state(legacy)['reservation'].get('dispatch_ticket'))
+
+    def test_plan_with_expiry_rejects_concurrent_reservation_change(self):
+        ident, ticket, _ = self.claimable_reservation()
+        later, wall = time.monotonic() + 61, time.time() + 61
+        with patch('tuning_queue.time.monotonic', return_value=later), patch('tuning_queue.time.time', return_value=wall):
+            payload = {key: value for key, value in self.fleet.items() if key != 'local_receipt'}
+            fresh = receive_snapshot(payload, later, 'after-expiry', 'b'*64)
+            plan = self.q.plan(fresh)
+            other = Queue(self.path)
+            self.addCleanup(other.db.close)
+            other.release_unclaimed(ident, ticket)
+            new_ticket = other.reserve(other.plan(fresh), fresh, claimable=True)[ident]
+            with self.assertRaisesRegex(ValueError, 'plan changed'):
+                self.q.reserve(plan, fresh, claimable=True)
+            self.assertEqual(self.q.dispatch_state(ident)['reservation']['dispatch_ticket'], new_ticket)
 
     def test_retire_prelaunch_blocks_dispatch_without_fake_terminal(self):
         ident=self.ready();self.q.retire_ready(ident,'immutable source timeout mismatch','e'*64)

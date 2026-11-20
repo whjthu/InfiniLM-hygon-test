@@ -1,0 +1,144 @@
+{
+  "status": "ORIGINAL_TERMINAL_PARAMETER_UPDATE_GATE_FAILED",
+  "observed_UTC": "2026-11-20T07:01:13.568360+00:00",
+  "request": "9aede86323d74badb2f00ecdbf88b5c3",
+  "source_commit": "c034fbec2b50ce1d7b25ac191d97d53f7c549f70",
+  "manifest_SHA256": "5584f33e1d977ce7269b2a4461399f2dacb0772174cdd87a012a7c927a264bb1",
+  "receipts": {
+    "rows": [
+      [
+        "1087656.539",
+        "training-sdxl-frozen-conv-dgrad-fp32-v2-pre",
+        "COMPLETED",
+        "0:0",
+        "0",
+        "f12r3n20",
+        "cpu=2,mem=8G,node=1"
+      ],
+      [
+        "1087656.540",
+        "training-sdxl-frozen-conv-dgrad-fp32-v2",
+        "COMPLETED",
+        "0:0",
+        "74",
+        "f12r3n20",
+        "cpu=8,gres/dcu=1,mem=62.50G,node=1"
+      ],
+      [
+        "1087656.544",
+        "training-sdxl-frozen-conv-dgrad-fp32-v2-post",
+        "COMPLETED",
+        "0:0",
+        "1",
+        "f12r3n20",
+        "cpu=2,mem=8G,node=1"
+      ],
+      [
+        "1087656.545",
+        "training-sdxl-frozen-conv-dgrad-fp32-v2-compare",
+        "COMPLETED",
+        "0:0",
+        "8",
+        "f12r3n20",
+        "cpu=4,mem=8G,node=1"
+      ]
+    ],
+    "terminal.json": {
+      "sha": "55c91f8d29e178bf6a5de769309a6424eebc8e42762087cedb813304f399c1b6",
+      "fields": {
+        "gpu_passed": true,
+        "comparison_complete": true,
+        "clean_post": true,
+        "step": "1087656.540"
+      }
+    },
+    "result.json": {
+      "sha": "122f117e3c59615373778558458712cbb5174d417ef3b786afa192f64a50b123",
+      "fields": {
+        "intervention": {
+          "hip_raw_prediction_SHA256": "8edb12bd77ea3f7c193513551f904f168bf473239c37a2e23a90e87548a86df3",
+          "frozen_convolutions_patched": 51,
+          "distinct_dinput_sites": 42,
+          "actual_dinput_calls": 42,
+          "dinput_by_block": {
+            "other": 1,
+            "up_blocks.2": 9,
+            "up_blocks.1": 10,
+            "up_blocks.0": 10,
+            "mid_block": 4,
+            "down_blocks.2": 5,
+            "down_blocks.1": 3
+          },
+          "original_forward_output_exact": true,
+          "known_partial_dgrad_coverage": false,
+          "observed_dinput_sites": 42
+        }
+      }
+    },
+    "comparison-summary.json": {
+      "sha": "7547fb7b94d22b0dd290bdf5ec75186761aed52e5e1f69958e7f938c37c42f56",
+      "fields": {
+        "numeric_passed": false,
+        "metrics": {
+          "prediction": {
+            "reference_l2": 44.01533001058736,
+            "observed_l2": 44.02102358420951,
+            "relative_l2": 0.01378032866135803,
+            "cosine": 0.999905071916623
+          },
+          "gradients_before_clip": {
+            "reference_l2": 0.5975808392483847,
+            "observed_l2": 0.5985922826242018,
+            "relative_l2": 0.02314343842243208,
+            "cosine": 0.9997340731122762
+          },
+          "gradients_after_clip": {
+            "reference_l2": 0.5975808392483847,
+            "observed_l2": 0.5985922826242018,
+            "relative_l2": 0.02314343842243208,
+            "cosine": 0.9997340731122762
+          },
+          "parameter_update": {
+            "reference_l2": 0.16262293003030975,
+            "observed_l2": 0.1626237996063743,
+            "relative_l2": 0.19477395241396306,
+            "cosine": 0.9810316551722036
+          },
+          "optimizer_exp_avg": {
+            "reference_l2": 0.059756936468091375,
+            "observed_l2": 0.059859337376513014,
+            "relative_l2": 0.02326450083400187,
+            "cosine": 0.9997313101869905
+          },
+          "optimizer_exp_avg_sq": {
+            "reference_l2": 0.000003645868500028521,
+            "observed_l2": 0.0000036620566104157682,
+            "relative_l2": 0.02174558538517373,
+            "cosine": 0.9997744236982107
+          }
+        },
+        "checks": {
+          "exact_inputs_and_state_schema": true,
+          "loss": true,
+          "preclip_norm": true,
+          "prediction": true,
+          "gradients_before_clip": true,
+          "gradients_after_clip": true,
+          "gradient_direction": true,
+          "parameter_update": false,
+          "optimizer_exp_avg": true,
+          "optimizer_exp_avg_sq": true,
+          "nonzero_gradient_and_update": true,
+          "all_required_floating_values_finite": true
+        }
+      }
+    }
+  },
+  "original_hip_forward_exact": true,
+  "optimizer_updates": 1,
+  "evidenced_model_acceptance": false,
+  "planned_gate_max_relative_l2": 0.05,
+  "prior_hip_relative_l2": 0.19271900631141356,
+  "actual_relative_l2": 0.19477395241396306,
+  "decision": "Keep original backward policy. All 42 modified input-gradient calls reached the native update and the independent CPU comparator rejected the parameter change."
+}

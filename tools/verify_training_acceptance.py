@@ -4,7 +4,14 @@ import hashlib
 import json
 from pathlib import Path
 
-from training_formal_metrics import stage_three, verify_hunyuan_dp2_a100_windows
+from training_formal_metrics import (
+    stage_three, verify_hunyuan_a100_recorded_updates, verify_hunyuan_dp2_a100_windows,
+)
+from training_A100_engineering_timing import VGGT_CASE, check_generation, check_vggt, check_vlm
+from training_function import verify_function
+from training_numerics import (
+    ZERO_LR_VLM_REQUESTS, comparison_plan as numerics_plan, original_vlm_update_schedule, verify_numerics,
+)
 from training_recovery import recovery_plan, verify_recovery
 
 
@@ -48,6 +55,7 @@ def verify(root):
     pins = dict(matrix["evidence_SHA256"])
 
     registry = matrix.get("live_registry_evidence")
+    observed = None
     require(registry == index.get("live_registry_evidence"), "compute registry evidence index differs")
     if registry is not None:
         path, digest = registry["path"], registry["SHA256"]
@@ -72,27 +80,26 @@ def verify(root):
         # Attachments are small summaries or manifests for private experiment receipts.
         return json.loads(pinned(path, digest))
 
-    a100_windows = {}
+    vlm_schedules = {}
     for case in cases:
         if "recovery_plan" in case:
             recovery_plan(case, verify_formal_attachment)
+        if "numerics_plan" in case:
+            numerics_plan(case, verify_formal_attachment)
+        if case["case"] in ZERO_LR_VLM_REQUESTS and "capture_value_evidence" in case:
+            vlm_schedules[case["case"]] = original_vlm_update_schedule(case, verify_formal_attachment)
         for evidence in case.get("supplemental_evidence", {}).values():
             path, sha = evidence["path"], evidence["SHA256"]
             require(pins.setdefault(path, sha) == sha, f"conflicting evidence hashes: {path}")
         for field in ("reference_evidence", "hygon_evidence"):
             path = case[field]
             require(path is None or path in pins, f"{case['case']}: unpinned {field}")
-        if "a100_rank_window_audit" in case:
-            path = case["a100_rank_window_audit"]
-            require(path == case["reference_evidence"] and path in pins,
-                    "missing original DP2 rank-window audit")
-            a100_windows[case["case"]] = verify_hunyuan_dp2_a100_windows(
-                case, json.loads(pinned(path, pins[path])), verify_formal_attachment)
         formal = case.get("formal_acceptance")
         if case["stage3_accepted"]:
             require(isinstance(formal, dict), f"{case['case']}: missing formal acceptance evidence")
         if formal is not None:
             gate_paths = set()
+            gate_results = {}
             for gate in ("function", "numerics", "recovery"):
                 item = formal["gate_evidence"][gate]
                 path, digest = item["path"], item["SHA256"]
@@ -103,8 +110,13 @@ def verify(root):
                 require(result["case"] == case["case"] and result["framework_commit"] == matrix["framework_commit"]
                         and result["gate"] == gate and result["passed"] is True,
                         f"{case['case']}: wrong or failed {gate} gate")
+                gate_results[gate] = result
                 if gate == "recovery":
                     verify_recovery(case, matrix["framework_commit"], result, verify_formal_attachment)
+                elif gate == "numerics":
+                    verify_numerics(case, matrix["framework_commit"], result, verify_formal_attachment)
+            verify_function(case, matrix["framework_commit"], matrix.get("entry"), observed,
+                            gate_results["function"], gate_results["numerics"]["Hygon"], verify_formal_attachment)
             item = formal["metrics_evidence"]
             path, digest = item["path"], item["SHA256"]
             require(path not in gate_paths, f"{case['case']}: duplicate metrics evidence")
@@ -113,14 +125,60 @@ def verify(root):
                                   verify_formal_attachment)
             require(metrics["passed"] is case["stage3_accepted"],
                     f"{case['case']}: formal measurements and acceptance flag disagree")
+
+    a100_windows = {}
+    timing_audits = matrix['original_A100_engineering_timing_audits']
+    require(set(timing_audits) == {'generation', 'vlm', 'vggt'}, 'unexpected original timing audit bindings')
+    case_by_id = {case['case']: case for case in cases}
+    generation_timing = verify_formal_attachment(timing_audits['generation'])
+    a100_windows.update(check_generation(case_by_id, generation_timing))
+    no_boundary_description = [name for name, audit in generation_timing['cases'].items()
+                               if audit['repeats'][0]['reported_timing_boundary'] is None]
+    recovered_boundaries = verify_formal_attachment(matrix['original_A100_recovered_RL_clock_boundaries'])
+    require(set(recovered_boundaries['cases']) == set(no_boundary_description)
+            and recovered_boundaries['original_result_JSON_files'] == 6
+            and recovered_boundaries['formal_acceptance'] is False,
+            'recovered A100 clock boundary coverage differs')
+    for name, audit in recovered_boundaries['cases'].items():
+        original_runs = generation_timing['cases'][name]['repeats']
+        recovered_runs = audit['runs']
+        require(recovered_boundaries['original_manifest_SHA256'] == generation_timing['cases'][name]['source_manifest_SHA256']
+                and len(recovered_runs) == len(original_runs) == 3
+                and all(new['repeat'] == old['repeat']
+                        and new['archived_result_SHA256'] == old['original_result_SHA256']
+                        and new['archived_step_log_SHA256'] == old['raw_step_log_SHA256']
+                        and new['complete_window_seconds'] == old['complete_window_seconds']
+                        for new, old in zip(recovered_runs, original_runs)),
+                f'{name}: recovered A100 clock boundary refers to other runs')
+    a100_windows.update(check_vlm(case_by_id, verify_formal_attachment(timing_audits['vlm'])))
+    a100_windows.update(check_vggt(case_by_id[VGGT_CASE], verify_formal_attachment(timing_audits['vggt'])))
+    sage_reference_path = next(case['reference_evidence'] for case in cases if case['case'] == 'T09.sage-grpo')
+    require(sage_reference_path in pins, 'missing original Hunyuan A100 timing reference')
+    hunyuan_a100 = json.loads(pinned(sage_reference_path, pins[sage_reference_path]))
+    sage_step_index = status['t09_hunyuan_SAGE_A100_original_step_audit']
+    sage_steps = verify_formal_attachment({'path': sage_step_index['evidence'], 'SHA256': sage_step_index['evidence_SHA256']})
+    for case in cases:
+        if case['case'] in ('T09.sft', 'T09.sage-grpo'):
+            a100_windows[case['case']] = verify_hunyuan_a100_recorded_updates(case, hunyuan_a100, sage_steps)
+        if "a100_rank_window_audit" in case:
+            path = case["a100_rank_window_audit"]
+            require(path == case["reference_evidence"] and path in pins,
+                    "missing original DP2 rank-window audit")
+            a100_windows[case["case"]] = verify_hunyuan_dp2_a100_windows(
+                case, json.loads(pinned(path, pins[path])), verify_formal_attachment)
+
     for path, sha in pins.items():
         pinned(path, sha)
+    require(set(a100_windows) == set(ids), 'original engineering timing does not cover all 17 cases')
     human = pinned(index["human_readable"], index["human_readable_SHA256"]).decode("utf-8")
     markdown_ids = [line.split("|")[1].strip() for line in human.splitlines() if line.startswith("| T")
                     and line.split("|")[1].strip() != "用例"]
     require(markdown_ids == ids, "Markdown and JSON training case order differs")
     return {"cases": len(ids), "stage3_passed": index["stage3_passed"], "evidence_files": len(pins),
-            "verified_A100_engineering_medians_updates_per_second": a100_windows}
+            "verified_A100_engineering_medians_updates_per_second": a100_windows,
+            "A100_engineering_cases_without_archived_timing_boundary_description": no_boundary_description,
+            "A100_engineering_clock_boundaries_verified_from_original_source": sorted(recovered_boundaries['cases']),
+            "verified_A100_VLM_optimizer_step2_learning_rates_by_rank": vlm_schedules}
 
 
 def main():

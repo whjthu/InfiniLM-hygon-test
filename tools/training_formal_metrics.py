@@ -1,7 +1,15 @@
 """Recompute formal paired training acceptance from pinned scalar evidence."""
 import math
 from pathlib import PurePosixPath
+import re
 import statistics
+
+from textvqa_effect import SCORING as TEXTVQA_SCORING, VALID_CREDITS as TEXTVQA_CREDITS
+from coco_cider_effect import (
+    METRIC as CIDER_METRIC, POLICY as CIDER_POLICY, SCORE_TOLERANCE as CIDER_TOLERANCE,
+    ORIGINAL_TRAINING_SHA256 as CIDER_TRAINING_SHA256, WHEEL_SHA256 as CIDER_WHEEL_SHA256,
+    validate_holdout_image_ids, verify_image_bytes,
+)
 
 METRICS = {
     'T01': {'TextVQA': 'higher', 'COCO CIDEr': 'higher'},
@@ -12,7 +20,8 @@ METRICS = {
     'T11': {'LPIPS': 'lower', 'albedo MAE': 'lower', 'roughness MAE': 'lower', 'metallic MAE': 'lower'},
     'T12': {'AUC@5': 'higher', 'AUC@15': 'higher', 'AUC@30': 'higher'},
 }
-for model in ('T02', 'T03', 'T04', 'T05'):
+VLM_MODELS = frozenset({'T01', 'T02', 'T03', 'T04', 'T05'})
+for model in sorted(VLM_MODELS - {'T01'}):
     METRICS[model] = METRICS['T01']
 
 
@@ -36,6 +45,76 @@ DP2_TIMING_BOUNDARY = (
     'before first measured update through completed final two-rank checkpoint commit and barrier; '
     'includes replicated-state checks and checkpoint IO; excludes loading and warmup'
 )
+
+
+def verify_hunyuan_a100_recorded_updates(case, references, sage_audit=None):
+    """Verify the archived engineering windows against their case and original artifact pins."""
+    case_id = case['case']
+    sage = case_id == 'T09.sage-grpo'
+    need(case_id in ('T09.sft', 'T09.sage-grpo') and case['original_cards'] == (2 if sage else 1),
+         'unexpected Hunyuan A100 recorded case or card count')
+    source = references['cases'][case_id]
+    config = source['launch']['config']
+    need(config['warmup_steps'] == WARMUP_UPDATES and config['max_steps'] == MEASURED_UPDATES
+         and config['checkpoint_steps'] == [10, 20] and config['transformer_version'] == '480p_t2v',
+         'Hunyuan original launch uses a different training window')
+    repeats = source['runs']
+    need([run['repeat'] for run in repeats] == [1, 2, 3], 'Hunyuan A100 needs three original repeats')
+    prefix = 'hunyuan-cuda-rl-baseline-r1' if sage else 'hunyuan-cuda-sft-baseline-r2-walltime'
+    if sage:
+        need(sage_audit is not None and sage_audit['case'] == case_id and sage_audit['rc'] == 0
+             and [row['repeat'] for row in sage_audit['audit']['runs']] == [1, 2, 3],
+             'missing original SAGE step audit')
+    rates, results_seen, step_logs_seen = [], set(), set()
+    for run in repeats:
+        root = f"node/results/{prefix}-repeat{run['repeat']}"
+        launch, result = run['launch'], run['result']
+        for pin, name in ((launch, 'launch.json'), (result, 'result.json')):
+            need(pin['path'] == f'{root}/{name}' and sha(pin['sha256'])
+                 and type(pin['bytes']) is int and pin['bytes'] > 0,
+                 'Hunyuan recorded window has an unbound repeat artifact')
+        need(launch['sha256'] == case['launch_SHA256'] and result['sha256'] not in results_seen,
+             'Hunyuan recorded window uses a different launch or a duplicate result')
+        results_seen.add(result['sha256'])
+        summary = run['summary']
+        metrics = summary['metrics']
+        seconds = metrics['measurement_wall_seconds']
+        need(nonnegative(seconds) and seconds > 0 and metrics['steps'] == MEASURED_UPDATES
+             and metrics['measurement_steps'] == MEASURED_UPDATES and metrics['warmup_steps'] == WARMUP_UPDATES,
+             'Hunyuan recorded duration or measured update count is invalid')
+        rate = MEASURED_UPDATES / seconds
+        need(rate == metrics['measurement_updates_per_second'], 'Hunyuan rate differs from the complete window')
+        if sage:
+            pins = sage_audit['pins']
+            steps = pins[f'{root}/steps.ndjson']
+            need(pins.get(launch['path']) == launch and pins.get(result['path']) == result
+                 and steps['path'] == f'{root}/steps.ndjson' and sha(steps['sha256'])
+                 and steps['sha256'] not in step_logs_seen and type(steps['bytes']) is int and steps['bytes'] > 0,
+                 'SAGE original step log is unbound or reused')
+            step_logs_seen.add(steps['sha256'])
+            row = sage_audit['audit']['runs'][run['repeat'] - 1]
+            need(metrics['num_generations'] == metrics['sampling_steps'] == row['rewards_per_component_per_update'] == 4
+                 and row['reward_components'] == ['MQ', 'Overall', 'TA', 'VQ']
+                 and row['warmup_updates'] == WARMUP_UPDATES and row['measured_updates'] == MEASURED_UPDATES
+                 and row['recorded_adapter_changes'] == WARMUP_UPDATES + MEASURED_UPDATES
+                 and row['measurement_wall_seconds'] == seconds and row['measurement_updates_per_second'] == rate
+                 and nonnegative(row['sum_measured_step_seconds']) and 0 < row['sum_measured_step_seconds'] <= seconds,
+                 'SAGE complete wall clock differs from the independently audited policy updates')
+        else:
+            need(all(metrics.get(key) == value for key, value in dict(first_global_step=1,
+                     completed_global_step_at_start=0, executed_warmup_steps=WARMUP_UPDATES,
+                     executed_measured_steps=MEASURED_UPDATES, executed_global_steps=WARMUP_UPDATES+MEASURED_UPDATES).items()),
+                 'SFT recorded window is not a full training run from step zero')
+            load, training = (summary['stage_timings'][field] for field in ('model_load_seconds', 'training_seconds'))
+            need(nonnegative(load) and load > 0 and nonnegative(training) and seconds <= training
+                 and nonnegative(summary['invocation_seconds']) and load + training <= summary['invocation_seconds'],
+                 'SFT startup and training windows are inconsistent')
+        rates.append(rate)
+    median = statistics.median(rates)
+    need(median == source['A100_median_measurement_updates_per_second'] == case['a100_median_updates_per_second']
+         and (not sage or median == sage_audit['audit']['median_updates_per_second']),
+         'Hunyuan recorded A100 median differs from its three windows')
+    return median
 
 
 def verify_hunyuan_dp2_a100_windows(case, audit, verify_raw):
@@ -136,11 +215,75 @@ def sage_wall_seconds(run, cards):
     return complete_window(clock)
 
 
+def verified_execution(run, cards, provenance, window_seconds, verify_raw, *, shared_device_clock=False):
+    """Link the timing receipt hash to a separately pinned execution summary.
+
+    Summaries use the original Slurm step identity or a launcher process identity
+    that includes process start time. Device ranks use node-local PCI addresses.
+    """
+    attachment = run.get('execution_evidence')
+    need(isinstance(attachment, dict) and sha(attachment.get('SHA256')), 'missing pinned execution evidence')
+    record = verify_raw(attachment)
+    need(all(record.get(key) == value for key, value in provenance.items())
+         and record['raw_timing_SHA256'] == run['raw_receipt']['SHA256'],
+         'execution evidence and original timing receipt differ')
+    progress = record.get('training_progress')
+    need(isinstance(progress, dict) and 'configured_resume' in progress and progress['configured_resume'] is None
+         and type(progress.get('start_global_step')) is int and progress['start_global_step'] == 0,
+         'formal timing needs execution evidence of a fresh run from global step zero')
+    # SAGE has one training actor and a separate VAE device. The VAE has no optimizer steps.
+    training_ranks = 1 if shared_device_clock else cards
+    rank_steps = progress.get('rank_steps')
+    need(isinstance(rank_steps, list) and all(isinstance(row, dict) and type(row.get('rank')) is int for row in rank_steps)
+         and sorted(row['rank'] for row in rank_steps) == list(range(training_ranks)),
+         'missing or invalid execution progress for training ranks')
+    expected_steps = list(range(1, WARMUP_UPDATES + MEASURED_UPDATES + 1))
+    for row in rank_steps:
+        steps = row.get('global_update_ordinals')
+        need(isinstance(steps, list) and all(type(step) is int for step in steps) and steps == expected_steps,
+             'execution evidence does not cover global optimizer updates 1 through 25')
+    terminal = record['terminal']
+    method, handle = terminal['method'], terminal['handle']
+    need(method in ('slurm-step', 'launcher-process') and isinstance(handle, str)
+         and bool(handle) and handle == handle.strip()
+         and terminal['state'] == 'COMPLETED' and terminal['exit_code'] == '0:0'
+         and nonnegative(terminal['elapsed_seconds']) and terminal['elapsed_seconds'] > 0,
+         'formal timing requires a successful terminal execution')
+    need(provenance['platform'] != 'Hygon' or method == 'slurm-step', 'Hygon timing needs its original Slurm step')
+    if method == 'slurm-step':
+        need(re.fullmatch(r'[0-9]+\.[0-9]+', handle) is not None, 'expected a numbered Slurm step')
+    # Accounting elapsed may be integer seconds while measured rank durations are fractional.
+    need(window_seconds <= terminal['elapsed_seconds'] + (1 if method == 'slurm-step' else 0),
+         'measured timing exceeds the actual execution window')
+    devices = record['devices']
+    need(all(type(device['rank']) is int for device in devices)
+         and sorted(device['rank'] for device in devices) == list(range(cards)),
+         'physical device inventory differs from the measured rank count')
+    addresses = set()
+    for device in devices:
+        node, pci = device['node'], device['pci']
+        need(isinstance(node, str) and bool(node.strip()) and isinstance(device['model'], str)
+             and bool(device['model'].strip()) and isinstance(pci, str)
+             and re.fullmatch(r'[0-9a-fA-F]{4,8}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}\.[0-7]', pci),
+             'invalid device model, node or PCI identity')
+        domain, address = pci.lower().split(':', 1)
+        addresses.add((node.strip().rstrip('.').lower(), int(domain, 16), address))
+    need(len(addresses) == cards, 'multiple ranks were attributed to the same physical device')
+    runtime = record['runtime']
+    fields = ['driver', 'framework', 'operator_library']
+    if cards > 1:
+        fields.append('interconnect')
+    need(all(isinstance(runtime.get(key), str) and runtime[key].strip() for key in fields),
+         'missing hardware and runtime configuration evidence')
+    return handle
+
+
 def timing(runs, cards, recipe, boundary, verify_raw, *, provenance, shared_device_clock=False):
     need(len(runs) == 3 and len({r['run_id'] for r in runs}) == 3
          and all(isinstance(r['run_id'], str) and r['run_id'] for r in runs),
          'formal timing requires three distinct runs per platform')
     rates = []
+    executions = set()
     for run in runs:
         need(all(run.get(key) == value for key, value in provenance.items())
              and run['recipe_SHA256'] == recipe and run['boundary_SHA256'] == boundary
@@ -148,7 +291,7 @@ def timing(runs, cards, recipe, boundary, verify_raw, *, provenance, shared_devi
              and type(run['measured_updates']) is int and run['measured_updates'] == MEASURED_UPDATES
              and run['profiler'] is False and run['completed'] is True
              and sha(run['raw_receipt']['SHA256']), 'unqualified timing window')
-        need(verify_raw(run['raw_receipt']) == {k: v for k, v in run.items() if k != 'raw_receipt'},
+        need(verify_raw(run['raw_receipt']) == {k: v for k, v in run.items() if k not in ('raw_receipt', 'execution_evidence')},
              'timing fields differ from the pinned receipt')
         if shared_device_clock:
             seconds = sage_wall_seconds(run, cards)
@@ -159,6 +302,10 @@ def timing(runs, cards, recipe, boundary, verify_raw, *, provenance, shared_devi
                  and sorted(row['rank'] for row in ranks) == list(range(cards)),
                  'incomplete or invalid rank inventory')
             seconds = max(complete_window(row) for row in ranks)
+        identity = verified_execution(run, cards, provenance, seconds, verify_raw,
+                                      shared_device_clock=shared_device_clock)
+        need(identity not in executions, 'three timing runs reuse one actual execution')
+        executions.add(identity)
         for field in ('admission_seconds', 'load_seconds', 'cache_preparation_seconds'):
             need(nonnegative(run[field]), 'invalid separately reported startup timing')
         rates.append(MEASURED_UPDATES / seconds)
@@ -189,9 +336,38 @@ def verify_sample_inventory(row, metric, provenance, checkpoints, verify_raw):
          and inventory['checkpoint_SHA256'] == checkpoints,
          'sample inventory belongs to a different plan, scorer or checkpoint')
     need(inventory['arms'].keys() == checkpoints.keys(), 'incorrect held-out arms')
+    textvqa = metric == 'TextVQA'
+    cider = metric == CIDER_METRIC
+    if textvqa or cider:
+        files = inventory.get('prediction_file_SHA256', {})
+        need(isinstance(files, dict) and files.keys() == checkpoints.keys() and all(map(sha, files.values())),
+             'missing pinned prediction files')
+    if textvqa:
+        need(inventory.get('textvqa_scoring') == TEXTVQA_SCORING, 'missing official TextVQA scoring evidence')
+    if cider:
+        validate_holdout_image_ids(sample_ids)
+        scorer = inventory.get('scorer_binding', {})
+        need(inventory.get('cider_scoring') == CIDER_POLICY and sha(provenance.get('scorer_SHA256'))
+             and scorer.get('SHA256') == provenance['scorer_SHA256'], 'missing pinned COCO CIDEr scoring evidence')
+        runtime = verify_raw(scorer)
+        need(runtime.get('wheel_SHA256') == CIDER_WHEEL_SHA256 and runtime.get('policy') == CIDER_POLICY
+             and all(sha(runtime.get(field)) for field in ('implementation_SHA256', 'java_SHA256'))
+             and all(isinstance(runtime.get(field), str) and runtime[field].strip()
+                     for field in ('java_version', 'numpy_version')), 'invalid COCO CIDEr scorer runtime')
+        media_ref = inventory.get('image_inventory')
+        need(isinstance(media_ref, dict) and sha(media_ref.get('SHA256')), 'missing COCO image byte inventory')
+        media = verify_raw(media_ref)
+        need(all(media.get(key) == value for key, value in identity.items())
+             and media.get('original_training_SHA256') == CIDER_TRAINING_SHA256
+             and media.get('checkpoint_SHA256') == checkpoints
+             and media.get('sample_plan_SHA256') == row['sample_plan']['SHA256'],
+             'COCO image byte inventory belongs to a different plan or checkpoint')
+        image_hashes = verify_image_bytes(media['images'], sample_ids)
     for platform, samples in inventory['arms'].items():
         observed = set()
         failed = 0
+        credit_sum = 0
+        cider_scores = []
         for sample in samples:
             sample_id = sample['sample_id']
             need(isinstance(sample_id, str) and sample_id in expected and sample_id not in observed,
@@ -202,24 +378,50 @@ def verify_sample_inventory(row, metric, provenance, checkpoints, verify_raw):
                  'missing held-out output or failure evidence')
             observed.add(sample_id)
             failed += sample['status'] == 'failed'
+            if textvqa:
+                credit = sample.get('textvqa_credit_x30')
+                need(type(credit) is int and credit in TEXTVQA_CREDITS
+                     and (sample['status'] == 'scored' or credit == 0), 'invalid per-question TextVQA credit')
+                credit_sum += credit
+            if cider:
+                need(sample.get('image_SHA256') == image_hashes[sample_id],
+                     'scored COCO image differs from the frozen media inventory')
+                score = sample.get('cider_score')
+                need(nonnegative(score) and score <= 10 + CIDER_TOLERANCE
+                     and (sample['status'] == 'scored' or score == 0), 'invalid per-image CIDEr score')
+                cider_scores.append(score)
         need(observed == expected and failed == row[platform + '_failed']
              and len(samples) - failed == row[platform + '_scored'],
              'held-out sample inventory or counts differ from the declared plan')
+        if textvqa:
+            accuracy = credit_sum / (30 * len(sample_ids))
+            need(0 <= row[platform] <= 1 and math.isclose(row[platform], accuracy, rel_tol=0, abs_tol=1e-12),
+                 'TextVQA accuracy differs from the full question denominator')
+        if cider:
+            score = math.fsum(cider_scores) / len(sample_ids)
+            need(math.isclose(row[platform], score, rel_tol=0, abs_tol=CIDER_TOLERANCE),
+                 'COCO CIDEr differs from the full image denominator')
 
 
-def effect(rows, expected, provenance, verify_raw):
+def effect(rows, expected, provenance, verify_raw, *, metric_bindings=None):
     need(rows.keys() == expected.keys(), 'held-out metric set differs')
+    if metric_bindings is not None:
+        fields = {'dataset_SHA256', 'scorer_SHA256'}
+        need(isinstance(metric_bindings, dict) and metric_bindings.keys() == expected.keys()
+             and all(isinstance(binding, dict) and binding.keys() == fields and all(map(sha, binding.values()))
+                     for binding in metric_bindings.values()), 'invalid per-metric held-out dataset or scorer bindings')
     regressions = {}
     common_checkpoints = None
     for metric, direction in expected.items():
         row = rows[metric]
+        identity = provenance if metric_bindings is None else {**provenance, **metric_bindings[metric]}
         reference, target = row['A100'], row['Hygon']
         need(all(nonnegative(value) for value in (reference, target, row['Hygon_before']))
              and sha(row['raw_scores']['SHA256']) and sha(row['paired_checkpoint_binding']['SHA256']),
              'invalid held-out scores or missing evidence')
         scores = {k: v for k, v in row.items() if k not in ('raw_scores', 'paired_checkpoint_binding')}
         binding = verify_raw(row['paired_checkpoint_binding'])
-        need(all(binding.get(key) == value for key, value in provenance.items()),
+        need(all(binding.get(key) == value for key, value in identity.items()),
              'paired checkpoints belong to different held-out evidence')
         platforms = ('A100', 'Hygon', 'Hygon_before')
         need(all(sha(binding[key]) for key in platforms), 'missing paired checkpoint identities')
@@ -227,7 +429,7 @@ def effect(rows, expected, provenance, verify_raw):
         need(common_checkpoints is None or checkpoints == common_checkpoints,
              'held-out metrics use different paired checkpoints')
         common_checkpoints = checkpoints
-        receipt = dict(scores, metric=metric, **provenance,
+        receipt = dict(scores, metric=metric, **identity,
                        checkpoint_SHA256=checkpoints)
         need(verify_raw(row['raw_scores']) == receipt,
              'held-out scores differ from the pinned case, scorer, dataset or checkpoints')
@@ -238,7 +440,7 @@ def effect(rows, expected, provenance, verify_raw):
             need(type(scored) is int and type(failed) is int and scored > 0 and failed >= 0
                  and scored + failed == row['planned_samples'],
                  'held-out score and failure counts do not close')
-        verify_sample_inventory(row, metric, provenance, checkpoints, verify_raw)
+        verify_sample_inventory(row, metric, identity, checkpoints, verify_raw)
         delta = reference - target if direction == 'higher' else target - reference
         regressions[metric] = {'absolute_degradation': delta,
                                'relative_degradation': None if reference == 0 else delta / reference}
@@ -274,8 +476,6 @@ def stage_three(case, framework_commit, evidence, verify_raw):
     need(not ({r['run_id'] for r in evidence['timing']['A100']}
               & {r['run_id'] for r in evidence['timing']['Hygon']}), 'run IDs shared across platforms')
     holdout = evidence['holdout']
-    need(sha(holdout['dataset_SHA256']) and sha(holdout['scorer_SHA256']),
-         'missing held-out dataset or scorer identity')
     model = case['case'].split('.')[0]
     expected = METRICS.get(model)
     if model == 'T09':
@@ -288,9 +488,14 @@ def stage_three(case, framework_commit, evidence, verify_raw):
                      for name, direction in directions.items()), 'missing registered VBench metrics')
         expected = {'Video CLIP': 'higher', **directions}
     need(expected is not None, 'unknown training case')
-    provenance = {'case': case['case'], 'framework_commit': framework_commit,
-                  'dataset_SHA256': holdout['dataset_SHA256'], 'scorer_SHA256': holdout['scorer_SHA256']}
-    regressions = effect(holdout['metrics'], expected, provenance, verify_raw)
+    provenance = {'case': case['case'], 'framework_commit': framework_commit}
+    metric_bindings = holdout.get('metric_bindings')
+    if metric_bindings is None:
+        need(model not in VLM_MODELS, 'VLM effect requires independent TextVQA and COCO CIDEr bindings')
+        shared = {field: holdout.get(field) for field in ('dataset_SHA256', 'scorer_SHA256')}
+        need(all(map(sha, shared.values())), 'missing held-out dataset or scorer identity')
+        provenance.update(shared)
+    regressions = effect(holdout['metrics'], expected, provenance, verify_raw, metric_bindings=metric_bindings)
     ratio = hygon / a100
     return {'A100_median_updates_per_second': a100, 'Hygon_median_updates_per_second': hygon,
             'throughput_ratio': ratio, 'effect_regressions': regressions,

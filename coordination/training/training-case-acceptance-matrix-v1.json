@@ -11,6 +11,24 @@
     "minimum_A100_throughput_ratio": 0.9,
     "maximum_relative_effect_regression": 0.05
   },
+  "original_A100_engineering_timing_audits": {
+    "generation": {
+      "path": "analysis/bw1000/training-generation-a100-original-24-windows-v1.json",
+      "SHA256": "bdb15fe3549901800b94904fc3c9a8b1c0206f32ee3b553237eed85d7b94eb3c"
+    },
+    "vlm": {
+      "path": "analysis/bw1000/training-vlm-a100-original-120-rank-windows-v1.json",
+      "SHA256": "f1db4b870446557c5edebf080582f8ae3b6378024b5fc704fa553fc6f79ec629"
+    },
+    "vggt": {
+      "path": "analysis/bw1000/training-vggt-a100-original-complete-clock-v2.json",
+      "SHA256": "86d90771efc4bcc91a00ef2f7d9f894282f2bf666d40d89f686e6b41d4eba1c9"
+    }
+  },
+  "original_A100_recovered_RL_clock_boundaries": {
+    "path": "analysis/bw1000/training-a100-ddpo-motionrft-original-clock-boundaries-v1.json",
+    "SHA256": "cc7c857a61f895cee99d9d86656d57fb0371a1d66c49e365c183a260e8ed8a32"
+  },
   "evidence_SHA256": {
     "results/bw1000/2026-11-14/training-qwen-1087656-220-native25-independent-terminal-and-checkpoint-inventory.json": "a9eed82cb336b2024bdbb126e9c68054aeda0c1f33dd21456ad863ce36f945d7",
     "results/bw1000/2026-11-14/training-qwen-1087656-223-capture-content-and-a100-differences.json": "6cef563755a59a4d87eccfe6245e9ec7e179dd4952bcf3b0c86dfc286c83bad4",
@@ -546,6 +564,11 @@
           "path": "results/bw1000/2026-11-20/training-sdxl-original480-FP32-LoRA-B-gradient-full-update-terminal.json",
           "bytes": 4749,
           "SHA256": "235e3333fcd684f04286f3c054ab7475a0adc309c3090b3ce73988eaa5d36b44"
+        },
+        "frozen_convolution_dinput_original540": {
+          "path": "results/bw1000/2026-11-20/training-sdxl-original540-frozen-conv-dgrad-fp32-terminal.json",
+          "SHA256": "6087e09a1ae922399aec05e8d317a293d0ce4386336f1947db96ab07567c4378",
+          "bytes": 4717
         }
       },
       "model": "SDXL 1.0",
@@ -553,14 +576,18 @@
       "original_cards": 1,
       "a100_reference": "A100 固定输入和原数值策略已绑定。",
       "target_evidence": "海光执行真实首步。单独替换首个 GroupNorm 后参数更新相对 L2 为 20.05%，原路径 19.27%，门槛 5%。 单独替换时间投影的舍入顺序后，海光投影逐位匹配 A100，完整 1120 个张量的参数更新误差仍为 19.82%。",
-      "target_numerics": "失败，参数更新门槛 把 UNet 输出处的损失梯度精确替换成 A100 原梯度后，首步参数更新相对 L2 误差为 20.21%，仍超过 5% 门槛。 560 处 LoRA B 权重梯度改用 FP32 重算并转回 BF16，只改变 2,662,400 个元素中的 33 个，完整参数更新误差仍为 19.27%。",
+      "target_numerics": "失败，参数更新门槛 把 UNet 输出处的损失梯度精确替换成 A100 原梯度后，首步参数更新相对 L2 误差为 20.21%，仍超过 5% 门槛。 560 处 LoRA B 权重梯度改用 FP32 重算并转回 BF16，只改变 2,662,400 个元素中的 33 个，完整参数更新误差仍为 19.27%。 保持原前向不变，将冻结卷积的 42 路输入梯度改为 FP32 后，完整参数更新误差为 19.48%，仍未通过。",
       "target_recovery": "未验证",
       "target_performance": "待三轮同口径实测",
       "target_holdout_effect": "待留出集实测",
       "stage3_accepted": false,
       "reference_evidence": "results/bw1000/2026-11-10/training-t06-sdxl-first-update-r2-v1-verified-inputs.json",
       "hygon_evidence": "results/bw1000/2026-11-12/training-sdxl-original176-selected-backward-cancellation-and-cost.json",
-      "a100_median_updates_per_second": null
+      "a100_median_updates_per_second": null,
+      "numerics_plan": {
+        "path": "coordination/training/sdxl-first-update-numerics-plan-v1.json",
+        "SHA256": "df58da48dd410c84896640cd57bf9428b9353a981a3668f82a096a7d378a8d2a"
+      }
     },
     {
       "case": "T06.ddpo",
@@ -615,7 +642,7 @@
       "model": "HY-Motion 1.0",
       "launch_SHA256": "bbbbb046a8ba2ed39dc00d54ae9254122345fe5f3dd97ea47b825a5f2b8631af",
       "original_cards": 1,
-      "a100_reference": "原缓存 60 帧、128 个样本。要求 128 帧。",
+      "a100_reference": "原 60 帧、128 样本、201 维缓存的独立 26 步恢复已核验。真实 128 帧的共享参考仍缺。",
       "target_evidence": "海光 meta 通过。真实 128 帧配方及参考待定。",
       "target_numerics": "未验证",
       "target_recovery": "未验证",
@@ -624,14 +651,20 @@
       "stage3_accepted": false,
       "reference_evidence": "results/bw1000/2026-11-12/training-hymotion-original-frame-conflict-and-unified-admission-guard.json",
       "hygon_evidence": "results/bw1000/2026-11-12/training-hymotion-original180-unified-native-HIP-meta-and-source-closure.json",
-      "a100_median_updates_per_second": null
+      "a100_median_updates_per_second": null,
+      "supplemental_evidence": {
+        "A100_archived_original_recovery_scope": {
+          "path": "analysis/bw1000/training-hymotion-a100-original-recovery-by-cache-and-global-step-v1.json",
+          "SHA256": "e1166ada99a2696a5127a699ed2ded80dc213dcc95b41a4be64e1b9cd43f6d65"
+        }
+      }
     },
     {
       "case": "T08.motion-rft",
       "model": "HY-Motion 1.0",
       "launch_SHA256": "de543cd5c66e3822b97c6b8ae6d4f2901dc26bb3b0f7bc93b9423c06ae96cb2f",
       "original_cards": 1,
-      "a100_reference": "原启动哈希已登记。独立 128 帧参考与固定 rollout 对照待核。",
+      "a100_reference": "原 A100 独立恢复从全局第 10、20 步继续，20 条续训记录与连续运行一致。已绑定原缓存摘要，实际帧数和固定 rollout 数值资格待核。",
       "target_evidence": "基础 128 帧配方尚未确认。",
       "target_numerics": "未验证",
       "target_recovery": "未验证",
@@ -640,7 +673,13 @@
       "stage3_accepted": false,
       "reference_evidence": null,
       "hygon_evidence": "results/bw1000/2026-11-12/training-hymotion-original-frame-conflict-and-unified-admission-guard.json",
-      "a100_median_updates_per_second": null
+      "a100_median_updates_per_second": null,
+      "supplemental_evidence": {
+        "A100_archived_original_recovery_scope": {
+          "path": "analysis/bw1000/training-hymotion-a100-original-recovery-by-cache-and-global-step-v1.json",
+          "SHA256": "e1166ada99a2696a5127a699ed2ded80dc213dcc95b41a4be64e1b9cd43f6d65"
+        }
+      }
     },
     {
       "case": "T09.sft",

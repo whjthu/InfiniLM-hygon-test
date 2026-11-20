@@ -1,6 +1,8 @@
 """Recompute the formal recovery gate from the registered recipe and paired runs."""
 import math
+from pathlib import PurePosixPath
 
+from read_training_slurm_membership import allocated_dcu, completed_numbered_step
 from training_formal_metrics import need, nonnegative, sha
 
 
@@ -54,7 +56,7 @@ def state(rows, ranks):
     return rows
 
 
-def execution(receipt, binding, first, ranks):
+def execution(receipt, binding, first, ranks, cards, verify_raw):
     need(all(receipt.get(key) == value for key, value in binding.items())
          and receipt['terminal_status'] == 'COMPLETED'
          and type(receipt['exit_code']) is int and receipt['exit_code'] == 0
@@ -62,6 +64,18 @@ def execution(receipt, binding, first, ranks):
          and type(receipt['start_global_step']) is int and receipt['start_global_step'] == first
          and type(receipt['final_global_step']) is int and receipt['final_global_step'] == ENGINEERING_UPDATES,
          'recovery run differs in case, source, global steps or terminal status')
+    terminal_ref = receipt.get('terminal_evidence')
+    need(isinstance(terminal_ref, dict) and terminal_ref.get('SHA256') == receipt['terminal_receipt_SHA256'],
+         'recovery run is missing independently pinned terminal evidence')
+    terminal = verify_raw(terminal_ref)
+    terminal_binding = dict(binding, run_id=receipt['run_id'], start_global_step=first,
+                            final_global_step=ENGINEERING_UPDATES)
+    need(all(terminal.get(key) == value for key, value in terminal_binding.items()),
+         'recovery terminal evidence belongs to a different execution')
+    row = completed_numbered_step(terminal.get('accounting_columns'), terminal.get('accounting_row'),
+                                  receipt.get('slurm_step'), scope='recovery')
+    dcu = allocated_dcu(row['AllocTRES']) if isinstance(row['AllocTRES'], str) else None
+    need(dcu is not None and dcu >= cards, 'recovery Slurm step lacks the registered DCU allocation')
     processes = {row['process_identity_SHA256'] for row in rank_values(receipt['rank_processes'], ranks)}
     need(len(processes) == ranks and all(sha(pid) for pid in processes),
          'missing or reused rank process identity')
@@ -78,16 +92,44 @@ def execution(receipt, binding, first, ranks):
     return processes, updates, final
 
 
+def checkpoint_state(item, binding, run_id, ranks, verify_raw):
+    reference = item.get('manifest')
+    need(sha(item['manifest_SHA256']) and isinstance(reference, dict),
+         'missing independently pinned checkpoint inventory')
+    manifest = verify_raw(reference)
+    expected = dict(binding, run_id=run_id, global_step=item['global_step'],
+                    original_checkpoint_SHA256=item['manifest_SHA256'])
+    need(all(manifest.get(key) == value for key, value in expected.items())
+         and type(manifest['global_step']) is int,
+         'checkpoint inventory belongs to a different execution or global step')
+    files = manifest['files']
+    need(isinstance(files, list) and bool(files), 'checkpoint inventory contains no persisted files')
+    paths = set()
+    for file in files:
+        value = file['relative_path']
+        need(isinstance(value, str) and value and '\\' not in value and ':' not in value,
+             'invalid checkpoint inventory path')
+        path = PurePosixPath(value)
+        need(not path.is_absolute() and '..' not in path.parts and path.as_posix() == value and value != '.'
+             and value not in paths and type(file['bytes']) is int and file['bytes'] > 0
+             and sha(file['SHA256']), 'missing or duplicated checkpoint file identity')
+        paths.add(value)
+    actual = state(manifest['state'], ranks)
+    need(actual == state(item['state'], ranks), 'checkpoint inventory disagrees with recorded rank state')
+    return actual
+
+
 def verify_recovery(case, framework_commit, evidence, verify_raw):
     plan = recovery_plan(case, verify_raw)
     need('continuous' in evidence and isinstance(evidence.get('resumed'), list),
          'recovery evidence requires continuous and resumed receipts')
     ranks = plan['training_ranks']
+    cards = case['original_cards']
     binding = {'case': case['case'], 'framework_commit': framework_commit,
                'original_launch_SHA256': case['launch_SHA256'], 'platform': 'Hygon'}
     continuous_ref = evidence['continuous']
     continuous = verify_raw(continuous_ref)
-    processes, baseline, original_final = execution(continuous, binding, 0, ranks)
+    processes, baseline, original_final = execution(continuous, binding, 0, ranks, cards, verify_raw)
     runs = {continuous['run_id']}
     terminals = {continuous['terminal_receipt_SHA256']}
     checkpoints = continuous['checkpoints']
@@ -96,8 +138,8 @@ def verify_recovery(case, framework_commit, evidence, verify_raw):
          'incomplete continuous checkpoint inventory')
     sources = {}
     for item in checkpoints:
-        need(sha(item['manifest_SHA256']), 'missing original checkpoint manifest')
-        sources[item['global_step']] = item['manifest_SHA256'], state(item['state'], ranks)
+        actual = checkpoint_state(item, binding, continuous['run_id'], ranks, verify_raw)
+        sources[item['global_step']] = item['manifest_SHA256'], actual
     if ENGINEERING_UPDATES in sources:
         need(sources[ENGINEERING_UPDATES][1] == original_final, 'final state differs from the last checkpoint')
     need(len({digest for digest, _ in sources.values()}) == len(sources),
@@ -111,7 +153,7 @@ def verify_recovery(case, framework_commit, evidence, verify_raw):
     comparisons = []
     for receipt_ref, receipt in zip(evidence['resumed'], resumed, strict=True):
         step = receipt['start_global_step']
-        fresh, suffix, final = execution(receipt, binding, step, ranks)
+        fresh, suffix, final = execution(receipt, binding, step, ranks, cards, verify_raw)
         need(not (fresh & processes) and receipt['run_id'] not in runs
              and receipt['terminal_receipt_SHA256'] not in terminals,
              'recovery did not use a distinct process run')
@@ -129,6 +171,10 @@ def verify_recovery(case, framework_commit, evidence, verify_raw):
                 need(a['input_SHA256'] == b['input_SHA256'], 'resumed update used different input')
                 absolute_loss = max(absolute_loss, abs(a['loss'] - b['loss']))
         need(absolute_loss <= limits['loss_absolute'], 'recovered loss exceeds the original bound')
+
+        discrete_fields = ('scheduler_SHA256', 'data_cursor_SHA256', 'accumulation_boundary')
+        need(all(a[field] == b[field] for a, b in zip(original_final, final, strict=True) for field in discrete_fields),
+             'recovery final scheduler, data cursor or accumulation boundary differs')
 
         continuous_params = [row['parameters_SHA256'] for row in original_final]
         resumed_params = [row['parameters_SHA256'] for row in final]
