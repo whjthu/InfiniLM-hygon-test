@@ -1,0 +1,56 @@
+{
+  "owner": "bw1000/root/O01",
+  "request": "66667f021d2a4b50b7db4cb63127d58e",
+  "state": "CLAIMED_GRADIENT_BUCKET_VIEW_SINGLE_VARIABLE",
+  "operator_GO": true,
+  "formal_training_GO": false,
+  "allocated_cards": 640,
+  "planned_operator_cards": 608,
+  "max_invocations": 1,
+  "replay_allowed": false,
+  "excluded_foreign_KFD_by_parent": {
+    "1087656": [
+      "f11r2n15"
+    ],
+    "1103606": [
+      "f12r2n12"
+    ]
+  },
+  "reserved_native_by_parent": {
+    "1087656": [
+      "f11r4n09",
+      "f11r4n10"
+    ],
+    "1103606": []
+  },
+  "allowed_existing_steps": {},
+  "caller": {
+    "case": "T01 Qwen3-VL",
+    "reference": "coordination/training/qwen-native-first-updates-reference-v1.json",
+    "SHA256": "69d4d0be56aee01209a219eac96defcd20a3c9b1bf542b7acf047a857b56a578",
+    "trainable_tensors": 504,
+    "trainable_elements": 43646976
+  },
+  "prior_operator_scope": "The bucket size comparison at 608 cards is terminal. This changes only whether DDP gradient tensors share the established bucket storage. This is a separate two-armed measurement with a new 8-card pilot.",
+  "design": "Use original 25 MiB DDP bucket cap throughout. Compare gradient_as_bucket_view False/True/True/False with the same input, initialization, AdamW and four microbatches. Record actually shared gradient storages, training update deltas, steady allocated and peak bytes, and slowest-rank timings. Pilot uses 1 numerical 1 warm and 2 timed steps per block; fleet uses 1/3/15. No extra optimizer, precision or bucket capacity change.",
+  "environment": "Pinned original DTK sandbox and RCCL. Generated repeatable inputs, complete shape-defined LoRA-only forward/backward and AdamW, no frozen full model.",
+  "exclusions": "Keep old MiniCPM original request reservations and two previously observed external KFD holders. Node worker independently checks current KFD and PCI.",
+  "deadlines": {
+    "controller_seconds": 880,
+    "pilot_seconds": 195,
+    "client_seconds": 905,
+    "worker_deadline": "original controller epoch +490"
+  },
+  "formal_qualification": "No native full-model numeric, A100 throughput, recovery, held-out or Stage3 claims.",
+  "prerequisite": {
+    "path": "results/bw1000/2026-11-20/fleet608-qwen-DDP-bucket-original469-353-terminal.json",
+    "bytes": 3633,
+    "SHA256": "6a7653e324bfdd1de930fd9f387ef703875242c8e4a33e436b49a6facad9b2f0"
+  },
+  "source_manifest": {
+    "path": "code/bw1000/fleet-qwen-ddp-bucket-views-v1/SOURCE_FILES.json",
+    "bytes": 1350,
+    "SHA256": "5a4cd18a8227aa73706d2494d3df93fb73cb25697a663f50d292705790267166"
+  },
+  "actual_steps": null
+}
