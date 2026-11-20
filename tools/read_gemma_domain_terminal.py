@@ -17,7 +17,7 @@ DATASET_SHA = "74fd9aad043441b7e29578223605a0030a93c5c9614057707b381175cda9a0cc"
 FRAMEWORK = "a68952cb2285d6593b665147249d14ec1f8cecbc"
 PHASES = {"pre": 0, "gpu": 8, "post": 0}
 REQUIRED_CHECKPOINT_FILES = {
-    "adapter_model.safetensors", "adapter_config.json", "trainer_state.json", "training_args.bin",
+    "adapter_model.safetensors", "adapter_config.json", "trainer_state.json", "args.json",
     "optimizer.pt", "scheduler.pt", *(f"rng_state_{rank}.pth" for rank in range(8)),
 }
 
@@ -85,6 +85,12 @@ def audit_checkpoint(root, arm, step, evidence):
             and trainer["train_batch_size"] == 1
             and evidence[state_path.as_posix()] == files["trainer_state.json"]["SHA256"],
             "actual Trainer state differs from the inventoried checkpoint")
+    args_path = checkpoint / "args.json"
+    args = read_receipt(root, args_path, evidence)
+    require(args["max_steps"] == 25 and args["gradient_accumulation_steps"] == 4
+            and args["per_device_train_batch_size"] == 1
+            and evidence[args_path.as_posix()] == files["args.json"]["SHA256"],
+            "actual Swift arguments differ from the inventoried checkpoint")
 
 
 def bind_rank_outcome(root, binding, arm, evidence, rank_pins):

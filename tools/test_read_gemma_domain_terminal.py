@@ -60,6 +60,9 @@ def fixture(root):
             for name in REQUIRED_CHECKPOINT_FILES:
                 payload = (json.dumps(dict(global_step=step, max_steps=25, train_batch_size=1)).encode()
                            if name == "trainer_state.json" else b"simulated payload")
+                if name == "args.json":
+                    payload = json.dumps(dict(max_steps=25, gradient_accumulation_steps=4,
+                                              per_device_train_batch_size=1)).encode()
                 (checkpoint / name).write_bytes(payload)
                 pins[name] = dict(SHA256=digest(payload), bytes=len(payload))
             write_json(root / f"{arm}-checkpoint-{step}-files.json", dict(global_step=step, files=pins))
