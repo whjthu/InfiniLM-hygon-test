@@ -1,0 +1,70 @@
+{
+  "owner": "bw1000/root/O01",
+  "request": "fa67dfb0dc404330bf198af6e5f983d0",
+  "state": "CLAIMED_PILOT_THEN_600_DCU_TWO_VS_THREE_CHECKPOINT_LAYERS",
+  "operator_GO": true,
+  "formal_training_GO": false,
+  "allocated_cards": 640,
+  "planned_operator_cards": 600,
+  "max_invocations": 1,
+  "replay_allowed": false,
+  "excluded_foreign_KFD_by_parent": {
+    "1087656": [
+      "f11r2n15"
+    ],
+    "1103606": [
+      "f12r2n12"
+    ]
+  },
+  "reserved_native_by_parent": {
+    "1087656": [
+      "f11r4n09",
+      "f11r4n10"
+    ],
+    "1103606": [
+      "f13r1n10"
+    ]
+  },
+  "allowed_existing_steps": {},
+  "design": "A/B/B/A on the same original rank/step row geometry. Both policies retain three isolated prefix layers. Compare two and three adjacent subsequent layers with non-reentrant checkpoint and preserved dropout RNG. Compare the first two AdamW updates and moments, synchronized rank-max timings, actual checkpoint calls, and device allocator peaks.",
+  "rationale": "The original one-versus-two grouping reduced operator window time by 3.0% and increased median peak by about 62.8 MiB. Determine whether three-layer grouping offers a better time and memory tradeoff while keeping a fixed prefix boundary compatible with native DeepStack.",
+  "prerequisite": {
+    "path": "results/bw1000/2026-11-20/fleet592-Qwen-LoRA-paired-layer-original494-398-terminal.json",
+    "bytes": 4771,
+    "SHA256": "d3054d94158be5b6aca35949ed3c664bdd868a562b3e7b2e3b8ac4204f0736c7"
+  },
+  "budget": {
+    "controller_seconds": 880,
+    "client_seconds": 120,
+    "pilot_seconds": 195,
+    "fleet_worker_seconds_from_controller_epoch": 490
+  },
+  "resource_policy": "Retain the eight-card Qwen native node, sixteen unresolved MiniCPM cards, and sixteen previously identified external KFD cards. Former GLM pair nodes have original independent clean terminal checks. Gate all remaining nodes on current Slurm and worker PCI/KFD.",
+  "formal_qualification": "Synthetic projection-level activations with real Qwen LoRA shapes and original row counts. Prefix boundary is modeled, visual embeddings and full frozen model are absent. No formal run, target speedup, or promotion inference.",
+  "shape_source": {
+    "path": "coordination/training/qwen-native-first-updates-reference-v1.json",
+    "bytes": 205875,
+    "SHA256": "69d4d0be56aee01209a219eac96defcd20a3c9b1bf542b7acf047a857b56a578"
+  },
+  "protected_model_cards": 8,
+  "independent_parent_group_sizes": {
+    "1087656": 37,
+    "1103606": 38
+  },
+  "source_parent_commit": "3f50ff794db5d5abdee281ee3193317a67018323",
+  "warm_steps_per_block": 3,
+  "timed_steps_per_block": 20,
+  "pilot_timed_steps_per_block": 2,
+  "original_grouped_behavior": "Closed original one-versus-two test motivates a distinct two-versus-three comparison, with both arms retaining the same three separately checkpointed prefix layers.",
+  "optimizer": {
+    "lr": 0.0001,
+    "betas": [
+      0.9,
+      0.95
+    ],
+    "eps": 1e-08,
+    "weight_decay": 0.1,
+    "clip_norm": 1.0,
+    "addressing": "both arms use identical single foreach AdamW configuration; original scheduler behavior is not modeled"
+  }
+}
