@@ -23,6 +23,11 @@ def require(condition, reason):
         raise ValueError(reason)
 
 
+def verify_dependencies():
+    for module, digest in PINS:
+        require(sha256(Path(module.__file__).read_bytes()).hexdigest() == digest, 'unexpected native clock dependency')
+
+
 class ClientClock(legacy.ClientClock):
     def __init__(self, start_ns):
         super().__init__(start_ns)
@@ -84,6 +89,12 @@ class ClientClock(legacy.ClientClock):
             require(not self.pending.strip(), 'truncated SSE event at EOF')
             self.eof_received = True
 
+    def finish_http_body(self, response):
+        require(self.eof_received, 'expected to consume the HTTP response body first')
+        remaining = getattr(response, 'length', None)
+        self.http_body_truncated = type(remaining) is int and remaining > 0
+        return not self.http_body_truncated
+
     def summary(self):
         result = super().summary()
         wire_complete = self.done_received and self.eof_received and not self.http_body_truncated
@@ -97,8 +108,7 @@ class ClientClock(legacy.ClientClock):
 
 
 def collect_response(response, start_ns, save_read=None):
-    for module, digest in PINS:
-        require(sha256(Path(module.__file__).read_bytes()).hexdigest() == digest, 'unexpected native clock dependency')
+    verify_dependencies()
     clock = ClientClock(start_ns)
     clock.begin_response(response.status)
     if response.status != 200:
@@ -110,6 +120,5 @@ def collect_response(response, start_ns, save_read=None):
             save_read(raw, received_ns)
         clock.feed(raw, received_ns, final=not raw)
         if not raw:
-            remaining = getattr(response, 'length', None)
-            clock.http_body_truncated = type(remaining) is int and remaining > 0
+            clock.finish_http_body(response)
             return clock
