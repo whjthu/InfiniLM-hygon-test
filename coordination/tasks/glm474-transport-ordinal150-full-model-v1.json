@@ -1,0 +1,88 @@
+{
+  "CPU_per_node": 64,
+  "GPU_GO": true,
+  "GPU_cards": 16,
+  "GPU_seconds": 13800,
+  "arm_order": [
+    "socket",
+    "shca"
+  ],
+  "host_manifest_SHA256": "18ced66f710f1a61795587fbaa076f3082cd65a0acdd018125a4e3bf4bffec0d",
+  "inside_seconds": 13500,
+  "max_new_tokens": 4096,
+  "max_runs_per_arm": 1,
+  "memory_MiB_per_node": 224000,
+  "memory_floor_bytes": 8589934592,
+  "model_context": 32768,
+  "native_arms": {
+    "shca": "ad4186d84766a034e7ef4085539cf7c338454e68d629586649cbde235bbede77",
+    "socket": "ad4186d84766a034e7ef4085539cf7c338454e68d629586649cbde235bbede77"
+  },
+  "nodes": [
+    "f13r1n05",
+    "f13r1n07"
+  ],
+  "parent": "1103606",
+  "planned_requests_per_arm": 1,
+  "qualified_model": false,
+  "schema": "glm474-transport-model-claim-v1",
+  "scope": "Two fresh full weight loads on the historical nodes. Only Socket vs SHCA changes between arms; both run the original ordinal 150 through natural EOS or the full 4096 cap. An extra rank-0 logit observation after native greedy samples row 43. Exact 8 GiB floor and independent post-run inventory remain required.",
+  "source_manifest_SHA256": "fa5801e53a0312cd1dd2dd31ab506642e17dbe63daa09fe94f3667747b2ae242",
+  "whole_seconds": 29400,
+  "work_seconds": 13200,
+  "run_id": "62e402dd71fa418ea81f43684863a53c",
+  "request": "ee478d50c5d540d5a1a7f6b903722384",
+  "Model_GO": true,
+  "operator_GO": true,
+  "max_invocations": 1,
+  "replay_allowed": false,
+  "inference_performance_qualified": false,
+  "one_pair_not_formal_quality": true,
+  "distinct_capture_probe": true,
+  "model_asset_pins": {
+    "path": "code/bw1000/GLM-C1-layer-observer-r474/full-model-transport-pair-v1/INPUT_BINDING.json",
+    "bytes": 18447,
+    "SHA256": "81f6b2d68228aafb79993306847b0edb04c1ba101a35ab21bb822ac96ca2ba5e"
+  },
+  "owner": "bw1000/root/I02",
+  "state": "CLAIMED_FULL_MODEL_ORDINAL150_AFTER_FRESH_CPU_ADMISSION",
+  "source_manifest": {
+    "path": "code/bw1000/glm474-transport-ordinal150-full-model-v1/SOURCE_FILES.json",
+    "bytes": 4772,
+    "SHA256": "0be48accd3f17e41c063bd8842d8f5000b5c4bb8253af0182ae90f6643b633a4"
+  },
+  "actual_native_launches": 0,
+  "previous_local_probe": {
+    "path": "code/bw1000/glm474-transport-ordinal150-logit-observer-v1/SOURCE_FILES.json",
+    "bytes": 1201,
+    "SHA256": "d2ebe688e3679879d5c9a4d9c353a938fcff48288908bbc73e13b513ce338e5d"
+  },
+  "previous_model_transport": {
+    "path": "results/bw1000/2026-11-14/GLM474-model-transport-gpu-v1-independent-terminal.json",
+    "bytes": 6473,
+    "SHA256": "f235afa052481619a9498d003a88918dd6b47234583471ae69774f06c751418b"
+  },
+  "current_F32_transport": {
+    "path": "results/bw1000/2026-11-20/GLM-original372-377-F32-native-transport-replication-terminal.json",
+    "bytes": 12316,
+    "SHA256": "47a94020622368abee497a0097e45d51f4e6624bc6b27fdbccb16d6073af3039"
+  },
+  "admission_label": "GLM474-ordinal150-62e402dd71fa418ea81f43684863a53c-admission",
+  "local_checks": {
+    "manifest_count": 35,
+    "wire_real_launcher": true,
+    "host_cpu_admission_good": 1,
+    "host_cpu_admission_blocked": 2,
+    "bash_syntax": 3,
+    "real_slurm_runs": 0
+  },
+  "last_scheduler_observation_before_publish": {
+    "observed": "2026-11-20T03:17:18.139425+00:00",
+    "parents": [
+      "1103606|RUNNING|40|gres/dcu:8|2026-12-13T12:19:17",
+      "1087656|RUNNING|40|gres/dcu:8|2026-12-11T01:38:33"
+    ],
+    "numbered_steps": []
+  },
+  "admission_choice": "Preserve the historical Socket then SHCA order and a single same-input request per arm. Classify early prefix drift or EOS explicitly. No same-node benchmark promotion from the causal load."
+}
