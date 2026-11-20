@@ -41,3 +41,17 @@ python -B tools/vggt_co3d_export_poses.py --platform Hygon --plan PLAN.json --pl
 另一侧使用 `--platform A100` 和 A100 的实际训练头。两个目录各自的 `arm-files.json` 给出外参文件路径、校验值和实际训练头文件的身份。经许可在同一个证据位置使用三组现有文件时，按相对于合并清单的位置填写 `arms` 的路径，连同同计划绑定的真值交给逐对转换器。输出中记录训练头文件 SHA-256，正式验收需同时绑定产生该训练头的完整检查点及运行证据。现有目录和资产保留在各自获准的位置。
 
 本机通过 12 项 CO3D 回归，新增验证帧序、媒体改动、路径逃逸、两组共享一个模型实例及收据兼容。部署文件按 Python 3.10 语法解析通过。推理部分使用测试替身验证交接，当前尚未在 A100 或海光运行此导出器，也未读取原 CO3D 媒体。
+
+## 在原数据位置提前冻结留出集
+
+`tools/vggt_co3d_freeze_holdout.py` 接收已批准位置上的官方评估格式 `*_test.jgz`、实际训练输入帧清单和测试图像根目录。库存 JSON 含 `coordinates=pytorch3d-world-to-view`、`training_frames_SHA256`，以及按类别排序的 `test_annotations`（每项有 `category`、相对 `path` 和 `SHA256`）。训练帧 JSON 含 `case=T12.camera-head`、可追溯的 `training_input_evidence_SHA256` 和 `frames`，每行记录 `category`、`sequence`、`image` 与 `SHA256`。该清单须覆盖参与三组比较的实际训练原件，冻结器仅读其路径与摘要。
+
+默认按官方评估的随机种子 0、序列至少 50 帧和无放回抽 10 帧执行。`frame_id` 是该序列在官方注释数组中的索引。先排除实际训练序列并保留排除计数，再检查选中图像的真实字节 SHA-256。不同路径下与训练图完全相同的内容会导致冻结失败。原图缺失也会停止，不换选其他测试图。外参按官方 PyTorch3D 到 OpenCV 的转换写入真值。自定义 `sampling` 或排除训练序列后的类别范围按本次计划报告。[官方注释预处理](https://github.com/facebookresearch/vggt/blob/4b8be14b574b58c91ecd699122daf3d8004901d4/evaluation/preprocess_co3d.py) · [官方取帧与坐标转换](https://github.com/facebookresearch/vggt/blob/4b8be14b574b58c91ecd699122daf3d8004901d4/evaluation/test_co3d.py)
+
+```text
+python -B tools/vggt_co3d_freeze_holdout.py --inventory INVENTORY.json --inventory-sha256 INVENTORY_SHA --training-frames TRAINING_FRAMES.json --annotations-root ANNOTATIONS_ROOT --media-root CO3D_ROOT --framework-commit FRAMEWORK_COMMIT --output FROZEN
+```
+
+`freeze.json` 固定 `plan.json`、`media.json`、`truth.json` 及其 SHA-256，并记录计划图像对分母和排除原因。三份输入可直接接入上面的导出、外参转换和计分。路径和字节重合检查基于实际训练帧清单的覆盖范围，图像重编码或场景近重复需要独立证据。冻结器在数据现地生成证据，无数据下载或转移操作。
+
+本机 16 项 CO3D 回归通过，新增覆盖相同输入的逐字节确定性、训练序列排除、异名重复字节、以及冻结到 AUC 的完整链路。测试为合成输入，尚未冻结实际 CO3D 媒体或评估真实检查点。
