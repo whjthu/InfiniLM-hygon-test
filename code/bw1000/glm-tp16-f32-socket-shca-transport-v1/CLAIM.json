@@ -1,0 +1,63 @@
+{
+  "owner": "bw1000/root/I02",
+  "request": "b7a07fe00cfe41d98d76c8e93dfb2e9c",
+  "state": "CLAIMED_NATIVE_TP16_F32_TRANSPORT_PAIRED",
+  "operator_GO": true,
+  "Model_GO": false,
+  "max_invocations": 1,
+  "replay_allowed": false,
+  "parent": "1103606",
+  "nodes": [
+    "f13r1n08",
+    "f13r1n09"
+  ],
+  "DCU": 16,
+  "windows": [
+    "pre",
+    "six GPU arms",
+    "post"
+  ],
+  "shapes": [
+    [
+      1,
+      6144
+    ],
+    [
+      512,
+      6144
+    ]
+  ],
+  "dtype": "F32",
+  "fixed_storage_policy": "copy_in_place as on the model path",
+  "order": [
+    "socket",
+    "shca",
+    "shca",
+    "socket",
+    "socket",
+    "shca"
+  ],
+  "five_warmup_per_arm": 5,
+  "measured_calls_per_shape_arm": 20,
+  "whole_seconds": 800,
+  "dtype_source": "Pinned InfiniCCL ABIs and exactly 8 GiB inclusive free memory lower bound",
+  "design": "Only change cross-node transport on the originally verified TP16 F32 SUM replay, including original D2D copy and owner stream fence. Keep same provider except the transport plugin, byte guards, sizes, input values and topology. Verify actual mapped providers, fabric log channels, exact final F32 payload and pre/post device state.",
+  "decision": "Assess the actual F32 model caller transport cost, then relate measured delta to stored call counts as a ceiling. Keep default and no model/service claim until independently reproduced and accepted.",
+  "refs": [
+    {
+      "path": "results/bw1000/2026-11-20/GLM474-original318-F32-collective-copy-vs-disjoint-output.json",
+      "bytes": 10014,
+      "SHA256": "0b93622b3f5622b377f86f3d1e35fdc9296a62b31ff6aa537c74dc209c084573"
+    },
+    {
+      "path": "results/bw1000/2026-11-14/GLM474-TP16-tcp-transport-pair-v2-original-terminal.json",
+      "bytes": 24611,
+      "SHA256": "3f56e6f5426e10aab59df17eea15a8626bdcc844848b3b612869e63cb7b7c558"
+    },
+    {
+      "path": "analysis/bw1000/GLM474-ffn-tp16-f32-collective-caller-contract.json",
+      "bytes": 5077,
+      "SHA256": "749abbcc3b3cc0c1a17691de8bc2ad9443be20039e7123d3fc70c7d38b2c2d00"
+    }
+  ]
+}
