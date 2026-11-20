@@ -1,0 +1,53 @@
+{
+  "owner": "bw1000/root/O01",
+  "request": "8fdc39a1130c4e18895fca2817ecc3f1",
+  "state": "CLAIMED_8_DCU_PILOT_THEN_600_DCU_GROUPED_GRADIENT_ZERO",
+  "operator_GO": true,
+  "formal_training_GO": false,
+  "allocated_cards": 640,
+  "planned_operator_cards": 600,
+  "max_invocations": 1,
+  "replay_allowed": false,
+  "excluded_foreign_KFD_by_parent": {
+    "1087656": [
+      "f11r2n15"
+    ],
+    "1103606": [
+      "f12r2n12"
+    ]
+  },
+  "reserved_native_by_parent": {
+    "1087656": [
+      "f11r4n09",
+      "f11r4n10",
+      "f11r4n12"
+    ],
+    "1103606": []
+  },
+  "allowed_existing_steps": {
+    "1087656": {
+      "node": "f11r4n12",
+      "labels": [
+        "training-sdxl-lora-b-fp32-gradient-full-update-v1",
+        "training-sdxl-lora-b-fp32-gradient-full-update-v1-pre",
+        "training-sdxl-lora-b-fp32-gradient-full-update-v1-post",
+        "training-sdxl-lora-b-fp32-gradient-full-update-v1-failure-post",
+        "training-sdxl-lora-b-fp32-gradient-full-update-v1-compare"
+      ]
+    }
+  },
+  "design": "Original 504 shapes and observed lower-peak retained shared views in both arms. Compare original serial AdamW zero_grad(set_to_none=False) to grouped torch._foreach_zero_, with exactly the same optimizer update and four microbatches. Verify all 504 gradients are zero before accumulation and check full parameters and grads on both initial updates. Record actual grouped invocation counts, clear-region HIP event intervals, all slowest-rank step times and peak allocations. The independent eight-card pilot gates both fleet slices.",
+  "rationale": "The previous 608-card pair lowered peak by 174587648 bytes per card while increasing paired step time 0.646%. Retain that tested allocation choice in both arms and isolate whether grouping the clears reduces observed step cost.",
+  "prerequisite": {
+    "path": "results/bw1000/2026-11-20/fleet608-Qwen-DDP-retained-gradients-original478-363-terminal.json",
+    "SHA256": "2d5eaa4c4723f8ff53db67fb1cbb436b0e8d564916f636bec20a3712404809fd"
+  },
+  "budget": {
+    "controller_seconds": 880,
+    "client_seconds": 905,
+    "pilot_seconds": 195,
+    "fleet_worker_seconds_from_controller_epoch": 490
+  },
+  "resource_policy": "Protect the two external KFD nodes and the two unreconciled MiniCPM nodes. Keep the single SDXL diagnostic node available through its native and CPU comparison lifecycle. All remaining nodes require new pre/post physical card and KFD checks.",
+  "formal_qualification": "Operator check only. No formal model quality or service claims. Keep all pilot, fleet, and denied card or step denominators."
+}
