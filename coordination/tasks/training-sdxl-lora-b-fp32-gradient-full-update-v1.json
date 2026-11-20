@@ -1,0 +1,45 @@
+{
+  "owner": "bw1000/root",
+  "case": "T06.sft",
+  "request": "34f4502eb63d42ccae1425b15b5b7475",
+  "GPU_GO": true,
+  "formal_training_GO": false,
+  "hygon": {
+    "node": "f11r4n12",
+    "parent": "1087656",
+    "DCU": 1,
+    "Slurm_cap_seconds": 780,
+    "whole_host_epoch_seconds": 1200
+  },
+  "hip_policy": {
+    "bf16_reduction": true,
+    "tf32_matmul": false,
+    "tf32_cudnn": true
+  },
+  "original_reference_SHA256": "c59a71095924edfdfb9ad7041b8ef32f747e7825557a313f72ad09a3b0b53036",
+  "intervention": {
+    "hip_raw_prediction_SHA256": "8edb12bd77ea3f7c193513551f904f168bf473239c37a2e23a90e87548a86df3",
+    "lora_b_sites": 560
+  },
+  "complete_optimizer_updates_planned": 1,
+  "trainable_tensors": 1120,
+  "raw_transfer_bytes": 0,
+  "frozen_parameter_update_relative_L2_max": 0.05,
+  "performance_qualified": false,
+  "state": "CLAIMED_FULL_FIRST_UPDATE_WITH_FP32_LORA_B_WEIGHT_GRADIENT",
+  "full_update_scope": "Full original fixed-input HIP UNet update. Test whether rounding in the local LoRA B weight VJP can account for the residual despite identical inputs to each individual VJP.",
+  "attempt_limit": 1,
+  "original_default_failure": {
+    "path": "results/bw1000/2026-11-19/training-sdxl-original398-adamw-gradient-attribution.json",
+    "bytes": 11963,
+    "SHA256": "4454964187fd83ca319aa60c3db97438a10a094df5c656916e64fd1af6162cf6"
+  },
+  "algorithm": "At all 560 actual LoRA B linear modules, reuse the actual local HIP forward operand and output adjoint. Recompute dW as FP32 GEMM and cast once to the original BF16 parameter dtype. Compare the full 1120-parameter clipped AdamW update. The original HIP forward, loss, and other gradient paths remain native.",
+  "prior_failed_intervention": "results/bw1000/2026-11-20/training-sdxl-original475-A100-loss-adjoint-full-update-terminal.json",
+  "prior_local_cancellation_only": "results/bw1000/2026-11-12/training-sdxl-original176-selected-backward-cancellation-and-cost.json",
+  "source_base": "02df6ce16e1edcbf4fa09590fa72cb2b5f7679f9",
+  "manifest": {
+    "path": "code/bw1000/training-sdxl-lora-b-fp32-gradient-full-update-v1/SOURCE_FILES.json",
+    "SHA256": "a37fc3242fe9b0cbcdc32b8bea840037413b256e2433a61d6f4555043395d223"
+  }
+}
