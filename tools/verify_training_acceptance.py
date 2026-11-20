@@ -8,6 +8,7 @@ from training_formal_metrics import (
     stage_three, verify_hunyuan_a100_recorded_updates, verify_hunyuan_dp2_a100_windows,
 )
 from training_A100_engineering_timing import VGGT_CASE, check_generation, check_vggt, check_vlm
+from training_framework_identity import verify_registry_source
 from training_function import verify_function
 from training_numerics import (
     ZERO_LR_VLM_REQUESTS, comparison_plan as numerics_plan, original_vlm_update_schedule, verify_numerics,
@@ -54,8 +55,18 @@ def verify(root):
     require(ids == assigned, "matrix and resource ledger training case identities differ")
     pins = dict(matrix["evidence_SHA256"])
 
+    def pinned_attachment(item):
+        path, digest = item["path"], item["SHA256"]
+        require(pins.setdefault(path, digest) == digest, f"conflicting evidence hashes: {path}")
+        return pinned(path, digest)
+
+    def verify_formal_attachment(item):
+        # Attachments are small summaries or manifests for private experiment receipts.
+        return json.loads(pinned_attachment(item))
+
     registry = matrix.get("live_registry_evidence")
     observed = None
+    verified_registry = None
     require(registry == index.get("live_registry_evidence"), "compute registry evidence index differs")
     if registry is not None:
         path, digest = registry["path"], registry["SHA256"]
@@ -66,19 +77,18 @@ def verify(root):
         require(observed["registry_cases"] == ids and observed["entry_registry_matches_matrix"] is True
                 and observed["registry_order_matches"] is True and not observed["mismatched_launch_or_card_bindings"]
                 and report["verified_registry_bindings"] == case_bindings
-                and report["matrix_framework_commit"] == matrix["framework_commit"]
-                and observed["source"]["framework_commit"] == registry["deployed_framework_commit"]
+                and report["matrix_framework_commit"] == registry["recipe_registration_framework_commit"]
+                and registry["deployed_framework_commit"] == matrix["framework_commit"]
                 and observed["explicit_GPU_allocation"] == observed["training_updates"] == 0,
                 "compute registry evidence differs from the indexed cases or source")
         require(len(report["rows"]) == 1 and report["rows"][0][0] == observed["step"]
                 and report["rows"][0][2:4] == ["COMPLETED", "0:0"],
                 "compute registry evidence has no successful terminal step")
-
-    def verify_formal_attachment(item):
-        path, digest = item["path"], item["SHA256"]
-        require(pins.setdefault(path, digest) == digest, f"conflicting evidence hashes: {path}")
-        # Attachments are small summaries or manifests for private experiment receipts.
-        return json.loads(pinned(path, digest))
+        verified_registry = verify_registry_source(
+            matrix["framework_commit"], matrix["entry"], registry, observed,
+            verify_formal_attachment(registry["source_manifest"]),
+            pinned_attachment(registry["source_entry"]),
+        )
 
     vlm_schedules = {}
     for case in cases:
@@ -175,6 +185,7 @@ def verify(root):
                     and line.split("|")[1].strip() != "用例"]
     require(markdown_ids == ids, "Markdown and JSON training case order differs")
     return {"cases": len(ids), "stage3_passed": index["stage3_passed"], "evidence_files": len(pins),
+            "verified_deployed_registry_source": verified_registry,
             "verified_A100_engineering_medians_updates_per_second": a100_windows,
             "A100_engineering_cases_without_archived_timing_boundary_description": no_boundary_description,
             "A100_engineering_clock_boundaries_verified_from_original_source": sorted(recovered_boundaries['cases']),
