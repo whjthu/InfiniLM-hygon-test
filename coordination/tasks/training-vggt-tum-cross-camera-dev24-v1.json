@@ -8,6 +8,23 @@
     "bytes": 2309
   },
   "provisional_original_RGB224_and_pose_pairs": 3,
+  "development_scorer": {
+    "path": "tools/score_vggt_tum_cross_camera_dev.py",
+    "SHA256": "97902aa58548b8ce71be6e483f42648f82e47e2e7f51fbdd21e2dc21204cde54",
+    "bytes": 12257,
+    "completed_archive_input_preparer": {
+      "path": "tools/prepare_vggt_tum_cross_camera_dev.py",
+      "SHA256": "a6fd259adc0d9269c056d7faf139b99fbc13dc32b7b9257c4e34a68e97b80c74",
+      "bytes": 7433
+    },
+    "planned_windows": 24,
+    "planned_heads": ["base", "1103606.479_continuous25", "1103606.489_continuous25"],
+    "local_regression_tests_passed": 16,
+    "max_device_count": 1,
+    "actual_checkpoint_file_and_module_pins_reconciled": false,
+    "actual_GPU_predictions": 0,
+    "release_for_GPU": false
+  },
   "source_receipt": {
     "path": "results/bw1000/2026-11-21/training-vggt-tum-cross-camera-public-trajectories-dev24.json",
     "SHA256": "befced219000848a7eaaf9e50e2cfa1384a6bdd14cbd7cc4f37d4ff2dee401f6",
@@ -16,7 +33,8 @@
   "pending": [
     "Consume both original archive receipts and complete RGB indexes, then regenerate the final 24-window RGB and motion-evidence manifest.",
     "Verify pose-to-image time matching and exact RGB hashes. Audit scene overlap against train, prior development and sealed household groups.",
-    "Run matched base and existing T12 candidate heads only after frozen RGB/media admission. Preserve failed rows and report separate per-scene effects."
+    "Reconcile actual checkpoint file and active module SHA from the original .479/.489 continuous-step-25 evidence without replaying either completed job.",
+    "Use the fixed 24-window matrix to compare base and both completed heads only after data, checkpoint and device admission. Preserve all rows in AUC@5/15/30 and report per-sequence effects."
   ],
   "data_or_evaluation_scope_only": true,
   "declared_training_ready": false,

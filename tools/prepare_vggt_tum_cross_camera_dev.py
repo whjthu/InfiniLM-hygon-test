@@ -7,7 +7,9 @@ import re
 
 import numpy as np
 
-from bind_vggt_tum_dev_rgb import CALIBRATION, MAX_IMAGE_BYTES, calibration, read_bounded, rectify_rgb, sha
+from bind_vggt_tum_dev_rgb import (
+    CALIBRATION, MAX_IMAGE_BYTES, calibration, read_bounded, rectify_rgb, sha, validate_archive_receipt,
+)
 from plan_vggt_tum_public_dev_trajectories import MAX_TIMESTAMP_ERROR, MIN_TRANSLATION, SOURCES, nearest, parse_trajectory
 
 
@@ -87,6 +89,16 @@ def prepare(source, binding_file, binding_sha, archives, output):
         windows = doc["windows"]
         if [row["window"] for row in windows] != list(range(1, 13)):
             raise ValueError("ordered twelve-window source denominator differs")
+        archive = archives / sequence
+        index = read_bounded(archive / "rgb.txt", 3 * 1024**2)
+        if sha(index) != doc["original_rgb_index_SHA256"]:
+            raise ValueError("bound RGB index differs from the completed official archive")
+        selected = validate_archive_receipt(sequence, archive, index)
+        for row in windows:
+            if row["state"] == "RGB_PNG_BYTES_BOUND" and any(
+                    selected.get(entry["path"]) != {"bytes": entry["bytes"], "SHA256": entry["SHA256"]}
+                    for entry in row["media"]):
+                raise ValueError("RGB pins differ from the completed official archive receipt")
         frozen[sequence] = (doc, poses, [r[0] for r in poses])
 
     output.mkdir(mode=0o700)
