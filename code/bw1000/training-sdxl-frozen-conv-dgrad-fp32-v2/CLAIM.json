@@ -1,0 +1,67 @@
+{
+  "owner": "bw1000/root/T06",
+  "case": "T06.sft",
+  "request": "9aede86323d74badb2f00ecdbf88b5c3",
+  "operator_GO": true,
+  "GPU_GO": true,
+  "formal_training_GO": false,
+  "max_invocations": 1,
+  "replay_allowed": false,
+  "independent_post_required": true,
+  "source_base": "1792c9f1baed3110432c015a9cdd7f57aea80a4c",
+  "hygon": {
+    "node": "f12r3n20",
+    "parent": "1087656",
+    "DCU": 1,
+    "Slurm_cap_seconds": 780,
+    "whole_host_epoch_seconds": 1200
+  },
+  "hip_policy": {
+    "bf16_reduction": true,
+    "tf32_matmul": false,
+    "tf32_cudnn": true
+  },
+  "original_reference_SHA256": "c59a71095924edfdfb9ad7041b8ef32f747e7825557a313f72ad09a3b0b53036",
+  "intervention": {
+    "hip_raw_prediction_SHA256": "8edb12bd77ea3f7c193513551f904f168bf473239c37a2e23a90e87548a86df3",
+    "prior_high_error_blocks": [
+      "down_blocks.2",
+      "up_blocks.0",
+      "mid_block",
+      "down_blocks.1"
+    ]
+  },
+  "original_attribution": {
+    "path": "results/bw1000/2026-11-20/training-sdxl-original528-update-error-by-block.json",
+    "bytes": 7902,
+    "SHA256": "e432d63bbb5a871087d3bc3be0113eef068d06443398513515abd42261e8b2b4"
+  },
+  "frozen_parameter_update_relative_L2_max": 0.05,
+  "trainable_tensors": 1120,
+  "complete_optimizer_updates_planned": 1,
+  "raw_tensor_transfers": 0,
+  "scope": "CPU contract then one true native SFT optimizer update. Preserve the original output bytes and training configuration. Change only input-gradient accumulation for original frozen UNet convolutions to FP32 outside autocast, rounding once to the original input dtype. Restores backend flags after each operation.",
+  "original_robot_cpu_fixture": {
+    "request": "deb8b9428a4f4f14889d8058e942c38a",
+    "directory": "training-sdxl-frozen-conv-dgrad-fp32-v1-deb8b9428a4f4f14889d8058e942c38a",
+    "terminal_SHA256": "4a1b5c48cccf23f34f415ff4dc4d813cdc6f299a8c51396334ece8cfcc3cb7df",
+    "cpu_log_SHA256": "0500ea46a5a8b67611fed58c4a78ace7b3917f4043431737bdc3466c3a860b13",
+    "cpu": [
+      "1087656.535",
+      "training-sdxl-frozen-conv-dgrad-fp32-v1-CPU-contract",
+      "COMPLETED",
+      "0:0",
+      "7",
+      "f12r3n20"
+    ],
+    "receipt_match": true,
+    "shape_rows": [
+      {
+        "cpu_fixture_shapes": 3,
+        "gpu_initialized": false
+      }
+    ]
+  },
+  "lifecycle_change": "Snapshot, assigned worker and launcher use the same exact node and parent. The previous job ended before GPU start.",
+  "gpu_invocations_in_previous_scope": 0
+}
