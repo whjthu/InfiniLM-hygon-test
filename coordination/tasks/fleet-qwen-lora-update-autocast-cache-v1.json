@@ -1,0 +1,76 @@
+{
+  "owner": "bw1000/root/O01",
+  "request": "14038e3b2aaa4e1591c1846b39e0bb58",
+  "state": "CLAIMED_PILOT_THEN_600_DCU_AUTOCAST_WEIGHT_CACHE_ABBA",
+  "operator_GO": true,
+  "formal_training_GO": false,
+  "allocated_cards": 640,
+  "planned_operator_cards": 600,
+  "max_invocations": 1,
+  "replay_allowed": false,
+  "excluded_foreign_KFD_by_parent": {
+    "1087656": [
+      "f11r2n15"
+    ],
+    "1103606": [
+      "f12r2n12"
+    ]
+  },
+  "reserved_native_by_parent": {
+    "1087656": [
+      "f11r4n09",
+      "f11r4n10"
+    ],
+    "1103606": [
+      "f13r1n10"
+    ]
+  },
+  "allowed_existing_steps": {},
+  "design": "Fixed two-layer checkpoint segments and three singleton prefix layers. Both arms run four microbatch forwards under a single BF16 autocast region per update. Disable outward autocast during backward while preserving each checkpoint's own captured recompute context. Exit autocast before clipping and AdamW. Matched ABBA changes only autocast cache_enabled.",
+  "rationale": "Existing checkpoint span work left long windows below 70 percent in the component. Cache reuse tests whether repeating FP32 LoRA parameter casts during the four original microbatches can be reduced without stale values or changing updates.",
+  "prerequisite": {
+    "path": "results/bw1000/2026-11-20/fleet600-Qwen-checkpoint-span-original496-405-terminal.json",
+    "bytes": 5922,
+    "SHA256": "6f3d6e9681d8a6504eb224638fca9627da7aa34f118426aea4b8bb0d8c4eb9c4"
+  },
+  "budget": {
+    "controller_seconds": 880,
+    "client_seconds": 120,
+    "pilot_seconds": 195,
+    "fleet_worker_seconds_from_controller_epoch": 490
+  },
+  "resource_policy": "Retain the eight-card Qwen native node, sixteen unresolved MiniCPM cards, and sixteen previously identified external KFD cards. Former GLM pair nodes have original independent clean terminal checks. Gate all remaining nodes on current Slurm and worker PCI/KFD.",
+  "formal_qualification": "Synthetic projection-level activations with real Qwen LoRA shapes and original row counts. Prefix boundary is modeled, visual embeddings and full frozen model are absent. No formal run, target speedup, or promotion inference.",
+  "shape_source": {
+    "path": "coordination/training/qwen-native-first-updates-reference-v1.json",
+    "bytes": 205875,
+    "SHA256": "69d4d0be56aee01209a219eac96defcd20a3c9b1bf542b7acf047a857b56a578"
+  },
+  "protected_model_cards": 8,
+  "independent_parent_group_sizes": {
+    "1087656": 37,
+    "1103606": 38
+  },
+  "source_parent_commit": "628a4cd0fac66d1726e7de5f48c72f8ff798fbce",
+  "warm_steps_per_block": 3,
+  "timed_steps_per_block": 20,
+  "pilot_timed_steps_per_block": 2,
+  "original_grouped_behavior": "Keep the two-layer grouping fixed. The newly measured three-layer grouping buys only a small component-only speed change while increasing allocated peak.",
+  "optimizer": {
+    "lr": 0.0001,
+    "betas": [
+      0.9,
+      0.95
+    ],
+    "eps": 1e-08,
+    "weight_decay": 0.1,
+    "clip_norm": 1.0,
+    "addressing": "both arms use identical single foreach AdamW configuration; original scheduler behavior is not modeled"
+  },
+  "manifest": {
+    "path": "code/bw1000/fleet-qwen-lora-update-autocast-cache-v1/SOURCE_FILES.json",
+    "bytes": 1490,
+    "SHA256": "9dc7bfec0ccadea53d9a9036fd16c6b4ab2a03c850ec43ebef9cbcc095c19ba4"
+  },
+  "pilot_guard": "Actual target runtime attests both arm states; candidate must preserve both first optimizer updates, gradient, first and second moments and norm alignment in all eight ranks before either fleet step."
+}
