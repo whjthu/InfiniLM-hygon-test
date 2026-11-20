@@ -1,0 +1,43 @@
+{
+  "owner": "bw1000/root/O01",
+  "request": "6c2a4e56550148708f21415e19ed1c8c",
+  "state": "CLAIMED_GRADIENT_RESET_8_DCU_PILOT_THEN_608_DCU_PAIRED_OPERATOR",
+  "operator_GO": true,
+  "formal_training_GO": false,
+  "allocated_cards": 640,
+  "planned_operator_cards": 608,
+  "max_invocations": 1,
+  "replay_allowed": false,
+  "excluded_foreign_KFD_by_parent": {
+    "1087656": [
+      "f11r2n15"
+    ],
+    "1103606": [
+      "f12r2n12"
+    ]
+  },
+  "reserved_native_by_parent": {
+    "1087656": [
+      "f11r4n09",
+      "f11r4n10"
+    ],
+    "1103606": []
+  },
+  "allowed_existing_steps": {},
+  "design": "Fixed 25 MiB buckets and shared gradient views for both arms. ABBA compares AdamW zero_grad(set_to_none=True) to zero_grad(set_to_none=False). All 504 trainable shapes, same synthetic BF16 input, initialization, four microbatches and optimizer. Validate actual gradient existence and allocation after one update and compare all 504 parameters and gradients after both first and second updates. Measure slowest rank wall time, peak and resident allocations. An independently admitted 8-card pilot gates both fleet slices.",
+  "rationale": "The original 608-card run measured 174587648 bytes less steady allocation with shared views and no reduction in peak. Test whether retaining the already-shared views through gradient reset lowers peak or step cost, with original zero_grad as the comparator.",
+  "prerequisite": {
+    "path": "results/bw1000/2026-11-20/fleet608-Qwen-DDP-view-original473-356-terminal.json",
+    "SHA256": "900dbac41496ddeed3b78bd15dbe1dfcb32fe4c7ecd7047f9ee50a96d21beafd"
+  },
+  "budget": {
+    "controller_seconds": 880,
+    "client_seconds": 905,
+    "pilot_seconds": 195,
+    "fleet_worker_seconds_from_controller_epoch": 490
+  },
+  "resource_policy": "Retain two external KFD and two unresolved original MiniCPM node exclusions. Every admitted node requires fresh pre/post KFD and physical PCI checks. Each node is an independent eight-rank RCCL group.",
+  "formal_qualification": "Operator check only. No formal model quality or service claims. Keep all pilot, fleet, and denied card or step denominators.",
+  "manifest": "code/bw1000/fleet-qwen-ddp-retained-gradients-v1/SOURCE_FILES.json",
+  "source_base": "02df6ce16e1edcbf4fa09590fa72cb2b5f7679f9"
+}
