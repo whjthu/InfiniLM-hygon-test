@@ -150,7 +150,8 @@ def read_queue_holds(path):
     return result
 
 
-def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(), now=None, boot_anchor=None):
+def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(), now=None, boot_anchor=None,
+         dispatch_gate=None):
     repo = repo.resolve()
     now = time.monotonic() if now is None else now
     boot_anchor = time.time() - time.monotonic() if boot_anchor is None else boot_anchor
@@ -204,6 +205,8 @@ def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(
                 row['dispatch_state'] = 'awaiting_device_or_port_clearance'
             elif held.intersection(wanted):
                 row['dispatch_state'] = 'awaiting_original_queue_release'
+            elif dispatch_gate is not None and not dispatch_gate(job):
+                row['dispatch_state'] = 'manual_launcher_binding_required'
             elif occupied.intersection(wanted):
                 row['dispatch_state'] = 'awaiting_nonoverlapping_nodes'
             else:
