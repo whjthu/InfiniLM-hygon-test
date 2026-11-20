@@ -1,0 +1,49 @@
+{
+  "owner": "bw1000/root/O01",
+  "request": "1ad64d830b69452ebdae003330d7c0ff",
+  "state": "CLAIMED_8_DCU_PILOT_THEN_608_DCU_NATIVE_ROW_DISTRIBUTION",
+  "operator_GO": true,
+  "formal_training_GO": false,
+  "allocated_cards": 640,
+  "planned_operator_cards": 608,
+  "max_invocations": 1,
+  "replay_allowed": false,
+  "excluded_foreign_KFD_by_parent": {
+    "1087656": [
+      "f11r2n15"
+    ],
+    "1103606": [
+      "f12r2n12"
+    ]
+  },
+  "reserved_native_by_parent": {
+    "1087656": [
+      "f11r4n09",
+      "f11r4n10"
+    ],
+    "1103606": []
+  },
+  "allowed_existing_steps": {},
+  "design": "Use the actual recorded scalar token row count for each of the eight ranks, two first updates and four original input positions. Cycle the two row schedules for 45 measured group updates per arm, fixed seed per rank and same generated BF16 values in both arms. This tests varying strides/late-rank synchronization and peak memory rather than the former uniform 186-row benchmark. Keep the original set-to-none comparator, same grouped clear policy, 25 MiB views, optimizer, full two-update numerical check and ABBA timing.",
+  "rationale": "Direct fixed geometry candidate lowered peak while total time was flat. Variable real per-rank row counts may change rank imbalance, gradient bucket reuse or peak. Qualify exact registered shape distribution for the native Trainer bridge before changing that runner.",
+  "prerequisite": {
+    "path": "results/bw1000/2026-11-20/fleet608-Qwen-DDP-grouped-zero-vs-original484-367-terminal.json",
+    "bytes": 5137,
+    "SHA256": "faa6ae4e346eacbb2b14410a5c1e5d9bbce21259c27a7e32750b15f8a9af0498"
+  },
+  "budget": {
+    "controller_seconds": 880,
+    "client_seconds": 905,
+    "pilot_seconds": 195,
+    "fleet_worker_seconds_from_controller_epoch": 490
+  },
+  "resource_policy": "Retain the two external KFD node and two unreconciled MiniCPM node exclusions. The prior SDXL node has fresh successful independent post cleanup and is eligible for a new full-device admission gate.",
+  "formal_qualification": "Uses original row-count metadata only. Generated activations, isolated component training, no native model or A100 ratio claims.",
+  "shape_source": {
+    "path": "coordination/training/qwen-native-first-updates-reference-v1.json",
+    "bytes": 205875,
+    "SHA256": "69d4d0be56aee01209a219eac96defcd20a3c9b1bf542b7acf047a857b56a578"
+  },
+  "manifest": "code/bw1000/fleet-qwen-ddp-native-row-distribution-v1/SOURCE_FILES.json",
+  "prerequisite_source": "1dda8a605affa08b172a3d3e5f256b04db363e6a"
+}
