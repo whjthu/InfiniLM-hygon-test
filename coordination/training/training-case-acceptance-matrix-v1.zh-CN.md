@@ -43,7 +43,7 @@ Qwen Lt 候选在原八卡工作负载上完成两次更新，Slurm 保留原退
 
 同一个验收入口复算全部 17 项 A100 工程吞吐。五个 VLM 按每轮最慢 rank 的完整窗口计数，八个生成与几何用例按完整窗口计算，含四条 rollout 的强化学习用例统一换算为每秒策略更新数。VGGT 已核对原 tar 中三份结果、三份配置、三份步日志和实际后端，保留原一次训练前失败。HunyuanVideo 继续使用各原用例的计时证据。
 
-这些值用于定位差距和安排同口径测量。HY-Motion 的 128 帧参考尚未闭合。正式阶段三仍逐项要求目标平台三轮、对应 A100 配方以及数值、恢复和留出集效果证据。 [VLM 三轮](../../analysis/bw1000/training-vlm-a100-original-120-rank-windows-v1.json) [生成与几何三轮](../../analysis/bw1000/training-generation-a100-original-24-windows-v1.json) [VGGT 完整时钟](../../analysis/bw1000/training-vggt-a100-original-complete-clock-v2.json)
+这些值用于定位差距和安排同口径测量。HY-Motion 原缓存的 128 是样本数，每条 60 帧。当前归档生产器默认取 60 帧，短样本会补零。201 维目标依赖 MLU body model 重算的关键点，仍缺真实 128 帧及同输入参考。 [原生产器核对](../../results/bw1000/2026-11-21/training-hymotion-real-cache-producer-local-source-and128frame-gap.json)正式阶段三仍逐项要求目标平台三轮、对应 A100 配方以及数值、恢复和留出集效果证据。 [VLM 三轮](../../analysis/bw1000/training-vlm-a100-original-120-rank-windows-v1.json) [生成与几何三轮](../../analysis/bw1000/training-generation-a100-original-24-windows-v1.json) [VGGT 完整时钟](../../analysis/bw1000/training-vggt-a100-original-complete-clock-v2.json)
 
 DDPO 和 MotionRFT 的原结果未填计时边界文字。已校验原 tar 中六份结果、六份更新日志，以及各自实际运行的后端源码摘要。两者都从全局第 6 步 rollout 前开始。DDPO 的计时包含全局第 10、20、25 步检查点及最终 adapter、轨迹索引写入与校验。MotionRFT 的原目录按计时步编号，`checkpoint-10` 和 `checkpoint-20` 分别对应全局第 15、25 步，完整计时还包含最终 adapter、摘要和日志校验。 [原后端计时审计](../../analysis/bw1000/training-a100-ddpo-motionrft-original-clock-boundaries-v1.json)
 

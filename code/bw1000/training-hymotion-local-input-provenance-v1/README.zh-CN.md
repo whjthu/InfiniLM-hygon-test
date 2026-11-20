@@ -1,0 +1,11 @@
+# T08 原缓存生产链的本机源码实证
+
+本包读取已有本地冻结归档中的精确三个成员，并与共同393文件清单逐SHA核对，不重读旧运行终态、缓存、NPY或权重。`check_source.py` 已实际在本机完成AST语义校验；不导入或执行生产器、Torch或模型。
+
+- 生产器16055B/7a8fceef0d4ba30c6676881d3c7dc59fed4c73b54e292d14b57bcdba1c40a203：默认frames60/min_frames40；选中长度为min(rawpair长度,requestedframes)，短于请求长度时补零。主流程先把135维动作送MLU body_model重新生成66维keypoints，再组成201维，不是直接把原new_joints当最终66维目标。因此把长度参数改128、补零或直接拼原NPY均不能冒原配方的真实128帧资格。
+- Flow Matching backend49094B/e23a88e0b78ec16ef76e7c4eb0b254452f0c21a4013f5c5be4cf5dec96e7bb27：实际缓存motion形状必须为(cache.frames,201)，vtxt末维768、ctxt末维4096，另保length。元数据仍不能代替实际张量值/有限性验证。
+- MotionRFT backend63742B/c98c52e8b24dd73862beb9e9231f5008ee83698a8f3e477836cd1d0da2d8e603：实际采样帧数直接来自sample.motion.shape[0]，噪声形状(1,frames,201)。4条rollout和4个采样步不代表128帧；其真实参考与功能、奖励和更新资格仍独立。
+
+任务台账已记录原训练manifest f7c83fd55fd0ff374671b02b5d878b1579d8865805f7525a329b3e6ad2718508对应60帧、201维、128样本；声明的首对原NPY exact paths已实际缺失。这里仅引用台账，不再次读取旧终态或查询原路径。当前local-only相应目录只有原源码/JSON/头部只读范围，没有本轮可合法消费的真实motion/cache正文；没有扫描其它磁盘或据此断言全电脑不存在副本。
+
+必须补的原件：可用且获许可的真实>=128帧源动作对及其原始拆分/完整SHA、body_model/归一化统计/文本条件身份，以及可执行且已资格的生产平台。新缓存需绑定真实frames/length/shard值和对应A100首步/恢复参考。原60帧128样本缓存不能重命名成128帧参考，也不能从shape推断真实动作内容。本轮没有足够本地数据前移真实训练准入，READY增量0；没有新下载、SSH、GPU、训练、共享status或Git写入。
