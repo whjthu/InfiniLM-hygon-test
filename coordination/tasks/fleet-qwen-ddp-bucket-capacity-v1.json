@@ -1,0 +1,50 @@
+{
+  "owner": "bw1000/root/O01",
+  "request": "a4c79bc038de4a4ca5a9da80d70b084d",
+  "state": "CLAIMED_DDP_BUCKET_CAPACITY_ON_QWEN_TRAINABLE_GEOMETRY",
+  "operator_GO": true,
+  "formal_training_GO": false,
+  "allocated_cards": 640,
+  "planned_operator_cards": 608,
+  "max_invocations": 1,
+  "replay_allowed": false,
+  "excluded_foreign_KFD_by_parent": {
+    "1087656": [
+      "f11r2n15"
+    ],
+    "1103606": [
+      "f12r2n12"
+    ]
+  },
+  "reserved_native_by_parent": {
+    "1087656": [
+      "f11r4n09",
+      "f11r4n10"
+    ],
+    "1103606": []
+  },
+  "allowed_existing_steps": {},
+  "caller": {
+    "case": "T01 Qwen3-VL",
+    "reference": "coordination/training/qwen-native-first-updates-reference-v1.json",
+    "SHA256": "69d4d0be56aee01209a219eac96defcd20a3c9b1bf542b7acf047a857b56a578",
+    "trainable_tensors": 504,
+    "trainable_elements": 43646976
+  },
+  "prior_operator_scope": "Earlier tests packed a single pair of LoRA gradients. This claim compares the real DDP reducer bucket policy at the full trainable tensor count with four accumulated microbatches.",
+  "design": "Use independent intra-node eight-rank DDP process groups, ABBA 25/8/8/25 MiB, identical rank inputs and parameters between arms, 1 device numerical update and 3 warm and 15 timed updates per block, reported at the slowest rank. The 8-card pilot reduces the counts to 1/1/2. The actual DDP bucket metadata is recorded.",
+  "environment": "Pinned original DTK sandbox and RCCL. Generated repeatable inputs, complete shape-defined LoRA-only forward/backward and AdamW, no frozen full model.",
+  "exclusions": "Keep old MiniCPM original request reservations and two previously observed external KFD holders. Node worker independently checks current KFD and PCI.",
+  "deadlines": {
+    "controller_seconds": 880,
+    "pilot_seconds": 195,
+    "client_seconds": 905,
+    "worker_deadline": "original controller epoch +490"
+  },
+  "formal_qualification": "No native full-model numeric, A100 throughput, recovery, held-out or Stage3 claims.",
+  "source_manifest": {
+    "path": "code/bw1000/fleet-qwen-ddp-bucket-capacity-v1/SOURCE_FILES.json",
+    "SHA256": "d82cb3e530d9332001ac51f50550a91152e09b929294bd3adbae8898bafa769e"
+  },
+  "actual_steps": null
+}
