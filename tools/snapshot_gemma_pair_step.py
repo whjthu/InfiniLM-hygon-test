@@ -26,12 +26,18 @@ def remaining_owned_ranks(root, request, gpu_step):
     live = []
     evidence = {}
     identities = set()
+    complete = True
     for arm, kind in (("continuous", "continuous-witness"), ("resumed", "resume-witness")):
-        outcome = read_receipt(root, Path(arm) / "native-outcome.json", evidence)
-        require(outcome["step"] == gpu_step and outcome["request_id"] == request
-                and outcome["passed"] is True and outcome["owned_processes_remaining"] == 0
-                and len(outcome["ranks"]) == 8 and {row["rank"] for row in outcome["ranks"]} == set(range(8)),
-                "missing or mismatched original native owner registry")
+        try:
+            outcome = read_receipt(root, Path(arm) / "native-outcome.json", evidence)
+        except FileNotFoundError:
+            complete = False
+            continue
+        require(outcome["step"] == gpu_step and outcome["request_id"] == request,
+                "mismatched original native owner registry")
+        if (outcome["passed"] is not True or outcome["owned_processes_remaining"] != 0
+                or len(outcome["ranks"]) != 8 or {row["rank"] for row in outcome["ranks"]} != set(range(8))):
+            complete = False
         for rank in outcome["ranks"]:
             path = Path(arm) / "train" / kind / f"rank-{rank['rank']:02d}" / "owner.json"
             owner = read_receipt(root, path, evidence)
@@ -42,7 +48,7 @@ def remaining_owned_ranks(root, request, gpu_step):
             identities.add(identity)
             if own_process_still_present(owner):
                 live.append(owner["PID"])
-    return live
+    return complete, live
 
 
 def capture(repo, root, intent_sha, phase):
@@ -78,12 +84,13 @@ def capture(repo, root, intent_sha, phase):
         gpu_step = bound_step(gpu, intent["request_id"], intent_sha)
         require(len({pre_step, gpu_step, step}) == 3 and gpu["pre_step"] == pre_step
                 and gpu["before_SHA256"] == evidence["before.json"], "cleanup is not bound to the original pre/GPU steps")
+        complete, live = remaining_owned_ranks(root, intent["request_id"], gpu_step)
         snapshot.update(gpu_step=gpu_step, gpu_step_binding_SHA256=evidence["gpu-step-binding.json"],
-                        owned_registry_present=True,
-                        owned_processes_remaining=remaining_owned_ranks(root, intent["request_id"], gpu_step))
+                        owned_registry_present=complete, owned_processes_remaining=live if complete else None,
+                        observed_owned_processes_remaining=live)
     write_json(root / ("before.json" if phase == "pre" else "after.json"), snapshot)
     return (snapshot["master_port_available"] and snapshot["kfd_holder_count"] == 0
-            and not snapshot.get("owned_processes_remaining", []))
+            and (phase == "pre" or snapshot["owned_processes_remaining"] == []))
 
 
 def seal_accounting(root, intent_sha, accounting):

@@ -5,11 +5,19 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from snapshot_gemma_pair_step import capture, seal_accounting
+from snapshot_gemma_pair_step import capture, remaining_owned_ranks, seal_accounting
 from test_read_gemma_domain_terminal import LABEL, NODE, REQUEST, digest, fixture, write_json
 
 
 class GemmaStepBinding(unittest.TestCase):
+    def test_missing_resumed_owner_receipt_leaves_cleanup_unqualified(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            fixture(root)
+            (root / "resumed/native-outcome.json").unlink()
+            with patch("snapshot_gemma_pair_step.own_process_still_present", return_value=False):
+                self.assertEqual(remaining_owned_ranks(root, REQUEST, "1103606.811"), (False, []))
+
     def test_preflight_persists_only_its_assigned_step(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp).resolve()
