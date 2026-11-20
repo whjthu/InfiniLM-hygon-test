@@ -1,0 +1,74 @@
+{
+  "owner": "bw1000/root/O01",
+  "request": "d2a9422bc4c644ed93adda4570668daa",
+  "state": "CLAIMED_8_DCU_PILOT_THEN_592_DCU_CHECKPOINT_EARLY_STOP",
+  "operator_GO": true,
+  "formal_training_GO": false,
+  "allocated_cards": 640,
+  "planned_operator_cards": 592,
+  "max_invocations": 1,
+  "replay_allowed": false,
+  "excluded_foreign_KFD_by_parent": {
+    "1087656": [
+      "f11r2n15"
+    ],
+    "1103606": [
+      "f12r2n12"
+    ]
+  },
+  "reserved_native_by_parent": {
+    "1087656": [
+      "f11r4n09",
+      "f11r4n10"
+    ],
+    "1103606": [
+      "f13r1n05",
+      "f13r1n07"
+    ]
+  },
+  "allowed_existing_steps": {
+    "1103606": {
+      "nodes": [
+        "f13r1n05",
+        "f13r1n07"
+      ],
+      "labels": [
+        "GLM474-pair-62e402dd71fa418ea81f43684863a53c-socket-pre",
+        "GLM474-pair-62e402dd71fa418ea81f43684863a53c-socket-gate",
+        "GLM474-pair-62e402dd71fa418ea81f43684863a53c-socket-post",
+        "GLM474-pair-62e402dd71fa418ea81f43684863a53c-shca-pre",
+        "GLM474-pair-62e402dd71fa418ea81f43684863a53c-shca-gate",
+        "GLM474-pair-62e402dd71fa418ea81f43684863a53c-shca-post"
+      ]
+    }
+  },
+  "design": "Rank-16 Qwen-shaped LoRA with original dropout 0.05 and original per-rank microbatch row counts in intra-node eight-rank DDP. ABBA non-reentrant Torch checkpoint full recompute versus early-stop recompute, both preserving RNG. Record elapsed synchronized rank-max, peak allocated memory, full first two numerical updates and moments.",
+  "rationale": "Qwen training enables checkpointing and LoRA dropout. A test on the exact repeated projection geometries establishes any available recompute savings and whether saved RNG preserves updates, before touching full-model numerics.",
+  "prerequisite": {
+    "path": "results/bw1000/2026-11-20/Qwen-DDP-BF16-1103606-386-pilot-failed-no-fleet.json",
+    "bytes": 5928,
+    "SHA256": "21abf7564f931298206ec71afb91c456000df81647b295275de2b6db97947f6b"
+  },
+  "budget": {
+    "controller_seconds": 880,
+    "client_seconds": 120,
+    "pilot_seconds": 195,
+    "fleet_worker_seconds_from_controller_epoch": 490
+  },
+  "resource_policy": "Keep original GLM protected nodes, the two external KFD nodes and original unknown MiniCPM reservations. Equal source and resources for both arms. 72 GiB host/node; each node gates PCI and KFD before device use.",
+  "formal_qualification": "Uses original row-count metadata only. Generated activations, isolated component training, no native model or A100 ratio claims.",
+  "shape_source": {
+    "path": "coordination/training/qwen-native-first-updates-reference-v1.json",
+    "bytes": 205875,
+    "SHA256": "69d4d0be56aee01209a219eac96defcd20a3c9b1bf542b7acf047a857b56a578"
+  },
+  "protected_model_cards": 16,
+  "independent_parent_group_sizes": {
+    "1087656": 37,
+    "1103606": 37
+  },
+  "source_parent_commit": "7e687790141d65d7ad725d208012b2c88d63d748",
+  "warm_steps_per_block": 3,
+  "timed_steps_per_block": 20,
+  "pilot_timed_steps_per_block": 2
+}
