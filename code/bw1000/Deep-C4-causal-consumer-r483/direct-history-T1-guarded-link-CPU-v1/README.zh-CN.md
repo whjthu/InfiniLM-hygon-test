@@ -5,3 +5,5 @@
 根调度调用 `launch.py` 的 `main(publication, transport)`，依赖现有认证的 HOST Python 3.12 回调。保留正式启动回执中的 PID、起始 ticks 和原请求。目标端容器在执行前重核清单和所有已发布源码字节。运行先留下 `intent.json`，然后保存链接计划、尝试标记、工具日志和 `CPU-result.json`。已创建的命名空间一律对账。
 
 独立接收原 Slurm 终态和输出的 SHA-256 后才能消费本轮结果。`CPU-result.json` 的通过表示只读 ELF 核验通过。实际设备测量仍须核对 `dladdr` 的提供方和七个原模型权重范围。本轮申请零卡，探针、权重和模型的设备资格单列。
+
+归档原 `sacct -nP -o JobIDRaw,JobName%100,State%40,ExitCode,ElapsedRaw,NodeList,AllocTRES%160` 回执后，用 `tools/read_deep_c4_direct_history_link_terminal.py --root <原HOST项目目录> --publication <实际派发提交> --accounting <原回执>` 核对。运行中或无记账行时保留原请求，终态失败仍记录结果可见性。成功时只读取原 CPU 链接回执、尝试、计划、上游 `.487` 回执和探针产物，保留各项 SHA-256。
