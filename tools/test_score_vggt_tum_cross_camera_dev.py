@@ -68,7 +68,10 @@ class CrossCameraScoringTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary) / "heads.json"
             pins = {arm: dict(gpu_step=job, request=request, clean_post=post, training_receipt_SHA256=receipt,
-                              global_step=25, file_SHA256="1" * 64, module_SHA256="2" * 64)
+                              global_step=25, file_SHA256="1" * 64, module_SHA256="2" * 64,
+                              original_outcome_SHA256="3" * 64, original_combined_native_SHA256="4" * 64,
+                              original_continuous_result_SHA256="5" * 64,
+                              actual_checkpoint_bytes_read=0, head_bytes_stat=128)
                     for arm, (job, request, post, receipt) in ARMS.items()}
             raw = json.dumps(pins).encode()
             path.write_bytes(raw)

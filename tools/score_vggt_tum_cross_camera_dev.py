@@ -6,24 +6,17 @@ import io
 import json
 import os
 from pathlib import Path
-import re
 import sys
 from time import perf_counter
 
 import numpy as np
 
 from bind_vggt_tum_dev_rgb import CALIBRATION, calibration, read_bounded, sha
+from bind_vggt_tum_cross_camera_heads import ARMS, HEAD, is_sha
 from plan_vggt_tum_public_dev_trajectories import MIN_TRANSLATION
 
 
-ARMS = {
-    "alternate25": ("1103606.479", "284947fbeb044a3f994f2627d04421cf", "1103606.485",
-                    "759025dc9cd5e7ab64de3b4c89c67bd37983ddaa0e5edf67bfaff56fc6ea7cb7"),
-    "lowlr25": ("1103606.489", "a0a20903a5f345d683cc1e8459b89800", "1103606.491",
-                "e6159f1dad48df4f49e36363b3bb28e04bbac473afaeb98de21b71589cd2f72f"),
-}
 WINDOWS = {(seq, window) for seq in CALIBRATION for window in range(1, 13)}
-HEAD = "arms/continuous/train/camera_head.pt"
 TORCH_VERSION = "2.10.0+das.opt1.dtk2604.2606161421.g91a580"
 HIP_VERSION = "6.3.26113"
 BACKEND_SHA = "49bfe39b7aa6a14df9fdf1dda73e6db00836a81d2806012b312c16b2d3fbed6c"
@@ -106,8 +99,11 @@ def read_heads(path, wanted):
         required = (proof["gpu_step"], proof["request"], proof["clean_post"], proof["training_receipt_SHA256"])
         if required != ARMS[arm] or proof.get("global_step") != 25:
             raise ValueError("head evidence differs from the original training job and step")
-        if any(re.fullmatch(r"[a-f0-9]{64}", proof[key]) is None for key in ("file_SHA256", "module_SHA256")):
-            raise ValueError("head evidence requires actual content and training-receipt digests")
+        if (any(not is_sha(proof[key]) for key in ("file_SHA256", "module_SHA256", "original_outcome_SHA256",
+                                                  "original_combined_native_SHA256", "original_continuous_result_SHA256"))
+                or type(proof["head_bytes_stat"]) is not int or proof["head_bytes_stat"] <= 0
+                or proof["actual_checkpoint_bytes_read"] != 0):
+            raise ValueError("head evidence requires original result lineage and a declared artifact identity")
     return pins
 
 
@@ -147,11 +143,13 @@ def measure(cases, arm, model, torch, decode, score, autocast, synchronize, reco
         record(dict(sequence=result["sequence"], window=result["window"], arm=arm, result=result[arm]))
 
 
-def load_pinned_state(torch, path, expected):
+def load_pinned_state(torch, path, expected, expected_size=None):
     if path.resolve(strict=True) != path.absolute() or not path.is_file():
         raise ValueError("expected an unaliased model state file")
     with path.open("rb") as stream:
         stat = os.fstat(stream.fileno())
+        if expected_size is not None and stat.st_size != expected_size:
+            raise ValueError("model state file size differs from original head evidence")
         digest = hashlib.sha256()
         for chunk in iter(lambda: stream.read(1024**2), b""):
             digest.update(chunk)
@@ -198,7 +196,7 @@ def evaluate(args, cases, rows, heads, original, record):
     for arm in ("base", *ARMS):
         if arm != "base":
             proof, path = heads[arm], roots[arm] / HEAD
-            state = load_pinned_state(torch, path, proof["file_SHA256"])
+            state = load_pinned_state(torch, path, proof["file_SHA256"], proof["head_bytes_stat"])
             model.camera_head.load_state_dict(state, strict=True)
             del state
         expected = original["BASE_HEAD"] if arm == "base" else heads[arm]["module_SHA256"]
