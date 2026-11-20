@@ -1,0 +1,74 @@
+{
+  "owner": "bw1000/root/O01",
+  "request": "e0c7bb10bc544d838aeb665126fb905",
+  "state": "CLAIMED_8_DCU_PILOT_THEN_592_DCU_BF16_REDUCTION",
+  "operator_GO": true,
+  "formal_training_GO": false,
+  "allocated_cards": 640,
+  "planned_operator_cards": 592,
+  "max_invocations": 1,
+  "replay_allowed": false,
+  "excluded_foreign_KFD_by_parent": {
+    "1087656": [
+      "f11r2n15"
+    ],
+    "1103606": [
+      "f12r2n12"
+    ]
+  },
+  "reserved_native_by_parent": {
+    "1087656": [
+      "f11r4n09",
+      "f11r4n10"
+    ],
+    "1103606": [
+      "f13r1n05",
+      "f13r1n07"
+    ]
+  },
+  "allowed_existing_steps": {
+    "1103606": {
+      "nodes": [
+        "f13r1n05",
+        "f13r1n07"
+      ],
+      "labels": [
+        "GLM474-pair-62e402dd71fa418ea81f43684863a53c-socket-pre",
+        "GLM474-pair-62e402dd71fa418ea81f43684863a53c-socket-gate",
+        "GLM474-pair-62e402dd71fa418ea81f43684863a53c-socket-post",
+        "GLM474-pair-62e402dd71fa418ea81f43684863a53c-shca-pre",
+        "GLM474-pair-62e402dd71fa418ea81f43684863a53c-shca-gate",
+        "GLM474-pair-62e402dd71fa418ea81f43684863a53c-shca-post"
+      ]
+    }
+  },
+  "design": "Original 8-rank row-count schedules, four BF16 microbatches with no_sync for the first three. Same saved synthetic activation and target seed per arm. ABBA, fixed update counts; record full synchronized step wall time and forward/backward GPU event spans separately.",
+  "rationale": "Grouping reduced optimizer time 63.6% but total DDP update by 1.0%. Test whether gradient communication precision is a detectable lever in the remaining critical path.",
+  "prerequisite": {
+    "path": "results/bw1000/2026-11-20/fleet592-Qwen-DDP-fused-AdamW64-original487-383-terminal.json",
+    "bytes": 8561,
+    "SHA256": "330b4e64727350627c505b71a73b747ddff4df2d79d63ace640b77a5169d7778"
+  },
+  "budget": {
+    "controller_seconds": 880,
+    "client_seconds": 120,
+    "pilot_seconds": 195,
+    "fleet_worker_seconds_from_controller_epoch": 490
+  },
+  "resource_policy": "Reserve both original GLM nodes through its complete serial pair. Preserve two unresolved MiniCPM nodes and two recorded foreign KFD nodes. Every admitted worker checks current KFD ownership and eight exact PCI identifiers before HIP initialization.",
+  "formal_qualification": "Component with controlled generated activations only. No accuracy, formal training, service, or cross-node claims.",
+  "shape_source": {
+    "path": "coordination/training/qwen-native-first-updates-reference-v1.json",
+    "bytes": 205875,
+    "SHA256": "69d4d0be56aee01209a219eac96defcd20a3c9b1bf542b7acf047a857b56a578"
+  },
+  "protected_model_cards": 16,
+  "independent_parent_group_sizes": {
+    "1087656": 37,
+    "1103606": 37
+  },
+  "source_parent_commit": "a46c80352c9c61636f8753a0de80c50d1fd0a7f6",
+  "candidate": "Installed PyTorch DDP bf16_compress_hook. Compress bucket and restore FP32 before the unchanged optimizer.",
+  "baseline": "Default DDP FP32 gradient all-reduce, single foreach AdamW identical to candidate.",
+  "numerical_gate": "All ranks and both real updates must stay within 5e-5 parameter/gradient and 5e-6 moment max absolute; all 504 step counters exact. Failed pilot bars fleet launch."
+}
