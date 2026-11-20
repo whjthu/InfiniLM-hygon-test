@@ -1,0 +1,87 @@
+{
+  "owner": "bw1000/root/O01",
+  "request": "a1dfb8db2db6468fb358a70bd09d3a67",
+  "state": "CLAIMED_ADAMW64_DDP_PILOT_THEN_592_DCU",
+  "operator_GO": true,
+  "formal_training_GO": false,
+  "allocated_cards": 640,
+  "planned_operator_cards": 592,
+  "max_invocations": 1,
+  "replay_allowed": false,
+  "excluded_foreign_KFD_by_parent": {
+    "1087656": [
+      "f11r2n15"
+    ],
+    "1103606": [
+      "f12r2n12"
+    ]
+  },
+  "reserved_native_by_parent": {
+    "1087656": [
+      "f11r4n09",
+      "f11r4n10"
+    ],
+    "1103606": [
+      "f13r1n05",
+      "f13r1n07"
+    ]
+  },
+  "allowed_existing_steps": {
+    "1103606": {
+      "nodes": [
+        "f13r1n05",
+        "f13r1n07"
+      ],
+      "labels": [
+        "GLM474-pair-62e402dd71fa418ea81f43684863a53c-socket-pre",
+        "GLM474-pair-62e402dd71fa418ea81f43684863a53c-socket-gate",
+        "GLM474-pair-62e402dd71fa418ea81f43684863a53c-socket-post",
+        "GLM474-pair-62e402dd71fa418ea81f43684863a53c-shca-pre",
+        "GLM474-pair-62e402dd71fa418ea81f43684863a53c-shca-gate",
+        "GLM474-pair-62e402dd71fa418ea81f43684863a53c-shca-post"
+      ]
+    }
+  },
+  "design": "Compare the isolated qualified fused AdamW 64-tensor policy to native foreach AdamW under independent eight-rank DDP groups with original Qwen rank/update row-count schedules, four BF16 microbatches, original set-to-none, synchronized ABBA and separately timed GPU optimizer events. Verify two complete updates and optimizer moments/counters first.",
+  "rationale": "The prior isolated optimizer found a faster fused update. Its critical-path effect and device-memory cost with real DDP buckets, accumulated gradients and the original rank skew remain unmeasured.",
+  "prerequisite": {
+    "path": "results/bw1000/2026-11-20/fleet608-Qwen-DDP-native-rows-original486-370-terminal.json",
+    "bytes": 5988,
+    "SHA256": "77a5a51c27c4e45fbd9ab0d415d9e5dcab43a5fdfea9a864ae9c5a6bc5203f99"
+  },
+  "budget": {
+    "controller_seconds": 880,
+    "client_seconds": 120,
+    "pilot_seconds": 195,
+    "fleet_worker_seconds_from_controller_epoch": 490
+  },
+  "resource_policy": "Reserve both original GLM nodes through its complete serial pair. Preserve two unresolved MiniCPM nodes and two recorded foreign KFD nodes. Every admitted worker checks current KFD ownership and eight exact PCI identifiers before HIP initialization.",
+  "formal_qualification": "Uses original row-count metadata only. Generated activations, isolated component training, no native model or A100 ratio claims.",
+  "shape_source": {
+    "path": "coordination/training/qwen-native-first-updates-reference-v1.json",
+    "bytes": 205875,
+    "SHA256": "69d4d0be56aee01209a219eac96defcd20a3c9b1bf542b7acf047a857b56a578"
+  },
+  "protected_model_cards": 16,
+  "optimizer_prerequisite": {
+    "path": "results/bw1000/2026-11-19/qwen-adamw-size-sweep-original444-244-terminal.json",
+    "bytes": 2579,
+    "SHA256": "bcb6d780d2b8fe3c0f195d13bb4a824689984ae598e21c06a92ef4800f51dade"
+  },
+  "reference_optimizer": "torch.optim.AdamW foreach True, fused False",
+  "candidate_optimizer": "torch.optim.AdamW fused True, foreach False, consecutive groups at most 64 tensors",
+  "independent_parent_group_sizes": {
+    "1087656": 37,
+    "1103606": 37
+  },
+  "source_parent_commit": "eea2b60cd23eb67d9d8c52d2910b3da8c41b9cf2",
+  "local_controller_gate_checks": {
+    "accepted": 2,
+    "rejected": 3
+  },
+  "manifest": {
+    "path": "code/bw1000/fleet-qwen-ddp-fused-adamw64-v1/SOURCE_FILES.json",
+    "bytes": 1489,
+    "SHA256": "773f4c089a40ecd205ea1f31ca5c2b472e9f08cc79820de85977e3d71d0017f3"
+  }
+}
