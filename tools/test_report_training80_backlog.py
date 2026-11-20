@@ -128,15 +128,20 @@ class BacklogTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'duplicate semantic scope'):
             self.run_plan(first, second)
         self.put(first['launch']['publication_receipt']['path'], dict(incorrect=True))
-        with self.assertRaisesRegex(ValueError, 'evidence SHA256'):
-            self.run_plan(first)
+        result = self.run_plan(first)
+        self.assertEqual(result['rows'][0]['candidate_state'], 'invalid_launch_evidence')
+        self.assertIn('evidence SHA256', result['rows'][0]['launch_evidence_error'])
 
     def test_frozen_manifest_without_its_original_member_bytes_is_rejected(self):
         job = self.trial()
         target = Path(job['launch']['manifest']['path']).parent / 'config.json'
         self.put(target, dict(context=2048))
-        with self.assertRaisesRegex(ValueError, 'source member bytes differ: config.json'):
-            self.run_plan(job)
+        valid = self.trial(2)
+        result = self.run_plan(job, valid)
+        self.assertEqual(result['rows'][0]['candidate_state'], 'invalid_launch_evidence')
+        self.assertIn('source member bytes differ: config.json', result['rows'][0]['launch_evidence_error'])
+        self.assertEqual(result['outstanding_training_ready'], 1)
+        self.assertEqual(result['proposed_for_root'], [valid['id']])
 
     def test_receipt_payload_and_boot_anchor_checked(self):
         job = self.trial()

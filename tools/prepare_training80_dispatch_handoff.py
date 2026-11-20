@@ -59,6 +59,8 @@ def build_handoff(snapshot, backlog, *, repo=REPO, holds=(), selected=None, now=
     packets = []
     unsupported = [row['id'] for row in report['rows']
                    if row['dispatch_state'] == 'manual_launcher_binding_required']
+    invalid_evidence = {row['id']: row['launch_evidence_error'] for row in report['rows']
+                        if row['dispatch_state'] == 'invalid_launch_evidence'}
     if proposed:
         receipt = snapshot['local_receipt']
         expires = receipt['received_monotonic'] + SNAPSHOT_MAX_AGE_S - receipt['roundtrip_s']
@@ -89,7 +91,8 @@ def build_handoff(snapshot, backlog, *, repo=REPO, holds=(), selected=None, now=
                 blocked_training=[{key: row[key] for key in ('id', 'case', 'candidate_state', 'next_action')}
                                   for row in report['rows'] if row['kind'] == 'training' and
                                   row['candidate_state'] in ('blocked', 'reconcile')],
-                coordinator_handoffs=packets, manual_launcher_binding_required=unsupported)
+                coordinator_handoffs=packets, manual_launcher_binding_required=unsupported,
+                invalid_launch_evidence=invalid_evidence)
 
 
 def main():

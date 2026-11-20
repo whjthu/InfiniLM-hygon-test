@@ -224,13 +224,17 @@ def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(
             request_ids.add(request)
             row['request'] = request
         if state == 'ready':
-            state = verify_launch(repo, job)
-            if state == 'ready':
-                invocation_plan = invocation(repo, job)
-                if invocation_plan is None:
-                    state = 'manual_launcher_binding_required'
-                else:
-                    row['invocation'] = invocation_plan
+            try:
+                state = verify_launch(repo, job)
+                if state == 'ready':
+                    command = invocation(repo, job)
+                    if command is None:
+                        state = 'manual_launcher_binding_required'
+                    else:
+                        row['invocation'] = command
+            except (OSError, ValueError, SyntaxError) as exc:
+                state = 'invalid_launch_evidence'
+                row['launch_evidence_error'] = str(exc)
         row['candidate_state'] = state
         row['dispatch_state'] = state
         if state == 'ready':
