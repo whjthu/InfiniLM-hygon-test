@@ -86,7 +86,7 @@ def consume(context):
              and [x["global_step"] for x in r["steps"]]==list(range(21,26))
              and c["saved_checkpoints"]==[10,20,25] and r["saved_checkpoints"]==[25])
         need(all(x["optimizer_slot_count"]==504 and x["optimizer_step_min"]==x["optimizer_step_max"]==x["global_step"] for x in c["steps"]))
-        need(c["steps"][0]["adapter_changed"] is True)
+        need(all(type(x["adapter_changed"]) is bool for x in c["steps"]) and any(x["adapter_changed"] for x in c["steps"]))
         need(record("resumed","native-data-skip.json")==dict(rank=rank,before=100,skipped=80,after=20))
         restored=record("resumed","restored-before-RNG.json")
         saved_rng=record("continuous","checkpoint-20-rng.json")

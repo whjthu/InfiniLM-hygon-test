@@ -17,6 +17,7 @@ from vlm.runtime.first_update_capture import cpu, remaining
 from vlm.runtime.initial_trainables import restore_initial_trainables
 from vlm.runtime.native_recipe_contract import validate_native_recipe
 from vlm.runtime.resume_witness import ResumeWitness, optimizer_fingerprint, rng_fingerprint, rng_values
+from update_contract import check_update,check_complete
 
 
 ORIGINAL_BINDING_SHA256 = "9c9ba809529c73098e71f93ad1bf4744cb84079160f7062a540e7a37cb144067"
@@ -123,7 +124,8 @@ class TreasuryContinuous(TreasuryBase):
         require(ordinal == len(self.outputs) and ordinal < 100 and step == ordinal // 4,
                 "continuous forward is outside the declared accumulation window")
         self.inputs.append(dict(ordinal=ordinal + 1, global_step=step,
-                                full_input=fingerprint(cpu(dict(args=argv, kwargs=kwargs))),tokens=token_counts(kwargs)))
+                                full_input=fingerprint(cpu(dict(args=argv, kwargs=kwargs))),tokens=token_counts(kwargs),
+                                optimizer_learning_rates=[float(g["lr"]) for g in self.trainer.optimizer.param_groups]))
         self.progress()
 
     def after(self, module, argv, kwargs, output):
@@ -146,9 +148,10 @@ class TreasuryContinuous(TreasuryBase):
         self.steps.append(dict(global_step=step,state=values,adapter_changed=changed,
                                optimizer_slot_count=len(slots),optimizer_step_min=min(counters,default=None),optimizer_step_max=max(counters,default=None)))
         self.progress()
-        require(len(slots)==self.expected_optimizer_parameters and all(math.isfinite(x) and x==step for x in counters),
-                "native AdamW did not execute a complete optimizer update")
-        require(changed or step>1,"first native optimizer update did not change trainables")
+        rates=self.inputs[(step-1)*4]["optimizer_learning_rates"]
+        require(all(x["optimizer_learning_rates"]==rates for x in self.inputs[(step-1)*4:step*4]),
+                "learning rate changed inside one accumulation group")
+        check_update(step,counters,self.expected_optimizer_parameters,changed,rates)
         self.previous_adapter=values["adapter"]
         if step == 25:
             control.should_save = True
@@ -166,9 +169,10 @@ class TreasuryContinuous(TreasuryBase):
     def on_train_end(self, args, state, control, **kw):
         require(state.global_step == 25 and len(self.steps) == 25 and self.saved == [10, 20, 25],
                 "incomplete continuous training")
+        changes=check_complete([x["adapter_changed"] for x in self.steps])
         for hook in self.hooks:
             hook.remove()
-        self.write("result.json", dict(rank=self.rank, world_size=8, inputs=self.inputs, outputs=self.outputs,
+        self.write("result.json", dict(parameter_change_window=changes,rank=self.rank, world_size=8, inputs=self.inputs, outputs=self.outputs,
                    steps=self.steps, saved_checkpoints=self.saved, frozen=self.frozen, completed_global_step=25))
         return control
 

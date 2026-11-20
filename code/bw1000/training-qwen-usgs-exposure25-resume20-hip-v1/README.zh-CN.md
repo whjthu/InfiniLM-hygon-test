@@ -6,7 +6,7 @@
 
 同一8卡 BF16、batch1、累积4、有效batch32、4096、SDPA、语言GC、冻结视觉、LoRA16/32/.05、原AdamW/cosine。统一393框架按原manifest复制到独立目录；只复用现有 native T01 resume opt-in/cursor。初始参数从原绑定的文件真实校验、恢复，不以seed替代初参。正式17配方和原A100参考不变，本任务是单独domain recipe。
 
-两个独立原生训练进程：continuous 25更新/每rank100micro，checkpoint10/20/25；resumed 从同scope checkpoint20完整原生恢复到25，再5更新/每rank20micro。总计30次全局更新调用计划，不能按8rank乘成240。每个rank实测其初始化、实际AdamW槽step、参数改变、full-input/loss指纹和实际监督token；重复曝光不假设等token。cosine末段允许某步参数值因精度不变，但原生AdamW每槽step必须实际递增，首步参数必须改变。
+两个独立原生训练进程：continuous 25更新/每rank100micro，checkpoint10/20/25；resumed 从同scope checkpoint20完整原生恢复到25，再5更新/每rank20micro。总计30次全局更新调用计划，不能按8rank乘成240。每个rank实测其初始化、实际AdamW槽step、参数改变、full-input/loss指纹和实际监督token；重复曝光不假设等token。cosine末段允许某步参数值因精度不变，但原生AdamW每槽step必须实际递增，warmup 的合法零 LR 首步允许参数不变；全25步必须至少一次参数改变。
 
 checkpoint20存储字段精确14项：adapter、optimizer、scheduler、trainer_state、args、adapter_config、8份rank RNG。原生Trainer载入后由ResumeWitness核参数/优化器/调度、空累积边界、各rank RNG，并实观察100-batch loader跳过80、余20。独立比较160个尾micro和5个尾更新及最终RNG；保持原exact诊断口径，失败保留，不重训。checkpoint10/20/25各14个文件的实际bytes/SHA和原生global_step另记录；本scope不把最后25的存储SHA冒成独立PT数值审计。
 
