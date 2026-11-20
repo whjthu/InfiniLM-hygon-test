@@ -1,0 +1,91 @@
+{
+  "owner": "bw1000/root/O01",
+  "request": "6231603e7ad54f979274757fdf827a95",
+  "state": "CLAIMED_8_DCU_PILOT_THEN_592_DCU_ONE_VS_TWO_CHECKPOINT_LAYERS",
+  "operator_GO": true,
+  "formal_training_GO": false,
+  "allocated_cards": 640,
+  "planned_operator_cards": 592,
+  "max_invocations": 1,
+  "replay_allowed": false,
+  "excluded_foreign_KFD_by_parent": {
+    "1087656": [
+      "f11r2n15"
+    ],
+    "1103606": [
+      "f12r2n12"
+    ]
+  },
+  "reserved_native_by_parent": {
+    "1087656": [
+      "f11r4n09",
+      "f11r4n10"
+    ],
+    "1103606": [
+      "f13r1n05",
+      "f13r1n07"
+    ]
+  },
+  "allowed_existing_steps": {
+    "1103606": {
+      "nodes": [
+        "f13r1n05",
+        "f13r1n07"
+      ],
+      "labels": [
+        "GLM474-pair-62e402dd71fa418ea81f43684863a53c-socket-pre",
+        "GLM474-pair-62e402dd71fa418ea81f43684863a53c-socket-gate",
+        "GLM474-pair-62e402dd71fa418ea81f43684863a53c-socket-post",
+        "GLM474-pair-62e402dd71fa418ea81f43684863a53c-shca-pre",
+        "GLM474-pair-62e402dd71fa418ea81f43684863a53c-shca-gate",
+        "GLM474-pair-62e402dd71fa418ea81f43684863a53c-shca-post"
+      ]
+    }
+  },
+  "design": "A/B/B/A compares one versus two adjacent LoRA layers per non-reentrant checkpoint. Inputs, rank/step geometry, seed, norm clipping, paired loss, parameter, gradient and optimizerState comparisons are retained, along with fixed 25 MiB DDP buckets and identical foreach AdamW in both arms. Match original lr, betas, epsilon, weight decay and norm clipping. Preserve init and dropout RNG. Report actual calls, synchronized complete update and measured peak per card.",
+  "rationale": "The real installed Qwen text decoder is already checkpointed per layer. The earlier synthetic comparison had median 28.34% lower update time moving from per-projection to per-layer at +36 MiB per card. Test an incremental difference that is relevant to the existing baseline and quantify its peak cost before considering a native change.",
+  "prerequisite": {
+    "path": "results/bw1000/2026-11-20/fleet592-Qwen-LoRA-layer-original492-395-terminal.json",
+    "bytes": 5910,
+    "SHA256": "9db90a816f3795057d5cab4d0bce4b4eacdde99b3c119a9b4484dfbe6d6159a6"
+  },
+  "budget": {
+    "controller_seconds": 880,
+    "client_seconds": 120,
+    "pilot_seconds": 195,
+    "fleet_worker_seconds_from_controller_epoch": 490
+  },
+  "resource_policy": "Keep original GLM protected nodes, the two external KFD nodes and original unknown MiniCPM reservations. Equal source and resources for both arms. 72 GiB host/node; each node gates PCI and KFD before device use.",
+  "formal_qualification": "Component-only synthetic activations and simplified losses with real registered scalar shapes. No actual full-layer model checkpoint adjustment, model comparison or performance inheritance.",
+  "shape_source": {
+    "path": "coordination/training/qwen-native-first-updates-reference-v1.json",
+    "bytes": 205875,
+    "SHA256": "69d4d0be56aee01209a219eac96defcd20a3c9b1bf542b7acf047a857b56a578"
+  },
+  "protected_model_cards": 16,
+  "independent_parent_group_sizes": {
+    "1087656": 37,
+    "1103606": 37
+  },
+  "source_parent_commit": "311745b56c442c832bb7e0ec02a15ae20cc2eb21",
+  "warm_steps_per_block": 3,
+  "timed_steps_per_block": 20,
+  "pilot_timed_steps_per_block": 2,
+  "original_grouped_behavior": "Use the matched no-promotion result as motivation. No duplicate invocation of either original pairing.",
+  "optimizer": {
+    "lr": 0.0001,
+    "betas": [
+      0.9,
+      0.95
+    ],
+    "eps": 1e-08,
+    "weight_decay": 0.1,
+    "clip_norm": 1.0,
+    "addressing": "both arms use identical single foreach AdamW configuration; original scheduler behavior is not modeled"
+  },
+  "manifest": {
+    "path": "code/bw1000/fleet-qwen-lora-paired-layer-checkpoint-v1/SOURCE_FILES.json",
+    "bytes": 1490,
+    "SHA256": "4f6f724333706339c77721c6abb78bfff9025b341e6b8d88835e786c5489d5fc"
+  }
+}
