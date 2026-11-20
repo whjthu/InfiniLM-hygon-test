@@ -1,0 +1,88 @@
+{
+  "observation": {
+    "utc": "2026-11-20T05:42:28.696233+00:00",
+    "slurm": [
+      [
+        "1103606.428",
+        "rccl-transport-4x4-6b531aed0cec4701a428a7177848ba97-pre",
+        "FAILED",
+        "1:0",
+        "1",
+        "f13r1n[11-12]",
+        "cpu=2,mem=4G,node=2"
+      ]
+    ],
+    "arms": {},
+    "controller_finished": false,
+    "controller_log_SHA256": "9c070e5638c2545bf2518a14e0a1c27c6146af07f7e81b3f5bd673ba5f6ee589",
+    "last_controller_code": "INDEPENDENT_KFD_GATE",
+    "receipt_pins_SHA256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+  },
+  "pre_files": {
+    "pre": [
+      {
+        "name": ".stdout",
+        "bytes": 0,
+        "sha": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "typed_errors": [],
+        "items": []
+      },
+      {
+        "name": ".stderr",
+        "bytes": 1203,
+        "sha": "d46ae6ef71cbdf66451d2ec42dd2fe3f8700aceb25c6b1a39b9dcf70486f9688",
+        "typed_errors": [],
+        "items": []
+      }
+    ],
+    "arm_intents": 0
+  },
+  "typed_error": {
+    "markers": [
+      {
+        "kind": "PermissionError",
+        "mentions_drm": false,
+        "mentions_kfd": false,
+        "mentions_permission": false,
+        "message_SHA256": "56fefa267024b7c348a0d81fe807b6d156a27902b6812bb3fe4f77fb6c91961d",
+        "numeric_errno": "1"
+      },
+      {
+        "kind": "PermissionError",
+        "mentions_drm": false,
+        "mentions_kfd": false,
+        "mentions_permission": false,
+        "message_SHA256": "56fefa267024b7c348a0d81fe807b6d156a27902b6812bb3fe4f77fb6c91961d",
+        "numeric_errno": "1"
+      }
+    ],
+    "frames": [
+      [
+        "string",
+        "1"
+      ],
+      [
+        "node_sample.py",
+        "28"
+      ],
+      [
+        "pathlib.py",
+        "1028"
+      ],
+      [
+        "string",
+        "1"
+      ],
+      [
+        "node_sample.py",
+        "28"
+      ],
+      [
+        "pathlib.py",
+        "1028"
+      ]
+    ]
+  },
+  "scope": "CPU preflight hit EPERM in node_sample.py while reading KFD gpu_id under the zero-device cgroup. Zero GPU arm intents or accounting rows.",
+  "mitigation": "Keep the demonstrated HOST DRM plus KFD-holder check. Move the exhaustive PCI/KFD bijection to the assigned GPU worker and bind it to the independent PCI set."
+}
