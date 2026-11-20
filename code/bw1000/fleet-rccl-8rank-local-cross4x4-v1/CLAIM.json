@@ -1,0 +1,62 @@
+{
+  "owner": "bw1000/root/O01",
+  "request": "b6fea3ae8c774a6da17cf41acfb0f6f9",
+  "state": "CLAIMED_16_DCU_PILOT_THEN_592_DCU_MATCHED_PLACEMENTS",
+  "operator_GO": true,
+  "formal_training_GO": false,
+  "allocated_cards": 640,
+  "planned_operator_cards": 600,
+  "max_invocations": 1,
+  "replay_allowed": false,
+  "excluded_foreign_KFD_by_parent": {
+    "1087656": [
+      "f11r2n15"
+    ],
+    "1103606": [
+      "f12r2n12"
+    ]
+  },
+  "reserved_native_by_parent": {
+    "1087656": [
+      "f11r4n09",
+      "f11r4n10"
+    ],
+    "1103606": [
+      "f13r1n10"
+    ]
+  },
+  "allowed_existing_steps": {},
+  "design": "Same eight-rank FP32 RCCL SUM and 25 MiB payload per rank. A/B/B/A changes rank placement only. A is eight ranks in one node. B is four plus four across an owned two-node cohort, with two disjoint eight-rank groups using each pair's 16 cards. A singleton uses only local repeats. Separate topologies by scope in results.",
+  "rationale": "Measure transport cost before placing training work across allocated nodes. 25 MiB is the fixed bucket cap of the registered Qwen component scope. Full-buffer exact integer-sum checks avoid inferring data-path correctness from timing.",
+  "prerequisite": {
+    "path": "results/bw1000/2026-11-20/fleet600-Qwen-RCCL-stream-priority-original500-415-terminal.json",
+    "bytes": 5096,
+    "SHA256": "11e7588354e3c8656648b9e2bebcfbc8057ed5c8378c9c44dd76a5a7cf2b945a"
+  },
+  "budget": {
+    "controller_seconds": 880,
+    "client_seconds": 120,
+    "pilot_seconds": 195,
+    "fleet_worker_seconds_from_controller_epoch": 490
+  },
+  "resource_policy": "Two external-holder nodes, two MiniCPM reservation nodes and future Qwen node f13r1n10 are excluded from the fresh PCI/KFD-gated scope. Replacement nodes require a new claim.",
+  "formal_qualification": "Communication component only. No cross-parent group, all-to-all fabric proof, default HAL/Network mode claim or A100 training performance inheritance.",
+  "protected_model_cards": 8,
+  "independent_parent_group_sizes": {
+    "1087656": 37,
+    "1103606": 38
+  },
+  "source_parent_commit": "70731fcad2d6deccec81f00138321c95eadcaef2",
+  "original_grouped_behavior": "Closed prior high-priority intra-node experiment. Reuse the reliable physical and process boundaries while measuring a new cross-node topology.",
+  "topology_cards": 592,
+  "local_repeatability_control_cards": 8,
+  "pilot_cards": 16,
+  "pilot_nodes": [
+    "f13r1n11",
+    "f13r1n12"
+  ],
+  "warm_reductions_per_block": 12,
+  "timed_reductions_per_block": 192,
+  "pilot_timed_reductions_per_block": 6,
+  "transport_evidence": "NCCL initialization and network logs remain private. Attribute transport only to observed runtime messages with their evidence limits."
+}
