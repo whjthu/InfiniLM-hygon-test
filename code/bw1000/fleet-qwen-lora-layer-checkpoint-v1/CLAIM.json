@@ -1,0 +1,75 @@
+{
+  "owner": "bw1000/root/O01",
+  "request": "abc2e67126684d61851ed559a32d62cb",
+  "state": "CLAIMED_8_DCU_PILOT_THEN_LAYER_CHECKPOINT_592_DCU",
+  "operator_GO": true,
+  "formal_training_GO": false,
+  "allocated_cards": 640,
+  "planned_operator_cards": 592,
+  "max_invocations": 1,
+  "replay_allowed": false,
+  "excluded_foreign_KFD_by_parent": {
+    "1087656": [
+      "f11r2n15"
+    ],
+    "1103606": [
+      "f12r2n12"
+    ]
+  },
+  "reserved_native_by_parent": {
+    "1087656": [
+      "f11r4n09",
+      "f11r4n10"
+    ],
+    "1103606": [
+      "f13r1n05",
+      "f13r1n07"
+    ]
+  },
+  "allowed_existing_steps": {
+    "1103606": {
+      "nodes": [
+        "f13r1n05",
+        "f13r1n07"
+      ],
+      "labels": [
+        "GLM474-pair-62e402dd71fa418ea81f43684863a53c-socket-pre",
+        "GLM474-pair-62e402dd71fa418ea81f43684863a53c-socket-gate",
+        "GLM474-pair-62e402dd71fa418ea81f43684863a53c-socket-post",
+        "GLM474-pair-62e402dd71fa418ea81f43684863a53c-shca-pre",
+        "GLM474-pair-62e402dd71fa418ea81f43684863a53c-shca-gate",
+        "GLM474-pair-62e402dd71fa418ea81f43684863a53c-shca-post"
+      ]
+    }
+  },
+  "design": "ABBA per-projection (252 calls per microbatch) versus per-layer (36). Same seven Qwen projection shapes per layer, identical floating-point loss assembly, BF16, original native-rank row counts, dropout and four-microbatch DDP. Both preserve RNG and enable early stop. Each group compares full first two parameter, gradient and optimizer moment vectors against the baseline. Capture rank-max end-to-end latency, peak bytes and checkpoint invocation counts.",
+  "rationale": "The original checkpoint early-stop pair showed median duration +0.68%, no steady peak difference and low driver activity (47.6\u201351.4%). Reduce checkpoint invocation overhead at existing layer boundaries while holding dropout and projection order.",
+  "prerequisite": {
+    "path": "results/bw1000/2026-11-20/fleet592-Qwen-LoRA-checkpoint-original490-389-terminal.json",
+    "bytes": 4940,
+    "SHA256": "18888bcafd6b79086a27fbf6bae407746727c14fa097d58fba42b6fe46652640"
+  },
+  "budget": {
+    "controller_seconds": 880,
+    "client_seconds": 120,
+    "pilot_seconds": 195,
+    "fleet_worker_seconds_from_controller_epoch": 490
+  },
+  "resource_policy": "Keep original GLM protected nodes, the two external KFD nodes and original unknown MiniCPM reservations. Equal source and resources for both arms. 72 GiB host/node; each node gates PCI and KFD before device use.",
+  "formal_qualification": "Component-only generated activations. The per-layer graph contains LoRA projections rather than a full decoder. No model drift, full model performance or A100 claims.",
+  "shape_source": {
+    "path": "coordination/training/qwen-native-first-updates-reference-v1.json",
+    "bytes": 205875,
+    "SHA256": "69d4d0be56aee01209a219eac96defcd20a3c9b1bf542b7acf047a857b56a578"
+  },
+  "protected_model_cards": 16,
+  "independent_parent_group_sizes": {
+    "1087656": 37,
+    "1103606": 37
+  },
+  "source_parent_commit": "6f4bf75aa0feabaeadc973d6448e22f38d8ea978",
+  "warm_steps_per_block": 3,
+  "timed_steps_per_block": 20,
+  "pilot_timed_steps_per_block": 2,
+  "original_grouped_behavior": "Use the matched no-promotion result as motivation. No duplicate invocation of either original pairing."
+}
