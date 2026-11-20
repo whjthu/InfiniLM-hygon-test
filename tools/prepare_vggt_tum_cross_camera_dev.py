@@ -69,12 +69,13 @@ def prepare_pair(sequence, row, poses, times, media):
                                   valid_pixel_fraction=validity)
 
 
-def prepare(source, binding_file, binding_sha, archives, output):
+def prepare(source, binding_file, binding_sha, archives, output, only_archive_sequence=None):
     raw = read_bounded(binding_file, 65536)
     if sha(raw) != binding_sha:
         raise ValueError("frozen RGB binding SHA differs")
     binding = json.loads(raw)
-    if set(binding) != set(CALIBRATION):
+    expected_sequences = {only_archive_sequence} if only_archive_sequence is not None else set(CALIBRATION)
+    if set(binding) != expected_sequences or not expected_sequences <= CALIBRATION.keys():
         raise ValueError("unexpected paired development groups")
     frozen = {}
     for sequence, doc in binding.items():
@@ -128,7 +129,8 @@ def prepare(source, binding_file, binding_sha, archives, output):
                           sort_keys=True, allow_nan=False) + "\n").encode()
     with (output / "inputs-private.json").open("xb") as stream:
         stream.write(private)
-    return dict(planned_pairs=len(rows), rectified_pose_pairs=verified, failed_pairs=len(rows)-verified,
+    return dict(planned_pairs=24, inspected_windows=len(rows), pending_windows=24-len(rows),
+                rectified_pose_pairs=verified, failed_pairs=len(rows)-verified,
                 manifest_SHA256=sha(private), actual_model_predictions=0, actual_depth_reads=0, formal_CO3D=False)
 
 
@@ -137,8 +139,10 @@ def main():
     for name in ("source", "binding", "archives", "output"):
         parser.add_argument("--" + name, type=Path, required=True)
     parser.add_argument("--binding-sha", required=True)
+    parser.add_argument("--only-archive-sequence", choices=CALIBRATION)
     args = parser.parse_args()
-    print(json.dumps(prepare(args.source, args.binding, args.binding_sha, args.archives, args.output), sort_keys=True))
+    print(json.dumps(prepare(args.source, args.binding, args.binding_sha, args.archives, args.output,
+                             args.only_archive_sequence), sort_keys=True))
 
 
 if __name__ == "__main__":

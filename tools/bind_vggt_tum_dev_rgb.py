@@ -159,9 +159,11 @@ def validate_archive_receipt(sequence, root, index):
     return receipt["selected_frames"]
 
 
-def bind(source, output, media_root=None, archive_root=None):
+def bind(source, output, media_root=None, archive_root=None, only_archive_sequence=None):
     if archive_root is not None and media_root is not None:
         raise ValueError("archive and independent media roots cannot be combined")
+    if only_archive_sequence is not None and (archive_root is None or only_archive_sequence not in CALIBRATION):
+        raise ValueError("single-scene binding requires its completed official archive")
     raw = read_bounded(source / "dev-anchor-plan-private.json", 8192)
     if sha(raw) != ANCHOR_SHA:
         raise ValueError("frozen pose plan changed")
@@ -170,7 +172,8 @@ def bind(source, output, media_root=None, archive_root=None):
         raise ValueError("unexpected pose sequences")
     result = {}
     summary = {}
-    for sequence in CALIBRATION:
+    sequences = (only_archive_sequence,) if only_archive_sequence is not None else CALIBRATION
+    for sequence in sequences:
         index_path = archive_root / sequence / "rgb.txt" if archive_root else source / f"{sequence}-rgb.txt"
         index = read_bounded(index_path, 3 * 1024**2)
         rgb = parse_rgb_index(index)
@@ -191,7 +194,8 @@ def bind(source, output, media_root=None, archive_root=None):
     private = (json.dumps(result, sort_keys=True, separators=(",", ":"), allow_nan=False) + "\n").encode()
     with output.open("xb") as stream:
         stream.write(private)
-    return dict(sequences=summary, planned_pairs=24, private_binding_SHA256=sha(private), private_binding_bytes=len(private),
+    return dict(sequences=summary, planned_pairs=24, inspected_windows=12 * len(summary),
+                pending_windows=24 - 12 * len(summary), private_binding_SHA256=sha(private), private_binding_bytes=len(private),
                 actual_predictions=0, rectification_verified=False, formal_CO3D=False)
 
 
@@ -201,8 +205,10 @@ def main():
     parser.add_argument("output", type=Path)
     parser.add_argument("--media-root", type=Path)
     parser.add_argument("--archive-root", type=Path)
+    parser.add_argument("--only-archive-sequence", choices=CALIBRATION)
     args = parser.parse_args()
-    print(json.dumps(bind(args.source, args.output, args.media_root, args.archive_root), sort_keys=True))
+    print(json.dumps(bind(args.source, args.output, args.media_root, args.archive_root, args.only_archive_sequence),
+                     sort_keys=True))
 
 
 if __name__ == "__main__":
