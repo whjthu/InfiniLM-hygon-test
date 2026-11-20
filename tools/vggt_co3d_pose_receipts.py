@@ -53,6 +53,9 @@ def pose_errors(first_truth, second_truth, first_prediction, second_prediction):
 def read_poses(raw, plan, plan_sha, *, arm=None, checkpoint=None):
     receipt = json.loads(raw)
     identity = dict(evaluation_plan_SHA256=plan_sha, coordinates=COORDINATES)
+    if 'media_manifest_SHA256' in plan:
+        require(sha(plan['media_manifest_SHA256']), 'invalid CO3D media identity')
+        identity['media_manifest_SHA256'] = plan['media_manifest_SHA256']
     if arm is not None:
         identity.update(arm=arm, checkpoint_SHA256=checkpoint, pose_evaluator_commit=UPSTREAM)
     require(all(receipt.get(key) == value for key, value in identity.items()), 'pose receipt identity differs')

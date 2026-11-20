@@ -27,3 +27,17 @@ python -B tools/vggt_co3d_pose_receipts.py --plan PLAN.json --plan-sha256 PLAN_S
 将 `ANGLES/pair-predictions.json` 及返回的 SHA-256 交给汇总器。该清单同时绑定真值外参、三组原始预测清单和转换器源码。模型推理、原标注转换与训练集隔离需由原件证据核定。此入口仅处理已获授权的现地外参，无需读取或转移图片、模型权重或历史训练输入文件。
 
 本机通过 8 项 CO3D 回归，包含从三组外参到三个指标的完整链路。另用独立 4×4 逆矩阵、旋转 Frobenius 距离及平移叉积，对照 512 组随机刚体变换。最大绝对误差分别为旋转 `7.71e-12` 度与平移 `1.47e-12` 度。测试为合成 CPU 输入，实际检查点和留出结果仍待执行。
+
+## 在实际设备上导出模型外参
+
+`tools/vggt_co3d_export_poses.py` 使用已固定的 41 个原 VGGT Python 模块、原底座文件和本次评估对应的 `camera_head.pt`。用原生多帧裁剪预处理和 camera-head 前向，BF16 执行前向，FP32 解码外参。按实际设备核对 A100 CUDA 或海光 gfx936 HIP。海光两组先评底座，再在同一次模型驻留内加载训练头并评估；A100 从自己的训练头出发。保存实际 PyTorch、CUDA 或 HIP 版本及设备型号。[官方多帧预处理](https://github.com/facebookresearch/vggt/blob/4b8be14b574b58c91ecd699122daf3d8004901d4/vggt/utils/load_fn.py#L10-L81)
+
+计划新增 `media_manifest_SHA256`。对应媒体 JSON 包含 `dataset_SHA256` 及相同顺序的 `sequences`，其中 `frames` 每项含 `frame_id`、媒体根下的相对 `image` 路径和原图 `SHA256`。传给预处理器的流直接来自已核验字节。原图或帧序失配立即停止，模型输出无效外参时按帧保存失败并由下游扩展到所有相关图像对。真值和三组外参收据须重复相同的 `media_manifest_SHA256`。
+
+```text
+python -B tools/vggt_co3d_export_poses.py --platform Hygon --plan PLAN.json --plan-sha256 PLAN_SHA --media MEDIA.json --media-root CO3D_ROOT --source-root VGGT_ROOT --source-manifest UPSTREAM_FILES.json --base-weights MODEL.pt --head CAMERA_HEAD.pt --head-sha256 HEAD_SHA --output NEW_OUTPUT
+```
+
+另一侧使用 `--platform A100` 和 A100 的实际训练头。两个目录各自的 `arm-files.json` 给出外参文件路径、校验值和实际训练头文件的身份。经许可在同一个证据位置使用三组现有文件时，按相对于合并清单的位置填写 `arms` 的路径，连同同计划绑定的真值交给逐对转换器。输出中记录训练头文件 SHA-256，正式验收需同时绑定产生该训练头的完整检查点及运行证据。现有目录和资产保留在各自获准的位置。
+
+本机通过 12 项 CO3D 回归，新增验证帧序、媒体改动、路径逃逸、两组共享一个模型实例及收据兼容。部署文件按 Python 3.10 语法解析通过。推理部分使用测试替身验证交接，当前尚未在 A100 或海光运行此导出器，也未读取原 CO3D 媒体。
