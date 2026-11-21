@@ -1000,7 +1000,7 @@
       "id": "kimi-r461-output-residual-wave-component-link-cpu-v1",
       "case": "I01.kimi-r461-output-residual-wave-component-link",
       "kind": "validation",
-      "state": "blocked",
+      "state": "terminal",
       "cpu_prerequisite": true,
       "cpu_request": "60bb88cec9f5b132d556ba164333af12",
       "placement": {
@@ -1015,7 +1015,12 @@
         "SHA256": "09371afc4503179e9fa8e8b0f8bf6756192e7ba430c85dbe7877322394c6fc1f"
       },
       "priority": 110,
-      "next_action": "目标 .637 两个已验设备对象保持原样。在 O01 独立节点用单HOST编译及零卡链接产出同ABI的两库，保留独立清场。"
+      "next_action": "原 .671 HOST 编译 const 调用失败，零链接；独立清场通过。定位原 SDK 接口后派生修复，禁止重放。",
+      "terminal_evidence": {
+        "path": "results/bw1000/2026-11-22/Kimi461-original671-link-CPU-const-compile-failure.json",
+        "bytes": 1806,
+        "SHA256": "d1072e8a0465f97bbea468998c7d9e199780b25f5690504f38d75db19bdb5c7b"
+      }
     },
     {
       "id": "training-zimage-style18-native12-CPU-v1",
@@ -1039,7 +1044,7 @@
       "direct_request": "f9138c63a947c8f542310e7b5ae930ce",
       "case": "O01.resident-bf16-graph64-v1",
       "kind": "operator",
-      "state": "blocked",
+      "state": "terminal",
       "zone": "O01",
       "priority": 1700,
       "placement": {
@@ -1048,12 +1053,38 @@
       "attempt_receipts": [
         "local-only/O01-resident-BF16-graph64-pilot-v1-f9138c63a947c8f542310e7b5ae930ce-original/intent.json"
       ],
-      "next_action": "已冻结独立八卡 Graph64 配对用例。本地隔离导入闭合，须通过新鲜设备核对后由根协调者唯一提交。",
+      "next_action": "原 .674 八卡 32 臂/128 样本及独立清场完成，下一步在其他 O01 节点复验并测实际调用方。",
       "evidence": {
         "path": "results/bw1000/2026-11-22/O01-BF16-graph64-eight-card-pilot-scope.json",
         "bytes": 2566,
         "SHA256": "88208891b5c731dd9fc9f2e2a304ec9b928f40ab5832d8dc03071db0568ddb73"
+      },
+      "terminal_evidence": {
+        "path": "results/bw1000/2026-11-22/O01-BF16-graph64-original674-eight-card-paired-measurement.json",
+        "bytes": 2636,
+        "SHA256": "ad5cf2658a85fb25cd003ee01d78e5d094474aa6de7777892b282db763bba4ab"
       }
+    },
+    {
+      "id": "training-zimage-style18-native12-CPU-v2",
+      "case": "T07.domain-style18-native12-input-v2",
+      "kind": "validation",
+      "state": "blocked",
+      "cpu_prerequisite": true,
+      "cpu_request": "1268f832fa01473a8f523dc9b80d51ae",
+      "priority": 1350,
+      "placement": {
+        "f11r4n14": 0
+      },
+      "attempt_receipts": [
+        "local-only/training-zimage-style18-native12-CPU-v2-original/intent.json"
+      ],
+      "evidence": {
+        "path": "results/bw1000/2026-11-22/training-zimage-style18-native12-corrected-scheduler-CPU-scope.json",
+        "bytes": 1755,
+        "SHA256": "61e1209a6548339d01c60fba3d78a139f51084ef60550385bbb19194680c8f8f"
+      },
+      "next_action": "新独立 CPU 范围，仅执行原生训练数据加载。发布及新节点核对后单次提交，不计作训练 READY。"
     }
   ]
 }
