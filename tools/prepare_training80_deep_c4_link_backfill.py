@@ -59,6 +59,25 @@ def prepare(repo, backlog, ledger, holds):
                placement={NODE: 0}, cpu_prerequisite=True, attempt_receipts=[INTENT], evidence=TASK,
                next_action='Use the frozen CPU receiver once after original Slurm and namespace checks. Reconcile any prior intent.')
     registered = [item for item in backlog['items'] if item['id'] == IDENT]
+    if registered and registered[0]['state'] == 'terminal':
+        closed, = registered
+        result = json.loads(pin_file(repo, closed['evidence'], ('results/bw1000/',)))
+        terminal, post = result['independent_terminal'], result['independent_post']
+        accounting, device = terminal['accounting'], post['selected']
+        need(closed['placement'] == row['placement'] and closed['attempt_receipts'] == [INTENT]
+             and (result['label'], result['request']) == (LABEL, REQUEST)
+             and accounting['node'] == device['node'] == NODE and device['parent'] == PARENT
+             and accounting['terminal'] is True and terminal['cpu_link_artifact_qualified'] is True
+             and (accounting['state'], accounting['exit_code']) == ('COMPLETED', '0:0')
+             and result['actual_GPU_steps'] == 0 and terminal['GPU_GO'] is False
+             and all(device[key] is True for key in ('device_probe_observed', 'membership_valid', 'KFD_clean', 'PID_clean', 'ports_clean'))
+             and device['active_steps'] == [] and len(set(device['PCIs'])) == 8,
+             'invalid original CPU terminal or independent node cleanup')
+        return dict(backlog, deep_c4_link_backfill=dict(
+            request=REQUEST, state='ORIGINAL_CPU_TERMINAL_INDEPENDENT_POST_CLEAR', placement=SCOPE,
+            actual_step=accounting['step'], independent_post_step=device['device_probe_step'],
+            original_evidence=closed['evidence'], invocation_after_existing_checks=None,
+            counts_toward_training_reserve=False, actual_slurm_submissions=1, actual_DCU_started=0, gpu_eligible=False))
     need(not registered or registered == [row], 'registered Deep CPU backfill scope differs')
     items = backlog['items'] if registered else [*backlog['items'], row]
     attempted = has_original_intent(repo, [INTENT])
