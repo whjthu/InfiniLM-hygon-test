@@ -1,0 +1,64 @@
+{
+  "request": "ceb996b83f5ec0eb7b2dca156375e0d",
+  "case": "O01.qwen-ragged-packed-projection",
+  "kind": "operator",
+  "priority": 950,
+  "parents": [
+    "1087656",
+    "1103606"
+  ],
+  "nodes_per_shard_max": 4,
+  "max_cards": 640,
+  "planned_shapes": {
+    "K": 4096,
+    "N": 1024,
+    "groups": [
+      [
+        1,
+        2,
+        4,
+        8
+      ],
+      [
+        8,
+        16,
+        32,
+        128
+      ],
+      [
+        64,
+        128,
+        186,
+        192
+      ]
+    ]
+  },
+  "arms": [
+    "four separate BF16 projections",
+    "packing included plus one BF16 projection and exact row splitting"
+  ],
+  "order": [
+    "separate",
+    "packed",
+    "packed",
+    "separate"
+  ],
+  "seconds_per_measurement": 5,
+  "synthetic_operands": true,
+  "stop_on_cooperative_drain": {
+    "method": "cooperative_signal",
+    "signal": "USR1",
+    "save_partial_results": true,
+    "grace_seconds": 30
+  },
+  "one_release": true,
+  "slurm_step_seconds": 210,
+  "controller_seconds": 240,
+  "training_GO": false,
+  "model_GO": false,
+  "max_invocations": 1,
+  "replay_allowed": false,
+  "shape_evidence": "coordination/tasks/fleet-qwen-vproj-padding-storage-v1.json",
+  "short_row_evidence": "coordination/tasks/fleet-bf16-small-gemm-graph-v1.json",
+  "idle_is_separate_from_utilization": true
+}
