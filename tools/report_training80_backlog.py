@@ -12,6 +12,7 @@ import re
 import sqlite3
 import time
 
+from record_qwen_usgs_dev80_absence import JOB as DEV80_JOB, NODES as DEV80_NODES, read_record as dev80_absence
 from tuning_queue import ACTIVE, DIRECT_STAGE, SNAPSHOT_MAX_AGE_S, TRAINING80_LEDGER, digest, training80_inventory
 from verify_training80_manifest import verify_package_members
 
@@ -70,8 +71,20 @@ def read_original_holds(repo, jobs, known_nodes):
     """Read direct launch holds even when they have no SQLite reservation."""
     records = {}
     marker_errors = {}
+    resolved = {}
     for job in jobs:
         ident, state, placement = (job[key] for key in ('id', 'state', 'placement'))
+        if ident == DEV80_JOB and state == 'reconcile':
+            try:
+                need(job['kind'] == 'validation' and placement == dict.fromkeys(DEV80_NODES.values(), 1)
+                     and 'launch' not in job and all(node in known_nodes for node in placement),
+                     'original Dev80 hold scope differs')
+                proof = dev80_absence(repo)
+                if proof is not None:
+                    resolved[ident] = proof
+                    continue
+            except (KeyError, OSError, RuntimeError, TypeError, ValueError) as error:
+                marker_errors[ident] = str(error)
         if state == 'ready' or (state == 'blocked' and 'attempt_receipts' in job):
             try:
                 markers = job['launch']['attempt_receipts'] if state == 'ready' else job['attempt_receipts']
@@ -84,7 +97,7 @@ def read_original_holds(repo, jobs, known_nodes):
         if state in ('reconcile', 'submitted', 'unverified_attempt_markers'):
             need(placement and all(node in known_nodes for node in placement), 'unknown original placement')
             records[ident] = dict(state=state, nodes=sorted(placement))
-    return records, marker_errors
+    return records, marker_errors, resolved
 
 
 def invocation(repo, job):
@@ -253,7 +266,7 @@ def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(
     ordered = sorted(backlog['items'], key=lambda job: (PRIORITY[job['kind']], job['priority'], job['id']))
     direct_states = direct_request_states(holds)
     pending_originals = [job for job in ordered if direct_launch_state(job, direct_states) != 'TERMINAL']
-    original_holds, marker_errors = read_original_holds(repo, pending_originals, nodes)
+    original_holds, marker_errors, resolved = read_original_holds(repo, pending_originals, nodes)
     for job in ordered:
         ident, kind, state = (job[key] for key in ('id', 'kind', 'state'))
         need(ident not in identities and state in STATES and type(job['priority']) is int and
@@ -295,6 +308,10 @@ def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(
                 pin_file(repo, job['evidence'], ('coordination/tasks/', 'analysis/bw1000/', 'results/bw1000/', 'local-only/'))
             if ident in marker_errors:
                 raise ValueError(marker_errors[ident])
+            if state == 'reconcile' and ident in resolved:
+                state = 'verified_not_submitted'
+                row['request'] = resolved[ident]['request']
+                row['replay_allowed'] = False
             if state == 'blocked' and ident in original_holds:
                 state = original_holds[ident]['state']
             if state == 'ready':
@@ -376,7 +393,8 @@ def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(
                 proposed_for_root=proposed, proposed_DCU=sum(row['requested_DCU'] for row in rows
                     if row['dispatch_state'] == 'proposed_for_root'),
                 proposed_nodes=sorted(occupied), queue_held_nodes=sorted(queue_held),
-                original_launch_holds=original_holds, admission_by_zone_and_parent=groups,
+                original_launch_holds=original_holds, verified_original_non_submissions=resolved,
+                admission_by_zone_and_parent=groups,
                 actual_submitted_DCU=0, advisory=True, rows=rows)
 
 

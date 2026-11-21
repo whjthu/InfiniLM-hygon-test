@@ -77,6 +77,7 @@ def build_handoff(snapshot, backlog, *, repo=REPO, holds=(), selected=None, now=
                           snapshot_request=receipt['request_id'], snapshot_payload_SHA256=receipt['payload_SHA256'],
                           snapshot_raw_SHA256=receipt['raw_response_SHA256'], queue_holds_SHA256=held_digest,
                           original_launch_holds_SHA256=digest(report['original_launch_holds']),
+                          verified_original_non_submissions_SHA256=digest(report['verified_original_non_submissions']),
                           expires_local_monotonic=expires, boot_epoch_anchor=receipt['boot_epoch_anchor'],
                           placement_by_parent=placement, requested_DCU=sum(job['placement'].values()),
                           claim=launch['claim'], manifest=launch['manifest'], launcher=launch['launcher'],
@@ -100,6 +101,7 @@ def build_handoff(snapshot, backlog, *, repo=REPO, holds=(), selected=None, now=
                                   row['candidate_state'] in ('blocked', 'reconcile')],
                 coordinator_handoffs=packets, manual_launcher_binding_required=unsupported,
                 original_launch_holds=report['original_launch_holds'],
+                verified_original_non_submissions=report['verified_original_non_submissions'],
                 invalid_launch_evidence=invalid_evidence)
 
 

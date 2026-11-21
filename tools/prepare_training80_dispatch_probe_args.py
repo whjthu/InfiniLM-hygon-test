@@ -18,7 +18,7 @@ def probe_arguments(repo, backlog, ledger, holds, preflight=(), *, priority_only
     queue_held = {node for row in holds for node in row['nodes'] if node in ownership}
     direct_states = direct_request_states(holds)
     pending_originals = [job for job in backlog['items'] if direct_launch_state(job, direct_states) != 'TERMINAL']
-    original_holds, errors = read_original_holds(repo, pending_originals, ownership)
+    original_holds, errors, resolved = read_original_holds(repo, pending_originals, ownership)
     priority = {}
     ports = set()
     verified = []
@@ -91,7 +91,7 @@ def probe_arguments(repo, backlog, ledger, holds, preflight=(), *, priority_only
                 queue_held_nodes=sorted(queue_held), held_nodes=sorted(held),
                 reconcile_candidates={ident: record['nodes'] for ident, record in original_holds.items()
                                       if record['state'] in ('reconcile', 'submitted')},
-                original_launch_holds=original_holds,
+                original_launch_holds=original_holds, verified_original_non_submissions=resolved,
                 blocked_candidate_held_nodes=blocked, invalid_or_manual_launches=errors,
                 prepared_preflight_priority_nodes=preflight_priority,
                 verified_training_ready=sum(job['kind'] == 'training' for job in verified),

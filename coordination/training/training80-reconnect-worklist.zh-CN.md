@@ -22,6 +22,14 @@
 
 Qwen 的旧 Dev80 条目携带 `target_reconciliation_probe` 和依赖 SHA。认证恢复后从原登录端运行 `tools/reconcile_qwen_usgs_dev80_original.py`，将实际回执交给协调者。同一次查询两侧均须确认原目录没有出现、六个精确 Slurm 标签均无记录，且两台原节点均无编号步骤，才标记旧保留可解除。只要目录、在途记录或待确认清理出现，就保留原请求。旧 Dev80 始终保持禁止重播，待派的新训练仍需独立通过端口及 PCI/KFD/PID 准入。
 
+将独立对账工具或下文 Qwen 训练预检通过原认证连接返回的成功 JSON 原样保存在本机，然后登记确认为未提交的旧请求。
+
+```powershell
+& 'C:/Users/WangHaojie/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe' -B -X utf8 tools/record_qwen_usgs_dev80_absence.py <authenticated-dev80-reconciliation.json>
+```
+
+完整证据登记在 `local-only/training80-reconciliation/qwen-usgs-dev80-original-absence.json`。此文件可以原样确认，内容不同则保留原件。探测参数、待派发队列和原子申领都会读取它。队列将旧 Dev80 显示为核验未提交，只有旧请求产生的内部保留解除。其他请求的占用、新鲜设备回执和实际端口检查仍在原流程中核对。缺失、无法读取或有冲突的证据继续保留两台节点。
+
 Qwen 八卡训练还登记了 `target_read_only_preflight`。用原认证连接运行 `tools/preflight_qwen_usgs_exposure25.py`，它先查询 Dev80 原请求，再核候选训练的独立命名空间、CPU 输入步骤 1103606.490、393 份统一框架文件、88 行训练输入与 22 张训练图，并在返回前复查两个命名空间和 Slurm 归属。四片原模型权重和原初始参数在此只核文件类型与字节数，真正训练控制器仍核文件内容。取得预检结果后才按当前清理证据登记原 Dev80 的保留状态，再采集新鲜的设备、进程和端口 29918 证据。预检不提交作业，也不读取开发或盲测输入。
 
 | 节点 | 候选 | 首项操作 |
