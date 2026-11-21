@@ -1,13 +1,16 @@
 import json
+from hashlib import sha256
 import subprocess
 import unittest
 from unittest.mock import patch
 
-from collect_training80_dispatch_snapshot import collect, probe_batches
+from collect_training80_dispatch_snapshot import collect, probe_batches, receive
+from prepare_training80_dispatch_handoff import build_handoff, claim_handoff
 from prepare_training80_dispatch_probe_args import probe_arguments
 from report_training80_backlog import TRAINING80_LEDGER
 import test_report_training80_backlog as backlog_fixtures
 import test_training_slurm_membership as membership_fixtures
+from tuning_queue import Queue
 
 
 class DispatchProbeArgumentsTest(unittest.TestCase):
@@ -75,7 +78,7 @@ class DispatchProbeCollectionTest(unittest.TestCase):
         self.assertEqual([row[2:] for row in probe_batches(nodes, ['d', 'b'])],
                          [('10', 0, ['b']), ('11', 0, ['d']), ('10', 1, ['a']), ('11', 1, ['c'])])
 
-    def collect_fixture(self, *, priority, held, priority_only=False, unavailable_node=None):
+    def collect_fixture(self, *, priority, held, ports=(), priority_only=False, unavailable_node=None):
         fixture = membership_fixtures.RealPlacementFixtureTest()
         fixture.setUp()
         for parent in fixture.groups:
@@ -91,19 +94,20 @@ class DispatchProbeCollectionTest(unittest.TestCase):
                     views.append(args[3])
                 return subprocess.CompletedProcess(args, 0, '\n'.join(fixture.query(*args)).encode(), b'')
             nodes = next(arg.split('=', 1)[1] for arg in args if arg.startswith('--nodelist=')).split(',')
-            request, parent, _ = args[-3:]
+            request, parent, checked = args[-3:]
             requests.append((request, nodes))
             self.assertIn('--gres=none', args)
+            self.assertEqual(json.loads(checked), list(ports))
             if unavailable_node in nodes:
                 return subprocess.CompletedProcess(args, 1, b'', b'Requested nodes are busy')
-            rows = [dict(request_id=request, parent=parent, step=parent + '.997', node=node, ports_checked=[],
+            rows = [dict(request_id=request, parent=parent, step=parent + '.997', node=node, ports_checked=list(ports),
                          observer_uid=1234, PCIs=pins[node], kfd_process_count=0, own_device_fd_process_count=0,
                          occupied_requested_ports=[]) for node in nodes]
             return subprocess.CompletedProcess(args, 0, '\n'.join(map(json.dumps, rows)).encode(), b'')
 
         request = 'a' * 32
         with patch('collect_training80_dispatch_snapshot.os.getuid', return_value=1234, create=True):
-            report = collect(request, TRAINING80_LEDGER.read_bytes(), pins, [],
+            report = collect(request, TRAINING80_LEDGER.read_bytes(), pins, list(ports),
                              priority_nodes=priority, held_nodes=[held], priority_only=priority_only, run=run)
         self.assertEqual(sorted(views), ['1087656', '1087656', '1103606', '1103606'])
         self.assertEqual(len(set(request_id for request_id, _ in requests)), len(requests))
@@ -158,6 +162,52 @@ class DispatchProbeCollectionTest(unittest.TestCase):
         self.assertEqual([batch['requested_nodes'] for batch in batches], [[blocked], [peer]])
         self.assertEqual(report['probes']['1103606']['received_nodes'], [peer])
         self.assertIsNone(report['measured_busy_percent'])
+
+    def test_priority_receipt_claims_only_the_independently_admitted_backfill(self):
+        blocked, peer, held = 'f13r4n09', 'f13r1n19', 'f13r1n10'
+        inputs = backlog_fixtures.BacklogTest()
+        inputs.setUp()
+        self.addCleanup(inputs.doCleanups)
+        training = inputs.trial(1, node=blocked)
+        backfill = inputs.trial(2, 'validation', node=peer)
+        unknown = inputs.trial(3, node=held)
+        inputs.put(unknown['launch']['attempt_receipts'][0], {'rc': 255, 'remote_outcome': 'UNKNOWN'})
+        backlog = dict(minimum_ready_training=5, items=[training, backfill, unknown])
+        ledger = json.loads(TRAINING80_LEDGER.read_bytes())
+        arguments = probe_arguments(inputs.repo, backlog, ledger, [], priority_only=True)
+        self.assertEqual(arguments['collector_arguments'], ['--port', '29907', '--priority-node', blocked,
+            '--priority-node', peer, '--held-node', held, '--priority-only'])
+        collected, tried, _ = self.collect_fixture(priority=arguments['priority_by_parent']['1103606'],
+            held=arguments['held_nodes'][0], ports=arguments['required_ports'], priority_only=True,
+            unavailable_node=blocked)
+        self.assertEqual(tried, {blocked, peer})
+        raw = json.dumps(collected, allow_nan=False).encode()
+        with patch('tuning_queue.time.monotonic', return_value=inputs.now), \
+                patch('tuning_queue.time.time', return_value=inputs.now + inputs.anchor):
+            snapshot = receive(raw, inputs.now - 3, collected['request_id'])
+        self.assertEqual(snapshot['local_receipt']['raw_response_SHA256'], sha256(raw).hexdigest())
+
+        options = dict(repo=inputs.repo, now=inputs.now, boot_anchor=inputs.anchor)
+        result = build_handoff(snapshot, backlog, **options)
+        [packet] = result['coordinator_handoffs']
+        self.assertEqual(packet['candidate'], backfill['id'])
+        self.assertEqual(packet['placement_by_parent'], {'1103606': {peer: 1}})
+        self.assertEqual(result['original_launch_holds'][unknown['id']]['nodes'], [held])
+        self.assertEqual(result['original_launch_holds'][unknown['id']]['state'], 'reconcile')
+        self.assertEqual(result['training_pipeline']['ready_to_dispatch'], 0)
+        for job in (training, unknown):
+            with self.assertRaisesRegex(ValueError, 'no current device-admitted'):
+                build_handoff(snapshot, backlog, selected=job['id'], **options)
+
+        queue = Queue(inputs.repo / 'priority-backed-handoff.sqlite')
+        self.addCleanup(queue.db.close)
+        intent = backfill['launch']['attempt_receipts'][0]
+        result = claim_handoff(queue, snapshot, backlog, packet, intent, **options)
+        self.assertEqual(result['state'], 'DISPATCHING')
+        self.assertEqual(result['handle']['nodes'], [peer])
+        self.assertEqual(result['actual_slurm_submissions'], 0)
+        with self.assertRaisesRegex(ValueError, 'already claimed'):
+            claim_handoff(queue, snapshot, backlog, packet, intent, **options)
 
     def test_priority_only_falls_back_when_only_priority_is_held(self):
         held = 'f13r1n10'
