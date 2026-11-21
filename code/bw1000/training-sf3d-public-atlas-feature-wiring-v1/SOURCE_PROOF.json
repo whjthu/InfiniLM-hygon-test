@@ -1,0 +1,209 @@
+{
+  "actual_local_runtime": {
+    "native_import_attempted": false,
+    "open_clip_found": false,
+    "pipeline_scope": "Only frozen common entry and current local environment; not a claim all other machines lack providers",
+    "sf3d_found": false,
+    "torch_found": false
+  },
+  "actual_records": {
+    "local-only\\training-sf3d-public-atlas-feature-wiring-v1-original\\result.json": {
+      "SHA256": "cf9cfec8dc471efce89854db981022b6ae53056f0380dc5ec54ed9b11c3bc17a",
+      "bytes": 3644
+    },
+    "local-only\\training-sf3d-public-atlas-feature-wiring-v1-original\\source-call-trace.json": {
+      "SHA256": "450e27816afa694b2b300e61964ae1c0c4e45bf1ec4d32f37f0c91bcf643e3ba",
+      "bytes": 4355
+    },
+    "local-only\\training-sf3d-public-atlas-feature-wiring-v1-original\\target-input-descriptor-private.json": {
+      "SHA256": "79054ea4f0cec7af71b1d398272b4714bbd96650d372fa538522951271d85997",
+      "bytes": 1978
+    }
+  },
+  "known_missing": [
+    "real native triplane_features",
+    "real native image_features",
+    "actual model-derived feature widths",
+    "second training input under original minimum",
+    "explicit label manifest identity in new resume contract"
+  ],
+  "raw_labels_images_or_weights_in_Git": false,
+  "schema": "SF3D_ATLAS_FEATURE_SOURCE_WIRING_PROOF_V1",
+  "source_archive": {
+    "SHA256": "85cffcb53affa1905b42afec358236089c5e7e094b9ac65d4b464ff39b6f449f",
+    "bytes": 738802,
+    "path": "code/bw1000/training-framework-bd24ec3-v1/FRAMEWORK.tar.gz"
+  },
+  "source_body_or_predicate_execution": {
+    "exact_native_key_and_minimum_input_clauses": true,
+    "heldout_training_rejection": true,
+    "native_module_or_Torch_tensor_validator": false,
+    "two_input_SHA_target_split_joins": true
+  },
+  "source_trace": {
+    "actual_feature_producer_in_run": {
+      "cache_append": [
+        1123,
+        1124,
+        1125,
+        1126,
+        1127,
+        1128,
+        1129,
+        1130,
+        1131
+      ],
+      "encode_real_image": 1122,
+      "labels_selected_from_original_heuristic": 1110,
+      "load_real_model": [
+        1066,
+        1067,
+        1068,
+        1069,
+        1070
+      ],
+      "prepare_and_encode_scene": [
+        1117,
+        1118
+      ],
+      "query_real_triplane": [
+        1119,
+        1120,
+        1121
+      ],
+      "require_cuda": 1050
+    },
+    "cache_restore": [
+      515,
+      524
+    ],
+    "cache_save": [
+      415,
+      428
+    ],
+    "cache_validate": [
+      450,
+      512
+    ],
+    "consumer_source": {
+      "albedo_sigmoid_decoder": [
+        145,
+        147
+      ],
+      "loss": [
+        158,
+        164
+      ],
+      "metallic_beta_mean": [
+        153,
+        157
+      ],
+      "roughness_beta_mean": [
+        148,
+        152
+      ]
+    },
+    "feature_stages": {
+      "_image_features": {
+        "AST_SHA256": "ef30580a233e0ba4124c02ecccd4a3f3c902e3af0e9b5407a3a4e826cdfd3594",
+        "calls": [
+          "cond_image.flatten",
+          "cond_image.flatten(0, 1).permute",
+          "cond_image.flatten(0, 1).permute(0, 3, 1, 2).contiguous",
+          "cond_image.unsqueeze",
+          "model.image_estimator.model.encode_image",
+          "torch.nn.functional.interpolate",
+          "torch.tensor",
+          "torch.tensor(open_clip.constants.OPENAI_DATASET_MEAN, device=cond_image.device, dtype=cond_image.dtype).view",
+          "torch.tensor(open_clip.constants.OPENAI_DATASET_STD, device=cond_image.device, dtype=cond_image.dtype).view"
+        ],
+        "lines": [
+          167,
+          189
+        ]
+      },
+      "_material_forward_loss": {
+        "AST_SHA256": "c6cb7d3bb13328a109307e5c126b32332568c5415d533c5822d5c87d889d049e",
+        "calls": [
+          "(albedo.float() - batch['albedo']).square",
+          "(albedo.float() - batch['albedo']).square().mean",
+          "(metallic.float() - batch['metallic']).square",
+          "(metallic.float() - batch['metallic']).square().mean",
+          "(roughness.float() - batch['roughness']).square",
+          "(roughness.float() - batch['roughness']).square().mean",
+          "_beta_mean",
+          "albedo.float",
+          "metallic.float",
+          "model.decoder.heads['features']",
+          "roughness.float",
+          "torch.sigmoid"
+        ],
+        "lines": [
+          142,
+          164
+        ]
+      },
+      "_prepare_batch": {
+        "AST_SHA256": "2020bc6562f7e7fcb7af6500abb23a73a7a5c3952159029b6e4e40aba8f81283",
+        "calls": [
+          "c2w.view",
+          "create_intrinsic_from_fov_deg",
+          "default_cond_c2w",
+          "default_cond_c2w(model.cfg.default_distance).to",
+          "intrinsic.to",
+          "intrinsic.to('cuda').view",
+          "intrinsic_normed.to",
+          "intrinsic_normed.to('cuda').view",
+          "mask.unsqueeze",
+          "model.image_processor",
+          "model.prepare_image",
+          "rgb.unsqueeze"
+        ],
+        "lines": [
+          67,
+          90
+        ]
+      },
+      "_sf3d_cache_feature_spec": {
+        "AST_SHA256": "b1d8e90652097f75c8302f48ac43ae43e527b05be25293c5a7fc1bcbab744ce7",
+        "calls": [
+          "_sf3d_module_input_width"
+        ],
+        "lines": [
+          439,
+          447
+        ]
+      }
+    },
+    "new_target_label_identity_not_in_original_config_hash": true,
+    "original_albedo_target_broadcast": "(1,3) global target broadcast over all triplane query points; per-UV labels cannot be silently treated as point labels",
+    "original_cache_keys": [
+      "triplane_features",
+      "image_features",
+      "albedo",
+      "roughness",
+      "metallic"
+    ],
+    "original_config_hash_keys": [
+      "seed",
+      "query_points",
+      "learning_rate",
+      "weight_decay",
+      "scalar_loss_weight",
+      "max_grad_norm",
+      "warmup_steps",
+      "max_steps"
+    ],
+    "original_key_clause": "type(saved) is dict and set(saved) == set(_SF3D_CACHE_KEYS)",
+    "original_minimum_input_clause": "len(input_paths) < 2 or any((not path.is_file() for path in input_paths))",
+    "original_sampled_query_points": "CPU seed+17 generator -> uniform3D cube [-model.cfg.radius,+radius], default2048; no UV lookup/correspondence",
+    "reconstruction_backend": {
+      "SHA256": "aa0d19927e05ffb26931f28c5f29a0f01acaa1d0bcfabe45141b6a562a2decba",
+      "bytes": 34062
+    },
+    "training_backend": {
+      "SHA256": "dc57683c87f77c62635358f8a65db30c3070f000d235a60ad28f9395e4b68802",
+      "bytes": 58458
+    }
+  }
+}
