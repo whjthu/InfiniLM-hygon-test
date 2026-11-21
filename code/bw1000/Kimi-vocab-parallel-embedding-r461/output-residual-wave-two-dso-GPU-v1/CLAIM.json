@@ -1,0 +1,62 @@
+{
+  "case": "Kimi461 output residual full-tree and wave32, existing two-DSO device comparison",
+  "label": "Kimi461-output-residual-wave-two-dso-GPU-v1",
+  "request": "604638da75b54f94a77a2f402a856f68",
+  "resource": {
+    "parent": "1103606",
+    "node": "f13r1n01",
+    "zone": "I01",
+    "gpu_cards": 1,
+    "cpu_cores": 4,
+    "memory_MiB": 8192,
+    "same_physical_card_all_arms": true,
+    "fresh_authorization_and_pre_post": true
+  },
+  "budget_seconds": {
+    "whole": 850,
+    "gpu_step": 720,
+    "worker": 700,
+    "per_arm_startup": 65,
+    "per_arm_native_after_startup": 40
+  },
+  "source_files": {
+    "authority.py": "3747f149f405816dbd778c17491a420d2664a17a14fccede1ef6bd14a1ba94bf",
+    "materialize.py": "7754d5944f37b3840c9412c2ad9a90acfe1bb559a516ec8c281cad4d0167acec"
+  },
+  "rendered_package": {
+    "files_including_manifest": 15,
+    "SOURCE_FILES_SHA256": "8e9e990d7339ce9048102f607a437865a76cdc6a1122a029c6886bcc725c8c8b",
+    "CLAIM_SHA256": "cc57ab7b61da3c23eede3ae4f6cb16f98dcf2b113cccbe4b91c0fae7f6f3ed26",
+    "host_incoming_relative": "Kimi-vocab-parallel-embedding-r461/output-residual-wave-two-dso-GPU-v1"
+  },
+  "artifact_reuse": {
+    "full_tree_qualification": "1103606.748",
+    "wave32_qualification": "1103606.751",
+    "original_input_device_reference": "1103606.340",
+    "input_receipt_SHA256": "a2d7499f07e4e58eea68bf33b59e7e2794fd8314c0ec94fe53ffc1173c07724c",
+    "checkpoint_norm_projection_bytes": 28672,
+    "controlled_residual_shape": [512, 9, 7168],
+    "output_BF16_words_per_arm": 3670016,
+    "weights_extracted_again": false,
+    "reused_device_guard_behavior": "The common HOST wrapper checks residual prefix/suffix and payload, checks returned norm and projection bytes, and enforces 4 GiB at three sampled driver boundaries."
+  },
+  "arms": ["full-tree", "wave32", "wave32", "full-tree", "full-tree", "wave32"],
+  "native_mode_all_arms": 2,
+  "numerical_pass": "All three complete same-card pairs equal on all finite BF16 output words, with matching DSO/input identities and independent clean post.",
+  "timing_boundary": "Separate startup from first-use synchronized dispatch, C ABI and post-dispatch audit. Keep all raw timing and memory samples. Formal throughput and model speed remain unqualified.",
+  "actual_local_validation": {
+    "real_isolated_materializer_reproduced": true,
+    "bash_scripts_syntax_pass": 2,
+    "original_published_accounting_and_posts_accepted": true,
+    "bad_accounting_rejected": 5,
+    "bad_runtime_provider_graphs_rejected": 4,
+    "mock_worker_mode2_calls": 6,
+    "mock_exact_output_pairs": 3,
+    "planned_arms_retained_after_mock_first_arm_failure": 6
+  },
+  "actual_target_launches": 0,
+  "actual_new_compiles": 0,
+  "actual_new_links": 0,
+  "actual_GPU_qualification": false,
+  "promotion": false
+}
