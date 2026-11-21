@@ -78,6 +78,20 @@ cli.add_argument('--request-id')
         with self.assertRaisesRegex(ValueError, 'no current device-admitted'):
             self.handoff([job], selected=job['id'])
 
+    def test_original_cpu_prerequisite_prevents_gpu_handoff_on_same_node(self):
+        job = self.trial()
+        cpu = dict(id='cpu-input-audit', case='T01.input-audit', state='blocked',
+                   kind='validation', priority=1, cpu_prerequisite=True, placement={'a01r4n16': 0},
+                   attempt_receipts=['local-only/native-cpu/intent.json'], next_action='reconcile original')
+        self.assertEqual(len(self.handoff([job, cpu])['coordinator_handoffs']), 1)
+        self.fleet.put(cpu['attempt_receipts'][0], {'remote_outcome': 'UNKNOWN'})
+        result = self.handoff([job, cpu])
+        self.assertEqual(result['coordinator_handoffs'], [])
+        self.assertEqual(result['original_launch_holds'][cpu['id']],
+                         {'state': 'reconcile', 'nodes': ['a01r4n16']})
+        with self.assertRaisesRegex(ValueError, 'no current device-admitted'):
+            self.handoff([job, cpu], selected=job['id'])
+
     def test_zone_reports_actual_holders_without_placing_that_node(self):
         node = 'a01r4n16'
         self.fleet.snapshot['nodes'][node].update(KFD_clean=False, kfd_process_count=1)

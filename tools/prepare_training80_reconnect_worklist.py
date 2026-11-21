@@ -1,10 +1,13 @@
 """Read pinned training80 cases and prepare a shared reconnect admission check."""
 
 import argparse
+import ast
 import json
 from pathlib import Path
 
-from report_training80_backlog import REPO, TRAINING80_LEDGER, hex_value, invocation, need, pin_file
+from report_training80_backlog import (
+    REPO, TRAINING80_LEDGER, has_original_intent, hex_value, invocation, need, pin_file,
+)
 from verify_training80_manifest import verify_package_members
 
 
@@ -26,6 +29,47 @@ def pinned_target_probe(repo, probe):
     return probe
 
 
+def target_cpu_controller(repo, task, candidate):
+    resources = task['resources']
+    need(type(resources['dcu']) is int and resources['dcu'] == 0 and
+         type(resources['cpus']) is int and resources['cpus'] > 0 and
+         type(resources['memory_MiB']) is int and resources['memory_MiB'] > 0 and
+         task['exact_plan']['optimizer_updates'] == 0 and task['training_READY'] is False,
+         'a CPU prerequisite cannot reserve accelerators or count as training')
+    entry = task['controller']
+    raw = pin_file(repo, entry, ('tools/',))
+    tree = ast.parse(raw, filename=entry['path'])
+    cli = {node.args[0].value for node in ast.walk(tree)
+           if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+           and node.func.attr == 'add_argument' and node.args
+           and isinstance(node.args[0], ast.Constant) and isinstance(node.args[0].value, str)}
+    need(cli == {'--framework-root', '--publication'}, 'frozen CPU controller argument binding changed')
+    for member in task['dependencies']:
+        pin_file(repo, member, ('tools/', 'code/bw1000/', 'coordination/training/'))
+    pin_file(repo, task['source_predecessor'], ('coordination/tasks/',))
+    command = dict(kind='authenticated_host_python', arguments=[
+        '--framework-root', '<verified_framework_root>', '--publication', '<verified_publication>',
+    ])
+    claim = dict(request=task['request'], parent=resources['parent'], node=resources['node'],
+                 cpus=resources['cpus'], device_count=0, optimizer_updates=0)
+    return claim, entry, candidate['task'], command
+
+
+def packaged_candidate(repo, task, candidate):
+    source = candidate['source']
+    claim_ref = source_ref(task, source, 'claim')
+    manifest_ref = source_ref(task, source, 'manifest')
+    launcher = candidate['launcher']
+    need(Path(claim_ref['path']).parent == Path(manifest_ref['path']).parent == Path(source),
+         'worklist source package differs from task')
+    manifest = verify_package_members(repo, manifest_ref, required_files=[claim_ref, launcher])
+    claim = json.loads(pin_file(repo, claim_ref, ('code/bw1000/',)))
+    command = invocation(repo, dict(launch=dict(launcher=launcher, publication_commit='<verified_publication>',
+                                              request=claim['request'], claim=claim_ref)))
+    need(command is not None, 'frozen candidate requires a manual launcher binding')
+    return claim, launcher, manifest, command
+
+
 def prepare(repo, config, ledger_raw):
     repo = repo.resolve()
     ledger = json.loads(ledger_raw)
@@ -39,14 +83,10 @@ def prepare(repo, config, ledger_raw):
     for candidate in config['candidates']:
         task = json.loads(pin_file(repo, candidate['task'], ('coordination/tasks/',)))
         need(task['state'] == candidate['expected_task_state'], 'task status changed; rebuild worklist from the original')
-        source = candidate['source']
-        claim_ref = source_ref(task, source, 'claim')
-        manifest_ref = source_ref(task, source, 'manifest')
-        launcher = candidate['launcher']
-        need(Path(claim_ref['path']).parent == Path(manifest_ref['path']).parent == Path(source),
-             'worklist source package differs from task')
-        manifest = verify_package_members(repo, manifest_ref, required_files=[claim_ref, launcher])
-        claim = json.loads(pin_file(repo, claim_ref, ('code/bw1000/',)))
+        mode = candidate.get('mode', 'package')
+        need(mode in ('package', 'target_cpu_controller'), 'unsupported reconnect candidate kind')
+        selector = target_cpu_controller if mode == 'target_cpu_controller' else packaged_candidate
+        claim, launcher, manifest, command = selector(repo, task, candidate)
         request = claim['request']
         need(hex_value(request, 32) and request == task['request'] and request not in checked_requests,
              'missing, repeated or mismatched task request')
@@ -60,17 +100,7 @@ def prepare(repo, config, ledger_raw):
         gates = candidate['gates']
         need(isinstance(gates, list) and gates and all(isinstance(gate, str) and gate.strip() for gate in gates),
              'candidate needs concrete reconnect controls')
-        attempt = candidate['attempt_receipt']
-        need(isinstance(attempt, str) and attempt.startswith('local-only/') and '\\' not in attempt,
-             'original intent marker must be in local-only')
-        marker = (repo / attempt).resolve()
-        need(marker.is_relative_to(repo / 'local-only'), 'original intent marker escapes local-only')
-        try:
-            marker.stat()
-        except FileNotFoundError:
-            attempted = False
-        else:
-            attempted = True
+        attempted = has_original_intent(repo, [candidate['attempt_receipt']])
         predecessors = []
         for prior in candidate.get('blocking_original_requests', []):
             payload = json.loads(pin_file(repo, prior, ('results/bw1000/',)))
@@ -82,9 +112,6 @@ def prepare(repo, config, ledger_raw):
             if probe is not None:
                 predecessor['target_reconciliation_probe'] = probe
             predecessors.append(predecessor)
-        command = invocation(repo, dict(launch=dict(launcher=launcher, publication_commit='<verified_publication>',
-                          request=request, claim=claim_ref)))
-        need(command is not None, 'frozen candidate requires a manual launcher binding')
         target_probe = pinned_target_probe(repo, candidate.get('target_read_only_preflight'))
         completion_reader = pinned_target_probe(repo, candidate.get('target_completion_reader'))
         updates = claim.get('optimizer_updates', claim.get('planned_updates', 0))
@@ -99,7 +126,8 @@ def prepare(repo, config, ledger_raw):
                            current_GPU_GO=claim.get('GPU_GO') is True, current_CPU_GO=claim.get('CPU_GO') is True,
                            candidate_ready_verified=False, frozen_rendezvous_port=port,
                            gates=gates, blocking_original_requests=predecessors, manifest=manifest,
-                           launcher=launcher, frozen_invocation_after_gates=command,
+                           launcher=launcher, frozen_invocation_after_gates=None if attempted else command,
+                           attempt_receipt=candidate['attempt_receipt'],
                            target_read_only_preflight=None if attempted else target_probe,
                            target_completion_reader=completion_reader))
     flags = [value for port in sorted(ports) for value in ('--port', str(port))]

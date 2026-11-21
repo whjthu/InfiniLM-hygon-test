@@ -45,6 +45,18 @@ class DispatchProbeArgumentsTest(unittest.TestCase):
         self.assertEqual(report['blocked_candidate_held_nodes'], {'trial-1': ['f13r1n10']})
         self.assertEqual(report['collector_arguments'], ['--held-node', 'f13r1n10'])
 
+    def test_cpu_worklist_cannot_disagree_with_persistent_attempt_marker(self):
+        node = 'f13r1n12'
+        cpu = dict(id='cpu-preflight', case='T02.input-audit', kind='validation', state='blocked', priority=10,
+                   cpu_prerequisite=True, placement={node: 0}, attempt_receipts=['local-only/original/intent.json'])
+        preflight = dict(case=cpu['case'], node=node, requested_DCU=0, target_preflight_state='WAITING_AUTHENTICATED_TARGET',
+                         frozen_rendezvous_port=None, attempt_receipt=cpu['attempt_receipts'][0])
+        report = probe_arguments(self.fixture.repo, {'items': [cpu]}, self.ledger, [], [preflight])
+        self.assertEqual(report['prepared_preflight_priority_nodes'], [node])
+        preflight['attempt_receipt'] = 'local-only/unrelated/intent.json'
+        with self.assertRaisesRegex(ValueError, 'persistent node hold differ'):
+            probe_arguments(self.fixture.repo, {'items': [cpu]}, self.ledger, [], [preflight])
+
     def test_unknown_original_holds_node_even_if_candidate_source_changes(self):
         training = self.fixture.trial(1, node='f13r1n10')
         operator = self.fixture.trial(2, 'operator', node='f13r1n10')

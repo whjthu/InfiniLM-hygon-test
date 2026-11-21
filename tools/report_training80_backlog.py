@@ -72,9 +72,10 @@ def read_original_holds(repo, jobs, known_nodes):
     marker_errors = {}
     for job in jobs:
         ident, state, placement = (job[key] for key in ('id', 'state', 'placement'))
-        if state == 'ready':
+        if state == 'ready' or (state == 'blocked' and 'attempt_receipts' in job):
             try:
-                if not has_original_intent(repo, job['launch']['attempt_receipts']):
+                markers = job['launch']['attempt_receipts'] if state == 'ready' else job['attempt_receipts']
+                if not has_original_intent(repo, markers):
                     continue
                 state = 'reconcile'
             except (KeyError, OSError, RuntimeError, TypeError, ValueError) as error:
@@ -231,8 +232,13 @@ def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(
         identities.add(ident)
         placement = job['placement']
         wanted = set(placement)
-        need(all(name in nodes and type(cards) is int and 0 < cards <= 8
+        cpu_prerequisite = job.get('cpu_prerequisite') is True
+        minimum_cards = 0 if cpu_prerequisite else 1
+        need(all(name in nodes and type(cards) is int and minimum_cards <= cards <= 8
                  for name, cards in placement.items()) and wanted, 'candidate requires explicit known nodes and device counts')
+        if cpu_prerequisite:
+            need(kind == 'validation' and state != 'ready' and not any(placement.values()) and 'launch' not in job,
+                 'CPU prerequisites are read-only in the GPU backlog')
         row = dict(id=ident, case=job.get('case'), kind=kind, candidate_state=state, placement=placement,
                    requested_DCU=sum(placement.values()), next_action=job['next_action'])
         if kind == 'training':
@@ -250,9 +256,11 @@ def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(
             if 'evidence' in job:
                 row['evidence'] = job['evidence']
                 pin_file(repo, job['evidence'], ('coordination/tasks/', 'analysis/bw1000/', 'results/bw1000/', 'local-only/'))
+            if ident in marker_errors:
+                raise ValueError(marker_errors[ident])
+            if state == 'blocked' and ident in original_holds:
+                state = original_holds[ident]['state']
             if state == 'ready':
-                if ident in marker_errors:
-                    raise ValueError(marker_errors[ident])
                 state = original_holds[ident]['state'] if ident in original_holds else verify_launch(repo, job)
                 if state == 'reconcile':
                     original_holds[ident] = dict(state=state, nodes=sorted(wanted))

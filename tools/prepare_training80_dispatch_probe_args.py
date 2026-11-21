@@ -58,7 +58,13 @@ def probe_arguments(repo, backlog, ledger, holds, preflight=(), *, priority_only
             select(nodes, job['launch']['required_ports'])
 
     preflight_priority = []
+    cpu_backlog = {job['case']: job for job in jobs if job.get('cpu_prerequisite') is True}
     for row in sorted(preflight, key=lambda row: (not bool(row['requested_DCU']), row['case'])):
+        if row['case'] in cpu_backlog:
+            job = cpu_backlog[row['case']]
+            need(row['requested_DCU'] == 0 and job['placement'] == {row['node']: 0}
+                 and job['attempt_receipts'] == [row['attempt_receipt']],
+                 'CPU worklist and persistent node hold differ')
         if row['target_preflight_state'] != 'WAITING_AUTHENTICATED_TARGET':
             continue
         node = row['node']

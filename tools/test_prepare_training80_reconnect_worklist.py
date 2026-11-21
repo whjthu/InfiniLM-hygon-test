@@ -118,6 +118,42 @@ class ReconnectWorklistTest(unittest.TestCase):
         self.assertEqual(row['target_completion_reader'],probe)
         self.assertFalse(row['candidate_ready_verified'])
 
+    def cpu_controller(self, cards=0):
+        entry = self.write('tools/cpu_input.py', b"cli.add_argument('--framework-root')\ncli.add_argument('--publication')\n")
+        dep = self.write('tools/cpu_worker.py', b'pass\n')
+        prior = self.write('coordination/tasks/prior.json', {})
+        task_fixture = dict(state='CONTROLLER_NOT_RUN', case='T02.input-audit', request='d' * 32,
+            controller=entry, dependencies=[dep], source_predecessor=prior,
+            resources=dict(dcu=cards, cpus=4, memory_MiB=8192, parent='1103606', node='f13r1n12'),
+            exact_plan=dict(optimizer_updates=0), training_READY=False)
+        task = self.write('coordination/tasks/cpu-audit.json', task_fixture)
+        return dict(task=task, expected_task_state='CONTROLLER_NOT_RUN', mode='target_cpu_controller',
+                    attempt_receipt='local-only/cpu-audit-original/intent.json', gates=['check model-free scope'])
+
+    def test_cpu_controller_enters_reconnect_list_without_training_ready_and_hides_used_invocation(self):
+        job = self.cpu_controller()
+        result = self.plan(job)
+        [row] = result['candidates']
+        self.assertEqual((row['requested_DCU'], row['planned_optimizer_updates']), (0, 0))
+        self.assertEqual(row['frozen_invocation_after_gates']['arguments'],
+                         ['--framework-root', '<verified_framework_root>', '--publication', '<verified_publication>'])
+        self.assertEqual(result['candidate_nodes_needing_current_probe'], ['f13r1n12'])
+        self.assertEqual(result['newly_verified_training_ready'], 0)
+        self.write(job['attempt_receipt'], {'remote_outcome': 'UNKNOWN'})
+        result = self.plan(job)
+        [row] = result['candidates']
+        self.assertEqual(row['target_preflight_state'], 'RECONCILE_ORIGINAL_ATTEMPT')
+        self.assertIsNone(row['frozen_invocation_after_gates'])
+        self.assertEqual(result['candidate_nodes_needing_current_probe'], [])
+
+    def test_cpu_controller_requires_pinned_dep_and_zero_devices(self):
+        with self.assertRaisesRegex(ValueError, 'cannot reserve accelerators'):
+            self.plan(self.cpu_controller(cards=1))
+        job = self.cpu_controller()
+        self.write('tools/cpu_worker.py', b'print(1)\n')
+        with self.assertRaisesRegex(ValueError, 'evidence SHA256 differs'):
+            self.plan(job)
+
     def test_rejects_wrong_parent_and_deduplicates_requests(self):
         with self.assertRaisesRegex(ValueError, 'assigned Slurm parent'):
             self.plan(self.candidate(parent='1087656'))
