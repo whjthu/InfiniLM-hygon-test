@@ -161,16 +161,13 @@ def original_tools():
     return audit, libraries
 
 
-def caller_binding(report, accounting, pci, epoch, deadline, auditor):
+def admitted_dependencies(report, accounting, auditor):
     scope = dict(label=LABEL, parent=PARENT, node=NODE)
     row = auditor.accounting(accounting, scope)
     need(report['state'] == 'ISOLATED_HOST_LINK_PASS' and report['request_scope'] == LABEL
          and report['actual_CPU_step'] == row[0] and row[2:4] == ['COMPLETED', '0:0']
          and report['deadline'] == report['epoch'] + 300 and report['actual_target_GPU_steps'] == 0
          and report['GPU_GO'] is False, 'missing independent original CPU link terminal')
-    need(re.fullmatch(r'[0-9a-f]{4,8}:[0-9a-f]{2}:[01][0-9a-f]\.[0-7]', pci)
-         and math.isfinite(epoch) and math.isfinite(deadline) and 0 < deadline - epoch <= 300,
-         'invalid original GPU binding scope or deadline')
     providers = report['verified_roles']
     need(set(providers) == {'ORIG', 'G1', 'G2', 'D2', 'D4'} and len({r['sha256'] for r in providers.values()}) == 5,
          'unverified or duplicate component providers')
@@ -184,8 +181,18 @@ def caller_binding(report, accounting, pci, epoch, deadline, auditor):
     path = Path(HIP).resolve(strict=True)
     need(str(path) == hip['path'] and check_sha(hip['sha256'])
          and stream_pin(path, hip['sha256'])['bytes'] == hip['bytes'], 'HIP provider pin differs after link')
-    return dict(schema='glm_i128_one_gpu_v1', hip={key: hip[key] for key in ('path', 'sha256')},
-                providers=expected, expected_pci=pci, epoch=epoch, deadline=deadline)
+    return dict(hip={key: hip[key] for key in ('path', 'sha256')}, providers=expected)
+
+
+def worker_binding(dependencies, pci, epoch, deadline):
+    need(re.fullmatch(r'[0-9a-f]{4,8}:[0-9a-f]{2}:[01][0-9a-f]\.[0-7]', pci)
+         and math.isfinite(epoch) and math.isfinite(deadline) and 0 < deadline - epoch <= 300,
+         'invalid original GPU binding scope or deadline')
+    return dict(schema='glm_i128_one_gpu_v1', **dependencies, expected_pci=pci, epoch=epoch, deadline=deadline)
+
+
+def caller_binding(report, accounting, pci, epoch, deadline, auditor):
+    return worker_binding(admitted_dependencies(report, accounting, auditor), pci, epoch, deadline)
 
 
 def produce(audits, epoch, deadline):
