@@ -1,14 +1,19 @@
 """Hold the shared O01 slot before invoking the frozen Deep inverse RoPE controller once."""
 
 from contextlib import closing
+from copy import deepcopy
 from datetime import datetime, timezone
 import json
 from pathlib import PurePosixPath
+import re
 import time
 
 from dispatch_glm474_fresh_kv_cpu_once import PROJECT, write_once
 from prepare_training80_vggt_admission import published
-from report_training80_backlog import BACKLOG, QUEUE_DB, REPO, hex_value, need, pin_file, queue_holds, read_original_holds
+from report_training80_backlog import (
+    BACKLOG, QUEUE_DB, REPO, fleet_view, hex_value, need, pin_file, queue_holds, read_original_holds,
+)
+from sample_training80_busy import PCI
 from tuning_queue import DIRECT_STAGE, Queue, canonical, digest
 from verify_training80_manifest import verify_package_members
 
@@ -57,7 +62,8 @@ def scope(repo):
          and claim["GPU_GO"] is claim["Model_GO"] is claim["replay_allowed"] is False, "original Deep RoPE claim differs")
     for path, pin in HOST_FILES.items():
         pin_file(repo, dict(path=path, SHA256=pin), ("tools/", "code/bw1000/", "coordination/training/"))
-    names = {DISPATCHER, CLAIM["path"], *HOST_FILES}
+    names = {DISPATCHER, CLAIM["path"], *HOST_FILES, "tools/collect_training80_dispatch_snapshot.py",
+             "tools/report_training80_backlog.py", "tools/sample_training80_busy.py", "tools/tuning_queue.py"}
     for manifest in (MANIFEST, AUDIT):
         verify_package_members(repo, manifest)
         path = repo / manifest["path"]
@@ -88,7 +94,26 @@ def original_argv(remote_repository):
             str(root / HOST), str(root / MEMBER), HOST_FILES[HOST], HOST_FILES[MEMBER], CLAIM["SHA256"])
 
 
-def claim_local(queue, repo, board, approved_board, record):
+def device_admission(snapshot, ledger):
+    need(isinstance(snapshot, dict) and snapshot.get("snapshot_kind") == "training80-dispatch-v1"
+         and isinstance(snapshot.get("local_receipt"), dict), "the original received device snapshot is required")
+    now = time.monotonic()
+    _, nodes, fresh = fleet_view(snapshot, now, time.time() - now, ledger)
+    need(fresh, "Deep device receipt expired or belongs to a different local clock")
+    slot, probe, receipt = nodes[NODE], snapshot["nodes"][NODE], snapshot["local_receipt"]
+    pcis, probe_step = probe["PCIs"], probe.get("device_probe_step")
+    need(slot["admission"] == "clear" and slot["zone"] == ZONE and slot["parent"] == PARENT
+         and probe["zone"] == ZONE and probe["parent"] == PARENT and probe.get("probe_error") is None
+         and isinstance(probe_step, str) and re.fullmatch(PARENT + r"\.[0-9]+", probe_step)
+         and all(PCI.fullmatch(pci) for pci in pcis)
+         and all(type(probe.get(key)) is int and probe[key] == 0
+                 for key in ("kfd_process_count", "own_device_fd_process_count"))
+         and hex_value(receipt["request_id"], 32), "Deep node lacks same-parent PCI, KFD and PID clearance")
+    return {**receipt, "parent": PARENT, "node": NODE, "zone": ZONE, "PCIs": sorted(pcis),
+            "device_probe_step": probe_step}
+
+
+def claim_local(queue, repo, board, approved_board, record, snapshot):
     local = repo / "local-only"
     intent = repo / INTENT
     need(local.resolve(strict=True) == local and intent.resolve().is_relative_to(local),
@@ -119,6 +144,8 @@ def claim_local(queue, repo, board, approved_board, record):
         original, _, _ = read_original_holds(repo, jobs, nodes)
         need(not any(NODE in row["nodes"] for row in (*queue_holds(db), *original.values())),
              "another original request holds the Deep O01 node")
+        need(device_admission(snapshot, repo / LEDGER) == record["device_admission"],
+             "Deep device receipt changed before the reservation")
         intent.parent.mkdir()
         binding = dict(record, queue_run=run)
         write_once(intent, binding)
@@ -134,9 +161,9 @@ def claim_local(queue, repo, board, approved_board, record):
     return run, handle, intent
 
 
-def dispatch(publication, remote_repository, transport, *, repo=REPO, backlog=BACKLOG, database=QUEUE_DB,
+def dispatch(publication, remote_repository, transport, *, snapshot, repo=REPO, backlog=BACKLOG, database=QUEUE_DB,
              check_publication=published):
-    """The coordinator supplies the existing finite argv callback."""
+    """Use the existing finite argv callback and the result of the one-time collector receive."""
     need(hex_value(publication, 40) and callable(transport), "published revision and finite transport required")
     repo, board, database = (path.resolve(strict=True) for path in (repo, backlog, database))
     need(board == repo / BACKLOG.relative_to(REPO) and database == repo / QUEUE_DB.relative_to(REPO),
@@ -144,29 +171,34 @@ def dispatch(publication, remote_repository, transport, *, repo=REPO, backlog=BA
     argv = original_argv(remote_repository)
     frozen, names = scope(repo)
     approved_board = board.read_bytes()
+    snapshot = deepcopy(snapshot)
     check_publication(repo, publication, sorted(names | {board.relative_to(repo).as_posix()}))
+    admission = device_admission(snapshot, repo / LEDGER)
     cap = 320
     record = dict(request=REQUEST, label=LABEL, publication=publication, placement=PLACEMENT, kind="validation",
                   claim_SHA256=CLAIM["SHA256"], host_entry_SHA256=HOST_FILES[HOST],
                   source_manifest_SHA256=MANIFEST["SHA256"], terminal_reader_manifest_SHA256=AUDIT["SHA256"],
                   target_intent=str(TARGET / "intent.json"), target_controller=str(PROJECT / frozen["controller_result"]),
                   local_intent=INTENT, argv=argv, argv_SHA256=digest(argv), claimed_UTC=datetime.now(timezone.utc).isoformat(),
-                  transport_timeout_seconds=cap, remote_outcome="UNKNOWN", replay_allowed=False,
+                  transport_timeout_seconds=cap, device_admission=admission, remote_outcome="UNKNOWN", replay_allowed=False,
                   counts_toward_training_reserve=False)
     queue = Queue(database)
     with closing(queue.db):
-        run, handle, intent = claim_local(queue, repo, board, approved_board, record)
-        result = dict(request=REQUEST, queue_run=run, local_intent=INTENT, remote_outcome="UNKNOWN",
-                      transport_returncode=None, terminal_verified=False, replay_allowed=False)
+        run, handle, intent = claim_local(queue, repo, board, approved_board, record, snapshot)
+        result = dict(request=REQUEST, queue_run=run, local_intent=INTENT, remote_outcome="NOT_ATTEMPTED",
+                      transport_attempted=False, transport_returncode=None, terminal_verified=False, replay_allowed=False)
         try:
             with intent.with_name("stdout.private").open("xb") as stdout, intent.with_name("stderr.private").open("xb") as stderr:
+                need(device_admission(snapshot, repo / LEDGER) == admission, "Deep device receipt changed before transport")
+                result.update(remote_outcome="UNKNOWN", transport_attempted=True)
                 rc = transport(argv, stdout, stderr, cap).returncode
             need(type(rc) is int, "finite transport did not return an exit code")
             result["transport_returncode"] = rc
         except Exception as error:
             result["transport_error"] = type(error).__name__
         write_once(intent.with_name("transport.json"), result)
-        queue.submission(run, handle, unknown=True)
+        if result["transport_attempted"]:
+            queue.submission(run, handle, unknown=True)
     return result
 
 
