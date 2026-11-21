@@ -69,7 +69,9 @@ python -B tools/read_vggt_tum_bidirectional30_terminal.py <original-target-dir> 
 MiniCPM 条目的 `target_completion_reader` 保留在已有原尝试的对账视图。由 `tools/read_minicpm_native88_original.py` 获取实际 Slurm 记账，用原请求的 publication 和 epoch 绑定同一编号步骤，再读取原 88 条原生输入的结果。只在结果通过时，把它的文件与 SHA 交给现有目标训练资产准备入口。在途、未找到、失败和记账不一致都保留为独立状态。
 
 
-Gemma 的 `frozen_invocation_after_gates` 绑定普通发布的 CPU 控制器。根协调者先核验训练数据、处理器、统一框架、唯一标签及节点归属，再填入真实框架目录和发布 SHA。Gemma 与 MiniCPM 的 CPU 前置验证各自绑定本机原意图路径。提交尝试开始后，即使 SQLite 中没有对应项，GPU 交接也保留整台节点，直到根协调者消费原终态并更新任务状态。CPU 前置验证单独显示，已准入训练数由真实优化器任务计算。
+Gemma 的 `target_read_only_preflight` 使用 `tools/preflight_gemma_render72_native_cpu.py --framework-root <verified_framework_root>`。入口先读取原数据包收据。若两处原命名空间均为空，先对账原 staging 请求，确认从未提交后再按冻结流程安排。若原 CPU 步、原意图或不完整的 staging 已出现，按原请求对账。完整数据包通过后，入口直接复用 CPU worker 的资产核验，核对 72 条训练输入、800 次曝光顺序、12 张训练图、14 份处理器文件和统一框架的审计模块。资产通过后再查 f13r1n12 的归属及编号步，复查 CPU 请求原命名空间和 accounting。
+
+返回 `TARGET_ASSETS_VERIFIED_CPU_DISPATCH_PENDING` 后，用同一实际框架目录和发布 SHA 取得 `frozen_invocation_after_gates` 中的 CPU 控制器调用。控制器仍会校验现场归属和原提交唯一性。Gemma 与 MiniCPM 的 CPU 验证各自绑定本机原意图路径。提交尝试开始后保留节点，直到根协调者消费原终态并更新任务状态。CPU 前置验证和实际优化器训练分别计数。
 
 Gemma 的 `target_completion_reader` 使用原派发所用的发布 SHA 作为 `--publication`。`tools/read_gemma_render72_native_cpu_original.py` 先查询 Slurm 原步，确认终态才检查原意图、控制器和 worker 收据，并按冻结数据的逐行哈希对照 72 条编码与整理记录。核验成功后，用报告中的 `worker_receipt.SHA256` 核对后续训练控制器所需的 `native-input-cpu-result.json` 原字节。CPU 前置不能代替八卡训练的原初始 LoRA 和实际 rank 采样器验证。
 
