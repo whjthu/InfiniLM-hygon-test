@@ -5,6 +5,7 @@ from pathlib import Path
 import sqlite3
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from report_training80_backlog import TRAINING80_LEDGER, plan, read_queue_holds
 from tuning_queue import digest
@@ -111,6 +112,22 @@ class BacklogTest(unittest.TestCase):
         result = self.run_plan(job)
         self.assertEqual(result['outstanding_training_ready'], 0)
         self.assertEqual(result['rows'][0]['dispatch_state'], 'reconcile')
+
+    def test_durable_direct_training_hold_does_not_depend_on_marker_permissions(self):
+        spec = self.trial()
+        launch = spec.pop('launch')
+        spec.update(state='blocked', direct_request=launch['request'],
+                    attempt_receipts=launch['attempt_receipts'])
+        hold = dict(run='e' * 64, state='UNKNOWN', direct_request=launch['request'],
+                    nodes=list(spec['placement']))
+        with patch('report_training80_backlog.has_original_intent', side_effect=PermissionError()):
+            held = self.run_plan(spec, holds=[hold])
+            unmatched = self.run_plan(spec, holds=[dict(hold, nodes=['f13r1n10'])])
+        self.assertEqual(held['rows'][0]['dispatch_state'], 'reconcile')
+        self.assertEqual(held['training_pipeline']['needs_reconciliation'], 1)
+        self.assertEqual(held['training_pipeline']['invalid_evidence'], 0)
+        self.assertEqual(held['queue_held_nodes'], list(spec['placement']))
+        self.assertEqual(unmatched['rows'][0]['dispatch_state'], 'invalid_launch_evidence')
 
     def test_training_pipeline_keeps_dispatch_reserve_and_recorded_runs_distinct(self):
         ready = self.trial(1)

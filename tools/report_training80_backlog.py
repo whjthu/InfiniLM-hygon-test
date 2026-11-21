@@ -74,10 +74,14 @@ def read_original_holds(repo, jobs, known_nodes, holds=()):
     marker_errors = {}
     resolved = {}
     states = direct_request_states(holds)
+    durable_nodes = {row['direct_request']: set(row['nodes']) for row in holds if 'direct_request' in row}
     for job in jobs:
-        if direct_launch_state(job, states) in DIRECT_CLOSED_STATES:
-            continue
         ident, state, placement = (job[key] for key in ('id', 'state', 'placement'))
+        request = direct_request(job)
+        direct_state = states.get(request)
+        if (direct_state in DIRECT_CLOSED_STATES or
+                (direct_state in ACTIVE and durable_nodes[request] == set(placement))):
+            continue
         if ident == DEV80_JOB and state == 'reconcile':
             try:
                 need(job['kind'] == 'validation' and placement == dict.fromkeys(DEV80_NODES.values(), 1)
@@ -262,8 +266,12 @@ def direct_request_states(holds):
     return states
 
 
+def direct_request(job):
+    return job.get('direct_request', job.get('cpu_request', job.get('launch', {}).get('request')))
+
+
 def direct_launch_state(job, states):
-    return states.get(job.get('direct_request', job.get('cpu_request', job.get('launch', {}).get('request'))))
+    return states.get(direct_request(job))
 
 
 def direct_workloads(holds):
@@ -319,7 +327,7 @@ def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(
                    requested_DCU=sum(placement.values()), next_action=job['next_action'])
         if 'direct_request' in job:
             request = job['direct_request']
-            need(kind in ('validation', 'operator') and state != 'ready' and not cpu_prerequisite
+            need(kind in ('training', 'validation', 'operator') and state != 'ready' and not cpu_prerequisite
                  and 'cpu_request' not in job and 'launch' not in job
                  and bool(job.get('attempt_receipts')) and hex_value(request, 32) and request not in request_ids,
                  'invalid or duplicate direct device request')
