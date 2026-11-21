@@ -98,7 +98,7 @@ def save(path, data):
         os.fsync(stream.fileno())
 
 
-def run_segment(file_id, publication, log_root, start_target, *, budget=150):
+def run_segment(file_id, publication, log_root, start_target, *, budget=150, expected_offset=None):
     """Obtain and confirm one new public segment. Resume from authoritative target state."""
     stage.need(type(budget) is int and 30 <= budget <= 420, 'segment budget outside bounds')
     spec = stage.shard_spec(file_id)
@@ -130,9 +130,11 @@ def run_segment(file_id, publication, log_root, start_target, *, budget=150):
 
     before = remote('inspect')
     save(directory / 'before.json', before)
+    offset = 0 if before.get('state') == 'ABSENT' else before['confirmed_bytes']
+    stage.need(expected_offset is None or offset == expected_offset,
+               'target durable offset differs from the published continuation')
     if before.get('whole_file_qualified_at_seal') is True:
         return dict(request=request, action='already_sealed', target=before)
-    offset = 0 if before.get('state') == 'ABSENT' else before['confirmed_bytes']
     if offset == spec['bytes']:
         result = remote('seal')
         stage.need(result.get('whole_file_qualified') is True and result['SHA256'] == spec['SHA256'],
@@ -159,3 +161,49 @@ def run_segment(file_id, publication, log_root, start_target, *, budget=150):
     save(directory / 'outcome.json', result)
     return dict(request=request, action='segment_committed', target=result,
                 source_wall_seconds=source_wall, target_wall_seconds=time.monotonic() - target_begin)
+
+
+def continue_shard(file_id, publication, directory, start_target, *, start_offset,
+                   max_range_count, window_seconds, range_budget=420, report=print):
+    """Run one exclusive local continuation window, retaining each committed range."""
+    spec = stage.shard_spec(file_id)
+    stage.need(type(start_offset) is int and 0 <= start_offset <= spec['bytes'] and
+               (start_offset == spec['bytes'] or start_offset % spec['segment_bytes'] == 0),
+               'invalid continuation offset')
+    stage.need(type(max_range_count) is int and 1 <= max_range_count <= 200 and
+               type(window_seconds) is int and 420 <= window_seconds <= 21600 and
+               type(range_budget) is int and 30 <= range_budget <= 420, 'invalid continuation limits')
+    directory.mkdir(mode=0o700)
+    save(directory / 'window-intent.json', dict(
+        file_id=file_id, publication=publication, started_epoch=time.time(), start_offset=start_offset,
+        window_seconds=window_seconds, range_budget=range_budget, max_range_count=max_range_count,
+        transport='existing_authenticated_project_route'))
+    deadline = time.monotonic() + window_seconds
+    offset, committed = start_offset, 0
+    sealed = False
+    state = 'WINDOW_BUDGET_OR_RANGE_LIMIT'
+    try:
+        while offset == spec['bytes'] or committed < max_range_count:
+            budget = min(range_budget, int(deadline - time.monotonic()))
+            if budget < 30:
+                break
+            entry = run_segment(file_id, publication, directory, start_target,
+                                budget=budget, expected_offset=offset)
+            if entry['action'] in ('sealed', 'already_sealed'):
+                sealed = True
+                state = 'WHOLE_SHARD_VERIFIED'
+                report(entry)
+                break
+            stage.need(entry['action'] == 'segment_committed' and entry['target']['offset'] == offset,
+                       'unexpected continuation receipt')
+            offset = entry['target']['confirmed_bytes']
+            committed += 1
+            save(directory / f'committed-{committed:04}.json', entry)
+            report(entry)
+    except (OSError, ValueError, RuntimeError, subprocess.SubprocessError):
+        state = 'STOPPED_REQUIRES_FRESH_TARGET_RECONCILIATION'
+        raise
+    finally:
+        save(directory / 'window-terminal.json', dict(
+            state=state, file_id=file_id, start_offset=start_offset,
+            last_acknowledged_offset=offset, committed_ranges=committed, whole_file_qualified=sealed))

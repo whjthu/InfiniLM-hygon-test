@@ -1,8 +1,12 @@
 """Exercise range admission before the target can be mutated."""
 
 from io import BytesIO
+import json
+from pathlib import Path
+from tempfile import TemporaryDirectory
 import time
 import unittest
+from unittest.mock import patch
 
 import stream_internvl_public_segment as relay
 
@@ -50,6 +54,35 @@ class PublicSegmentTest(unittest.TestCase):
         self.assertEqual(int.from_bytes(packet[:8], 'little'), len(packet) - 8)
         compile(packet[8:], '<receiver>', 'exec')
 
+    def test_window_resumes_and_seals_after_last_range(self):
+        spec = {**self.spec, 'bytes': 10, 'segment_bytes': 5}
+        entries = [
+            {'action': 'segment_committed', 'target': {'offset': 5, 'confirmed_bytes': 10}},
+            {'action': 'sealed', 'target': {'whole_file_qualified': True}},
+        ]
+        with TemporaryDirectory() as tmp, patch.object(relay.stage, 'shard_spec', return_value=spec):
+            directory = Path(tmp) / 'window'
+            with patch.object(relay, 'run_segment', side_effect=entries) as run:
+                relay.continue_shard(4, 'published', directory, None, start_offset=5,
+                                     max_range_count=1, window_seconds=420, report=lambda entry: None)
+            self.assertEqual([call.kwargs['expected_offset'] for call in run.call_args_list], [5, 10])
+            self.assertEqual(json.loads((directory / 'committed-0001.json').read_bytes()), entries[0])
+            self.assertEqual(json.loads((directory / 'window-terminal.json').read_bytes())['state'],
+                             'WHOLE_SHARD_VERIFIED')
+
+    def test_window_stops_at_unverified_range(self):
+        spec = {**self.spec, 'bytes': 15, 'segment_bytes': 5}
+        first = {'action': 'segment_committed', 'target': {'offset': 5, 'confirmed_bytes': 10}}
+        with TemporaryDirectory() as tmp, patch.object(relay.stage, 'shard_spec', return_value=spec):
+            directory = Path(tmp) / 'window'
+            with patch.object(relay, 'run_segment', side_effect=[first, TimeoutError()]) as run:
+                with self.assertRaises(TimeoutError):
+                    relay.continue_shard(4, 'published', directory, None, start_offset=5,
+                                         max_range_count=2, window_seconds=420, report=lambda entry: None)
+            self.assertEqual(run.call_count, 2)
+            status = json.loads((directory / 'window-terminal.json').read_bytes())
+            self.assertEqual(status['last_acknowledged_offset'], 10)
+            self.assertEqual(status['state'], 'STOPPED_REQUIRES_FRESH_TARGET_RECONCILIATION')
 
 if __name__ == '__main__':
     unittest.main()
