@@ -57,6 +57,30 @@ class ActiveSamplerTest(unittest.TestCase):
         self.assertIsNone(result['fleet_mean_busy_percent'])
         self.assertIsNone(result['strictly_above_80_in_this_window'])
 
+    def test_node_report_separates_observed_zero_active_and_missing_cards(self):
+        reports = self.reports(99)
+        first, second, _, fourth = list(reports)[:4]
+        node = reports[first]['node']
+        other = reports[fourth]['node']
+        cards = self.pins[node]
+        self.plan['bindings'][second]['mode'] = reports[second]['mode'] = 'idle_gres_sample'
+        for row in reports[first]['rows']:
+            row['busy'].update({cards[0]: 0, cards[1]: 0})
+        reports[first]['rows'][2]['busy'][cards[1]] = 1
+        for row in reports[second]['rows']:
+            row['busy'][cards[5]] = 0
+        del reports[fourth]
+        result = sampler.aggregate(self.owners, self.pins, self.plan, reports)
+        parent, group = self.owners[node]
+        self.assertEqual(result['node_observations'][node], dict(
+            parent=parent, group=group, expected_cards=8, zero_at_every_point=[cards[0], cards[5]],
+            nonzero_at_some_point=[cards[i] for i in (1, 2, 3, 4, 6, 7)], missing=[],
+            sampled_inside_workload=cards[:4], sampled_inside_idle_probe=cards[4:],
+        ))
+        self.assertEqual(result['node_observations'][other]['missing'], self.pins[other][4:])
+        self.assertEqual(result['node_observations'][other]['zero_at_every_point'], [])
+        self.assertIsNone(result['fleet_mean_busy_percent'])
+
     def test_conflicting_assignments_and_clock_mismatch_reject_samples(self):
         reports=self.reports(99)
         first,second=list(reports)[:2]

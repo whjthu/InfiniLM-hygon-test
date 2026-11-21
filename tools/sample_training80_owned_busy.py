@@ -125,6 +125,18 @@ def aggregate(owners, pins, plan, reports):
     values = [v for rows in by_card.values() for v in rows]
     complete = set(by_card) == all_cards
     mean = sum(values)/len(values) if complete else None
+    node_observations = {}
+    for node, pcis in sorted(pins.items()):
+        parent, group = owners[node]
+        observed = {pci: by_card[node, pci] for pci in pcis if (node, pci) in by_card}
+        zero = {pci for pci, readings in observed.items() if not any(readings)}
+        workload = {pci for pci in observed if (node, pci) in sampled_workload}
+        node_observations[node] = dict(
+            parent=parent, group=group, expected_cards=len(pcis),
+            zero_at_every_point=sorted(zero), nonzero_at_some_point=sorted(observed.keys()-zero),
+            missing=sorted(set(pcis)-observed.keys()),
+            sampled_inside_workload=sorted(workload), sampled_inside_idle_probe=sorted(observed.keys()-workload),
+        )
     return dict(request=requested, scheduled_epoch=scheduled, interval_s=INTERVAL_S, points=POINTS,
                 expected_DCU=len(all_cards), planned_DCU=len(planned_cards), observed_DCU=len(by_card),
                 sampled_workload_DCU=len(sampled_workload), clock_sync_independently_measured=False,
@@ -133,6 +145,7 @@ def aggregate(owners, pins, plan, reports):
                 by_group={group: dict(expected_samples=expected, observed_samples=len(groups.get(group,())),
                                      observed_mean_busy_percent=sum(groups[group])/len(groups[group]) if group in groups else None)
                           for group, expected in sorted(expected_group_samples.items())}, failed_sources=failures,
+                node_observations=node_observations,
                 missing_cards=[dict(node=node,pci=pci) for node,pci in sorted(all_cards-set(by_card))],
                 sustained_utilization_qualified=False)
 
