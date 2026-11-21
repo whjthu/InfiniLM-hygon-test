@@ -696,7 +696,7 @@
       "id": "sdxl-fp32-sdpa-adjoint-O01-first-update",
       "case": "T06.sft.operator-sdpa-adjoint",
       "kind": "validation",
-      "state": "blocked",
+      "state": "terminal",
       "direct_request": "a93d41a0d31140f1ad99bb105a024e99",
       "priority": 72,
       "placement": {
@@ -706,11 +706,11 @@
         "local-only/training-sdxl-sdpa-adjoint-fp32-v1-original-dispatch/intent.json"
       ],
       "evidence": {
-        "path": "coordination/tasks/training-sdxl-sdpa-adjoint-fp32-target-v1.json",
-        "bytes": 1292,
-        "SHA256": "0fed94fb45bade70d03c8437ec9b98034223651f8f308c90cb16bf35a034d734"
+        "path": "results/bw1000/2026-11-22/training-sdxl-sdpa-adjoint-original596-numeric-failure.json",
+        "bytes": 3739,
+        "SHA256": "afdb55bbed267512e07428f36600cbeef25819cbb87084188465d30ff0b0a15f"
       },
-      "next_action": "先核原请求、父作业和 O01 节点。新包先在真实目标 PyTorch 零卡验证，通过后才运行单卡首步和原数值比较。"
+      "next_action": "原单卡首步物理完成，参数更新相对 L2 为 0.19399，超 0.05。保留原实现并停止该候选。"
     },
     {
       "id": "deep-csa-identity-swa-host-compile-v1",
@@ -758,7 +758,7 @@
       "id": "training-qwen-usgs-resume20-recovery-hip-v3",
       "case": "T01.domain-usgs-from-original-checkpoint20",
       "kind": "training",
-      "state": "blocked",
+      "state": "terminal",
       "priority": 10,
       "placement": {
         "f13r1n10": 8
@@ -769,11 +769,11 @@
         "local-only/training-qwen-usgs-resume20-recovery-hip-v3-original-dispatch/intent.json"
       ],
       "evidence": {
-        "path": "coordination/tasks/training-qwen-usgs-resume20-recovery-hip-v3.json",
-        "bytes": 2320,
-        "SHA256": "f4979085352b828ba3516a3bbf470d5aef5c8fecf5e5d2a6c120dba97308f73d"
+        "path": "results/bw1000/2026-11-22/training-qwen-usgs-resume20-original544-five-updates-paired-drift.json",
+        "bytes": 7282,
+        "SHA256": "d0c832b53e664007c12e7c4d97a5c3f7b9d9fd117199b111dc2703b7dc4c4ab3"
       },
-      "next_action": "普通发布后核验当轮 PCI、KFD、PID 和 29918，原子派发一次五步续训。"
+      "next_action": "已实际恢复并完成 21–25 步；输入、RNG 和第20步恢复一致，后续 loss 与更新有差异。保留原运行，分析可证伪原因。"
     }
   ]
 }

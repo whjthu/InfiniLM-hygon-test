@@ -1,0 +1,73 @@
+{
+  "request": "6250e66674212a10a6bdb9f1011c7c6e",
+  "case": "O01.qwen-resident-input-projection",
+  "kind": "operator",
+  "priority": 950,
+  "parents": [
+    "1087656",
+    "1103606"
+  ],
+  "nodes_per_shard_max": 4,
+  "shard_boundary": "single parent and single resource group",
+  "protect_proposed_work_and_ready_training_handover": true,
+  "max_cards": 640,
+  "planned_shapes": {
+    "K": 4096,
+    "N": 1024,
+    "groups": [
+      [
+        1,
+        2,
+        4,
+        8
+      ],
+      [
+        8,
+        16,
+        32,
+        128
+      ],
+      [
+        64,
+        128,
+        186,
+        192
+      ]
+    ]
+  },
+  "arms": [
+    "four separate projections over views of the already contiguous BF16 input",
+    "one BF16 projection from the same already contiguous input with exact row splitting"
+  ],
+  "order": [
+    "separate",
+    "packed",
+    "packed",
+    "separate"
+  ],
+  "seconds_per_measurement": 5,
+  "synthetic_operands": true,
+  "stop_on_cooperative_drain": {
+    "method": "cooperative_signal",
+    "signal": "USR1",
+    "save_partial_results": true,
+    "grace_seconds": 30
+  },
+  "one_release": true,
+  "slurm_step_seconds": 210,
+  "controller_seconds": 240,
+  "training_GO": false,
+  "model_GO": false,
+  "max_invocations": 1,
+  "replay_allowed": false,
+  "shape_evidence": "coordination/tasks/fleet-qwen-vproj-padding-storage-v1.json",
+  "short_row_evidence": "coordination/tasks/fleet-bf16-small-gemm-graph-v1.json",
+  "idle_is_separate_from_utilization": true,
+  "prior_observed_negative_reference": {
+    "path": "results/bw1000/2026-11-22/fleet608-qwen-packed-projection-32-shards-terminal.json",
+    "bytes": 10162,
+    "SHA256": "3817e3db2ffd59961f3b111515671feaa29dda6afc2f131f77eb06e326cd26f9"
+  },
+  "workload_delta": "The input buffer and its row views both exist before measurement. Build, concatenate and populate are excluded equally.",
+  "qualification": "This bounds potential benefit for callers that already produce contiguous rows. Any materialization remains a separate caller cost."
+}
