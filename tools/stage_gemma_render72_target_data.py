@@ -121,6 +121,39 @@ def receive(stream, results, epoch, check, inputs, install):
     return result
 
 
+def inspect(results, check, inputs):
+    result = check()
+    if not result['stage_namespace_present'] or result['cpu_namespace_present'] or result['cpu_accounting_row']:
+        return result
+    target = results / STAGE_LABEL
+    try:
+        outcome = json.loads(bounded(target / 'stage-outcome.json', 8192))
+        admission = json.loads(bounded(target / 'stage-admission.json', 8192))
+        expected = {item['target_relative']: {'bytes': item['bytes'], 'SHA256': item['SHA256']}
+                    for item in inputs['files']}
+        total = sum(item['bytes'] for item in expected.values())
+        for report in (outcome, admission):
+            need(report['passed'] is True and report['state'] == 'GEMMA72_TRAIN_DATA_STAGED'
+                 and report['request_id'] == STAGE_REQUEST and report['READY'] is False
+                 and report['planned_files'] == report['completed_files'] == len(expected)
+                 and report['actual_bytes_written'] == total, 'Gemma stage is not an exact completed install')
+        preceding = admission['preceding_accounting_SHA256']
+        need(outcome['actual_target_installation'] is True and outcome['local_test'] is False
+             and outcome['installed'] == expected and admission['packet_SHA256'] == PACKET_SHA
+             and admission['package_commit'] == PACKAGE_COMMIT and admission['original_cpu_request'] == CPU_REQUEST
+             and admission['epoch'] == outcome['epoch'] and len(preceding) == 2
+             and all(re.fullmatch('[a-f0-9]{64}', pin) for pin in preceding), 'Gemma stage admission binding differs')
+        for name, pin in expected.items():
+            raw = bounded(target / name, pin['bytes'])
+            need(len(raw) == pin['bytes'] and sha256(raw).hexdigest() == pin['SHA256'], 'installed Gemma input drifted')
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        return dict(result, stage_reconciliation_error=type(error).__name__)
+    last = check()
+    if not last['stage_namespace_present'] or last['cpu_namespace_present'] or last['cpu_accounting_row']:
+        return dict(last, state='RECONCILE_ORIGINAL')
+    return dict(last, state='STAGING_VERIFIED_CPU_PREREQUISITES_PENDING', verified_training_input_files=len(expected))
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('action', choices=('inspect', 'receive'))
@@ -133,7 +166,7 @@ def main():
          or (args.action == 'receive' and args.epoch is not None and math.isfinite(args.epoch)
              and 0 < args.epoch <= wall < args.epoch + 120),
          'expected one original 120 second receive epoch')
-    deadline = time.monotonic() + (25 if args.action == 'inspect' else args.epoch + 120 - wall)
+    deadline = time.monotonic() + (40 if args.action == 'inspect' else args.epoch + 120 - wall)
 
     def expired(*_):
         raise TimeoutError('original Gemma staging deadline')
@@ -153,7 +186,7 @@ def main():
     try:
         inputs, install = published_package()
         if args.action == 'inspect':
-            result = check()
+            result = inspect(RESULTS, check, inputs)
         else:
             cpus = sorted(os.sched_getaffinity(0))
             need(len(cpus) >= 2, 'two HOST CPUs unavailable')

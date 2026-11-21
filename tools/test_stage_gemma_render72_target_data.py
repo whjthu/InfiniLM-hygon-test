@@ -17,7 +17,7 @@ class StageGemmaTargetTest(unittest.TestCase):
         self.job = f'JobId={stage.PARENT} UserId=fixture(1000) JobState=RUNNING'
         self.rows = [f'{stage.PARENT}|fixture|RUNNING|0:0|10|pool|cpu=2560,node=40,gres/dcu=320']
 
-    def original(self, state='COMPLETED', job=None):
+    def original(self, state='COMPLETED'):
         return f'{stage.PARENT}.999|{stage.CPU_LABEL}|{state}|0:0|10|node|cpu=4,mem=8G'
 
     def query(self, command, *_):
@@ -98,6 +98,26 @@ class StageGemmaTargetTest(unittest.TestCase):
         audit = json.loads((self.root / stage.STAGE_LABEL / 'stage-admission.json').read_bytes())
         self.assertEqual(audit['original_cpu_request'], stage.CPU_REQUEST)
         self.assertEqual(audit['preceding_accounting_SHA256'], [self.check()['accounting_SHA256']]*2)
+
+        # An actual local-test receipt cannot serve as target evidence.
+        self.assertEqual(stage.inspect(self.root, self.check, inputs)['state'], 'RECONCILE_ORIGINAL')
+
+    def test_inspect_releases_only_the_data_gate_for_a_complete_target_receipt(self):
+        root = self.root / stage.STAGE_LABEL
+        root.mkdir()
+        (root/'sample').write_bytes(b'frozen')
+        pin = dict(bytes=6, SHA256=stage.sha256(b'frozen').hexdigest())
+        inputs = dict(files=[dict(target_relative='sample', **pin)])
+        shared = dict(passed=True, state='GEMMA72_TRAIN_DATA_STAGED', request_id=stage.STAGE_REQUEST,
+                      READY=False, planned_files=1, completed_files=1, actual_bytes_written=6, epoch=100.1)
+        (root/'stage-outcome.json').write_text(json.dumps(dict(shared, actual_target_installation=True,
+            local_test=False, installed={'sample': pin})), encoding='utf-8')
+        admission = dict(shared, packet_SHA256=stage.PACKET_SHA, package_commit=stage.PACKAGE_COMMIT,
+                         original_cpu_request=stage.CPU_REQUEST, preceding_accounting_SHA256=['a'*64, 'b'*64])
+        (root/'stage-admission.json').write_text(json.dumps(admission), encoding='utf-8')
+        self.assertEqual(stage.inspect(self.root, self.check, inputs)['state'], 'STAGING_VERIFIED_CPU_PREREQUISITES_PENDING')
+        (root/'sample').write_bytes(b'drift!')
+        self.assertEqual(stage.inspect(self.root, self.check, inputs)['state'], 'RECONCILE_ORIGINAL')
 
 
 if __name__ == '__main__':
