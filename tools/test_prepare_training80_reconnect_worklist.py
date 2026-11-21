@@ -93,6 +93,20 @@ class ReconnectWorklistTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'original request reference'):
             self.plan(changed)
 
+    def test_predecessor_read_only_reconciliation_is_pinned_and_never_changes_readiness(self):
+        candidate = self.candidate()
+        prior = self.write('results/bw1000/old.json', dict(request='b'*32,replay_allowed=False))
+        entry = self.write('tools/read_original.py', b'print("readonly")\n')
+        candidate['blocking_original_requests'] = [dict(prior,request='b'*32,
+            target_reconciliation_probe=dict(entry=entry,dependencies=[]))]
+        [report] = self.plan(candidate)['candidates']
+        self.assertFalse(report['candidate_ready_verified'])
+        [blocked] = report['blocking_original_requests']
+        self.assertEqual(blocked['target_reconciliation_probe']['entry'],entry)
+        self.write(entry['path'],b'print("drift")\n')
+        with self.assertRaisesRegex(ValueError,'evidence SHA256 differs'):
+            self.plan(candidate)
+
     def test_rejects_wrong_parent_and_deduplicates_requests(self):
         with self.assertRaisesRegex(ValueError, 'assigned Slurm parent'):
             self.plan(self.candidate(parent='1087656'))

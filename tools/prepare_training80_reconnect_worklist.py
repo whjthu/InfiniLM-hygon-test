@@ -18,6 +18,14 @@ def source_ref(task, source, name):
             dict(path=source + '/SOURCE_FILES.json', SHA256=task['source_manifest_SHA256']))
 
 
+def pinned_target_probe(repo, probe):
+    if probe is not None:
+        pin_file(repo, probe['entry'], ('tools/',))
+        for dependency in probe['dependencies']:
+            pin_file(repo, dependency, ('tools/', 'coordination/training/'))
+    return probe
+
+
 def prepare(repo, config, ledger_raw):
     repo = repo.resolve()
     ledger = json.loads(ledger_raw)
@@ -69,15 +77,15 @@ def prepare(repo, config, ledger_raw):
             need(payload.get('request') == prior['request'] and hex_value(prior['request'], 32) and
                  payload.get('replay_allowed') is False and prior['request'] != request,
                  'original request reference permits replay or does not bind its receipt')
-            predecessors.append(dict(request=prior['request'], receipt_SHA256=prior['SHA256'], replay_allowed=False))
+            predecessor = dict(request=prior['request'], receipt_SHA256=prior['SHA256'], replay_allowed=False)
+            probe = pinned_target_probe(repo, prior.get('target_reconciliation_probe'))
+            if probe is not None:
+                predecessor['target_reconciliation_probe'] = probe
+            predecessors.append(predecessor)
         command = invocation(repo, dict(launch=dict(launcher=launcher, publication_commit='<verified_publication>',
                           request=request, claim=claim_ref)))
         need(command is not None, 'frozen candidate requires a manual launcher binding')
-        target_probe = candidate.get('target_read_only_preflight')
-        if target_probe is not None:
-            pin_file(repo, target_probe['entry'], ('tools/',))
-            for dependency in target_probe['dependencies']:
-                pin_file(repo, dependency, ('tools/', 'coordination/training/'))
+        target_probe = pinned_target_probe(repo, candidate.get('target_read_only_preflight'))
         updates = claim.get('optimizer_updates', claim.get('planned_updates', 0))
         need(type(updates) is int and updates >= 0 and (cards != 0 or updates == 0), 'invalid planned optimizer updates')
         if not attempted:
