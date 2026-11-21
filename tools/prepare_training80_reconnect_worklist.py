@@ -25,7 +25,7 @@ def pinned_target_probe(repo, probe):
     if probe is not None:
         pin_file(repo, probe['entry'], ('tools/',))
         for dependency in probe['dependencies']:
-            pin_file(repo, dependency, ('tools/', 'coordination/training/'))
+            pin_file(repo, dependency, ('tools/', 'coordination/training/', 'code/bw1000/', 'results/bw1000/'))
     return probe
 
 
