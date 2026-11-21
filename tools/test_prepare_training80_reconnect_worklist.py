@@ -69,6 +69,19 @@ class ReconnectWorklistTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'source member bytes differ'):
             self.plan(training)
 
+    def test_read_only_preflight_requires_pinned_dependencies_and_no_original_attempt(self):
+        training = self.candidate()
+        entry = self.write('tools/exact_preflight.py', b'print("readonly")\n')
+        dependency = self.write('coordination/training/ledger.json', {'nodes': 80})
+        probe = dict(entry=entry, dependencies=[dependency])
+        training['target_read_only_preflight'] = probe
+        self.assertEqual(self.plan(training)['candidates'][0]['target_read_only_preflight'], probe)
+        self.write(training['attempt_receipt'], dict(transport_rc=255))
+        self.assertIsNone(self.plan(training)['candidates'][0]['target_read_only_preflight'])
+        self.write(dependency['path'], {'nodes': 40})
+        with self.assertRaisesRegex(ValueError, 'evidence SHA256 differs'):
+            self.plan(training)
+
     def test_prior_request_cannot_authorize_same_request_or_replay(self):
         training = self.candidate()
         prior = self.write('results/bw1000/old.json', dict(request='b' * 32, replay_allowed=False))
