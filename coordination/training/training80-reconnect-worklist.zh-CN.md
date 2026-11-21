@@ -6,7 +6,19 @@
 & 'C:/Users/WangHaojie/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe' -B -X utf8 tools/prepare_training80_reconnect_worklist.py
 ```
 
-认证恢复后，根协调者从既有认证客户端调用原 `collect_training80_dispatch_snapshot.py`，将回执中的 `collector_port_arguments` 附给 `collect` 模式。本批需要核对端口 29918，并关注父作业 `1103606` 中的三个节点。
+准备当次准入采集参数时，在本机读取最新训练队列、已冻结清单及原尝试标记。
+
+```powershell
+& 'C:/Users/WangHaojie/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe' -B -X utf8 tools/prepare_training80_dispatch_probe_args.py
+```
+
+认证恢复后，根协调者从既有认证客户端调用 `collect_training80_dispatch_snapshot.py`，将输出里的 `collector_arguments` 数组逐项附给 `collect` 模式。采集器会优先检查训练候选所在节点，随后检查其他候选和常规节点。优先节点单独分批，各父作业的候选优先批次提交到同一个有界 CPU 探测池。持有原未决句柄的节点仍计入完整 80 节点 Slurm 账本，其设备记录保留为 `LOCAL_QUEUE_HELD`，等原请求对账清楚后再判定设备准入。多节点候选遇到任一持有节点时整项排除，对应的专用端口也不会加入采集参数。所有设备准入结论仍需实际 PCI、KFD、进程、端口检查和复查编号 step。
+
+有待补位候选且需要尽快取回准入时，可给参数生成器传 `--priority-only`。采集器仍两次读取 80 台的 Slurm 状态，只对当次未出现编号 step 的优先节点发出 CPU 探测。回执 `device_probe_scope=PRIORITY_ONLY`，其余等待探测的设备标 `DEFERRED_BY_PRIORITY_ONLY`。若没有符合这两项条件的优先节点，当次回落为 `FULL_FLEET_FALLBACK`，覆盖所有可探测的普通节点。全池设备审计调用可省略此参数。
+
+用 `receive` 按本机原始往返时间绑定收到的回执，立即交给 `prepare_training80_dispatch_handoff.py`。同一轮提交已取得准入且互不重叠的任务，未核验的其余节点随后补查。优先回执只能证明实际探到的设备准入。640 卡 busy 由另一次同步驱动采样计算。
+
+以下是原候选节点。Qwen 原任务的端口 29918 在 Dev80 对账解除持有后才进入采集参数。
 
 | 节点 | 候选 | 首项操作 |
 |---|---|---|

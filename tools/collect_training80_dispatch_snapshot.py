@@ -35,6 +35,30 @@ def validate_ports(ports):
     return sorted(set(ports))
 
 
+def validate_scope_nodes(nodes, owners):
+    nodes = list(nodes)
+    require(all(isinstance(node, str) and node in owners for node in nodes) and len(set(nodes)) == len(nodes),
+            'priority and held nodes must be unique ledger members')
+    return nodes
+
+
+def probe_batches(candidates, priority_nodes):
+    """Isolate priority nodes from ordinary batches and schedule them first across parents."""
+    priorities = set(priority_nodes)
+    batches = []
+    for parent, names in candidates.items():
+        available = set(names)
+        segments = ([name for name in priority_nodes if name in available],
+                    [name for name in names if name not in priorities])
+        index = 0
+        for tier, segment in enumerate(segments):
+            for offset in range(0, len(segment), NODES_PER_PROBE):
+                batches.append((tier, offset // NODES_PER_PROBE, parent, index,
+                                segment[offset:offset + NODES_PER_PROBE]))
+                index += 1
+    return sorted(batches, key=lambda item: item[:3])
+
+
 def device_status(ports):
     pci = sorted((entry / 'device').resolve(strict=True).name.lower()
                  for entry in DRM.iterdir() if re.fullmatch(r'renderD[0-9]+', entry.name))
@@ -97,12 +121,15 @@ def read_worker_rows(raw, request, parent, nodes, ports, uid):
     return rows
 
 
-def collect(request, ledger_raw, pins, ports, *, run=subprocess.run, clock=time.monotonic):
+def collect(request, ledger_raw, pins, ports, *, priority_nodes=(), held_nodes=(), priority_only=False,
+            run=subprocess.run, clock=time.monotonic):
     require(re.fullmatch(r'[0-9a-f]{32}', request), 'request ID must be the original 32 hex digest')
     ledger = json.loads(ledger_raw)
     owners = node_map(ledger)
     require_pins(owners, pins)
     ports = validate_ports(ports)
+    priority_nodes = validate_scope_nodes(priority_nodes, owners)
+    held_nodes = set(validate_scope_nodes(held_nodes, owners))
     uid = os.getuid()
     groups = {job['JobId']: {name: group['allocations'][job['JobId']] for name, group in ledger['groups'].items()}
               for job in ledger['jobs']}
@@ -131,7 +158,7 @@ def collect(request, ledger_raw, pins, ports, *, run=subprocess.run, clock=time.
                 for parent in initial['parents'].values()), 'initial Slurm ownership or step locations unverified')
     candidates = {parent: [] for parent in groups}
     for row in initial['dispatch_candidates']['ordered_node_checks']:
-        if row['state'] == 'NO_NUMBERED_STEP':
+        if row['state'] == 'NO_NUMBERED_STEP' and row['node'] not in held_nodes:
             candidates[row['parent']].append(row['node'])
 
     def probe(parent, index, nodes):
@@ -155,17 +182,28 @@ def collect(request, ledger_raw, pins, ports, *, run=subprocess.run, clock=time.
         except (OSError, ValueError, KeyError, TypeError, subprocess.TimeoutExpired) as error:
             return {}, dict(receipt, state=type(error).__name__)
 
-    batch_specs = [(parent, offset // NODES_PER_PROBE, names[offset:offset + NODES_PER_PROBE])
-                   for parent, names in candidates.items() for offset in range(0, len(names), NODES_PER_PROBE)]
-    # Interleave parents so each has an opportunity within the bounded probe window.
-    batch_specs.sort(key=lambda item: (item[1], item[0]))
-    reports = {parent: dict(requested_nodes=names, received_nodes=[], batches=[])
+    batch_specs = probe_batches(candidates, priority_nodes)
+    scope = 'FULL_FLEET'
+    deferred = set()
+    if priority_only:
+        priority_batches = [batch for batch in batch_specs if batch[0] == 0]
+        if priority_batches:
+            scope = 'PRIORITY_ONLY'
+            deferred = {node for tier, _, _, _, names in batch_specs if tier != 0 for node in names}
+            batch_specs = priority_batches
+        else:
+            scope = 'FULL_FLEET_FALLBACK'
+    reports = {parent: dict(requested_nodes=[node for node in names if node not in deferred],
+                            received_nodes=[], batches=[])
                for parent, names in candidates.items()}
-    observed_rows, absent_rows = {}, {}
+    observed_rows, absent_rows = {}, {node: 'LOCAL_QUEUE_HELD' for node in held_nodes}
+    absent_rows.update(dict.fromkeys(deferred, 'DEFERRED_BY_PRIORITY_ONLY'))
     with ThreadPoolExecutor(max_workers=PARALLEL_PROBES) as executor:
-        futures = [(parent, executor.submit(probe, parent, index, nodes)) for parent, index, nodes in batch_specs]
-        for parent, future in futures:
+        futures = [(tier, parent, executor.submit(probe, parent, index, nodes))
+                   for tier, _, parent, index, nodes in batch_specs]
+        for tier, parent, future in futures:
             rows, receipt = future.result()
+            receipt['priority'] = tier == 0
             reports[parent]['batches'].append(receipt)
             reports[parent]['received_nodes'].extend(rows)
             observed_rows.update(rows)
@@ -205,6 +243,8 @@ def collect(request, ledger_raw, pins, ports, *, run=subprocess.run, clock=time.
     require(clock() <= deadline, 'observation budget expired')
     return dict(request_id=request, observed_epoch=membership['observed_epoch'], complete=True, total_cards=640,
                 membership=membership, nodes=nodes, probes=reports,
+                requested_priority_nodes=priority_nodes, requested_held_nodes=sorted(held_nodes),
+                device_probe_scope=scope, deferred_device_probe_nodes=sorted(deferred),
                 measured_busy_percent=None, snapshot_kind='training80-dispatch-v1')
 
 
@@ -227,6 +267,9 @@ def main():
     host.add_argument('pci_pins', type=Path)
     host.add_argument('pci_pins_sha256')
     host.add_argument('--port', type=int, action='append', default=[])
+    host.add_argument('--priority-node', action='append', default=[])
+    host.add_argument('--held-node', action='append', default=[])
+    host.add_argument('--priority-only', action='store_true')
     node = modes.add_parser('node')
     node.add_argument('request')
     node.add_argument('parent')
@@ -237,7 +280,9 @@ def main():
     else:
         raw = args.pci_pins.read_bytes()
         require(digest(raw) == args.pci_pins_sha256, 'PCI inventory bytes differ from the pinned source')
-        print(json.dumps(collect(args.request, args.ledger.read_bytes(), json.loads(raw), args.port), allow_nan=False))
+        print(json.dumps(collect(args.request, args.ledger.read_bytes(), json.loads(raw), args.port,
+                     priority_nodes=args.priority_node, held_nodes=args.held_node,
+                     priority_only=args.priority_only), allow_nan=False))
 
 
 if __name__ == '__main__':
