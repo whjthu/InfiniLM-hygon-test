@@ -11,6 +11,7 @@ import itertools
 import json
 import math
 from pathlib import Path
+import re
 import sqlite3
 import subprocess
 import time
@@ -651,6 +652,42 @@ class Queue:
             self.db.execute('UPDATE runs SET state="RETIRED_PRELAUNCH",nodes="[]",result=? WHERE id=?',
                             (canonical(result).decode(), ident))
             self.event(ident, 'direct_retired_unattempted', result)
+            self.db.execute('COMMIT')
+        except BaseException:
+            self.db.execute('ROLLBACK')
+            raise
+
+    def retire_remote_prelaunch_direct(self, ident, proof):
+        """Release an UNKNOWN zero-card claim with verified target pre-srun rejection."""
+        required = {'request_id', 'intent', 'failure_phase', 'transport_returncode', 'launch_attempted',
+                    'matching_accounting_rows', 'post_clean', 'node', 'evidence_SHA256'}
+        require(set(proof) == required and proof['failure_phase'] == 'PRE_SLURM_IMPORT'
+                and type(proof['transport_returncode']) is int and proof['transport_returncode'] > 0
+                and proof['launch_attempted'] is False and type(proof['matching_accounting_rows']) is int
+                and proof['matching_accounting_rows'] == 0 and proof['post_clean'] is True,
+                'verified remote pre-srun rejection and fresh cleanup required')
+        evidence = proof['evidence_SHA256']
+        require(isinstance(evidence, str) and re.fullmatch(r'[0-9a-f]{64}', evidence),
+                'exact pre-srun reconciliation evidence SHA required')
+        self.db.execute('BEGIN IMMEDIATE')
+        try:
+            row = self.db.execute('SELECT stage,state,handle,nodes FROM runs WHERE id=?',(ident,)).fetchone()
+            require(row is not None and row['stage'] == DIRECT_STAGE and row['state'] == 'UNKNOWN',
+                    'original UNKNOWN direct claim required')
+            handle = json.loads(row['handle'])
+            reservation = self.reservation(ident)
+            node = proof['node']
+            require(handle['request_id'] == proof['request_id'] and handle['intent'] == proof['intent']
+                    and handle['nodes'] == json.loads(row['nodes']) == [node]
+                    and handle.get('direct_kind') == 'validation'
+                    and handle.get('placement_by_parent') == {reservation.get('parent'):{node:0}}
+                    and bool(handle.get('handoff_SHA256'))
+                    and reservation.get('dispatch_ticket') == handle['handoff_SHA256'],
+                    'original zero-card reservation or dispatch identity differs')
+            result = dict(proof, transport_attempted=True, measurement_terminal=False, replay_allowed=False)
+            self.db.execute('UPDATE runs SET state="RETIRED_PRELAUNCH",nodes="[]",result=? WHERE id=?',
+                            (canonical(result).decode(),ident))
+            self.event(ident,'direct_remote_presrun_rejected',result)
             self.db.execute('COMMIT')
         except BaseException:
             self.db.execute('ROLLBACK')
