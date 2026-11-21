@@ -87,6 +87,7 @@ def build_handoff(snapshot, backlog, *, repo=REPO, holds=(), selected=None, now=
                 numbered_step_membership_counts=report['numbered_step_membership_counts'],
                 outstanding_training_ready=report['outstanding_training_ready'],
                 minimum_training_ready=report['minimum_training_ready'],
+                training_pipeline=report['training_pipeline'],
                 training_ready_deficit=report['training_ready_deficit'], coverage_by_zone_and_parent=zones,
                 blocked_training=[{key: row[key] for key in ('id', 'case', 'candidate_state', 'next_action')}
                                   for row in report['rows'] if row['kind'] == 'training' and

@@ -257,7 +257,16 @@ def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(
                 occupied.update(wanted)
                 proposed.append(ident)
         rows.append(row)
-    ready_training = sum(row['kind'] == 'training' and row['candidate_state'] == 'ready' for row in rows)
+    training = [row for row in rows if row['kind'] == 'training']
+    training_states = Counter(row['candidate_state'] for row in training)
+    dispatch_states = Counter(row['dispatch_state'] for row in training)
+    ready_training = training_states['ready']
+    ready_to_dispatch = dispatch_states['proposed_for_root']
+    training_pipeline = dict(ready_to_dispatch=ready_to_dispatch,
+        ready_waiting_for_resources=ready_training - ready_to_dispatch,
+        needs_preparation=training_states['blocked'] + training_states['manual_launcher_binding_required'],
+        needs_reconciliation=training_states['reconcile'], invalid_evidence=training_states['invalid_launch_evidence'],
+        recorded_submitted=training_states['submitted'], recorded_terminal=training_states['terminal'])
     groups = {}
     for node, value in sorted(nodes.items()):
         group = groups.setdefault(value['zone'], {}).setdefault(value['parent'], {})
@@ -270,9 +279,9 @@ def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(
                 measured_busy_percent=None, fresh_device_receipt=fresh, admission_clear_nodes=sum(
                     node['admission'] == 'clear' for node in nodes.values()),
                 outstanding_training_ready=ready_training, minimum_training_ready=minimum,
+                training_pipeline=training_pipeline,
                 training_ready_deficit=max(0, minimum - ready_training),
-                blocked_or_reconciliation_training=sum(row['kind'] == 'training' and
-                    row['candidate_state'] in ('blocked', 'reconcile') for row in rows),
+                blocked_or_reconciliation_training=training_states['blocked'] + training_states['reconcile'],
                 proposed_for_root=proposed, proposed_DCU=sum(row['requested_DCU'] for row in rows
                     if row['dispatch_state'] == 'proposed_for_root'),
                 proposed_nodes=sorted(occupied), queue_held_nodes=sorted(held), admission_by_zone_and_parent=groups,

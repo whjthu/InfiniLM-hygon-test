@@ -11,3 +11,5 @@
 `invocation.kind=coordinator_callback` 给出已经核过签名的 `main` 入参。由根协调者把现有审批通过的 `transport` 显式传入原启动器。`authenticated_host_python` 给出已冻结 HOST 启动器使用的三个标志参数，继续按原入口进行其目标端验证。带额外输入包、路径或手工绑定的入口出现在 `manual_launcher_binding_required`。闭合原输入后才计入 5 项储备，等待期间其节点仍可分配给有完整启动入口的候选。该工具只生成本地交接 JSON。
 
 候选源码、启动器或收据验证失败时，`invalid_launch_evidence` 给出该候选的原因。其他候选继续按正常优先级检查，可使用该候选未占用的节点。
+
+`training_pipeline` 区分本轮有合格设备可派发的训练、已通过任务准入但仍待设备的训练、待准备、待对账和证据错误。已提交和已终结计数来自队列记录。实际运行及等待资源的状态须查对应 Slurm 句柄。五项训练储备只计前两类，设备收据失效时本轮可派发数为零。

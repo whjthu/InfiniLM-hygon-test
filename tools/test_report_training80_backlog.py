@@ -112,6 +112,23 @@ class BacklogTest(unittest.TestCase):
         self.assertEqual(result['outstanding_training_ready'], 0)
         self.assertEqual(result['rows'][0]['dispatch_state'], 'reconcile')
 
+    def test_training_pipeline_keeps_dispatch_reserve_and_recorded_runs_distinct(self):
+        ready = self.trial(1)
+        waiting = self.trial(2)
+        blocked = dict(self.trial(3), state='blocked')
+        reconcile = dict(self.trial(4), state='reconcile')
+        invalid = dict(self.trial(5), evidence={'path': 'local-only/missing.json', 'SHA256': '0' * 64})
+        submitted = dict(self.trial(6), state='submitted')
+        terminal = dict(self.trial(7), state='terminal')
+        validation = self.trial(8, kind='validation', node='a01r4n14')
+        result = self.run_plan(ready, waiting, blocked, reconcile, invalid, submitted, terminal, validation)
+        self.assertEqual(result['training_pipeline'], dict(ready_to_dispatch=1,
+            ready_waiting_for_resources=1, needs_preparation=1, needs_reconciliation=1, invalid_evidence=1,
+            recorded_submitted=1, recorded_terminal=1))
+        self.assertEqual(result['outstanding_training_ready'], 2)
+        self.assertEqual(result['training_ready_deficit'], 3)
+        self.assertIn(validation['id'], result['proposed_for_root'])
+
     def test_kfd_holder_or_occupied_port_prevents_placement(self):
         job = self.trial()
         probe = self.snapshot['nodes']['a01r4n16']

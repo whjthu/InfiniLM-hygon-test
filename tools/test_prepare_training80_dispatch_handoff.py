@@ -43,6 +43,8 @@ class HandoffTest(unittest.TestCase):
         job = self.trial()
         result = self.handoff([job], selected=job['id'])
         self.assertEqual(result['training_ready_deficit'], 4)
+        self.assertEqual(result['training_pipeline']['ready_to_dispatch'], 1)
+        self.assertEqual(result['training_pipeline']['ready_waiting_for_resources'], 0)
         [packet] = result['coordinator_handoffs']
         self.assertEqual(packet['placement_by_parent'], {'1087656': {'a01r4n16': 8}})
         self.assertEqual(packet['expires_local_monotonic'], self.fleet.now + 56)
