@@ -28,7 +28,8 @@ WEIGHT_PATH = Path('training-vggt-original-public-model-v1/model/model.pt')
 WEIGHT_STAT = (5026874952, 20701942394, 1794489337000000000)
 WEIGHT_SHA = 'd15bf50a8615c8225ed48b51ea5cac673d82442ec0309036df555a053253afe0'
 FRAMEWORK_SHA = 'e54fd2031287277d1823a4a703d6dc0540067809d3d0f505c6e081cf4c5cec41'
-SOURCE_MANIFEST = '33eca3f033c5e36675d529fbe15ffa1204bbe62c769f1e61803b1c4de12b7456'
+SOURCE_MANIFEST = '520dab8ed744849a2618804a065268b8ded28f757d76a989afbe99c097d44c19'
+CLAIM_SHA = '2e5e859b38567d1be4c5616d31ee268a55fe061750017a312fb514ae884f4d53'
 ORIGINAL_DATA_INVENTORY = '3c4e3ffb19e73628c359a1c8c3d073e4b6ea8adb619a06692b84813e232b8c4f'
 
 
@@ -56,11 +57,13 @@ def check_source(repo):
     for name, entry in manifest.items():
         raw = exact(package, name, entry['SHA256'], entry['bytes'])
         if name == 'CLAIM.json':
+            need(entry['SHA256'] == CLAIM_SHA, 'adopted claim identity differs')
             original_claim = json.loads(raw)
     need(original_claim['request'] == REQUEST and original_claim['node'] == NODE and original_claim['parent'] == PARENT
          and original_claim['planned_updates'] == 30 and original_claim['framework_manifest_SHA256'] == FRAMEWORK_SHA
-         and all(original_claim[flag] is False for flag in ('GPU_GO','training_GO','root_GO','formal17_GO','Model_GO')),
-         'expected the original source-only training claim')
+         and all(original_claim[flag] is True for flag in ('GPU_GO', 'training_GO', 'root_GO'))
+         and all(original_claim[flag] is False for flag in ('formal17_GO', 'Model_GO', 'effect_GO', 'performance_GO')),
+         'expected the adopted training-only claim')
     sources = original_claim['sources']
     all_raw = {name: exact(repo, entry['path'], entry['sha']) for name, entry in sources.items()}
     need(sources['original_claim.json']['sha'] == ORIGINAL_DATA_INVENTORY, 'original data claim differs')
@@ -108,14 +111,15 @@ def check_namespace(raw, base):
                 raw_accounting_SHA256=sha256(raw).hexdigest())
 
 
-def check_placement(repo):
+def check_placement(repo, *, get_membership=snapshot, owner_uid=None):
     ledger = json.loads((repo / LEDGER).read_bytes())
     parents = {job['JobId'] for job in ledger['jobs']}
     groups = {parent: {zone: group['allocations'][parent] for zone, group in ledger['groups'].items()}
               for parent in parents}
-    report = snapshot(groups, owner_uid=os.getuid())
-    item = report['parents'][PARENT]['coverage_by_group_and_node'][ZONE][NODE]
-    need(report['membership_qualified'] and item['state'] == 'NO_NUMBERED_STEP'
+    report = get_membership(groups, owner_uid=os.getuid() if owner_uid is None else owner_uid)
+    parent = report['parents'][PARENT]
+    item = parent['coverage_by_group_and_node'][ZONE][NODE]
+    need(report['membership_qualified'] and parent['owned_by_observer'] is True and item['state'] == 'NO_NUMBERED_STEP'
          and item['numbered_step_assigned_DCU_bounds'] == [0,0], 'original T12 node has a step or unverified placement')
     return report['observed_epoch']
 
@@ -138,6 +142,7 @@ def preflight(repo, base, *, get_accounting=live_accounting, placement=check_pla
     state = 'TARGET_ASSETS_VERIFIED_DEVICE_PENDING' if final['original_read_only_guard_passed'] else 'ORIGINAL_REQUIRES_RECONCILIATION'
     return dict(state=state, request=REQUEST, left_unmodified=True, original=final,
                 first_namespace_accounting_SHA256=original['raw_accounting_SHA256'], assets=assets,
+                source_manifest_SHA256=SOURCE_MANIFEST, claim_SHA256=CLAIM_SHA,
                 verified_source_members=source_count, parent=PARENT, node=NODE, membership_observed_epoch=observed,
                 returned_epoch=time.time(), proposed_updates=30, PCI_KFD_PID_verified=False, training_READY=False)
 

@@ -31,6 +31,14 @@ Qwen 的旧 Dev80 条目携带 `target_reconciliation_probe` 和依赖 SHA。认
 
 VGGT 条目的 `target_read_only_preflight` 绑定登录节点上的只读入口和依赖 SHA。用原来源包在登录节点运行 `tools/preflight_vggt_tum_bidirectional30.py`，核对两次目标命名空间和 Slurm accounting、393 份训练框架源码、17 份原 TUM 媒体及模型文件元数据。程序不创建作业或目标目录。先完成资产检查，再采集新鲜 PCI/KFD/PID，避免把设备回执耗在文件核验上。若原请求标记或编号步出现，转入对账。模型文件本轮只核对已封存 SHA 所绑定的原元数据，实际运行仍核对设备和运行时。
 
+把原认证连接保存的成功预检 JSON 交给本机 `tools/prepare_training80_vggt_admission.py`。使用当前普通发布提交和一个尚不存在的 `local-only/` 子目录。
+
+```powershell
+& 'C:/Users/WangHaojie/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe' -B -X utf8 tools/prepare_training80_vggt_admission.py <target-preflight.json> <publication-commit> <new-local-only-directory>
+```
+
+该入口核对已采纳训练包的 claim、原目标资产核验和两次原命名空间查询，并经普通 SSH Git 对照发布字节。成功时使用新目录下的 `backlog.json`，将同一路径以 `--backlog` 传给探测参数生成器和派发交接。采集新的设备回执，然后用 `--select vggt-tum-bidirectional-native30` 生成包并原子申领，再由原启动器执行一次。共享 backlog 保留为待准入。若认证、发布、原任务或设备任何一处有冲突，保留原请求处理对账。
+
 VGGT 具备真实目标资产、任务授权和唯一原请求证据后，把任务纳入待派发队列。使用该次收据执行 `prepare_training80_dispatch_handoff.py --select <candidate>`，保存生成的单项 JSON，再用同一收据、`--claim-packet` 及清单中的原 `--intent` 原子认领。只有取得 `DISPATCHING` 且仍在原准入期限内，根才按 `invocation` 经已有认证连接调用一次冻结启动器。用当次实际原请求和可核实的步骤更新记录。连接断开或启动器返回时未能确认 Slurm 终态，保留原认领进入对账。
 
 该 VGGT 原请求的独审入口列在 `target_completion_reader`。从父作业 `1103606` 保存原七列 Slurm accounting。独审在目标端读取 `results/training-vggt-tum-bidirectional30-v1`，使用认领包中的 manifest 与 claim SHA。终态结果与本次 accounting 使用同一份原始字节。

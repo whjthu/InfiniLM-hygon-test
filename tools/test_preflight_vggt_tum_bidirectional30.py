@@ -48,11 +48,26 @@ class VggtPreflightTest(unittest.TestCase):
                 json.dumps({'files': [dict(name='source.py', SHA256=digest, bytes=8)]}).encode(),
                 model_stat, manifest)
 
-    def test_real_source_only_package_identity(self):
+    def test_real_adopted_package_identity(self):
         sources, count = preflight.check_source(preflight.REPO)
         self.assertEqual(count, 15)
         self.assertIn('original_claim.json', sources)
         self.assertIn('UPSTREAM_FILES.json', sources)
+
+    def test_slurm_parent_must_belong_to_the_authenticating_user(self):
+        membership = dict(membership_qualified=True, observed_epoch=123, parents={preflight.PARENT: {
+            'owned_by_observer': False,
+            'coverage_by_group_and_node': {preflight.ZONE: {preflight.NODE: {
+                'state': 'NO_NUMBERED_STEP', 'numbered_step_assigned_DCU_bounds': [0, 0]}}},
+        }})
+        def get_membership(groups, *, owner_uid):
+            self.assertIn(preflight.PARENT, groups)
+            self.assertEqual(owner_uid, 17)
+            return membership
+        with self.assertRaisesRegex(ValueError, 'unverified placement'):
+            preflight.check_placement(preflight.REPO, get_membership=get_membership, owner_uid=17)
+        membership['parents'][preflight.PARENT]['owned_by_observer'] = True
+        self.assertEqual(preflight.check_placement(preflight.REPO, get_membership=get_membership, owner_uid=17), 123)
 
     def test_all_assets_checked_without_opening_model(self):
         data, upstream, model_stat, manifest = self.assets()
@@ -96,6 +111,8 @@ class VggtPreflightTest(unittest.TestCase):
                 self.assertEqual(outcome['state'], expected)
                 self.assertFalse(outcome['training_READY'])
                 self.assertFalse(outcome['PCI_KFD_PID_verified'])
+                self.assertEqual(outcome['source_manifest_SHA256'], preflight.SOURCE_MANIFEST)
+                self.assertEqual(outcome['claim_SHA256'], preflight.CLAIM_SHA)
         self.assertFalse((self.base / preflight.LABEL).exists())
 
 
