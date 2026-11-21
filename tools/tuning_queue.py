@@ -17,6 +17,7 @@ import time
 from uuid import uuid4
 
 ACTIVE = ('RESERVED', 'DISPATCHING', 'SUBMITTED', 'UNKNOWN')
+DIRECT_STAGE = 'training80-direct'
 SNAPSHOT_MAX_AGE_S = 60
 RUNG_PAIR_COUNTS = (3, 9, 27)
 STAGES = ('source', 'CPU', 'component', 'model', 'quality', 'service')
@@ -641,6 +642,10 @@ class Queue:
             if reservation.get('dispatch_ticket'):
                 require(r is not None and r['state'] == 'DISPATCHING', 'claim dispatch before contacting Slurm')
                 claimed = json.loads(r['handle'])
+                if 'direct_kind' in claimed:
+                    require(all(handle.get(key, claimed[key]) == claimed[key]
+                                for key in ('direct_kind', 'placement_by_parent', 'handoff_SHA256')),
+                            'direct submission differs from its handoff')
                 require(all(handle[k] == claimed[k] for k in ('request_id', 'intent')), 'different execution identity')
                 require(handle.get('nodes', claimed['nodes']) == claimed['nodes'], 'submission nodes differ from claim')
                 handle = {**claimed, **handle}
@@ -671,7 +676,16 @@ class Queue:
             require(bool(result['evidence_SHA256']) and result['planned'] > 0, 'original evidence and planned denominator required')
             counts = [result[k] for k in ('completed','failed','rejected','canceled','missing')]
             require(all(type(v) is int and v >= 0 for v in counts) and sum(counts) == result['planned'], 'denominator lost')
-            require(result['qualification'] in STAGES, 'explicit qualification scope required')
+            if r['stage'] == DIRECT_STAGE:
+                require(result['qualification'] == original['direct_kind']
+                        and result.get('placement_by_parent') == original['placement_by_parent']
+                        and not result.get('promote'), 'direct terminal scope differs from claimed placement or kind')
+                evidence = result['evidence_SHA256']
+                require(isinstance(evidence, str) and len(evidence) == 64
+                        and all(char in '0123456789abcdef' for char in evidence),
+                        'direct terminal requires a pinned post-clean result')
+            else:
+                require(result['qualification'] in STAGES, 'explicit qualification scope required')
             require(result['keeper_passed'] in (True, False, None), 'keeper outcome absent')
             if result.get('promote'):
                 require(result['passed'] is True and result['keeper_passed'] is True

@@ -6,7 +6,8 @@ from pathlib import Path
 
 from prepare_training80_reconnect_worklist import WORKLIST, prepare
 from report_training80_backlog import (BACKLOG, PRIORITY, QUEUE_DB, REPO, TRAINING80_LEDGER,
-                                      invocation, need, pin_file, read_original_holds, read_queue_holds, verify_launch)
+                                      direct_launch_state, direct_request_states, invocation, need, pin_file,
+                                      read_original_holds, read_queue_holds, verify_launch)
 
 
 def probe_arguments(repo, backlog, ledger, holds, preflight=(), *, priority_only=False):
@@ -15,7 +16,9 @@ def probe_arguments(repo, backlog, ledger, holds, preflight=(), *, priority_only
                  for parent, nodes in zone['allocations'].items() for node in nodes}
     need(len(ownership) == 80, 'expected the frozen 80-node inventory')
     queue_held = {node for row in holds for node in row['nodes'] if node in ownership}
-    original_holds, errors = read_original_holds(repo, backlog['items'], ownership)
+    direct_states = direct_request_states(holds)
+    pending_originals = [job for job in backlog['items'] if direct_launch_state(job, direct_states) != 'TERMINAL']
+    original_holds, errors = read_original_holds(repo, pending_originals, ownership)
     priority = {}
     ports = set()
     verified = []
@@ -32,6 +35,8 @@ def probe_arguments(repo, backlog, ledger, holds, preflight=(), *, priority_only
         ident = job['id']
         nodes = sorted(job['placement'])
         try:
+            if direct_launch_state(job, direct_states) is not None:
+                continue
             if job['state'] in ('reconcile', 'submitted'):
                 pin_file(repo, job['evidence'], ('coordination/tasks/', 'results/bw1000/', 'analysis/bw1000/', 'local-only/'))
             if job['state'] != 'ready' or ident in original_holds:

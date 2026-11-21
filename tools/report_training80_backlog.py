@@ -12,7 +12,7 @@ import re
 import sqlite3
 import time
 
-from tuning_queue import ACTIVE, SNAPSHOT_MAX_AGE_S, TRAINING80_LEDGER, digest, training80_inventory
+from tuning_queue import ACTIVE, DIRECT_STAGE, SNAPSHOT_MAX_AGE_S, TRAINING80_LEDGER, digest, training80_inventory
 from verify_training80_manifest import verify_package_members
 
 
@@ -199,17 +199,45 @@ def verify_launch(repo, job):
     return 'reconcile' if has_original_intent(repo, launch['attempt_receipts']) else 'ready'
 
 
-def read_queue_holds(path):
-    path = path.resolve(strict=True)
+def queue_holds(connection):
+    """Read active reservations and identities of completed direct requests."""
     marks = ','.join('?' for _ in ACTIVE)
-    with closing(sqlite3.connect(path.as_uri() + '?mode=ro', uri=True)) as connection:
-        rows = connection.execute(f'SELECT id,state,nodes FROM runs WHERE state IN ({marks})', ACTIVE).fetchall()
+    fields = {row[1] for row in connection.execute('PRAGMA table_info(runs)')}
+    direct_columns = {'stage', 'handle'} <= fields
+    extra_fields = ',stage,handle' if direct_columns else ''
+    include_terminal = ' OR (stage=? AND state="TERMINAL")' if direct_columns else ''
+    bindings = (*ACTIVE, DIRECT_STAGE) if direct_columns else ACTIVE
+    rows = connection.execute(f'SELECT id,state,nodes{extra_fields} FROM runs WHERE state IN ({marks})'
+                              + include_terminal, bindings)
     result = []
-    for run, state, raw_nodes in rows:
+    for run, state, raw_nodes, *extra in rows:
         nodes = json.loads(raw_nodes)
         need(isinstance(nodes, list) and all(isinstance(node, str) for node in nodes), 'queue nodes malformed')
-        result.append(dict(run=run, state=state, nodes=nodes))
+        row = dict(run=run, state=state, nodes=nodes if state in ACTIVE else [])
+        if extra and extra[0] == DIRECT_STAGE:
+            handle = json.loads(extra[1])
+            request = handle.get('request_id')
+            need(hex_value(request, 32), 'direct handoff request identity missing')
+            row['direct_request'] = request
+        result.append(row)
     return result
+
+
+def read_queue_holds(path):
+    path = path.resolve(strict=True)
+    with closing(sqlite3.connect(path.as_uri() + '?mode=ro', uri=True)) as connection:
+        return queue_holds(connection)
+
+
+def direct_request_states(holds):
+    rows = [row for row in holds if 'direct_request' in row]
+    states = {row['direct_request']: row['state'] for row in rows}
+    need(len(states) == len(rows), 'duplicate durable direct request')
+    return states
+
+
+def direct_launch_state(job, states):
+    return states.get(job.get('launch', {}).get('request'))
 
 
 def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(), now=None, boot_anchor=None):
@@ -223,7 +251,9 @@ def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(
     occupied = set()
     queue_held = {node for item in holds for node in item['nodes'] if node in nodes}
     ordered = sorted(backlog['items'], key=lambda job: (PRIORITY[job['kind']], job['priority'], job['id']))
-    original_holds, marker_errors = read_original_holds(repo, ordered, nodes)
+    direct_states = direct_request_states(holds)
+    pending_originals = [job for job in ordered if direct_launch_state(job, direct_states) != 'TERMINAL']
+    original_holds, marker_errors = read_original_holds(repo, pending_originals, nodes)
     for job in ordered:
         ident, kind, state = (job[key] for key in ('id', 'kind', 'state'))
         need(ident not in identities and state in STATES and type(job['priority']) is int and
@@ -252,6 +282,13 @@ def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(
             workload_ids.add(work)
             request_ids.add(request)
             row['request'] = request
+        prior_direct = direct_launch_state(job, direct_states)
+        if prior_direct == 'TERMINAL':
+            state = 'terminal'
+        elif prior_direct == 'SUBMITTED':
+            state = 'submitted'
+        elif prior_direct is not None:
+            state = 'reconcile'
         try:
             if 'evidence' in job:
                 row['evidence'] = job['evidence']

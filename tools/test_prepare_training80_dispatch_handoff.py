@@ -1,11 +1,14 @@
+from concurrent.futures import ThreadPoolExecutor
 from hashlib import sha256
 import json
+from threading import Barrier
 import unittest
+from unittest.mock import patch
 
-from prepare_training80_dispatch_handoff import build_handoff
-from report_training80_backlog import invocation
+from prepare_training80_dispatch_handoff import build_handoff, claim_handoff
+from report_training80_backlog import invocation, read_queue_holds
 import test_report_training80_backlog as fixture
-from tuning_queue import digest
+from tuning_queue import Queue, digest
 
 
 class HandoffTest(unittest.TestCase):
@@ -38,6 +41,112 @@ class HandoffTest(unittest.TestCase):
         return build_handoff(snapshot, dict(minimum_ready_training=5, items=jobs),
             repo=self.fleet.repo, selected=selected, holds=holds,
             now=self.fleet.now, boot_anchor=self.fleet.anchor)
+
+    def direct_claim(self, queue, job, packet, *, intent=None, now=None, snapshot=None):
+        return claim_handoff(queue, self.fleet.verified_snapshot() if snapshot is None else snapshot,
+            dict(minimum_ready_training=5, items=[job]), packet,
+            job['launch']['attempt_receipts'][0] if intent is None else intent,
+            repo=self.fleet.repo, now=self.fleet.now if now is None else now, boot_anchor=self.fleet.anchor)
+
+    def test_claim_persists_before_submission_and_cannot_repeat(self):
+        job = self.trial()
+        [packet] = self.handoff([job])['coordinator_handoffs']
+        queue_path = self.fleet.repo / 'claim.sqlite'
+        queue = Queue(queue_path)
+        self.addCleanup(queue.db.close)
+        result = self.direct_claim(queue, job, packet)
+        self.assertEqual(result['actual_slurm_submissions'], 0)
+        self.assertEqual(result['expires_local_monotonic'], packet['expires_local_monotonic'])
+        self.assertEqual(queue.dispatch_state(result['run'])['state'], 'DISPATCHING')
+        second = Queue(queue_path)
+        self.addCleanup(second.db.close)
+        with self.assertRaisesRegex(ValueError, 'already claimed'):
+            self.direct_claim(second, job, packet)
+        report = self.handoff([job], holds=read_queue_holds(queue_path))
+        self.assertEqual(report['outstanding_training_ready'], 0)
+        self.assertEqual(report['coordinator_handoffs'], [])
+
+    def test_claim_refuses_changed_packet_wrong_intent_and_stale_receipt(self):
+        job = self.trial()
+        [packet] = self.handoff([job])['coordinator_handoffs']
+        queue = Queue(self.fleet.repo / 'tampered.sqlite')
+        self.addCleanup(queue.db.close)
+        with self.assertRaisesRegex(ValueError, 'handoff drift'):
+            self.direct_claim(queue, job, dict(packet, workload_SHA256='0' * 64))
+        with self.assertRaisesRegex(ValueError, 'intent path differs'):
+            self.direct_claim(queue, job, packet, intent='local-only/unrelated/intent.json')
+        with self.assertRaisesRegex(ValueError, 'no current device-admitted'):
+            self.direct_claim(queue, job, packet, now=packet['expires_local_monotonic'] + 0.5)
+        self.fleet.put(job['launch']['attempt_receipts'][0], {'remote_outcome': 'UNKNOWN'})
+        with self.assertRaisesRegex(ValueError, 'no current device-admitted'):
+            self.direct_claim(queue, job, packet)
+        self.assertEqual(queue.summary()['runs'], {})
+
+    def test_claim_rechecks_time_after_rebuilding_the_packet(self):
+        job = self.trial()
+        [packet] = self.handoff([job])['coordinator_handoffs']
+        queue = Queue(self.fleet.repo / 'expired-at-commit.sqlite')
+        self.addCleanup(queue.db.close)
+        with patch('prepare_training80_dispatch_handoff.time.monotonic',
+                   side_effect=[self.fleet.now, packet['expires_local_monotonic'] + 0.5]):
+            with self.assertRaisesRegex(ValueError, 'expired before durable claim'):
+                claim_handoff(queue, self.fleet.verified_snapshot(),
+                    dict(minimum_ready_training=5, items=[job]), packet, job['launch']['attempt_receipts'][0],
+                    repo=self.fleet.repo, boot_anchor=self.fleet.anchor)
+        self.assertEqual(queue.summary()['runs'], {})
+
+    def test_concurrent_claims_for_same_node_allow_one(self):
+        jobs = [self.trial(index=i) for i in (1, 2)]
+        packets = [self.handoff([job])['coordinator_handoffs'][0] for job in jobs]
+        queue_path = self.fleet.repo / 'concurrent.sqlite'
+        Queue(queue_path).db.close()
+        barrier = Barrier(2)
+        def attempt(item):
+            job, packet = item
+            queue = Queue(queue_path)
+            try:
+                barrier.wait(timeout=5)
+                try:
+                    self.direct_claim(queue, job, packet)
+                except ValueError as exc:
+                    self.assertIn('no current device-admitted', str(exc))
+                    return False
+                return True
+            finally:
+                queue.db.close()
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            self.assertEqual(sorted(pool.map(attempt, zip(jobs, packets))), [False, True])
+        self.assertEqual(len(read_queue_holds(queue_path)), 1)
+
+    def test_direct_terminal_keeps_original_identity_but_releases_owned_nodes(self):
+        job = self.trial()
+        [packet] = self.handoff([job])['coordinator_handoffs']
+        path = self.fleet.repo / 'terminal.sqlite'
+        queue = Queue(path)
+        self.addCleanup(queue.db.close)
+        claimed = self.direct_claim(queue, job, packet)
+        handle = claimed['handle']
+        with self.assertRaisesRegex(ValueError, 'differs from its handoff'):
+            queue.submission(claimed['run'], dict(handle, placement_by_parent={'1103606': {'x': 8}}))
+        queue.submission(claimed['run'], handle, unknown=True)
+        result = dict(handle, qualification='training', terminal=True, post_clean=True,
+                      evidence_SHA256='a' * 64, planned=1, completed=1, failed=0, rejected=0,
+                      canceled=0, missing=0, keeper_passed=True)
+        with self.assertRaisesRegex(ValueError, 'requires actual terminal and post'):
+            queue.finish(claimed['run'], dict(result, post_clean=False))
+        with self.assertRaisesRegex(ValueError, 'direct terminal scope differs'):
+            queue.finish(claimed['run'], dict(result, qualification='inference'))
+        with self.assertRaisesRegex(ValueError, 'pinned post-clean result'):
+            queue.finish(claimed['run'], dict(result, evidence_SHA256='a'))
+        queue.finish(claimed['run'], result)
+        self.fleet.put(job['launch']['attempt_receipts'][0], {'retained': True})
+        other = self.trial(index=2)
+        report = self.handoff([job, other], holds=read_queue_holds(path))
+        self.assertEqual(report['outstanding_training_ready'], 1)
+        self.assertEqual([p['candidate'] for p in report['coordinator_handoffs']], [other['id']])
+        self.assertEqual(read_queue_holds(path)[0]['nodes'], [])
+        with self.assertRaisesRegex(ValueError, 'already claimed'):
+            self.direct_claim(queue, job, packet)
 
     def test_valid_packet_uses_pins_and_original_expiration(self):
         job = self.trial()
