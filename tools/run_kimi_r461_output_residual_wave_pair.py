@@ -13,8 +13,10 @@ from statistics import median
 import subprocess
 import sys
 import time
+from types import SimpleNamespace
 
-from link_kimi_r461_output_residual_wave import LABEL as LINK_LABEL, MANIFEST, VISIBLE, digest
+from link_kimi_r461_output_residual_wave import CAPTURE_EXPORT, CAPTURE_LABEL, CAPTURE_MANIFEST, MANIFEST, VISIBLE, digest
+from link_kimi_r461_output_residual_wave import LABEL as LINK_LABEL
 from read_training_slurm_membership import allocated_dcu, completed_numbered_step
 
 
@@ -23,8 +25,10 @@ BASE = Path('code/bw1000/Kimi-vocab-parallel-embedding-r461/output-residual-comp
 RESULTS = Path('/refactor/results')
 INPUT = RESULTS/'Kimi461-output-residual-component-GPU-v1'
 LIBS = Path('/refactor/candidates')/LINK_LABEL
+CAPTURE_LIBS = LIBS.with_name(CAPTURE_LABEL)
 ORDER = ('full-tree', 'wave32', 'wave32', 'full-tree', 'full-tree', 'wave32')
 MODE = 2
+SCORE_WORDS = 512*9
 PINS = {
     'run_arm.py': '14f0320fb481fa60b87bb06f535a8b12063875f4c6bd6374bd8a5bcede3f7e50',
     'compare_pair.py': 'aa22d04b06a62e614233948f9303b00c1f79c49701aba5b3bf67e0aaaba29e7d',
@@ -73,8 +77,11 @@ def load_binding():
     return binding, trusted_inputs(claim, checkpoint, binding), claim
 
 
-def linked_libraries(receipt, accounting, folder=LIBS):
-    need(receipt['completed'] is True and receipt['passed'] is True and receipt['generated_manifest_SHA256'] == MANIFEST
+def linked_libraries(receipt, accounting, folder=None, *, capture=False):
+    if folder is None:
+        folder = CAPTURE_LIBS if capture else LIBS
+    manifest = CAPTURE_MANIFEST if capture else MANIFEST
+    need(receipt['completed'] is True and receipt['passed'] is True and receipt['generated_manifest_SHA256'] == manifest
          and receipt['device_calls'] == receipt['weights_read'] == 0 and set(receipt['arms']) == set(ORDER),
          'both original linked arms must be qualified')
     row = completed_numbered_step(accounting['columns'], accounting['row'], receipt['step'], scope='Kimi paired link')
@@ -85,7 +92,8 @@ def linked_libraries(receipt, accounting, folder=LIBS):
          'original component target link resources differ')
     a, b = (receipt['arms'][name] for name in ('full-tree', 'wave32'))
     need(a['SHA256'] != b['SHA256'] and a['providers'] == b['providers'] and a['exports'] == b['exports'] and
-         set(VISIBLE) <= set(a['exports']), 'paired DSO identities, providers or caller exports differ')
+         set(VISIBLE) <= set(a['exports']) and (CAPTURE_EXPORT in a['exports']) == capture,
+         'paired DSO identities, providers or caller exports differ')
     for name, record in receipt['arms'].items():
         path = folder/(name+'.so')
         need(record['path'] == str(path) and path.resolve(strict=True) == path and digest(path) == record['SHA256'],
@@ -101,13 +109,32 @@ def write(path, document):
         os.fsync(stream.fileno())
 
 
-def arm(name, library_sha, output, *, inputs=load_binding, load=C.CDLL):
+def native_score_capture(native, handle, binding, operands):
+    capture = getattr(handle, CAPTURE_EXPORT)
+    capture.argtypes = [*native['ARG_TYPES'], C.POINTER(C.c_uint16), C.c_size_t]
+    capture.restype = C.c_int
+    guard, canary, unwritten = 16, 0x3f25, 0x7fc0
+    storage = (C.c_uint16*(SCORE_WORDS+2*guard))(*([canary]*guard+[unwritten]*SCORE_WORDS+[canary]*guard))
+    scores = C.cast(C.byref(storage, guard*C.sizeof(C.c_uint16)), C.POINTER(C.c_uint16))
+
+    def call(*original):
+        return capture(*original, scores, SCORE_WORDS)
+
+    proxy = SimpleNamespace(kimi_output_residual_component_r461=call,
+                            kimi_output_residual_error_r461=handle.kimi_output_residual_error_r461)
+    result = native['native_arm'](proxy, MODE, int(binding['pre_transpose']), binding['rms_norm_eps'], operands)
+    need(storage[:guard] == storage[-guard:] == [canary]*guard, 'score capture host canary changed')
+    need(all((word & 0x7f80) != 0x7f80 for word in storage[guard:-guard]), 'score capture is incomplete or nonfinite')
+    return (*result, C.string_at(scores, 2*SCORE_WORDS))
+
+
+def arm(name, library_sha, output, *, inputs=load_binding, load=C.CDLL, capture=False):
     need(sys.byteorder == 'little', 'little-endian BF16 ABI required')
     binding, files, _ = inputs()
     started = time.monotonic_ns()
     native = helper('run_arm.py')
     operands = [native['load_exact'](INPUT/'inputs', files[key], key) for key in native['WORDS']]
-    library = (LIBS/(name+'.so')).resolve(strict=True)
+    library = ((CAPTURE_LIBS if capture else LIBS)/(name+'.so')).resolve(strict=True)
     need(digest(library) == library_sha, 'isolated arm library bytes differ')
     loading = time.monotonic_ns()
     handle = load(str(library), mode=C.RTLD_LOCAL)
@@ -116,14 +143,21 @@ def arm(name, library_sha, output, *, inputs=load_binding, load=C.CDLL):
                    dynamic_load_seconds=(ready-loading)*1e-9)
     write(output/'startup.tmp', startup)
     (output/'startup.tmp').rename(output/'startup.json')
-    values, metrics, memory = native['native_arm'](handle, MODE, int(binding['pre_transpose']),
-                                                    binding['rms_norm_eps'], operands)
+    score_record = {}
+    if capture:
+        values, metrics, memory, scores = native_score_capture(native, handle, binding, operands)
+        with (output/'scores.bf16').open('xb') as stream:
+            stream.write(scores)
+        score_record = dict(score_bytes=len(scores), score_SHA256=sha256(scores).hexdigest())
+    else:
+        values, metrics, memory = native['native_arm'](handle, MODE, int(binding['pre_transpose']),
+                                                        binding['rms_norm_eps'], operands)
     raw = bytes(values)
     with (output/'output.bf16').open('xb') as stream:
         stream.write(raw)
     return dict(complete=True, arm=name, mode=MODE, original_input_receipt_SHA256=load_original_pin(),
                 library_SHA256=library_sha, output_SHA256=sha256(raw).hexdigest(), output_bytes=len(raw),
-                startup=startup, finished_monotonic_ns=time.monotonic_ns(), driver_samples=memory,
+                startup=startup, finished_monotonic_ns=time.monotonic_ns(), driver_samples=memory, **score_record,
                 seconds=dict(dispatch_through_sync=metrics[0], post_dispatch_audit=metrics[1],
                              full_CABI_before_destroy=metrics[2]))
 
@@ -132,11 +166,11 @@ def load_original_pin():
     return json.loads(pinned(REPO/BASE/'CLAIM.json', PINS['CLAIM.json']))['original_input_receipt_SHA256']
 
 
-def children(output, libraries, monotonic_deadline, *, started_arm=None, compare=None):
+def children(output, libraries, monotonic_deadline, *, started_arm=None, compare=None, capture=False):
     launch = start_arm if started_arm is None else started_arm
     compare = helper('compare_pair.py')['compare'] if compare is None else compare
     result = dict(complete=False, planned_arms=list(ORDER), planned_pairs=3, mode=MODE, records=[], pairs=[],
-                  model_qualified=False, performance_qualified=False)
+                  model_qualified=False, performance_qualified=False, score_capture=capture)
     try:
         for index, name in enumerate(ORDER):
             need(time.monotonic() < monotonic_deadline-10, 'original GPU budget ended before next arm')
@@ -158,16 +192,28 @@ def children(output, libraries, monotonic_deadline, *, started_arm=None, compare
                     operands[item['arm']] = pinned(path, item['output_SHA256'], 2*512*7168)
                     need(len(operands[item['arm']]) == item['output_bytes'], 'saved residual size differs')
                 trial = compare(operands['full-tree'], operands['wave32'])
+                if capture:
+                    scores = {}
+                    for item in pair:
+                        path = output/f"arm-{item['ordinal']}"/'scores.bf16'
+                        scores[item['arm']] = pinned(path, item['score_SHA256'], 2*SCORE_WORDS)
+                        need(len(scores[item['arm']]) == item['score_bytes'] == 2*SCORE_WORDS,
+                             'saved score size differs')
+                    trial['internal_BF16_scores'] = compare(scores['full-tree'], scores['wave32'], SCORE_WORDS)
                 timing = {item['arm']: item['seconds']['dispatch_through_sync'] for item in pair}
                 need(all(type(seconds) in (float, int) and math.isfinite(seconds) and seconds >= 0
                          for seconds in timing.values()), 'invalid paired dispatch timing')
                 trial.update(full_tree_ordinal=next(item['ordinal'] for item in pair if item['arm'] == 'full-tree'),
                              wave32_ordinal=next(item['ordinal'] for item in pair if item['arm'] == 'wave32'),
                              dispatch_through_sync_seconds=timing,
-                             dispatch_wave32_over_full_tree=timing['wave32']/timing['full-tree'] if timing['full-tree'] else None)
+                             dispatch_wave32_over_full_tree=timing['wave32']/timing['full-tree']
+                             if not capture and timing['full-tree'] else None)
                 result['pairs'].append(trial)
         result['complete'] = True
         result['fixed_input_BF16_output_exact'] = all(item['changed_words'] == 0 for item in result['pairs'])
+        if capture:
+            result['fixed_input_BF16_scores_exact'] = all(item['internal_BF16_scores']['changed_words'] == 0
+                                                          for item in result['pairs'])
         ratios = [item['dispatch_wave32_over_full_tree'] for item in result['pairs']]
         result['median_dispatch_wave32_over_full_tree'] = median(ratios) if None not in ratios else None
     except (OSError, RuntimeError, ValueError, KeyError, subprocess.SubprocessError) as error:
@@ -231,6 +277,7 @@ def main():
     for name in ('link-receipt-sha', 'link-accounting-sha', 'preflight-sha'):
         multi.add_argument('--'+name, required=True)
     multi.add_argument('--epoch', required=True, type=float)
+    multi.add_argument('--score-capture', action='store_true')
     args = parser.parse_args()
     if args.kind == 'arm':
         original = json.loads((args.output.parent/'worker-identity.json').read_bytes())
@@ -239,21 +286,23 @@ def main():
              and args.library_sha == original['library_SHA256'][args.name]
              and re.fullmatch(r'arm-[0-5]', args.output.name) and ORDER[int(args.output.name[-1])] == args.name,
              'isolated arm differs from the admitted pair and ordinals')
-        write(args.output/'result.json', arm(args.name, args.library_sha, args.output))
+        write(args.output/'result.json', arm(args.name, args.library_sha, args.output,
+                                             capture=original.get('score_capture') is True))
         return 0
     wall, mono = time.time(), time.monotonic()
     need(math.isfinite(args.epoch) and 0 < args.epoch <= wall < args.epoch+690, 'invalid original GPU epoch')
     deadline = mono+args.epoch+700-wall
     linked = json.loads(pinned(args.link_receipt, args.link_receipt_sha))
-    libraries = linked_libraries(linked, json.loads(pinned(args.link_accounting, args.link_accounting_sha)))
+    libraries = linked_libraries(linked, json.loads(pinned(args.link_accounting, args.link_accounting_sha)),
+                                capture=args.score_capture)
     claim = json.loads(pinned(REPO/BASE/'CLAIM.json', PINS['CLAIM.json']))
     need(all(digest(Path(path)) == pin for path, pin in claim['provider_SHA256'].items()), 'original active runtime provider differs')
     identity = physical_gpu(json.loads(pinned(args.preflight, args.preflight_sha)))
     args.output.mkdir(mode=0o700)
     write(args.output/'worker-identity.json', dict(identity, link_receipt_SHA256=args.link_receipt_sha,
                link_accounting_SHA256=args.link_accounting_sha, preflight_SHA256=args.preflight_sha, epoch=args.epoch,
-               library_SHA256={name: item['SHA256'] for name, item in libraries.items()}))
-    result = children(args.output, libraries, deadline)
+               library_SHA256={name: item['SHA256'] for name, item in libraries.items()}, score_capture=args.score_capture))
+    result = children(args.output, libraries, deadline, capture=args.score_capture)
     print(json.dumps({key: result[key] for key in ('complete', 'missing_arms', 'missing_pairs')}, allow_nan=False))
     return int(not result['complete'])
 

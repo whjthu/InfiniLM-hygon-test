@@ -1,4 +1,5 @@
 from copy import deepcopy
+import re
 from pathlib import Path
 import runpy
 import tempfile
@@ -6,6 +7,7 @@ import unittest
 from unittest.mock import patch
 
 import link_kimi_r461_output_residual_wave as linker
+import prepare_kimi_r461_output_residual_score_capture as capture_source
 
 
 REPO = Path(__file__).resolve().parents[1]
@@ -74,7 +76,31 @@ class ResidualWaveLinkTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'HOST compiler differs'):
             linker.compiler_pin(cpu330, cpu987)
 
-    def fixture_build(self, *, unexpected_provider=False, missing_symbol=False, missing_dependency=False):
+    def select_capture(self):
+        self.source = self.workspace/'capture'
+        self.assertEqual(capture_source.prepare(self.source)['manifest_SHA256'], linker.CAPTURE_MANIFEST)
+        self.pins = linker.checked_sources(self.source, manifest=linker.CAPTURE_MANIFEST)
+
+    def test_diagnostic_changes_only_the_common_host_and_copies_after_dispatch(self):
+        original = self.pins
+        self.select_capture()
+        self.assertEqual({name for name, pin in original.items() if self.pins[name] != pin},
+                         {f'{arm}/component.cpp' for arm in linker.ARMS})
+        for arm in linker.ARMS:
+            cpp = (self.source/arm/'component.cpp').read_text(encoding='utf-8')
+            dispatch = cpp.index('const auto dispatch = Clock::now()')
+            done = cpp.index('const auto done = Clock::now()', dispatch)
+            copy = cpp.index('probe.score_output_host->copy_from(runtime, scores)', done)
+            self.assertIn('probe.output = probe.apply', cpp[dispatch:done])
+            self.assertNotIn('capture', cpp[dispatch:done])
+            self.assertLess(cpp.index('invalid Kimi fused score output buffer'), cpp.index('cudaGetDeviceCount'))
+            self.assertIn('const auto &scores = probe.fused_score_hold', cpp[done:copy])
+            self.assertRegex(cpp[copy:], re.compile(r'copy_from[^\n]+\n\s*runtime.syncStream\(\);'))
+        with self.assertRaisesRegex(ValueError, 'metadata identity differs'):
+            linker.checked_sources(self.source)
+
+    def fixture_build(self, *, unexpected_provider=False, missing_symbol=False, missing_dependency=False,
+                      capture=False, capture_export=False):
         shared = self.workspace/'shared.hpp'
         shared.write_bytes(b'accepted original header')
         providers = {str(Path('/runtime')/name): f'{index:064x}' for index, name in enumerate(linker.REQUIRED_PROVIDERS, 1)}
@@ -111,7 +137,8 @@ class ResidualWaveLinkTest(unittest.TestCase):
                 self.assertIn('-Wl,--no-undefined', argv)
                 Path(argv[-1]).write_bytes(arm.encode())
             if phase.endswith('-exports'):
-                return '\n'.join('0000 T '+name for name in linker.VISIBLE)
+                reported = (*linker.VISIBLE, linker.CAPTURE_EXPORT) if capture_export else linker.VISIBLE
+                return '\n'.join('0000 T '+name for name in reported)
             if phase.endswith('-symtab'):
                 return '' if missing_symbol else f'  3: 000 1 FUNC LOCAL DEFAULT 1 {linker.HIDDEN}'
             if phase.endswith('-passive'):
@@ -123,7 +150,8 @@ class ResidualWaveLinkTest(unittest.TestCase):
 
         with patch.object(linker, 'dep_paths', return_value=expected-{str(shared)} if missing_dependency else expected), \
                 patch.object(Path, 'resolve', resolve), patch.object(linker, 'digest', digest):
-            result = linker.component_build(self.source, self.output, self.pins, scores, build330, build335, run)
+            result = linker.component_build(self.source, self.output, self.pins, scores, build330, build335, run,
+                                            capture=capture)
         return phases, result
 
     def test_one_host_compile_links_both_arms_separately(self):
@@ -139,6 +167,15 @@ class ResidualWaveLinkTest(unittest.TestCase):
                                ('unexpected_provider', 'provider identity differs')):
             with self.subTest(option=option), self.assertRaisesRegex(ValueError, reason):
                 self.fixture_build(**{option: True})
+
+    def test_linker_requires_export_to_match_the_selected_build(self):
+        with self.assertRaisesRegex(ValueError, 'score capture export disagrees'):
+            self.fixture_build(capture_export=True)
+        self.select_capture()
+        with self.assertRaisesRegex(ValueError, 'score capture export disagrees'):
+            self.fixture_build(capture=True)
+        _, result = self.fixture_build(capture=True, capture_export=True)
+        self.assertTrue(all(linker.CAPTURE_EXPORT in arm['exports'] for arm in result['arms'].values()))
 
 
 if __name__ == '__main__':

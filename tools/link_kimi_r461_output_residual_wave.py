@@ -20,6 +20,9 @@ VISIBLE = ('kimi_output_residual_component_r461', 'kimi_output_residual_error_r4
 HIDDEN = 'kimi_output_residual_scores_v1_launch'
 LABEL = 'Kimi461-output-residual-wave-component-link-CPU-v1'
 MANIFEST = 'd2544aeaaca73ff6683dda62fc82b097e02bf28cf9dde1ec0a720fe9e1b52df6'
+CAPTURE_MANIFEST = '3755a70a0603e32c38b36b909c3b28672f34ea3b0f3cb55edde601c024fb2967'
+CAPTURE_LABEL = 'Kimi461-output-residual-wave-score-capture-link-CPU-v1'
+CAPTURE_EXPORT = 'kimi_output_residual_scores_probe_r461'
 CANDIDATES = Path('/refactor/candidates')
 SCORE_OUTPUT = CANDIDATES/'Kimi461-output-residual-wave-score-gfx936-CPU-v1'
 PARENT330 = CANDIDATES/'Kimi461-output-residual-tile64-CPU-v1'
@@ -54,8 +57,8 @@ def checked_json(path, pin=None, size=4*1024**2):
     return json.loads(raw)
 
 
-def checked_sources(where):
-    pins = checked_json(where/'SOURCE_FILES.json', MANIFEST)['files_SHA256']
+def checked_sources(where, *, manifest=MANIFEST):
+    pins = checked_json(where/'SOURCE_FILES.json', manifest)['files_SHA256']
     need(len(pins) == 13, 'expected the exact rendered score pair')
     for name, pin in pins.items():
         path = where/name
@@ -115,7 +118,7 @@ def compiler_pin(cpu330, cpu987):
          'the current HOST compiler differs from the original provider')
 
 
-def component_build(source, output, pins, scores, cpu330, cpu335, run):
+def component_build(source, output, pins, scores, cpu330, cpu335, run, *, capture=False):
     need(cpu330['actual_CPU'] == '1103606.330' and cpu335['actual_CPU'] == '1103606.335'
          and all(row['completed'] is True and row['passed'] is True for row in (cpu330, cpu335)),
          'original HOST compiler or closure producer differs')
@@ -154,6 +157,7 @@ def component_build(source, output, pins, scores, cpu330, cpu335, run):
         symbols = run(arm+'-exports', ['/usr/bin/nm', '-D', '--defined-only', str(library)], 12)
         exported = {part[-1] for line in symbols.splitlines() if len(part := line.split()) >= 3 and part[-2] == 'T'}
         need(set(VISIBLE) <= exported and HIDDEN not in exported, 'paired component export or hidden score symbol differs')
+        need((CAPTURE_EXPORT in exported) == capture, 'score capture export disagrees with the selected source')
         table = run(arm+'-symtab', ['/usr/bin/readelf', '-sW', str(library)], 12)
         need(any(len(part := line.split()) >= 8 and part[-1] == HIDDEN and part[6] != 'UND'
                  and (part[4] == 'LOCAL' or part[5] == 'HIDDEN') for line in table.splitlines()),
@@ -182,6 +186,7 @@ def main():
     parser.add_argument('--generated-source', required=True, type=Path)
     parser.add_argument('--score-receipt-sha256', required=True)
     parser.add_argument('--score-accounting', required=True, type=Path)
+    parser.add_argument('--score-capture', action='store_true', help='Link the separately rendered diagnostic HOST caller')
     args = parser.parse_args()
     job, step = (os.environ[key] for key in ('SLURM_JOB_ID', 'SLURM_STEP_ID'))
     node = socket.gethostname().split('.')[0]
@@ -195,19 +200,20 @@ def main():
     need(math.isfinite(epoch) and deadline == epoch+300 and epoch <= wall < deadline-12,
          'invalid original CPU link deadline')
     where = args.generated_source.resolve(strict=True)
-    pins = checked_sources(where)
+    manifest = CAPTURE_MANIFEST if args.score_capture else MANIFEST
+    pins = checked_sources(where, manifest=manifest)
     score = checked_json(SCORE_OUTPUT/'CPU-result.json', args.score_receipt_sha256)
     accounting = checked_json(args.score_accounting, size=65536)
     scores = qualified_scores(score, accounting)
     cpu330 = checked_json(PARENT330/'CPU-result.json', CPU330_SHA)
     cpu335 = checked_json(PARENT335/'CPU-result.json', CPU335_SHA)
     compiler_pin(cpu330, checked_json(PARENT987/'CPU-result.json', CPU987_SHA))
-    output = CANDIDATES/LABEL
+    output = CANDIDATES/(CAPTURE_LABEL if args.score_capture else LABEL)
     output.mkdir(mode=0o700)
     report = dict(step=f'{job}.{step}', node=node, epoch=epoch, deadline=deadline, passed=False,
                   score_compile_step=score['original_step'], score_receipt_SHA256=args.score_receipt_sha256,
                   score_compile_accounting={key: accounting[key] for key in ('columns', 'row')},
-                  generated_manifest_SHA256=MANIFEST, device_calls=0, weights_read=0, commands=[])
+                  generated_manifest_SHA256=manifest, device_calls=0, weights_read=0, commands=[])
 
     def run(phase, command, limit):
         left = min(deadline-time.time(), (deadline-wall)-(time.monotonic()-mono))-8
@@ -222,7 +228,8 @@ def main():
         return ''
 
     try:
-        report.update(component_build(where, output, pins, scores, cpu330, cpu335, run), passed=True)
+        report.update(component_build(where, output, pins, scores, cpu330, cpu335, run,
+                                      capture=args.score_capture), passed=True)
     except (OSError, KeyError, TypeError, ValueError, subprocess.SubprocessError) as error:
         report.update(error_type=type(error).__name__, reason=str(error)[:240])
     finally:
