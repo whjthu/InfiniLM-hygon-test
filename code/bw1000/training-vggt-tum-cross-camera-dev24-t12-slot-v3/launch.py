@@ -12,7 +12,7 @@ PACKAGE = Path(__file__).resolve().parent
 REPO = PACKAGE.parents[2]
 LABEL = PACKAGE.name
 PARENT, NODE = '1103606', 'f13r4n09'
-REQUEST = 'b51243f49f82496cb6ec80029de1f84'
+REQUEST = 'b51243f49f82496cb6ec80029de1f84d'
 ORIGINAL_INDEX = 'coordination/training/vggt-tum-cross-camera-controller-files-v1.json'
 ORIGINAL_INDEX_SHA = 'f224f502dc9b5755182f458591e47cf5214f7484dc0c0480d4028d5dade0a910'
 CONTROLLER = 'tools/control_vggt_tum_cross_camera_dev.py'
@@ -79,6 +79,8 @@ def main(publication, transport):
     claim = json.loads(raw_claim)
     if (claim['request'], claim['parent'], claim['node'], claim['stage_SHA256']) != (REQUEST, PARENT, NODE, STAGE_SHA):
         raise ValueError('frozen T12 claim differs')
+    if sha256(sources[ORIGINAL_INDEX]).hexdigest() != claim['remapped_source_index_SHA256']:
+        raise ValueError('remapped controller source differs from publication')
     context = dict(request=REQUEST, publication=publication, label=LABEL, stage_SHA256=STAGE_SHA,
                    source_index_SHA256=sha256(sources[ORIGINAL_INDEX]).hexdigest(),
                    claim_SHA256=sha256(raw_claim).hexdigest())

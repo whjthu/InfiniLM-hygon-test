@@ -10,7 +10,7 @@ import sys
 
 ROOT = Path('/public/home/aclsylqidf/hygon-inference-refactor-20261014')
 LABEL = 'training-vggt-tum-cross-camera-dev24-t12-slot-v3'
-REQUEST = 'b51243f49f82496cb6ec80029de1f84'
+REQUEST = 'b51243f49f82496cb6ec80029de1f84d'
 STAGE_SHA = 'd221478fe51e14ccdf8ca858632c60aee67993e693c58f29b2c9357d373dc903'
 INDEX = 'coordination/training/vggt-tum-cross-camera-controller-files-v1.json'
 ORIGINAL_STAGE = ROOT / 'results/training-vggt-tum-cross-camera-dev24-v1-staged'
