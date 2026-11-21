@@ -42,8 +42,8 @@ def validate_scope_nodes(nodes, owners):
     return nodes
 
 
-def probe_batches(candidates, priority_nodes):
-    """Isolate priority nodes from ordinary batches and schedule them first across parents."""
+def probe_batches(candidates, priority_nodes, *, isolate_priority=False):
+    """Schedule priority probes first, optionally with independent steps per node."""
     priorities = set(priority_nodes)
     batches = []
     for parent, names in candidates.items():
@@ -52,9 +52,10 @@ def probe_batches(candidates, priority_nodes):
                     [name for name in names if name not in priorities])
         index = 0
         for tier, segment in enumerate(segments):
-            for offset in range(0, len(segment), NODES_PER_PROBE):
-                batches.append((tier, offset // NODES_PER_PROBE, parent, index,
-                                segment[offset:offset + NODES_PER_PROBE]))
+            batch_size = 1 if isolate_priority and tier == 0 else NODES_PER_PROBE
+            for offset in range(0, len(segment), batch_size):
+                batches.append((tier, offset // batch_size, parent, index,
+                                segment[offset:offset + batch_size]))
                 index += 1
     return sorted(batches, key=lambda item: item[:3])
 
@@ -182,7 +183,9 @@ def collect(request, ledger_raw, pins, ports, *, priority_nodes=(), held_nodes=(
         except (OSError, ValueError, KeyError, TypeError, subprocess.TimeoutExpired) as error:
             return {}, dict(receipt, state=type(error).__name__)
 
-    batch_specs = probe_batches(candidates, priority_nodes)
+    # A priority-only observation serves the next dispatch. Each candidate node needs its
+    # own step because one unavailable node can prevent an entire multi-node step starting.
+    batch_specs = probe_batches(candidates, priority_nodes, isolate_priority=priority_only)
     scope = 'FULL_FLEET'
     deferred = set()
     if priority_only:

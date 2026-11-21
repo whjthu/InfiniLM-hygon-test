@@ -75,7 +75,7 @@ class DispatchProbeCollectionTest(unittest.TestCase):
         self.assertEqual([row[2:] for row in probe_batches(nodes, ['d', 'b'])],
                          [('10', 0, ['b']), ('11', 0, ['d']), ('10', 1, ['a']), ('11', 1, ['c'])])
 
-    def collect_fixture(self, *, priority, held, priority_only=False):
+    def collect_fixture(self, *, priority, held, priority_only=False, unavailable_node=None):
         fixture = membership_fixtures.RealPlacementFixtureTest()
         fixture.setUp()
         for parent in fixture.groups:
@@ -94,6 +94,8 @@ class DispatchProbeCollectionTest(unittest.TestCase):
             request, parent, _ = args[-3:]
             requests.append((request, nodes))
             self.assertIn('--gres=none', args)
+            if unavailable_node in nodes:
+                return subprocess.CompletedProcess(args, 1, b'', b'Requested nodes are busy')
             rows = [dict(request_id=request, parent=parent, step=parent + '.997', node=node, ports_checked=[],
                          observer_uid=1234, PCIs=pins[node], kfd_process_count=0, own_device_fd_process_count=0,
                          occupied_requested_ports=[]) for node in nodes]
@@ -139,6 +141,22 @@ class DispatchProbeCollectionTest(unittest.TestCase):
             self.assertEqual(report['nodes'][node]['probe_error'], 'DEFERRED_BY_PRIORITY_ONLY')
             self.assertFalse(report['nodes'][node]['device_probe_observed'])
         self.assertEqual(report['nodes'][held]['probe_error'], 'LOCAL_QUEUE_HELD')
+        self.assertIsNone(report['measured_busy_percent'])
+
+    def test_unavailable_priority_node_does_not_block_a_peer_on_the_same_parent(self):
+        blocked, peer, held = 'f13r4n09', 'f13r1n19', 'f13r1n10'
+        report, tried, _ = self.collect_fixture(priority=[blocked, peer], held=held, priority_only=True,
+                                               unavailable_node=blocked)
+        self.assertEqual(tried, {blocked, peer})
+        self.assertEqual(report['nodes'][blocked]['probe_error'], 'SRUN_FAILED_WITHOUT_ROWS')
+        self.assertFalse(report['nodes'][blocked]['device_probe_observed'])
+        self.assertTrue(report['nodes'][peer]['device_probe_observed'])
+        self.assertTrue(report['nodes'][peer]['KFD_clean'])
+        self.assertTrue(report['nodes'][peer]['PID_clean'])
+        self.assertTrue(report['nodes'][peer]['ports_clean'])
+        batches = report['probes']['1103606']['batches']
+        self.assertEqual([batch['requested_nodes'] for batch in batches], [[blocked], [peer]])
+        self.assertEqual(report['probes']['1103606']['received_nodes'], [peer])
         self.assertIsNone(report['measured_busy_percent'])
 
     def test_priority_only_falls_back_when_only_priority_is_held(self):
