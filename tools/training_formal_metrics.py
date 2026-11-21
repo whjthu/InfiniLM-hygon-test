@@ -260,30 +260,40 @@ def verified_execution(run, cards, provenance, window_seconds, verify_raw, *, sh
          and sorted(device['rank'] for device in devices) == list(range(cards)),
          'physical device inventory differs from the measured rank count')
     addresses = set()
-    for device in devices:
-        node, pci = device['node'], device['pci']
-        need(isinstance(node, str) and bool(node.strip()) and isinstance(device['model'], str)
-             and bool(device['model'].strip()) and isinstance(pci, str)
+    node_ranks = {}
+    models = []
+    for device in sorted(devices, key=lambda device: device['rank']):
+        node, pci, model = device['node'], device['pci'], device['model']
+        need(isinstance(node, str) and bool(node.strip().rstrip('.')) and isinstance(model, str)
+             and bool(model.strip()) and isinstance(pci, str)
              and re.fullmatch(r'[0-9a-fA-F]{4,8}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}\.[0-7]', pci),
              'invalid device model, node or PCI identity')
+        normalized_node = node.strip().rstrip('.').lower()
         domain, address = pci.lower().split(':', 1)
-        addresses.add((node.strip().rstrip('.').lower(), int(domain, 16), address))
+        addresses.add((normalized_node, int(domain, 16), address))
+        node_ranks.setdefault(normalized_node, []).append(device['rank'])
+        models.append(' '.join(model.casefold().split()))
     need(len(addresses) == cards, 'multiple ranks were attributed to the same physical device')
+    if provenance['platform'] == 'A100':
+        need(all(re.search(r'\ba100\b', model) for model in models), 'A100 timing used a different accelerator model')
     runtime = record['runtime']
     fields = ['driver', 'framework', 'operator_library']
     if cards > 1:
         fields.append('interconnect')
     need(all(isinstance(runtime.get(key), str) and runtime[key].strip() for key in fields),
          'missing hardware and runtime configuration evidence')
-    return handle
+    hardware_scope = dict(device_models_by_rank=models, rank_groups_by_node=sorted(node_ranks.values()),
+                          runtime={key: runtime[key].strip() for key in fields})
+    return handle, hardware_scope
 
 
-def timing(runs, cards, recipe, boundary, verify_raw, *, provenance, shared_device_clock=False):
+def timing(runs, cards, recipe, boundary, verify_raw, *, provenance, shared_device_clock=False, return_scope=False):
     need(len(runs) == 3 and len({r['run_id'] for r in runs}) == 3
          and all(isinstance(r['run_id'], str) and r['run_id'] for r in runs),
          'formal timing requires three distinct runs per platform')
     rates = []
     executions = set()
+    reference_scope = None
     for run in runs:
         need(all(run.get(key) == value for key, value in provenance.items())
              and run['recipe_SHA256'] == recipe and run['boundary_SHA256'] == boundary
@@ -302,14 +312,20 @@ def timing(runs, cards, recipe, boundary, verify_raw, *, provenance, shared_devi
                  and sorted(row['rank'] for row in ranks) == list(range(cards)),
                  'incomplete or invalid rank inventory')
             seconds = max(complete_window(row) for row in ranks)
-        identity = verified_execution(run, cards, provenance, seconds, verify_raw,
-                                      shared_device_clock=shared_device_clock)
+        identity, scope = verified_execution(
+            run, cards, provenance, seconds, verify_raw, shared_device_clock=shared_device_clock,
+        )
         need(identity not in executions, 'three timing runs reuse one actual execution')
         executions.add(identity)
+        if reference_scope is None:
+            reference_scope = scope
+        else:
+            need(scope == reference_scope, 'formal timing repeats differ in hardware, rank placement or runtime')
         for field in ('admission_seconds', 'load_seconds', 'cache_preparation_seconds'):
             need(nonnegative(run[field]), 'invalid separately reported startup timing')
         rates.append(MEASURED_UPDATES / seconds)
-    return statistics.median(rates)
+    median = statistics.median(rates)
+    return (median, reference_scope) if return_scope else median
 
 
 def verify_sample_inventory(row, metric, provenance, checkpoints, verify_raw):
@@ -513,15 +529,17 @@ def stage_three(case, framework_commit, evidence, verify_raw):
     need(isinstance(reference_commit, str) and len(reference_commit) == 40
          and all(c in '0123456789abcdef' for c in reference_commit),
          'missing or invalid A100 framework revision')
-    a100 = timing(runs['A100'], cards, recipe, boundary, verify_raw,
+    a100, a100_scope = timing(runs['A100'], cards, recipe, boundary, verify_raw,
                   provenance={'case': case['case'], 'platform': 'A100',
                               'framework_commit': reference_commit,
                               'original_launch_SHA256': case['launch_SHA256']},
-                  shared_device_clock=shared_device_clock)
-    hygon = timing(runs['Hygon'], cards, recipe, boundary, verify_raw,
+                  shared_device_clock=shared_device_clock, return_scope=True)
+    hygon, hygon_scope = timing(runs['Hygon'], cards, recipe, boundary, verify_raw,
                    provenance={'case': case['case'], 'platform': 'Hygon',
                                'framework_commit': framework_commit},
-                   shared_device_clock=shared_device_clock)
+                   shared_device_clock=shared_device_clock, return_scope=True)
+    need(a100_scope['rank_groups_by_node'] == hygon_scope['rank_groups_by_node'],
+         'formal paired timing uses different per-node rank placement')
     need(not ({r['run_id'] for r in evidence['timing']['A100']}
               & {r['run_id'] for r in evidence['timing']['Hygon']}), 'run IDs shared across platforms')
     holdout = evidence['holdout']
@@ -550,5 +568,6 @@ def stage_three(case, framework_commit, evidence, verify_raw):
     ratio = hygon / a100
     return {'A100_median_updates_per_second': a100, 'Hygon_median_updates_per_second': hygon,
             'throughput_ratio': ratio, 'effect_regressions': regressions,
+            'timing_hardware': {'A100': a100_scope, 'Hygon': hygon_scope},
             'passed': ratio >= .90 and all(row['relative_degradation'] is not None and row['relative_degradation'] <= .05
                                          for row in regressions.values())}

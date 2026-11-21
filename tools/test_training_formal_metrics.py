@@ -196,9 +196,9 @@ class TimingExecutionTest(unittest.TestCase):
                                      devices=devices, runtime=runtime, training_progress=progress))
             self.runs.append(dict(raw, raw_receipt=raw_pin, execution_evidence=evidence))
 
-    def audit(self, *, shared_device_clock=False):
+    def audit(self, *, shared_device_clock=False, return_scope=False):
         return timing(self.runs, 2, self.recipe, self.boundary, lambda item: self.attachments[item['SHA256']],
-                      provenance=self.provenance, shared_device_clock=shared_device_clock)
+                      provenance=self.provenance, shared_device_clock=shared_device_clock, return_scope=return_scope)
 
     def replace_execution(self, index, change):
         run = self.runs[index]
@@ -228,6 +228,52 @@ class TimingExecutionTest(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, reason):
                     self.audit()
                 self.runs[0]['execution_evidence'] = old
+
+    def test_gpu_model_rank_layout_and_runtime_remain_comparable_across_repeats(self):
+        original = self.runs[1]['execution_evidence']
+        changes = (
+            lambda e: e['devices'][1].update(model='other DCU'),
+            lambda e: e['devices'][1].update(node='n2'),
+            lambda e: e['runtime'].update(interconnect='different link'),
+            lambda e: e['runtime'].update(driver='different driver'),
+            lambda e: e['runtime'].update(framework='different framework'),
+            lambda e: e['runtime'].update(operator_library='different library'),
+        )
+        for change in changes:
+            self.replace_execution(1, change)
+            with self.assertRaisesRegex(ValueError, 'repeats differ in hardware, rank placement or runtime'):
+                self.audit()
+            self.runs[1]['execution_evidence'] = original
+
+    def test_same_hardware_scope_allows_equivalent_nodes_and_pci_addresses(self):
+        def move(evidence):
+            for rank, device in enumerate(evidence['devices']):
+                device.update(node='ReplacementNode.', pci=f'0000:9{rank}:00.0', model=' Test  DCU ')
+        self.replace_execution(1, move)
+        median, scope = self.audit(return_scope=True)
+        self.assertAlmostEqual(median, 20/100)
+        self.assertEqual(scope['device_models_by_rank'], ['test dcu', 'test dcu'])
+        self.assertEqual(scope['rank_groups_by_node'], [[0, 1]])
+        self.assertEqual(scope['runtime']['interconnect'], 'test-link')
+
+    def test_a100_label_requires_a100_model_identity(self):
+        archive = (Path(__file__).resolve().parents[1] /
+                   'analysis/bw1000/training-vlm-a100-original-120-rank-windows-v1.json')
+        model = json.loads(archive.read_bytes())['cases']['T01.sft']['original_hardware']
+        self.provenance = dict(self.provenance, platform='A100')
+        for i, run in enumerate(self.runs):
+            run.update(self.provenance)
+            raw = {k: v for k, v in run.items() if k not in ('raw_receipt', 'execution_evidence')}
+            run['raw_receipt'] = self.pin(raw)
+            def use_archive_label(evidence):
+                evidence.update(self.provenance, raw_timing_SHA256=run['raw_receipt']['SHA256'])
+                for device in evidence['devices']:
+                    device['model'] = model
+            self.replace_execution(i, use_archive_label)
+        self.assertEqual(self.audit(return_scope=True)[1]['device_models_by_rank'], [model.lower()] * 2)
+        self.replace_execution(0, lambda e: e['devices'][0].update(model='NVIDIA H100'))
+        with self.assertRaisesRegex(ValueError, 'A100 timing used a different accelerator model'):
+            self.audit()
 
     def test_rejects_a_missing_execution_pin(self):
         del self.runs[0]['execution_evidence']

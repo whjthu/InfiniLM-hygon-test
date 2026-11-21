@@ -163,8 +163,11 @@ class TextVQAEffectTest(unittest.TestCase):
                         timing=timing, holdout=holdout)
         return case, evidence
 
-    def audit_vlm_stage_three(self, case, evidence):
-        with patch('training_formal_metrics.timing', side_effect=[1.0, 0.91]):
+    def audit_vlm_stage_three(self, case, evidence, target_rank_groups=None):
+        ranks = list(range(case['original_cards']))
+        a100_scope = {'rank_groups_by_node': [ranks]}
+        target_scope = {'rank_groups_by_node': target_rank_groups or [ranks]}
+        with patch('training_formal_metrics.timing', side_effect=[(1.0, a100_scope), (0.91, target_scope)]):
             return stage_three(case, self.identity['framework_commit'], evidence, self.read)
 
     def test_stage_three_joins_independent_textvqa_and_coco_bindings(self):
@@ -173,6 +176,12 @@ class TextVQAEffectTest(unittest.TestCase):
         self.assertTrue(result['passed'])
         self.assertAlmostEqual(result['effect_regressions']['COCO CIDEr']['relative_degradation'], .03)
         self.assertEqual(result['effect_regressions']['TextVQA']['relative_degradation'], 0)
+        self.assertEqual(result['timing_hardware']['A100']['rank_groups_by_node'], [list(range(8))])
+
+    def test_stage_three_rejects_a100_and_target_rank_layout_differences(self):
+        case, evidence = self.vlm_stage_three_fixture()
+        with self.assertRaisesRegex(ValueError, 'different per-node rank placement'):
+            self.audit_vlm_stage_three(case, evidence, target_rank_groups=[[0, 1, 2, 3], [4, 5, 6, 7]])
 
     def test_stage_three_rejects_swapped_or_missing_metric_bindings(self):
         case, evidence = self.vlm_stage_three_fixture()
