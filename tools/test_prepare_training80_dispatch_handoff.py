@@ -5,7 +5,7 @@ from threading import Barrier
 import unittest
 from unittest.mock import patch
 
-from prepare_training80_dispatch_handoff import build_handoff, claim_handoff
+from prepare_training80_dispatch_handoff import build_handoff, claim_handoff, claim_handoffs
 from report_training80_backlog import invocation, read_queue_holds
 import test_report_training80_backlog as fixture
 from tuning_queue import Queue, digest
@@ -94,6 +94,46 @@ class HandoffTest(unittest.TestCase):
                     dict(minimum_ready_training=5, items=[job]), packet, job['launch']['attempt_receipts'][0],
                     repo=self.fleet.repo, boot_anchor=self.fleet.anchor)
         self.assertEqual(queue.summary()['runs'], {})
+
+    def batch_fixture(self):
+        jobs = [self.fleet.trial(1, node='a01r4n16'), self.fleet.trial(2, node='f13r1n11')]
+        snapshot = self.fleet.verified_snapshot()
+        packets = self.handoff(jobs, snapshot=snapshot)['coordinator_handoffs']
+        self.assertEqual(len(packets), 2)
+        requests = [(packet, job['launch']['attempt_receipts'][0]) for packet, job in zip(packets, jobs)]
+        queue = Queue(self.fleet.repo / 'batch.sqlite')
+        self.addCleanup(queue.db.close)
+        backlog = dict(minimum_ready_training=5, items=jobs)
+        return queue, snapshot, backlog, requests
+
+    def test_disjoint_parents_share_one_snapshot_and_each_original_request_is_durable(self):
+        queue, snapshot, backlog, requests = self.batch_fixture()
+        claims = claim_handoffs(queue, snapshot, backlog, requests,
+            repo=self.fleet.repo, now=self.fleet.now, boot_anchor=self.fleet.anchor)
+        self.assertEqual([item['handle']['request_id'] for item in claims],
+                         [packet['request'] for packet, _ in requests])
+        self.assertEqual({item['handle']['parent'] for item in claims}, {'1087656', '1103606'})
+        self.assertTrue(all(item['actual_slurm_submissions'] == 0 for item in claims))
+        self.assertTrue(all(queue.dispatch_state(item['run'])['state'] == 'DISPATCHING' for item in claims))
+        with self.assertRaisesRegex(ValueError, 'already claimed'):
+            claim_handoffs(queue, snapshot, backlog, requests,
+                repo=self.fleet.repo, now=self.fleet.now, boot_anchor=self.fleet.anchor)
+
+    def test_late_intent_and_expiry_cannot_partially_reserve_batch(self):
+        queue, snapshot, backlog, requests = self.batch_fixture()
+        self.fleet.put(requests[-1][1], {'remote_outcome': 'UNKNOWN'})
+        with self.assertRaisesRegex(ValueError, 'no current device-admitted'):
+            claim_handoffs(queue, snapshot, backlog, requests,
+                repo=self.fleet.repo, now=self.fleet.now, boot_anchor=self.fleet.anchor)
+        self.assertEqual(queue.summary()['runs'], {})
+        (self.fleet.repo / requests[-1][1]).unlink()
+        with patch('prepare_training80_dispatch_handoff.time.monotonic',
+                   side_effect=[self.fleet.now, requests[0][0]['expires_local_monotonic'] + .5]):
+            with self.assertRaisesRegex(ValueError, 'expired before durable claim'):
+                claim_handoffs(queue, snapshot, backlog, requests,
+                    repo=self.fleet.repo, boot_anchor=self.fleet.anchor)
+        self.assertEqual(queue.summary()['runs'], {})
+        self.assertEqual(queue.db.execute('SELECT COUNT(*) FROM candidates').fetchone()[0], 0)
 
     def test_concurrent_claims_for_same_node_allow_one(self):
         jobs = [self.trial(index=i) for i in (1, 2)]

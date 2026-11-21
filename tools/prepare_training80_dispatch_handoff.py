@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 import time
 
-from report_training80_backlog import (BACKLOG, QUEUE_DB, REPO, need, plan, queue_holds,
+from report_training80_backlog import (BACKLOG, QUEUE_DB, REPO, hex_value, need, plan, queue_holds,
                                       read_queue_holds)
 from tuning_queue import DIRECT_STAGE, Queue, SNAPSHOT_MAX_AGE_S, canonical, digest
 
@@ -106,48 +106,71 @@ def build_handoff(snapshot, backlog, *, repo=REPO, holds=(), selected=None, now=
 
 
 def claim_handoff(queue, snapshot, backlog, packet, intent, *, repo=REPO, now=None, boot_anchor=None):
-    """Claim the packet in the same write transaction as tuning reservations."""
+    [claim] = claim_handoffs(queue, snapshot, backlog, [(packet, intent)], repo=repo, now=now, boot_anchor=boot_anchor)
+    return claim
+
+
+def claim_handoffs(queue, snapshot, backlog, requests, *, repo=REPO, now=None, boot_anchor=None):
+    """Reserve disjoint handoffs from one original snapshot in one write transaction."""
+    need(0 < len(requests) <= 80, 'at least one handoff is required and at most one per node')
+    need(all(isinstance(packet, dict) and isinstance(packet.get('candidate'), str) and
+             hex_value(packet.get('request'), 32) for packet, _ in requests), 'invalid original handoff identity')
+    candidates = [packet['candidate'] for packet, _ in requests]
+    runs = [digest(dict(stage=DIRECT_STAGE, request=packet['request'])) for packet, _ in requests]
+    intents = [intent for _, intent in requests]
+    need(all(isinstance(intent, str) for intent in intents) and len(set(intents)) == len(requests) and
+         len(set(candidates)) == len(requests) and len(set(runs)) == len(requests),
+         'batch must have distinct original requests, candidates and intent paths')
     current_monotonic = time.monotonic if now is None else lambda: now
     db = queue.db
     db.execute('BEGIN IMMEDIATE')
     try:
-        run = digest(dict(stage=DIRECT_STAGE, request=packet['request']))
-        need(db.execute('SELECT 1 FROM runs WHERE id=?', (run,)).fetchone() is None,
+        need(all(db.execute('SELECT 1 FROM runs WHERE id=?', (run,)).fetchone() is None for run in runs),
              'original direct request already claimed; reconcile without replay')
-        [rebuilt] = build_handoff(snapshot, backlog, repo=repo, holds=queue_holds(db),
-                                  selected=packet['candidate'], now=current_monotonic(),
-                                  boot_anchor=boot_anchor)['coordinator_handoffs']
-        need(packet == rebuilt, 'handoff drift; rebuild from the original device receipt')
-        need(intent in rebuilt['attempt_receipts'], 'intent path differs from original request scope')
+        report = build_handoff(snapshot, backlog, repo=repo, holds=queue_holds(db),
+                               now=current_monotonic(), boot_anchor=boot_anchor)
+        current = {packet['candidate']: packet for packet in report['coordinator_handoffs']}
+        need(all(candidate in current for candidate in candidates),
+             'selected candidate has no current device-admitted nonoverlapping proposal')
+        for packet, intent in requests:
+            rebuilt = current[packet['candidate']]
+            need(packet == rebuilt, 'handoff drift; rebuild from the original device receipt')
+            need(intent in rebuilt['attempt_receipts'], 'intent path differs from original request scope')
+        claims = [reserve_handoff(queue, run, current[candidate], intent)
+                  for run, candidate, intent in zip(runs, candidates, intents)]
         claim_time = current_monotonic()
         anchor = time.time() - claim_time if boot_anchor is None else boot_anchor
-        need(abs(anchor - rebuilt['boot_epoch_anchor']) < 2 and claim_time <= rebuilt['expires_local_monotonic'],
-             'handoff expired before durable claim')
-        placements = rebuilt['placement_by_parent']
-        nodes = sorted(node for selected in placements.values() for node in selected)
-        handle = dict(request_id=rebuilt['request'], intent=intent, nodes=nodes,
-                      direct_kind=rebuilt['kind'], placement_by_parent=placements,
-                      handoff_SHA256=rebuilt['handoff_SHA256'])
-        if len(placements) == 1:
-            handle['parent'] = next(iter(placements))
-        candidate = digest(dict(stage=DIRECT_STAGE, request=rebuilt['request'], case=rebuilt['case'],
-                                workload_SHA256=rebuilt['workload_SHA256']))
-        db.execute('INSERT INTO candidates(id,spec) VALUES(?,?)',
-                   (candidate, canonical(dict(case=rebuilt['case'], kind=rebuilt['kind'],
-                                              workload_SHA256=rebuilt['workload_SHA256'])).decode()))
-        db.execute('INSERT INTO runs VALUES(?,?,?,?,?,?,?,?,?)',
-                   (run, candidate, DIRECT_STAGE, 'DISPATCHING', canonical(rebuilt).decode(),
-                    canonical(nodes).decode(), canonical(handle).decode(), None, time.time()))
-        reservation = dict(dispatch_ticket=rebuilt['handoff_SHA256'], nodes=nodes,
-                           snapshot_SHA256=rebuilt['snapshot_payload_SHA256'])
-        if 'parent' in handle:
-            reservation['parent'] = handle['parent']
-        queue.event(run, 'reserved', reservation)
-        queue.event(run, 'dispatch_claimed', dict(dispatch_ticket=reservation['dispatch_ticket'], handle=handle))
+        need(all(abs(anchor - packet['boot_epoch_anchor']) < 2 and claim_time <= packet['expires_local_monotonic']
+                 for packet, _ in requests), 'handoff expired before durable claim')
         db.execute('COMMIT')
     except BaseException:
         db.execute('ROLLBACK')
         raise
+    return claims
+
+
+def reserve_handoff(queue, run, rebuilt, intent):
+    placements = rebuilt['placement_by_parent']
+    nodes = sorted(node for selected in placements.values() for node in selected)
+    handle = dict(request_id=rebuilt['request'], intent=intent, nodes=nodes,
+                  direct_kind=rebuilt['kind'], placement_by_parent=placements,
+                  handoff_SHA256=rebuilt['handoff_SHA256'])
+    if len(placements) == 1:
+        handle['parent'] = next(iter(placements))
+    candidate = digest(dict(stage=DIRECT_STAGE, request=rebuilt['request'], case=rebuilt['case'],
+                            workload_SHA256=rebuilt['workload_SHA256']))
+    queue.db.execute('INSERT INTO candidates(id,spec) VALUES(?,?)',
+                     (candidate, canonical(dict(case=rebuilt['case'], kind=rebuilt['kind'],
+                                                workload_SHA256=rebuilt['workload_SHA256'])).decode()))
+    queue.db.execute('INSERT INTO runs VALUES(?,?,?,?,?,?,?,?,?)',
+                     (run, candidate, DIRECT_STAGE, 'DISPATCHING', canonical(rebuilt).decode(),
+                      canonical(nodes).decode(), canonical(handle).decode(), None, time.time()))
+    reservation = dict(dispatch_ticket=rebuilt['handoff_SHA256'], nodes=nodes,
+                       snapshot_SHA256=rebuilt['snapshot_payload_SHA256'])
+    if 'parent' in handle:
+        reservation['parent'] = handle['parent']
+    queue.event(run, 'reserved', reservation)
+    queue.event(run, 'dispatch_claimed', dict(dispatch_ticket=reservation['dispatch_ticket'], handle=handle))
     return dict(run=run, state='DISPATCHING', handle=handle, invocation=rebuilt['invocation'],
                 launcher=rebuilt['launcher'], expires_local_monotonic=rebuilt['expires_local_monotonic'],
                 actual_slurm_submissions=0, actual_dispatched_DCU=0)
@@ -159,18 +182,28 @@ def main():
     parser.add_argument('--backlog', type=Path, default=BACKLOG)
     parser.add_argument('--queue-db', type=Path, default=QUEUE_DB)
     parser.add_argument('--select', help='re-evaluate one candidate at the handoff boundary')
-    parser.add_argument('--claim-packet', type=Path, help='claim one exact previously generated packet')
+    claims = parser.add_mutually_exclusive_group()
+    claims.add_argument('--claim-packet', type=Path, help='claim one exact previously generated packet')
+    claims.add_argument('--claim-batch', type=Path, help='claim a JSON list of packet and intent objects from one receipt')
     parser.add_argument('--intent', help='the frozen intent path corresponding to the selected launcher')
     args = parser.parse_args()
     snapshot = json.loads(args.snapshot.read_bytes())
     backlog = json.loads(args.backlog.read_bytes())
-    if args.claim_packet is not None:
-        packet = json.loads(args.claim_packet.read_bytes())
-        need(args.intent is not None and args.select == packet['candidate'],
-             'claiming requires the selected candidate and its exact intent path')
+    if args.claim_packet is not None or args.claim_batch is not None:
         queue = Queue(args.queue_db.resolve(strict=True))
         try:
-            result = claim_handoff(queue, snapshot, backlog, packet, args.intent)
+            if args.claim_batch is None:
+                packet = json.loads(args.claim_packet.read_bytes())
+                need(args.intent is not None and args.select == packet['candidate'],
+                     'claiming requires the selected candidate and its exact intent path')
+                result = claim_handoff(queue, snapshot, backlog, packet, args.intent)
+            else:
+                need(args.select is None and args.intent is None, 'batch contains its own frozen candidates and intents')
+                raw = json.loads(args.claim_batch.read_bytes())
+                need(isinstance(raw, list) and all(isinstance(item, dict) and set(item) == {'packet', 'intent'}
+                                                   for item in raw), 'invalid handoff batch shape')
+                claimed = claim_handoffs(queue, snapshot, backlog, [(item['packet'], item['intent']) for item in raw])
+                result = dict(claims=claimed, actual_slurm_submissions=0, actual_dispatched_DCU=0)
         finally:
             queue.db.close()
     else:

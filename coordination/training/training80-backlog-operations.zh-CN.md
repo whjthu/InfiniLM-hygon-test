@@ -19,3 +19,7 @@
 | `original_request_receipt` | `request`、`state=REMOTE_UNSTARTED_VERIFIED`、`original_namespace_absent=true`、`accounting_label_matches=0`、`prior_invocation=false` |
 
 原调用有本地意图、连接关闭或远端执行未定时，保留原请求并对账。空闲节点可优先补位真实训练，再从独立评分、推理和算子回归中选择已具备前提的任务。低优先级算子也需有可比较配置、有限时长和结果产出。
+
+同一次有效设备收据给出多个互不重叠的提议时，`tools/prepare_training80_dispatch_handoff.py <原收据路径> --claim-batch <批次文件>` 可一次登记已具备启动条件的任务。批次文件是 JSON 数组，每项包含原提议 `packet` 和该任务自己的冻结 `intent` 路径。启动器所需的连接和资源确认后再选入批次。协调器在同一个 SQLite 写事务中重新核对每项原提议、节点预留、原调用标记和有效期。任何一项失效，整批回滚，可用同一份仍有效的原收据重新生成交接包。保留 `--claim-packet` 单任务入口。
+
+批次登记仅获得本机的 `DISPATCHING` 记录。每项使用自己的原请求调用启动器，独立记录 Slurm 提交及退出。批次里已有预留但尚无实际句柄的任务应按其原请求对账。登记数、Slurm 作业数和 GPU 实测繁忙度分别统计。
