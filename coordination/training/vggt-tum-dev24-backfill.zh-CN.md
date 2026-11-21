@@ -6,4 +6,4 @@
 
 `ORIGINAL_STAGING_VERIFIED_DEVICE_AND_HOLDS_PENDING` 提供 `stage_SHA256`、`manifest_SHA256` 和 `head_authority_SHA256`。它绑定 2 个训练头、22 个可用输入对和 24 个计划窗口。读的是小型原元数据及源码，实际模型和检查点内容由已有验证控制器在运行时核验。
 
-随后沿既有设备 collector 和派发交接重新核对 `f11r4n19` 的本机原保留、PCI、KFD、PID 与 Slurm 步骤。该节点目前还受 `vggt-tum-eight-pair-training` 和 `vggt-tum-continuous25-dev3` 两个未决原请求保留。两个原请求均需实际对账。现存评估控制器需要根绑定唯一评分请求与普通发布 SHA，使用原目标 staging 路径及返回的 `--stage-sha`、`--manifest-sha`，统一派发前完成对应认领。工具输出 `device_admitted=false` 和 `approved_for_dispatch=false`，不提交 Slurm 步骤。
+随后沿既有设备 collector 和派发交接重新核对 `f11r4n19` 的本机原保留、PCI、KFD、PID 与 Slurm 步骤。三对开发评分已按原请求、编号步骤和独立清理归档结清。八对训练 `vggt-tum-eight-pair-training` 的原请求仍需实际对账，节点继续由该请求保留。现存评估控制器需要根绑定唯一评分请求与普通发布 SHA，使用原目标 staging 路径及返回的 `--stage-sha`、`--manifest-sha`，统一派发前完成对应认领。工具输出 `device_admitted=false` 和 `approved_for_dispatch=false`，不提交 Slurm 步骤。 [三对开发评分队列结清证据](../../results/bw1000/2026-11-21/training-vggt-dev3-original-terminal-backlog-settlement.json)
