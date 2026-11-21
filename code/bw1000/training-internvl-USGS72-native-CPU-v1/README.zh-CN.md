@@ -1,6 +1,6 @@
 # T03/HIP 新USGS72完整输入CPU入口（未执行）
 
-固定请求 `8110b01cd24846f8b6fcd08f0abda5a0`，独立namespace `training-internvl-USGS72-native-CPU-v1`。只在根审核、普通发布并采纳后，通过既有普通运输运行一次；本包当前root/CPU/READ/GPU/Model/training GO全部false，无目标安装、Torch/processor/设备执行。
+固定请求 `8110b01cd24846f8b6fcd08f0abda5a0`，独立namespace `training-internvl-USGS72-native-CPU-v1`。根已采纳固定 CPU 输入审计与独立只读终态消费。仅在目标认证及节点和依赖准入通过后，经协调者注入的原反向通道运行一次。训练、GPU 与 Model GO 均为 false。当前目标安装和执行均为零。
 
 ## 真正数据与入口
 
