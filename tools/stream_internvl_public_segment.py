@@ -100,7 +100,7 @@ def save(path, data):
 
 def run_segment(file_id, publication, log_root, start_target, *, budget=150):
     """Obtain and confirm one new public segment. Resume from authoritative target state."""
-    stage.need(type(budget) is int and 30 <= budget <= 180, 'segment budget outside bounds')
+    stage.need(type(budget) is int and 30 <= budget <= 420, 'segment budget outside bounds')
     spec = stage.shard_spec(file_id)
     deadline = time.monotonic() + budget
     request = uuid4().hex
@@ -108,7 +108,7 @@ def run_segment(file_id, publication, log_root, start_target, *, budget=150):
     directory.mkdir(mode=0o700)
 
     def remote(operation, *, offset=None, digest=None, data=b''):
-        remaining = deadline - time.monotonic()
+        remaining = min(180, deadline - time.monotonic())
         stage.need(remaining > 0, 'relay budget expired before target operation')
         prefix = make_program(spec, operation, offset, digest, remaining)
         if operation != 'inspect':
@@ -117,7 +117,7 @@ def run_segment(file_id, publication, log_root, start_target, *, budget=150):
                 offset=offset, digest=digest, official_revision=REVISION, epoch=time.time()))
         child = start_target(REMOTE_COMMAND)
         try:
-            out, err = child.communicate(prefix + data, timeout=max(0.01, deadline - time.monotonic()))
+            out, err = child.communicate(prefix + data, timeout=max(0.01, remaining))
         except (subprocess.TimeoutExpired, OSError):
             child.kill()
             child.communicate(timeout=5)
@@ -139,16 +139,23 @@ def run_segment(file_id, publication, log_root, start_target, *, budget=150):
                    'whole-shard seal does not match the frozen original')
         save(directory / 'outcome.json', result)
         return dict(request=request, action='sealed', target=result)
+    source_begin = time.monotonic()
     raw = public_range(spec, offset, deadline)
+    digest = hashlib.sha256(raw).hexdigest()
+    source_wall = time.monotonic() - source_begin
+    save(directory / 'publisher-range.json', dict(
+        file_id=file_id, offset=offset, raw_bytes=len(raw), segment_SHA256=digest,
+        official_revision=REVISION, wall_seconds=source_wall))
     if before.get('state') == 'ABSENT':
         initialized = remote('initialize')
         stage.need(initialized['confirmed_bytes'] == 0 and initialized['whole_file_qualified_at_seal'] is False,
                    'new target checkpoint has an unexpected state')
-    digest = hashlib.sha256(raw).hexdigest()
+    target_begin = time.monotonic()
     result = remote('append', offset=offset, digest=digest, data=raw)
     stage.need(result['file_id'] == file_id and result['offset'] == offset and
                result['segment_SHA256'] == digest and result['raw_bytes'] == len(raw) and
                result['confirmed_bytes'] == offset + len(raw) and result['whole_file_qualified'] is False,
                'target durable-range receipt disagrees with the source')
     save(directory / 'outcome.json', result)
-    return dict(request=request, action='segment_committed', target=result)
+    return dict(request=request, action='segment_committed', target=result,
+                source_wall_seconds=source_wall, target_wall_seconds=time.monotonic() - target_begin)
