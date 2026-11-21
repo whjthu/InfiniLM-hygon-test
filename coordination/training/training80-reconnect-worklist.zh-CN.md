@@ -85,6 +85,8 @@ python -B tools/read_vggt_tum_bidirectional30_terminal.py <original-target-dir> 
 
 MiniCPM 条目的 `target_completion_reader` 保留在已有原尝试的对账视图。由 `tools/read_minicpm_native88_original.py` 获取实际 Slurm 记账，用原请求的 publication 和 epoch 绑定同一编号步骤，再读取原 88 条原生输入的结果。只在结果通过时，把它的文件与 SHA 交给现有目标训练资产准备入口。在途、未找到、失败和记账不一致都保留为独立状态。
 
+MiniCPM GPU 原请求通过资产、去重和实时设备准入后，使用 `tools/control_minicpm_usgs_pair_target_v2.py --stage-sha <原资产收据 SHA> --source-sha <v2 源码清单 SHA> --publication <实际发布 SHA>`。源码清单见 [T05 v2 任务](../tasks/training-minicpm-usgs-exposure25-resume20-target-v2.json)。原请求、命名空间及三个 Slurm 标签一致，任何原尝试进入对账。v2 在实际 `srun` 参数中使用原 epoch 的剩余阶段预算并写入原阶段收据。原 worker、训练配方、25+5 次更新、独立终态和清场验收继续沿用。
+
 
 Gemma 的 `target_read_only_preflight` 使用 `tools/preflight_gemma_render72_native_cpu.py --framework-root <verified_framework_root>`。入口先读取原数据包收据。若两处原命名空间均为空，先对账原 staging 请求，确认从未提交后再按冻结流程安排。若原 CPU 步、原意图或不完整的 staging 已出现，按原请求对账。完整数据包通过后，入口直接复用 CPU worker 的资产核验，核对 72 条训练输入、800 次曝光顺序、12 张训练图、14 份处理器文件和统一框架的审计模块。资产通过后再查 f13r1n12 的归属及编号步，复查 CPU 请求原命名空间和 accounting。
 
