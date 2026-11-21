@@ -263,7 +263,7 @@ def direct_request_states(holds):
 
 
 def direct_launch_state(job, states):
-    return states.get(job.get('cpu_request', job.get('launch', {}).get('request')))
+    return states.get(job.get('direct_request', job.get('cpu_request', job.get('launch', {}).get('request'))))
 
 
 def direct_workloads(holds):
@@ -317,6 +317,14 @@ def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(
             request_ids.add(job['cpu_request'])
         row = dict(id=ident, case=job.get('case'), kind=kind, candidate_state=state, placement=placement,
                    requested_DCU=sum(placement.values()), next_action=job['next_action'])
+        if 'direct_request' in job:
+            request = job['direct_request']
+            need(kind in ('validation', 'operator') and state != 'ready' and not cpu_prerequisite
+                 and 'cpu_request' not in job and 'launch' not in job
+                 and bool(job.get('attempt_receipts')) and hex_value(request, 32) and request not in request_ids,
+                 'invalid or duplicate direct device request')
+            request_ids.add(request)
+            row['request'] = request
         if kind == 'training':
             need(isinstance(job.get('case'), str) and job['case'].startswith('T') and
                  type(job['min_updates']) is int and job['min_updates'] >= 1,
