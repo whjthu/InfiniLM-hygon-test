@@ -4,10 +4,10 @@ import argparse
 import json
 from pathlib import Path
 
-from prepare_training80_reconnect_worklist import WORKLIST, prepare
+from prepare_training80_reconnect_worklist import UNVERIFIED_ATTEMPT_MARKER, WORKLIST, prepare
 from report_training80_backlog import (BACKLOG, PRIORITY, QUEUE_DB, REPO, TRAINING80_LEDGER,
-                                      direct_launch_state, direct_request_states, direct_workloads, invocation,
-                                      need, pin_file, prior_workload_claims, read_original_holds, read_queue_holds,
+                                      direct_launch_state, direct_request_states, direct_workloads, hex_value,
+                                      invocation, need, pin_file, prior_workload_claims, read_original_holds, read_queue_holds,
                                       verify_launch)
 from tuning_queue import DIRECT_CLOSED_STATES
 
@@ -61,7 +61,17 @@ def probe_arguments(repo, backlog, ledger, holds, preflight=(), *, priority_only
         except (KeyError, OSError, TypeError, ValueError, SyntaxError) as error:
             errors[ident] = str(error)
 
-    held = queue_held | {node for record in original_holds.values() for node in record['nodes']}
+    preflight = tuple(preflight)
+    marker_holds = {}
+    for row in preflight:
+        if row['target_preflight_state'] != UNVERIFIED_ATTEMPT_MARKER:
+            continue
+        request, node, parent = (row[key] for key in ('request', 'node', 'parent'))
+        need(hex_value(request, 32) and node in ownership and parent == ownership[node] and request not in marker_holds,
+             'unverified original attempt must bind one exact request and ledger node')
+        if direct_states.get(request) not in DIRECT_CLOSED_STATES:
+            marker_holds[request] = dict(case=row['case'], parent=parent, nodes=[node], error=row['local_attempt_error'])
+    held = queue_held | {node for record in (*original_holds.values(), *marker_holds.values()) for node in record['nodes']}
     ready_device_jobs = []
     for job in verified:
         ident = job['id']
@@ -104,7 +114,8 @@ def probe_arguments(repo, backlog, ledger, holds, preflight=(), *, priority_only
                 queue_held_nodes=sorted(queue_held), held_nodes=sorted(held),
                 reconcile_candidates={ident: record['nodes'] for ident, record in original_holds.items()
                                       if record['state'] in ('reconcile', 'submitted')},
-                original_launch_holds=original_holds, verified_original_non_submissions=resolved,
+                original_launch_holds=original_holds, preflight_attempt_marker_holds=marker_holds,
+                verified_original_non_submissions=resolved,
                 prior_workload_claims=prior_claims,
                 blocked_candidate_held_nodes=blocked, invalid_or_manual_launches=errors,
                 prepared_preflight_priority_nodes=preflight_priority,

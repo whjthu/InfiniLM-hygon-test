@@ -9,7 +9,7 @@ import prepare_training80_qwen_admission as adapter
 from preflight_qwen_usgs_exposure25 import preflight
 from record_qwen_usgs_dev80_absence import read_record
 from reconcile_qwen_usgs_dev80_original import AUTH_RECEIPT, CLAIM as DEV80_CLAIM
-from report_training80_backlog import BACKLOG, REPO, invocation, verify_launch
+from report_training80_backlog import REPO, invocation, verify_launch
 from test_preflight_qwen_usgs_exposure25 import LIVE
 
 
@@ -22,7 +22,10 @@ class QwenAdmissionTest(unittest.TestCase):
         self.private.mkdir()
         self.target = self.repo/'target'
         self.target.mkdir()
-        self.backlog = json.loads(BACKLOG.read_bytes())
+        candidate = dict(id=adapter.CANDIDATE, case=adapter.CASE, kind='training', state='blocked',
+                         priority=14, placement={adapter.NODE: 8}, min_updates=30,
+                         attempt_receipts=adapter.MARKERS, next_action='fixture pending admission')
+        self.backlog = dict(minimum_ready_training=5, items=[candidate])
         for path in (adapter.SOURCE, AUTH_RECEIPT, DEV80_CLAIM):
             target = self.repo/path
             target.parent.mkdir(parents=True, exist_ok=True)
@@ -31,6 +34,8 @@ class QwenAdmissionTest(unittest.TestCase):
             else:
                 shutil.copyfile(REPO/path,target)
         self.original_blobs = {name: adapter.original_blob(REPO,name) for name in ('CLAIM.json','SOURCE_FILES.json')}
+        for name, raw in self.original_blobs.items():
+            (self.repo/adapter.SOURCE/name).write_bytes(raw)
         self.read_original = lambda _,name: self.original_blobs[name]
         original = json.loads(self.original_blobs['CLAIM.json'])
         for item in original['public_prerequisites']:

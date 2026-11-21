@@ -6,7 +6,11 @@ import unittest
 import prepare_training80_vggt_direct_finish as binder
 import read_vggt_tum_bidirectional30_terminal as reader
 import test_read_vggt_tum_bidirectional30_terminal as fixtures
+from prepare_training80_dispatch_probe_args import probe_arguments
+from prepare_training80_qwen_admission import CANDIDATE as QWEN_CASE, REQUEST as QWEN_REQUEST
 from prepare_training80_reconnect_worklist import WORKLIST, prepare
+from prepare_training80_vggt_admission import CANDIDATE as VGGT_CASE
+from report_training80_backlog import BACKLOG, TRAINING80_LEDGER, pin_file
 from tuning_queue import Queue, canonical, digest
 
 
@@ -111,15 +115,35 @@ class DirectFinishTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'not active'):
             binder.claimed_run(database)
 
-    def test_reconnect_worklist_exposes_the_pinned_independent_terminal_reader(self):
-        from report_training80_backlog import TRAINING80_LEDGER
+    def test_published_closed_runs_do_not_protect_nodes_in_the_active_worklist(self):
+        backlog = json.loads(BACKLOG.read_bytes())
+        candidates = {candidate['id']: candidate for candidate in backlog['items']}
+        ledger = TRAINING80_LEDGER.read_bytes()
+        worklist = prepare(binder.REPO, json.loads(WORKLIST.read_bytes()), ledger)['candidates']
+        closed = []
+        for candidate, label, request, gpu, post, state, updates in (
+            (VGGT_CASE, 'VGGT', binder.REQUEST, '1103606.498', '1103606.507', 'COMPLETED', 30),
+            (QWEN_CASE, 'Qwen', QWEN_REQUEST, '1103606.501', '1103606.508', 'FAILED', 25),
+        ):
+            row = candidates[candidate]
+            self.assertEqual(row['state'], 'terminal')
+            raw = pin_file(binder.REPO, row['evidence'], ('results/bw1000/',))
+            published = json.loads(raw)[label]
+            self.assertEqual(published['request'], request)
+            self.assertEqual(published['steps']['gpu'][0], gpu)
+            self.assertEqual(published['steps']['gpu'][2], state)
+            self.assertEqual(published['steps']['post'][0], post)
+            self.assertTrue(published['post_clean'])
+            self.assertEqual(published['independently_verified_updates'], updates)
+            self.assertEqual(published['planned_updates'], 30)
+            self.assertNotIn(request, {candidate['request'] for candidate in worklist})
+            closed.append(dict(run=published['queue_run'], state='TERMINAL', nodes=[], direct_request=request))
 
-        plan = prepare(binder.REPO, json.loads(WORKLIST.read_bytes()), TRAINING80_LEDGER.read_bytes())
-        row, = [candidate for candidate in plan['candidates'] if candidate['request'] == binder.REQUEST]
-        probe = row['target_completion_reader']
-        self.assertEqual(probe['entry']['path'], 'tools/read_vggt_tum_bidirectional30_terminal.py')
-        launch_source = binder.REPO / probe['entry']['path']
-        self.assertEqual(probe['entry']['SHA256'], sha256(launch_source.read_bytes()).hexdigest())
+        report = probe_arguments(binder.REPO, backlog, json.loads(ledger), closed, worklist)
+        self.assertNotIn('f13r1n10', report['held_nodes'])
+        self.assertNotIn('f13r4n09', report['held_nodes'])
+        self.assertIn('f11r4n09', report['held_nodes'])
+        self.assertIn('f11r4n19', report['held_nodes'])
 
 
 if __name__ == '__main__':

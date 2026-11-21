@@ -4,7 +4,9 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
+from prepare_training80_dispatch_probe_args import probe_arguments
 from prepare_training80_reconnect_worklist import prepare
 from tuning_queue import TRAINING80_LEDGER
 
@@ -62,6 +64,42 @@ class ReconnectWorklistTest(unittest.TestCase):
         self.assertEqual(report['collector_port_arguments'], [])
         self.assertEqual(report['candidate_nodes_needing_current_probe'], [])
         self.assertEqual(report['candidates'][0]['target_preflight_state'], 'RECONCILE_ORIGINAL_ATTEMPT')
+
+    def test_inaccessible_attempt_marker_holds_only_its_bound_node(self):
+        training, cpu = self.candidate(), self.cpu_controller()
+        training['target_read_only_preflight'] = dict(entry=self.write('tools/original_probe.py', b'pass\n'),
+                                                      dependencies=[])
+        training['target_completion_reader'] = dict(entry=self.write('tools/original_read.py', b'pass\n'),
+                                                    dependencies=[])
+
+        def inspect(_repo, markers):
+            if markers == [training['attempt_receipt']]:
+                raise PermissionError('access denied')
+            return False
+
+        with patch('prepare_training80_reconnect_worklist.has_original_intent', side_effect=inspect):
+            worklist = self.plan(training, cpu)
+        original, independent = worklist['candidates']
+        self.assertEqual(original['target_preflight_state'], 'ORIGINAL_ATTEMPT_MARKER_UNVERIFIED')
+        self.assertEqual(original['local_attempt_error'], 'PermissionError')
+        self.assertIsNone(original['frozen_invocation_after_gates'])
+        self.assertIsNone(original['target_read_only_preflight'])
+        self.assertEqual(original['target_completion_reader'], training['target_completion_reader'])
+        self.assertEqual(independent['target_preflight_state'], 'WAITING_AUTHENTICATED_TARGET')
+        self.assertEqual(worklist['candidate_nodes_needing_current_probe'], ['f13r1n12'])
+        self.assertEqual(worklist['collector_port_arguments'], [])
+
+        ledger = json.loads(self.ledger)
+        report = probe_arguments(self.repo, {'items': []}, ledger, [], worklist['candidates'], priority_only=True)
+        self.assertEqual(report['collector_arguments'], ['--priority-node', 'f13r1n12', '--held-node', 'f13r1n10'])
+        self.assertEqual(report['preflight_attempt_marker_holds'], {original['request']: {
+            'case': original['case'], 'parent': '1103606', 'nodes': ['f13r1n10'], 'error': 'PermissionError'}})
+        self.assertEqual(report['verified_training_ready'], 0)
+        self.assertFalse(report['priority_only_enabled'])
+        closed = {'run': 'original', 'direct_request': original['request'], 'state': 'TERMINAL', 'nodes': []}
+        report = probe_arguments(self.repo, {'items': []}, ledger, [closed], worklist['candidates'])
+        self.assertEqual(report['preflight_attempt_marker_holds'], {})
+        self.assertEqual(report['held_nodes'], [])
 
     def test_manifest_pin_rejects_one_changed_launcher(self):
         training = self.candidate()

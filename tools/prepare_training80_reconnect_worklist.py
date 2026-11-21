@@ -12,6 +12,7 @@ from verify_training80_manifest import verify_package_members
 
 
 WORKLIST = REPO / 'coordination/training/training80-reconnect-worklist-v1.json'
+UNVERIFIED_ATTEMPT_MARKER = 'ORIGINAL_ATTEMPT_MARKER_UNVERIFIED'
 
 
 def source_ref(task, source, name):
@@ -100,7 +101,14 @@ def prepare(repo, config, ledger_raw):
         gates = candidate['gates']
         need(isinstance(gates, list) and gates and all(isinstance(gate, str) and gate.strip() for gate in gates),
              'candidate needs concrete reconnect controls')
-        attempted = has_original_intent(repo, [candidate['attempt_receipt']])
+        attempt_error = None
+        try:
+            attempted = has_original_intent(repo, [candidate['attempt_receipt']])
+        except OSError as exc:
+            attempted = None
+            attempt_error = type(exc).__name__
+        preflight_state = (UNVERIFIED_ATTEMPT_MARKER if attempted is None else
+                           'RECONCILE_ORIGINAL_ATTEMPT' if attempted else 'WAITING_AUTHENTICATED_TARGET')
         predecessors = []
         for prior in candidate.get('blocking_original_requests', []):
             payload = json.loads(pin_file(repo, prior, ('results/bw1000/',)))
@@ -116,19 +124,19 @@ def prepare(repo, config, ledger_raw):
         completion_reader = pinned_target_probe(repo, candidate.get('target_completion_reader'))
         updates = claim.get('optimizer_updates', claim.get('planned_updates', 0))
         need(type(updates) is int and updates >= 0 and (cards != 0 or updates == 0), 'invalid planned optimizer updates')
-        if not attempted:
+        if attempted is False:
             required_nodes.add(node)
             if port is not None:
                 ports.add(port)
         result.append(dict(case=task['case'], request=request, parent=parent, node=node, requested_DCU=cards,
                            requested_CPUs=claim['cpus'], planned_optimizer_updates=updates,
-                           target_preflight_state='RECONCILE_ORIGINAL_ATTEMPT' if attempted else 'WAITING_AUTHENTICATED_TARGET',
+                           target_preflight_state=preflight_state, local_attempt_error=attempt_error,
                            current_GPU_GO=claim.get('GPU_GO') is True, current_CPU_GO=claim.get('CPU_GO') is True,
                            candidate_ready_verified=False, frozen_rendezvous_port=port,
                            gates=gates, blocking_original_requests=predecessors, manifest=manifest,
-                           launcher=launcher, frozen_invocation_after_gates=None if attempted else command,
+                           launcher=launcher, frozen_invocation_after_gates=command if attempted is False else None,
                            attempt_receipt=candidate['attempt_receipt'],
-                           target_read_only_preflight=None if attempted else target_probe,
+                           target_read_only_preflight=target_probe if attempted is False else None,
                            target_completion_reader=completion_reader))
     flags = [value for port in sorted(ports) for value in ('--port', str(port))]
     return dict(collector='tools/collect_training80_dispatch_snapshot.py', collector_port_arguments=flags,

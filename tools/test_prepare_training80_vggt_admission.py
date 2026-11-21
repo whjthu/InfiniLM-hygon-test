@@ -19,16 +19,17 @@ class VggtAdmissionTest(unittest.TestCase):
         self.output = self.repo / 'local-only/fixture-vggt-admission'
         self.output.parent.mkdir()
         self.publication = 'a' * 40
-        backlog = json.loads(admission.BACKLOG.read_bytes())
-        [candidate] = [row for row in backlog['items'] if row['id'] == admission.CANDIDATE]
-        self.backlog = dict(backlog, items=[candidate])
+        candidate = dict(id=admission.CANDIDATE, case='T12.domain-tum-bidirectional30', kind='training',
+                         state='blocked', priority=16, placement={admission.NODE: 1}, min_updates=30,
+                         attempt_receipts=[admission.INTENT, admission.ATTEMPT], next_action='fixture pending admission')
+        self.backlog = dict(minimum_ready_training=5, items=[candidate])
         package = admission.PACKAGE
         manifest_path = package/'SOURCE_FILES.json'
         manifest = json.loads((admission.REPO/manifest_path).read_bytes())['files']
         claim = json.loads((admission.REPO/package/'CLAIM.json').read_bytes())
         self.members = {manifest_path.as_posix(), *((package/name).as_posix() for name in manifest),
                         *(entry['path'] for entry in claim['sources'].values())}
-        for path in {*self.members, candidate['evidence']['path']}:
+        for path in self.members:
             target = self.repo / path
             target.parent.mkdir(parents=True, exist_ok=True)
             copyfile(admission.REPO/path, target)
