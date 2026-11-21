@@ -100,9 +100,10 @@ def register(queue, repo, backlog_path, expected, context, *, wall=time.time):
         run = digest(dict(stage=DIRECT_STAGE, request=REQUEST))
         need(db.execute('SELECT id FROM runs WHERE id=?', (run,)).fetchone() is None,
              'original InternVL request already claimed; reconcile')
-        direct, _, _ = read_original_holds(repo, items, nodes)
+        retained = queue_holds(db)
+        direct, _, _ = read_original_holds(repo, items, nodes, retained)
         need(direct.get(IDENT, {}).get('nodes') == [NODE], 'original intent is not visible to normal dispatch planning')
-        competing = [*queue_holds(db), *(value for key,value in direct.items() if key != IDENT)]
+        competing = [*retained, *(value for key,value in direct.items() if key != IDENT)]
         need(not any(NODE in item['nodes'] for item in competing), 'another request already holds the InternVL node')
         handle = dict(request_id=REQUEST, intent=INTENT, nodes=[NODE], parent=PARENT, direct_kind='validation',
                       placement_by_parent={PARENT:{NODE:0}})

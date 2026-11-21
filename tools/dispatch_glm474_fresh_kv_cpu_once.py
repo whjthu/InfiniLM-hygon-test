@@ -90,8 +90,9 @@ def claim_local_intent(repo, backlog, database, record):
             ledger = json.loads(TRAINING80_LEDGER.read_bytes())
             need(NODE in ledger['groups'][ZONE]['allocations'][PARENT], 'frozen O01 placement differs')
             nodes = {node for group in ledger['groups'].values() for listed in group['allocations'].values() for node in listed}
-            direct, _, _ = read_original_holds(repo, jobs, nodes)
-            need(not any(NODE in item['nodes'] for item in (*queue_holds(db), *direct.values())),
+            retained = queue_holds(db)
+            direct, _, _ = read_original_holds(repo, jobs, nodes, retained)
+            need(not any(NODE in item['nodes'] for item in (*retained, *direct.values())),
                  'another original request already holds the O01 node')
             intent.parent.mkdir()
             record = dict(record, queue_run=run)

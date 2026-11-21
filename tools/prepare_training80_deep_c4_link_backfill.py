@@ -63,7 +63,7 @@ def prepare(repo, backlog, ledger, holds):
     items = backlog['items'] if registered else [*backlog['items'], row]
     attempted = has_original_intent(repo, [INTENT])
     ledger_nodes = {node for group in ledger['groups'].values() for nodes in group['allocations'].values() for node in nodes}
-    direct_holds, _, _ = read_original_holds(repo, items, ledger_nodes)
+    direct_holds, _, _ = read_original_holds(repo, items, ledger_nodes, holds)
     queue_runs = sorted(hold['run'] for hold in holds if NODE in hold['nodes'])
     blocker_ids = sorted(ident for ident, hold in direct_holds.items() if ident != IDENT and NODE in hold['nodes'])
     occupied = queue_runs or blocker_ids

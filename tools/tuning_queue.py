@@ -1,7 +1,7 @@
 """Finite, evidence-bound tuning queue; does not launch arbitrary experiment code.
 
 Root dispatches reserved packets through the model's frozen launch_once adapter.
-Claimable reservations can be released only before dispatch is claimed.
+The dispatcher can retire a claimed direct request before transport starts.
 Expiry, connection errors and local process exits are never terminal evidence.
 """
 import argparse
@@ -18,6 +18,7 @@ from uuid import uuid4
 
 ACTIVE = ('RESERVED', 'DISPATCHING', 'SUBMITTED', 'UNKNOWN')
 DIRECT_STAGE = 'training80-direct'
+DIRECT_CLOSED_STATES = ('TERMINAL', 'RETIRED_PRELAUNCH')
 SNAPSHOT_MAX_AGE_S = 60
 RUNG_PAIR_COUNTS = (3, 9, 27)
 STAGES = ('source', 'CPU', 'component', 'model', 'quality', 'service')
@@ -628,6 +629,28 @@ class Queue:
                         GPU_submission=False,measurement_terminal=False)
             self.db.execute('UPDATE runs SET state="RETIRED_PRELAUNCH",result=? WHERE id=?',(canonical(result).decode(),ident))
             self.event(ident,'retired_prelaunch',result)
+            self.db.execute('COMMIT')
+        except BaseException:
+            self.db.execute('ROLLBACK')
+            raise
+
+    def retire_unattempted_direct(self, ident, handle, receipt_SHA256):
+        """Record a local pre-transport rejection from the owning dispatcher."""
+        require(isinstance(receipt_SHA256, str) and len(receipt_SHA256) == 64 and
+                all(char in '0123456789abcdef' for char in receipt_SHA256), 'exact transport receipt SHA required')
+        self.db.execute('BEGIN IMMEDIATE')
+        try:
+            row = self.db.execute('SELECT stage,state,handle,nodes FROM runs WHERE id=?', (ident,)).fetchone()
+            require(row is not None and row['stage'] == DIRECT_STAGE and row['state'] == 'DISPATCHING'
+                    and json.loads(row['handle']) == handle and json.loads(row['nodes']) == handle['nodes']
+                    and self.reservation(ident).get('dispatch_ticket') == handle.get('handoff_SHA256')
+                    and bool(handle.get('handoff_SHA256')), 'original direct claim must still be before transport')
+            result = dict(request_id=handle['request_id'], intent=handle['intent'],
+                          receipt_SHA256=receipt_SHA256, transport_attempted=False,
+                          measurement_terminal=False, replay_allowed=False)
+            self.db.execute('UPDATE runs SET state="RETIRED_PRELAUNCH",nodes="[]",result=? WHERE id=?',
+                            (canonical(result).decode(), ident))
+            self.event(ident, 'direct_retired_unattempted', result)
             self.db.execute('COMMIT')
         except BaseException:
             self.db.execute('ROLLBACK')

@@ -9,6 +9,7 @@ from report_training80_backlog import (BACKLOG, PRIORITY, QUEUE_DB, REPO, TRAINI
                                       direct_launch_state, direct_request_states, direct_workloads, invocation,
                                       need, pin_file, prior_workload_claims, read_original_holds, read_queue_holds,
                                       verify_launch)
+from tuning_queue import DIRECT_CLOSED_STATES
 
 
 def probe_arguments(repo, backlog, ledger, holds, preflight=(), *, priority_only=False):
@@ -19,8 +20,7 @@ def probe_arguments(repo, backlog, ledger, holds, preflight=(), *, priority_only
     queue_held = {node for row in holds for node in row['nodes'] if node in ownership}
     direct_states = direct_request_states(holds)
     workloads = direct_workloads(holds)
-    pending_originals = [job for job in backlog['items'] if direct_launch_state(job, direct_states) != 'TERMINAL']
-    original_holds, errors, resolved = read_original_holds(repo, pending_originals, ownership)
+    original_holds, errors, resolved = read_original_holds(repo, backlog['items'], ownership, holds)
     priority = {}
     ports = set()
     verified = []
@@ -79,7 +79,8 @@ def probe_arguments(repo, backlog, ledger, holds, preflight=(), *, priority_only
             need(row['requested_DCU'] == 0 and job['placement'] == {row['node']: 0}
                  and job['attempt_receipts'] == [row['attempt_receipt']],
                  'CPU worklist and persistent node hold differ')
-        if row['target_preflight_state'] != 'WAITING_AUTHENTICATED_TARGET' or row.get('request') in excluded_requests:
+        if (row['target_preflight_state'] != 'WAITING_AUTHENTICATED_TARGET' or row.get('request') in excluded_requests
+                or direct_states.get(row.get('request')) in DIRECT_CLOSED_STATES):
             continue
         node = row['node']
         if node in held:

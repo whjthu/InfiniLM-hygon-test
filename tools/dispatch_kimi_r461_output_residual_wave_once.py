@@ -111,8 +111,9 @@ def claim(queue, repo, backlog, approved_board, record):
         need(db.execute("SELECT 1 FROM runs WHERE id=?", (run,)).fetchone() is None
              and not intent.parent.exists() and not intent.parent.is_symlink(),
              "original Kimi request already claimed; reconcile it")
-        original, _, _ = read_original_holds(repo, jobs, nodes)
-        need(not any(NODE in row["nodes"] for row in (*queue_holds(db), *original.values())),
+        retained = queue_holds(db)
+        original, _, _ = read_original_holds(repo, jobs, nodes, retained)
+        need(not any(NODE in row["nodes"] for row in (*retained, *original.values())),
              "another original request holds the Kimi O01 node")
         intent.parent.mkdir()
         binding = dict(record, queue_run=run)

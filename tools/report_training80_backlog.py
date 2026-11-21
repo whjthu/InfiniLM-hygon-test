@@ -13,7 +13,8 @@ import sqlite3
 import time
 
 from record_qwen_usgs_dev80_absence import JOB as DEV80_JOB, NODES as DEV80_NODES, read_record as dev80_absence
-from tuning_queue import ACTIVE, DIRECT_STAGE, SNAPSHOT_MAX_AGE_S, TRAINING80_LEDGER, digest, training80_inventory
+from tuning_queue import (ACTIVE, DIRECT_CLOSED_STATES, DIRECT_STAGE, SNAPSHOT_MAX_AGE_S, TRAINING80_LEDGER,
+                          digest, training80_inventory)
 from verify_training80_manifest import verify_package_members
 
 
@@ -67,12 +68,15 @@ def has_original_intent(repo, marker_names):
     return present
 
 
-def read_original_holds(repo, jobs, known_nodes):
+def read_original_holds(repo, jobs, known_nodes, holds=()):
     """Read direct launch holds even when they have no SQLite reservation."""
     records = {}
     marker_errors = {}
     resolved = {}
+    states = direct_request_states(holds)
     for job in jobs:
+        if direct_launch_state(job, states) in DIRECT_CLOSED_STATES:
+            continue
         ident, state, placement = (job[key] for key in ('id', 'state', 'placement'))
         if ident == DEV80_JOB and state == 'reconcile':
             try:
@@ -220,10 +224,10 @@ def queue_holds(connection):
     extra_fields = ',stage,handle' if direct_columns else ''
     if direct_columns and 'binding' in fields:
         extra_fields += ',binding'
-    include_terminal = ' OR (stage=? AND state="TERMINAL")' if direct_columns else ''
-    bindings = (*ACTIVE, DIRECT_STAGE) if direct_columns else ACTIVE
+    include_closed = ' OR (stage=? AND state IN (?,?))' if direct_columns else ''
+    bindings = (*ACTIVE, DIRECT_STAGE, *DIRECT_CLOSED_STATES) if direct_columns else ACTIVE
     rows = connection.execute(f'SELECT id,state,nodes{extra_fields} FROM runs WHERE state IN ({marks})'
-                              + include_terminal, bindings)
+                              + include_closed, bindings)
     result = []
     for run, state, raw_nodes, *extra in rows:
         nodes = json.loads(raw_nodes)
@@ -264,7 +268,8 @@ def direct_launch_state(job, states):
 
 def direct_workloads(holds):
     workloads = {}
-    recorded = (row for row in holds if 'direct_workload_SHA256' in row)
+    recorded = (row for row in holds
+                if 'direct_workload_SHA256' in row and row['state'] != 'RETIRED_PRELAUNCH')
     for row in sorted(recorded, key=lambda item: item['run']):
         workloads.setdefault(row['direct_workload_SHA256'], []).append(
             dict(run=row['run'], request=row['direct_request'], state=row['state']))
@@ -290,8 +295,7 @@ def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(
     direct_states = direct_request_states(holds)
     workloads = direct_workloads(holds)
     prior_claims = {}
-    pending_originals = [job for job in ordered if direct_launch_state(job, direct_states) != 'TERMINAL']
-    original_holds, marker_errors, resolved = read_original_holds(repo, pending_originals, nodes)
+    original_holds, marker_errors, resolved = read_original_holds(repo, ordered, nodes, holds)
     for job in ordered:
         ident, kind, state = (job[key] for key in ('id', 'kind', 'state'))
         need(ident not in identities and state in STATES and type(job['priority']) is int and
@@ -328,6 +332,9 @@ def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(
         prior_scope = prior_workload_claims(job, workloads) if state == 'ready' and prior_direct is None else []
         if prior_direct == 'TERMINAL':
             state = 'terminal'
+        elif prior_direct == 'RETIRED_PRELAUNCH':
+            state = 'verified_not_submitted'
+            row['replay_allowed'] = False
         elif prior_direct == 'SUBMITTED':
             state = 'submitted'
         elif prior_direct is not None:

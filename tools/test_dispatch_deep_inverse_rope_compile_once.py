@@ -1,7 +1,9 @@
 """Qualify the Deep inverse RoPE direct reservation using local fixtures."""
 
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import closing
 from copy import deepcopy
+from hashlib import sha256
 import json
 import subprocess
 import sys
@@ -13,6 +15,7 @@ from unittest.mock import patch
 from collect_training80_dispatch_snapshot import receive
 import dispatch_deep_inverse_rope_compile_once as launcher
 from prepare_training80_dispatch_handoff import build_handoff, claim_handoff
+from prepare_training80_dispatch_probe_args import probe_arguments
 from report_training80_backlog import read_queue_holds
 import test_report_training80_backlog as fixtures
 from tuning_queue import Queue, digest
@@ -89,7 +92,9 @@ class DeepInverseRoPEDispatchTest(unittest.TestCase):
             self.assertEqual(local["device_admission"]["PCIs"], self.snapshot["nodes"][launcher.NODE]["PCIs"])
             [hold] = read_queue_holds(self.database)
             self.assertEqual((hold["state"], hold["direct_request"], hold["nodes"]),
-                             ("DISPATCHING", launcher.REQUEST, [launcher.NODE]))
+                             ("UNKNOWN", launcher.REQUEST, [launcher.NODE]))
+            with closing(Queue(self.database).db) as db:
+                self.assertEqual(db.execute("SELECT count(*) FROM events WHERE kind='submission_unknown'").fetchone()[0], 1)
             queue = Queue(self.database)
             try:
                 with self.assertRaisesRegex(ValueError, "no current device-admitted"):
@@ -259,8 +264,69 @@ class DeepInverseRoPEDispatchTest(unittest.TestCase):
             result = self.invoke(self.forbid)
         self.assertEqual(result["remote_outcome"], "NOT_ATTEMPTED")
         self.assertFalse(result["transport_attempted"])
+        self.assertTrue(result["local_admission_rejected_before_transport"])
         self.assertTrue(self.intent.is_file())
-        self.assertEqual(read_queue_holds(self.database)[0]["state"], "DISPATCHING")
+        [row] = holds = read_queue_holds(self.database)
+        self.assertEqual((row["state"], row["nodes"]), ("RETIRED_PRELAUNCH", []))
+        queue = Queue(self.database)
+        try:
+            state, raw = queue.db.execute("SELECT state,result FROM runs WHERE id=?", (result["queue_run"],)).fetchone()
+            self.assertEqual(state, "RETIRED_PRELAUNCH")
+            self.assertEqual(json.loads(raw)["receipt_SHA256"],
+                             sha256(self.intent.with_name("transport.json").read_bytes()).hexdigest())
+        finally:
+            queue.db.close()
+        ledger = json.loads((self.repo / launcher.LEDGER).read_bytes())
+        probe = probe_arguments(self.repo, self.board, ledger, holds)
+        self.assertNotIn(launcher.NODE, probe["held_nodes"])
+        self.assertNotIn(launcher.IDENT, probe["original_launch_holds"])
+        snap = self.fixture.verified_snapshot()
+        clock = dict(now=self.fixture.now, boot_anchor=self.fixture.anchor)
+        [plan] = build_handoff(snap, self.board, repo=self.repo, holds=holds, **clock)["coordinator_handoffs"]
+        self.assertEqual(plan["candidate"], self.job["id"])
+        self.now = 1000.
+        with self.assertRaisesRegex(ValueError, "already has a local scope"):
+            self.invoke(self.forbid)
+        queue = Queue(self.database)
+        with closing(queue.db):
+            next_job = claim_handoff(queue, snap, self.board, plan, self.job["launch"]["attempt_receipts"][0],
+                                     repo=self.repo, **clock)
+            self.assertNotEqual(next_job["run"], result["queue_run"])
+            self.assertEqual(queue.dispatch_state(next_job["run"])["nodes"], [launcher.NODE])
+
+    def test_admission_expires_during_unknown_commit_and_callback_stays_uninvoked(self):
+        original = Queue.submission
+
+        def delayed(queue, *args, **kwargs):
+            original(queue, *args, **kwargs)
+            self.now = 1057.
+
+        with patch.object(Queue, "submission", delayed):
+            result = self.invoke(self.forbid)
+        self.assertEqual(result["remote_outcome"], "NOT_ATTEMPTED")
+        self.assertFalse(result["transport_attempted"])
+        [row] = read_queue_holds(self.database)
+        self.assertEqual((row["state"], row["nodes"]), ("UNKNOWN", [launcher.NODE]))
+        queue = Queue(self.database)
+        with closing(queue.db):
+            with self.assertRaisesRegex(ValueError, "must still be before transport"):
+                queue.retire_unattempted_direct(row["run"], queue.dispatch_state(row["run"])["handle"], "a" * 64)
+
+    def test_missing_durable_nonattempt_receipt_keeps_the_original_claim(self):
+        original_write = launcher.write_once
+
+        def delayed(path, value):
+            if path.name == "transport.json":
+                raise OSError("local recorder failure")
+            original_write(path, value)
+            if path == self.intent:
+                self.now = 1057.
+
+        with patch.object(launcher, "write_once", delayed):
+            with self.assertRaisesRegex(OSError, "local recorder failure"):
+                self.invoke(self.forbid)
+        [row] = read_queue_holds(self.database)
+        self.assertEqual((row["state"], row["nodes"]), ("DISPATCHING", [launcher.NODE]))
 
 
 if __name__ == "__main__":

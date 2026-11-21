@@ -3,6 +3,7 @@
 from contextlib import closing
 from copy import deepcopy
 from datetime import datetime, timezone
+from hashlib import sha256
 import json
 from pathlib import PurePosixPath
 import re
@@ -141,8 +142,9 @@ def claim_local(queue, repo, board, approved_board, record, snapshot):
                            (run, REQUEST, REQUEST)).fetchone()
         need(prior is None and not any(path.exists() or path.is_symlink() for path in scopes),
              "original Deep request already has a local scope; reconcile it")
-        original, _, _ = read_original_holds(repo, jobs, nodes)
-        need(not any(NODE in row["nodes"] for row in (*queue_holds(db), *original.values())),
+        retained = queue_holds(db)
+        original, _, _ = read_original_holds(repo, jobs, nodes, retained)
+        need(not any(NODE in row["nodes"] for row in (*retained, *original.values())),
              "another original request holds the Deep O01 node")
         need(device_admission(snapshot, repo / LEDGER) == record["device_admission"],
              "Deep device receipt changed before the reservation")
@@ -189,16 +191,23 @@ def dispatch(publication, remote_repository, transport, *, snapshot, repo=REPO, 
                       transport_attempted=False, transport_returncode=None, terminal_verified=False, replay_allowed=False)
         try:
             with intent.with_name("stdout.private").open("xb") as stdout, intent.with_name("stderr.private").open("xb") as stderr:
-                need(device_admission(snapshot, repo / LEDGER) == admission, "Deep device receipt changed before transport")
+                try:
+                    need(device_admission(snapshot, repo / LEDGER) == admission, "Deep device receipt changed before transport")
+                except ValueError:
+                    result["local_admission_rejected_before_transport"] = True
+                    raise
+                queue.submission(run, handle, unknown=True)
+                need(device_admission(snapshot, repo / LEDGER) == admission, "Deep device receipt changed while arming transport")
                 result.update(remote_outcome="UNKNOWN", transport_attempted=True)
                 rc = transport(argv, stdout, stderr, cap).returncode
             need(type(rc) is int, "finite transport did not return an exit code")
             result["transport_returncode"] = rc
         except Exception as error:
             result["transport_error"] = type(error).__name__
-        write_once(intent.with_name("transport.json"), result)
-        if result["transport_attempted"]:
-            queue.submission(run, handle, unknown=True)
+        receipt = intent.with_name("transport.json")
+        write_once(receipt, result)
+        if result.get("local_admission_rejected_before_transport") is True:
+            queue.retire_unattempted_direct(run, handle, sha256(receipt.read_bytes()).hexdigest())
     return result
 
 

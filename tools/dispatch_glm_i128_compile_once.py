@@ -84,8 +84,9 @@ def claim(queue, repo, backlog_path, expected, intent_record):
         need(db.execute('SELECT 1 FROM runs WHERE id=?', (run,)).fetchone() is None
              and not intent.parent.exists() and not intent.parent.is_symlink(),
              'original local compile namespace exists; reconcile without replay')
-        holds, _, _ = read_original_holds(repo, jobs, nodes)
-        need(not any(node in row['nodes'] for row in (*queue_holds(db), *holds.values())),
+        retained = queue_holds(db)
+        holds, _, _ = read_original_holds(repo, jobs, nodes, retained)
+        need(not any(node in row['nodes'] for row in (*retained, *holds.values())),
              'another original request already holds the compile node')
         intent.parent.mkdir()
         write_once(intent, dict(intent_record, queue_run=run))
