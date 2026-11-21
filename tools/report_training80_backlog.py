@@ -250,7 +250,7 @@ def direct_request_states(holds):
 
 
 def direct_launch_state(job, states):
-    return states.get(job.get('launch', {}).get('request'))
+    return states.get(job.get('cpu_request', job.get('launch', {}).get('request')))
 
 
 def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(), now=None, boot_anchor=None):
@@ -282,6 +282,10 @@ def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(
         if cpu_prerequisite:
             need(kind == 'validation' and state != 'ready' and not any(placement.values()) and 'launch' not in job,
                  'CPU prerequisites are read-only in the GPU backlog')
+        if 'cpu_request' in job:
+            need(cpu_prerequisite and hex_value(job['cpu_request'], 32) and job['cpu_request'] not in request_ids,
+                 'invalid or duplicate CPU prerequisite request')
+            request_ids.add(job['cpu_request'])
         row = dict(id=ident, case=job.get('case'), kind=kind, candidate_state=state, placement=placement,
                    requested_DCU=sum(placement.values()), next_action=job['next_action'])
         if kind == 'training':
