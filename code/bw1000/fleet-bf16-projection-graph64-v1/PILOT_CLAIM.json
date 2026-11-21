@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "label": "O01-resident-BF16-graph64-pilot-v1",
+  "request": "f9138c63a947c8f542310e7b5ae930ce",
+  "parent": "1103606",
+  "node": "f12r2n13",
+  "zone": "O01",
+  "cpus": 12,
+  "memory_MiB": 65536,
+  "planned_DCU": 8,
+  "before_DCU": 0,
+  "post_DCU": 0,
+  "slurm_seconds": 140,
+  "shared_start_offset_s": 60,
+  "worker_deadline_s": 125,
+  "controller_deadline_s": 180,
+  "worker_manifest_SHA256": "24a3e7ecd7b37ff3def5ce47b53c009efa373f42c5ee842dc2ebbb126d89a161",
+  "source_scope": {
+    "path": "code/bw1000/fleet-bf16-projection-graph64-v1/PILOT_SCOPE.json",
+    "bytes": 796,
+    "SHA256": "62512fc7227d24a88fe06ab2a50900a34dcce9685a281f0fc4b7a91f21b851d9"
+  },
+  "original_same_node_projection": {
+    "path": "results/bw1000/2026-11-22/O01-projection-contention-original669-eight-card-paired-measurement.json",
+    "bytes": 5526,
+    "SHA256": "7741f6819cda43588c8ea11e71db925eeecbb2e9262dd91013a7e437796dce2a"
+  },
+  "workload": {
+    "M": 184,
+    "K": 4096,
+    "N": 1024,
+    "inputs": 2,
+    "dep": 64,
+    "windows": [
+      "eager",
+      "graph",
+      "graph",
+      "eager"
+    ]
+  },
+  "optimization": "Replay the same 64 resident BF16 GEMMs in one graph instead of eager submission. No DMA payload.",
+  "acceptance": "All 8 cards, 32 correct synchronized arms and 128 measured driver values. Compare effective GEMM/s and busy per arm.",
+  "operator_GO": true,
+  "training_GO": false,
+  "Model_GO": false,
+  "actual_GPU_runs": 0,
+  "cross_node_sync_qualified": false,
+  "replay_allowed": false
+}
