@@ -604,11 +604,16 @@
         "bytes": 849,
         "SHA256": "be093123dabbfc64621b408022b55715569f7ec8964c72061b32faeeefd37b63"
       },
-      "next_action": "在 T06 分组先只读核对目标训练目录、已部署 Diffusers trainer 与共同 backend。完成真实 ImageFolder、tokenizer、VAE、固定噪声与初始参数核验后才准入领域训练。",
+      "next_action": "目标实查12图与共同 SDXL backend 通过，部署训练脚本未找到；后续仍需原生固定输入及首次更新。",
       "target_data_staging": {
         "path": "coordination/tasks/training-sdxl-style18-train-staging-v1.json",
         "bytes": 892,
         "SHA256": "a55bf5c112ef00c29ca8968267c9f2a6fc10ce99fba4430b2251771952fcba47"
+      },
+      "target_preflight": {
+        "path": "results/bw1000/2026-11-22/training-sdxl-style18-target-data-backend-and-trainer-preflight.json",
+        "bytes": 1209,
+        "SHA256": "7991b787dc3770649500d217149bb14989cb0df9fcc7cda236f102a592c409e8"
       }
     },
     {
@@ -678,7 +683,7 @@
       "id": "kimi-r461-retained28-score-gfx936-host-compile-v1",
       "case": "I01.kimi-r461-retained28-score-compile",
       "kind": "validation",
-      "state": "blocked",
+      "state": "terminal",
       "cpu_prerequisite": true,
       "cpu_request": "7f4239bb5f8fd6dc21da6a248b5c7469",
       "placement": {
@@ -693,7 +698,12 @@
         "SHA256": "66484828892537e94917e4edb4018a026faf66f2c3f6a47a7c4966a7f9256b35"
       },
       "priority": 925,
-      "next_action": "恢复认证后核对 O01 当次归属和原请求唯一性，再经共享队列只提交一次 0 卡单翻译单元 gfx936 构建。"
+      "next_action": "原 .628 零卡编译 C0；目标对象和221项依赖通过独审，后续独立链接和设备消费仍待。",
+      "terminal_evidence": {
+        "path": "results/bw1000/2026-11-22/Kimi461-original628-retained28-independent-object.json",
+        "bytes": 1826,
+        "SHA256": "0d9de7175e2890cc73043f7c97b38587b517c1f3f9585951fab38215a68b6cf1"
+      }
     },
     {
       "id": "sdxl-fp32-sdpa-adjoint-O01-first-update",
@@ -885,14 +895,35 @@
       "kind": "operator",
       "zone": "O01",
       "priority": 1800,
-      "state": "blocked",
+      "state": "terminal",
       "placement": {
         "f12r2n13": 8
       },
       "attempt_receipts": [
         "local-only/O01-hip-pinned-duplex-pilot-v1-773e6c71d59d885f3c8fa91602085be3-original/intent.json"
       ],
-      "next_action": "独立 O01 同节点八卡串行与双向重叠搬运先导。发布后使用新鲜零卡准入和共享调度事务，原实际终态与独审清场后归还。"
+      "next_action": "原 .630 在 HIP 文件名准入失败且 .632 独审清场，保留0/8分母后切换确切 DTK 修正。",
+      "terminal_evidence": {
+        "path": "results/bw1000/2026-11-22/O01-HIP-duplex-original630-failure-and-clean-post.json",
+        "bytes": 1837,
+        "SHA256": "f7496b2695774381c50b30e16e976b8ec231f059db5c5486adb9ef5f40721bc5"
+      }
+    },
+    {
+      "id": "O01-hip-pinned-duplex-pilot-v2",
+      "direct_request": "088fa0a7ad19aba63158cf65d942a853",
+      "case": "O01.hip-pinned-duplex-pilot-v2",
+      "kind": "operator",
+      "zone": "O01",
+      "priority": 1800,
+      "state": "blocked",
+      "placement": {
+        "f12r2n13": 8
+      },
+      "attempt_receipts": [
+        "local-only/O01-hip-pinned-duplex-pilot-v2-088fa0a7ad19aba63158cf65d942a853-original/intent.json"
+      ],
+      "next_action": "旧 .630 已失败清场。独立发布准确 DTK 校验 v2 后，对新请求重新准入八卡；原负证据保留。"
     }
   ]
 }
