@@ -86,6 +86,7 @@ def prepare(repo, config, ledger_raw):
                           request=request, claim=claim_ref)))
         need(command is not None, 'frozen candidate requires a manual launcher binding')
         target_probe = pinned_target_probe(repo, candidate.get('target_read_only_preflight'))
+        completion_reader = pinned_target_probe(repo, candidate.get('target_completion_reader'))
         updates = claim.get('optimizer_updates', claim.get('planned_updates', 0))
         need(type(updates) is int and updates >= 0 and (cards != 0 or updates == 0), 'invalid planned optimizer updates')
         if not attempted:
@@ -99,7 +100,8 @@ def prepare(repo, config, ledger_raw):
                            candidate_ready_verified=False, frozen_rendezvous_port=port,
                            gates=gates, blocking_original_requests=predecessors, manifest=manifest,
                            launcher=launcher, frozen_invocation_after_gates=command,
-                           target_read_only_preflight=None if attempted else target_probe))
+                           target_read_only_preflight=None if attempted else target_probe,
+                           target_completion_reader=completion_reader))
     flags = [value for port in sorted(ports) for value in ('--port', str(port))]
     return dict(collector='tools/collect_training80_dispatch_snapshot.py', collector_port_arguments=flags,
                 candidate_nodes_needing_current_probe=sorted(required_nodes),

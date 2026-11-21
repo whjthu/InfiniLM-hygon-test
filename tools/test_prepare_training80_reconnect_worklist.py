@@ -107,6 +107,17 @@ class ReconnectWorklistTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'evidence SHA256 differs'):
             self.plan(candidate)
 
+    def test_terminal_reader_remains_visible_after_original_attempt(self):
+        cpu = self.candidate(cards=0,port=None)
+        entry = self.write('tools/read_terminal.py',b'print("terminal")\n')
+        probe = dict(entry=entry,dependencies=[])
+        cpu['target_completion_reader'] = probe
+        self.write(cpu['attempt_receipt'],dict(transport_rc=255))
+        [row] = self.plan(cpu)['candidates']
+        self.assertEqual(row['target_preflight_state'],'RECONCILE_ORIGINAL_ATTEMPT')
+        self.assertEqual(row['target_completion_reader'],probe)
+        self.assertFalse(row['candidate_ready_verified'])
+
     def test_rejects_wrong_parent_and_deduplicates_requests(self):
         with self.assertRaisesRegex(ValueError, 'assigned Slurm parent'):
             self.plan(self.candidate(parent='1087656'))

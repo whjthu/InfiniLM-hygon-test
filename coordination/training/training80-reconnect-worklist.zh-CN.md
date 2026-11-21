@@ -30,4 +30,6 @@ Qwen 的旧 Dev80 条目携带 `target_reconciliation_probe` 和依赖 SHA。认
 
 VGGT 条目的 `target_read_only_preflight` 绑定登录节点上的只读入口和依赖 SHA。用原来源包在登录节点运行 `tools/preflight_vggt_tum_bidirectional30.py`，核对两次目标命名空间和 Slurm accounting、393 份训练框架源码、17 份原 TUM 媒体及模型文件元数据。程序不创建作业或目标目录。先完成资产检查，再采集新鲜 PCI/KFD/PID，避免把设备回执耗在文件核验上。若原请求标记或编号步出现，转入对账。模型文件本轮只核对已封存 SHA 所绑定的原元数据，实际运行仍核对设备和运行时。
 
+MiniCPM 条目的 `target_completion_reader` 保留在已有原尝试的对账视图。由 `tools/read_minicpm_native88_original.py` 获取实际 Slurm 记账，用原请求的 publication 和 epoch 绑定同一编号步骤，再读取原 88 条原生输入的结果。只在结果通过时，把它的文件与 SHA 交给现有目标训练资产准备入口。在途、未找到、失败和记账不一致都保留为独立状态。
+
 `frozen_invocation_after_gates` 给出原启动器的参数结构。它需要已核验的真实发布提交、原任务准入和协调者现有连接。已有本机原意图的候选单列为待对账，并从下一步探测建议中移除。最新实际设备可用性和 busy 始终由新鲜的设备收据和驱动采样判定。预计卡数和 640 卡账本的配置容量仅用于排查。本工单只读取本地证据。
