@@ -76,3 +76,5 @@ Gemma 的 `target_read_only_preflight` 使用 `tools/preflight_gemma_render72_na
 Gemma 的 `target_completion_reader` 使用原派发所用的发布 SHA 作为 `--publication`。`tools/read_gemma_render72_native_cpu_original.py` 先查询 Slurm 原步，确认终态才检查原意图、控制器和 worker 收据，并按冻结数据的逐行哈希对照 72 条编码与整理记录。核验成功后，用报告中的 `worker_receipt.SHA256` 核对后续训练控制器所需的 `native-input-cpu-result.json` 原字节。CPU 前置不能代替八卡训练的原初始 LoRA 和实际 rank 采样器验证。
 
 `frozen_invocation_after_gates` 给出原启动器的参数结构。它需要已核验的真实发布提交、原任务准入和协调者现有连接。已有本机原意图的候选单列为待对账，并从下一步探测建议中移除。最新实际设备可用性和 busy 始终由新鲜的设备收据和驱动采样判定。预计卡数和 640 卡账本的配置容量仅用于排查。本工单只读取本地证据。
+
+Kimi retained28 的 0 卡编译使用 O01 的 `f12r2n10`。确认目标登录和当次归属后，由协调者调用 `tools/dispatch_kimi_r461_retained28_once.py` 的 `dispatch`，传入实际普通发布提交、项目内目标 checkout 和已有有限传输。该入口先在共享账本登记节点及唯一请求，再调用冻结 HOST 控制器。超时继续对账同一请求，原 wave 编译仍使用其独立节点和请求。编译和真实训练队列分开计数。
