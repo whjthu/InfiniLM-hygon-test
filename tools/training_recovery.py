@@ -75,7 +75,7 @@ def execution(receipt, binding, first, ranks, cards, verify_raw):
     row = completed_numbered_step(terminal.get('accounting_columns'), terminal.get('accounting_row'),
                                   receipt.get('slurm_step'), scope='recovery')
     dcu = allocated_dcu(row['AllocTRES']) if isinstance(row['AllocTRES'], str) else None
-    need(dcu is not None and dcu >= cards, 'recovery Slurm step lacks the registered DCU allocation')
+    need(dcu == cards, 'recovery Slurm step differs from the registered DCU allocation')
     processes = {row['process_identity_SHA256'] for row in rank_values(receipt['rank_processes'], ranks)}
     need(len(processes) == ranks and all(sha(pid) for pid in processes),
          'missing or reused rank process identity')
@@ -175,6 +175,12 @@ def verify_recovery(case, framework_commit, evidence, verify_raw):
         discrete_fields = ('scheduler_SHA256', 'data_cursor_SHA256', 'accumulation_boundary')
         need(all(a[field] == b[field] for a, b in zip(original_final, final, strict=True) for field in discrete_fields),
              'recovery final scheduler, data cursor or accumulation boundary differs')
+        need(all(a['rng_SHA256'] == b['rng_SHA256'] for a, b in zip(original_final, final, strict=True)),
+             'recovery final per-rank RNG differs')
+        optimizer_exact = all(a['optimizer_SHA256'] == b['optimizer_SHA256']
+                              for a, b in zip(original_final, final, strict=True))
+        need(limits['parameter_relative_l2'] > 0 or optimizer_exact,
+             'recovery final optimizer differs under the registered exact-state comparison')
 
         continuous_params = [row['parameters_SHA256'] for row in original_final]
         resumed_params = [row['parameters_SHA256'] for row in final]
@@ -195,5 +201,6 @@ def verify_recovery(case, framework_commit, evidence, verify_raw):
                  'recovered parameters exceed the original bound')
         comparisons.append(dict(resume_step=step, reproduced_updates=len(suffix), training_ranks=ranks,
                                 max_absolute_loss_difference=absolute_loss, max_parameter_relative_l2=relative_l2,
+                                final_optimizer_exact=optimizer_exact, final_rank_RNG_exact=True,
                                 resumed_receipt_SHA256=receipt_ref['SHA256']))
     return comparisons

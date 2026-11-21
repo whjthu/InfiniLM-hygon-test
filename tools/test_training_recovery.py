@@ -97,6 +97,7 @@ class RecoveryGateTest(unittest.TestCase):
         results = self.verify()
         self.assertEqual([(r['resume_step'], r['reproduced_updates'], r['training_ranks'])
                           for r in results], [(10, 15, 2), (20, 5, 2)])
+        self.assertTrue(all(r['final_optimizer_exact'] and r['final_rank_RNG_exact'] for r in results))
 
     def test_self_asserted_pass_does_not_supply_recovery(self):
         with self.assertRaisesRegex(ValueError, 'requires continuous and resumed receipts'):
@@ -116,6 +117,7 @@ class RecoveryGateTest(unittest.TestCase):
              'no successful Slurm step'),
             (dict(actual, accounting_row=[*actual['accounting_row'][:-1], 'cpu=8,node=1']), 'registered DCU allocation'),
             (dict(actual, accounting_row=[*actual['accounting_row'][:-1], 'cpu=8,gres/dcu=1']), 'registered DCU allocation'),
+            (dict(actual, accounting_row=[*actual['accounting_row'][:-1], 'cpu=8,gres/dcu=4']), 'registered DCU allocation'),
         ):
             with self.subTest(reason=reason), self.assertRaisesRegex(ValueError, reason):
                 terminal = self.pin(replacement)
@@ -227,6 +229,23 @@ class RecoveryGateTest(unittest.TestCase):
                 mutate(self.resumed)
                 with self.assertRaisesRegex(ValueError, message):
                     self.verify()
+
+    def test_detects_final_rng_and_optimizer_drift_after_exact_restore(self):
+        before = copy.deepcopy(self.resumed)
+        for key, message in (('rng_SHA256', 'final per-rank RNG differs'),
+                             ('optimizer_SHA256', 'final optimizer differs')):
+            with self.subTest(key=key), self.assertRaisesRegex(ValueError, message):
+                self.resumed = copy.deepcopy(before)
+                self.resumed[1]['final_state'][1][key] = digest(f'final drift/{key}')
+                self.verify()
+
+    def test_parameter_tolerance_never_masks_final_rng_drift(self):
+        self.case['recovery_plan']['comparison_limits']['parameter_relative_l2'] = .01
+        self.resumed[1]['final_state'][0]['optimizer_SHA256'] = digest('floating optimizer state differs')
+        self.assertFalse(self.verify()[1]['final_optimizer_exact'])
+        self.resumed[1]['final_state'][0]['rng_SHA256'] = digest('RNG differs under tolerant parameters')
+        with self.assertRaisesRegex(ValueError, 'final per-rank RNG differs'):
+            self.verify()
 
     def test_rejects_missing_scheduled_continuous_checkpoint(self):
         self.continuous['checkpoints'].pop(1)

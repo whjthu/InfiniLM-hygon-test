@@ -49,6 +49,8 @@ DDPO 和 MotionRFT 的原结果未填计时边界文字。已校验原 tar 中�
 
 正式计时的独立执行收据包含 `training_progress`，保存空的 `configured_resume`、实际 `start_global_step` 和每个训练 rank 的 `rank_steps`。每项 `global_update_ordinals` 取自实际全局更新记录，须从 1 到 25 顺序完整。SAGE 记录 actor 的训练进度，计时仍覆盖 actor 和 VAE 两张卡。结束状态成功的恢复短跑继续进入恢复验收。
 
+正式恢复逐条核对实际 Slurm 记账中的原配方卡数。HunyuanVideo SAGE 的一个 actor 训练 rank 和两个设备分别核对。对于同输入恢复，除了恢复时的检查点内容、后续 loss 和参数，还核对最终各 rank 的 RNG。原方案要求参数精确复现时，最终优化器状态也必须精确一致。原方案允许参数容差时，另行报告最终优化器状态是否一致。
+
 同一平台的三轮正式计时须使用一致的逐 rank 加速卡型号、每节点 rank 分组、驱动、框架及算子库。多卡轮次同时核对互联。A100 读数须绑定实际 A100 卡型。配对两端的每节点 rank 分组保持一致，并在验收输出中保留两端各自的硬件和软件口径。等价节点和 PCI 地址可以变化。
 
 ## 首步数值验收证据
