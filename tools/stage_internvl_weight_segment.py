@@ -1,4 +1,4 @@
-"""Receive bounded InternVL shard segments without replaying a failed whole-shard stream."""
+"""Send and stage bounded InternVL shard segments with durable offset receipts."""
 
 import argparse
 import ast
@@ -16,15 +16,20 @@ import struct
 import sys
 from tempfile import NamedTemporaryFile
 import time
+import zlib
 
 
 REPO = Path(__file__).resolve().parents[1]
 ORIGINAL_PLAN = REPO/'code/bw1000/training-internvl-three-shard-zlib-24h-v2/PLAN.json'
 ORIGINAL_PLAN_SHA256 = 'ecf53ec728af0c106a92e6c5ff98b89919c157f7db67dfdaeaff0fb4144482dd'
 ORIGINAL_PROTOCOL_SHA256 = 'aad004a277cebaf252d31d33460d24266bcb04810f8d01f2ed369d939ea34bdb'
+SOURCE_RECEIPT = REPO/'results/bw1000/2026-11-12/training-internvl-original-four-shard-full-SHA-and-index841-qualified.json'
+SOURCE_RECEIPT_SHA256 = '0c10ff71c842d683082d619dda9e992902c0025c77c05d5c785bf8c86258bc70'
 BLOCK_BYTES = 1024**2
 TARGET = Path('/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/training-internvl-exact-shard-segments-v1')
 SEGMENT_BYTES = 32*1024**2
+SEGMENT_HEADER = struct.Struct('<8sIQQ32s')
+SEGMENT_MAGIC = b'IVLSEG1\n'
 
 
 def need(ok, message):
@@ -32,15 +37,32 @@ def need(ok, message):
         raise ValueError(message)
 
 
-def shard_spec(file_id):
+def shard_row(file_id):
     raw = ORIGINAL_PLAN.read_bytes()
     need(sha256(raw).hexdigest() == ORIGINAL_PLAN_SHA256, 'pinned original shard identities differ')
     rows = json.loads(raw)['files']
     need({row['file_id'] for row in rows} == {2, 3, 4}, 'exact missing three shards required')
     [row] = [row for row in rows if row['file_id'] == file_id]
+    return row
+
+
+def shard_spec(file_id):
+    row = shard_row(file_id)
     leaf = PurePosixPath(row['name']).name
     need(leaf == f'model-0000{file_id}-of-00004.safetensors', 'original shard filename differs')
     return dict(file_id=file_id, filename=leaf, bytes=row['bytes'], SHA256=row['SHA256'], segment_bytes=SEGMENT_BYTES)
+
+
+def qualified_source(spec):
+    raw = SOURCE_RECEIPT.read_bytes()
+    need(sha256(raw).hexdigest() == SOURCE_RECEIPT_SHA256, 'original source qualification differs')
+    record = json.loads(raw)['independent_root_reader']
+    evidence = record['shards'][spec['filename']]
+    need(evidence['SHA256'] == spec['SHA256'] and evidence['bytes'] == spec['bytes'],
+         'original source receipt identifies another file')
+    path = Path(shard_row(spec['file_id'])['source'])
+    need(path.name == spec['filename'] and path.resolve(strict=True) == path, 'source path is not the original canonical file')
+    return path,evidence
 
 
 def sync_dir(root):
@@ -137,14 +159,22 @@ def initialize(root, spec):
         checkpoint(root, dict(spec=spec, file=[s.st_dev,s.st_ino], segments=[], confirmed_bytes=0, sealed=False))
 
 
-def append(root, spec, offset, digest, stream, *, framed=False):
-    need(re.fullmatch('[a-f0-9]{64}',digest), 'original segment SHA required')
+def append(root, spec, offset, digest, stream, *, framed=False, envelope=False):
+    need((envelope and digest is None) or (isinstance(digest,str) and re.fullmatch('[a-f0-9]{64}',digest)),
+         'original segment SHA required')
     with locked(root):
         state = load(root,spec)
         need(not state['sealed'] and offset == state['confirmed_bytes'] and offset < spec['bytes'],
              'append must start at the confirmed prefix; do not replay a committed segment')
         count = min(spec['segment_bytes'],spec['bytes']-offset)
-        if framed:
+        if envelope:
+            header = stream.read(SEGMENT_HEADER.size)
+            need(len(header) == SEGMENT_HEADER.size, 'missing original segment envelope')
+            magic,file_id,declared,nbytes,raw_digest = SEGMENT_HEADER.unpack(header)
+            need((magic,file_id,declared,nbytes) == (SEGMENT_MAGIC,spec['file_id'],offset,count),
+                 'original segment envelope scope differs')
+            digest = raw_digest.hex()
+        if framed or envelope:
             stream = framed_segment(spec,offset,stream)
         raw = stream.read(count+1)
         need(len(raw) == count and sha256(raw).hexdigest() == digest, 'short, overlong or different segment')
@@ -160,7 +190,8 @@ def append(root, spec, offset, digest, stream, *, framed=False):
         state['segments'].append(dict(offset=offset, bytes=count, SHA256=digest))
         state['confirmed_bytes'] = offset+count
         checkpoint(root,state)
-        return dict(file_id=spec['file_id'],confirmed_bytes=state['confirmed_bytes'],segment_count=len(state['segments']),
+        return dict(file_id=spec['file_id'],offset=offset,raw_bytes=count,segment_SHA256=digest,
+                    confirmed_bytes=state['confirmed_bytes'],segment_count=len(state['segments']),
                     recovered_uncommitted_bytes=previous-offset,whole_file_qualified=False)
 
 
@@ -178,10 +209,8 @@ def original_protocol():
 
 
 def framed_segment(spec, offset, stream):
-    need(type(offset) is int and 0 <= offset < spec['bytes'] and offset % spec['segment_bytes'] == 0
-         and spec['segment_bytes'] % BLOCK_BYTES == 0, 'offset must identify one fixed segment')
+    count = segment_length(spec,offset)
     protocol = original_protocol()
-    count = min(spec['segment_bytes'],spec['bytes']-offset)
     index = offset//BLOCK_BYTES
     row = dict(spec,blocks=(spec['bytes']+BLOCK_BYTES-1)//BLOCK_BYTES)
     data = BytesIO()
@@ -197,6 +226,46 @@ def framed_segment(spec, offset, stream):
     need(data.tell() == count and stream.read(1) == b'', 'segment must contain only its exact fixed frame range')
     data.seek(0)
     return data
+
+
+def source_stamp(info):
+    return (info.st_dev,info.st_ino,info.st_size,info.st_mtime_ns)
+
+
+def send_segment(path, evidence, spec, offset, stream):
+    count = segment_length(spec,offset)
+    wanted = tuple(evidence[key] for key in ('device','inode','bytes','mtime_ns'))
+    need(evidence['SHA256'] == spec['SHA256'] and evidence['bytes'] == spec['bytes'], 'source full SHA binding differs')
+    fd = os.open(path, os.O_RDONLY | getattr(os,'O_NOFOLLOW',0))
+    with os.fdopen(fd,'rb') as file:
+        before = os.fstat(file.fileno())
+        need(stat.S_ISREG(before.st_mode) and source_stamp(before) == source_stamp(path.lstat()) == wanted,
+             'original source file stamp changed')
+        file.seek(offset)
+        raw = file.read(count)
+        after = os.fstat(file.fileno())
+        at_path = path.lstat()
+        need(len(raw) == count and source_stamp(after) == source_stamp(at_path) == wanted
+             and after.st_ctime_ns == before.st_ctime_ns
+             and (os.name != 'posix' or after.st_ctime_ns == at_path.st_ctime_ns),
+             'original source changed during the bounded range read')
+    protocol = original_protocol()
+    row = dict(spec,blocks=(spec['bytes']+BLOCK_BYTES-1)//BLOCK_BYTES)
+    digest = sha256(raw).digest()
+    stream.write(SEGMENT_HEADER.pack(SEGMENT_MAGIC,spec['file_id'],offset,count,digest))
+    for index, begin in enumerate(range(0,count,BLOCK_BYTES), offset//BLOCK_BYTES):
+        block = raw[begin:begin+BLOCK_BYTES]
+        comp = zlib.compress(block,1)
+        stream.write(protocol['pack'](row,index,len(comp),sha256(block).digest(),sha256(comp).digest()))
+        stream.write(comp)
+    stream.flush()
+    return dict(file_id=spec['file_id'],offset=offset,raw_bytes=count,segment_SHA256=digest.hex(),source_stamp_verified=True)
+
+
+def segment_length(spec, offset):
+    need(type(offset) is int and 0 <= offset < spec['bytes'] and offset % spec['segment_bytes'] == 0
+         and spec['segment_bytes'] % BLOCK_BYTES == 0, 'offset must identify one fixed segment')
+    return min(spec['segment_bytes'],spec['bytes']-offset)
 
 
 def seal(root, spec):
@@ -246,13 +315,13 @@ def inspect(root, spec):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('action', choices=('init','inspect','append','seal'))
+    parser.add_argument('action', choices=('init','inspect','append','receive','send','seal'))
     parser.add_argument('--shard',type=int,choices=(2,3,4),required=True)
     parser.add_argument('--offset',type=int)
     parser.add_argument('--segment-sha256')
     parser.add_argument('--epoch',type=float,required=True)
     args = parser.parse_args()
-    need(os.name == 'posix', 'only the admitted target HOST may stage original files')
+    need(os.name == 'posix', 'the admitted source and target HOSTs are POSIX')
     now = time.time()
     need(math.isfinite(args.epoch) and 0 < args.epoch <= now < args.epoch+600, 'original segment work window expired')
     def expired(*_):
@@ -261,6 +330,12 @@ def main():
     signal.setitimer(signal.ITIMER_REAL,args.epoch+600-now)
     spec = shard_spec(args.shard)
     root = TARGET/f'shard{args.shard:02}'
+    if args.action == 'send':
+        path,evidence = qualified_source(spec)
+        result = send_segment(path,evidence,spec,args.offset,sys.stdout.buffer)
+        signal.setitimer(signal.ITIMER_REAL,0)
+        print(json.dumps(result, allow_nan=False), file=sys.stderr)
+        return
     if args.action == 'init':
         TARGET.mkdir(mode=0o700, exist_ok=True)
         initialize(root,spec)
@@ -270,6 +345,9 @@ def main():
     elif args.action == 'append':
         need(args.offset is not None and args.segment_sha256 is not None, 'exact original range offset and digest required')
         result = append(root,spec,args.offset,args.segment_sha256,sys.stdin.buffer,framed=True)
+    elif args.action == 'receive':
+        need(args.offset is not None, 'exact original range offset required')
+        result = append(root,spec,args.offset,None,sys.stdin.buffer,envelope=True)
     else:
         result = seal(root,spec)
     signal.setitimer(signal.ITIMER_REAL,0)

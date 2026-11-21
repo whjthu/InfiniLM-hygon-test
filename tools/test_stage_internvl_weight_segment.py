@@ -1,11 +1,17 @@
 from hashlib import sha256
 from io import BytesIO
+import json
 import os
 from pathlib import Path
+from random import Random
+from subprocess import Popen
+import sys
 from tempfile import TemporaryDirectory
+from time import monotonic
 import unittest
 import zlib
 
+from relay_internvl_weight_segment import relay
 import stage_internvl_weight_segment as stage
 
 
@@ -91,6 +97,105 @@ class WeightSegmentTest(unittest.TestCase):
             stage.framed_segment(wrapper,0,BytesIO(blob[:-1]))
         with self.assertRaisesRegex(ValueError,'exact fixed frame range'):
             stage.framed_segment(wrapper,0,BytesIO(blob+b'x'))
+
+
+class WeightSegmentRelayTest(unittest.TestCase):
+    def setUp(self):
+        temporary = TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        directory = Path(temporary.name).resolve()
+        self.source = directory/'source'
+        self.root = directory/'target'
+        self.original = bytes(range(256))*(stage.BLOCK_BYTES//256)+b'short last segment'
+        self.source.write_bytes(self.original)
+        self.spec = dict(file_id=3, filename='constant.safetensors', bytes=len(self.original),
+                         SHA256=sha256(self.original).hexdigest(), segment_bytes=stage.BLOCK_BYTES)
+        self.binding = dict(zip(('device','inode','bytes','mtime_ns'), stage.source_stamp(self.source.stat())),
+                            SHA256=self.spec['SHA256'])
+        stage.initialize(self.root,self.spec)
+
+    def pipe(self, offset, source_program, target_program, *, seconds=20):
+        setup = ('import sys,json\nfrom pathlib import Path\nimport stage_internvl_weight_segment as stage\n'
+                 's=json.loads(sys.argv[1]); b=json.loads(sys.argv[2]); off=int(sys.argv[3]); p=Path(sys.argv[4])\n')
+        command = [sys.executable, '-B', '-c']
+        args = [json.dumps(self.spec), json.dumps(self.binding), str(offset)]
+        cwd = Path(__file__).resolve().parent
+        return relay(
+            self.spec, offset, monotonic()+seconds,
+            lambda **stdio: Popen([*command,setup+source_program,*args,str(self.source)], cwd=cwd, **stdio),
+            lambda **stdio: Popen([*command,setup+target_program,*args,str(self.root)], cwd=cwd, **stdio),
+        )
+
+    sender = 'print(json.dumps(stage.send_segment(p,b,s,off,sys.stdout.buffer)),file=sys.stderr)'
+    receiver = 'print(json.dumps(stage.append(p,s,off,None,sys.stdin.buffer,envelope=True)))'
+
+    def test_full_32mib_segment_through_pipe(self):
+        self.original = Random(413).randbytes(stage.SEGMENT_BYTES)
+        self.source.write_bytes(self.original)
+        self.spec.update(bytes=len(self.original), SHA256=sha256(self.original).hexdigest(),
+                         segment_bytes=stage.SEGMENT_BYTES)
+        self.binding = dict(zip(('device','inode','bytes','mtime_ns'), stage.source_stamp(self.source.stat())),
+                            SHA256=self.spec['SHA256'])
+        self.root = self.root.with_name('full-segment-target')
+        stage.initialize(self.root,self.spec)
+        self.assertEqual(self.pipe(0,self.sender,self.receiver)['confirmed_bytes'],stage.SEGMENT_BYTES)
+        self.assertTrue(stage.seal(self.root,self.spec)['whole_file_qualified'])
+
+    def test_process_pipe_commits_two_segments_and_verifies_whole_original(self):
+        first = self.pipe(0,self.sender,self.receiver)
+        self.assertEqual(first['confirmed_bytes'],stage.BLOCK_BYTES)
+        last = self.pipe(first['confirmed_bytes'],self.sender,self.receiver)
+        self.assertEqual(last['confirmed_bytes'],len(self.original))
+        self.assertEqual(last['segment_SHA256'],sha256(b'short last segment').hexdigest())
+        self.assertTrue(stage.seal(self.root,self.spec)['whole_file_qualified'])
+        self.assertEqual((self.root/self.spec['filename']).read_bytes(),self.original)
+
+    def test_process_pipe_interrupted_segment_leaves_durable_prefix_unchanged(self):
+        first = self.pipe(0,self.sender,self.receiver)
+        partial = ('from io import BytesIO\nwire=BytesIO();stage.send_segment(p,b,s,off,wire)\n'
+                   'sys.stdout.buffer.write(wire.getvalue()[:-1]);sys.exit(2)')
+        with self.assertRaisesRegex(RuntimeError,'inspect the original target'):
+            self.pipe(first['confirmed_bytes'],partial,self.receiver)
+        observed = stage.inspect(self.root,self.spec)
+        self.assertEqual(observed['confirmed_bytes'],first['confirmed_bytes'])
+        self.assertEqual(observed['actual_bytes'],first['confirmed_bytes'])
+        self.assertEqual(self.pipe(observed['confirmed_bytes'],self.sender,self.receiver)['confirmed_bytes'],len(self.original))
+
+    def test_receipt_disagreement_requires_reconciliation_without_replay(self):
+        altered = ('receipt=stage.append(p,s,off,None,sys.stdin.buffer,envelope=True)\n'
+                   "receipt['segment_SHA256']='0'*64;print(json.dumps(receipt))")
+        with self.assertRaisesRegex(RuntimeError,'inspect the original target'):
+            self.pipe(0,self.sender,altered)
+        observed = stage.inspect(self.root,self.spec)
+        self.assertEqual(observed['confirmed_bytes'],stage.BLOCK_BYTES)
+        with self.assertRaisesRegex(ValueError,'do not replay'):
+            stage.append(self.root,self.spec,0,None,BytesIO(),envelope=True)
+
+    def test_expired_process_pipe_leaves_uncommitted_target_available_for_inspection(self):
+        with self.assertRaisesRegex(RuntimeError,'inspect the original target'):
+            self.pipe(0,'import time;time.sleep(10)',self.receiver,seconds=1)
+        self.assertEqual(stage.inspect(self.root,self.spec)['confirmed_bytes'],0)
+
+    def test_source_replacement_rejected_before_writing_wire_bytes(self):
+        replacement = self.source.with_name('replacement')
+        replacement.write_bytes(self.original)
+        mtime = self.binding['mtime_ns']
+        os.utime(replacement,ns=(mtime,mtime))
+        replacement.replace(self.source)
+        wire = BytesIO()
+        with self.assertRaisesRegex(ValueError,'source file stamp changed'):
+            stage.send_segment(self.source,self.binding,self.spec,0,wire)
+        self.assertEqual(wire.getvalue(),b'')
+
+    def test_envelope_must_match_current_scope_and_whole_segment_hash(self):
+        wire = BytesIO()
+        stage.send_segment(self.source,self.binding,self.spec,0,wire)
+        payload = wire.getvalue()[stage.SEGMENT_HEADER.size:]
+        for offset,digest,expected in ((1,bytes(32),'envelope scope'),(0,bytes(32),'different segment')):
+            header = stage.SEGMENT_HEADER.pack(stage.SEGMENT_MAGIC,3,offset,stage.BLOCK_BYTES,digest)
+            with self.assertRaisesRegex(ValueError,expected):
+                stage.append(self.root,self.spec,0,None,BytesIO(header+payload),envelope=True)
+        self.assertEqual(stage.inspect(self.root,self.spec)['confirmed_bytes'],0)
 
 
 if __name__ == '__main__':
