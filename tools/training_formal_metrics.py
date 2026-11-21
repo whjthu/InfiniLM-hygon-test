@@ -403,7 +403,7 @@ def verify_sample_inventory(row, metric, provenance, checkpoints, verify_raw):
                  'COCO CIDEr differs from the full image denominator')
 
 
-def effect(rows, expected, provenance, verify_raw, *, metric_bindings=None):
+def effect(rows, expected, provenance, verify_raw, *, metric_bindings=None, trained_checkpoints=None):
     need(rows.keys() == expected.keys(), 'held-out metric set differs')
     if metric_bindings is not None:
         fields = {'dataset_SHA256', 'scorer_SHA256'}
@@ -428,6 +428,8 @@ def effect(rows, expected, provenance, verify_raw, *, metric_bindings=None):
         checkpoints = {key: binding[key] for key in platforms}
         need(common_checkpoints is None or checkpoints == common_checkpoints,
              'held-out metrics use different paired checkpoints')
+        need(trained_checkpoints is None or checkpoints == trained_checkpoints,
+             'held-out effect uses different paired checkpoints from the verified training runs')
         common_checkpoints = checkpoints
         receipt = dict(scores, metric=metric, **identity,
                        checkpoint_SHA256=checkpoints)
@@ -445,6 +447,53 @@ def effect(rows, expected, provenance, verify_raw, *, metric_bindings=None):
         regressions[metric] = {'absolute_degradation': delta,
                                'relative_degradation': None if reference == 0 else delta / reference}
     return regressions
+
+
+def effect_training_checkpoints(holdout, case, framework_commit, a100_commit, verify_raw):
+    """Bind the scored checkpoints to a common schedule and actual completed training."""
+    reference = holdout.get('training_protocol')
+    need(isinstance(reference, dict) and sha(reference.get('SHA256')), 'missing paired effect training protocol')
+    protocol = verify_raw(reference)
+    identity = dict(case=case['case'], framework_commit=framework_commit, A100_framework_commit=a100_commit,
+                    A100_original_launch_SHA256=case['launch_SHA256'])
+    need(all(protocol.get(key) == value for key, value in identity.items()), 'effect training protocol identity differs')
+    fields = ('training_recipe_SHA256', 'schedule_SHA256', 'input_order_SHA256')
+    common = {key: protocol.get(key) for key in fields}
+    need(all(map(sha, common.values())), 'missing frozen effect training recipe, schedule or input order')
+    first, last = protocol.get('start_global_step'), protocol.get('final_global_step')
+    need(type(first) is int and type(last) is int and 0 <= first < last, 'invalid common effect training updates')
+    runs = protocol['runs']
+    need(set(runs) == {'A100','Hygon'} and runs['A100']['SHA256'] != runs['Hygon']['SHA256'],
+         'paired effect training needs two distinct original runs')
+    checkpoints = {}
+    for platform, commit in (('A100', a100_commit), ('Hygon', framework_commit)):
+        attachment = runs[platform]
+        need(sha(attachment.get('SHA256')), 'missing original effect training run evidence')
+        run = verify_raw(attachment)
+        binding = dict(common, case=case['case'], platform=platform, framework_commit=commit)
+        if platform == 'A100':
+            binding['original_launch_SHA256'] = case['launch_SHA256']
+        need(all(run.get(key) == value for key,value in binding.items()), 'effect training run recipe or identity differs')
+        progress = run['training_progress']
+        expected = dict(start_global_step=first, final_global_step=last, executed_optimizer_updates=last-first)
+        need(all(type(progress.get(key)) is int and progress[key] == value for key,value in expected.items()),
+             'effect training run does not cover the frozen update window')
+        terminal = run['terminal']
+        method, handle = terminal['method'], terminal['handle']
+        need(method in ('slurm-step','launcher-process') and isinstance(handle, str) and handle == handle.strip()
+             and handle and terminal['state'] == 'COMPLETED' and terminal['exit_code'] == '0:0',
+             'effect training lacks a successful terminal execution')
+        need(platform != 'Hygon' or method == 'slurm-step', 'Hygon effect training needs an original Slurm step')
+        if method == 'slurm-step':
+            need(re.fullmatch(r'[0-9]+\.[0-9]+', handle) is not None, 'effect training needs a numbered Slurm step')
+        checkpoint = run['final_checkpoint_SHA256']
+        need(sha(checkpoint), 'effect training has no bound final checkpoint')
+        checkpoints[platform] = checkpoint
+        if platform == 'Hygon':
+            start = run['start_checkpoint_SHA256']
+            need(sha(start), 'Hygon before evaluation needs its original checkpoint evidence')
+            checkpoints['Hygon_before'] = start
+    return checkpoints
 
 
 def stage_three(case, framework_commit, evidence, verify_raw):
@@ -495,7 +544,9 @@ def stage_three(case, framework_commit, evidence, verify_raw):
         shared = {field: holdout.get(field) for field in ('dataset_SHA256', 'scorer_SHA256')}
         need(all(map(sha, shared.values())), 'missing held-out dataset or scorer identity')
         provenance.update(shared)
-    regressions = effect(holdout['metrics'], expected, provenance, verify_raw, metric_bindings=metric_bindings)
+    scored_checkpoints = effect_training_checkpoints(holdout, case, framework_commit, reference_commit, verify_raw)
+    regressions = effect(holdout['metrics'], expected, provenance, verify_raw, metric_bindings=metric_bindings,
+                         trained_checkpoints=scored_checkpoints)
     ratio = hygon / a100
     return {'A100_median_updates_per_second': a100, 'Hygon_median_updates_per_second': hygon,
             'throughput_ratio': ratio, 'effect_regressions': regressions,

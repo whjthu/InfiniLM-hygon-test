@@ -138,6 +138,23 @@ class TextVQAEffectTest(unittest.TestCase):
         holdout = {'metric_bindings': {'COCO CIDEr': caption_binding,
                        'TextVQA': {key: self.identity[key] for key in ('dataset_SHA256', 'scorer_SHA256')}},
                    'metrics': {'TextVQA': self.generate(), 'COCO CIDEr': row}}
+        training = dict(training_recipe_SHA256='a'*64,schedule_SHA256='b'*64,input_order_SHA256='c'*64)
+        effect_training = {}
+        for platform,commit,method,handle in (
+                ('A100','9'*40,'launcher-process','a100-original-run'),
+                ('Hygon',self.identity['framework_commit'],'slurm-step','1103606.888')):
+            run = dict(training,case=case['case'],framework_commit=commit,platform=platform,
+                      training_progress=dict(start_global_step=0,final_global_step=100,executed_optimizer_updates=100),
+                      terminal=dict(method=method,handle=handle,state='COMPLETED',exit_code='0:0'),
+                      final_checkpoint_SHA256=self.checkpoint_ids[platform])
+            if platform=='A100':
+                run['original_launch_SHA256']=case['launch_SHA256']
+            else:
+                run['start_checkpoint_SHA256']=self.checkpoint_ids['Hygon_before']
+            effect_training[platform]=self.attach(platform+'-training.json',run)
+        holdout['training_protocol']=self.attach('training-protocol.json',dict(
+            training,case=case['case'],framework_commit=self.identity['framework_commit'],A100_framework_commit='9'*40,
+            A100_original_launch_SHA256=case['launch_SHA256'],start_global_step=0,final_global_step=100,runs=effect_training))
         timing = {arm: [dict(run_id=arm + str(i), raw_receipt={'SHA256': str(i)*64}) for i in indices]
                   for arm, indices in (('A100', range(1, 4)), ('Hygon', range(4, 7)))}
         evidence = dict(case=case['case'], framework_commit=self.identity['framework_commit'], cards=8,
@@ -176,6 +193,24 @@ class TextVQAEffectTest(unittest.TestCase):
         case, evidence = self.vlm_stage_three_fixture(bad_checkpoints=True)
         with self.assertRaisesRegex(ValueError, 'different paired checkpoints'):
             self.audit_vlm_stage_three(case, evidence)
+
+    def test_stage_three_rejects_effect_from_a_different_training_window_or_checkpoint(self):
+        case,evidence=self.vlm_stage_three_fixture()
+        holdout=evidence['holdout']
+        original=holdout['training_protocol']
+        for changes,expected in (
+                ({'training_progress':dict(start_global_step=0,final_global_step=99,executed_optimizer_updates=99)},'frozen update window'),
+                ({'schedule_SHA256':'d'*64},'recipe or identity differs'),
+                ({'final_checkpoint_SHA256':'e'*64},'different paired checkpoints'),
+                ({'terminal':dict(method='slurm-step',handle='1103606.888',state='RUNNING',exit_code='0:0')},'successful terminal')):
+            with self.subTest(expected=expected):
+                protocol=self.read(original)
+                run=self.read(protocol['runs']['Hygon'])
+                run.update(changes)
+                protocol['runs']['Hygon']=self.attach('changed-effect-training.json',run)
+                holdout['training_protocol']=self.attach('changed-training-protocol.json',protocol)
+                with self.assertRaisesRegex(ValueError,expected):
+                    self.audit_vlm_stage_three(case,evidence)
 
 
 if __name__ == '__main__':
