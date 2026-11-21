@@ -15,6 +15,7 @@ from vggt_co3d_effect import (
     UPSTREAM as CO3D_POSE_EVALUATOR, credit as co3d_credit, scorer_sha256 as co3d_scorer_sha256,
 )
 from training_fid import verify_fid
+from training_material_mae import MATERIAL_FIELDS, verify_material_mae
 
 METRICS = {
     'T01': {'TextVQA': 'higher', 'COCO CIDEr': 'higher'},
@@ -444,7 +445,7 @@ def verify_sample_inventory(row, metric, provenance, checkpoints, verify_raw, *,
         need(observed == expected and failed == row[platform + '_failed']
              and len(samples) - failed == row[platform + '_scored'],
              'held-out sample inventory or counts differ from the declared plan')
-        if verify_artifacts is not None:
+        if verify_artifacts is not None and metric not in MATERIAL_FIELDS:
             verify_artifacts(samples, metric, files.get(platform))
         if textvqa:
             accuracy = credit_sum / (30 * len(sample_ids))
@@ -468,6 +469,8 @@ def verify_sample_inventory(row, metric, provenance, checkpoints, verify_raw, *,
         verify_fid(row, identity, planned, inventory, checkpoints, verify_raw, read_binary)
     if co3d_limit is not None:
         return (planned['evaluation_plan_SHA256'], inventory['prediction_manifest_SHA256'], files, inventory['arms'])
+    if metric in MATERIAL_FIELDS:
+        return verify_material_mae(row, identity, planned, inventory, checkpoints, verify_artifacts)
 
 
 def effect(rows, expected, provenance, verify_raw, *, metric_bindings=None, trained_checkpoints=None,
@@ -481,6 +484,7 @@ def effect(rows, expected, provenance, verify_raw, *, metric_bindings=None, trai
     regressions = {}
     common_checkpoints = None
     co3d_pair_binding = None
+    material_binding = None
     for metric, direction in expected.items():
         row = rows[metric]
         identity = provenance if metric_bindings is None else {**provenance, **metric_bindings[metric]}
@@ -513,7 +517,11 @@ def effect(rows, expected, provenance, verify_raw, *, metric_bindings=None, trai
                  'held-out score and failure counts do not close')
         pair_binding = verify_sample_inventory(row, metric, identity, checkpoints, verify_raw,
                                                read_binary=read_binary, verify_artifacts=verify_artifacts)
-        if pair_binding is not None:
+        if metric in MATERIAL_FIELDS:
+            need(material_binding is None or pair_binding == material_binding,
+                 'SF3D material metrics use different plans, scorers or head outputs')
+            material_binding = pair_binding
+        elif pair_binding is not None:
             need(co3d_pair_binding is None or pair_binding == co3d_pair_binding,
                  'VGGT CO3D AUC thresholds use different plans, predictions or pair errors')
             co3d_pair_binding = pair_binding

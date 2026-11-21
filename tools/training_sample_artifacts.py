@@ -2,8 +2,12 @@
 
 from hashlib import sha256
 import json
+import math
 from pathlib import Path
 import re
+import struct
+
+from training_material_mae import MATERIAL_FIELDS, QUERY_ARTIFACT, RGBA_ARTIFACT
 
 
 JSONL_METRICS = {"TextVQA": "question_id", "COCO CIDEr": "image_id",
@@ -80,10 +84,42 @@ def verifier(repo, private_roots=()):
     require(all(root.is_dir() for root in roots), "each held-out artifact root must be a directory")
 
     def verify(samples, metric, declared_file_sha=None):
+        if metric == QUERY_ARTIFACT:
+            counts = {}
+            for sample in samples:
+                path, line = resolve_location(sample["artifact"]["location"], roots)
+                limit = 12 * 16_384
+                with path.open("rb") as handle:
+                    raw = handle.read(limit + 1)
+                require(line is None and sample["sample_id"] not in counts and 0 < len(raw) <= limit
+                        and len(raw) % 12 == 0 and sha256(raw).hexdigest() == sample["artifact"]["SHA256"],
+                        "SF3D query position bytes differ")
+                require(all(all(map(math.isfinite, point)) for point in struct.iter_unpack("<fff", raw)),
+                        "nonfinite SF3D query position")
+                counts[sample["sample_id"]] = len(raw) // 12
+            return counts
+        if metric in MATERIAL_FIELDS:
+            records = {}
+            locations = set()
+            for sample in samples:
+                path, line = resolve_location(sample["artifact"]["location"], roots)
+                require(line is None and path not in locations and sample["sample_id"] not in records,
+                        "expected a distinct SF3D material record for each sample")
+                locations.add(path)
+                with path.open("rb") as handle:
+                    raw = handle.read(4 * 1024 ** 2 + 1)
+                require(0 < len(raw) <= 4 * 1024 ** 2 and sha256(raw).hexdigest() == sample["artifact"]["SHA256"],
+                        "SF3D material artifact size or hash differs")
+                record = json.loads(raw)
+                require(record["sample_id"] == sample["sample_id"] and record["status"] == sample["status"],
+                        "SF3D material artifact belongs to another sample or status")
+                records[sample["sample_id"]] = record
+            return records
         by_path = {}
         identity_key = JSONL_METRICS.get(metric)
         for sample in samples:
             path, line = resolve_location(sample["artifact"]["location"], roots)
+            require(metric != RGBA_ARTIFACT or line is None, "expected the original SF3D RGBA file")
             require(identity_key is None or line is not None, "expected a line in the pinned prediction file")
             entries = by_path.setdefault(path, {})
             require(line not in entries, "held-out prediction locator reused within one arm")
