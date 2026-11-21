@@ -1,6 +1,7 @@
 """Dispatch bounded, independently replaceable projection benchmarks."""
 
 import argparse
+from collections import defaultdict
 import hashlib
 import json
 import os
@@ -80,6 +81,20 @@ def collect_case(root, card_count):
     return reports
 
 
+def shard_nodes(selected, owners, occupied):
+    """Keep each independently stoppable Slurm step inside one resource group."""
+    by_group = defaultdict(list)
+    for node in sorted(selected):
+        parent, zone = owners[node]
+        if node not in occupied[parent]:
+            by_group[parent, zone].append(node)
+    return {
+        f"qwenpack-{REQUEST}-{parent}-{zone}-{offset // 4:02d}": (parent, nodes[offset:offset + 4])
+        for (parent, zone), nodes in sorted(by_group.items())
+        for offset in range(0, len(nodes), 4)
+    }
+
+
 def main(plan_path):
     plan = json.loads(plan_path.read_bytes())
     if plan["request"] != REQUEST or not 0 <= time.time() - plan["epoch"] < 60:
@@ -94,10 +109,7 @@ def main(plan_path):
         raise ValueError("protected nodes must stay out of the replacement queue")
     by_parent = {j: sorted(n for n, (job, _) in owners.items() if job == j) for j in PARENTS}
     occupied = {job: allocation(job, nodes) for job, nodes in by_parent.items()}
-    admitted = {job: sorted(n for n in nodes if n in selected and n not in occupied[job])
-                for job, nodes in by_parent.items()}
-    groups = {f"qwenpack-{REQUEST}-{job}-{i:02d}": (job, nodes[i:i+4])
-              for job, nodes in admitted.items() for i in range(0, len(nodes), 4)}
+    groups = shard_nodes(selected, owners, occupied)
     if not groups or account(groups):
         raise ValueError("no new safe shard slots or fixed label already submitted")
     RUN.mkdir(mode=0o700, exist_ok=False)
