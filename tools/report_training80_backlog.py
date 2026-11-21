@@ -50,6 +50,42 @@ def pin_file(repo, reference, prefixes):
     return raw
 
 
+def has_original_intent(repo, marker_names):
+    need(type(marker_names) is list and bool(marker_names), 'missing exact attempted-run sentinels')
+    present = False
+    for name in marker_names:
+        need(isinstance(name, str) and name.startswith('local-only/') and '\\' not in name,
+             'attempt receipt must be an exact local-only file')
+        marker = (repo / name).resolve()
+        need(marker.is_relative_to(repo / 'local-only'), 'attempt receipt escaped its repository scope')
+        try:
+            marker.stat()
+        except FileNotFoundError:
+            continue
+        present = True
+    return present
+
+
+def read_original_holds(repo, jobs, known_nodes):
+    """Read direct launch holds even when they have no SQLite reservation."""
+    records = {}
+    marker_errors = {}
+    for job in jobs:
+        ident, state, placement = (job[key] for key in ('id', 'state', 'placement'))
+        if state == 'ready':
+            try:
+                if not has_original_intent(repo, job['launch']['attempt_receipts']):
+                    continue
+                state = 'reconcile'
+            except (KeyError, OSError, RuntimeError, TypeError, ValueError) as error:
+                state = 'unverified_attempt_markers'
+                marker_errors[ident] = str(error)
+        if state in ('reconcile', 'submitted', 'unverified_attempt_markers'):
+            need(placement and all(node in known_nodes for node in placement), 'unknown original placement')
+            records[ident] = dict(state=state, nodes=sorted(placement))
+    return records, marker_errors
+
+
 def invocation(repo, job):
     """Check entry-point syntax while leaving imports and transport to the coordinator."""
     repo = repo.resolve()
@@ -159,18 +195,7 @@ def verify_launch(repo, job):
         value = json.loads(raw)
         need(all(key in value and type(value[key]) is type(item) and value[key] == item
                  for key, item in expected.items()), f'{field} does not close the exact dispatch prerequisite')
-    need(type(launch['attempt_receipts']) is list and bool(launch['attempt_receipts']), 'missing exact attempted-run sentinels')
-    for name in launch['attempt_receipts']:
-        need(isinstance(name, str) and name.startswith('local-only/') and '\\' not in name,
-             'attempt receipt must be an exact local-only file')
-        marker = (repo / name).resolve()
-        need(marker.is_relative_to(repo / 'local-only'), 'attempt receipt escaped its repository scope')
-        try:
-            marker.stat()
-        except FileNotFoundError:
-            continue
-        return 'reconcile'
-    return 'ready'
+    return 'reconcile' if has_original_intent(repo, launch['attempt_receipts']) else 'ready'
 
 
 def read_queue_holds(path):
@@ -195,8 +220,9 @@ def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(
     need(type(minimum) is int and minimum >= 5, 'minimum ready training must be at least five')
     identities, workload_ids, request_ids, rows, proposed = set(), set(), set(), [], []
     occupied = set()
-    held = {node for item in holds for node in item['nodes'] if node in nodes}
+    queue_held = {node for item in holds for node in item['nodes'] if node in nodes}
     ordered = sorted(backlog['items'], key=lambda job: (PRIORITY[job['kind']], job['priority'], job['id']))
+    original_holds, marker_errors = read_original_holds(repo, ordered, nodes)
     for job in ordered:
         ident, kind, state = (job[key] for key in ('id', 'kind', 'state'))
         need(ident not in identities and state in STATES and type(job['priority']) is int and
@@ -225,7 +251,11 @@ def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(
                 row['evidence'] = job['evidence']
                 pin_file(repo, job['evidence'], ('coordination/tasks/', 'analysis/bw1000/', 'results/bw1000/', 'local-only/'))
             if state == 'ready':
-                state = verify_launch(repo, job)
+                if ident in marker_errors:
+                    raise ValueError(marker_errors[ident])
+                state = original_holds[ident]['state'] if ident in original_holds else verify_launch(repo, job)
+                if state == 'reconcile':
+                    original_holds[ident] = dict(state=state, nodes=sorted(wanted))
                 if state == 'ready':
                     command = invocation(repo, job)
                     if command is None:
@@ -237,26 +267,32 @@ def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(
             row['launch_evidence_error'] = str(exc)
         row['candidate_state'] = state
         row['dispatch_state'] = state
+        rows.append(row)
+
+    held = queue_held | {node for record in original_holds.values() for node in record['nodes']}
+    for job, row in zip(ordered, rows):
+        ident = row['id']
+        wanted = set(row['placement'])
+        state = row['candidate_state']
         if state == 'ready':
             probe = snapshot.get('nodes', {})
             ports = set(job['launch']['required_ports'])
             need(all(type(port) is int and 1 <= port <= 65535 for port in ports), 'invalid requested socket port')
-            if not fresh:
+            if held.intersection(wanted):
+                row['dispatch_state'] = 'awaiting_original_queue_release'
+            elif not fresh:
                 row['dispatch_state'] = 'awaiting_fresh_device_receipt'
             elif any(nodes[name]['admission'] != 'clear' or not isinstance(probe[name]['ports_checked'], list) or
                      not isinstance(probe[name]['occupied_ports'], list) or
                      not ports <= set(probe[name]['ports_checked']) or
                      ports.intersection(probe[name]['occupied_ports']) for name in wanted):
                 row['dispatch_state'] = 'awaiting_device_or_port_clearance'
-            elif held.intersection(wanted):
-                row['dispatch_state'] = 'awaiting_original_queue_release'
             elif occupied.intersection(wanted):
                 row['dispatch_state'] = 'awaiting_nonoverlapping_nodes'
             else:
                 row['dispatch_state'] = 'proposed_for_root'
                 occupied.update(wanted)
                 proposed.append(ident)
-        rows.append(row)
     training = [row for row in rows if row['kind'] == 'training']
     training_states = Counter(row['candidate_state'] for row in training)
     dispatch_states = Counter(row['dispatch_state'] for row in training)
@@ -270,7 +306,14 @@ def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(
     groups = {}
     for node, value in sorted(nodes.items()):
         group = groups.setdefault(value['zone'], {}).setdefault(value['parent'], {})
-        state = 'proposed_for_root' if node in occupied else 'queue_held' if node in held else value['admission']
+        if node in occupied:
+            state = 'proposed_for_root'
+        elif node in queue_held:
+            state = 'queue_held'
+        elif node in held:
+            state = 'original_launch_held'
+        else:
+            state = value['admission']
         group.setdefault(state, []).append(node)
     return dict(observed_epoch=membership['observed_epoch'], fleet_nodes=80, allocated_DCU=640,
                 numbered_step_membership_counts=dict(Counter(node['membership'] for node in nodes.values())),
@@ -278,13 +321,17 @@ def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(
                 maximum_numbered_step_assigned_DCU=membership['maximum_numbered_step_assigned_DCU'],
                 measured_busy_percent=None, fresh_device_receipt=fresh, admission_clear_nodes=sum(
                     node['admission'] == 'clear' for node in nodes.values()),
+                device_probe_scope=snapshot.get('device_probe_scope') if fresh else None,
+                device_admitted_unheld_DCU_lower_bound=(sum(node['admission'] == 'clear' and name not in held
+                                                            for name, node in nodes.items()) * 8 if fresh else None),
                 outstanding_training_ready=ready_training, minimum_training_ready=minimum,
                 training_pipeline=training_pipeline,
                 training_ready_deficit=max(0, minimum - ready_training),
                 blocked_or_reconciliation_training=training_states['blocked'] + training_states['reconcile'],
                 proposed_for_root=proposed, proposed_DCU=sum(row['requested_DCU'] for row in rows
                     if row['dispatch_state'] == 'proposed_for_root'),
-                proposed_nodes=sorted(occupied), queue_held_nodes=sorted(held), admission_by_zone_and_parent=groups,
+                proposed_nodes=sorted(occupied), queue_held_nodes=sorted(queue_held),
+                original_launch_holds=original_holds, admission_by_zone_and_parent=groups,
                 actual_submitted_DCU=0, advisory=True, rows=rows)
 
 

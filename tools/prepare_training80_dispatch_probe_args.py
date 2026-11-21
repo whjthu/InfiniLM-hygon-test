@@ -6,22 +6,7 @@ from pathlib import Path
 
 from prepare_training80_reconnect_worklist import WORKLIST, prepare
 from report_training80_backlog import (BACKLOG, PRIORITY, QUEUE_DB, REPO, TRAINING80_LEDGER,
-                                      invocation, need, pin_file, read_queue_holds, verify_launch)
-
-
-def has_original_intent(repo, marker_names):
-    present = False
-    for name in marker_names:
-        need(isinstance(name, str) and name.startswith('local-only/') and '\\' not in name,
-             'original attempt receipt must remain in local-only')
-        marker = (repo / name).resolve()
-        need(marker.is_relative_to(repo / 'local-only'), 'original attempt receipt escaped local-only')
-        try:
-            marker.stat()
-        except FileNotFoundError:
-            continue
-        present = True
-    return present
+                                      invocation, need, pin_file, read_original_holds, read_queue_holds, verify_launch)
 
 
 def probe_arguments(repo, backlog, ledger, holds, preflight=(), *, priority_only=False):
@@ -30,19 +15,10 @@ def probe_arguments(repo, backlog, ledger, holds, preflight=(), *, priority_only
                  for parent, nodes in zone['allocations'].items() for node in nodes}
     need(len(ownership) == 80, 'expected the frozen 80-node inventory')
     queue_held = {node for row in holds for node in row['nodes'] if node in ownership}
-    reconcile = {}
-    for job in backlog['items']:
-        if job['state'] in ('reconcile', 'submitted'):
-            pin_file(repo, job['evidence'], ('coordination/tasks/', 'results/bw1000/', 'analysis/bw1000/', 'local-only/'))
-            nodes = sorted(job['placement'])
-            need(nodes and all(node in ownership for node in nodes), 'original pending job placement is unknown')
-            reconcile[job['id']] = nodes
-    held = set(queue_held)
-    held.update(node for nodes in reconcile.values() for node in nodes)
+    original_holds, errors = read_original_holds(repo, backlog['items'], ownership)
     priority = {}
     ports = set()
     verified = []
-    errors = {}
     blocked = {}
 
     def select(nodes, checked_ports):
@@ -53,21 +29,17 @@ def probe_arguments(repo, backlog, ledger, holds, preflight=(), *, priority_only
 
     jobs = sorted(backlog['items'], key=lambda job: (PRIORITY[job['kind']], job['priority'], job['id']))
     for job in jobs:
-        if job['state'] != 'ready':
-            continue
         ident = job['id']
         nodes = sorted(job['placement'])
         try:
-            if has_original_intent(repo, job['launch']['attempt_receipts']):
-                need(all(node in ownership for node in nodes), 'invalid original placement')
-                held.update(nodes)
-                reconcile[ident] = nodes
+            if job['state'] in ('reconcile', 'submitted'):
+                pin_file(repo, job['evidence'], ('coordination/tasks/', 'results/bw1000/', 'analysis/bw1000/', 'local-only/'))
+            if job['state'] != 'ready' or ident in original_holds:
                 continue
             state = verify_launch(repo, job)
             if state != 'ready':
                 need(state == 'reconcile' and all(node in ownership for node in nodes), 'invalid original placement')
-                held.update(nodes)
-                reconcile[ident] = nodes
+                original_holds[ident] = dict(state=state, nodes=nodes)
             elif invocation(repo, job) is not None:
                 verified.append(job)
             else:
@@ -75,6 +47,7 @@ def probe_arguments(repo, backlog, ledger, holds, preflight=(), *, priority_only
         except (KeyError, OSError, TypeError, ValueError, SyntaxError) as error:
             errors[ident] = str(error)
 
+    held = queue_held | {node for record in original_holds.values() for node in record['nodes']}
     for job in verified:
         ident = job['id']
         nodes = sorted(job['placement'])
@@ -104,7 +77,10 @@ def probe_arguments(repo, backlog, ledger, holds, preflight=(), *, priority_only
     if priority_only:
         arguments.append('--priority-only')
     return dict(collector_arguments=arguments, priority_by_parent=by_parent, required_ports=sorted(ports),
-                queue_held_nodes=sorted(queue_held), held_nodes=sorted(held), reconcile_candidates=reconcile,
+                queue_held_nodes=sorted(queue_held), held_nodes=sorted(held),
+                reconcile_candidates={ident: record['nodes'] for ident, record in original_holds.items()
+                                      if record['state'] in ('reconcile', 'submitted')},
+                original_launch_holds=original_holds,
                 blocked_candidate_held_nodes=blocked, invalid_or_manual_launches=errors,
                 prepared_preflight_priority_nodes=preflight_priority,
                 verified_training_ready=sum(job['kind'] == 'training' for job in verified),

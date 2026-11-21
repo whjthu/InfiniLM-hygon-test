@@ -40,7 +40,8 @@ def zone_coverage(snapshot, report):
             result[zone][parent] = dict(slurm_no_numbered_step=sorted(idle),
                 device_clear_unplaced=sorted(idle.intersection(groups.get('clear', []))),
                 device_unverified=sorted(unverified - blocked), device_holders_observed=sorted(blocked),
-                queue_held=groups.get('queue_held', []), proposed=groups.get('proposed_for_root', []),
+                queue_held=groups.get('queue_held', []), original_launch_held=groups.get('original_launch_held', []),
+                proposed=groups.get('proposed_for_root', []),
                 active_numbered_step=sorted(active), other_membership=sorted(other))
     return result, owners
 
@@ -75,6 +76,7 @@ def build_handoff(snapshot, backlog, *, repo=REPO, holds=(), selected=None, now=
                           publication_commit=launch['publication_commit'], workload_SHA256=launch['workload_SHA256'],
                           snapshot_request=receipt['request_id'], snapshot_payload_SHA256=receipt['payload_SHA256'],
                           snapshot_raw_SHA256=receipt['raw_response_SHA256'], queue_holds_SHA256=held_digest,
+                          original_launch_holds_SHA256=digest(report['original_launch_holds']),
                           expires_local_monotonic=expires, boot_epoch_anchor=receipt['boot_epoch_anchor'],
                           placement_by_parent=placement, requested_DCU=sum(job['placement'].values()),
                           claim=launch['claim'], manifest=launch['manifest'], launcher=launch['launcher'],
@@ -84,6 +86,10 @@ def build_handoff(snapshot, backlog, *, repo=REPO, holds=(), selected=None, now=
     return dict(advisory=True, actual_dispatched_DCU=0, allocation_DCU=report['allocated_DCU'],
                 observed_epoch=report['observed_epoch'], fleet_nodes=report['fleet_nodes'],
                 fresh_device_receipt=report['fresh_device_receipt'], measured_busy_percent=None,
+                device_probe_scope=report['device_probe_scope'],
+                device_admitted_unheld_DCU_lower_bound=report['device_admitted_unheld_DCU_lower_bound'],
+                minimum_numbered_step_assigned_DCU=report['minimum_numbered_step_assigned_DCU'],
+                maximum_numbered_step_assigned_DCU=report['maximum_numbered_step_assigned_DCU'],
                 numbered_step_membership_counts=report['numbered_step_membership_counts'],
                 outstanding_training_ready=report['outstanding_training_ready'],
                 minimum_training_ready=report['minimum_training_ready'],
@@ -93,6 +99,7 @@ def build_handoff(snapshot, backlog, *, repo=REPO, holds=(), selected=None, now=
                                   for row in report['rows'] if row['kind'] == 'training' and
                                   row['candidate_state'] in ('blocked', 'reconcile')],
                 coordinator_handoffs=packets, manual_launcher_binding_required=unsupported,
+                original_launch_holds=report['original_launch_holds'],
                 invalid_launch_evidence=invalid_evidence)
 
 

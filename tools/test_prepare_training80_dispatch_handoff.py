@@ -132,6 +132,71 @@ cli.add_argument('--request-id')
         with self.assertRaisesRegex(ValueError, 'no current device-admitted'):
             self.handoff([job], selected=job['id'], holds=holds)
 
+    def test_new_original_marker_blocks_second_selection_on_same_node(self):
+        replacement = self.trial(index=1)
+        original = self.trial(index=2)
+        fresh = self.fleet.verified_snapshot()
+        [before] = self.handoff([replacement, original], snapshot=fresh)['coordinator_handoffs']
+        self.assertEqual(before['candidate'], replacement['id'])
+        self.fleet.put(original['launch']['attempt_receipts'][0], {'rc': 255, 'remote_outcome': 'UNKNOWN'})
+        self.fleet.put('code/bw1000/fixture-2/config.json', {'invalidates_old_candidate_manifest': True})
+
+        result = self.handoff([replacement, original], snapshot=fresh)
+        self.assertEqual(result['original_launch_holds'], {original['id']: {
+            'state': 'reconcile', 'nodes': ['a01r4n16']}})
+        self.assertEqual(result['coverage_by_zone_and_parent']['T01']['1087656']['original_launch_held'],
+                         ['a01r4n16'])
+        self.assertEqual(result['device_admitted_unheld_DCU_lower_bound'], 632)
+        self.assertIsNone(result['measured_busy_percent'])
+        self.assertEqual(result['coordinator_handoffs'], [])
+        with self.assertRaisesRegex(ValueError, 'no current device-admitted'):
+            self.handoff([replacement, original], selected=replacement['id'], snapshot=fresh)
+
+    def test_missing_original_evidence_keeps_both_participating_nodes_held(self):
+        original = self.trial(index=3)
+        original['state'] = 'submitted'
+        original['placement']['f13r1n10'] = 8
+        original['evidence'] = self.fleet.put('local-only/prior-original.json', {'state': 'unknown'})
+        (self.fleet.repo / original['evidence']['path']).unlink()
+        replacement = self.fleet.trial(1, node='f13r1n10')
+        independent = self.fleet.trial(2, node='f13r1n11')
+
+        result = self.handoff([replacement, independent, original])
+        self.assertEqual(result['original_launch_holds'], {original['id']: {
+            'state': 'submitted', 'nodes': ['a01r4n16', 'f13r1n10']}})
+        self.assertIn(original['id'], result['invalid_launch_evidence'])
+        [packet] = result['coordinator_handoffs']
+        self.assertEqual(packet['candidate'], independent['id'])
+        self.assertEqual(packet['original_launch_holds_SHA256'], digest(result['original_launch_holds']))
+
+    def test_unknown_attempt_marker_scope_keeps_candidate_placement_held(self):
+        replacement = self.trial(index=1)
+        original = self.trial(index=2)
+        original['launch']['attempt_receipts'] = ['local-only/../coordination/original.json']
+        result = self.handoff([replacement, original])
+        self.assertEqual(result['original_launch_holds'][original['id']]['state'], 'unverified_attempt_markers')
+        self.assertIn(original['id'], result['invalid_launch_evidence'])
+        self.assertEqual(result['coordinator_handoffs'], [])
+
+    def test_priority_device_window_reports_only_verified_lower_bound(self):
+        clear_nodes = {'a01r4n16', 'f13r1n11'}
+        self.fleet.snapshot['device_probe_scope'] = 'PRIORITY_ONLY'
+        for node, probe in self.fleet.snapshot['nodes'].items():
+            if node not in clear_nodes:
+                probe.update(device_probe_observed=False, KFD_clean=False, PID_clean=False,
+                             probe_error='DEFERRED_BY_PRIORITY_ONLY')
+
+        result = self.handoff([], snapshot=self.fleet.verified_snapshot())
+        self.assertEqual(result['allocation_DCU'], 640)
+        self.assertEqual(result['minimum_numbered_step_assigned_DCU'], 0)
+        self.assertEqual(result['maximum_numbered_step_assigned_DCU'], 0)
+        self.assertEqual(result['device_probe_scope'], 'PRIORITY_ONLY')
+        self.assertEqual(result['device_admitted_unheld_DCU_lower_bound'], 16)
+        self.assertIsNone(result['measured_busy_percent'])
+        stale = self.handoff([], snapshot=self.fleet.verified_snapshot(age=60))
+        self.assertIsNone(stale['device_probe_scope'])
+        self.assertIsNone(stale['device_admitted_unheld_DCU_lower_bound'])
+
 
 if __name__ == '__main__':
     unittest.main()
