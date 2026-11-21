@@ -71,4 +71,6 @@ MiniCPM 条目的 `target_completion_reader` 保留在已有原尝试的对账�
 
 Gemma 的 `frozen_invocation_after_gates` 绑定普通发布的 CPU 控制器。根协调者先核验训练数据、处理器、统一框架、唯一标签及节点归属，再填入真实框架目录和发布 SHA。Gemma 与 MiniCPM 的 CPU 前置验证各自绑定本机原意图路径。提交尝试开始后，即使 SQLite 中没有对应项，GPU 交接也保留整台节点，直到根协调者消费原终态并更新任务状态。CPU 前置验证单独显示，已准入训练数由真实优化器任务计算。
 
+Gemma 的 `target_completion_reader` 使用原派发所用的发布 SHA 作为 `--publication`。`tools/read_gemma_render72_native_cpu_original.py` 先查询 Slurm 原步，确认终态才检查原意图、控制器和 worker 收据，并按冻结数据的逐行哈希对照 72 条编码与整理记录。核验成功后，用报告中的 `worker_receipt.SHA256` 核对后续训练控制器所需的 `native-input-cpu-result.json` 原字节。CPU 前置不能代替八卡训练的原初始 LoRA 和实际 rank 采样器验证。
+
 `frozen_invocation_after_gates` 给出原启动器的参数结构。它需要已核验的真实发布提交、原任务准入和协调者现有连接。已有本机原意图的候选单列为待对账，并从下一步探测建议中移除。最新实际设备可用性和 busy 始终由新鲜的设备收据和驱动采样判定。预计卡数和 640 卡账本的配置容量仅用于排查。本工单只读取本地证据。
