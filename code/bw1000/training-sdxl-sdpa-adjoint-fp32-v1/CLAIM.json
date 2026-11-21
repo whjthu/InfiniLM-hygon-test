@@ -1,0 +1,37 @@
+{
+  "owner": "bw1000/root/T06",
+  "case": "T06.sft",
+  "label": "training-sdxl-sdpa-adjoint-fp32-v1",
+  "request": "a93d41a0d31140f1ad99bb105a024e99",
+  "operator_GO": true,
+  "GPU_GO": true,
+  "formal_training_GO": false,
+  "max_invocations": 1,
+  "replay_allowed": false,
+  "independent_post_required": true,
+  "hygon": {
+    "node": "f12r3n20",
+    "parent": "1087656",
+    "zone": "O01",
+    "DCU": 1,
+    "Slurm_cap_seconds": 780,
+    "whole_host_epoch_seconds": 1200
+  },
+  "hip_policy": {
+    "bf16_reduction": true,
+    "tf32_matmul": false,
+    "tf32_cudnn": true
+  },
+  "original_reference_SHA256": "c59a71095924edfdfb9ad7041b8ef32f747e7825557a313f72ad09a3b0b53036",
+  "original_native_forward_SHA256": "8edb12bd77ea3f7c193513551f904f168bf473239c37a2e23a90e87548a86df3",
+  "required_actual_attention_sites": 140,
+  "required_original_trainable_tensors": 1120,
+  "frozen_parameter_update_relative_L2_max": 0.05,
+  "complete_optimizer_updates_planned": 1,
+  "raw_tensor_transfers": 0,
+  "required_before_launch": [
+    "Verify the ordinary publication, both parent allocations and the original request namespace.",
+    "Reserve the exact owned O01 node without overlapping the original registered requests.",
+    "Run the in-campaign CPU contract with real PyTorch and no GRES, then take the fresh device receipt."
+  ]
+}
