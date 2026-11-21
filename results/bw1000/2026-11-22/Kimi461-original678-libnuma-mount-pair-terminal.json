@@ -1,0 +1,116 @@
+{
+  "source_step": "1103606.678",
+  "source_status_retained": "FAILED",
+  "source_result": {
+    "path": "results/bw1000/2026-11-22/Kimi461-original678-HOST-compile-and-passive-provider-gate-failure.json",
+    "SHA256": "7317e9032cb136c9e92ae76662cf75740fa36b2e52a1363eb6d584f5ad86467b"
+  },
+  "source_audit_publication": "30e954b9",
+  "accounting_columns": [
+    "JobIDRaw",
+    "JobName%100",
+    "State",
+    "ExitCode",
+    "ElapsedRaw",
+    "NodeList",
+    "AllocTRES"
+  ],
+  "actual_accounting": [
+    [
+      "1103606.729",
+      "Kimi461-wave-original678-provider-audit-CPU-v1",
+      "COMPLETED",
+      "0:0",
+      "1",
+      "f12r2n13",
+      "cpu=4,mem=8G,node=1"
+    ],
+    [
+      "1103606.730",
+      "Kimi461-original678-libnuma-mount-pair-CPU-v1",
+      "COMPLETED",
+      "0:0",
+      "1",
+      "f12r2n13",
+      "cpu=4,mem=8G,node=1"
+    ]
+  ],
+  "original_provider_rule_audit": {
+    "source": "1103606.678",
+    "step": "1103606.729",
+    "elapsed_seconds": 0.8027627468109131,
+    "loaded_count": 68,
+    "original_path_rule_pass": false,
+    "original_digests_complete": false,
+    "provider_bytes_read": 0,
+    "GPU_calls": 0,
+    "compiled_objects": 0,
+    "result_SHA256": "c6fd26ff9c0feef45283e8a724e46c1154b9ed1eaae63c92a93d090e869e8d3e",
+    "gate_counts": {
+      "cuda_provider_present": true,
+      "required_basenames_missing": 0,
+      "prior_paths_missing": 1,
+      "undeclared_loaded_paths": 1
+    },
+    "byte_mismatch_count": 0
+  },
+  "mount_pair": {
+    "steps": [
+      {
+        "step": "1103606.730",
+        "mode": "standard",
+        "rc": 0,
+        "provider": {
+          "/.singularity.d/libs/libnuma.so.1": {
+            "present": false
+          },
+          "/usr/lib/x86_64-linux-gnu/libnuma.so.1.0.0": {
+            "present": true,
+            "resolved": "/usr/lib/x86_64-linux-gnu/libnuma.so.1.0.0",
+            "size": 48152,
+            "sha256": "3582bce922d99959ee3eb6b7d686c0b99e14c2135616ad4d9d608b2118a7e78c",
+            "soname": "libnuma.so.1",
+            "prior335_path_present": false,
+            "prior330_digest_match": false
+          }
+        },
+        "stderr_bytes": 0
+      },
+      {
+        "step": "1103606.730",
+        "mode": "rocm",
+        "rc": 0,
+        "provider": {
+          "/.singularity.d/libs/libnuma.so.1": {
+            "present": true,
+            "resolved": "/.singularity.d/libs/libnuma.so.1",
+            "size": 51400,
+            "sha256": "4a0ebd05ec13854e7a875d8187d0153b57188f2a247ae20025e09a31075261d1",
+            "soname": "libnuma.so.1",
+            "prior335_path_present": true,
+            "prior330_digest_match": true
+          },
+          "/usr/lib/x86_64-linux-gnu/libnuma.so.1.0.0": {
+            "present": true,
+            "resolved": "/usr/lib/x86_64-linux-gnu/libnuma.so.1.0.0",
+            "size": 48152,
+            "sha256": "3582bce922d99959ee3eb6b7d686c0b99e14c2135616ad4d9d608b2118a7e78c",
+            "soname": "libnuma.so.1",
+            "prior335_path_present": false,
+            "prior330_digest_match": false
+          }
+        },
+        "stderr_bytes": 53
+      }
+    ],
+    "receipt_SHA256": "5d6f91ac89e98bd2bad3d167b50a0389f90c384227491e1ca3a666ed4ac67bb2",
+    "receipt_bytes": 1266,
+    "intent_SHA256": "0c82ecd37d4d17b3ac95872adb05d86b3980e1ddc80057f46a9f72f00993e96a"
+  },
+  "interpretation": "The previously qualified ROCm-injected libnuma provider and the unqualified container provider have the same SONAME and different bytes. The original ROCm container option restores visibility of the provider that matches the accepted SHA and prior path. The paired step checked file identity only. A fresh passive relocation check over the entire pinned DSO under the repaired mount is required before reusing the artifact.",
+  "native_execution": false,
+  "compiled_objects": 0,
+  "new_link_calls": 0,
+  "GPU_steps": 0,
+  "formal_Kimi_speedup": false
+}
