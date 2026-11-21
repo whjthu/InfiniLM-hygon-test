@@ -81,7 +81,8 @@ def ship(publication, snapshot, transport, *, repo=REPO, check_publication=publi
                   publication_commit=publication, workload_SHA256=sha256(raw_claim).hexdigest(),
                   snapshot_payload_SHA256=receipt['payload_SHA256'], snapshot_raw_SHA256=receipt['raw_response_SHA256'],
                   placement_by_parent=approved, snapshot_request=receipt['request_id'],
-                  before=admission, replay_allowed=False, expires_local_monotonic=cutoff)
+                  before=admission, replay_allowed=False, expires_local_monotonic=cutoff,
+                  launcher=(BASE / 'controller.py').as_posix(), invocation={'kind':'pinned_finite_code'})
     packet['handoff_SHA256'] = digest(packet)
     directory = (repo / INTENT).parent
     run = digest(dict(stage=DIRECT_STAGE,request=REQUEST))
