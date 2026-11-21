@@ -14,6 +14,7 @@ from training_numerics import (
     ZERO_LR_VLM_REQUESTS, comparison_plan as numerics_plan, original_vlm_update_schedule, verify_numerics,
 )
 from training_recovery import recovery_plan, verify_recovery
+from training_sample_artifacts import verifier as sample_artifact_verifier
 
 
 TRAINING_GROUPS = {f"T{i:02d}" for i in range(1, 13)}
@@ -24,7 +25,7 @@ def require(condition, message):
         raise ValueError(message)
 
 
-def verify(root):
+def verify(root, *, private_roots=()):
     status = json.loads((root / "status/bw1000/latest.json").read_bytes())
     index = status["unified_training_acceptance_matrix"]
 
@@ -56,6 +57,7 @@ def verify(root):
     assigned = [case for group in sorted(TRAINING_GROUPS) for case in groups[group]["cases"]]
     require(ids == assigned, "matrix and resource ledger training case identities differ")
     pins = dict(matrix["evidence_SHA256"])
+    verify_sample_artifacts = sample_artifact_verifier(root, private_roots)
 
     def pinned_attachment(item, max_bytes=None):
         path, digest = item["path"], item["SHA256"]
@@ -134,7 +136,8 @@ def verify(root):
             require(path not in gate_paths, f"{case['case']}: duplicate metrics evidence")
             require(pins.setdefault(path, digest) == digest, f"conflicting evidence hashes: {path}")
             metrics = stage_three(case, matrix["framework_commit"], json.loads(pinned(path, digest)),
-                                  verify_formal_attachment, read_binary=pinned_attachment)
+                                  verify_formal_attachment, read_binary=pinned_attachment,
+                                  verify_artifacts=verify_sample_artifacts)
             require(metrics["passed"] is case["stage3_accepted"],
                     f"{case['case']}: formal measurements and acceptance flag disagree")
 
@@ -197,8 +200,10 @@ def verify(root):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("repo", type=Path)
+    parser.add_argument("--private-root", action="append", type=Path, default=[],
+                        help="additional local or mounted experiment directory holding original samples")
     args = parser.parse_args()
-    print(json.dumps(verify(args.repo.resolve(strict=True))))
+    print(json.dumps(verify(args.repo.resolve(strict=True), private_roots=args.private_root)))
 
 
 if __name__ == "__main__":

@@ -333,7 +333,8 @@ def timing(runs, cards, recipe, boundary, verify_raw, *, provenance, shared_devi
     return (median, reference_scope) if return_scope else median
 
 
-def verify_sample_inventory(row, metric, provenance, checkpoints, verify_raw, *, read_binary=None):
+def verify_sample_inventory(row, metric, provenance, checkpoints, verify_raw, *,
+                            read_binary=None, verify_artifacts=None):
     """Check a frozen ID plan and a manifest of private per-sample artifacts.
 
     These attachments are SHA-pinned JSON. Artifact locations and digests
@@ -360,6 +361,7 @@ def verify_sample_inventory(row, metric, provenance, checkpoints, verify_raw, *,
     textvqa = metric == 'TextVQA'
     cider = metric == CIDER_METRIC
     co3d_limit = next((limit for limit in CO3D_THRESHOLDS if metric == f'AUC@{limit}'), None)
+    files = {}
     if co3d_limit is not None:
         files = inventory.get('prediction_file_SHA256')
         category_auc = inventory.get('category_auc')
@@ -442,6 +444,8 @@ def verify_sample_inventory(row, metric, provenance, checkpoints, verify_raw, *,
         need(observed == expected and failed == row[platform + '_failed']
              and len(samples) - failed == row[platform + '_scored'],
              'held-out sample inventory or counts differ from the declared plan')
+        if verify_artifacts is not None:
+            verify_artifacts(samples, metric, files.get(platform))
         if textvqa:
             accuracy = credit_sum / (30 * len(sample_ids))
             need(0 <= row[platform] <= 1 and math.isclose(row[platform], accuracy, rel_tol=0, abs_tol=1e-12),
@@ -466,7 +470,8 @@ def verify_sample_inventory(row, metric, provenance, checkpoints, verify_raw, *,
         return (planned['evaluation_plan_SHA256'], inventory['prediction_manifest_SHA256'], files, inventory['arms'])
 
 
-def effect(rows, expected, provenance, verify_raw, *, metric_bindings=None, trained_checkpoints=None, read_binary=None):
+def effect(rows, expected, provenance, verify_raw, *, metric_bindings=None, trained_checkpoints=None,
+           read_binary=None, verify_artifacts=None):
     need(rows.keys() == expected.keys(), 'held-out metric set differs')
     if metric_bindings is not None:
         fields = {'dataset_SHA256', 'scorer_SHA256'}
@@ -506,7 +511,8 @@ def effect(rows, expected, provenance, verify_raw, *, metric_bindings=None, trai
             need(type(scored) is int and type(failed) is int and scored > 0 and failed >= 0
                  and scored + failed == row['planned_samples'],
                  'held-out score and failure counts do not close')
-        pair_binding = verify_sample_inventory(row, metric, identity, checkpoints, verify_raw, read_binary=read_binary)
+        pair_binding = verify_sample_inventory(row, metric, identity, checkpoints, verify_raw,
+                                               read_binary=read_binary, verify_artifacts=verify_artifacts)
         if pair_binding is not None:
             need(co3d_pair_binding is None or pair_binding == co3d_pair_binding,
                  'VGGT CO3D AUC thresholds use different plans, predictions or pair errors')
@@ -564,7 +570,8 @@ def effect_training_checkpoints(holdout, case, framework_commit, a100_commit, ve
     return checkpoints
 
 
-def stage_three(case, framework_commit, evidence, verify_raw, *, read_binary=None):
+def stage_three(case, framework_commit, evidence, verify_raw, *, verify_artifacts, read_binary=None):
+    need(callable(verify_artifacts), 'formal training acceptance requires readable held-out artifacts')
     need(evidence['case'] == case['case'] and evidence['framework_commit'] == framework_commit,
          'formal evidence belongs to a different case or framework')
     cards = evidence['cards']
@@ -616,7 +623,8 @@ def stage_three(case, framework_commit, evidence, verify_raw, *, read_binary=Non
         provenance.update(shared)
     scored_checkpoints = effect_training_checkpoints(holdout, case, framework_commit, reference_commit, verify_raw)
     regressions = effect(holdout['metrics'], expected, provenance, verify_raw, metric_bindings=metric_bindings,
-                         trained_checkpoints=scored_checkpoints, read_binary=read_binary)
+                         trained_checkpoints=scored_checkpoints, read_binary=read_binary,
+                         verify_artifacts=verify_artifacts)
     ratio = hygon / a100
     return {'A100_median_updates_per_second': a100, 'Hygon_median_updates_per_second': hygon,
             'throughput_ratio': ratio, 'effect_regressions': regressions,

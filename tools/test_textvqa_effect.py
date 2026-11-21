@@ -11,6 +11,7 @@ import textvqa_effect as producer
 from coco_cider_effect import (ORIGINAL_TRAINING_SHA256 as CIDER_TRAINING_SHA256, POLICY as CIDER_POLICY,
                                WHEEL_SHA256 as CIDER_WHEEL_SHA256)
 from training_formal_metrics import effect, stage_three
+from training_sample_artifacts import verifier as sample_artifact_verifier
 
 
 class TextVQAEffectTest(unittest.TestCase):
@@ -121,14 +122,22 @@ class TextVQAEffectTest(unittest.TestCase):
                             sample_plan_SHA256=plan['SHA256'], checkpoint_SHA256=checkpoints,
                             original_training_SHA256=CIDER_TRAINING_SHA256, images=media_records))
         case_scores = dict(A100=1, Hygon=.97, Hygon_before=.88)
-        sampled = {arm: [{'sample_id': item['image_id'], 'status': 'scored', 'cider_score': value,
-                          'image_SHA256': item['SHA256'],
-                          'artifact': {'location': 'private/caption', 'SHA256': '9' * 64}} for item in media_records]
-                   for arm, value in case_scores.items()}
+        sampled = {}
+        prediction_digests = {}
+        for arm, value in case_scores.items():
+            path = self.root / f'{arm}-captions.jsonl'
+            lines = [(json.dumps(dict(image_id=int(item['image_id']), caption='fixture caption')) + '\n').encode()
+                     for item in media_records]
+            path.write_bytes(b''.join(lines))
+            prediction_digests[arm] = sha256(path.read_bytes()).hexdigest()
+            sampled[arm] = [dict(sample_id=item['image_id'], status='scored', cider_score=value,
+                                 image_SHA256=item['SHA256'],
+                                 artifact=dict(location=f'{path}#line={number}', SHA256=sha256(line).hexdigest()))
+                            for number, (item, line) in enumerate(zip(media_records, lines), 1)]
         inventory = self.attach('coco-inventory.json', dict(identity, metric='COCO CIDEr',
                                 sample_plan_SHA256=plan['SHA256'], checkpoint_SHA256=checkpoints,
                                 cider_scoring=CIDER_POLICY, scorer_binding=scorer, image_inventory=media,
-                                prediction_file_SHA256={arm: '3' * 64 for arm in producer.ARMS}, arms=sampled))
+                                prediction_file_SHA256=prediction_digests, arms=sampled))
         row = dict(case_scores, planned_samples=len(image_ids), sample_plan=plan, sample_inventory=inventory)
         for arm in producer.ARMS:
             row.update({f'{arm}_scored': len(image_ids), f'{arm}_failed': 0})
@@ -168,7 +177,8 @@ class TextVQAEffectTest(unittest.TestCase):
         a100_scope = {'rank_groups_by_node': [ranks]}
         target_scope = {'rank_groups_by_node': target_rank_groups or [ranks]}
         with patch('training_formal_metrics.timing', side_effect=[(1.0, a100_scope), (0.91, target_scope)]):
-            return stage_three(case, self.identity['framework_commit'], evidence, self.read)
+            return stage_three(case, self.identity['framework_commit'], evidence, self.read,
+                               verify_artifacts=sample_artifact_verifier(self.root))
 
     def test_stage_three_joins_independent_textvqa_and_coco_bindings(self):
         case, evidence = self.vlm_stage_three_fixture()
@@ -177,6 +187,13 @@ class TextVQAEffectTest(unittest.TestCase):
         self.assertAlmostEqual(result['effect_regressions']['COCO CIDEr']['relative_degradation'], .03)
         self.assertEqual(result['effect_regressions']['TextVQA']['relative_degradation'], 0)
         self.assertEqual(result['timing_hardware']['A100']['rank_groups_by_node'], [list(range(8))])
+
+    def test_stage_three_rejects_changed_original_prediction_with_unchanged_receipts(self):
+        case, evidence = self.vlm_stage_three_fixture()
+        path = self.root / 'Hygon-captions.jsonl'
+        path.write_bytes(path.read_bytes().replace(b'fixture caption', b'changed caption'))
+        with self.assertRaisesRegex(ValueError, 'artifact line hash differs'):
+            self.audit_vlm_stage_three(case, evidence)
 
     def test_stage_three_rejects_a100_and_target_rank_layout_differences(self):
         case, evidence = self.vlm_stage_three_fixture()
