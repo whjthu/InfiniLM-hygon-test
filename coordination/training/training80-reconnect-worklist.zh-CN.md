@@ -32,6 +32,15 @@ Qwen 的旧 Dev80 条目携带 `target_reconciliation_probe` 和依赖 SHA。认
 
 Qwen 八卡训练还登记了 `target_read_only_preflight`。用原认证连接运行 `tools/preflight_qwen_usgs_exposure25.py`，它先查询 Dev80 原请求，再核候选训练的独立命名空间、CPU 输入步骤 1103606.490、393 份统一框架文件、88 行训练输入与 22 张训练图，并在返回前复查两个命名空间和 Slurm 归属。四片原模型权重和原初始参数在此只核文件类型与字节数，真正训练控制器仍核文件内容。取得预检结果后才按当前清理证据登记原 Dev80 的保留状态，再采集新鲜的设备、进程和端口 29918 证据。预检不提交作业，也不读取开发或盲测输入。
 
+Qwen 领域训练原编号 GPU 步终态并通过 `read_terminal.py` 后，保存对应独立 Slurm 七列记账和原样终态 JSON。在原实验存储上用项目 Python 比较连续训练和恢复训练各自保存的第 25 步适配器。
+
+```text
+sacct -n -P -j 1103606 --format=JobIDRaw,JobName%100,State,ExitCode,ElapsedRaw,NodeList,AllocTRES
+python -B tools/read_qwen_usgs_resumed_adapter_values.py --accounting <实际记账绝对路径> --terminal-metadata <独立终态JSON绝对路径> --terminal-metadata-sha256 <同一JSON的SHA256>
+```
+
+两份适配器按各自原库存 SHA 读取，以张量名、形状、类型和全部值比较两份第 25 步存档。数值与文件序列化差异分别记录。优化器、调度和各 rank 的 RNG 恢复沿用同一原运行的独立进程证据，正式首步数值、性能及留出效果分别验收。
+
 | 节点 | 候选 | 首项操作 |
 |---|---|---|
 | `f13r1n10` | Qwen 原 88 条训练输入，两臂合计 30 次优化器更新，8 卡 | 查重叠的 Dev80 原请求、原命名空间和实际编号步，再验目标原输入和引擎。 |
