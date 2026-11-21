@@ -99,3 +99,5 @@ Gemma 的 `target_completion_reader` 使用原派发所用的发布 SHA 作为 `
 `frozen_invocation_after_gates` 给出原启动器的参数结构。它需要已核验的真实发布提交、原任务准入和协调者现有连接。已有本机原意图的候选单列为待对账，并从下一步探测建议中移除。最新实际设备可用性和 busy 始终由新鲜的设备收据和驱动采样判定。预计卡数和 640 卡账本的配置容量仅用于排查。本工单只读取本地证据。
 
 Kimi retained28 的 0 卡编译使用 O01 的 `f12r2n10`。确认目标登录和当次归属后，由协调者调用 `tools/dispatch_kimi_r461_retained28_once.py` 的 `dispatch`，传入实际普通发布提交、项目内目标 checkout 和已有有限传输。该入口先在共享账本登记节点及唯一请求，再调用冻结 HOST 控制器。超时继续对账同一请求，原 wave 编译仍使用其独立节点和请求。编译和真实训练队列分开计数。
+
+DeepSeek CSA 的单 TU07 零卡编译使用 O01 的 `1087656/f12r3n17`。确认普通发布后，经既有认证连接执行 `tools/control_deep_csa_identity_compile.py --claim-sha256 <冻结认领 SHA> --prepare-stage`，保留九文件校验的实际返回字节。随后用当轮新鲜的设备回执和这份 stage 收据，调用 `tools/dispatch_deep_csa_identity_compile_once.py` 的 `dispatch`。入口先原子登记共享队列，再调用一次原 HOST 控制器。HOST 复查 stage、父作业归属及同名编号步，沿用 CPU1113 的容器外层和原 300 秒预算。本地连接返回不改变执行终态。若需对账，使用同一认领的 `--reconcile-existing`，保留实际 Slurm 行及独立产物 SHA；共享节点仍需独立清场证据才能归还。该任务属于编译队列。
