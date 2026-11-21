@@ -49,6 +49,41 @@ class PublicSegmentTest(unittest.TestCase):
             with self.subTest(body=body), self.assertRaises(ValueError):
                 self.fetch(Response(body))
 
+    def test_timeout_resumes_at_last_returned_byte(self):
+        class Interrupted(Response):
+            def read1(self, size):
+                if self.tell():
+                    raise TimeoutError('interrupted after returning data')
+                return super().read1(min(size, 2))
+
+        suffix = Response(b'cde')
+        suffix.headers = {'Content-Range': 'bytes 1048578-1048580/1048581', 'Content-Length': '3'}
+        responses = iter((Interrupted(b'ab'), suffix))
+        seen = []
+
+        def opener(request, *, timeout):
+            seen.append(request.get_header('Range'))
+            return next(responses)
+
+        raw = relay.public_range(self.spec, 1048576, time.monotonic() + 3, open_url=opener)
+        self.assertEqual(raw, b'abcde')
+        self.assertEqual(seen, ['bytes=1048576-1048580', 'bytes=1048578-1048580'])
+
+    def test_reconnects_are_bounded_by_original_budget_and_count(self):
+        calls = []
+
+        def timeout(*args, **kwargs):
+            calls.append(kwargs['timeout'])
+            raise TimeoutError('publisher interrupted')
+
+        with self.assertRaises(TimeoutError):
+            relay.public_range(self.spec, 1048576, time.monotonic() + 3, open_url=timeout)
+        self.assertEqual(len(calls), 4)
+        self.assertTrue(all(0 < value <= 3 for value in calls))
+        with self.assertRaises(ValueError):
+            relay.public_range(self.spec, 1048576, time.monotonic() - 1, open_url=timeout)
+        self.assertEqual(len(calls), 4)
+
     def test_frozen_receiver_bootstrap(self):
         packet = relay.make_program(self.spec, 'inspect', None, None, 5)
         self.assertEqual(int.from_bytes(packet[:8], 'little'), len(packet) - 8)

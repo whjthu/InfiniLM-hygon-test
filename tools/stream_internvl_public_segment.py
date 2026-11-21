@@ -7,6 +7,7 @@ from pathlib import Path
 import struct
 import subprocess
 import time
+from urllib.error import URLError
 from urllib.parse import urlsplit
 from urllib.request import Request, urlopen
 from uuid import uuid4
@@ -32,31 +33,43 @@ OPERATIONS = {'inspect', 'initialize', 'append', 'seal'}
 def public_range(spec, offset, deadline, *, open_url=urlopen):
     count = stage.segment_length(spec, offset)
     end = offset + count - 1
-    request = Request(BASE + spec['filename'], headers={
-        'Range': f'bytes={offset}-{end}', 'Accept-Encoding': 'identity',
-    })
-    remaining = deadline - time.monotonic()
-    stage.need(remaining > 0, 'public range budget expired')
-    with open_url(request, timeout=min(20, remaining)) as response:
-        endpoint = urlsplit(response.geturl())
-        stage.need(endpoint.scheme == 'https' and not endpoint.username and
-                   (endpoint.hostname == 'huggingface.co' or
-                    (endpoint.hostname or '').endswith(('.cdn.hf.co', '.hf.co'))),
-                   'unexpected official range endpoint')
-        stage.need(response.status == 206 and
-                   response.headers.get('Content-Range') == f'bytes {offset}-{end}/{spec["bytes"]}' and
-                   response.headers.get('Content-Length') == str(count) and
-                   response.headers.get('Content-Encoding', 'identity').lower() == 'identity',
-                   'publisher did not return the exact immutable range')
-        raw = bytearray()
-        while len(raw) < count:
-            stage.need(time.monotonic() < deadline, 'public range budget expired')
-            block = response.read(min(1024 * 1024, count - len(raw)))
-            stage.need(bool(block), 'short public range')
-            raw.extend(block)
-        stage.need(response.read(1) == b'' and time.monotonic() < deadline,
-                   'overlong public range or expired budget')
-    return raw
+    raw = bytearray()
+    for attempt in range(4):
+        start = offset + len(raw)
+        request = Request(BASE + spec['filename'], headers={
+            'Range': f'bytes={start}-{end}', 'Accept-Encoding': 'identity',
+        })
+        remaining = deadline - time.monotonic()
+        stage.need(remaining > 0, 'public range budget expired')
+        try:
+            with open_url(request, timeout=min(20, remaining)) as response:
+                verify_response(response, spec, start, end)
+                while len(raw) < count:
+                    stage.need(time.monotonic() < deadline, 'public range budget expired')
+                    block = response.read1(min(1024 * 1024, count - len(raw)))
+                    stage.need(bool(block), 'short public range')
+                    raw.extend(block)
+                stage.need(response.read(1) == b'' and time.monotonic() < deadline,
+                           'overlong public range or expired budget')
+                return raw
+        except (TimeoutError, ConnectionError, URLError) as exc:
+            cause = exc.reason if isinstance(exc, URLError) else exc
+            if (not isinstance(cause, (TimeoutError, ConnectionError)) or attempt == 3
+                    or len(raw) == count or time.monotonic() >= deadline):
+                raise
+
+
+def verify_response(response, spec, start, end):
+    endpoint = urlsplit(response.geturl())
+    stage.need(endpoint.scheme == 'https' and not endpoint.username and
+               (endpoint.hostname == 'huggingface.co' or
+                (endpoint.hostname or '').endswith(('.cdn.hf.co', '.hf.co'))),
+               'unexpected official range endpoint')
+    stage.need(response.status == 206 and
+               response.headers.get('Content-Range') == f'bytes {start}-{end}/{spec["bytes"]}' and
+               response.headers.get('Content-Length') == str(end - start + 1) and
+               response.headers.get('Content-Encoding', 'identity').lower() == 'identity',
+               'publisher did not return the exact immutable range')
 
 
 def make_program(spec, operation, offset, digest, allowance):
