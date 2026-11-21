@@ -64,7 +64,7 @@ VGGT 条目的 `target_read_only_preflight` 绑定登录节点上的只读入口
 & 'C:/Users/WangHaojie/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe' -B -X utf8 tools/prepare_training80_vggt_admission.py <target-preflight.json> <publication-commit> <new-local-only-directory>
 ```
 
-该入口核对已采纳训练包的 claim、原目标资产核验和两次原命名空间查询，并经普通 SSH Git 对照发布字节。成功时使用新目录下的 `backlog.json`，将同一路径以 `--backlog` 传给探测参数生成器和派发交接。采集新的设备回执，然后用 `--select vggt-tum-bidirectional-native30` 生成包并原子申领，再由原启动器执行一次。共享 backlog 保留为待准入。若认证、发布、原任务或设备任何一处有冲突，保留原请求处理对账。
+该入口核对已采纳训练包的 claim、原目标资产核验和两次原命名空间查询，并经普通 SSH Git 对照发布字节。成功时使用新目录下的 `backlog.json`，将同一路径以 `--backlog` 传给探测参数生成器和派发交接。采集新的设备回执，用 `--select vggt-tum-bidirectional-native30` 生成包，再走 [VGGT 带保护的单次派发](training80-vggt-guarded-dispatch.zh-CN.md)。该入口负责原子申领并调用冻结启动器。共享 backlog 保留为待准入。若认证、发布、原任务或设备任何一处有冲突，保留原请求处理对账。
 
 VGGT 具备真实目标资产、任务授权和唯一原请求证据后，把任务纳入待派发队列。使用该次收据执行 `prepare_training80_dispatch_handoff.py --select <candidate>`，保存生成的单项 JSON，再用同一收据、`--claim-packet` 及清单中的原 `--intent` 原子认领。只有取得 `DISPATCHING` 且仍在原准入期限内，根才按 `invocation` 经已有认证连接调用一次冻结启动器。用当次实际原请求和可核实的步骤更新记录。连接断开或启动器返回时未能确认 Slurm 终态，保留原认领进入对账。
 
