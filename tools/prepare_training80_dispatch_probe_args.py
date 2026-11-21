@@ -6,8 +6,9 @@ from pathlib import Path
 
 from prepare_training80_reconnect_worklist import WORKLIST, prepare
 from report_training80_backlog import (BACKLOG, PRIORITY, QUEUE_DB, REPO, TRAINING80_LEDGER,
-                                      direct_launch_state, direct_request_states, invocation, need, pin_file,
-                                      read_original_holds, read_queue_holds, verify_launch)
+                                      direct_launch_state, direct_request_states, direct_workloads, invocation,
+                                      need, pin_file, prior_workload_claims, read_original_holds, read_queue_holds,
+                                      verify_launch)
 
 
 def probe_arguments(repo, backlog, ledger, holds, preflight=(), *, priority_only=False):
@@ -17,12 +18,15 @@ def probe_arguments(repo, backlog, ledger, holds, preflight=(), *, priority_only
     need(len(ownership) == 80, 'expected the frozen 80-node inventory')
     queue_held = {node for row in holds for node in row['nodes'] if node in ownership}
     direct_states = direct_request_states(holds)
+    workloads = direct_workloads(holds)
     pending_originals = [job for job in backlog['items'] if direct_launch_state(job, direct_states) != 'TERMINAL']
     original_holds, errors, resolved = read_original_holds(repo, pending_originals, ownership)
     priority = {}
     ports = set()
     verified = []
     blocked = {}
+    prior_claims = {}
+    excluded_requests = set()
 
     def select(nodes, checked_ports):
         need(all(node in ownership for node in nodes), 'priority candidate is outside the node ledger')
@@ -40,6 +44,11 @@ def probe_arguments(repo, backlog, ledger, holds, preflight=(), *, priority_only
             if job['state'] in ('reconcile', 'submitted'):
                 pin_file(repo, job['evidence'], ('coordination/tasks/', 'results/bw1000/', 'analysis/bw1000/', 'local-only/'))
             if job['state'] != 'ready' or ident in original_holds:
+                continue
+            prior = prior_workload_claims(job, workloads)
+            if prior:
+                prior_claims[ident] = prior
+                excluded_requests.add(job['launch']['request'])
                 continue
             state = verify_launch(repo, job)
             if state != 'ready':
@@ -70,7 +79,7 @@ def probe_arguments(repo, backlog, ledger, holds, preflight=(), *, priority_only
             need(row['requested_DCU'] == 0 and job['placement'] == {row['node']: 0}
                  and job['attempt_receipts'] == [row['attempt_receipt']],
                  'CPU worklist and persistent node hold differ')
-        if row['target_preflight_state'] != 'WAITING_AUTHENTICATED_TARGET':
+        if row['target_preflight_state'] != 'WAITING_AUTHENTICATED_TARGET' or row.get('request') in excluded_requests:
             continue
         node = row['node']
         if node in held:
@@ -92,6 +101,7 @@ def probe_arguments(repo, backlog, ledger, holds, preflight=(), *, priority_only
                 reconcile_candidates={ident: record['nodes'] for ident, record in original_holds.items()
                                       if record['state'] in ('reconcile', 'submitted')},
                 original_launch_holds=original_holds, verified_original_non_submissions=resolved,
+                prior_workload_claims=prior_claims,
                 blocked_candidate_held_nodes=blocked, invalid_or_manual_launches=errors,
                 prepared_preflight_priority_nodes=preflight_priority,
                 verified_training_ready=sum(job['kind'] == 'training' for job in verified),

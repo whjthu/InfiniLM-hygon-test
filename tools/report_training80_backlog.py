@@ -213,11 +213,13 @@ def verify_launch(repo, job):
 
 
 def queue_holds(connection):
-    """Read active reservations and identities of completed direct requests."""
+    """Read active reservations and durable direct request and workload identities."""
     marks = ','.join('?' for _ in ACTIVE)
     fields = {row[1] for row in connection.execute('PRAGMA table_info(runs)')}
     direct_columns = {'stage', 'handle'} <= fields
     extra_fields = ',stage,handle' if direct_columns else ''
+    if direct_columns and 'binding' in fields:
+        extra_fields += ',binding'
     include_terminal = ' OR (stage=? AND state="TERMINAL")' if direct_columns else ''
     bindings = (*ACTIVE, DIRECT_STAGE) if direct_columns else ACTIVE
     rows = connection.execute(f'SELECT id,state,nodes{extra_fields} FROM runs WHERE state IN ({marks})'
@@ -232,6 +234,13 @@ def queue_holds(connection):
             request = handle.get('request_id')
             need(hex_value(request, 32), 'direct handoff request identity missing')
             row['direct_request'] = request
+            if len(extra) == 3:
+                binding = json.loads(extra[2])
+                if 'workload_SHA256' in binding:
+                    work = binding['workload_SHA256']
+                    need(hex_value(work, 64) and binding.get('request') == request,
+                         'durable direct workload differs from its original request')
+                    row['direct_workload_SHA256'] = work
         result.append(row)
     return result
 
@@ -253,6 +262,20 @@ def direct_launch_state(job, states):
     return states.get(job.get('cpu_request', job.get('launch', {}).get('request')))
 
 
+def direct_workloads(holds):
+    workloads = {}
+    recorded = (row for row in holds if 'direct_workload_SHA256' in row)
+    for row in sorted(recorded, key=lambda item: item['run']):
+        workloads.setdefault(row['direct_workload_SHA256'], []).append(
+            dict(run=row['run'], request=row['direct_request'], state=row['state']))
+    return workloads
+
+
+def prior_workload_claims(job, workloads):
+    launch = job.get('launch', {})
+    return [row for row in workloads.get(launch.get('workload_SHA256'), ()) if row['request'] != launch.get('request')]
+
+
 def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(), now=None, boot_anchor=None):
     repo = repo.resolve()
     now = time.monotonic() if now is None else now
@@ -265,6 +288,8 @@ def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(
     queue_held = {node for item in holds for node in item['nodes'] if node in nodes}
     ordered = sorted(backlog['items'], key=lambda job: (PRIORITY[job['kind']], job['priority'], job['id']))
     direct_states = direct_request_states(holds)
+    workloads = direct_workloads(holds)
+    prior_claims = {}
     pending_originals = [job for job in ordered if direct_launch_state(job, direct_states) != 'TERMINAL']
     original_holds, marker_errors, resolved = read_original_holds(repo, pending_originals, nodes)
     for job in ordered:
@@ -300,6 +325,7 @@ def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(
             request_ids.add(request)
             row['request'] = request
         prior_direct = direct_launch_state(job, direct_states)
+        prior_scope = prior_workload_claims(job, workloads) if state == 'ready' and prior_direct is None else []
         if prior_direct == 'TERMINAL':
             state = 'terminal'
         elif prior_direct == 'SUBMITTED':
@@ -318,7 +344,11 @@ def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(
                 row['replay_allowed'] = False
             if state == 'blocked' and ident in original_holds:
                 state = original_holds[ident]['state']
-            if state == 'ready':
+            if state == 'ready' and ident not in original_holds and prior_scope:
+                prior_claims[ident] = prior_scope
+                state = 'reconcile'
+                row['replay_allowed'] = False
+            elif state == 'ready':
                 state = original_holds[ident]['state'] if ident in original_holds else verify_launch(repo, job)
                 if state == 'reconcile':
                     original_holds[ident] = dict(state=state, nodes=sorted(wanted))
@@ -332,7 +362,7 @@ def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(
             state = 'invalid_launch_evidence'
             row['launch_evidence_error'] = str(exc)
         row['candidate_state'] = state
-        row['dispatch_state'] = state
+        row['dispatch_state'] = 'original_workload_already_claimed' if ident in prior_claims else state
         rows.append(row)
 
     held = queue_held | {node for record in original_holds.values() for node in record['nodes']}
@@ -398,6 +428,7 @@ def plan(snapshot, backlog, *, repo=REPO, ledger_path=TRAINING80_LEDGER, holds=(
                     if row['dispatch_state'] == 'proposed_for_root'),
                 proposed_nodes=sorted(occupied), queue_held_nodes=sorted(queue_held),
                 original_launch_holds=original_holds, verified_original_non_submissions=resolved,
+                prior_workload_claims=prior_claims,
                 admission_by_zone_and_parent=groups,
                 actual_submitted_DCU=0, advisory=True, rows=rows)
 

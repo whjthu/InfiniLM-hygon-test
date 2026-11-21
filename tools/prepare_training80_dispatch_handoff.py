@@ -102,6 +102,7 @@ def build_handoff(snapshot, backlog, *, repo=REPO, holds=(), selected=None, now=
                 coordinator_handoffs=packets, manual_launcher_binding_required=unsupported,
                 original_launch_holds=report['original_launch_holds'],
                 verified_original_non_submissions=report['verified_original_non_submissions'],
+                prior_workload_claims=report['prior_workload_claims'],
                 invalid_launch_evidence=invalid_evidence)
 
 
