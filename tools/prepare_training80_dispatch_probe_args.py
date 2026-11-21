@@ -62,6 +62,7 @@ def probe_arguments(repo, backlog, ledger, holds, preflight=(), *, priority_only
             errors[ident] = str(error)
 
     held = queue_held | {node for record in original_holds.values() for node in record['nodes']}
+    ready_device_jobs = []
     for job in verified:
         ident = job['id']
         nodes = sorted(job['placement'])
@@ -70,6 +71,8 @@ def probe_arguments(repo, backlog, ledger, holds, preflight=(), *, priority_only
             blocked[ident] = overlapping
         else:
             select(nodes, job['launch']['required_ports'])
+            if any(job['placement'].values()):
+                ready_device_jobs.append(ident)
 
     preflight_priority = []
     cpu_backlog = {job['case']: job for job in jobs if job.get('cpu_prerequisite') is True}
@@ -95,7 +98,7 @@ def probe_arguments(repo, backlog, ledger, holds, preflight=(), *, priority_only
         by_parent.setdefault(ownership[node], []).append(node)
     fields = [('port', sorted(ports)), ('priority-node', priority), ('held-node', sorted(held))]
     arguments = [token for option, items in fields for item in items for token in ('--' + option, str(item))]
-    if priority_only:
+    if priority_only and ready_device_jobs:
         arguments.append('--priority-only')
     return dict(collector_arguments=arguments, priority_by_parent=by_parent, required_ports=sorted(ports),
                 queue_held_nodes=sorted(queue_held), held_nodes=sorted(held),
@@ -105,6 +108,9 @@ def probe_arguments(repo, backlog, ledger, holds, preflight=(), *, priority_only
                 prior_workload_claims=prior_claims,
                 blocked_candidate_held_nodes=blocked, invalid_or_manual_launches=errors,
                 prepared_preflight_priority_nodes=preflight_priority,
+                priority_only_requested=priority_only,
+                priority_only_enabled=priority_only and bool(ready_device_jobs),
+                ready_device_jobs=ready_device_jobs,
                 verified_training_ready=sum(job['kind'] == 'training' for job in verified),
                 training_ready_without_original_hold=sum(job['kind'] == 'training' and job['id'] not in blocked
                                                          for job in verified),
@@ -116,7 +122,8 @@ def main():
     parser.add_argument('--backlog', type=Path, default=BACKLOG)
     parser.add_argument('--queue-db', type=Path, default=QUEUE_DB)
     parser.add_argument('--worklist', type=Path, default=WORKLIST)
-    parser.add_argument('--priority-only', action='store_true')
+    parser.add_argument('--priority-only', action='store_true',
+                        help='use a priority-only scan when there is verified GPU launch work')
     args = parser.parse_args()
     ledger_raw = TRAINING80_LEDGER.read_bytes()
     preflight = prepare(REPO, json.loads(args.worklist.read_bytes()), ledger_raw)['candidates']

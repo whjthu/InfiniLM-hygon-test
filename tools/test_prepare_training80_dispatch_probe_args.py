@@ -32,6 +32,8 @@ class DispatchProbeArgumentsTest(unittest.TestCase):
         self.assertEqual(report['verified_training_ready'], 1)
         self.assertEqual(report['training_ready_without_original_hold'], 1)
         self.assertEqual(report['prepared_preflight_priority_nodes'], ['f13r4n09'])
+        self.assertEqual(report['ready_device_jobs'], [training['id'], operator['id']])
+        self.assertTrue(report['priority_only_enabled'])
         self.assertEqual(report['collector_arguments'][-1], '--priority-only')
         self.assertIsNone(report['current_device_eligible_DCU'])
 
@@ -42,11 +44,42 @@ class DispatchProbeArgumentsTest(unittest.TestCase):
         launch['prerequisite_receipt'] = self.fixture.put(launch['prerequisite_receipt']['path'], dict(
             request=launch['request'], state='TARGET_PREREQUISITES_VERIFIED', workload_SHA256=launch['workload_SHA256'],
             min_updates=training['min_updates'], placement=training['placement'], required_ports=[29907]))
-        report = probe_arguments(self.fixture.repo, {'items': [training]}, self.ledger, [{'nodes': ['f13r1n10']}])
+        report = probe_arguments(self.fixture.repo, {'items': [training]}, self.ledger,
+                                 [{'nodes': ['f13r1n10']}], priority_only=True)
         self.assertEqual(report['verified_training_ready'], 1)
         self.assertEqual(report['training_ready_without_original_hold'], 0)
         self.assertEqual(report['blocked_candidate_held_nodes'], {'trial-1': ['f13r1n10']})
         self.assertEqual(report['collector_arguments'], ['--held-node', 'f13r1n10'])
+        self.assertFalse(report['priority_only_enabled'])
+
+    def test_preflight_only_keeps_priorities_in_a_full_fleet_scan(self):
+        rows = [
+            dict(case='T12.sft', node='f13r4n09', requested_DCU=1, frozen_rendezvous_port=29918),
+            dict(case='T02.input-audit', node='f13r1n12', requested_DCU=0, frozen_rendezvous_port=None),
+        ]
+        for row in rows:
+            row['target_preflight_state'] = 'WAITING_AUTHENTICATED_TARGET'
+        report = probe_arguments(self.fixture.repo, {'items': []}, self.ledger, [], rows, priority_only=True)
+        self.assertTrue(report['priority_only_requested'])
+        self.assertFalse(report['priority_only_enabled'])
+        self.assertEqual(report['ready_device_jobs'], [])
+        self.assertEqual(report['priority_by_parent'], {'1103606': ['f13r4n09', 'f13r1n12']})
+        self.assertEqual(report['collector_arguments'], [
+            '--port', '29918', '--priority-node', 'f13r4n09', '--priority-node', 'f13r1n12',
+        ])
+
+    def test_verified_zero_card_launch_keeps_full_fleet_scan(self):
+        job = self.fixture.trial(1, 'validation', node='f13r1n12')
+        job['placement']['f13r1n12'] = 0
+        launch = job['launch']
+        launch['prerequisite_receipt'] = self.fixture.put(launch['prerequisite_receipt']['path'], dict(
+            request=launch['request'], state='TARGET_PREREQUISITES_VERIFIED', workload_SHA256=launch['workload_SHA256'],
+            min_updates=None, placement=job['placement'], required_ports=[29907]))
+        report = probe_arguments(self.fixture.repo, {'items': [job]}, self.ledger, [], priority_only=True)
+        self.assertEqual(report['invalid_or_manual_launches'], {})
+        self.assertFalse(report['priority_only_enabled'])
+        self.assertEqual(report['ready_device_jobs'], [])
+        self.assertEqual(report['collector_arguments'], ['--port', '29907', '--priority-node', 'f13r1n12'])
 
     def test_cpu_worklist_cannot_disagree_with_persistent_attempt_marker(self):
         node = 'f13r1n12'
