@@ -1,12 +1,15 @@
 import copy
 import hashlib
+import io
 import json
 from pathlib import Path
 import unittest
+from unittest.mock import patch
 
 from training_formal_metrics import (
     effect, timing, verify_hunyuan_a100_recorded_updates, verify_hunyuan_dp2_a100_windows,
 )
+import training_fid
 
 
 class HunyuanOriginalWindowTest(unittest.TestCase):
@@ -103,7 +106,7 @@ class Dp2OriginalWindowTest(unittest.TestCase):
 class HoldoutInventoryTest(unittest.TestCase):
     def setUp(self):
         self.attachments = {}
-        self.identity = {'case': 'T06.sft', 'dataset_SHA256': '5' * 64}
+        self.identity = {'case': 'T10.shape-flow-lora', 'dataset_SHA256': '5' * 64}
         self.checkpoints = {platform: digit * 64 for platform, digit in
                             zip(('A100', 'Hygon', 'Hygon_before'), '123')}
 
@@ -113,7 +116,7 @@ class HoldoutInventoryTest(unittest.TestCase):
         return {'SHA256': digest}
 
     def verify(self, ids, arms, expected_failure=1):
-        metric = 'FID'
+        metric = 'Chamfer-L1'
         plan = self.pin(dict(self.identity, metric=metric, sample_ids=ids))
         inventory = self.pin(dict(self.identity, metric=metric,
                                   sample_plan_SHA256=plan['SHA256'],
@@ -140,7 +143,7 @@ class HoldoutInventoryTest(unittest.TestCase):
 
     def test_accepts_same_ids_and_preserves_failed_sample(self):
         result = self.verify(['a', 'b'], self.inventory())
-        self.assertAlmostEqual(result['FID']['relative_degradation'], .04)
+        self.assertAlmostEqual(result['Chamfer-L1']['relative_degradation'], .04)
 
     def test_rejects_same_count_with_foreign_id(self):
         arms = self.inventory()
@@ -163,6 +166,139 @@ class HoldoutInventoryTest(unittest.TestCase):
     def test_rejects_aggregate_with_unreported_failure(self):
         with self.assertRaisesRegex(ValueError, 'counts differ'):
             self.verify(['a', 'b'], self.inventory(), expected_failure=0)
+
+
+class FormalFidTest(unittest.TestCase):
+    def setUp(self):
+        import numpy as np
+
+        self.json = {}
+        self.binary = {}
+        self.read = []
+        self.checkpoints = dict(zip(training_fid.ARMS, [d * 64 for d in '123']))
+        spec = self.pin(dict(policy=training_fid.POLICY, layer='pool_3', dimension=2048,
+                             implementation_SHA256='a'*64, weights_SHA256='b'*64, preprocess_SHA256='c'*64))
+        self.identity = dict(case='T06.sft', dataset_SHA256='d'*64, scorer_SHA256=spec['SHA256'])
+        self.ids = ['sample1', 'sample2', 'sample3']
+        self.reference_ids = ['real1', 'real2', 'real3', 'real4']
+        self.real_images = {name: f'{index+1:064x}' for index, name in enumerate(self.reference_ids)}
+        self.planned = self.pin(dict(self.identity, metric='FID', sample_ids=self.ids,
+                                     fid_reference_image_SHA256=self.real_images))
+        reference = np.zeros((4, 2048), np.float32)
+        self.base = np.zeros((3, 2048), np.float32)
+        reference[:, 0] = [-1, -1, 1, 1]
+        self.base[:, 0] = [-1, 0, 1]
+        self.inventory = {}
+        arm_features = {}
+        self.values = {}
+        for index, arm in enumerate(training_fid.ARMS, 1):
+            images = {name: f'{index*10+i:064x}' for i, name in enumerate(self.ids)}
+            self.inventory[arm] = [dict(sample_id=name, status='scored',
+                                        artifact=dict(location=name+'.png', SHA256=images[name])) for name in self.ids]
+            data = self.base.copy()
+            data[:, 0] += index
+            arm_features[arm] = dict(sample_ids=self.ids.copy(), image_SHA256=images,
+                                     features=self.pin_array(data))
+            self.values[arm] = index**2 + (1 - (4/3)**.5)**2
+        self.inputs = dict(self.identity, metric='FID', policy=training_fid.POLICY,
+                           sample_plan_SHA256=self.planned['SHA256'], checkpoint_SHA256=self.checkpoints,
+                           feature_extractor=spec, reference=dict(sample_ids=self.reference_ids,
+                               image_SHA256=self.real_images, features=self.pin_array(reference)),
+                           arms=arm_features)
+
+    def pin(self, value):
+        sha = hashlib.sha256(json.dumps(value, sort_keys=True).encode()).hexdigest()
+        self.json[sha] = copy.deepcopy(value)
+        return {'SHA256': sha}
+
+    def pin_array(self, value):
+        import numpy as np
+
+        out = io.BytesIO()
+        np.save(out, value, allow_pickle=False)
+        raw = out.getvalue()
+        digest = hashlib.sha256(raw).hexdigest()
+        self.binary[digest] = raw
+        return {'SHA256': digest}
+
+    def read_binary(self, item, maximum):
+        data = self.binary[item['SHA256']]
+        self.assertLessEqual(len(data), maximum)
+        self.read.append(item['SHA256'])
+        return data
+
+    def verify(self, *, attach=True, failed=False):
+        inventory = dict(self.identity, metric='FID', arms=self.inventory,
+                         sample_plan_SHA256=self.planned['SHA256'], checkpoint_SHA256=self.checkpoints)
+        if attach:
+            inventory['fid_inputs'] = self.pin(self.inputs)
+        row = dict(self.values, planned_samples=len(self.ids), sample_plan=self.planned,
+                   sample_inventory=self.pin(inventory))
+        for arm in self.checkpoints:
+            failures = int(failed and arm == 'Hygon')
+            row.update({arm+'_scored': len(self.ids)-failures, arm+'_failed': failures})
+        row['raw_scores'] = self.pin(dict(row, **self.identity, metric='FID', checkpoint_SHA256=self.checkpoints))
+        row['paired_checkpoint_binding'] = self.pin(dict(self.identity, **self.checkpoints))
+        return effect({'FID': row}, {'FID': 'lower'}, self.identity,
+                      lambda item: self.json[item['SHA256']], read_binary=self.read_binary)
+
+    def test_recomputes_compared_fid_with_distinct_real_denominator(self):
+        result = self.verify()
+        self.assertAlmostEqual(result['FID']['absolute_degradation'], 3.)
+        self.assertEqual(len(self.read), 4)
+
+    def test_rejects_digest_only_scores_and_coherent_but_wrong_summary(self):
+        with self.assertRaisesRegex(ValueError, 'missing independently readable'):
+            self.verify(attach=False)
+        self.values['Hygon'] = 1.01
+        with self.assertRaisesRegex(ValueError, 'independently recomputed'):
+            self.verify()
+
+    def test_rejects_missing_generation_or_changed_feature_order(self):
+        self.inventory['Hygon'][1]['status'] = 'failed'
+        with self.assertRaisesRegex(ValueError, 'complete pinned generated outputs'):
+            self.verify(failed=True)
+        self.inventory['Hygon'][1]['status'] = 'scored'
+        self.inputs['arms']['Hygon']['sample_ids'].reverse()
+        with self.assertRaisesRegex(ValueError, 'plan order'):
+            self.verify()
+
+    def test_rejects_nonfinite_and_tampered_features(self):
+        bad = self.base.copy()
+        bad[0, 1] = float('nan')
+        self.inputs['arms']['Hygon']['features'] = ref = self.pin_array(bad)
+        with self.assertRaisesRegex(ValueError, 'nonfinite FID'):
+            self.verify()
+        self.binary[ref['SHA256']] = b'tampered'
+        with self.assertRaisesRegex(ValueError, 'feature body differs'):
+            self.verify()
+
+    def test_factor_reduction_preserves_covariance_for_tall_full_rank_arrays(self):
+        import numpy as np
+
+        values = np.random.default_rng(75).normal(size=(9, 3))
+        ref = self.pin_array(values)
+        with patch.object(training_fid, 'DIMENSION', 3):
+            mean, factor = training_fid.fit(self.binary[ref['SHA256']], 9)
+        np.testing.assert_allclose(mean, values.mean(axis=0), atol=1e-15)
+        np.testing.assert_allclose(factor.T @ factor, np.cov(values, rowvar=False), atol=1e-15)
+
+    def test_fid_matches_independent_dense_covariance_square_root(self):
+        import numpy as np
+
+        rng = np.random.default_rng(177)
+        left, right = rng.normal(size=(12, 5)), rng.uniform(-2, 2, (9, 5))
+        ca, cb = np.cov(left, rowvar=False), np.cov(right, rowvar=False)
+        values, vectors = np.linalg.eigh(ca)
+        root = (vectors * np.sqrt(values)) @ vectors.T
+        middle = root @ cb @ root
+        spectral_trace = np.sqrt(np.linalg.eigvalsh(middle)).sum()
+        independent = np.square(left.mean(0)-right.mean(0)).sum() + np.trace(ca+cb) - 2*spectral_trace
+        with patch.object(training_fid, 'DIMENSION', 5):
+            a, b = (training_fid.fit(self.binary[self.pin_array(rows)['SHA256']], len(rows)) for rows in (left, right))
+        self.assertAlmostEqual(training_fid.distance(a, b), independent, 12)
+        self.assertAlmostEqual(training_fid.distance(b, a), independent, 12)
+        self.assertAlmostEqual(training_fid.distance(a, a), 0., 12)
 
 
 class TimingExecutionTest(unittest.TestCase):

@@ -28,10 +28,12 @@ def verify(root):
     status = json.loads((root / "status/bw1000/latest.json").read_bytes())
     index = status["unified_training_acceptance_matrix"]
 
-    def pinned(path, expected):
+    def pinned(path, expected, max_bytes=None):
         file = (root / path).resolve(strict=True)
         require(file.is_relative_to(root), f"evidence outside repository: {path}")
-        raw = file.read_bytes()
+        with file.open("rb") as stream:
+            raw = stream.read() if max_bytes is None else stream.read(max_bytes + 1)
+        require(max_bytes is None or len(raw) <= max_bytes, f"evidence exceeds byte limit: {path}")
         require(hashlib.sha256(raw).hexdigest() == expected, f"hash mismatch: {path}")
         return raw
 
@@ -55,10 +57,10 @@ def verify(root):
     require(ids == assigned, "matrix and resource ledger training case identities differ")
     pins = dict(matrix["evidence_SHA256"])
 
-    def pinned_attachment(item):
+    def pinned_attachment(item, max_bytes=None):
         path, digest = item["path"], item["SHA256"]
         require(pins.setdefault(path, digest) == digest, f"conflicting evidence hashes: {path}")
-        return pinned(path, digest)
+        return pinned(path, digest, max_bytes)
 
     def verify_formal_attachment(item):
         # Attachments are small summaries or manifests for private experiment receipts.
@@ -132,7 +134,7 @@ def verify(root):
             require(path not in gate_paths, f"{case['case']}: duplicate metrics evidence")
             require(pins.setdefault(path, digest) == digest, f"conflicting evidence hashes: {path}")
             metrics = stage_three(case, matrix["framework_commit"], json.loads(pinned(path, digest)),
-                                  verify_formal_attachment)
+                                  verify_formal_attachment, read_binary=pinned_attachment)
             require(metrics["passed"] is case["stage3_accepted"],
                     f"{case['case']}: formal measurements and acceptance flag disagree")
 

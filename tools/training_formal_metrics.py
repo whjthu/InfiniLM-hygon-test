@@ -14,6 +14,7 @@ from vggt_co3d_effect import (
     CASE as CO3D_CASE, POLICY as CO3D_POLICY, THRESHOLDS as CO3D_THRESHOLDS,
     UPSTREAM as CO3D_POSE_EVALUATOR, credit as co3d_credit, scorer_sha256 as co3d_scorer_sha256,
 )
+from training_fid import verify_fid
 
 METRICS = {
     'T01': {'TextVQA': 'higher', 'COCO CIDEr': 'higher'},
@@ -332,7 +333,7 @@ def timing(runs, cards, recipe, boundary, verify_raw, *, provenance, shared_devi
     return (median, reference_scope) if return_scope else median
 
 
-def verify_sample_inventory(row, metric, provenance, checkpoints, verify_raw):
+def verify_sample_inventory(row, metric, provenance, checkpoints, verify_raw, *, read_binary=None):
     """Check a frozen ID plan and a manifest of private per-sample artifacts.
 
     These attachments are SHA-pinned JSON. Artifact locations and digests
@@ -459,11 +460,13 @@ def verify_sample_inventory(row, metric, provenance, checkpoints, verify_raw):
                  and math.isclose(row[platform], math.fsum(per_category.values()) / len(per_category),
                                   rel_tol=0, abs_tol=1e-12),
                  'VGGT CO3D AUC differs from the full per-category pair denominator')
+    if metric == 'FID':
+        verify_fid(row, identity, planned, inventory, checkpoints, verify_raw, read_binary)
     if co3d_limit is not None:
         return (planned['evaluation_plan_SHA256'], inventory['prediction_manifest_SHA256'], files, inventory['arms'])
 
 
-def effect(rows, expected, provenance, verify_raw, *, metric_bindings=None, trained_checkpoints=None):
+def effect(rows, expected, provenance, verify_raw, *, metric_bindings=None, trained_checkpoints=None, read_binary=None):
     need(rows.keys() == expected.keys(), 'held-out metric set differs')
     if metric_bindings is not None:
         fields = {'dataset_SHA256', 'scorer_SHA256'}
@@ -503,7 +506,7 @@ def effect(rows, expected, provenance, verify_raw, *, metric_bindings=None, trai
             need(type(scored) is int and type(failed) is int and scored > 0 and failed >= 0
                  and scored + failed == row['planned_samples'],
                  'held-out score and failure counts do not close')
-        pair_binding = verify_sample_inventory(row, metric, identity, checkpoints, verify_raw)
+        pair_binding = verify_sample_inventory(row, metric, identity, checkpoints, verify_raw, read_binary=read_binary)
         if pair_binding is not None:
             need(co3d_pair_binding is None or pair_binding == co3d_pair_binding,
                  'VGGT CO3D AUC thresholds use different plans, predictions or pair errors')
@@ -561,7 +564,7 @@ def effect_training_checkpoints(holdout, case, framework_commit, a100_commit, ve
     return checkpoints
 
 
-def stage_three(case, framework_commit, evidence, verify_raw):
+def stage_three(case, framework_commit, evidence, verify_raw, *, read_binary=None):
     need(evidence['case'] == case['case'] and evidence['framework_commit'] == framework_commit,
          'formal evidence belongs to a different case or framework')
     cards = evidence['cards']
@@ -613,7 +616,7 @@ def stage_three(case, framework_commit, evidence, verify_raw):
         provenance.update(shared)
     scored_checkpoints = effect_training_checkpoints(holdout, case, framework_commit, reference_commit, verify_raw)
     regressions = effect(holdout['metrics'], expected, provenance, verify_raw, metric_bindings=metric_bindings,
-                         trained_checkpoints=scored_checkpoints)
+                         trained_checkpoints=scored_checkpoints, read_binary=read_binary)
     ratio = hygon / a100
     return {'A100_median_updates_per_second': a100, 'Hygon_median_updates_per_second': hygon,
             'throughput_ratio': ratio, 'effect_regressions': regressions,
