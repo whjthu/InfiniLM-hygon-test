@@ -18,6 +18,14 @@
 
 用 `receive` 按本机原始往返时间绑定收到的回执，立即交给 `prepare_training80_dispatch_handoff.py`。同一轮提交已取得准入且互不重叠的任务，未核验的其余节点随后补查。优先回执只能证明实际探到的设备准入。640 卡 busy 由另一次同步驱动采样计算。
 
+Qwen、VGGT 等训练分别完成目标预检时，可将各自生成的本机 `backlog.json` 汇入一份当轮队列。汇入程序从当前共享 backlog 核对范围，从各项收据核对同一份原始预检。冲突或证据失效的候选保留共享队列状态，其余候选继续进入同一次优先采集。已有提交意图的候选进入原请求对账，由该候选保留节点。输出路径须是新的 `local-only/` 文件。
+
+```text
+python -B tools/merge_training80_admissions.py local-only/<new-backlog>.json --overlay local-only/<qwen-admission>/backlog.json --overlay local-only/<vggt-admission>/backlog.json
+```
+
+将合并文件作为 `--backlog` 传给探测参数生成器、交接生成器和原子批次申领，统一使用其训练储备与优先节点。优先采集后，用一个新请求省略 `--priority-only` 补查其余节点，包含完全没有产生交接的情况。五项储备、Slurm 排队、真实运行和驱动 busy 分开记录。
+
 以下是原候选节点。Qwen 原任务的端口 29918 在 Dev80 对账解除持有后才进入采集参数。
 
 Qwen 的旧 Dev80 条目携带 `target_reconciliation_probe` 和依赖 SHA。认证恢复后从原登录端运行 `tools/reconcile_qwen_usgs_dev80_original.py`，将实际回执交给协调者。同一次查询两侧均须确认原目录没有出现、六个精确 Slurm 标签均无记录，且两台原节点均无编号步骤，才标记旧保留可解除。只要目录、在途记录或待确认清理出现，就保留原请求。旧 Dev80 始终保持禁止重播，待派的新训练仍需独立通过端口及 PCI/KFD/PID 准入。
