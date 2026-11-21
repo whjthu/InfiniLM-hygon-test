@@ -10,6 +10,10 @@ from coco_cider_effect import (
     ORIGINAL_TRAINING_SHA256 as CIDER_TRAINING_SHA256, WHEEL_SHA256 as CIDER_WHEEL_SHA256,
     validate_holdout_image_ids, verify_image_bytes,
 )
+from vggt_co3d_effect import (
+    CASE as CO3D_CASE, POLICY as CO3D_POLICY, THRESHOLDS as CO3D_THRESHOLDS,
+    UPSTREAM as CO3D_POSE_EVALUATOR, credit as co3d_credit, scorer_sha256 as co3d_scorer_sha256,
+)
 
 METRICS = {
     'T01': {'TextVQA': 'higher', 'COCO CIDEr': 'higher'},
@@ -354,6 +358,25 @@ def verify_sample_inventory(row, metric, provenance, checkpoints, verify_raw):
     need(inventory['arms'].keys() == checkpoints.keys(), 'incorrect held-out arms')
     textvqa = metric == 'TextVQA'
     cider = metric == CIDER_METRIC
+    co3d_limit = next((limit for limit in CO3D_THRESHOLDS if metric == f'AUC@{limit}'), None)
+    if co3d_limit is not None:
+        files = inventory.get('prediction_file_SHA256')
+        category_auc = inventory.get('category_auc')
+        need(provenance.get('case') == CO3D_CASE and provenance.get('scorer_SHA256') == co3d_scorer_sha256()
+             and inventory.get('policy') == CO3D_POLICY
+             and inventory.get('pose_evaluator_commit') == CO3D_POSE_EVALUATOR
+             and sha(planned.get('evaluation_plan_SHA256')) and sha(inventory.get('prediction_manifest_SHA256'))
+             and isinstance(files, dict) and files.keys() == checkpoints.keys() and all(map(sha, files.values()))
+             and isinstance(category_auc, dict) and category_auc.keys() == checkpoints.keys(),
+             'missing or incompatible VGGT CO3D evaluation inputs')
+        co3d_categories, unordered_pairs = {}, set()
+        for sample_id in sample_ids:
+            pair = re.fullmatch(r'([a-z0-9_]+)/([A-Za-z0-9_]+)/(0|[1-9][0-9]*)/(0|[1-9][0-9]*)', sample_id)
+            need(pair is not None and pair[3] != pair[4], 'invalid VGGT CO3D planned pair')
+            pair_key = (pair[1], pair[2], *sorted((pair[3], pair[4])))
+            need(pair_key not in unordered_pairs, 'duplicate VGGT CO3D planned frame pair')
+            unordered_pairs.add(pair_key)
+            co3d_categories[sample_id] = pair[1]
     if textvqa or cider:
         files = inventory.get('prediction_file_SHA256', {})
         need(isinstance(files, dict) and files.keys() == checkpoints.keys() and all(map(sha, files.values())),
@@ -384,6 +407,7 @@ def verify_sample_inventory(row, metric, provenance, checkpoints, verify_raw):
         failed = 0
         credit_sum = 0
         cider_scores = []
+        co3d_pairs_by_category = {}
         for sample in samples:
             sample_id = sample['sample_id']
             need(isinstance(sample_id, str) and sample_id in expected and sample_id not in observed,
@@ -406,6 +430,14 @@ def verify_sample_inventory(row, metric, provenance, checkpoints, verify_raw):
                 need(nonnegative(score) and score <= 10 + CIDER_TOLERANCE
                      and (sample['status'] == 'scored' or score == 0), 'invalid per-image CIDEr score')
                 cider_scores.append(score)
+            if co3d_limit is not None:
+                category = co3d_categories[sample_id]
+                error = sample.get('maximum_error_deg')
+                need(sample.get('category') == category and 'maximum_error_deg' in sample
+                     and ((sample['status'] == 'failed' and error is None)
+                          or (sample['status'] == 'scored' and nonnegative(error) and error <= 180)),
+                     'invalid VGGT CO3D pair, category or error')
+                co3d_pairs_by_category.setdefault(category, []).append(co3d_credit(error, co3d_limit))
         need(observed == expected and failed == row[platform + '_failed']
              and len(samples) - failed == row[platform + '_scored'],
              'held-out sample inventory or counts differ from the declared plan')
@@ -417,6 +449,18 @@ def verify_sample_inventory(row, metric, provenance, checkpoints, verify_raw):
             score = math.fsum(cider_scores) / len(sample_ids)
             need(math.isclose(row[platform], score, rel_tol=0, abs_tol=CIDER_TOLERANCE),
                  'COCO CIDEr differs from the full image denominator')
+        if co3d_limit is not None:
+            per_category = {category: sum(credits) / (len(credits) * co3d_limit)
+                            for category, credits in co3d_pairs_by_category.items()}
+            reported = category_auc[platform]
+            need(isinstance(reported, dict) and reported.keys() == per_category.keys()
+                 and all(nonnegative(reported[name]) and math.isclose(reported[name], result, rel_tol=0, abs_tol=1e-12)
+                         for name, result in per_category.items())
+                 and math.isclose(row[platform], math.fsum(per_category.values()) / len(per_category),
+                                  rel_tol=0, abs_tol=1e-12),
+                 'VGGT CO3D AUC differs from the full per-category pair denominator')
+    if co3d_limit is not None:
+        return (planned['evaluation_plan_SHA256'], inventory['prediction_manifest_SHA256'], files, inventory['arms'])
 
 
 def effect(rows, expected, provenance, verify_raw, *, metric_bindings=None, trained_checkpoints=None):
@@ -428,6 +472,7 @@ def effect(rows, expected, provenance, verify_raw, *, metric_bindings=None, trai
                      for binding in metric_bindings.values()), 'invalid per-metric held-out dataset or scorer bindings')
     regressions = {}
     common_checkpoints = None
+    co3d_pair_binding = None
     for metric, direction in expected.items():
         row = rows[metric]
         identity = provenance if metric_bindings is None else {**provenance, **metric_bindings[metric]}
@@ -458,7 +503,11 @@ def effect(rows, expected, provenance, verify_raw, *, metric_bindings=None, trai
             need(type(scored) is int and type(failed) is int and scored > 0 and failed >= 0
                  and scored + failed == row['planned_samples'],
                  'held-out score and failure counts do not close')
-        verify_sample_inventory(row, metric, identity, checkpoints, verify_raw)
+        pair_binding = verify_sample_inventory(row, metric, identity, checkpoints, verify_raw)
+        if pair_binding is not None:
+            need(co3d_pair_binding is None or pair_binding == co3d_pair_binding,
+                 'VGGT CO3D AUC thresholds use different plans, predictions or pair errors')
+            co3d_pair_binding = pair_binding
         delta = reference - target if direction == 'higher' else target - reference
         regressions[metric] = {'absolute_degradation': delta,
                                'relative_degradation': None if reference == 0 else delta / reference}

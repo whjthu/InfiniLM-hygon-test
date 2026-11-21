@@ -83,6 +83,34 @@ class Co3DEffectTest(unittest.TestCase):
             self.assertEqual(credit(math.nextafter(threshold, math.inf), threshold), 0)
             self.assertEqual(credit(None, threshold), 0)
 
+    def replace_report(self, row, changed_inventory, **new_scores):
+        inventory, sha = self.put('changed-inventory.json', changed_inventory)
+        scores = self.checked_read(row['raw_scores'])
+        replacement = dict(path=inventory.name, SHA256=sha)
+        scores.update(new_scores, sample_inventory=replacement)
+        path, sha = self.put('changed-scores.json', scores)
+        row.update(new_scores, sample_inventory=replacement, raw_scores=dict(path=path.name, SHA256=sha))
+
+    def test_forged_aggregate_is_rejected_even_with_matching_receipts(self):
+        rows = self.checked_read(self.run_scoring())
+        row = rows['AUC@5']
+        inventory = self.checked_read(row['sample_inventory'])
+        inventory['category_auc']['Hygon']['banana'] = 1
+        self.replace_report(row, inventory, Hygon=0.7)
+        with self.assertRaisesRegex(ValueError, 'AUC differs from the full per-category pair denominator'):
+            effect(rows, {key: 'higher' for key in rows}, self.identity, self.checked_read)
+
+    def test_thresholds_cannot_use_different_pair_errors_with_same_aggregate(self):
+        rows = self.checked_read(self.run_scoring())
+        row = rows['AUC@15']
+        inventory = self.checked_read(row['sample_inventory'])
+        sample = inventory['arms']['Hygon'][0]
+        self.assertEqual(sample['maximum_error_deg'], 0.0)
+        sample['maximum_error_deg'] = 0.25
+        self.replace_report(row, inventory)
+        with self.assertRaisesRegex(ValueError, 'AUC thresholds use different plans, predictions or pair errors'):
+            effect(rows, {key: 'higher' for key in rows}, self.identity, self.checked_read)
+
     def test_missing_pair_does_not_disappear_from_denominator(self):
         self.receipt('Hygon', [0, 5, 15])
         with self.assertRaisesRegex(ValueError, 'explicit failure missing'):
