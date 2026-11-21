@@ -1,0 +1,1 @@
+本目录为首次CMU原页面/ASF获取源码，已实际KNOWN_TERMINAL FAIL。原始记录留local-only/training-hymotion-public-indoor-motion-candidate-v1-original；不可重新运行原once。失败时页面和ASF body已落，AMC尚未GET。新AMC-only-v2独立scope保原失败并只请求未请求AMC。详见sibling README；此目录源不热改。
