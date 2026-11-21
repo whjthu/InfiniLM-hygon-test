@@ -31,6 +31,23 @@ Qwen 的旧 Dev80 条目携带 `target_reconciliation_probe` 和依赖 SHA。认
 
 VGGT 条目的 `target_read_only_preflight` 绑定登录节点上的只读入口和依赖 SHA。用原来源包在登录节点运行 `tools/preflight_vggt_tum_bidirectional30.py`，核对两次目标命名空间和 Slurm accounting、393 份训练框架源码、17 份原 TUM 媒体及模型文件元数据。程序不创建作业或目标目录。先完成资产检查，再采集新鲜 PCI/KFD/PID，避免把设备回执耗在文件核验上。若原请求标记或编号步出现，转入对账。模型文件本轮只核对已封存 SHA 所绑定的原元数据，实际运行仍核对设备和运行时。
 
+VGGT 具备真实目标资产、任务授权和唯一原请求证据后，把任务纳入待派发队列。使用该次收据执行 `prepare_training80_dispatch_handoff.py --select <candidate>`，保存生成的单项 JSON，再用同一收据、`--claim-packet` 及清单中的原 `--intent` 原子认领。只有取得 `DISPATCHING` 且仍在原准入期限内，根才按 `invocation` 经已有认证连接调用一次冻结启动器。用当次实际原请求和可核实的步骤更新记录。连接断开或启动器返回时未能确认 Slurm 终态，保留原认领进入对账。
+
+该 VGGT 原请求的独审入口列在 `target_completion_reader`。从父作业 `1103606` 保存原七列 Slurm accounting。独审在目标端读取 `results/training-vggt-tum-bidirectional30-v1`，使用认领包中的 manifest 与 claim SHA。终态结果与本次 accounting 使用同一份原始字节。
+
+```text
+sacct -n -P -j 1103606 --format=JobIDRaw,JobName%100,State,ExitCode,ElapsedRaw,NodeList,AllocTRES
+python -B tools/read_vggt_tum_bidirectional30_terminal.py <original-target-dir> <original-accounting> --manifest-sha256 <from-claim> --claim-sha256 <from-claim> --output <new-private-audit>
+```
+
+将原目标 `intent.json`、同一 accounting 文件和独审 JSON 保存在本地私有目录。用下方只读工具从 SQLite 读取原认领、核对原本机意图，再生成 `finish` 负载。独审退出码为 1 时仍可能有合格的清理证据，适配器保留原失败和全部 30 次更新分母。若 GPU 仍在途、原实际步骤冲突或缺少独立清理，适配器拒绝生成负载，保留节点。
+
+```powershell
+& 'C:/Users/WangHaojie/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe' -B -X utf8 tools/prepare_training80_vggt_direct_finish.py <target-intent> <original-accounting> <private-audit>
+```
+
+把成功生成的 JSON 保存到私有新文件，由根执行 `tuning_queue.py finish <原认领返回的 run> <新文件>`。此步骤归还该原作业的节点并保留其请求及终态身份。源代码、测试和本机示例未产出实际派发或终态收据。
+
 MiniCPM 条目的 `target_completion_reader` 保留在已有原尝试的对账视图。由 `tools/read_minicpm_native88_original.py` 获取实际 Slurm 记账，用原请求的 publication 和 epoch 绑定同一编号步骤，再读取原 88 条原生输入的结果。只在结果通过时，把它的文件与 SHA 交给现有目标训练资产准备入口。在途、未找到、失败和记账不一致都保留为独立状态。
 
 
