@@ -1,0 +1,1228 @@
+--- v5/host_launch.py
++++ new72/host_launch.py
+@@ -8,6 +8,7 @@
+ from common import D,P,RUN,COLS,admission,verify,clock,remaining,save,read,need
+ from bounded import run,identity
+ from slurm_accounting import wait_terminal,is_terminal
++from accounting_contract import select_original,actual_step_count
+ 
+ def main(publication,request,epoch):
+     c=clock(epoch);mono=time.monotonic()+c['deadline']-time.time();admission();mf=verify()
+@@ -18,9 +19,12 @@
+         need(limit>0,'query tail budget exhausted')
+         r=subprocess.run(argv,stdin=subprocess.DEVNULL,capture_output=True,text=True,timeout=limit)
+         need(r.returncode==0 and len(r.stdout)<=1024**2,'bounded CPU allocation query failed');return r.stdout.strip().splitlines()
++    observed_accounting_parent=None
+     def accounting(end=None):
+-        rows=[p for line in query(['sacct','-n','-P','-j',P['parent'],'-o',COLS],end) if len(p:=line.split('|'))==7 and p[1]==P['label']]
+-        need(len(rows)<=1,'duplicate original label');return rows[0] if rows else None
++        nonlocal observed_accounting_parent
++        snapshot=select_original(query(['sacct','-n','-P','-j',P['parent'],'-o',COLS],end),P['parent'],P['label'],P['node'])
++        observed_accounting_parent=snapshot['parent']
++        return snapshot['step']
+     parent=query(['squeue','-h','-j',P['parent'],'-o','%T|%D|%N']);need(len(parent)==1,'one actual parent')
+     state,count,nodes=parent[0].split('|')
+     need(state=='RUNNING' and int(count)>0 and P['node'] in query(['scontrol','show','hostnames',nodes]),'current allocated CPU node unavailable')
+@@ -36,7 +40,7 @@
+     command=['srun','--jobid='+P['parent'],'--job-name='+P['label'],'--exact','--immediate=5','--cpu-bind=cores','-N1','-n1','-w',P['node'],
+         '-c8','--mem=12288M','--gres=none','--time=00:%02d:00'%(slurm//60),'/usr/local/python3.12/bin/python3','-B',str(D/'inside_stage.py'),
+         '--epoch',str(epoch),'--step-deadline',str(step_end)]
+-    save(RUN/'intent.json',dict(publication=publication,request_id=request,**c,owner=identity(),source_manifest=mf,planned_rows=64,CPU=8,GPU=0))
++    save(RUN/'intent.json',dict(publication=publication,request_id=request,**c,owner=identity(),source_manifest=mf,planned_rows=72,CPU=8,GPU=0))
+     save(RUN/'step-intent.json',dict(**c,step_deadline=step_end,Slurm_seconds=slurm,command=command))
+     controlled=run(command,os.environ.copy(),RUN/'srun-control',RUN,min(c['deadline']-35,step_end+3),c['deadline']-23,c['deadline']-18)
+     end=min(mono-5,time.monotonic()+12);errors=[]
+@@ -48,8 +52,8 @@
+     passed=bool(controlled['passed'] and is_terminal(row) and row[2:4]==['COMPLETED','0:0'] and row[5]==P['node']
+         and set(row[6].split(','))=={'cpu=8','mem=12G','node=1'} and stage and stage['passed'] and stage['step']==row[0])
+     value=dict(publication=publication,request_id=request,**c,passed=passed,controller=controlled,accounting_columns=COLS,accounting=visible,
+-        accounting_errors=errors,inside=stage,execution_state='TERMINAL' if is_terminal(row) else 'UNKNOWN',actual_CPU_steps=1,actual_GPU_steps=0,
+-        planned_rows=64,completed_rows=stage['completed_rows'] if stage else 0,GPU_GO=False,Model_GO=False,training_GO=False,replay_allowed=False)
++        accounting_errors=errors,inside=stage,execution_state='TERMINAL' if is_terminal(row) else 'UNKNOWN',srun_invoked=True,srun_invoked_definition='bounded srun command invocation attempt; not proven Slurm allocation',actual_CPU_steps=actual_step_count(row,P['parent'],P['node']),actual_GPU_steps=0,accounting_parent=observed_accounting_parent,
++        planned_rows=72,completed_rows=stage['completed_rows'] if stage else 0,GPU_GO=False,Model_GO=False,training_GO=False,replay_allowed=False)
+     save(RUN/'outcome.json',value);print(json.dumps({k:value[k] for k in ('request_id','passed','execution_state','completed_rows','planned_rows','actual_GPU_steps')}))
+     return 0 if passed else 1
+ 
+--- v5/inside_stage.py
++++ new72/inside_stage.py
+@@ -1,68 +1,68 @@
+-"""Actual CPU Slurm stage, readonly HIP runtime and metadata-only model view."""
+-import argparse
+-import json
+-import os
+-from pathlib import Path
+-import shlex
+-import signal
+-import stat
+-import time
+-from common import D,P,RUN,admission,clock,verify,save,read,need,require
+-from bounded import identity,device_fds
+-from step_control import run
+-
+-def runtime_bind_source(host):
+-    if host==Path('/opt/hyhal'):
+-        target=Path('/usr/local/hyhal')
+-        require(host.resolve(strict=True)==target and target.is_dir() and not target.is_symlink(),
+-                'system hyhal alias identity changed')
+-        return target
+-    require(host.is_dir() and not host.is_symlink(),'required read-only runtime bind missing')
+-    return host
+-
+-def main(epoch,step_deadline):
+-    c=clock(epoch);admission();verify()
+-    need(str(D)==str(RUN/'source') and os.environ.get('SLURM_JOB_ID')==P['parent']
+-        and os.environ.get('SLURM_STEP_GPUS') in (None,'','(null)'),'actual CPU parent/0GRES namespace')
+-    need(time.time()<step_deadline<=c['deadline']-40,'actual Slurm step deadline')
+-    worker_end=min(c['work_deadline'],step_deadline-35)
+-    need(time.time()+10<worker_end,'insufficient original worker budget')
+-    signal.signal(signal.SIGALRM,lambda *_:(_ for _ in ()).throw(TimeoutError('original stage alarm')))
+-    signal.setitimer(signal.ITIMER_REAL,step_deadline-time.time()-2)
+-    before=dict(owner=identity(),device_FDs=device_fds(os.getpid()),GPU_visibility=os.environ.get('SLURM_STEP_GPUS'),step=P['parent']+'.'+os.environ['SLURM_STEP_ID'])
+-    save(RUN/'stage-before.json',before)
+-    for name in ('cache','tmp','home'):(RUN/name).mkdir(mode=0o700)
+-    binds=[(str(RUN),str(RUN),'rw'),(P['assets_root'],P['assets_root'],'ro'),(P['model_metadata_root'],P['model_metadata_root'],'ro'),
+-        (P['runtime'],'/swift-runtime','ro'),(P['framework_root'],P['framework_root'],'ro'),('/opt/hyhal','/opt/hyhal','ro')]
+-    launcher=Path(P['container_launcher']);before_exe=launcher.stat()
+-    executable=dict(path=str(launcher),resolved_path=str(launcher.resolve()),X_OK=os.access(launcher,os.X_OK),
+-        stat_identity={k:getattr(before_exe,k) for k in ('st_dev','st_ino','st_size','st_mtime_ns','st_ctime_ns','st_mode','st_uid','st_gid')},
+-        regular=stat.S_ISREG(before_exe.st_mode),observed_at=time.time())
+-    after_exe=launcher.stat()
+-    executable['identity_stable']=all(getattr(before_exe,k)==getattr(after_exe,k) for k in executable['stat_identity'])
+-    save(RUN/'launcher-executable-identity.json',executable)
+-    need(executable['regular'] and executable['X_OK'] and executable['identity_stable'],'qualified absolute Apptainer executable stat/X_OK unavailable')
+-    argv=[str(launcher),'exec','--contain','--no-home','--pwd','/'];resolved_binds=[]
+-    for a,b,mode in binds:
+-        actual=runtime_bind_source(Path(a));resolved_binds.append([str(actual),b,mode])
+-        argv+=['--bind',str(actual)+':'+b+':'+mode]
+-    exports=dict(PYTHONPATH='/swift-runtime/site',CUDA_VISIBLE_DEVICES='-1',HIP_VISIBLE_DEVICES='-1',ROCR_VISIBLE_DEVICES='-1',
+-        HF_HUB_OFFLINE='1',TRANSFORMERS_OFFLINE='1',PYTHONDONTWRITEBYTECODE='1',PYTHONNOUSERSITE='1',OMP_NUM_THREADS='2',MKL_NUM_THREADS='2',
+-        OPENBLAS_NUM_THREADS='1',TOKENIZERS_PARALLELISM='false',HOME=str(RUN/'home'),TMPDIR=str(RUN/'tmp'),XDG_CACHE_HOME=str(RUN/'cache'),
+-        HF_HOME=str(RUN/'cache/hf'),HF_MODULES_CACHE=str(RUN/'cache/modules'))
+-    shell='set -e; source /opt/dtk/env.sh >&2; '+''.join('export '+k+'='+shlex.quote(v)+'; ' for k,v in exports.items())
+-    shell+='exec /usr/bin/python3 -I -S -B '+shlex.quote(str(D/'native_release.py'))+' '+shlex.quote(str(RUN))+' '+str(epoch)+' '+str(c['deadline'])+' '+str(worker_end)
+-    argv += [P['container'],'/bin/bash','--noprofile','--norc','-c',shell]
+-    save(RUN/'container-intent.json',dict(c,step_deadline=step_deadline,work_deadline=worker_end,binds=binds,resolved_binds=resolved_binds,command=argv,CPU=8,GRES=0))
+-    outer_env=os.environ.copy();outer_env.update(CUDA_VISIBLE_DEVICES='-1',HIP_VISIBLE_DEVICES='-1',ROCR_VISIBLE_DEVICES='-1')
+-    controlled=run(argv,outer_env,RUN/'container-control',epoch,worker_end,worker_end+2,worker_end+12,worker_end+17)
+-    worker=read(RUN/'worker-result.json') if (RUN/'worker-result.json').exists() else None
+-    passed=bool(controlled['passed'] and worker and worker['passed'] and worker['completed_rows']==64 and worker['own_device_FDs_after']==[])
+-    result=dict(passed=passed,**c,step=before['step'],node=P['node'],allocated_GPU_cards=0,planned_rows=64,
+-        completed_rows=worker['completed_rows'] if worker else 0,worker=worker,ownership_pre_post_verified=controlled['passed'],controller=controlled)
+-    save(RUN/'stage-outcome.json',result);signal.setitimer(signal.ITIMER_REAL,0)
+-    print(json.dumps({k:result[k] for k in ('passed','completed_rows','planned_rows','allocated_GPU_cards')}));return 0 if passed else 1
+-
+-if __name__=='__main__':
+-    p=argparse.ArgumentParser();p.add_argument('--epoch',type=float,required=True);p.add_argument('--step-deadline',type=float,required=True)
+-    a=p.parse_args();raise SystemExit(main(a.epoch,a.step_deadline))
++"""Actual CPU Slurm stage, readonly HIP runtime and metadata-only model view."""
++import argparse
++import json
++import os
++from pathlib import Path
++import shlex
++import signal
++import stat
++import time
++from common import D,P,RUN,admission,clock,verify,save,read,need,require
++from bounded import identity,device_fds
++from step_control import run
++
++def runtime_bind_source(host):
++    if host==Path('/opt/hyhal'):
++        target=Path('/usr/local/hyhal')
++        require(host.resolve(strict=True)==target and target.is_dir() and not target.is_symlink(),
++                'system hyhal alias identity changed')
++        return target
++    require(host.is_dir() and not host.is_symlink(),'required read-only runtime bind missing')
++    return host
++
++def main(epoch,step_deadline):
++    c=clock(epoch);admission();verify()
++    need(str(D)==str(RUN/'source') and os.environ.get('SLURM_JOB_ID')==P['parent']
++        and os.environ.get('SLURM_STEP_GPUS') in (None,'','(null)'),'actual CPU parent/0GRES namespace')
++    need(time.time()<step_deadline<=c['deadline']-40,'actual Slurm step deadline')
++    worker_end=min(c['work_deadline'],step_deadline-35)
++    need(time.time()+10<worker_end,'insufficient original worker budget')
++    signal.signal(signal.SIGALRM,lambda *_:(_ for _ in ()).throw(TimeoutError('original stage alarm')))
++    signal.setitimer(signal.ITIMER_REAL,step_deadline-time.time()-2)
++    before=dict(owner=identity(),device_FDs=device_fds(os.getpid()),GPU_visibility=os.environ.get('SLURM_STEP_GPUS'),step=P['parent']+'.'+os.environ['SLURM_STEP_ID'])
++    save(RUN/'stage-before.json',before)
++    for name in ('cache','tmp','home'):(RUN/name).mkdir(mode=0o700)
++    binds=[(str(RUN),str(RUN),'rw'),(P['assets_root'],P['assets_root'],'ro'),(P['model_metadata_root'],P['model_metadata_root'],'ro'),
++        (P['runtime'],'/swift-runtime','ro'),(P['framework_root'],P['framework_root'],'ro'),('/opt/hyhal','/opt/hyhal','ro')]
++    launcher=Path(P['container_launcher']);before_exe=launcher.stat()
++    executable=dict(path=str(launcher),resolved_path=str(launcher.resolve()),X_OK=os.access(launcher,os.X_OK),
++        stat_identity={k:getattr(before_exe,k) for k in ('st_dev','st_ino','st_size','st_mtime_ns','st_ctime_ns','st_mode','st_uid','st_gid')},
++        regular=stat.S_ISREG(before_exe.st_mode),observed_at=time.time())
++    after_exe=launcher.stat()
++    executable['identity_stable']=all(getattr(before_exe,k)==getattr(after_exe,k) for k in executable['stat_identity'])
++    save(RUN/'launcher-executable-identity.json',executable)
++    need(executable['regular'] and executable['X_OK'] and executable['identity_stable'],'qualified absolute Apptainer executable stat/X_OK unavailable')
++    argv=[str(launcher),'exec','--contain','--no-home','--pwd','/'];resolved_binds=[]
++    for a,b,mode in binds:
++        actual=runtime_bind_source(Path(a));resolved_binds.append([str(actual),b,mode])
++        argv+=['--bind',str(actual)+':'+b+':'+mode]
++    exports=dict(PYTHONPATH='/swift-runtime/site',CUDA_VISIBLE_DEVICES='-1',HIP_VISIBLE_DEVICES='-1',ROCR_VISIBLE_DEVICES='-1',
++        HF_HUB_OFFLINE='1',TRANSFORMERS_OFFLINE='1',PYTHONDONTWRITEBYTECODE='1',PYTHONNOUSERSITE='1',OMP_NUM_THREADS='2',MKL_NUM_THREADS='2',
++        OPENBLAS_NUM_THREADS='1',TOKENIZERS_PARALLELISM='false',HOME=str(RUN/'home'),TMPDIR=str(RUN/'tmp'),XDG_CACHE_HOME=str(RUN/'cache'),
++        HF_HOME=str(RUN/'cache/hf'),HF_MODULES_CACHE=str(RUN/'cache/modules'))
++    shell='set -e; source /opt/dtk/env.sh >&2; '+''.join('export '+k+'='+shlex.quote(v)+'; ' for k,v in exports.items())
++    shell+='exec /usr/bin/python3 -I -S -B '+shlex.quote(str(D/'native_release.py'))+' '+shlex.quote(str(RUN))+' '+str(epoch)+' '+str(c['deadline'])+' '+str(worker_end)
++    argv += [P['container'],'/bin/bash','--noprofile','--norc','-c',shell]
++    save(RUN/'container-intent.json',dict(c,step_deadline=step_deadline,work_deadline=worker_end,binds=binds,resolved_binds=resolved_binds,command=argv,CPU=8,GRES=0))
++    outer_env=os.environ.copy();outer_env.update(CUDA_VISIBLE_DEVICES='-1',HIP_VISIBLE_DEVICES='-1',ROCR_VISIBLE_DEVICES='-1')
++    controlled=run(argv,outer_env,RUN/'container-control',epoch,worker_end,worker_end+2,worker_end+12,worker_end+17)
++    worker=read(RUN/'worker-result.json') if (RUN/'worker-result.json').exists() else None
++    passed=bool(controlled['passed'] and worker and worker['passed'] and worker['completed_rows']==72 and worker['own_device_FDs_after']==[])
++    result=dict(passed=passed,**c,step=before['step'],node=P['node'],allocated_GPU_cards=0,planned_rows=72,
++        completed_rows=worker['completed_rows'] if worker else 0,worker=worker,ownership_pre_post_verified=controlled['passed'],controller=controlled)
++    save(RUN/'stage-outcome.json',result);signal.setitimer(signal.ITIMER_REAL,0)
++    print(json.dumps({k:result[k] for k in ('passed','completed_rows','planned_rows','allocated_GPU_cards')}));return 0 if passed else 1
++
++if __name__=='__main__':
++    p=argparse.ArgumentParser();p.add_argument('--epoch',type=float,required=True);p.add_argument('--step-deadline',type=float,required=True)
++    a=p.parse_args();raise SystemExit(main(a.epoch,a.step_deadline))
+--- v5/launch_once.py
++++ new72/launch_once.py
+@@ -8,16 +8,27 @@
+ import re
+ import subprocess
+ import time
+-import uuid
+ from common import D,P,read,pin,save,admission,verify
+ 
+ G=D.parents[2]
+-HELPER=Path('C:/Users/WangHaojie/.codex/visualizations/2026/10/12/01a130bd-3b97-73c2-8ecf-eda5151f1ba7/glm-paired-readonly-connection.py')
+-HELPER_SHA='3f00e0eac9b40eb3fee7d788776389bc22c3e87d20de0441312f04a2566178d1'
++TARGET_COMMAND=('/usr/local/python3.12/bin/python3','-I','-S','-B','-')
+ 
+ 
+-def main(publication,mf_sha):
++def require_transport_start(callback):
++    if not callable(callback):
++        raise ValueError('ROOT_COORDINATOR_TRANSPORT_CALLBACK_REQUIRED_NO_FALLBACK')
++    return callback
++
++
++def check_transport_child(child):
++    if not isinstance(child,subprocess.Popen) or any(getattr(child,k,None) is None for k in ('stdin','stdout','stderr')) or child.text_mode:
++        raise ValueError('ROOT_TRANSPORT_MUST_RETURN_BINARY_PIPE_POPEN')
++    return child
++
++
++def main(publication,mf_sha,*,transport_start=None):
+     epoch=time.time();anchor=time.monotonic()
++    require_transport_start(transport_start)
+     admission()
+     assert re.fullmatch('[0-9a-f]{40}',publication) and re.fullmatch('[0-9a-f]{64}',mf_sha)
+     def left():
+@@ -28,19 +39,39 @@
+     assert raw==mfraw
+     assert not subprocess.check_output(['git','--no-optional-locks','-c','safe.directory='+G.as_posix(),'-C',str(G),'status','--porcelain=v1','--untracked-files=all','--',D.relative_to(G).as_posix()],timeout=min(12,left()))
+     blobs={name:base64.b64encode((D/name).read_bytes()).decode() for name in json.loads(mfraw)['files']}
+-    blobs['SOURCE_FILES.json']=base64.b64encode(mfraw).decode();request=uuid.uuid4().hex
++    blobs['SOURCE_FILES.json']=base64.b64encode(mfraw).decode();request=P['request_id']
++    assert request=='8110b01cd24846f8b6fcd08f0abda5a0'
++    contract=read(D/'DATA_CONTRACT.json');data_blobs={}
++    asset_publication=P['input_asset_publication']
++    old=subprocess.check_output(['git','--no-optional-locks','-c','safe.directory='+G.as_posix(),'-C',str(G),'cat-file','blob',asset_publication+':code/bw1000/training-internvl-USGS72-HIP-input-asset-v1/ASSET_FILES.json'],timeout=min(12,left()))
++    assert old==(D/'DATA_CONTRACT.json').read_bytes()
++    for name,wanted in contract['files'].items():
++        assert left()>5
++        path=G/P['local_asset_root']/name;assert pin(path)==wanted
++        data_blobs[name]=base64.b64encode(path.read_bytes()).decode()
++
+     local=G/'local-only'/(P['label']+'-original-dispatch');local.mkdir(mode=0o700)
+-    prefix='FILES='+repr(blobs)+'\nCONTEXT='+repr(dict(publication=publication,request_id=request,epoch=epoch,deadline=epoch+300,MF_SHA256=mf_sha))+'\n'
++    prefix='FILES='+repr(blobs)+'\nDATA_FILES='+repr(data_blobs)+'\nCONTEXT='+repr(dict(publication=publication,request_id=request,epoch=epoch,deadline=epoch+300,MF_SHA256=mf_sha))+'\n'
+     body=prefix.encode()+(D/'receive_once.py').read_bytes();assert len(body)<=2*1024**2
+-    save(local/'intent.json',dict(publication=publication,request_id=request,epoch=epoch,deadline=epoch+300,payload_SHA256=hashlib.sha256(body).hexdigest(),MF_SHA256=mf_sha,GPU=0))
+-    assert hashlib.sha256(HELPER.read_bytes()).hexdigest()==HELPER_SHA
+-    argv=runpy.run_path(str(HELPER))['ssh'];argv=[argv[0],'-o','StrictHostKeyChecking=yes',*argv[1:],'/usr/local/python3.12/bin/python3 -I -S -B -']
++    intent=dict(publication=publication,request_id=request,epoch=epoch,deadline=epoch+300,payload_SHA256=hashlib.sha256(body).hexdigest(),MF_SHA256=mf_sha,GPU=0,
++                transport_kind='ROOT_COORDINATOR_INJECTED_CALLBACK_NO_DEFAULT',target_command=TARGET_COMMAND)
++    save(local/'intent.json',intent)
++    assert read(local/'intent.json')==dict(intent,target_command=list(TARGET_COMMAND))
++    transport_context=dict(request_id=request,epoch=epoch,deadline=epoch+300,
++        transport_stop_deadline=epoch+295,transport_reap_deadline=epoch+298,
++        publication=publication,source_manifest_SHA256=mf_sha,payload_SHA256=intent['payload_SHA256'],
++        scope=P['RUN'],target_command=TARGET_COMMAND)
+     save(local/'attempt.json',dict(request_id=request,publication=publication,epoch=epoch,deadline=epoch+300,
+-        scope=P['RUN'],SSH_attempt_about_to_start=True,exec_outcome='UNKNOWN_UNTIL_ORIGINAL_RECEIPT',replay_allowed=False))
+-    child=None;timed_out=False;reaped=False;failure=None;stdout=b'';stderr=b'';rc=None;cleanup_errors={}
++        scope=P['RUN'],root_transport_start_about_to_be_called=True,exec_outcome='UNKNOWN_UNTIL_ORIGINAL_RECEIPT',replay_allowed=False))
++    child=None;start_attempted=False;timed_out=False;reaped=False;failure=None;stdout=b'';stderr=b'';rc=None;cleanup_errors={}
+     try:
+         assert left()>5
+-        child=subprocess.Popen(argv,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
++        start_attempted=True
++        candidate=transport_start(transport_context)
++        if isinstance(candidate,subprocess.Popen):
++            child=candidate  # Retain ownership even if its pipe contract is invalid.
++        check_transport_child(candidate)
++        assert left()>5
+         stdout,stderr=child.communicate(input=body,timeout=max(.001,min(left()-5,epoch+295-time.time())))
+     except subprocess.TimeoutExpired as error:
+         timed_out=True;failure=type(error).__name__;stdout=error.output or b'';stderr=error.stderr or b''
+@@ -63,10 +94,14 @@
+                     except BaseException as error:cleanup_errors['reap']=type(error).__name__
+                 else:cleanup_errors['reap']='ORIGINAL_CLEANUP_DEADLINE_EXHAUSTED'
+             rc=child.poll();reaped=rc is not None
++    stdout=stdout.encode('utf-8',errors='replace') if isinstance(stdout,str) else stdout or b''
++    stderr=stderr.encode('utf-8',errors='replace') if isinstance(stderr,str) else stderr or b''
+     for name,raw in (('stdout.private',stdout),('stderr.private',stderr)):
+         with (local/name).open('xb') as stream:stream.write(raw)
+-    record=dict(request_id=request,publication=publication,transport_rc=rc,timed_out=timed_out,held_SSH_started=child is not None,
+-                held_SSH_reaped=reaped,local_error_type=failure,cleanup_errors=cleanup_errors,client_wall_seconds=time.monotonic()-anchor,
++    record=dict(request_id=request,publication=publication,transport_rc=rc,timed_out=timed_out,transport_start_attempted=start_attempted,
++                held_transport_started=True if child is not None else None if start_attempted else False,
++                held_transport_reaped=reaped,transport_kind='ROOT_COORDINATOR_INJECTED_CALLBACK_NO_DEFAULT',
++                local_error_type=failure,cleanup_errors=cleanup_errors,client_wall_seconds=time.monotonic()-anchor,
+                 remote_outcome='UNKNOWN' if timed_out or failure or cleanup_errors or not reaped or rc in (None,255) else 'RETURNED_REQUIRES_ORIGINAL_RECEIPT_AUDIT',
+                 stdout_bytes=len(stdout),stdout_SHA256=hashlib.sha256(stdout).hexdigest(),stderr_bytes=len(stderr),stderr_SHA256=hashlib.sha256(stderr).hexdigest(),replay_allowed=False,GPU=0)
+     save(local/'transport.json',record);print(json.dumps(record));return 0 if rc==0 and not timed_out and failure is None and not cleanup_errors and reaped else 1
+--- v5/providers.py
++++ new72/providers.py
+@@ -36,7 +36,8 @@
+ 
+ def closure(function):return {k:c.cell_contents for k,c in zip(function.__code__.co_freevars,function.__closure__ or ())}
+ 
+-def bind_encode(template,expected_context_type):
++def bind_encode(template,expected_context_type,observation_name='encode-chain-observation.json'):
++    need(observation_name in ('encode-chain-observation.json','full-encode-chain-observation.json'),'exact observation namespace')
+     method=template.encode;need(inspect.ismethod(method) and method.__self__ is template,'actual bound encode')
+     chain=[];function=method.__func__;seen=set()
+     while True:
+@@ -46,7 +47,7 @@
+         nxt=function.__wrapped__;need(closure(function).get('func') is nxt,'wrapper actual closure target changed');function=nxt
+     need(len(chain)==3,'native context/retry/Template.encode chain required')
+     records=[method_identity(f) for f in chain]
+-    save(RUN/'encode-chain-observation.json',dict(chain=records,qualification_pending=True))
++    save(RUN/observation_name,dict(chain=records,qualification_pending=True))
+     expected=['context_decorator.<locals>.decorate_context','retry_decorator.<locals>._retry.<locals>.new_func','Template.encode']
+     need([r['code_qualname'] for r in records]==expected,'native wrapper structure changed')
+     need(records[0]['path'].endswith('/torch/utils/_contextlib.py') and records[1]['path'].endswith('/swift/utils/utils.py')
+--- v5/read_terminal.py
++++ new72/read_terminal.py
+@@ -1,242 +1,259 @@
+-"""Independent metadata-only consumer of the single new native64/metaPEFT CPU-v5 run."""
+-import hashlib
+-import json
+-import math
+-import os
+-from pathlib import Path
+-import resource
+-import signal
+-import socket
+-import stat
+-import time
+-
+-RUN=Path('/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/training-internvl-target-native64-CPU-v5')
+-EXPECTED_MANIFEST_SHA256='e55f2a28eed620a2b0712d43f96cc95293a84fcf2f339a899c81ca07ae298b3b'
+-COLS='JobIDRaw,JobName%100,State%50,ExitCode,ElapsedRaw,NodeList%500,AllocTRES%200'
+-TERMINAL={'COMPLETED','FAILED','CANCELLED','TIMEOUT','OUT_OF_MEMORY','NODE_FAIL','PREEMPTED','BOOT_FAIL','DEADLINE','REVOKED'}
+-
+-def need(ok,why):
+-    if not ok:raise ValueError(why)
+-
+-def consume(context,read_claim):
+-    need(read_claim['root_GO'] is read_claim['READ_GO'] is True,'reader not adopted')
+-    PUB=context['publication'];SOURCE=context['source_manifest'];CLAIM=context['claim']
+-    need(len(PUB)==40 and not set(PUB)-set('0123456789abcdef'),'actual publication required')
+-    for p in (SOURCE,CLAIM):need(type(p['bytes']) is int and p['bytes']>0 and len(p['SHA256'])==64,'actual source/claim pin required')
+-    epoch=context['epoch'];request=context['request_id']
+-    need(type(epoch) in (int,float) and math.isfinite(epoch) and 0<epoch<time.time()
+-         and len(request)==32 and not(set(request)-set('0123456789abcdef')),'original actual context malformed')
+-    read_epoch=context['read_epoch'];read_request=context['read_request_id']
+-    need(type(read_epoch) in (int,float) and math.isfinite(read_epoch) and 0<=time.time()-read_epoch<35,
+-         'fresh bounded reader epoch required')
+-    need(len(read_request)==32 and not set(read_request)-set('0123456789abcdef'),'reader request malformed')
+-    signal.signal(signal.SIGALRM,lambda *_:os._exit(124))
+-    signal.setitimer(signal.ITIMER_REAL,read_epoch+40-time.time())
+-    affinity=sorted(os.sched_getaffinity(0)-{0,1});need(len(affinity)>=2,'two reader CPUs excluding0/1 required')
+-    os.sched_setaffinity(0,affinity[:2]);resource.setrlimit(resource.RLIMIT_AS,(512*1024**2,512*1024**2))
+-    mono=time.monotonic()+read_epoch+40-time.time();total=0;pins={};values={};missing=[];errors=[]
+-    def load(name,optional=False):
+-        nonlocal total
+-        need(time.monotonic()<mono,'bounded metadata read exhausted')
+-        p=RUN/name
+-        try:before=p.lstat()
+-        except FileNotFoundError:
+-            if optional:missing.append(name);return None
+-            raise
+-        need(stat.S_ISREG(before.st_mode) and 0<before.st_size<=2*1024**2,'regular bounded metadata member required')
+-        total+=before.st_size;need(total<=16*1024**2,'total metadata read cap')
+-        raw=p.read_bytes();after=p.lstat()
+-        need(all(getattr(before,k)==getattr(after,k) for k in ('st_dev','st_ino','st_size','st_mtime_ns','st_ctime_ns')),'metadata changed during read')
+-        pins[name]=dict(bytes=len(raw),SHA256=hashlib.sha256(raw).hexdigest());values[name]=json.loads(raw);return values[name]
+-    mf=load('source/SOURCE_FILES.json');claim=load('source/CLAIM.json')
+-    need(pins['source/SOURCE_FILES.json']==SOURCE and pins['source/CLAIM.json']==CLAIM
+-        and mf['files']['CLAIM.json']==CLAIM,'exact CPU publication/MF/claim differs')
+-    installed_read_claim=load('source/TERMINAL_READ_CLAIM.json')
+-    need(pins['source/TERMINAL_READ_CLAIM.json']==mf['files']['TERMINAL_READ_CLAIM.json']
+-         and installed_read_claim==read_claim,'pre-registered reader claim differs from original source MF')
+-    target_contract=load('source/TARGET_MATH_SOURCES.json')
+-    need(pins['source/TARGET_MATH_SOURCES.json']==mf['files']['TARGET_MATH_SOURCES.json']
+-         and claim['target_math_contract']['SHA256']==pins['source/TARGET_MATH_SOURCES.json']['SHA256']
+-         and target_contract['schema']=='REVIEWED_TARGET_MATH_SOURCE_CONTRACT_V1'
+-         and target_contract['numerical_equivalence_proven'] is False,'explicit target mathematics contract source pin')
+-    need(claim['root_GO'] is claim['CPU_GO'] is True and claim['GPU_GO'] is claim['Model_GO'] is claim['training_GO'] is False,'new CPU scope authority/limits')
+-    install=load('install-intent.json');intent=load('intent.json');out=load('outcome.json')
+-    for row in (install,intent,out):
+-        need(row['publication']==PUB and row['request_id']==request and row['epoch']==epoch and row['deadline']==epoch+300,'original request/epoch binding differs')
+-    need(install['MF_SHA256']==SOURCE['SHA256'] and intent['source_manifest']==SOURCE,'installed source context differs')
+-    need(out['accounting_columns']==COLS,'actual accounting columns absent/different')
+-    actual=out['accounting']['row']
+-    need(actual is not None and len(actual)==7 and actual[1]==RUN.name and actual[2].split()[0] in TERMINAL,'actual CPU step terminal not established')
+-    need(actual[0].startswith('1087656.') and actual[5]=='a14r3n04','original CPU parent/node differs')
+-    names=['step-intent.json','launcher-executable-identity.json','stage-before.json','container-intent.json','stage-outcome.json','worker-owner.json','worker-result.json',
+-           'caller-progress.json','native-caller-rows.json','native-caller-providers.json','native-PEFT-structure.json','encode-chain-observation.json','model-source-observation.json']
+-    for prefix in ('srun-control','container-control'):
+-        names += [prefix+'/'+n+'.json' for n in ('owner','held-child-anchor','child-owner','owned-registry','resources','outcome')]
+-    names += ['cgroup-admission.json','native-ready.json','native-release.json','container-control/identity-observations.json']
+-    for name in names:load(name,optional=True)
+-    failure=load('failure-private.json',optional=True)
+-    # Never export the exception message/trace; exact private pin suffices for diagnosis.
+-    failure_summary={k:failure.get(k) for k in ('phase','error_type')} if failure else None
+-    if failure:
+-        message=failure.get('message','');need(type(message) is str and len(message)<=4096,'bounded original private failure message')
+-        failure_summary.update(message_SHA256=hashlib.sha256(message.encode()).hexdigest(),message_bytes=len(message.encode()),
+-            private_only_reason_last1024=message[-1024:],raw_reason_must_not_be_published=True)
+-    # A failure before the worker try-block has no failure-private.json. Inspect
+-    # only these two bounded log tails; never promote them to whole-file hashes.
+-    diagnostic_tails={};tail_pins={}
+-    if out.get('passed') is not True and failure is None:
+-        for name in ('container-control/stderr.private','srun-control/stderr.private'):
+-            need(time.monotonic()<mono,'reader log-tail deadline')
+-            p=RUN/name
+-            try:before=p.lstat()
+-            except FileNotFoundError:continue
+-            need(stat.S_ISREG(before.st_mode) and before.st_size<=16*1024**2,'bounded original private log')
+-            count=min(4096,before.st_size)
+-            if count==0:continue
+-            with p.open('rb') as stream:
+-                stream.seek(before.st_size-count);raw=stream.read(count);after=os.fstat(stream.fileno())
+-            key=lambda s:(s.st_dev,s.st_ino,s.st_size,s.st_mtime_ns,s.st_ctime_ns)
+-            need(key(before)==key(after)==key(p.lstat()) and len(raw)==count,'original log changed')
+-            total+=count;need(total<=16*1024**2,'metadata plus log-tail cap')
+-            tail_pins[name]=dict(total_file_bytes=before.st_size,explicit_tail_bytes=count,
+-                tail_SHA256=hashlib.sha256(raw).hexdigest(),whole_file_SHA256_verified=False)
+-            diagnostic_tails[name]=raw.decode('utf-8',errors='replace')[-1024:]
+-    progress=values.get('caller-progress.json') or {};worker=values.get('worker-result.json') or {}
+-    completed=worker.get('completed_rows',progress.get('completed_rows',0))
+-    need(type(completed) is int and 0<=completed<=64,'actual completed/missing denominator invalid')
+-    owner=intent['owner'];need(owner['UID']==os.getuid(),'original controller numeric owner differs');host=socket.gethostname();boot=Path('/proc/sys/kernel/random/boot_id').read_text().strip()
+-    owner_state='UNKNOWN_DIFFERENT_HOST_OR_BOOT'
+-    if host==owner['host'] and boot==owner['boot_id']:
+-        p=Path('/proc')/str(owner['PID'])/'stat'
+-        try:
+-            f=p.read_text().rsplit(') ',1)[1].split()
+-            owner_state='SAVED_OWNER_STILL_PRESENT' if int(f[19])==owner['startticks'] else 'SAVED_OWNER_ABSENT_PID_REUSED'
+-        except (FileNotFoundError,ProcessLookupError):owner_state='SAVED_OWNER_ABSENT'
+-    control_summaries={};native_summary=None;memory_summary=None
+-    for prefix in ('srun-control','container-control'):
+-        v=values.get(prefix+'/outcome.json')
+-        if v:
+-            r=v.get('resources',{});f=v.get('failure') or {}
+-            control_summaries[prefix]=dict(passed=v.get('passed'),returncode=v.get('returncode'),failure_type=f.get('type',f.get('error_type')),
+-                private_only_failure_reason=(v.get('failure') or {}).get('reason','')[:256],
+-                failure_reason_SHA256=hashlib.sha256((v.get('failure') or {}).get('reason','').encode()).hexdigest(),
+-                failure_phase=(v.get('failure') or {}).get('phase'),
+-                failure_source_linecode=(v.get('failure') or {}).get('source_linecode'),
+-                held_child_reaped=(v.get('held_cleanup') or {}).get('reaped'),held_termination_needed=(v.get('held_cleanup') or {}).get('termination_needed'),
+-                owned_processes_remaining=(v.get('registry_cleanup') or {}).get('owned_processes_remaining'),
+-                RSS_sampled_peak_bytes=r.get('sampled_group_peak_RSS_bytes') if prefix=='srun-control' else None,
+-                RSS_samples=r.get('samples') if prefix=='srun-control' else None,
+-                RSS_unknown_coverage_samples=r.get('RSS_unknown_coverage_samples',0) if prefix=='srun-control' else None,
+-                RSS_sampled_soft_limit_bytes=r.get('soft_limit_bytes') if prefix=='srun-control' else None,RSS_not_hard_limit=True,
+-                memory_metric=r.get('metric','OWNED_USER_RSS'),charged_memory_samples=r.get('samples') if prefix=='container-control' else None,
+-                peak_charged_memory_bytes=r.get('peak_charged_memory_bytes'),charged_memory_is_sum_RSS=False,
+-                native_released=v.get('native_released'),post=v.get('post'),cleanup_errors=v.get('cleanup_errors'))
+-    if out.get('passed') is True:
+-        try:
+-            need(not missing or missing==['failure-private.json'],'success missing required native/cleanup metadata')
+-            need(actual[2:4]==['COMPLETED','0:0'] and set(actual[6].split(','))=={'cpu=8','mem=12G','node=1'},'actual C0 CPU8/mem12G/0GRES required')
+-            need(out['actual_CPU_steps']==1 and out['actual_GPU_steps']==0 and out['execution_state']=='TERMINAL','one actual CPU0GPU step')
+-            exe=values['launcher-executable-identity.json'];need(exe['path']=='/public/software/apps/apptainer/1.3.4/bin/apptainer' and exe['X_OK'] is exe['regular'] is exe['identity_stable'] is True,'actual absolute executable stat/X_OK not established')
+-            stage=values['stage-outcome.json'];step=values['step-intent.json'];ci=values['container-intent.json'];wo=values['worker-owner.json']
+-            need(out['inside']==stage and stage['step']==actual[0] and stage['passed'] is True and stage['allocated_GPU_cards']==0,'actual stage binding')
+-            need(worker==stage['worker'] and worker['passed'] is True and worker['planned_rows']==worker['completed_rows']==64 and worker['missing_rows']==0,'full native64 actual result')
+-            need(progress==dict(planned_rows=64,completed_rows=64,missing_rows=0,failed=False),'full64 caller progress')
+-            for v in (stage,step,ci,worker,wo):need(v['epoch']==epoch and v['deadline']==epoch+300,'component epoch changed')
+-            need(ci['command'][0]=='/public/software/apps/apptainer/1.3.4/bin/apptainer' and '--rocm' not in ci['command'] and ['/usr/local/hyhal','/opt/hyhal','ro'] in ci['resolved_binds'],'qualified CPU launcher/systemalias plumbing differs')
+-            need(worker['work_deadline']<=epoch+210 and ci['work_deadline']==worker['work_deadline'] and ci['step_deadline']==step['step_deadline']<=epoch+255,'worker/Slurm deadlines')
+-            argv=step['command'];need('--gres=none' in argv and '-c8' in argv and '--mem=12288M' in argv and '-w' in argv and argv[argv.index('-w')+1]=='a14r3n04','actual CPU resource argv')
+-            need(step['Slurm_seconds'] in (120,180,240) and '--time=00:%02d:00'%(step['Slurm_seconds']//60) in argv,'shrinking actual Slurm budget')
+-            for prefix in ('srun-control','container-control'):
+-                v=values[prefix+'/outcome.json'];post=v['post'];held=v['held_cleanup'];tree=v['registry_cleanup']
+-                need(v['owner']==values[prefix+'/owner.json'] and v['child']==values[prefix+'/held-child-anchor.json'],'saved controller/held owner differs')
+-                child=values[prefix+'/child-owner.json'];need(v['child']['PID']==child['PID']==v['child']['PGID'] and child['startticks']>0,'actual held child identity')
+-                need(v['passed'] is True and v['returncode']==0 and v['failure'] is None and not v['cleanup_errors'],'actual bounded child C0/cleanup error')
+-                need(held['reaped'] is True and held['termination_needed'] is False and tree['owned_processes_remaining']==0 and tree['termination_needed'] is False,'held/tree normal completion required')
+-                need(post['same_host'] is post['same_boot'] is post['held_child_reaped'] is True and post['controller_device_FDs']==[]
+-                     and post['owned_descendants_remaining']==0 and post['owned_device_FD_holders']=={},'owned post not clean')
+-                r=v['resources'];need(r==values[prefix+'/resources.json'] and r['samples']>0 and r['soft_limit_bytes']==8*1024**3
+-                     and r['soft_limit_exceeded'] is False and r['hard_limit'] is False,'sampled resource limit qualification')
+-                need(epoch<v['stop']<v['held_deadline']<v['registry_deadline']<=epoch+282,'same-epoch owned cleanup deadlines')
+-                if prefix=='container-control':
+-                    helper_path=RUN/'source/cgroup_evidence.py'
+-                    need(helper_path.is_file() and not helper_path.is_symlink() and helper_path.stat().st_size==mf['files']['cgroup_evidence.py']['bytes']<=32768,'bounded predicate source')
+-                    need(total+mf['files']['cgroup_evidence.py']['bytes']<=16*1024**2,'metadata plus predicate source cap')
+-                    helper_raw=helper_path.read_bytes()
+-                    total+=len(helper_raw);need(total<=16*1024**2,'actual metadata plus predicate source cap')
+-                    pins['source/cgroup_evidence.py']=dict(bytes=len(helper_raw),SHA256=hashlib.sha256(helper_raw).hexdigest())
+-                    need(len(helper_raw)==mf['files']['cgroup_evidence.py']['bytes']<=32768 and hashlib.sha256(helper_raw).hexdigest()==mf['files']['cgroup_evidence.py']['SHA256'],'independent saved-memory predicate source pin')
+-                    helper_namespace={};exec(compile(helper_raw,str(helper_path),'exec'),helper_namespace)
+-                    memory_summary=helper_namespace['validate'](values,actual[0],epoch,wo,request)
+-
+-            observed=values['model-source-observation.json']
+-            need(observed['schema']=='ACTUAL_TARGET_MATH_PROVIDER_OBSERVATION_V1' and observed['enumeration_complete'] is True
+-                 and observed['validation_attempted'] is False and not observed['errors']
+-                 and observed['numerical_equivalence_proven'] is False,'complete pre-validation provider observation')
+-            expected=target_contract['target_sources']
+-            need(observed['planned_prefixes']==sorted(expected) and {r['prefix'] for r in observed['records']}==set(expected),'both actual mathematical module prefixes')
+-            resolved={}
+-            for prefix,expected_pin in expected.items():
+-                source_rows=[r for r in observed['records'] if r['prefix']==prefix]
+-                need(all(r['module'].startswith(prefix) and r['class_qualname'] and r['module_file'] and r['inspect_sourcefile']
+-                     and r['resolved_path']==r['resolved_module_path'] and dict(bytes=r['bytes'],SHA256=r['SHA256'])==expected_pin for r in source_rows),'actual provider identity versus reviewed target contract')
+-                paths={r['resolved_path'] for r in source_rows};need(len(paths)==1,'one mathematical source per prefix')
+-                resolved[prefix]=dict(path=next(iter(paths)),**expected_pin)
+-            rows=values['native-caller-rows.json'];structure=values['native-PEFT-structure.json'];providers=values['native-caller-providers.json']
+-            need(structure['actual_model_sources']==resolved and structure['platform_source_contract_SHA256']==pins['source/TARGET_MATH_SOURCES.json']['SHA256']
+-                 and structure['reference_model_source_SHA256']==target_contract['reference_model_source_SHA256']
+-                 and structure['measured_target_model_source_SHA256']=={k:v['SHA256'] for k,v in expected.items()}
+-                 and structure['numerical_equivalence_proven'] is worker['numerical_equivalence_proven'] is False,'meta structure source contract binding')
+-            need(len(rows)==64 and [r['ordinal'] for r in rows]==list(range(1,65)),'all64 ordered actual native rows')
+-            for row in rows:
+-                need(0<row['sequence_length']<=4096 and row['supervised_EOS_count']>0 and row['effective_shifted_supervised_tokens']>0,'full sequence/EOS/shifted supervision')
+-                need(row['selected_logit_rows']==row['supervised_tokens']+1 and all(row[k] is True for k in ('original_encoded_fields_exact','complete_input_sequence_unchanged','non_label_fields_unchanged','label_and_logit_mask_native_semantics_checked')),'native label/logit masks differ')
+-                need(set(row['after_fields'])==set(row['before_fields'])|{'logits_to_keep'} and all(row['after_fields'][k]==v for k,v in row['before_fields'].items() if k!='labels'),'native fields changed outside labels/logit selection')
+-            need(worker['actual_trainable_tensors']==structure['actual_trainable_tensors']==len(structure['trainable_manifest'])==504,'actual meta504 tensor count')
+-            need(worker['actual_trainable_parameters']==structure['actual_trainable_parameters']==sum(p['numel'] for p in structure['trainable_manifest'])==43646976,'actual meta trainable count')
+-            need(hashlib.sha256(json.dumps(structure['trainable_manifest'],sort_keys=True,separators=(',',':')).encode()).hexdigest()==EXPECTED_MANIFEST_SHA256,'original exact504 name/shape/dtype manifest differs')
+-            need(set(structure['frozen'])=={'model.vision_tower','model.multi_modal_projector'} and all(v['tensors']>0 and v['parameters']>0 for v in structure['frozen'].values()),'actual frozen visual/projector boundary metadata absent')
+-            life=structure['lifecycle'];need(life['original_requested'] is life['language_checkpointing'] is True and life['language_checkpointed_layers']==36
+-                 and life['native_Trainer_flag'] is life['language_use_cache'] is life['vision_checkpointing'] is False and life['vision_checkpointing_flags']>0,'actual native language-GC lifecycle differs')
+-            need(structure['initial_values_qualified'] is False and worker['actual_model_loaded'] is worker['training_forward_backward'] is False
+-                 and worker['implicit_library_device_queries']=='UNKNOWN' and worker['own_device_FDs_after']==[] and worker['weight_file_open_attempts']==[],'CPU only, no weights/FDs; implicit GPU remains unknown')
+-            chain=providers['encode']['wrapper_chain'];need(len(chain)==3 and providers==worker['providers'],'actual provider observations not result-bound')
+-            need([r['code_qualname'] for r in chain]==['context_decorator.<locals>.decorate_context','retry_decorator.<locals>._retry.<locals>.new_func','Template.encode'],'closed actual native wrapper chain')
+-            need(values['encode-chain-observation.json']['chain']==[{k:v for k,v in r.items() if k!='role'} for r in chain],'pre-caller actual wrapper observation differs')
+-            need(set(providers)=={'encode','collator','base_collator','logit_policy','logit_selection','native_prepare_inputs','post_encode','prepare_adapter','GC'},'complete actual method provider denominator')
+-            for r in [*chain,*[v for k,v in providers.items() if k!='encode']]:
+-                need(type(r['bytes']) is int and 0<r['bytes']<=262144 and len(r['SHA256'])==64 and len(r['definition_source_SHA256'])==64,'actual provider bounded full source identity')
+-            tokens=sum(r['effective_shifted_supervised_tokens'] for r in rows)
+-            need(tokens==worker['actual_shifted_supervised_tokens'] and worker['native_supervised_EOS_rows']==64,'actual native token/EOS aggregates')
+-            native_summary=dict(rows=64,supervised_EOS_rows=64,actual_shifted_supervised_tokens=tokens,sequence_length_range=[min(r['sequence_length'] for r in rows),max(r['sequence_length'] for r in rows)],
+-                actual_meta_trainable_tensors=504,actual_meta_trainable_parameters=43646976,provider_methods=9,actual_encode_chain=3,initial_values_qualified=False)
+-        except (KeyError,TypeError,ValueError,AssertionError) as e:errors.append(dict(type=type(e).__name__,reason=str(e)[:256]))
+-    observation=values.get('model-source-observation.json')
+-    observation_summary=None
+-    if isinstance(observation,dict):
+-        unique={}
+-        for row in observation.get('records',[]):
+-            keep={k:row.get(k) for k in ('prefix','module','module_file','inspect_sourcefile','resolved_path','resolved_module_path','bytes','SHA256')}
+-            unique[json.dumps(keep,sort_keys=True)]=keep
+-        observation_summary=dict(planned_prefixes=observation.get('planned_prefixes'),
+-            enumeration_complete=observation.get('enumeration_complete'),
+-            observed_class_count=len(observation.get('records',[])),
+-            source_identities=list(unique.values()),errors=observation.get('errors'),
+-            identities_are_observed_not_automatically_accepted=True,numerical_equivalence_proven=False)
+-    qualified=out.get('passed') is True and not errors
+-    result=dict(state='T03_TARGET_NATIVE64_META_PEFT_INDEPENDENT_PASS' if qualified else 'ORIGINAL_CPU_FAILURE_OR_INDEPENDENT_MISMATCH_RETAINED',
+-        independent_metadata_consumed=True,qualification_passed=qualified,producer_passed=out.get('passed'),publication=PUB,request_id=request,epoch=epoch,deadline=epoch+300,
+-        source_manifest=SOURCE,claim=CLAIM,actual_accounting_columns=COLS,actual_accounting=actual,planned_rows=64,completed_rows=completed,missing_rows=64-completed,
+-        private_failure=failure_summary,private_failure_pin=pins.get('failure-private.json'),missing_metadata=missing,errors=errors,original_HOST_owner_state=owner_state,
+-        private_only_diagnostic_tails=diagnostic_tails,diagnostic_tail_pins=tail_pins,
+-        raw_diagnostic_tails_must_not_be_published=True,reader_request_id=read_request,reader_epoch=read_epoch,
+-        controller_private_failure_reasons_must_not_be_published=True,current_login_liveness_required_for_software_qualification=False,
+-        controllers=control_summaries,native=native_summary,step_charged_memory=memory_summary,actual_metadata_files=len(pins),actual_metadata_read_bytes=total,metadata_pins=pins,
+-        weight_or_image_or_metadata13_or_framework393_body_reads=0,new_GPU_or_processor_calls=0,implicit_library_device_queries='UNKNOWN',
+-        math_provider_observation=observation_summary,target_math_contract_pin=pins['source/TARGET_MATH_SOURCES.json'],model_source_observation_pin=pins.get('model-source-observation.json'),numerical_equivalence_proven=False,
+-        initial_values_qualified=False,training_numerical_GO=False,GPU_GO=False,Model_GO=False,formal17_GO=False,replay_allowed=False)
+-    raw=json.dumps(result,sort_keys=True,allow_nan=False).encode();need(len(raw)<=16384,'bounded independent private summary cap')
+-    signal.setitimer(signal.ITIMER_REAL,0)
+-    return result
+-
+-if __name__=='__main__':
+-    print(json.dumps(consume(CONTEXT,READER_CLAIM),sort_keys=True,allow_nan=False))
++"""Independent metadata-only consumer of the single new native72/metaPEFT CPU new-data scope run."""
++import hashlib
++import json
++import math
++import os
++from pathlib import Path
++import resource
++import signal
++import socket
++import stat
++import time
++
++RUN=Path('/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/training-internvl-USGS72-native-CPU-v1')
++EXPECTED_MANIFEST_SHA256='e55f2a28eed620a2b0712d43f96cc95293a84fcf2f339a899c81ca07ae298b3b'
++COLS='JobIDRaw,JobName%100,State%50,ExitCode,ElapsedRaw,NodeList%500,AllocTRES%200'
++TERMINAL={'COMPLETED','FAILED','CANCELLED','TIMEOUT','OUT_OF_MEMORY','NODE_FAIL','PREEMPTED','BOOT_FAIL','DEADLINE','REVOKED'}
++
++def need(ok,why):
++    if not ok:raise ValueError(why)
++
++def consume(context,read_claim):
++    need(read_claim['root_GO'] is read_claim['READ_GO'] is True,'reader not adopted')
++    PUB=context['publication'];SOURCE=context['source_manifest'];CLAIM=context['claim']
++    need(len(PUB)==40 and not set(PUB)-set('0123456789abcdef'),'actual publication required')
++    for p in (SOURCE,CLAIM):need(type(p['bytes']) is int and p['bytes']>0 and len(p['SHA256'])==64,'actual source/claim pin required')
++    epoch=context['epoch'];request=context['request_id']
++    need(type(epoch) in (int,float) and math.isfinite(epoch) and 0<epoch<time.time()
++         and len(request)==32 and not(set(request)-set('0123456789abcdef')),'original actual context malformed')
++    read_epoch=context['read_epoch'];read_request=context['read_request_id']
++    need(type(read_epoch) in (int,float) and math.isfinite(read_epoch) and 0<=time.time()-read_epoch<35,
++         'fresh bounded reader epoch required')
++    need(len(read_request)==32 and not set(read_request)-set('0123456789abcdef'),'reader request malformed')
++    signal.signal(signal.SIGALRM,lambda *_:os._exit(124))
++    signal.setitimer(signal.ITIMER_REAL,read_epoch+40-time.time())
++    affinity=sorted(os.sched_getaffinity(0)-{0,1});need(len(affinity)>=2,'two reader CPUs excluding0/1 required')
++    os.sched_setaffinity(0,affinity[:2]);resource.setrlimit(resource.RLIMIT_AS,(512*1024**2,512*1024**2))
++    mono=time.monotonic()+read_epoch+40-time.time();total=0;pins={};values={};missing=[];errors=[]
++    def load(name,optional=False):
++        nonlocal total
++        need(time.monotonic()<mono,'bounded metadata read exhausted')
++        p=RUN/name
++        try:before=p.lstat()
++        except FileNotFoundError:
++            if optional:missing.append(name);return None
++            raise
++        need(stat.S_ISREG(before.st_mode) and 0<before.st_size<=2*1024**2,'regular bounded metadata member required')
++        total+=before.st_size;need(total<=16*1024**2,'total metadata read cap')
++        raw=p.read_bytes();after=p.lstat()
++        need(all(getattr(before,k)==getattr(after,k) for k in ('st_dev','st_ino','st_size','st_mtime_ns','st_ctime_ns')),'metadata changed during read')
++        pins[name]=dict(bytes=len(raw),SHA256=hashlib.sha256(raw).hexdigest());values[name]=json.loads(raw);return values[name]
++    mf=load('source/SOURCE_FILES.json');claim=load('source/CLAIM.json')
++    need(pins['source/SOURCE_FILES.json']==SOURCE and pins['source/CLAIM.json']==CLAIM
++        and mf['files']['CLAIM.json']==CLAIM,'exact CPU publication/MF/claim differs')
++    installed_read_claim=load('source/TERMINAL_READ_CLAIM.json')
++    need(pins['source/TERMINAL_READ_CLAIM.json']==mf['files']['TERMINAL_READ_CLAIM.json']
++         and installed_read_claim==read_claim,'pre-registered reader claim differs from original source MF')
++    target_contract=load('source/TARGET_MATH_SOURCES.json')
++    need(pins['source/TARGET_MATH_SOURCES.json']==mf['files']['TARGET_MATH_SOURCES.json']
++         and claim['target_math_contract']['SHA256']==pins['source/TARGET_MATH_SOURCES.json']['SHA256']
++         and target_contract['schema']=='REVIEWED_TARGET_MATH_SOURCE_CONTRACT_V1'
++         and target_contract['numerical_equivalence_proven'] is False,'explicit target mathematics contract source pin')
++    need(claim['root_GO'] is claim['CPU_GO'] is True and claim['GPU_GO'] is claim['Model_GO'] is claim['training_GO'] is False,'new CPU scope authority/limits')
++    input_rows=load('source/INPUT_ROWS.json');data_contract=load('source/DATA_CONTRACT.json')
++    need(pins['source/INPUT_ROWS.json']==mf['files']['INPUT_ROWS.json'] and pins['source/DATA_CONTRACT.json']==mf['files']['DATA_CONTRACT.json'],'new72 input/source contract pins')
++    need(len(input_rows['rows'])==72 and len(data_contract['files'])==14 and request=='8110b01cd24846f8b6fcd08f0abda5a0','new72 exact data/request scope')
++    install=load('install-intent.json');intent=load('intent.json');out=load('outcome.json')
++    for row in (install,intent,out):
++        need(row['publication']==PUB and row['request_id']==request and row['epoch']==epoch and row['deadline']==epoch+300,'original request/epoch binding differs')
++    need(install['MF_SHA256']==SOURCE['SHA256'] and intent['source_manifest']==SOURCE,'installed source context differs')
++    need(install['data_files']==14 and install['data_contract_SHA256']==pins['source/DATA_CONTRACT.json']['SHA256'],'actual installed14 source-bound data scope')
++    need(out['accounting_columns']==COLS,'actual accounting columns absent/different')
++    actual=out['accounting']['row']
++    parent_accounting=out.get('accounting_parent')
++    need(isinstance(parent_accounting,list) and len(parent_accounting)==7 and parent_accounting[0]=='1087656','unique observed current allocation row required')
++    if actual is None:
++        need(out['actual_CPU_steps'] is None and out['execution_state']=='UNKNOWN','no actual numbered row cannot be count1/terminal')
++    else:
++        import re
++        need(len(actual)==7 and actual[1]==RUN.name and re.fullmatch(r'1087656\.\d+',actual[0]) is not None and actual[5]=='a14r3n04','original actual numbered CPU parent/node differs')
++        need(out['actual_CPU_steps']==1,'one actually observed original numbered step')
++    names=['step-intent.json','launcher-executable-identity.json','stage-before.json','container-intent.json','stage-outcome.json','worker-owner.json','worker-result.json',
++           'caller-progress.json','native-caller-rows.json','native-caller-providers.json','native-PEFT-structure.json','encode-chain-observation.json','full-encode-chain-observation.json','model-source-observation.json']
++    for prefix in ('srun-control','container-control'):
++        names += [prefix+'/'+n+'.json' for n in ('owner','held-child-anchor','child-owner','owned-registry','resources','outcome')]
++    names += ['cgroup-admission.json','native-ready.json','native-release.json','container-control/identity-observations.json']
++    for name in names:load(name,optional=True)
++    failure=load('failure-private.json',optional=True)
++    # Never export the exception message/trace; exact private pin suffices for diagnosis.
++    failure_summary={k:failure.get(k) for k in ('phase','error_type')} if failure else None
++    if failure:
++        message=failure.get('message','');need(type(message) is str and len(message)<=4096,'bounded original private failure message')
++        failure_summary.update(message_SHA256=hashlib.sha256(message.encode()).hexdigest(),message_bytes=len(message.encode()),
++            private_only_reason_last1024=message[-1024:],raw_reason_must_not_be_published=True)
++    # A failure before the worker try-block has no failure-private.json. Inspect
++    # only these two bounded log tails; never promote them to whole-file hashes.
++    diagnostic_tails={};tail_pins={}
++    if out.get('passed') is not True and failure is None:
++        for name in ('container-control/stderr.private','srun-control/stderr.private'):
++            need(time.monotonic()<mono,'reader log-tail deadline')
++            p=RUN/name
++            try:before=p.lstat()
++            except FileNotFoundError:continue
++            need(stat.S_ISREG(before.st_mode) and before.st_size<=16*1024**2,'bounded original private log')
++            count=min(4096,before.st_size)
++            if count==0:continue
++            with p.open('rb') as stream:
++                stream.seek(before.st_size-count);raw=stream.read(count);after=os.fstat(stream.fileno())
++            key=lambda s:(s.st_dev,s.st_ino,s.st_size,s.st_mtime_ns,s.st_ctime_ns)
++            need(key(before)==key(after)==key(p.lstat()) and len(raw)==count,'original log changed')
++            total+=count;need(total<=16*1024**2,'metadata plus log-tail cap')
++            tail_pins[name]=dict(total_file_bytes=before.st_size,explicit_tail_bytes=count,
++                tail_SHA256=hashlib.sha256(raw).hexdigest(),whole_file_SHA256_verified=False)
++            diagnostic_tails[name]=raw.decode('utf-8',errors='replace')[-1024:]
++    progress=values.get('caller-progress.json') or {};worker=values.get('worker-result.json') or {}
++    completed=worker.get('completed_rows',progress.get('completed_rows',0))
++    need(type(completed) is int and 0<=completed<=72,'actual completed/missing denominator invalid')
++    owner=intent['owner'];need(owner['UID']==os.getuid(),'original controller numeric owner differs');host=socket.gethostname();boot=Path('/proc/sys/kernel/random/boot_id').read_text().strip()
++    owner_state='UNKNOWN_DIFFERENT_HOST_OR_BOOT'
++    if host==owner['host'] and boot==owner['boot_id']:
++        p=Path('/proc')/str(owner['PID'])/'stat'
++        try:
++            f=p.read_text().rsplit(') ',1)[1].split()
++            owner_state='SAVED_OWNER_STILL_PRESENT' if int(f[19])==owner['startticks'] else 'SAVED_OWNER_ABSENT_PID_REUSED'
++        except (FileNotFoundError,ProcessLookupError):owner_state='SAVED_OWNER_ABSENT'
++    control_summaries={};native_summary=None;memory_summary=None
++    for prefix in ('srun-control','container-control'):
++        v=values.get(prefix+'/outcome.json')
++        if v:
++            r=v.get('resources',{});f=v.get('failure') or {}
++            control_summaries[prefix]=dict(passed=v.get('passed'),returncode=v.get('returncode'),failure_type=f.get('type',f.get('error_type')),
++                private_only_failure_reason=(v.get('failure') or {}).get('reason','')[:256],
++                failure_reason_SHA256=hashlib.sha256((v.get('failure') or {}).get('reason','').encode()).hexdigest(),
++                failure_phase=(v.get('failure') or {}).get('phase'),
++                failure_source_linecode=(v.get('failure') or {}).get('source_linecode'),
++                held_child_reaped=(v.get('held_cleanup') or {}).get('reaped'),held_termination_needed=(v.get('held_cleanup') or {}).get('termination_needed'),
++                owned_processes_remaining=(v.get('registry_cleanup') or {}).get('owned_processes_remaining'),
++                RSS_sampled_peak_bytes=r.get('sampled_group_peak_RSS_bytes') if prefix=='srun-control' else None,
++                RSS_samples=r.get('samples') if prefix=='srun-control' else None,
++                RSS_unknown_coverage_samples=r.get('RSS_unknown_coverage_samples',0) if prefix=='srun-control' else None,
++                RSS_sampled_soft_limit_bytes=r.get('soft_limit_bytes') if prefix=='srun-control' else None,RSS_not_hard_limit=True,
++                memory_metric=r.get('metric','OWNED_USER_RSS'),charged_memory_samples=r.get('samples') if prefix=='container-control' else None,
++                peak_charged_memory_bytes=r.get('peak_charged_memory_bytes'),charged_memory_is_sum_RSS=False,
++                native_released=v.get('native_released'),post=v.get('post'),cleanup_errors=v.get('cleanup_errors'))
++    if out.get('passed') is True:
++        try:
++            need(not missing or missing==['failure-private.json'],'success missing required native/cleanup metadata')
++            need(actual is not None and actual[2].split()[0] in TERMINAL and actual[2:4]==['COMPLETED','0:0'] and set(actual[6].split(','))=={'cpu=8','mem=12G','node=1'},'actual C0 CPU8/mem12G/0GRES required')
++            need(out['srun_invoked'] is True and out['actual_CPU_steps']==1 and out['actual_GPU_steps']==0 and out['execution_state']=='TERMINAL','one actual CPU0GPU step')
++            exe=values['launcher-executable-identity.json'];need(exe['path']=='/public/software/apps/apptainer/1.3.4/bin/apptainer' and exe['X_OK'] is exe['regular'] is exe['identity_stable'] is True,'actual absolute executable stat/X_OK not established')
++            stage=values['stage-outcome.json'];step=values['step-intent.json'];ci=values['container-intent.json'];wo=values['worker-owner.json']
++            need(out['inside']==stage and stage['step']==actual[0] and stage['passed'] is True and stage['allocated_GPU_cards']==0,'actual stage binding')
++            need(worker==stage['worker'] and worker['passed'] is True and worker['planned_rows']==worker['completed_rows']==72 and worker['missing_rows']==0,'full native72 actual result')
++            need(progress==dict(planned_rows=72,completed_rows=72,missing_rows=0,failed=False,attempted_rows=72,unattempted_rows=0,failed_rows=0,encode_calls_attempted=144,encode_calls_completed=144,collator_calls_attempted=72,collator_calls_completed=72),'full72 caller progress/calls')
++            for v in (stage,step,ci,worker,wo):need(v['epoch']==epoch and v['deadline']==epoch+300,'component epoch changed')
++            need(ci['command'][0]=='/public/software/apps/apptainer/1.3.4/bin/apptainer' and '--rocm' not in ci['command'] and ['/usr/local/hyhal','/opt/hyhal','ro'] in ci['resolved_binds'],'qualified CPU launcher/systemalias plumbing differs')
++            need(worker['work_deadline']<=epoch+210 and ci['work_deadline']==worker['work_deadline'] and ci['step_deadline']==step['step_deadline']<=epoch+255,'worker/Slurm deadlines')
++            argv=step['command'];need('--gres=none' in argv and '-c8' in argv and '--mem=12288M' in argv and '-w' in argv and argv[argv.index('-w')+1]=='a14r3n04','actual CPU resource argv')
++            need(step['Slurm_seconds'] in (120,180,240) and '--time=00:%02d:00'%(step['Slurm_seconds']//60) in argv,'shrinking actual Slurm budget')
++            for prefix in ('srun-control','container-control'):
++                v=values[prefix+'/outcome.json'];post=v['post'];held=v['held_cleanup'];tree=v['registry_cleanup']
++                need(v['owner']==values[prefix+'/owner.json'] and v['child']==values[prefix+'/held-child-anchor.json'],'saved controller/held owner differs')
++                child=values[prefix+'/child-owner.json'];need(v['child']['PID']==child['PID']==v['child']['PGID'] and child['startticks']>0,'actual held child identity')
++                need(v['passed'] is True and v['returncode']==0 and v['failure'] is None and not v['cleanup_errors'],'actual bounded child C0/cleanup error')
++                need(held['reaped'] is True and held['termination_needed'] is False and tree['owned_processes_remaining']==0 and tree['termination_needed'] is False,'held/tree normal completion required')
++                need(post['same_host'] is post['same_boot'] is post['held_child_reaped'] is True and post['controller_device_FDs']==[]
++                     and post['owned_descendants_remaining']==0 and post['owned_device_FD_holders']=={},'owned post not clean')
++                r=v['resources'];need(r==values[prefix+'/resources.json'] and r['samples']>0 and r['soft_limit_bytes']==8*1024**3
++                     and r['soft_limit_exceeded'] is False and r['hard_limit'] is False,'sampled resource limit qualification')
++                need(epoch<v['stop']<v['held_deadline']<v['registry_deadline']<=epoch+282,'same-epoch owned cleanup deadlines')
++                if prefix=='container-control':
++                    helper_path=RUN/'source/cgroup_evidence.py'
++                    need(helper_path.is_file() and not helper_path.is_symlink() and helper_path.stat().st_size==mf['files']['cgroup_evidence.py']['bytes']<=32768,'bounded predicate source')
++                    need(total+mf['files']['cgroup_evidence.py']['bytes']<=16*1024**2,'metadata plus predicate source cap')
++                    helper_raw=helper_path.read_bytes()
++                    total+=len(helper_raw);need(total<=16*1024**2,'actual metadata plus predicate source cap')
++                    pins['source/cgroup_evidence.py']=dict(bytes=len(helper_raw),SHA256=hashlib.sha256(helper_raw).hexdigest())
++                    need(len(helper_raw)==mf['files']['cgroup_evidence.py']['bytes']<=32768 and hashlib.sha256(helper_raw).hexdigest()==mf['files']['cgroup_evidence.py']['SHA256'],'independent saved-memory predicate source pin')
++                    helper_namespace={};exec(compile(helper_raw,str(helper_path),'exec'),helper_namespace)
++                    memory_summary=helper_namespace['validate'](values,actual[0],epoch,wo,request)
++
++            observed=values['model-source-observation.json']
++            need(observed['schema']=='ACTUAL_TARGET_MATH_PROVIDER_OBSERVATION_V1' and observed['enumeration_complete'] is True
++                 and observed['validation_attempted'] is False and not observed['errors']
++                 and observed['numerical_equivalence_proven'] is False,'complete pre-validation provider observation')
++            expected=target_contract['target_sources']
++            need(observed['planned_prefixes']==sorted(expected) and {r['prefix'] for r in observed['records']}==set(expected),'both actual mathematical module prefixes')
++            resolved={}
++            for prefix,expected_pin in expected.items():
++                source_rows=[r for r in observed['records'] if r['prefix']==prefix]
++                need(all(r['module'].startswith(prefix) and r['class_qualname'] and r['module_file'] and r['inspect_sourcefile']
++                     and r['resolved_path']==r['resolved_module_path'] and dict(bytes=r['bytes'],SHA256=r['SHA256'])==expected_pin for r in source_rows),'actual provider identity versus reviewed target contract')
++                paths={r['resolved_path'] for r in source_rows};need(len(paths)==1,'one mathematical source per prefix')
++                resolved[prefix]=dict(path=next(iter(paths)),**expected_pin)
++            rows=values['native-caller-rows.json'];structure=values['native-PEFT-structure.json'];providers=values['native-caller-providers.json']
++            need(structure['actual_model_sources']==resolved and structure['platform_source_contract_SHA256']==pins['source/TARGET_MATH_SOURCES.json']['SHA256']
++                 and structure['reference_model_source_SHA256']==target_contract['reference_model_source_SHA256']
++                 and structure['measured_target_model_source_SHA256']=={k:v['SHA256'] for k,v in expected.items()}
++                 and structure['numerical_equivalence_proven'] is worker['numerical_equivalence_proven'] is False,'meta structure source contract binding')
++            need(len(rows)==72 and [r['ordinal'] for r in rows]==list(range(1,73)),'all72 ordered actual native rows')
++            for row in rows:
++                need(0<row['sequence_length']<=4096 and row['supervised_EOS_count']>0 and row['effective_shifted_supervised_tokens']>0,'full sequence/EOS/shifted supervision')
++                need(0<row['prompt_masked_prefix_tokens']<row['sequence_length'] and row['all_input_attention_tokens_retained'] is True,'actual prompt mask/full attention semantics')
++                identity=input_rows['rows'][row['ordinal']-1]
++                need(row['source_ID_SHA256']==identity['source_ID_SHA256'] and row['source_row_SHA256']==identity['row_SHA256'],'ordered new72 actual source identity')
++                need(row['selected_logit_rows']==row['supervised_tokens']+1 and all(row[k] is True for k in ('new_source_identity_exact','full_vs4096_fields_exact','finite_CPU_input_fields','original_encoded_fields_exact','complete_input_sequence_unchanged','non_label_fields_unchanged','label_and_logit_mask_native_semantics_checked')),'native full4096/finite/label/logit masks differ')
++                need(set(row['after_fields'])==set(row['before_fields'])|{'logits_to_keep'} and all(row['after_fields'][k]==v for k,v in row['before_fields'].items() if k!='labels'),'native fields changed outside labels/logit selection')
++            need(worker['actual_trainable_tensors']==structure['actual_trainable_tensors']==len(structure['trainable_manifest'])==504,'actual meta504 tensor count')
++            need(worker['actual_trainable_parameters']==structure['actual_trainable_parameters']==sum(p['numel'] for p in structure['trainable_manifest'])==43646976,'actual meta trainable count')
++            need(hashlib.sha256(json.dumps(structure['trainable_manifest'],sort_keys=True,separators=(',',':')).encode()).hexdigest()==EXPECTED_MANIFEST_SHA256,'original exact504 name/shape/dtype manifest differs')
++            need(set(structure['frozen'])=={'model.vision_tower','model.multi_modal_projector'} and all(v['tensors']>0 and v['parameters']>0 for v in structure['frozen'].values()),'actual frozen visual/projector boundary metadata absent')
++            life=structure['lifecycle'];need(life['original_requested'] is life['language_checkpointing'] is True and life['language_checkpointed_layers']==36
++                 and life['native_Trainer_flag'] is life['language_use_cache'] is life['vision_checkpointing'] is False and life['vision_checkpointing_flags']>0,'actual native language-GC lifecycle differs')
++            need(structure['initial_values_qualified'] is False and worker['actual_model_loaded'] is worker['training_forward_backward'] is False
++                 and worker['implicit_library_device_queries']=='UNKNOWN' and worker['own_device_FDs_after']==[] and worker['weight_file_open_attempts']==[],'CPU only, no weights/FDs; implicit GPU remains unknown')
++            chain=providers['encode']['wrapper_chain'];need(len(chain)==3 and providers==worker['providers'],'actual provider observations not result-bound')
++            need([r['code_qualname'] for r in chain]==['context_decorator.<locals>.decorate_context','retry_decorator.<locals>._retry.<locals>.new_func','Template.encode'],'closed actual native wrapper chain')
++            need(values['encode-chain-observation.json']['chain']==[{k:v for k,v in r.items() if k!='role'} for r in chain],'pre-caller actual wrapper observation differs')
++            need(set(providers)=={'encode','full_encode','collator','base_collator','logit_policy','logit_selection','native_prepare_inputs','post_encode','prepare_adapter','GC'},'complete actual method provider denominator')
++            need(providers['full_encode']==providers['encode'] and values['full-encode-chain-observation.json']['chain']==values['encode-chain-observation.json']['chain'],'full/4096 actual encode chain identities differ')
++            need(worker['full_vs4096_rows']==72 and worker['encode_calls_completed']==144 and worker['collator_calls_completed']==72 and worker['old64_value_reference_reused'] is False,'new72 full native API calls and no old reference')
++            need(worker['input_contract_SHA256']==pins['source/INPUT_ROWS.json']['SHA256'] and worker['data_contract_SHA256']==pins['source/DATA_CONTRACT.json']['SHA256'],'worker new input pins')
++            for r in [*chain,*[v for k,v in providers.items() if k not in ('encode','full_encode')]]:
++                need(type(r['bytes']) is int and 0<r['bytes']<=262144 and len(r['SHA256'])==64 and len(r['definition_source_SHA256'])==64,'actual provider bounded full source identity')
++            tokens=sum(r['effective_shifted_supervised_tokens'] for r in rows)
++            need(tokens==worker['actual_shifted_supervised_tokens'] and worker['native_supervised_EOS_rows']==72,'actual native token/EOS aggregates')
++            native_summary=dict(rows=72,supervised_EOS_rows=72,actual_shifted_supervised_tokens=tokens,sequence_length_range=[min(r['sequence_length'] for r in rows),max(r['sequence_length'] for r in rows)],
++                actual_meta_trainable_tensors=504,actual_meta_trainable_parameters=43646976,provider_methods=10,actual_encode_chains=2,actual_encode_calls=144,actual_collator_calls=72,initial_values_qualified=False)
++        except (KeyError,TypeError,ValueError,AssertionError) as e:errors.append(dict(type=type(e).__name__,reason=str(e)[:256]))
++    observation=values.get('model-source-observation.json')
++    observation_summary=None
++    if isinstance(observation,dict):
++        unique={}
++        for row in observation.get('records',[]):
++            keep={k:row.get(k) for k in ('prefix','module','module_file','inspect_sourcefile','resolved_path','resolved_module_path','bytes','SHA256')}
++            unique[json.dumps(keep,sort_keys=True)]=keep
++        observation_summary=dict(planned_prefixes=observation.get('planned_prefixes'),
++            enumeration_complete=observation.get('enumeration_complete'),
++            observed_class_count=len(observation.get('records',[])),
++            source_identities=list(unique.values()),errors=observation.get('errors'),
++            identities_are_observed_not_automatically_accepted=True,numerical_equivalence_proven=False)
++    qualified=out.get('passed') is True and not errors
++    result=dict(state='T03_USGS72_TARGET_NATIVE_INPUT_META_PEFT_INDEPENDENT_PASS' if qualified else 'ORIGINAL_CPU_OUTCOME_UNKNOWN_RETAINED' if out['execution_state']=='UNKNOWN' else 'ORIGINAL_CPU_FAILURE_OR_INDEPENDENT_MISMATCH_RETAINED',
++        independent_metadata_consumed=True,qualification_passed=qualified,producer_passed=out.get('passed'),publication=PUB,request_id=request,epoch=epoch,deadline=epoch+300,
++        source_manifest=SOURCE,claim=CLAIM,actual_accounting_columns=COLS,actual_accounting=actual,actual_accounting_parent=parent_accounting,srun_invoked=out.get('srun_invoked'),actual_CPU_steps=out.get('actual_CPU_steps'),planned_rows=72,completed_rows=completed,missing_rows=72-completed,
++        caller_progress_observed=bool(progress),native_call_counts=None if not progress else {k:progress.get(k) for k in ('attempted_rows','unattempted_rows','failed_rows','encode_calls_attempted','encode_calls_completed','collator_calls_attempted','collator_calls_completed')},
++        old64_value_reference_reused=False,private_failure=failure_summary,private_failure_pin=pins.get('failure-private.json'),missing_metadata=missing,errors=errors,original_HOST_owner_state=owner_state,
++        private_only_diagnostic_tails=diagnostic_tails,diagnostic_tail_pins=tail_pins,
++        raw_diagnostic_tails_must_not_be_published=True,reader_request_id=read_request,reader_epoch=read_epoch,
++        controller_private_failure_reasons_must_not_be_published=True,current_login_liveness_required_for_software_qualification=False,
++        controllers=control_summaries,native=native_summary,step_charged_memory=memory_summary,actual_metadata_files=len(pins),actual_metadata_read_bytes=total,metadata_pins=pins,
++        weight_or_image_or_metadata13_or_framework393_body_reads=0,new_GPU_or_processor_calls=0,implicit_library_device_queries='UNKNOWN',
++        math_provider_observation=observation_summary,target_math_contract_pin=pins['source/TARGET_MATH_SOURCES.json'],model_source_observation_pin=pins.get('model-source-observation.json'),numerical_equivalence_proven=False,
++        initial_values_qualified=False,training_numerical_GO=False,GPU_GO=False,Model_GO=False,formal17_GO=False,replay_allowed=False)
++    raw=json.dumps(result,sort_keys=True,allow_nan=False).encode();need(len(raw)<=16384,'bounded independent private summary cap')
++    signal.setitimer(signal.ITIMER_REAL,0)
++    return result
++
++if __name__=='__main__':
++    print(json.dumps(consume(CONTEXT,READER_CLAIM),sort_keys=True,allow_nan=False))
+--- v5/receive_once.py
++++ new72/receive_once.py
+@@ -8,7 +8,7 @@
+ import sys
+ import time
+ 
+-RUN=Path('/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/training-internvl-target-native64-CPU-v5')
++RUN=Path('/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/training-internvl-USGS72-native-CPU-v1')
+ 
+ 
+ def main():
+@@ -26,7 +26,19 @@
+     # Independent endpoint re-check cannot be bypassed by passing an arbitrary publication.
+     claim=json.loads(decoded['CLAIM.json'])
+     assert claim['root_GO'] is claim['CPU_GO'] is True and claim['GPU_GO'] is claim['Model_GO'] is claim['training_GO'] is False
++    contract=json.loads(decoded['DATA_CONTRACT.json'])
++    assert contract['target_data']==str(RUN/'data') and len(contract['files'])==14 and set(DATA_FILES)==set(contract['files'])
++    data={}
++    for name,encoded in DATA_FILES.items():
++        part=PurePosixPath(name);assert not part.is_absolute() and '..' not in part.parts and part.as_posix()==name
++        raw=base64.b64decode(encoded,validate=True);wanted=contract['files'][name]
++        assert len(raw)==wanted['bytes'] and hashlib.sha256(raw).hexdigest()==wanted['SHA256']
++        total+=len(raw);assert total<=2*1024**2;data[name]=raw
+     RUN.mkdir(mode=0o700);source=RUN/'source';source.mkdir()
++    for name,raw in data.items():
++        dest=RUN/'data'/name;dest.parent.mkdir(exist_ok=True,parents=True)
++        with dest.open('xb') as stream:stream.write(raw);stream.flush();os.fsync(stream.fileno())
++
+     for name,raw in decoded.items():
+         path=source/name;path.parent.mkdir(exist_ok=True,parents=True)
+         with path.open('xb') as stream:stream.write(raw)
+@@ -34,7 +46,7 @@
+     from verify_package import verify as verify_new_package
+     verify_new_package(source)
+     from common import admission,save
+-    admission();save(RUN/'install-intent.json',dict(CONTEXT,source_files=len(mf['files']),source_bytes=total,GPU=0))
++    admission();save(RUN/'install-intent.json',dict(CONTEXT,source_files=len(mf['files']),source_and_data_bytes=total,data_files=14,data_contract_SHA256=hashlib.sha256(decoded['DATA_CONTRACT.json']).hexdigest(),GPU=0))
+     from host_launch import main as launch
+     return launch(CONTEXT['publication'],CONTEXT['request_id'],CONTEXT['epoch'])
+ 
+--- v5/verify_package.py
++++ new72/verify_package.py
+@@ -1,94 +1,106 @@
+-"""Check the complete new CPU scope before helper/SSH/Slurm or runtime imports."""
+-import ast
+-import hashlib
+-import json
+-from pathlib import Path, PurePosixPath
+-
+-D = Path(__file__).resolve().parent
+-
+-
+-def verify(root=D, *, prepared=False):
+-    def need(ok, code):
+-        if not ok:
+-            raise ValueError(code)
+-    def obj(name):
+-        return json.loads((root / name).read_bytes())
+-    files = obj('SOURCE_FILES.json')['files']
+-    actual = {p.relative_to(root).as_posix() for p in root.rglob('*')
+-              if p.is_file() and p != root / 'SOURCE_FILES.json'}
+-    need(set(files) == actual, 'EXACT_NEW_SOURCE_SCOPE')
+-    for name, expected in files.items():
+-        rel = PurePosixPath(name)
+-        need(not rel.is_absolute() and '..' not in rel.parts, 'SOURCE_PATH')
+-        p = root / name
+-        raw = p.read_bytes()
+-        need(not p.is_symlink() and len(raw) == expected['bytes'] and
+-             hashlib.sha256(raw).hexdigest() == expected['SHA256'], 'SOURCE_PIN:' + name)
+-        if name.endswith('.py'):
+-            ast.parse(raw, filename=name, feature_version=(3, 10))
+-    plan, claim = obj('PLAN.json'), obj('CLAIM.json')
+-    need(type(prepared) is bool,'EXPLICIT_PREPARATION_MODE')
+-    expected_GO=not prepared
+-    need(claim['root_GO'] is expected_GO and claim['CPU_GO'] is expected_GO and
+-         all(claim[k] is False for k in ('GPU_GO', 'Model_GO', 'training_GO', 'formal17_GO',
+-                                        'performance_GO', 'effect_GO')), 'CPU_SCOPE_ONLY')
+-    need(plan['label'] == claim['label'] == 'training-internvl-target-native64-CPU-v5' and
+-         plan['case'] == claim['case'] == 'T03.sft', 'EXACT_CASE_SCOPE')
+-    need(plan['whole_seconds'] == claim['budget']['single_epoch_seconds'] == 300 and
+-         plan['work_seconds'] == 210 and plan['Slurm_max_seconds'] == 240 and
+-         plan['cleanup_reserve_seconds'] == 45, 'ONE_BUDGET')
+-    for key in ('work_seconds_max', 'Slurm_seconds_max', 'cleanup_accounting_reserve_seconds'):
+-        need(key not in plan, 'STALE_OLD_BUDGET_FIELD')
+-    need(plan['GPU'] == claim['resources']['GRES'] == 0 and plan['CPU'] == 8 and
+-         plan['memory_MiB'] == 12288 and plan['model_view_basename'] == 'InternVL3_5-8B-HF',
+-         'ORIGINAL_HF_METADATA_CPU_VIEW')
+-    need(plan['framework_root'] == claim['source_dependencies']['framework_root'] ==
+-         '/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/training-qwen-a68952c-swift-initial-CPU-v1/framework',
+-         'KNOWN_COMMON393_PHYSICAL_ROOT')
+-    need(len(obj('FRAMEWORK_FILES.json')['files']) == 393 and
+-         hashlib.sha256((root / 'FRAMEWORK_FILES.json').read_bytes()).hexdigest() ==
+-         'e54fd2031287277d1823a4a703d6dc0540067809d3d0f505c6e081cf4c5cec41', 'QUALIFIED_COMMON393_IDENTITY')
+-    need(len(obj('MODEL_METADATA.json')['files']) == 13 and
+-         len(obj('INPUT_REFERENCE.json')['identities']) == plan['rows'] == 64, 'FULL13_64_DENOMINATORS')
+-    binding = obj('NATIVE_BINDING.json')
+-    need(binding['spec']['case'] == 'T03.sft' and len(binding['trainable_manifest']) == 504 and
+-         sum(v['numel'] for v in binding['trainable_manifest']) == 43646976, 'ORIGINAL_META_PEFT')
+-    target=obj('TARGET_MATH_SOURCES.json')
+-    need(target['schema']=='REVIEWED_TARGET_MATH_SOURCE_CONTRACT_V1' and target['case']=='T03.sft'
+-         and target['reference_binding']==files['NATIVE_BINDING.json']
+-         and target['reference_model_source_SHA256']==binding['model_source_SHA256']
+-         and target['numerical_equivalence_proven'] is target['GPU_GO'] is target['Model_GO'] is False,'REFERENCE_NOT_REWRITTEN_OR_PROMOTED')
+-    need(target['target_sources']=={
+-        'transformers.models.internvl.':{'bytes':37559,'SHA256':'632fc3b219cd1d08c322e786fa25d7dbf07059f6ccb6fe22dd1c45592415ad9a'},
+-        'transformers.models.qwen3.':{'bytes':23353,'SHA256':'fbdcfeeb1b54135ca67ba7df924da92f4b264e1252b517eea2de989289ebaeab'}},'EXACT_REVIEWED_PLATFORM_CONTRACT')
+-    need(claim['target_math_contract']['SHA256']==files['TARGET_MATH_SOURCES.json']['SHA256'],'CLAIM_TARGET_CONTRACT_PIN')
+-    expected_helpers = {
+-        'held_child.py': '06ef9978e7c0957abb2fd0fc6204e16e88a433a966475d53a727bf797ee85351',
+-        'owned_processes.py': '5a3dd9b7530526f324b230ef0fe5be6ff2953f1331718d6520a1362bca229817',
+-        'slurm_accounting.py': '15a42839fd887a52e415104dcef2a4a548480be5da380f8cbd6980ddb55d3c0b'}
+-    need(all(files[name]['SHA256'] == expected for name, expected in expected_helpers.items()),
+-         'QUALIFIED_HELD_TREE_ACCOUNTING_HELPERS')
+-    need(plan['memory_control']['metric']=='STEP_CGROUP_CHARGED_MEMORY' and
+-         plan['memory_control']['soft_limit_bytes']==8*1024**3 and
+-         plan['memory_control']['supported_controllers']==[1,2] and
+-         plan['memory_control']['RSS_sum_equivalence_claimed'] is False,'EXPLICIT_STEP_MEMORY_CONTRACT')
+-    need(all(n in files for n in ('step_memory.py','step_tree.py','step_control.py','native_release.py','cgroup_evidence.py')),
+-         'COMPLETE_NEW_CONTROL_AND_CONSUMER_SOURCE')
+-    terminal = obj('TERMINAL_READ_CLAIM.json')
+-    need(terminal['root_GO'] is expected_GO and terminal['READ_GO'] is expected_GO and terminal['GPU_GO'] is False
+-         and terminal['Model_GO'] is False and 'read_terminal.py' in files, 'PRE_REGISTERED_TERMINAL_CONSUMER')
+-    need(plan['container_launcher'] == claim['launcher']['path'] ==
+-         '/public/software/apps/apptainer/1.3.4/bin/apptainer' and claim['launcher']['CPU_rocm_flag'] is False
+-         and claim['launcher']['readonly_system_alias']['actual_source'] == '/usr/local/hyhal', 'QUALIFIED_CPU_FRONTEND')
+-    total = sum(p['bytes'] for p in files.values()) + (root / 'SOURCE_FILES.json').stat().st_size
+-    need(total <= 2 * 1024**2, 'BOUNDED_NEW_SOURCE_PAYLOAD')
+-    return dict(source_members=len(files), source_bytes=total, framework_members=393,
+-                metadata_files=13, original_rows=64, stdlib_only=True, Torch_imported=False,
+-                target_or_GPU_called=False, fixture_tests=0)
+-
+-
+-if __name__ == '__main__':
+-    import argparse
+-    parser=argparse.ArgumentParser();parser.add_argument('--prepared',action='store_true')
+-    options=parser.parse_args()
+-    print(json.dumps(verify(prepared=options.prepared), sort_keys=True))
++"""Check the complete new CPU scope before helper/SSH/Slurm or runtime imports."""
++import ast
++import hashlib
++import json
++from pathlib import Path, PurePosixPath
++
++D = Path(__file__).resolve().parent
++
++
++def verify(root=D, *, prepared=False):
++    def need(ok, code):
++        if not ok:
++            raise ValueError(code)
++    def obj(name):
++        return json.loads((root / name).read_bytes())
++    files = obj('SOURCE_FILES.json')['files']
++    actual = {p.relative_to(root).as_posix() for p in root.rglob('*')
++              if p.is_file() and p != root / 'SOURCE_FILES.json'}
++    need(set(files) == actual, 'EXACT_NEW_SOURCE_SCOPE')
++    for name, expected in files.items():
++        rel = PurePosixPath(name)
++        need(not rel.is_absolute() and '..' not in rel.parts, 'SOURCE_PATH')
++        p = root / name
++        raw = p.read_bytes()
++        need(not p.is_symlink() and len(raw) == expected['bytes'] and
++             hashlib.sha256(raw).hexdigest() == expected['SHA256'], 'SOURCE_PIN:' + name)
++        if name.endswith('.py'):
++            ast.parse(raw, filename=name, feature_version=(3, 10))
++    plan, claim = obj('PLAN.json'), obj('CLAIM.json')
++    need(type(prepared) is bool,'EXPLICIT_PREPARATION_MODE')
++    expected_GO=not prepared
++    need(claim['root_GO'] is expected_GO and claim['CPU_GO'] is expected_GO and
++         all(claim[k] is False for k in ('GPU_GO', 'Model_GO', 'training_GO', 'formal17_GO',
++                                        'performance_GO', 'effect_GO')), 'CPU_SCOPE_ONLY')
++    need(plan['label'] == claim['label'] == 'training-internvl-USGS72-native-CPU-v1' and
++         plan['case'] == claim['case'] == 'T03.sft', 'EXACT_CASE_SCOPE')
++    need(plan['whole_seconds'] == claim['budget']['single_epoch_seconds'] == 300 and
++         plan['work_seconds'] == 210 and plan['Slurm_max_seconds'] == 240 and
++         plan['cleanup_reserve_seconds'] == 45, 'ONE_BUDGET')
++    for key in ('work_seconds_max', 'Slurm_seconds_max', 'cleanup_accounting_reserve_seconds'):
++        need(key not in plan, 'STALE_OLD_BUDGET_FIELD')
++    need(plan['GPU'] == claim['resources']['GRES'] == 0 and plan['CPU'] == 8 and
++         plan['memory_MiB'] == 12288 and plan['model_view_basename'] == 'InternVL3_5-8B-HF',
++         'ORIGINAL_HF_METADATA_CPU_VIEW')
++    need(plan['framework_root'] == claim['source_dependencies']['framework_root'] ==
++         '/public/home/aclsylqidf/hygon-inference-refactor-20261014/results/training-qwen-a68952c-swift-initial-CPU-v1/framework',
++         'KNOWN_COMMON393_PHYSICAL_ROOT')
++    need(len(obj('FRAMEWORK_FILES.json')['files']) == 393 and
++         hashlib.sha256((root / 'FRAMEWORK_FILES.json').read_bytes()).hexdigest() ==
++         'e54fd2031287277d1823a4a703d6dc0540067809d3d0f505c6e081cf4c5cec41', 'QUALIFIED_COMMON393_IDENTITY')
++    need(len(obj('MODEL_METADATA.json')['files']) == 13 and len(obj('INPUT_ROWS.json')['rows']) == plan['rows'] == 72, 'FULL13_NEW72_DENOMINATORS')
++    need(plan['request_id']==claim['request_id']=='8110b01cd24846f8b6fcd08f0abda5a0' and plan['unbounded_max_length']==1000000,'NEW72_FIXED_REQUEST_FULL_INPUT')
++    need('INPUT_REFERENCE.json' not in files and 'ORIGINAL_INPUT_FILES.json' not in files,'OLD64_VALUE_REFERENCE_REMOVED')
++    contract=obj('DATA_CONTRACT.json')
++    need(len(contract['files'])==14 and contract['target_data']==plan['assets_root']==plan['RUN']+'/data','EXACT14_TRAIN_ONLY_ASSETS')
++    need(plan['dataset']==plan['assets_root']+'/train-swift.jsonl' and contract['files']['train-swift.jsonl']==dict(bytes=plan['dataset_bytes'],SHA256=plan['dataset_SHA256']),'NEW72_TRAIN_DATASET')
++    need([r['ordinal'] for r in obj('INPUT_ROWS.json')['rows']]==list(range(1,73)) and len({r['source_ID_SHA256'] for r in obj('INPUT_ROWS.json')['rows']})==72,'NEW72_ORDERED_IDENTITIES')
++    binding = obj('NATIVE_BINDING.json')
++    need(binding['spec']['case'] == 'T03.sft' and len(binding['trainable_manifest']) == 504 and
++         sum(v['numel'] for v in binding['trainable_manifest']) == 43646976, 'ORIGINAL_META_PEFT')
++    target=obj('TARGET_MATH_SOURCES.json')
++    need(target['schema']=='REVIEWED_TARGET_MATH_SOURCE_CONTRACT_V1' and target['case']=='T03.sft'
++         and target['reference_binding']==files['NATIVE_BINDING.json']
++         and target['reference_model_source_SHA256']==binding['model_source_SHA256']
++         and target['numerical_equivalence_proven'] is target['GPU_GO'] is target['Model_GO'] is False,'REFERENCE_NOT_REWRITTEN_OR_PROMOTED')
++    need(target['target_sources']=={
++        'transformers.models.internvl.':{'bytes':37559,'SHA256':'632fc3b219cd1d08c322e786fa25d7dbf07059f6ccb6fe22dd1c45592415ad9a'},
++        'transformers.models.qwen3.':{'bytes':23353,'SHA256':'fbdcfeeb1b54135ca67ba7df924da92f4b264e1252b517eea2de989289ebaeab'}},'EXACT_REVIEWED_PLATFORM_CONTRACT')
++    need(claim['target_math_contract']['SHA256']==files['TARGET_MATH_SOURCES.json']['SHA256'],'CLAIM_TARGET_CONTRACT_PIN')
++    expected_helpers = {
++        'held_child.py': '06ef9978e7c0957abb2fd0fc6204e16e88a433a966475d53a727bf797ee85351',
++        'owned_processes.py': '5a3dd9b7530526f324b230ef0fe5be6ff2953f1331718d6520a1362bca229817',
++        'slurm_accounting.py': '15a42839fd887a52e415104dcef2a4a548480be5da380f8cbd6980ddb55d3c0b'}
++    need(all(files[name]['SHA256'] == expected for name, expected in expected_helpers.items()),
++         'QUALIFIED_HELD_TREE_ACCOUNTING_HELPERS')
++    need(plan['memory_control']['metric']=='STEP_CGROUP_CHARGED_MEMORY' and
++         plan['memory_control']['soft_limit_bytes']==8*1024**3 and
++         plan['memory_control']['supported_controllers']==[1,2] and
++         plan['memory_control']['RSS_sum_equivalence_claimed'] is False,'EXPLICIT_STEP_MEMORY_CONTRACT')
++    need(all(n in files for n in ('step_memory.py','step_tree.py','step_control.py','native_release.py','cgroup_evidence.py')),
++         'COMPLETE_NEW_CONTROL_AND_CONSUMER_SOURCE')
++    terminal = obj('TERMINAL_READ_CLAIM.json')
++    need(terminal['root_GO'] is expected_GO and terminal['READ_GO'] is expected_GO and terminal['GPU_GO'] is False
++         and terminal['Model_GO'] is False and 'read_terminal.py' in files, 'PRE_REGISTERED_TERMINAL_CONSUMER')
++    need(plan['container_launcher'] == claim['launcher']['path'] ==
++         '/public/software/apps/apptainer/1.3.4/bin/apptainer' and claim['launcher']['CPU_rocm_flag'] is False
++         and claim['launcher']['readonly_system_alias']['actual_source'] == '/usr/local/hyhal', 'QUALIFIED_CPU_FRONTEND')
++    launch_tree=ast.parse((root/'launch_once.py').read_bytes())
++    entry=next(n for n in launch_tree.body if isinstance(n,ast.FunctionDef) and n.name=='main')
++    need([a.arg for a in entry.args.kwonlyargs]==['transport_start'] and len(entry.args.kw_defaults)==1
++         and isinstance(entry.args.kw_defaults[0],ast.Constant) and entry.args.kw_defaults[0].value is None,'EXPLICIT_ROOT_CALLBACK_NO_DEFAULT')
++    need(not any(isinstance(n,ast.Call) and isinstance(n.func,ast.Attribute) and isinstance(n.func.value,ast.Name)
++         and n.func.value.id=='subprocess' and n.func.attr=='Popen' for n in ast.walk(launch_tree)),'NO_LOCAL_TRANSPORT_CONSTRUCTOR_OR_FALLBACK')
++    need('glm-paired-readonly-connection.py' not in (root/'launch_once.py').read_text(encoding='utf-8') and 'accounting_contract.py' in files,'NEW_TRANSPORT_ACCOUNTING_SCOPE')
++    total = sum(p['bytes'] for p in files.values()) + (root / 'SOURCE_FILES.json').stat().st_size
++    need(total + sum(v['bytes'] for v in contract['files'].values()) <= 2 * 1024**2, 'BOUNDED_NEW_SOURCE_AND_DATA_PAYLOAD')
++    return dict(source_members=len(files), source_bytes=total, framework_members=393,
++                metadata_files=13, new_train_rows=72, old64_replayed=False, stdlib_only=True, Torch_imported=False,
++                target_or_GPU_called=False, fixture_tests=0)
++
++
++if __name__ == '__main__':
++    import argparse
++    parser=argparse.ArgumentParser();parser.add_argument('--prepared',action='store_true')
++    options=parser.parse_args()
++    print(json.dumps(verify(prepared=options.prepared), sort_keys=True))
+--- v5/worker.py
++++ new72/worker.py
+@@ -1,4 +1,4 @@
+-"""New target native64+metaPEFT ordinary CPU qualification; no historical query replay."""
++"""New target native72+metaPEFT ordinary CPU qualification; no historical query replay."""
+ import argparse
+ import copy
+ import datetime
+@@ -18,6 +18,8 @@
+ W=RUN
+ S=D
+ rows=[]
++counts=dict(attempted_rows=0,encode_calls_attempted=0,encode_calls_completed=0,collator_calls_attempted=0,collator_calls_completed=0)
++from input_contract import require_row,validate_progress
+ phase='admission'
+ attempts=[]
+ 
+@@ -30,7 +32,9 @@
+ 
+ 
+ def progress(failed=False):
+-    save(RUN/'caller-progress.json',dict(planned_rows=64,completed_rows=len(rows),missing_rows=64-len(rows),failed=failed),replace=True)
++    record=dict(planned_rows=72,completed_rows=len(rows),missing_rows=72-len(rows),failed=failed,
++                unattempted_rows=72-counts['attempted_rows'],failed_rows=1 if failed and counts['attempted_rows']>len(rows) else 0,**counts)
++    save(RUN/'caller-progress.json',validate_progress(record),replace=True)
+ 
+ 
+ def guard_open(event,args):
+@@ -50,12 +54,12 @@
+     for name,expected in metadata['files'].items():
+         check();require(pin(Path(P['model_metadata_root'])/name)=={k:expected[k] for k in ('bytes','SHA256')},'model metadata identity differs')
+     require(pin(P['dataset'])==dict(bytes=P['dataset_bytes'],SHA256=P['dataset_SHA256']),'actual original HIP dataset differs')
+-    original=read(D/'ORIGINAL_INPUT_FILES.json')
+-    # Only image/plugin assets are read; the original cuda JSONL is not substituted for HIP JSONL.
+-    for item in original['files']:
+-        if item['name']=='original.cuda.jsonl':continue
+-        check();path=Path(P['assets_root'])/item['name']
+-        require(pin(path)=={k:item[k] for k in ('bytes','SHA256')},'exact shared input member differs')
++    contract=read(D/'DATA_CONTRACT.json')
++    require(contract['target_data']==P['assets_root'] and len(contract['files'])==14,'exact train-only14 data contract')
++    for name,expected in contract['files'].items():
++        check();path=Path(P['assets_root'])/name
++        require(pin(path)==expected,'new72 data member differs')
++
+ 
+ 
+ def own_device_fds():
+@@ -83,7 +87,7 @@
+ def run_native(pre):
+     global phase,F
+     F=Path(P['framework_root']);root=RUN/P['model_view_basename']
+-    prior=read(S/'INPUT_REFERENCE.json');reference=prior['identities'];require(len(reference)==64,'original premodel64 reference')
++    prior=read(S/'INPUT_SETTINGS.json');reference=read(S/'INPUT_ROWS.json')['rows'];require(len(reference)==72,'new72 fixed input identities')
+     fm=read(D/'FRAMEWORK_FILES.json')
+     for name,expected in fm['files'].items():
+         check();require(pin(F/name)=={k:expected[k] for k in ('bytes','SHA256')},'actual framework source closure differs')
+@@ -96,7 +100,7 @@
+     from vlm.runtime.checkpointing_lifecycle import provider_identity,validate_checkpointing_lifecycle
+     dataset=Path(P['dataset'])
+     launch=build_launch('T03.sft',(S/'original-launch.json').read_bytes(),PurePosixPath('/unused/swift'),PurePosixPath(str(root.parent)),PurePosixPath(str(dataset)),PurePosixPath('/unused/plugins'),PurePosixPath('/unused/output'),29501)
+-    settings=settings_from_launch(launch);assert settings==prior['capture']['settings'] and settings['template_type'] is None
++    settings=settings_from_launch(launch);assert settings==prior['settings'] and settings['template_type'] is None
+     phase='actual-native-caller-setup'
+     import numpy as np
+     import torch
+@@ -110,6 +114,10 @@
+     assert empty is None and processor.model_meta.template=='internvl_hf'
+     template=get_template(processor,template_type=None,max_length=4096,max_pixels=settings['max_pixels'],padding_side='right',padding_free=False);template.set_mode('train')
+     assert template.sequence_parallel_size==1 and not template.padding_free
++    full_template=get_template(processor,template_type=None,max_length=P['unbounded_max_length'],max_pixels=settings['max_pixels'],padding_side='right',padding_free=False)
++    full_template.set_mode('train')
++    require(template.max_length==4096 and full_template.max_length==1000000,'actual full/production max_length differs')
++    require(full_template.sequence_parallel_size==1 and not full_template.padding_free,'unbounded original template settings differ')
+     eos=processor.tokenizer.eos_token_id;eos_ids=eos if isinstance(eos,list) else [eos]
+     require(bool(eos_ids) and all(type(x) is int for x in eos_ids),'native EOS identity missing')
+     phase='actual-meta-native-PEFT-and-language-GC'
+@@ -168,7 +176,8 @@
+     conditions=dict(case='T03.sft',hidden_size=4096,vocab_size=151936,language_cache=False,hidden_state_stacks=False,attention_maps=False)
+     guard=validate_capture_conditions(core,conditions)
+     phase='actual-native-method-provider-chain'
+-    providers={'encode':bind_encode(template,torch.inference_mode)}
++    providers={'encode':bind_encode(template,torch.inference_mode),'full_encode':bind_encode(full_template,torch.inference_mode,'full-encode-chain-observation.json')}
++    require(providers['encode']==providers['full_encode'],'full/4096 native encode provider chains differ')
+     for name,method in [('collator',template.data_collator),('base_collator',template._data_collator),('logit_policy',SwiftMixin.get_use_logits_to_keep),('logit_selection',SwiftMixin.prepare_logits_to_keep),('native_prepare_inputs',Seq2SeqTrainer._prepare_inputs),('post_encode',template._post_encode),('prepare_adapter',prepare_adapter),('GC',SwiftMixin._prepare_gradient_checkpointing)]:
+         providers[name]=method_identity(method)
+     save(RUN/'native-caller-providers.json',providers)
+@@ -184,15 +193,37 @@
+       self.count+=len(data);return len(data)
+      def flush(self):pass
+      def tell(self):return self.count
+-    raw_rows=[json.loads(x) for x in dataset.read_bytes().splitlines()];assert len(raw_rows)==64
+-    phase='actual64-native-collator-and-logit-selection'
++    def finite_inputs(value):
++     if isinstance(value,torch.Tensor):
++      require(value.device.type=='cpu','native CPU input device differs')
++      if value.is_floating_point() or value.is_complex():require(bool(torch.isfinite(value).all().item()),'native nonfinite input')
++     elif isinstance(value,dict):
++      for part in value.values():finite_inputs(part)
++     elif isinstance(value,(tuple,list)):
++      for part in value:finite_inputs(part)
++     elif isinstance(value,float):require(__import__('math').isfinite(value),'native nonfinite scalar')
++    raw_rows=[json.loads(x) for x in dataset.read_bytes().splitlines()];assert len(raw_rows)==72
++    phase='actual72-full4096-native-collator-and-logit-selection'
+     for ordinal,raw_row in enumerate(raw_rows,1):
+-     check();encoded=template.encode(raw_row);encoded_fields=fields(encoded)
+-     assert encoded_fields==reference[ordinal-1]['fields'] and len(encoded['input_ids'])==reference[ordinal-1]['sequence_length']
+-     collated=template.data_collator([copy.deepcopy(encoded)])
++     check();require_row(raw_row,reference[ordinal-1],ordinal)
++     counts['attempted_rows']=ordinal;progress()
++     counts['encode_calls_attempted']+=1;progress()
++     full_encoded=full_template.encode(copy.deepcopy(raw_row));counts['encode_calls_completed']+=1
++     full_fields=fields(full_encoded);finite_inputs(full_encoded)
++     counts['encode_calls_attempted']+=1;progress()
++     encoded=template.encode(copy.deepcopy(raw_row));counts['encode_calls_completed']+=1
++     encoded_fields=fields(encoded);finite_inputs(encoded)
++     require(encoded_fields==full_fields,'4096 native input was truncated, filtered or otherwise altered')
++     counts['collator_calls_attempted']+=1;progress()
++     collated=template.data_collator([copy.deepcopy(encoded)]);counts['collator_calls_completed']+=1
++     finite_inputs(collated)
+      assert collated['input_ids'].ndim==collated['labels'].ndim==2 and collated['input_ids'].shape==collated['labels'].shape and collated['input_ids'].shape[0]==1
+      length=collated['input_ids'].shape[1];assert length==len(encoded['input_ids']) and 0<length<=4096
+      before=fields(collated);original_labels=collated['labels'].clone();loss_mask=(original_labels!=-100)[0];assert not bool(loss_mask[0])
++     require('attention_mask' in collated and torch.equal(collated['attention_mask'],torch.ones_like(collated['attention_mask'])),'one complete sample must have no padded or masked input tokens')
++     require(bool(loss_mask.any().item()),'native supervision mask empty')
++     prompt_prefix=int(torch.nonzero(loss_mask,as_tuple=False)[0].item())
++     require(prompt_prefix>0 and bool((original_labels[0,:prompt_prefix]==-100).all().item()),'native user prompt prefix is not masked')
+      require(torch.equal(original_labels[0][loss_mask],collated['input_ids'][0][loss_mask]),'actual unmasked labels differ from native input IDs')
+      eos_supervised=sum(int(((collated['input_ids'][0]==token)&loss_mask).sum()) for token in eos_ids)
+      require(eos_supervised>0,'native supervised EOS absent; no literal token append')
+@@ -209,17 +240,17 @@
+      unchanged=set(before)-{'labels'};assert all(before[k]==after[k] for k in unchanged) and set(after)==set(before)|{'logits_to_keep'}
+      sink=CountSink();torch.save(dict(args=(),kwargs=collated),sink)
+      rows.append(dict(ordinal=ordinal,sequence_length=length,selected_logit_rows=selected_rows,supervised_tokens=supervised,image_tokens=image_tokens,
+-      effective_shifted_supervised_tokens=effective_tokens,supervised_EOS_count=eos_supervised,native_EOS_ids=eos_ids,
+-      collated_serialized_bytes=sink.count,original_encoded_fields_exact=True,complete_input_sequence_unchanged=True,non_label_fields_unchanged=True,
++      effective_shifted_supervised_tokens=effective_tokens,prompt_masked_prefix_tokens=prompt_prefix,all_input_attention_tokens_retained=True,supervised_EOS_count=eos_supervised,native_EOS_ids=eos_ids,
++      collated_serialized_bytes=sink.count,new_source_identity_exact=True,original_encoded_fields_exact=True,full_vs4096_fields_exact=True,finite_CPU_input_fields=True,source_ID_SHA256=reference[ordinal-1]['source_ID_SHA256'],source_row_SHA256=reference[ordinal-1]['row_SHA256'],complete_input_sequence_unchanged=True,non_label_fields_unchanged=True,
+       label_and_logit_mask_native_semantics_checked=True,before_fields=before,after_fields=after))
+-     del encoded,collated,original_labels,loss_mask,selected
++     del full_encoded,encoded,collated,original_labels,loss_mask,selected
+      progress()
+ 
+     save(RUN/'native-caller-rows.json',rows)
+-    require(len(rows)==64 and torch.cuda.__dict__.get('_initialized') is False and not attempts
+-            and all(parameter.device.type=='meta' for parameter in model.parameters()),'full64/no-device/meta-only final boundary')
+-    return dict(passed=True,planned_rows=64,completed_rows=64,missing_rows=0,pre_model64_reference_exact=True,
+-                actual_trainable_tensors=504,actual_trainable_parameters=43646976,native_supervised_EOS_rows=64,
++    require(len(rows)==72 and torch.cuda.__dict__.get('_initialized') is False and not attempts
++            and all(parameter.device.type=='meta' for parameter in model.parameters()),'full72/no-device/meta-only final boundary')
++    return dict(passed=True,planned_rows=72,completed_rows=72,missing_rows=0,old64_value_reference_reused=False,full_vs4096_rows=72,encode_calls_completed=counts['encode_calls_completed'],collator_calls_completed=counts['collator_calls_completed'],
++                actual_trainable_tensors=504,actual_trainable_parameters=43646976,native_supervised_EOS_rows=72,
+                 actual_shifted_supervised_tokens=sum(r['effective_shifted_supervised_tokens'] for r in rows),
+                 complete_sequence_length_range=[min(r['sequence_length'] for r in rows),max(r['sequence_length'] for r in rows)],
+                 native_logits_policy=use_logits,providers=providers,weight_file_open_attempts=attempts,
+@@ -244,18 +275,18 @@
+     try:
+         require(own_device_fds()==[],'worker owns device FDs before import')
+         phase='original_input_and_source_closure';verify_input_files();prepare_metadata_view()
+-        phase='native_processor_and_complete64_caller';result=run_native(pre)
++        phase='native_processor_and_complete72_caller';result=run_native(pre)
+         after_fds=own_device_fds();require(after_fds==[],'worker owns device FDs after native caller')
+     except BaseException as error:
+         import traceback
+         save(RUN/'failure-private.json',dict(phase=phase,error_type=type(error).__name__,message=str(error)[:4096],trace=traceback.format_exc()[-4096:]))
+         progress(True)
+-        result=dict(passed=False,phase=phase,error_type=type(error).__name__,planned_rows=64,completed_rows=len(rows),
+-                    missing_rows=64-len(rows),GPU=0,GPU_GO=False,Model_GO=False,training_numerical_GO=False)
++        result=dict(passed=False,phase=phase,error_type=type(error).__name__,planned_rows=72,completed_rows=len(rows),
++                    missing_rows=72-len(rows),GPU=0,GPU_GO=False,Model_GO=False,training_numerical_GO=False)
+     result.update(epoch=epoch,deadline=deadline,work_deadline=work_deadline,wall_seconds=time.monotonic()-started,
+                   peak_RSS_bytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss*1024,
+                   implicit_library_device_queries='UNKNOWN',raw_encoded_values_saved=False,own_device_FDs_after=after_fds,
+-                  actual_trainable_values_loaded=False,meta_PEFT_structure_only=True,provider_qualification_inherited=False,numerical_equivalence_proven=False,platform_source_contract_only=True)
++                  actual_trainable_values_loaded=False,meta_PEFT_structure_only=True,input_contract_SHA256=pin(S/'INPUT_ROWS.json')['SHA256'],data_contract_SHA256=pin(S/'DATA_CONTRACT.json')['SHA256'],provider_qualification_inherited=False,numerical_equivalence_proven=False,platform_source_contract_only=True)
+     save(RUN/'worker-result.json',result)
+     print(json.dumps({k:result[k] for k in ('passed','completed_rows','planned_rows','missing_rows','GPU')}))
+     return 0 if result['passed'] else 1
