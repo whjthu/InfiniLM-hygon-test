@@ -169,11 +169,12 @@
       "placement": {
         "f11r4n13": 1
       },
-      "next_action": "20 个目标文件和四个 A100 原 safetensors 头已独立核验。准备目标原生 BF16 预置融合并对照底座，绑定原 COCO20 后执行同输入真实首步。",
+      "next_action": "目标原生 BF16 融合与 476 张量可训练边界通过，原 COCO20 预处理已通过。核对原 A100 初值、噪声、timestep 和原数据清单，冻结同输入首步真实更新。",
       "min_updates": 1,
       "evidence": {
-        "path": "coordination/tasks/training-zimage-target-native-meta-CPU-v3.json",
-        "SHA256": "42b1c9fc8e7b169989ef2e06fb5f5e7fe7f134165d6b6e7efceb866fc7a6fc66"
+        "path": "results/bw1000/2026-11-22/training-zimage-1129-native-HIP-BF16-fusion-and-cleanup.json",
+        "bytes": 4633,
+        "SHA256": "192c1fe74ff6a88a79e02557e6c25640db83950bbafb5b981c7138e6ed41e027"
       }
     },
     {
@@ -461,7 +462,7 @@
       "placement": {
         "f11r4n13": 1
       },
-      "next_action": "目标端 20/20 运行资产已独立复算 SHA-256。12 张 Style18 图像通过目标原生输入与 VAE 验证。接下来检查目标原生全 pipeline 与 BF16 预置融合；随后进入域训练。",
+      "next_action": "目标原生 BF16 融合和 Style18 的 12 张原生预处理与 VAE 均通过。冻结正式同输入首步的基线，随后发布领域训练入口和配对恢复，单独记录效果。",
       "target_image_preflight": {
         "entry": {
           "path": "tools/preflight_zimage_style18_train_input.py",
@@ -480,10 +481,26 @@
         },
         "local_train_rows": 12,
         "target_native_result": "ACTUAL_CPU_NATIVE_TRAINING_INPUT_PASS",
-        "target_native_evidence": {"path": "results/bw1000/2026-11-22/training-zimage-style18-native12-v2-original681-native-image-inputs.json", "bytes": 1523, "SHA256": "4608a44fcce565acbcfc4dd035244292e9ffcce27490ff0c1c9ba4a23dd7c512"},
-        "target_offline_tokenizer_evidence": {"path": "results/bw1000/2026-11-22/training-zimage-sealed-tokenizer-original1054-independent.json", "bytes": 3860, "SHA256": "13f62eb4ffa31dc2795001b35211222b7a7925169841ef7364cce3cd18755347"},
-        "target_runtime_provisioning_evidence": {"path": "results/bw1000/2026-11-22/training-zimage-modelscope-complete-runtime-20-files-independent.json", "SHA256": "23abd881be38c6d34695eeac68fc2927f89d7500ef0e333c63b41fe000a70ff1", "bytes": 7235},
-        "target_preset_seal_evidence": {"path": "results/bw1000/2026-11-22/training-zimage-turbo-preset-sealed-small-wire-v2.json", "bytes": 2977, "SHA256": "92ebea7e0855e9a0aaa47c23b10d3d910eb4aa51a4e8142fd5da88a85f73a265"}
+        "target_native_evidence": {
+          "path": "results/bw1000/2026-11-22/training-zimage-style18-native12-v2-original681-native-image-inputs.json",
+          "bytes": 1523,
+          "SHA256": "4608a44fcce565acbcfc4dd035244292e9ffcce27490ff0c1c9ba4a23dd7c512"
+        },
+        "target_offline_tokenizer_evidence": {
+          "path": "results/bw1000/2026-11-22/training-zimage-sealed-tokenizer-original1054-independent.json",
+          "bytes": 3860,
+          "SHA256": "13f62eb4ffa31dc2795001b35211222b7a7925169841ef7364cce3cd18755347"
+        },
+        "target_runtime_provisioning_evidence": {
+          "path": "results/bw1000/2026-11-22/training-zimage-modelscope-complete-runtime-20-files-independent.json",
+          "SHA256": "23abd881be38c6d34695eeac68fc2927f89d7500ef0e333c63b41fe000a70ff1",
+          "bytes": 7235
+        },
+        "target_preset_seal_evidence": {
+          "path": "results/bw1000/2026-11-22/training-zimage-turbo-preset-sealed-small-wire-v2.json",
+          "bytes": 2977,
+          "SHA256": "92ebea7e0855e9a0aaa47c23b10d3d910eb4aa51a4e8142fd5da88a85f73a265"
+        }
       },
       "supplemental_input_evidence": {
         "path": "results/bw1000/2026-11-21/training-zimage-style18-real-pandas-native-CSV-constructor-local.json",
@@ -494,6 +511,11 @@
       "evidence": {
         "path": "results/bw1000/2026-11-21/training-zimage-USGS-style18-real-CSV-native-loader-and-canonical-bridge-local.json",
         "SHA256": "fb6e89e27447a2b1605d12bc9cf5d780eb69e5fe47302faf166038835aa0888a"
+      },
+      "fusion_precondition": {
+        "path": "results/bw1000/2026-11-22/training-zimage-1129-native-HIP-BF16-fusion-and-cleanup.json",
+        "bytes": 4633,
+        "SHA256": "192c1fe74ff6a88a79e02557e6c25640db83950bbafb5b981c7138e6ed41e027"
       }
     },
     {
@@ -613,7 +635,11 @@
         "bytes": 2435,
         "SHA256": "d9d1ddd8d729154502cf9daa103591d2d89fe14e2b67bbd95417f4f67b984b36"
       },
-      "dispatch_observation": {"path": "results/bw1000/2026-11-22/training-internvl-USGS72-first2-original-transport-255-unknown.json", "bytes": 2326, "SHA256": "db8b96c735628947bd2ae9c5188b88f57ce99ab9999acae30d24af96234195d7"},
+      "dispatch_observation": {
+        "path": "results/bw1000/2026-11-22/training-internvl-USGS72-first2-original-transport-255-unknown.json",
+        "bytes": 2326,
+        "SHA256": "db8b96c735628947bd2ae9c5188b88f57ce99ab9999acae30d24af96234195d7"
+      },
       "next_action": "目标预检通过。唯一派发连接返回 255，原请求无已确认 Slurm 步骤，保留 a14r3n04 直到原请求对账结束。"
     },
     {
