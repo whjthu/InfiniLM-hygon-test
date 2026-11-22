@@ -376,7 +376,7 @@
       "launch_SHA256": "7fefdc16f5519a998a94fdef703c2dd326b3c15e2e31d5a3735f6c4558269c67",
       "original_cards": 8,
       "a100_reference": "原8卡25步、首2更新捕获及freshpost独审通过；200文件全SHA/有限值/参数与优化器连续性独审通过。lr0首步0/504变更，次步504/504；不等于AdamW独立重算。",
-      "target_evidence": "海光 CPU360 已核验 64 条原始输入与 504 个 LoRA 张量的结构。完整目标权重与初始训练值仍待闭合。 第 4 片完成目标端整片校验，完整模型组装与第 2、3 片目标资格仍待确认。",
+      "target_evidence": "海光 CPU360 已核验 64 条原始输入与 504 个 LoRA 张量的结构。完整目标权重与初始训练值仍待闭合。 第 3、4 片完成目标端整片校验。第 2 片及完整模型组装仍待完成。",
       "target_numerics": "海光原配方的零更新前向、梯度和参数更新待验证。",
       "target_recovery": "未验证",
       "target_performance": "待三轮同口径实测",
@@ -417,6 +417,12 @@
       },
       "a100_recovery_engineering": "另已完成8卡A100新进程20→25五次真实更新；初态/原生RNG恢复、调度器和最终rank RNG一致，adapter/optimizer与原连续25步有小幅漂移，正式恢复未过。",
       "supplemental_evidence": {
+        "target_public_shard03_serial_seal": {
+          "path": "results/bw1000/2026-11-22/training-internvl-public-shard03-serial-target-sealed.json",
+          "bytes": 1164,
+          "SHA256": "bac41765eae57649b8f4afdd205d7827e10770da0ec16333bbd97dd51d3ebde2",
+          "formal_stage3": false
+        },
         "common_framework_A100_resume20": {
           "path": "results/bw1000/2026-11-17/training-InternVL-eight-A100-resume20-five-updates-independent-drift.json",
           "SHA256": "45ee7d53b679ff0d70c7f9cabac0690c9fc6bdff07034b687c6a3d0002c411ee",
@@ -752,13 +758,19 @@
       "a100_reference": "A100 首步和 25 步已核验。第 20 步新进程恢复至 25 步完全匹配。",
       "target_evidence": "海光单卡原缓存 Muon 工程窗口完成 25 步，独立核验实际终态和检查点。原 A100 同输入首步仍缺 before.pt 和 inputs.pt。",
       "target_numerics": "同输入 A100 首步数值待验证。",
-      "target_recovery": "海光单卡新进程从第 20 步恢复，21–25 步 loss、梯度范数及最终检查点与海光连续运行精确匹配。原 GPU 步记录 FAILED，原因是原比较器门禁；后续独立零卡比较成功。",
+      "target_recovery": "海光单卡新进程从第 20 步恢复，21–25 步 loss、梯度范数及最终检查点与海光连续运行精确匹配。原 GPU 步记录 FAILED，原因是原比较器门禁；后续独立零卡比较成功。 新进程从第10步恢复的原 .884 步正常结束，逐步验证第11–25步及最终检查点归档逐字节相同。",
       "target_performance": "待三轮同口径实测",
       "target_holdout_effect": "待留出集实测",
       "stage3_accepted": false,
       "reference_evidence": "results/bw1000/2026-11-13/training-hunyuanvideo-sft-A100-fresh-process-resume20-terminal.json",
       "hygon_evidence": "coordination/tasks/training-hunyuanvideo-sft-fixed-input-replay-v1.json",
       "supplemental_evidence": {
+        "target_single_DCU_cached_restart10_exact": {
+          "path": "results/bw1000/2026-11-22/training-hunyuanvideo-resume10-original884-15-updates-terminal.json",
+          "bytes": 3009,
+          "SHA256": "c72d8ffecd2b3d1aa7bb36d55f67d65cad20e7f07933f63a3a31611a21d27e8c",
+          "formal_stage3": false
+        },
         "target_fixed_input_admission": {
           "path": "results/bw1000/2026-11-14/training-hunyuanvideo-sft-target-replay-input-admission.json",
           "SHA256": "76cce604889c1fc47c077f7f7d263ec61ee6f11118a6d5220ee07af0f483897b"
