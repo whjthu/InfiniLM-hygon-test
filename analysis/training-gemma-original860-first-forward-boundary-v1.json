@@ -1,0 +1,123 @@
+{
+  "state": "ORIGINAL860_NUMERIC_FAIL_SOURCE_BOUNDARY_ONLY",
+  "original_result": {
+    "path": "results/bw1000/2026-11-22/training-gemma-usgs72-resume20to25-original860-eight-rank-terminal-numerical-fail.json",
+    "bytes": 2749,
+    "SHA256": "e385031e45863ce7ae1849150f47edd523181099544891017f4f0050f363fc67"
+  },
+  "root_reported_actual_whitelist": {
+    "source": "ROOT original pair-comparison readonly field/rank/first aggregation; not locally re-fetched",
+    "all_full_input_pairs_equal": 160,
+    "planned_input_pairs": 160,
+    "loss_differences": 129,
+    "updated_state_differences": 40,
+    "first_accumulation_window": {
+      "single_loss_difference": {
+        "rank": 0,
+        "tail_ordinal": 1,
+        "continuous_ordinal": 81,
+        "global_step_before": 20
+      },
+      "other_31_forward_losses_equal": true
+    },
+    "after_first_update": {
+      "all8rank_state_diff_at_global21": true,
+      "all_rank_loss_divergence_from_tail_ordinal": 5
+    },
+    "no_other_comparer_field_classes_reported": true,
+    "max_abs_loss_gap": 0.06138789653778076
+  },
+  "source_pins": [
+    {
+      "path": "code/bw1000/training-gemma-usgs72-fresh-initial-domain25-v1/overlay/vlm/runtime/resume_witness.py",
+      "bytes": 20976,
+      "SHA256": "4454f738caa07554caa5054234414941e07431416ac8ca3d6b5a3368a14bb02c"
+    },
+    {
+      "path": "code/bw1000/training-gemma-usgs72-fresh-initial-domain25-v1/overlay/vlm/plugins/gemma_domain_resume.py",
+      "bytes": 6811,
+      "SHA256": "188e07812f9b3c9f5916da520f05785e6e7c6c34b95225b75440e78ce777fa01"
+    },
+    {
+      "path": "code/bw1000/training-gemma-usgs72-fresh-initial-domain25-v1/gemma_domain_continuous.py",
+      "bytes": 12350,
+      "SHA256": "167cd49754992a7a0d71c0f46a5013d59254a7485af458bf4a5191b4c428afea"
+    },
+    {
+      "path": "code/bw1000/training-minicpm-forward-entry-state-CPU-v1/framework/vlm/runtime/forward_entry_state.py",
+      "bytes": 8084,
+      "SHA256": "c8eaccfdeca54f10a1f03f84a2e6cc72bd9526ba727929e647554b2bb650918e"
+    },
+    {
+      "path": "code/bw1000/training-minicpm-forward-entry-state-CPU-v1/framework/vlm/runtime/forward_context_state.py",
+      "bytes": 3002,
+      "SHA256": "df412bb2982914fb47705a7a90b4a0bf340e6e5551595e754caa474eee6eed76"
+    },
+    {
+      "path": "code/bw1000/training-minicpm-forward-entry-HIP-CPU-v1/run_checks.py",
+      "bytes": 4512,
+      "SHA256": "29f95c9a1fdab8b62982d55a49687860d04187fb238e30f7a8c9549dbe3049c2"
+    }
+  ],
+  "proved_or_observed_boundaries": [
+    "Original complete25 and native5 remain real; exact recovery remains FAIL",
+    "Witness checks saved20 adapter/optimizer/scheduler before RNG and empty accumulation boundary",
+    "Native RNG load is checked against saved state at its call boundary",
+    "All160 model full_input fingerprints match: current evidence does not support a sampler/order mismatch",
+    "169 differences are129 loss +40 state: recorded checkpoint20_state/RNG20/RNG25 comparisons have no reported differences; endpoints do not prove per-forward RNG/masks",
+    "One rank0 first-forward local loss difference precedes shared update21 and later all-rank divergence; propagation consistent with accumulation+DDP, not root-cause proof"
+  ],
+  "not_proved": [
+    "Specific cold kernel/autotuner, allocator alignment, dropout mask, rank0 runtime branch or nonpersistent buffer causality",
+    "Identical gradients from equal scalar loss on other31 microforwards",
+    "RNG equality immediately before/after original first forward; those observations were never stored"
+  ],
+  "missing_original_evidence": {
+    "continuous_before_method_line": 132,
+    "resume_before_method_line": 223,
+    "resume_entry_state_default": null,
+    "gemma_resume_does_not_pass_entry_state_step": true,
+    "original_first_forward_context_or_rng_metadata_cannot_be_reconstructed_from_endpoint_hashes": true
+  },
+  "minimal_next_readonly_fields": {
+    "ranks": [
+      0,
+      1
+    ],
+    "continuous_result": [
+      "inputs[80:84].ordinal/global_step/full_input/optimizer_learning_rates",
+      "outputs[80:84].ordinal/loss/loss_scalar",
+      "steps[19:21].global_step/state"
+    ],
+    "resumed_result": [
+      "inputs[0:4].ordinal/global_step/runtime_cursor/full_input",
+      "outputs[0:4].ordinal/loss/loss_scalar",
+      "steps[0].global_step/state",
+      "RNG_loads[0]"
+    ],
+    "metadata_files": [
+      "restored-before-RNG.json",
+      "native-data-skip.json",
+      "continuous checkpoint-20-rng.json",
+      "continuous/resumed checkpoint-25-rng.json"
+    ],
+    "forbidden": [
+      "raw input/token/caption/image/gold body",
+      "PT/tensor/weight payload",
+      "relaunch original jobs"
+    ]
+  },
+  "existing_observer_reuse": {
+    "lightweight": "forward_context_state.context_snapshot/input_layouts, common393 exact3002B df412bb2982914fb47705a7a90b4a0bf340e6e5551595e754caa474eee6eed76",
+    "full_capture": "forward_entry_state.capture_entry_state default16GiB registered-state read may synchronize/affect allocator; not a minimal metadata observer",
+    "historical_CPU_entry": "run_checks.py is old306-framework/4CPU/f11r4n10 tinyCPU qualification, not a directly reusable Gemma launcher; do not rerun old25tests",
+    "future_only": "A new separately reviewed diagnostic could capture first-forward hash-only RNG/mode/layout/alignment on affected rank0+control; not authorized/executed here"
+  },
+  "actual_local_GPU_calls": 0,
+  "new_remote_reads": 0,
+  "training_runs_replayed": 0,
+  "original_packages_modified": false,
+  "causal_diagnosis": "UNKNOWN",
+  "READY_added": 0,
+  "Model_GO": false
+}
