@@ -20,7 +20,7 @@ from audit_protocol import audit_rows
 D=Path(__file__).resolve().parent
 REQUEST='eef6ad53dab54c3994d70b3adf25a4fd'
 LABEL='training-gemma-usgs72-question-only-native-CPU-v1'
-ROOT=Path(R)/'results'/LABEL
+ROOT=Path('/audit-run')
 OUTPUT=ROOT/'audit'
 PROCESSOR=Path('/gemma-processor')
 FRAMEWORK=Path('/input-framework')

@@ -8,6 +8,7 @@ import subprocess
 import sys
 from tempfile import TemporaryDirectory
 import unittest
+from unittest.mock import patch
 
 from transform import DATA,TRAIN_PIN,KINDS,PREFIX,canonical,convert_rows
 from audit_protocol import audit_rows,check_sample
@@ -75,7 +76,21 @@ class Contracts(unittest.TestCase):
 
     def test_source_and_versions_original511_separate_new_ABI_unknown(self):
         sha=hashlib.sha256((D/'SOURCE_FILES.json').read_bytes()).hexdigest()
-        with self.assertRaisesRegex(ValueError,'not adopted'):worker.verify(sha)
+        self.assertEqual(worker.verify(sha)['SHA256'],sha)
+        with TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            manifest=json.loads((D/'SOURCE_FILES.json').read_bytes())
+            for name in manifest['files']:
+                (root/name).write_bytes((D/name).read_bytes())
+            claim=json.loads((root/'CLAIM.json').read_bytes())
+            claim['root_GO']=False
+            raw=canonical(claim)
+            (root/'CLAIM.json').write_bytes(raw)
+            manifest['files']['CLAIM.json']=dict(bytes=len(raw),SHA256=hashlib.sha256(raw).hexdigest())
+            raw=canonical(manifest)
+            (root/'SOURCE_FILES.json').write_bytes(raw)
+            with patch.object(worker,'D',root), self.assertRaisesRegex(ValueError,'not adopted'):
+                worker.verify(hashlib.sha256(raw).hexdigest())
         self.assertEqual(len(worker.REQUEST),32)
         self.assertEqual(hashlib.sha256((D/'MODEL_PROCESSOR_FILES.json').read_bytes()).hexdigest(),worker.PROCESSOR_SHA)
         self.assertEqual(len(json.loads((D/'MODEL_PROCESSOR_FILES.json').read_bytes())['files']),14)
