@@ -1,5 +1,5 @@
 {
-  "coordination_snapshot": "2026-11-19: T03 CPU360 and T04 CPU378 validated target native input and PEFT structure. Prior A100 recoveries retained. Target formal stage 3 remains unqualified. 2026-11-20: T01 eight-rank single-projection diagnostic and independent two-update audit completed; summary-only A100 comparison. T01 原尺寸 VJP 与两次更新独审，T04 两份完整分片及两份原在途分片已纳入索引。",
+  "coordination_snapshot": "2026-11-19: T03 CPU360 and T04 CPU378 validated target native input and PEFT structure. Prior A100 recoveries retained. Target formal stage 3 remains unqualified. 2026-11-20: T01 eight-rank single-projection diagnostic and independent two-update audit completed; summary-only A100 comparison. T01 原尺寸 VJP 与两次更新独审，T04 两份完整分片及两份原在途分片已纳入索引。 2026-11-22: Gemma 领域配方的真实连续与恢复结果、HunyuanVideo 海光单卡原缓存工程窗口及同平台恢复已纳入索引。",
   "framework_commit": "a68952cb2285d6593b665147249d14ec1f8cecbc",
   "entry": "tools/hygon_training_recipe.py",
   "node_ledger": {
@@ -340,15 +340,35 @@
       "launch_SHA256": "6ff6fecf17d423e672c2c660a9f774d67e03a8a79ca17f388853d34ca42a15fc",
       "original_cards": 8,
       "a100_reference": "A100 已核对两次更新及 25 步。",
-      "target_evidence": "目标 16 个模型文件通过校验。原初始 LoRA 参数传输待授权。",
+      "target_evidence": "目标 16 个模型文件通过校验。原初始 LoRA 参数传输待授权。 独立 USGS72 领域配方使用海光新初值，八卡完成连续 25 步。",
       "target_numerics": "未验证",
-      "target_recovery": "未验证",
+      "target_recovery": "原 A100 同配方待验证。独立 USGS72 领域配方完成 5 步续训，160 对输入匹配，首个恢复 forward 的 rank 0 loss 分叉后更新分叉。",
       "target_performance": "待三轮同口径实测",
       "target_holdout_effect": "待留出集实测",
       "stage3_accepted": false,
       "reference_evidence": "results/bw1000/2026-11-11/training-gemma-original-native25-two-updates-and-three-checkpoints-independent.json",
       "hygon_evidence": "coordination/tasks/training-gemma-original-initial-trainables-v1.json",
-      "a100_median_updates_per_second": null
+      "a100_median_updates_per_second": null,
+      "supplemental_evidence": {
+        "independent_domain_continuous25": {
+          "path": "results/bw1000/2026-11-22/training-gemma-usgs72-v2-original851-eight-rank-25-updates-terminal.json",
+          "SHA256": "53e393df525443d7c5c44b1dee8633f30a389610d9a72dcf988d094be6d260d2",
+          "bytes": 2889,
+          "formal_stage3": false
+        },
+        "independent_domain_resume20_failure": {
+          "path": "results/bw1000/2026-11-22/training-gemma-usgs72-resume20to25-original860-eight-rank-terminal-numerical-fail.json",
+          "SHA256": "e385031e45863ce7ae1849150f47edd523181099544891017f4f0050f363fc67",
+          "bytes": 2749,
+          "formal_stage3": false
+        },
+        "independent_domain_resume_first_boundary": {
+          "path": "results/bw1000/2026-11-22/training-gemma-original860-first-forward-boundary-CPU890.json",
+          "SHA256": "08b1711f38d94a42f5a952f42917922b4bd88f909e80d6e1e696675f5bc38cfe",
+          "bytes": 5048,
+          "formal_stage3": false
+        }
+      }
     },
     {
       "case": "T03.sft",
@@ -730,9 +750,9 @@
       "launch_SHA256": "3fdd29e7ea1a09fc54872c044699199cd5ef16bd73af6e7d522fe2ff1b32662f",
       "original_cards": 1,
       "a100_reference": "A100 首步和 25 步已核验。第 20 步新进程恢复至 25 步完全匹配。",
-      "target_evidence": "原条件缓存和配置已核验，海光端 Transformer 的全部 33,306,632,192 字节及配置已通过独立 SHA-256 核验。目标端仍缺 A100 首步回放文件 before.pt 和 inputs.pt，海光首步尚未执行。",
-      "target_numerics": "未验证",
-      "target_recovery": "海光未验证",
+      "target_evidence": "海光单卡原缓存 Muon 工程窗口完成 25 步，独立核验实际终态和检查点。原 A100 同输入首步仍缺 before.pt 和 inputs.pt。",
+      "target_numerics": "同输入 A100 首步数值待验证。",
+      "target_recovery": "海光单卡新进程从第 20 步恢复，21–25 步 loss、梯度范数及最终检查点与海光连续运行精确匹配。原 GPU 步记录 FAILED，原因是原比较器门禁；后续独立零卡比较成功。",
       "target_performance": "待三轮同口径实测",
       "target_holdout_effect": "待留出集实测",
       "stage3_accepted": false,
@@ -754,6 +774,18 @@
         "transformer_verified_whole_file": {
           "path": "results/bw1000/2026-11-16/training-hunyuanvideo-transformer-source-matched-and-replay-inputs-pending.json",
           "SHA256": "43ca4338d06ec9fc73ffd1662338e0047b60bd7dba02ae21c749c537f8befcfb"
+        },
+        "target_single_DCU_cached_native25": {
+          "path": "results/bw1000/2026-11-22/training-hunyuanvideo-native25-v3-original794-25-updates-terminal.json",
+          "SHA256": "b0632f4ea5659f92af60017d5e72d78eb792da9d078d11d80559b52b90bdac6f",
+          "bytes": 4063,
+          "formal_stage3": false
+        },
+        "target_single_DCU_cached_restart20_exact": {
+          "path": "results/bw1000/2026-11-22/training-hunyuanvideo-resume20-original828-independent830-exact-match.json",
+          "SHA256": "98011dffef6501ab4dacdfbc67c6d090cf386ba4e34f80ea7d2b00509da9834d",
+          "bytes": 2222,
+          "formal_stage3": false
         }
       },
       "a100_median_updates_per_second": 0.2212546978937898,
