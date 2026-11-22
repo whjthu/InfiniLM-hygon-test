@@ -659,22 +659,39 @@ class Queue:
 
     def retire_remote_prelaunch_direct(self, ident, proof):
         """Release a claim after a verified rejection before its first srun."""
-        required = {'request_id', 'intent', 'failure_phase', 'transport_returncode', 'launch_attempted',
+        required = {'request_id', 'intent', 'failure_phase', 'launch_attempted',
                     'matching_accounting_rows', 'post_clean', 'node', 'evidence_SHA256'}
-        scopes = {'PRE_SLURM_IMPORT': ('validation', 0), 'PRE_SLURM_INTENT': ('training', 8)}
-        require(set(proof) == required and proof['failure_phase'] in scopes
-                and type(proof['transport_returncode']) is int and proof['transport_returncode'] > 0
+        phase = proof.get('failure_phase')
+        detached = phase == 'DETACHED_PRE_SLURM_IMPORT'
+        scopes = {'PRE_SLURM_IMPORT': ('validation', 0), 'PRE_SLURM_INTENT': ('training', 8),
+                  'DETACHED_PRE_SLURM_IMPORT': ('training', 1)}
+        if detached:
+            required |= {'controller', 'controller_stderr_SHA256'}
+        else:
+            required.add('transport_returncode')
+        require(set(proof) == required and phase in scopes
                 and proof['launch_attempted'] is False and type(proof['matching_accounting_rows']) is int
                 and proof['matching_accounting_rows'] == 0 and proof['post_clean'] is True,
                 'verified remote pre-srun rejection and fresh cleanup required')
+        if detached:
+            require(isinstance(proof['controller_stderr_SHA256'], str)
+                    and re.fullmatch(r'[0-9a-f]{64}', proof['controller_stderr_SHA256'])
+                    and isinstance(proof['controller'], dict) and proof['controller'].get('request') == proof['request_id']
+                    and type(proof['controller'].get('controller_pid')) is int
+                    and type(proof['controller'].get('controller_startticks')) is int,
+                    'exact detached controller and its terminal import error are required')
+        else:
+            require(type(proof['transport_returncode']) is int and proof['transport_returncode'] > 0,
+                    'failed foreground transport return code required')
         evidence = proof['evidence_SHA256']
         require(isinstance(evidence, str) and re.fullmatch(r'[0-9a-f]{64}', evidence),
                 'exact pre-srun reconciliation evidence SHA required')
+        active_state = 'SUBMITTED' if detached else 'UNKNOWN'
         self.db.execute('BEGIN IMMEDIATE')
         try:
             row = self.db.execute('SELECT stage,state,handle,nodes FROM runs WHERE id=?',(ident,)).fetchone()
-            require(row is not None and row['stage'] == DIRECT_STAGE and row['state'] == 'UNKNOWN',
-                    'original UNKNOWN direct claim required')
+            require(row is not None and row['stage'] == DIRECT_STAGE and row['state'] == active_state,
+                    'original direct claim state differs')
             handle = json.loads(row['handle'])
             reservation = self.reservation(ident)
             node = proof['node']
@@ -686,6 +703,8 @@ class Queue:
                     and bool(handle.get('handoff_SHA256'))
                     and reservation.get('dispatch_ticket') == handle['handoff_SHA256'],
                     'original reservation or dispatch identity differs')
+            if detached:
+                require(handle.get('controller') == proof['controller'], 'different original detached controller')
             result = dict(proof, transport_attempted=True, measurement_terminal=False, replay_allowed=False)
             self.db.execute('UPDATE runs SET state="RETIRED_PRELAUNCH",nodes="[]",result=? WHERE id=?',
                             (canonical(result).decode(),ident))

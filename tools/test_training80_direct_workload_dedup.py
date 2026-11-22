@@ -1,11 +1,11 @@
 import json
 import unittest
 
-from prepare_training80_dispatch_handoff import build_handoff, claim_handoff
+from prepare_training80_dispatch_handoff import build_handoff, claim_handoff, reserve_handoff
 from prepare_training80_dispatch_probe_args import probe_arguments
 from report_training80_backlog import TRAINING80_LEDGER, read_queue_holds
 import test_report_training80_backlog as fixtures
-from tuning_queue import Queue
+from tuning_queue import DIRECT_STAGE, Queue, digest
 
 
 class DurableWorkloadTest(unittest.TestCase):
@@ -60,6 +60,28 @@ class DurableWorkloadTest(unittest.TestCase):
         self.assertEqual(probe['verified_training_ready'], 1)
         self.assertIn(self.rekeyed['id'], probe['prior_workload_claims'])
         self.assertEqual(probe['priority_by_parent'], {'1103606': ['f13r1n11']})
+
+    def test_retire_a_detached_controller_import_failure_only_with_the_original_handle(self):
+        packet = self.packet(self.original)
+        node = next(iter(self.original['placement']))
+        parent = next(iter(packet['placement_by_parent']))
+        packet['placement_by_parent'] = {parent: {node: 1}}
+        intent = self.original['launch']['attempt_receipts'][0]
+        run = digest(dict(stage=DIRECT_STAGE, request=packet['request']))
+        original = reserve_handoff(self.queue, run, packet, intent)
+        controller = dict(request=packet['request'], controller_pid=4, controller_startticks=15)
+        self.queue.submission(run, dict(original['handle'], controller=controller))
+        proof = dict(request_id=packet['request'], intent=intent, failure_phase='DETACHED_PRE_SLURM_IMPORT',
+                     controller=controller, controller_stderr_SHA256='b'*64, launch_attempted=False,
+                     matching_accounting_rows=0, post_clean=True, node=node, evidence_SHA256='a'*64)
+        for invalid in (dict(proof, matching_accounting_rows=1), dict(proof, post_clean=False),
+                        dict(proof, controller=dict(controller, controller_startticks=16))):
+            with self.assertRaises(ValueError):
+                self.queue.retire_remote_prelaunch_direct(run, invalid)
+            self.assertEqual(self.queue.summary()['runs'], {'SUBMITTED': 1})
+        self.queue.retire_remote_prelaunch_direct(run, proof)
+        self.assertEqual(self.queue.summary()['runs'], {'RETIRED_PRELAUNCH': 1})
+        self.assertEqual(read_queue_holds(self.database)[0]['nodes'], [])
 
     def test_terminal_prior_workload_blocks_reentry_after_releasing_original_nodes(self):
         original = self.claim(self.original, self.packet(self.original))
