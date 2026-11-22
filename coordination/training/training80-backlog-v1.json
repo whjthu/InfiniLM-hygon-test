@@ -462,7 +462,7 @@
       "placement": {
         "f11r4n13": 1
       },
-      "next_action": "目标原生 BF16 融合和 Style18 的 12 张原生预处理与 VAE 均通过。冻结正式同输入首步的基线，随后发布领域训练入口和配对恢复，单独记录效果。",
+      "next_action": "同一海光设备的 Style18 零更新前向与复用真实操作数的首步 AdamW 已通过。冻结 12 图连续 25 步、10/20/25 检查点和新进程从 20 恢复后的 5 步配对。原 COCO20/A100 独立推进。",
       "target_image_preflight": {
         "entry": {
           "path": "tools/preflight_zimage_style18_train_input.py",
@@ -516,6 +516,11 @@
         "path": "results/bw1000/2026-11-22/training-zimage-1129-native-HIP-BF16-fusion-and-cleanup.json",
         "bytes": 4633,
         "SHA256": "192c1fe74ff6a88a79e02557e6c25640db83950bbafb5b981c7138e6ed41e027"
+      },
+      "first_update_evidence": {
+        "path": "results/bw1000/2026-11-22/training-zimage-style18-1133-native-first-update-terminal.json",
+        "bytes": 4528,
+        "SHA256": "b2e12a6d824ddb5323da7162a01f250cce261d20c3f56ab0fb327fb8826eb404"
       }
     },
     {
@@ -1347,6 +1352,23 @@
         "SHA256": "827086ee45d33c848e2ad292da2f4d2f13f19f40ae2ba69efd5ba83a4499c129"
       },
       "next_action": "同平台无图训练恢复精确通过。原有图恢复数值失败、正式 TextVQA/COCO 与 A100 同配方仍分别验收。"
+    },
+    {
+      "id": "zimage-style18-native-first-update",
+      "case": "T07.domain-style18.native-first-update",
+      "kind": "training",
+      "state": "terminal",
+      "placement": {
+        "f11r4n14": 1
+      },
+      "priority": 36,
+      "min_updates": 1,
+      "evidence": {
+        "path": "results/bw1000/2026-11-22/training-zimage-style18-1133-native-first-update-terminal.json",
+        "bytes": 4528,
+        "SHA256": "b2e12a6d824ddb5323da7162a01f250cce261d20c3f56ab0fb327fb8826eb404"
+      },
+      "next_action": "已真实完成一次训练更新并清场。连续 25 步及恢复使用独立运行。"
     }
   ]
 }
