@@ -630,6 +630,12 @@
           "path": "results/bw1000/2026-11-22/training-sdxl-sdpa-adjoint-original596-numeric-failure.json",
           "SHA256": "afdb55bbed267512e07428f36600cbeef25819cbb87084188465d30ff0b0a15f",
           "bytes": 3739
+        },
+        "sdpa_adjoint_original596_cpu_update_attribution": {
+          "path": "results/bw1000/2026-11-22/training-sdxl-original596-CPU1002-bf16-update-attribution.json",
+          "SHA256": "41ab4f427089e8ff2c3c642f3dd402f8ad79f7a66c6af4bbb41eef7f90727102",
+          "bytes": 4128,
+          "formal_stage3": false
         }
       },
       "model": "SDXL 1.0",
@@ -637,7 +643,7 @@
       "original_cards": 1,
       "a100_reference": "A100 固定输入和原数值策略已绑定。",
       "target_evidence": "海光执行真实首步。单独替换首个 GroupNorm 后参数更新相对 L2 为 20.05%，原路径 19.27%，门槛 5%。 单独替换时间投影的舍入顺序后，海光投影逐位匹配 A100，完整 1120 个张量的参数更新误差仍为 19.82%。",
-      "target_numerics": "参数更新门槛未通过。把 UNet 输出处的损失梯度精确替换成 A100 原梯度后，首步参数更新相对 L2 误差为 20.21%，仍超过 5% 门槛。560 处 LoRA B 权重梯度改用 FP32 重算并转回 BF16，只改变 2,662,400 个元素中的 33 个，完整参数更新误差仍为 19.27%。保持原前向不变，将冻结卷积的 42 路输入梯度改为 FP32 后，完整参数更新误差为 19.48%。新的 FP32 SDPA 反向在原单卡同输入首步中完成 1120 个张量对照，裁剪前梯度相对 L2 误差为 2.30%，参数更新误差仍为 19.40%，超过 5% 门槛。",
+      "target_numerics": "参数更新门槛未通过。把 UNet 输出处的损失梯度精确替换成 A100 原梯度后，首步参数更新相对 L2 误差为 20.21%，仍超过 5% 门槛。560 处 LoRA B 权重梯度改用 FP32 重算并转回 BF16，只改变 2,662,400 个元素中的 33 个，完整参数更新误差仍为 19.27%。保持原前向不变，将冻结卷积的 42 路输入梯度改为 FP32 后，完整参数更新误差为 19.48%。新的 FP32 SDPA 反向在原单卡同输入首步中完成 1120 个张量对照，裁剪前梯度相对 L2 误差为 2.30%，参数更新误差仍为 19.40%，超过 5% 门槛。零卡复算确认两臂裁剪均未改变梯度值，反号梯度位置贡献 99.05% 的更新平方差。",
       "target_recovery": "未验证",
       "target_performance": "待三轮同口径实测",
       "target_holdout_effect": "待留出集实测",
