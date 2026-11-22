@@ -48,7 +48,7 @@ def hosts(expression):
     return query("scontrol", "show", "hostnames", expression).splitlines()
 
 
-def admit():
+def admit(labels):
     parent = query("scontrol", "show", "job", PARENT, "-o")
     allocated = hosts(field(parent, "NodeList"))
     tres = field(parent, "AllocTRES").split(",")
@@ -68,9 +68,8 @@ def admit():
             raise RuntimeError("Unexpected active step entry")
         if set(hosts(field(line, "NodeList"))) & set(NODES):
             raise RuntimeError("A claimed node already has a numbered step")
-    labels = {f"{LABEL}-{node}" for node in NODES}
     if any(row[1] in labels for row in accounting()):
-        raise RuntimeError("A claimed preflight already has accounting")
+        raise RuntimeError("A step in this claim already has accounting")
 
 
 def emit(path, value):
@@ -140,7 +139,7 @@ def main():
         pin = claim["materials"][name]
         if (pin["bytes"], pin["SHA256"]) != (len(data[name]), sha256(data[name]).hexdigest()):
             raise ValueError("Package member differs: " + name)
-    admit()
+    admit({f"{LABEL}-{node}" for node in NODES})
     root = PROJECT / "results" / LABEL
     root.mkdir(mode=0o700)
     stage = root / "stage"

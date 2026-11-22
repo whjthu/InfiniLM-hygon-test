@@ -14,7 +14,8 @@ import time
 
 
 PROJECT = Path("/public/home/aclsylqidf/hygon-inference-refactor-20261014")
-LABEL = "deep-rope-real-model-tp8-diagnostic-v1"
+LABEL = "deep-rope-real-model-tp8-diagnostic-v2"
+ABORTED_SCOPE = "deep-rope-real-model-tp8-diagnostic-v1"
 PARENT = "1103606"
 NODES = ("f13r2n01", "f13r2n02", "f13r2n03")
 ARMS = dict(zip(NODES, ("legacy", "h1-pack32", "h1-pack64")))
@@ -196,10 +197,15 @@ def detached(scope):
 
     claim = read(scope / "stage/CLAIM.json")
     validate_claim(claim)
-    source.admit()
     stages = {"before", "gpu", "post"}
     labels = {f"{LABEL}-{node}-{phase}" for node in NODES for phase in stages}
-    require(not any(row[1] in labels for row in source.accounting()), "Original model label already exists")
+    aborted = PROJECT / "results" / ABORTED_SCOPE
+    require(pin((aborted / "controller.log").read_bytes()) == claim["aborted_v1_controller_log"]
+            and not (aborted / "intent.json").exists()
+            and not any((aborted / node / "gpu-submit-intent.json").exists() for node in NODES),
+            "Prior pre-submission failure is uncertain")
+    old_labels = {f"{ABORTED_SCOPE}-{node}-{phase}" for node in NODES for phase in stages}
+    source.admit(labels | old_labels)
     epoch = time.time()
     deadline = epoch + WALL_SECONDS
     save(scope / "intent.json", {"request": claim["request"], "dispatch_epoch": epoch,
@@ -246,7 +252,8 @@ def install(claim_sha):
         )
     stat = Path(f"/proc/{supervisor.pid}/stat").read_text()
     receipt = {"request": claim["request"], "controller_pid": supervisor.pid,
-               "start_ticks": int(stat.rsplit(")", 1)[1].split()[19]), "claim_SHA256": claim_sha}
+               "start_ticks": int(stat.rsplit(")", 1)[1].split()[19]), "claim_SHA256": claim_sha,
+               "origin_login_identity_SHA256": sha256(socket.gethostname().encode()).hexdigest()}
     save(scope / "controller-start.json", receipt)
     return receipt
 
