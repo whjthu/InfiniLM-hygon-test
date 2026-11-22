@@ -59,8 +59,14 @@ def compare(reference_raw, resumed_raw, summary, final_reference, final_resumed,
     resumed = steps(resumed_raw, 21, 25)
     require(summary.get('external_resume') is True and type(summary.get('completed_global_step_at_start')) is int
             and summary['completed_global_step_at_start'] == 20, 'Native resume did not start at checkpoint 20')
-    require(summary.get('optimizer') == 'Muon' and summary.get('checks', {}).get('checkpoint_resume') is True,
-            'Native optimizer or checkpoint restoration proof differs')
+    checks = summary.get('checks', {})
+    require(summary.get('optimizer') == 'Muon' and checks.get('muon_optimizer') is True,
+            'Native optimizer proof differs')
+    require(checks.get('checkpoint_resume') is not False,
+            'Optional in-process recovery validation failed')
+    require(summary.get('invocation') == {'executed_global_steps': 5, 'executed_warmup_steps': 0,
+                                          'executed_measured_steps': 5, 'first_global_step': 21},
+            'Native external restore and suffix accounting differ')
     same = {key: tree_hash(final_reference[key]) == tree_hash(final_resumed[key]) for key in CHECKPOINT_FIELDS}
     errors = {key: max(abs(base[key] - candidate[key]) for base, candidate in zip(reference, resumed, strict=True))
               for key in TOLERANCE_FIELDS}

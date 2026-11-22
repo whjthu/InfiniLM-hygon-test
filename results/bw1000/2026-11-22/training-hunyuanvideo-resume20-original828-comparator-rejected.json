@@ -1,0 +1,160 @@
+{
+  "schema": "bw1000.hunyuanvideo-restart-comparator-rejection.v1",
+  "accounting": [
+    [
+      "1087656.827",
+      "training-hunyuanvideo-cached-resume20-target-v1-pre",
+      "COMPLETED",
+      "0:0",
+      "0",
+      "f11r4n17",
+      "cpu=1,mem=1G,node=1"
+    ],
+    [
+      "1087656.828",
+      "training-hunyuanvideo-cached-resume20-target-v1-gpu",
+      "FAILED",
+      "1:0",
+      "132",
+      "f11r4n17",
+      "cpu=8,gres/dcu=1,mem=125G,node=1"
+    ],
+    [
+      "1087656.829",
+      "training-hunyuanvideo-cached-resume20-target-v1-post",
+      "COMPLETED",
+      "0:0",
+      "0",
+      "f11r4n17",
+      "cpu=1,mem=1G,node=1"
+    ]
+  ],
+  "original_records": {
+    "preflight.json": {
+      "bytes": 2251,
+      "SHA256": "14370e8ae9b7583c43bc9ff1b13cec152dc94853abcf2e4872045df407386912",
+      "state": "T09_CACHED_NATIVE_TARGET_PREFLIGHT_PASS",
+      "request_id": "80e60c5dab1cd4eda2b3d99be39c96d4",
+      "passed": true
+    },
+    "intent.json": {
+      "bytes": 880,
+      "SHA256": "6e8bbe5c7ee9d58849baabb939c386d6da73c3cd3683fa7d4a2fa31413e1e6a5",
+      "request_id": "80e60c5dab1cd4eda2b3d99be39c96d4",
+      "resume_after": 20,
+      "planned_updates": 5
+    },
+    "native-ingress.json": {
+      "bytes": 2236,
+      "SHA256": "7d8773535a7ed3a18e08169d983a98cb07c5276abf35ad821d9c156451cb4c88",
+      "request_id": "80e60c5dab1cd4eda2b3d99be39c96d4",
+      "resume_after": 20,
+      "planned_updates": 5
+    },
+    "outcome.json": {
+      "bytes": 9212,
+      "SHA256": "ee269217c74803be3e3505b3120d45a465e5fbf2485a9d2a65a50fb90c3885cb",
+      "request_id": "80e60c5dab1cd4eda2b3d99be39c96d4",
+      "passed": false,
+      "planned_updates": 5,
+      "completed_updates": 5,
+      "release_permitted": true
+    }
+  },
+  "original_gpu_failure": {
+    "gpu_log_SHA256": "75373a9a2463145d8bc9c5759c1dcb03e5f96c48211890c8c559fd868cb5cd6f",
+    "gpu_log_bytes": 2055,
+    "gpu_exit": [
+      "1087656.828",
+      "training-hunyuanvideo-cached-resume20-target-v1-gpu",
+      "FAILED",
+      "1:0",
+      "132",
+      "f11r4n17",
+      "cpu=8,gres/dcu=1,mem=125G,node=1"
+    ],
+    "native_small": {
+      "stored_records_valid": true,
+      "failure_phase": "summary_checks",
+      "error_type": "ValueError",
+      "completed_updates": 5,
+      "checkpoint_files": {},
+      "native_evidence_complete": false
+    },
+    "post_clean": true,
+    "details": {
+      "error": "ValueError: Native optimizer or checkpoint restoration proof differs"
+    },
+    "frames": [
+      [
+        "native_worker.py",
+        "91",
+        "<module>"
+      ],
+      [
+        "native_worker.py",
+        "85",
+        "main"
+      ],
+      [
+        "compare_resume.py",
+        "94",
+        "quantify"
+      ],
+      [
+        "compare_resume.py",
+        "62",
+        "compare"
+      ],
+      [
+        "compare_resume.py",
+        "29",
+        "require"
+      ]
+    ]
+  },
+  "actual_external_restore_configuration": {
+    "summary": {
+      "attention_cuda_sdpa_fallback": true,
+      "checkpoint_resume": null,
+      "current_adapter": true,
+      "finite_tensors": true,
+      "main_forward_device": true,
+      "muon_optimizer": true,
+      "nonzero_finite_gradients": true,
+      "peak_reserved_below_75gb": true
+    },
+    "optimizer": "Muon",
+    "started_at": 20,
+    "actual_invocation": {
+      "executed_global_steps": 5,
+      "executed_measured_steps": 5,
+      "executed_warmup_steps": 0,
+      "first_global_step": 21
+    },
+    "resumed_checkpoint_present": {
+      "exists": true,
+      "bytes": 7479771
+    },
+    "external_restore_source_lines": [
+      493,
+      496,
+      497
+    ],
+    "separate_in_process_self_test_lines": [
+      578,
+      614
+    ]
+  },
+  "new_comparator_local_checks": {
+    "source_SHA256": "b145f8091adcf4a0c1bd80940868e690e6457d329a334be90555b19e9d895592",
+    "bytes": 6767,
+    "passed": 1,
+    "divergence_kept": 1,
+    "rejected": 4
+  },
+  "actual_resumed_updates": 5,
+  "recovery_match": "PENDING_INDEPENDENT_COMPARISON",
+  "original_slurm_passed": false,
+  "replay_allowed": false
+}
