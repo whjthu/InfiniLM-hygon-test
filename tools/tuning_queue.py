@@ -658,10 +658,11 @@ class Queue:
             raise
 
     def retire_remote_prelaunch_direct(self, ident, proof):
-        """Release an UNKNOWN zero-card claim with verified target pre-srun rejection."""
+        """Release a claim after a verified rejection before its first srun."""
         required = {'request_id', 'intent', 'failure_phase', 'transport_returncode', 'launch_attempted',
                     'matching_accounting_rows', 'post_clean', 'node', 'evidence_SHA256'}
-        require(set(proof) == required and proof['failure_phase'] == 'PRE_SLURM_IMPORT'
+        scopes = {'PRE_SLURM_IMPORT': ('validation', 0), 'PRE_SLURM_INTENT': ('training', 8)}
+        require(set(proof) == required and proof['failure_phase'] in scopes
                 and type(proof['transport_returncode']) is int and proof['transport_returncode'] > 0
                 and proof['launch_attempted'] is False and type(proof['matching_accounting_rows']) is int
                 and proof['matching_accounting_rows'] == 0 and proof['post_clean'] is True,
@@ -677,13 +678,14 @@ class Queue:
             handle = json.loads(row['handle'])
             reservation = self.reservation(ident)
             node = proof['node']
+            kind, cards = scopes[proof['failure_phase']]
             require(handle['request_id'] == proof['request_id'] and handle['intent'] == proof['intent']
                     and handle['nodes'] == json.loads(row['nodes']) == [node]
-                    and handle.get('direct_kind') == 'validation'
-                    and handle.get('placement_by_parent') == {reservation.get('parent'):{node:0}}
+                    and handle.get('direct_kind') == kind
+                    and handle.get('placement_by_parent') == {reservation.get('parent'):{node:cards}}
                     and bool(handle.get('handoff_SHA256'))
                     and reservation.get('dispatch_ticket') == handle['handoff_SHA256'],
-                    'original zero-card reservation or dispatch identity differs')
+                    'original reservation or dispatch identity differs')
             result = dict(proof, transport_attempted=True, measurement_terminal=False, replay_allowed=False)
             self.db.execute('UPDATE runs SET state="RETIRED_PRELAUNCH",nodes="[]",result=? WHERE id=?',
                             (canonical(result).decode(),ident))
