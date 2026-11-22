@@ -8,6 +8,7 @@ import unittest
 from unittest.mock import patch
 
 from report_training80_backlog import TRAINING80_LEDGER, plan, read_queue_holds
+from training_dispatch_allocation import SURVIVOR_KIND, SURVIVOR_LEDGER, SURVIVOR_PARENT
 from tuning_queue import DIRECT_STAGE, digest
 
 
@@ -98,6 +99,57 @@ class BacklogTest(unittest.TestCase):
             self.assertEqual(result['proposed_DCU'], 0)
             self.assertEqual(result['admission_clear_nodes'], 0)
             self.assertIsNone(result['measured_busy_percent'])
+
+    def surviving_snapshot(self):
+        proof = deepcopy(self.snapshot)
+        proof['snapshot_kind'] = SURVIVOR_KIND
+        proof['total_cards'] = 320
+        proof['membership'].update(distinct_nodes=40, allocated_DCU=320,
+                                   ledger_SHA256=sha256(SURVIVOR_LEDGER.read_bytes()).hexdigest())
+        proof['membership']['parents'] = {SURVIVOR_PARENT: proof['membership']['parents'][SURVIVOR_PARENT]}
+        proof['nodes'] = {name: row for name, row in proof['nodes'].items() if row['parent'] == SURVIVOR_PARENT}
+        return proof
+
+    def seal_surviving_snapshot(self, proof, age=3):
+        return dict(proof, local_receipt=dict(received_monotonic=self.now-age, roundtrip_s=1.0,
+            boot_epoch_anchor=self.anchor, request_id=proof['request_id'], payload_SHA256=digest(proof),
+            raw_response_SHA256='a'*64))
+
+    def test_surviving_allocation_keeps_historical_rows_and_proposes_only_live_nodes(self):
+        live = self.trial(1, node='f13r1n10')
+        failed = self.trial(2, node='a01r4n16')
+        history = self.trial(3, node='a01r4n14')
+        history.pop('launch')
+        history['state'] = 'reconcile'
+        proof = self.seal_surviving_snapshot(self.surviving_snapshot())
+        result = self.run_plan(live, failed, history, snapshot=proof)
+        self.assertEqual((result['fleet_nodes'], result['allocated_DCU']), (40, 320))
+        self.assertEqual(result['proposed_for_root'], [live['id']])
+        self.assertEqual(result['outstanding_training_ready'], 1)
+        self.assertEqual(result['training_pipeline']['outside_live_allocation'], 1)
+        self.assertEqual(result['original_launch_holds'][history['id']]['nodes'], ['a01r4n14'])
+        self.assertIsNone(result['measured_busy_percent'])
+
+    def test_surviving_snapshot_requires_freshness_and_exact_live_step_coverage(self):
+        live = self.trial(1, node='f13r1n10')
+        proof = self.surviving_snapshot()
+        result = self.run_plan(live, snapshot=self.seal_surviving_snapshot(proof, age=60))
+        self.assertEqual(result['proposed_DCU'], 0)
+        self.assertFalse(result['fresh_device_receipt'])
+        proof['membership']['parents'][SURVIVOR_PARENT]['active_steps']['1103606.4'] = {
+            'member_nodes': ['f13r1n10']}
+        result = self.run_plan(live, snapshot=self.seal_surviving_snapshot(proof))
+        self.assertEqual(result['proposed_DCU'], 0)
+        proof['membership']['parents'][SURVIVOR_PARENT]['active_steps']['1103606.4'] = {
+            'member_nodes': ['a01r4n16']}
+        with self.assertRaises(ValueError):
+            self.run_plan(live, snapshot=self.seal_surviving_snapshot(proof))
+
+    def test_surviving_receipt_cannot_claim_full_capacity(self):
+        proof = self.surviving_snapshot()
+        proof['total_cards'] = 640
+        with self.assertRaises(ValueError):
+            self.run_plan(snapshot=self.seal_surviving_snapshot(proof))
 
     def test_fresh_priority_distinct_nodes_and_training_count(self):
         result = self.run_plan(self.trial(1, 'operator'), self.trial(2), self.trial(3, 'validation', 'a01r4n14'))

@@ -1,6 +1,8 @@
 # 80 台资源监测与训练待派发队列
 
-资源监测智能体从当次认证连接取得两项父作业的编号 step 和设备准入收据。`tools/collect_training80_dispatch_snapshot.py` 提供逐节点的 Slurm、PCI、KFD、进程和端口观测。使用调用方原始单调时钟在接收时绑定收据。老收据可回看当时的编号 step，派发提议只使用有效期内的原收据。
+资源监测智能体从当次认证连接取得已核验父作业的编号 step 和设备准入收据。`tools/collect_training80_dispatch_snapshot.py` 提供逐节点的 Slurm、PCI、KFD、进程和端口观测。使用调用方原始单调时钟在接收时绑定收据。老收据可回看当时的编号 step，派发提议只使用有效期内的原收据。
+
+原双父作业使用 `training80-dispatch-v1`。仅存活的 `1103606` 使用固定的 40 节点账本和 `training40-dispatch-v1`，由同一报告及批量派发入口自动识别。该收据只覆盖 320 张卡，原父作业的训练与预约保留历史身份。需要原父作业节点的任务在重新绑定到有效节点前不会产生派发提议。仅有 Slurm 成员关系时可用 `--ledger` 指定账本查看，设备准入仍需有效的现场收据。
 
 ```powershell
 & 'C:/Users/WangHaojie/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe' -B -X utf8 tools/report_training80_backlog.py <原收据路径>

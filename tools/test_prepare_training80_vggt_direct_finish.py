@@ -143,7 +143,13 @@ class DirectFinishTest(unittest.TestCase):
         self.assertNotIn('f13r1n10', report['held_nodes'])
         self.assertNotIn('f13r4n09', report['held_nodes'])
         self.assertIn('f11r4n09', report['held_nodes'])
-        self.assertIn('f11r4n19', report['held_nodes'])
+        rebound = candidates['vggt-tum-eight-pair-training']
+        self.assertEqual(rebound['state'], 'terminal')
+        actual = json.loads(pin_file(binder.REPO, rebound['evidence'], ('results/bw1000/',)))
+        self.assertEqual(actual['retired_original_scope']['parent'], '1087656')
+        self.assertTrue(actual['retired_original_scope']['exact_accounting_absent'])
+        self.assertTrue(actual['independent_post_clean'])
+        self.assertNotIn('f11r4n19', report['held_nodes'])
 
 
 if __name__ == '__main__':

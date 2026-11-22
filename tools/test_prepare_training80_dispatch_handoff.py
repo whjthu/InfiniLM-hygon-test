@@ -66,6 +66,23 @@ class HandoffTest(unittest.TestCase):
         self.assertEqual(report['outstanding_training_ready'], 0)
         self.assertEqual(report['coordinator_handoffs'], [])
 
+    def test_surviving_allocation_claims_two_disjoint_nodes_with_the_same_receipt(self):
+        snapshot = self.fleet.seal_surviving_snapshot(self.fleet.surviving_snapshot())
+        jobs = [self.fleet.trial(1, node='f13r1n10'), self.fleet.trial(2, node='f13r1n11'),
+                self.fleet.trial(3, node='a01r4n16')]
+        report = self.handoff(jobs, snapshot=snapshot)
+        self.assertEqual(report['allocation_DCU'], 320)
+        packets = report['coordinator_handoffs']
+        self.assertEqual([p['placement_by_parent'] for p in packets],
+                         [{'1103606': {'f13r1n10': 8}}, {'1103606': {'f13r1n11': 8}}])
+        requests = [(packet, job['launch']['attempt_receipts'][0]) for packet, job in zip(packets, jobs)]
+        queue = Queue(self.fleet.repo / 'survivor.sqlite')
+        self.addCleanup(queue.db.close)
+        claims = claim_handoffs(queue, snapshot, dict(minimum_ready_training=5, items=jobs), requests,
+                               repo=self.fleet.repo, now=self.fleet.now, boot_anchor=self.fleet.anchor)
+        self.assertEqual([claim['handle']['nodes'] for claim in claims], [['f13r1n10'], ['f13r1n11']])
+        self.assertTrue(all(claim['actual_slurm_submissions'] == 0 for claim in claims))
+
     def test_claim_refuses_changed_packet_wrong_intent_and_stale_receipt(self):
         job = self.trial()
         [packet] = self.handoff([job])['coordinator_handoffs']

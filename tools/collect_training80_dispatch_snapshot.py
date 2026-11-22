@@ -1,4 +1,4 @@
-"""One-shot 80-node Slurm and CPU-only device admission observation."""
+"""One-shot Slurm and CPU-only device admission for a verified allocation."""
 import argparse
 from concurrent.futures import ThreadPoolExecutor
 import hashlib
@@ -11,7 +11,8 @@ import subprocess
 import time
 
 from read_training_slurm_membership import snapshot
-from sample_training80_busy import node_map, require_pins
+from sample_training80_busy import require_pins
+from training_dispatch_allocation import FULL_KIND, SURVIVOR_KIND, allocation
 from tuning_queue import receive_snapshot, require
 
 
@@ -125,17 +126,12 @@ def read_worker_rows(raw, request, parent, nodes, ports, uid):
 def collect(request, ledger_raw, pins, ports, *, priority_nodes=(), held_nodes=(), priority_only=False,
             run=subprocess.run, clock=time.monotonic):
     require(re.fullmatch(r'[0-9a-f]{32}', request), 'request ID must be the original 32 hex digest')
-    ledger = json.loads(ledger_raw)
-    owners = node_map(ledger)
+    kind, groups, owners = allocation(ledger_raw)
     require_pins(owners, pins)
     ports = validate_ports(ports)
     priority_nodes = validate_scope_nodes(priority_nodes, owners)
     held_nodes = set(validate_scope_nodes(held_nodes, owners))
     uid = os.getuid()
-    groups = {job['JobId']: {name: group['allocations'][job['JobId']] for name, group in ledger['groups'].items()}
-              for job in ledger['jobs']}
-    require(set(groups) == {parent for parent, _ in owners.values()} and len(ledger['jobs']) == len(groups),
-            'parent job records differ from the node mapping')
     started = clock()
     deadline = started + 48
     hostlists = {}
@@ -244,18 +240,18 @@ def collect(request, ledger_raw, pins, ports, *, priority_nodes=(), held_nodes=(
                                              and observation['step_locations_exact']), active_steps=sorted(active),
                            device_probe_step=row.get('step'), probe_error=probe_error)
     require(clock() <= deadline, 'observation budget expired')
-    return dict(request_id=request, observed_epoch=membership['observed_epoch'], complete=True, total_cards=640,
+    return dict(request_id=request, observed_epoch=membership['observed_epoch'], complete=True, total_cards=len(owners) * 8,
                 membership=membership, nodes=nodes, probes=reports,
                 requested_priority_nodes=priority_nodes, requested_held_nodes=sorted(held_nodes),
                 device_probe_scope=scope, deferred_device_probe_nodes=sorted(deferred),
-                measured_busy_percent=None, snapshot_kind='training80-dispatch-v1')
+                measured_busy_percent=None, snapshot_kind=kind)
 
 
 def receive(raw, request_started_monotonic, request_id):
     """Call once with the authenticated transport's original response and monotonic start."""
     require(len(raw) <= MAX_OUTPUT_BYTES, 'dispatch snapshot exceeded bounds')
     payload = json.loads(raw)
-    require(isinstance(payload, dict) and payload.get('snapshot_kind') == 'training80-dispatch-v1' and
+    require(isinstance(payload, dict) and payload.get('snapshot_kind') in (FULL_KIND, SURVIVOR_KIND) and
             payload.get('request_id') == request_id,
             'wrong dispatch snapshot request')
     return receive_snapshot(payload, request_started_monotonic, request_id, digest(raw))
