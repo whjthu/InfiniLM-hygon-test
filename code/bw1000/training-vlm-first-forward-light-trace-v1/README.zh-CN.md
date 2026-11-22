@@ -1,0 +1,25 @@
+共享首forward轻量诊断库（默认完全关闭，无GPU/调度入口）
+
+原Gemma .851/.860保持不改。原860完成5更新/160输入对，numeric FAIL169差异不洗：rank0首loss为0.013597455807030201→0.02263999730348587，差约.00904254；首累积其余31个loss相同，更新21后adapter/optimizer分叉，scheduler仍相同。以上是根对.890原件实际读取，不是本库测试测出的模型结论。具体因果仍UNKNOWN。
+
+light_trace.py是无Torch依赖的observer核心，native_bridge.py在明确opt-in后才接现有native模型，optin.py提供最小callback调用。没有CLI训练、SSH、Slurm、Popen、设备初始化或服务。没有VLM_LIGHT_TRACE_CONFIG和SHA时返回None，在模型/模块/路径读取前退出；显式enabled=false和未选中rank也不建立backend。未来根必须单独审claim/config/fresh资源，不能靠这份库授权GPU。
+
+启用选择固定rank0及control rank1，四个forward：新continuous的ordinal81..84，或从同checkpoint20的新resumed/independent_control的ordinal1..4。所有pre/post hook都返回None，不替换输入、输出、Dropout、RNG或seed，不设置SDPA/TF32/autocast/确定性开关。已有hook先执行，本observer随后执行；它会有CPU观测与fsync开销，不能宣称traced运行时间、allocator/cold-kernel行为与untraced完全无扰动。disabled分支保留原选择。
+
+每个entry/exit保存Python、NumPy、CPU、本rank已初始化设备RNG的组合及分组件SHA；不保存原RNG状态或floating_l2。只有RNG状态被本地读取并hash；模型权重、激活、input/token、输出loss tensor都只读header，不.item/.cpu/.numpy、不读payload。cuda是Torch在HIP上的同一命名空间；只允许已经初始化且实际WORLD_SIZE=8/RANK=LOCAL_RANK/current_device匹配，不调用get_rng_state_all/is_available/device_count初始化其他卡。
+
+记录shape/dtype/stride/storage_offset/layout/grad标志和指针mod256（不是完整地址），现成forward_context_state的module training/autocast/SDPA flags，以及actual accumulation、num_items/loss_scale等normalization类型/标量或tensor header。GradScaler不调用get_scale；有device scalar仅header，不能把它伪报为实际数值。native loss数值继续由原witness记录，不由本库另读。RNG在每次metadata读取前后比较，observer若推进RNG即FAIL，绝不恢复RNG掩盖。
+
+严格复用现common393/396的forward_context_state.py 3002B/df412bb2982914fb47705a7a90b4a0bf340e6e5551595e754caa474eee6eed76和当前Gemma resume_witness.py 20976B/4454f738caa07554caa5054234414941e07431416ac8ca3d6b5a3368a14bb02c。先核框架内确切路径/整SHA再import，并核已加载模块路径。generic observer可供共框架模型复用；native bridge只对这两个已核provider闭包准备，不把别的A100/CPU库版本自动当同资格，不basename/fallback。
+
+每rank全新私有输出目录独占mkdir，entry/exit每条<=256KiB，完整module context去重后每份<=1MiB，全rank私有trace<=4MiB。rank result列完整4计划/实际entry attempt/exit与失败，不补齐；上下文原始mode map只留新私有目录。未完成4个forward不称trace合格。finish移除本observer自己的hook，不碰原callback。
+
+最小未来接入（本次没有改原包）：根建立独立新scope/private框架或严格只读source overlay，在新副本callback的on_train_begin、已有witness完成attach后调用optin.attach_if_requested(model=已有model,trainer=已有trainer,rank=rank,check=原deadline检查)。将本库已核来源目录加入该新scope路径。保留返回None分支；返回trace时在新scope的退出finally调用finish，原scope/provider/数学代码不热改。配置经确切SHA传入VLM_LIGHT_TRACE_CONFIG/SHA。
+
+建议外部config schema：enabled/root_GO/trace_GO/diagnostic_only=true；schema=VLM_FIRST_FORWARD_LIGHT_TRACE_V1；全新request_id；ranks=[0,1]；phase=resumed或independent_control；start_ordinal=1；count=4；scope_root/已有新output父目录/当前已核framework_root；device_type=cuda；already_admitted_native_device=true。配置只由根在新派发资格后生成，本库没有任何默认GPU配置。
+
+若以后做因果对照，traced与独立untraced控制必须各自新request/output/fresh PCI/KFD/held/tree/RSS/accounting/post，使用同原checkpoint20十四pins、同模型16/同train800/同模板/cursor/seed/精度/原25终点。两新进程仍各走真实20→25五更新，不能为方便关闭原恢复门禁或把入口观测改成全权重16GiB capture。先比较两个新scope原witness的完整160 input/loss、40 state及RNG，再看trace元数据。缺原851首forward trace不能事后补造；新traced与旧860不同也不能单独归因为observer修复。原A100/正式17/原失败和阈值都保持。
+
+本机新6项pure-stdlib fixture通过：default/unselected零backend、hook输出对象/原选择不变、前80不读metadata、四entry/exit和context去重、部分与RNG变更保FAIL/4分母、权限/选择拒绝、RNG adapter仅出SHA。没有导入Torch/真实模型/设备，未测真实native hook或HIP RNG，不替代目标诊断资格。
+
+独立下一候选只读排查：T09的原828恢复已PASS，不能重复算新READY。当前backlog中最短现有数据路线是InternVL USGS72，原native625实际PASS（results/bw1000/2026-11-22/training-InternVL-USGS72-original625-native-input-independent-terminal.json），但仍需根核完整目标4shard/冻结initial/8卡source closure；此处不碰在途shard、不宣READY。MiniCPM仍保5843 reconcile与数值漂移，ZImage/SDXL组件缺口不由本库消除。新增READY=0。
