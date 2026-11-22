@@ -164,18 +164,60 @@
       "id": "zimage-original-training-fusion-first-update",
       "case": "T07.sft",
       "kind": "training",
-      "state": "blocked",
+      "state": "terminal",
       "priority": 70,
       "placement": {
         "f11r4n13": 1
       },
-      "next_action": "目标原生 BF16 融合与 476 张量可训练边界通过，原 COCO20 预处理已通过。核对原 A100 初值、噪声、timestep 和原数据清单，冻结同输入首步真实更新。",
+      "next_action": "原 1087656.1153 完成同平台零更新前向和真实首步。使用已保存的原输入和参数证据推进端到端恢复及 A100 数值对齐。",
       "min_updates": 1,
       "evidence": {
-        "path": "results/bw1000/2026-11-22/training-zimage-1129-native-HIP-BF16-fusion-and-cleanup.json",
-        "bytes": 4633,
-        "SHA256": "192c1fe74ff6a88a79e02557e6c25640db83950bbafb5b981c7138e6ed41e027"
+        "path": "results/bw1000/2026-11-22/training-zimage-COCO20-original1153-native-first-step-terminal.json",
+        "bytes": 4430,
+        "SHA256": "833c511be9649ba1e03fccaab10488ddc9f31ad29c923a775d177b3eb8f4e1af"
       }
+    },
+    {
+      "id": "training-zimage-COCO20-flash2-deterministic-hip-v2",
+      "case": "T07.sft",
+      "kind": "training",
+      "state": "terminal",
+      "priority": 71,
+      "placement": {
+        "f13r2n07": 1
+      },
+      "min_updates": 30,
+      "direct_request": "80b9ef4b98624ebf8d62b9cba455dc17",
+      "attempt_receipts": [
+        "local-only/training-zimage-COCO20-flash2-deterministic-hip-v2-original/original-launch.json"
+      ],
+      "evidence": {
+        "path": "results/bw1000/2026-11-22/training-zimage-original1332-1334-deterministic-30-updates-recovery-diverges.json",
+        "bytes": 10773,
+        "SHA256": "892b7107b650e73129ace78253cce55efa3cb670f8d7d1c4a7e22e862ae0371d"
+      },
+      "next_action": "原 1103606.1332/.1334 实际完成 25+5 步并清场。确定性反向仍未通过恢复数值门槛，首差定位在第 21 步前向，避免同配方重测。"
+    },
+    {
+      "id": "training-zimage-COCO20-flash2-deterministic-hip-v1",
+      "case": "T07.sft",
+      "kind": "training",
+      "state": "terminal",
+      "priority": 71,
+      "placement": {
+        "f13r2n07": 1
+      },
+      "min_updates": 30,
+      "direct_request": "250a5a2b70bd477598115ef5b5f64633",
+      "attempt_receipts": [
+        "local-only/training-zimage-COCO20-flash2-deterministic-hip-v1-original/original-launch.json"
+      ],
+      "evidence": {
+        "SHA256": "9e6b601363711b117edab2493a95b745931ea19ae32b0546265042036530fd07",
+        "bytes": 4570,
+        "path": "results/bw1000/2026-11-22/training-zimage-original1327-flash2-wheel-and-module-version-mismatch.json"
+      },
+      "next_action": "原 1103606.1327 在首次更新前触发错误的版本比较，清场完成。"
     },
     {
       "id": "hymotion-original-128-frame-first-update",
@@ -824,22 +866,22 @@
       "id": "deep-csa-identity-swa-host-compile-v1",
       "case": "O01.deep-csa-identity-swa-compile",
       "kind": "validation",
-      "state": "blocked",
+      "state": "terminal",
       "cpu_prerequisite": true,
       "cpu_request": "e828d67b3b94d2ad8338fd19a338e4b3",
       "placement": {
         "f12r3n17": 0
       },
       "evidence": {
-        "path": "coordination/tasks/deep-csa-identity-swa-compile-cpu-v1.json",
-        "bytes": 2159,
-        "SHA256": "96d4dba195420c9587f119889286203a725cbf5d24ca044d0ccb569daf3582d4"
+        "path": "results/bw1000/2026-11-22/training80-fleet640-synchronous-idle-and-Deep-CSA-563.json",
+        "bytes": 5423,
+        "SHA256": "3781f379339ccc49be6eb471be5ac34ea82f2e571e4ca6f329b4ce415dce1ae5"
       },
       "attempt_receipts": [
         "local-only/Deep-CSA-identity-SWA-commit-CPU-v1-original-dispatch/intent.json"
       ],
       "priority": 926,
-      "next_action": "核目标部署包的九个成员。取得新鲜设备收据后用共享队列原子认领，按原预算执行一次零卡 TU07 编译。连接中断只对账原请求。"
+      "next_action": "原 1087656.563 单 TU 编译和独立清场已完成。复用该 DSO，下一步仍需已绑定权重的真实 CsaAttention 调用和数值对照。"
     },
     {
       "id": "training-qwen-usgs-resume20-recovery-hip-v2",
