@@ -1,0 +1,170 @@
+{
+  "GPU_GO": false,
+  "Model_GO": false,
+  "actual_GPU_calls": 0,
+  "actual_new_Slurm_steps": 0,
+  "deadline": {
+    "kill_grace_seconds": 5,
+    "whole_seconds": 300,
+    "work_seconds": 270
+  },
+  "fixture": {
+    "K_V_each": [
+      "T",
+      4,
+      256
+    ],
+    "T1_role": "native TP16 decode layout",
+    "T512_role": "prefill-sized kernel component proxy",
+    "copies_measured": "no input upload, canary, CPU reference or D2H in event interval",
+    "heads": 4,
+    "kind": "controlled finite BF16 packing input",
+    "paired_memory": "same total capacity and exact equal reported free bytes before and after matched arms",
+    "planned": {
+      "arms": [
+        [
+          1,
+          0,
+          64
+        ],
+        [
+          1,
+          0,
+          128
+        ],
+        [
+          512,
+          0,
+          64
+        ],
+        [
+          512,
+          0,
+          128
+        ],
+        [
+          1,
+          1,
+          128
+        ],
+        [
+          1,
+          1,
+          64
+        ],
+        [
+          512,
+          1,
+          128
+        ],
+        [
+          512,
+          1,
+          64
+        ],
+        [
+          1,
+          2,
+          64
+        ],
+        [
+          1,
+          2,
+          128
+        ],
+        [
+          512,
+          2,
+          64
+        ],
+        [
+          512,
+          2,
+          128
+        ]
+      ]
+    },
+    "projected": [
+      "T",
+      4,
+      448
+    ],
+    "rotary": [
+      "T",
+      1,
+      64
+    ],
+    "strides": {
+      "K_V_each": [
+        1024,
+        256,
+        1
+      ],
+      "projected": [
+        1792,
+        448,
+        1
+      ],
+      "rotary": [
+        64,
+        64,
+        1
+      ]
+    },
+    "timed_per_tokens": {
+      "1": 1024,
+      "512": 128
+    },
+    "tokens": [
+      1,
+      512
+    ],
+    "warm_per_arm": 32
+  },
+  "label": "GLM474-fresh-kv-pack-event-paired-GPU-v1",
+  "local_only_preparation": true,
+  "native": {
+    "DSO": "/refactor/candidates/GLM474-fresh-kv-explicit-ar-Native-CPU-v2/libGLM_fresh_kv_pack.so",
+    "DSO_SHA256": "08cf47237d030dbf928b6b7a405556da26dd9630858d2a1cd506b61bd94a07d7",
+    "DSO_bytes": 1961800,
+    "HIP_SHA256": "b125b6b4153f5d25dd8e445b43b2f57b0eab9b6305eb765430a82a4359e1870b",
+    "abi_step": "1103606.919",
+    "build_step": "1103606.918",
+    "exports_to_call": [
+      "glm_r474_fresh_kv_pack_t64",
+      "glm_r474_fresh_kv_pack_t128"
+    ],
+    "independent_clean_post_step": "1103606.920",
+    "provider_plan_SHA256": "48188514c7137d61d553232eb08f050f6f65d1c41a0be020aeceefb2275fe6c6",
+    "providers": 71,
+    "terminal_archive_SHA256": "6809da6c2106c7e33886d600983c1b18dc6906478a7ab650c2b05458c61f679b"
+  },
+  "new_files_SHA256": {
+    "device_inside.sh": "98c7d9a254b8a57a7766be9b484b36ee3ec08c5254b92b555f393054de781b09",
+    "probe.py": "6f83ac84c284f47e5e53dd1343adb869dee2fcaf251636e002e22344009404db",
+    "result.py": "98b148be528a001c40ae4c6bf6bf53cafeeaec6b371468bc1dc796eb9427ee53",
+    "timing.py": "6962475a0135702b647a2237eec7fc328676e5e8b277f05bcf6c0c9514f260bf"
+  },
+  "operator_GO": true,
+  "performance_qualified": false,
+  "placement": {
+    "DCU": 1,
+    "cpu_bind": "threads",
+    "cpus": 4,
+    "memory_MiB": 16384,
+    "minimum_device_free_bytes": 8589934592,
+    "node": "f12r2n13",
+    "parent": "1103606",
+    "zone": "O01"
+  },
+  "qualified_device_precedent": {
+    "GPU": "1103606.941",
+    "SHA256": "240dcb8986383f3d786264a96828f008062f977ecc72feba1343a0508c726628",
+    "independent_post": "1103606.943",
+    "path": "results/bw1000/2026-11-22/GLM474-fresh-kv-pack-v2-original941-device-numerics-terminal.json",
+    "rejection": 36,
+    "valid": 4
+  },
+  "replay_allowed": false,
+  "request": "7c6ec3205bdf41578b0a6d1698787f13"
+}
