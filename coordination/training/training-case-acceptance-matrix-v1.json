@@ -388,7 +388,7 @@
       "launch_SHA256": "7fefdc16f5519a998a94fdef703c2dd326b3c15e2e31d5a3735f6c4558269c67",
       "original_cards": 8,
       "a100_reference": "原8卡25步、首2更新捕获及freshpost独审通过；200文件全SHA/有限值/参数与优化器连续性独审通过。lr0首步0/504变更，次步504/504；不等于AdamW独立重算。",
-      "target_evidence": "海光 CPU360 核验 64 条输入参考和 504 个 LoRA 张量结构。1087656.1004 验证 17 件模型文件只读挂载。1087656.1050 实际八卡到达首个模型前向的输入钩子，八个 rank 均保存字段元数据，0/8 首输入整指纹与 A100 一致，更新 0。",
+      "target_evidence": "海光 CPU360 核验 64 条输入参考和 504 个 LoRA 张量结构。1087656.1004 验证 17 件模型文件只读挂载。1087656.1050 实际八卡到达首个模型前向的输入钩子，八个 rank 均保存字段元数据，0/8 首输入整指纹与 A100 一致，更新 0。 8 个已保存首微批与 A100 原 64 个位置交叉检查，共 512 次，整指纹无匹配。",
       "target_numerics": "首输入指纹失配。须先取得八个 A100 rank 的首微批字段元数据并定位偏差，完整前向、梯度和参数更新尚未得到配对结果。",
       "target_recovery": "未验证",
       "target_performance": "待三轮同口径实测",
@@ -470,6 +470,11 @@
           "path": "results/bw1000/2026-11-22/training-zimage-and-internvl-publisher-byte-identities.json",
           "SHA256": "3ca66ba1344e2ec1ce2b9965446a7230705138aa8e579e0155fab419b29eaad9",
           "bytes": 9290
+        },
+        "first_micro_cross_slot_fingerprints": {
+          "path": "results/bw1000/2026-11-22/training-internvl-original1050-whole-input-cross-match-64-A100-slots.json",
+          "bytes": 6110,
+          "SHA256": "c3e4b2e3c20c1a0c9f7a9eb9ef9b42b91a63227e48aaaaa759d557ba6d11cacf"
         }
       }
     },
@@ -691,7 +696,7 @@
       "launch_SHA256": "f0bc54e478ad0e8b5d9e0b7fe632a172e5aa6d2e9d6fa166b6d09d280ecdc89d",
       "original_cards": 1,
       "a100_reference": "A100 首步通过。原恢复失败，另有确定性 Flash2 候选恢复通过。",
-      "target_evidence": "海光 HIP attention 组件通过。本机核对原 20 项输入的元数据及 25 次取样顺序。原 CSV 和图片正文、底座、预置 adapter 及完整首步仍待验证。 另有 Style18 领域配方的 12 条目标原生图像与提示校验，以及 19 个官方运行文件和 v1 adapter 的来源身份。目标资产部署和原 COCO20 首步仍待验证。",
+      "target_evidence": "海光 HIP attention 组件通过。本机核对原 20 项输入的元数据及 25 次取样顺序。原 CSV 和图片正文、底座、预置 adapter 及完整首步仍待验证。 另有 Style18 领域配方的 12 条目标原生图像与提示校验，以及 19 个官方运行文件和 v1 adapter 的来源身份。目标资产部署和原 COCO20 首步仍待验证。 单卡 1087656.1062 已在固定 Style18 12 张真实图像上运行原 DiffSynth VAE，12/12 潜变量有限。目标运行资产整件校验 15/20。",
       "target_numerics": "未验证",
       "target_recovery": "海光未验证",
       "target_performance": "待三轮同口径实测",
@@ -714,6 +719,11 @@
           "path": "results/bw1000/2026-11-22/training-zimage-and-internvl-publisher-byte-identities.json",
           "SHA256": "3ca66ba1344e2ec1ce2b9965446a7230705138aa8e579e0155fab419b29eaad9",
           "bytes": 9290
+        },
+        "native_style18_vae_component": {
+          "path": "results/bw1000/2026-11-22/training-zimage-native-vae-original1062-style18-12-latents-terminal.json",
+          "bytes": 7921,
+          "SHA256": "c397af7b339470f549f8cfddaf16ba317fc7e5bbe76ee1bf42c84c5c24cb0159"
         }
       },
       "a100_median_updates_per_second": null
