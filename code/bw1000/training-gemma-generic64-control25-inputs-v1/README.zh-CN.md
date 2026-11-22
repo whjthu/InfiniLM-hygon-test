@@ -1,0 +1,19 @@
+Gemma 新 generic64 control25 前提与真实 common Swift worker。它使用已批准原 COCO64 caption 输入，独立于已完成 domain72/.851、失败恢复.860、当前配对诊断及已完成T09恢复。没有重下载、没有新权重导出，也没有本机/目标模型调用。READY目前为false。
+
+精确现有目标：`R/results/training-vlm-original-assets-v1/vlm_report_coco64.hip.jsonl`26817B/SHA1c9aaddad5b681b50a6ddfa79c08e30e4820ee6ffcdc81bd473d0c2e84b35a0f，64原图和2原plugin+cuda JSON共67文件10964794B。Gemma原生CPU .160已实核64行/256字段；新的800视图只重复原字节，前32行各13次、后32行各12次，不新造样本或继承分布式训练资格。原caption监督完全不改，与领域FINAL目标的格式差异必须单列；不能把格式收益冒纯领域语义提升。开发效果使用已有独立USGS dev36（6图/2closure组），blind36仍封闭，不拿COCO训练图自评分。
+
+全量Gemma16文件已在目标，原CPU14 processor metadata与这16文件逐字段匹配；本机已经验证该子集关系。`stage.py`在固定1103606/f13r1n12的独立0-GRES/2CPU8GiB计算步骤一次运行，210秒工作、外层300秒内含Slurm240秒与收口，由root的已资格容器前端提供DTK ENV、两个runtime site和只读源挂载。必须使用compute mount记录stat，不把login HOST的st_dev与compute混为一谈。新输出 `R/results/training-gemma-generic64-control25-v1`必须不存在；借已有合法staging方式使父目录可写，代码只写这个固定新目录，绝不改旧资产。所有重读/校验计时，不运行Torch、设备、Slurm或网络库。
+
+0-GRES入口：`python stage.py --epoch ORIGINAL --deadline ORIGINAL+210 --publication PUB --source-manifest-sha256 MF`。根先采用本包root/CPU/GPU/training/READ执行位并普通发布（Model/formal17/READY仍false）；按原 .845 已合格DTK容器0-GRES入口运行，三GPU mask=-1，不加未合格运行时。核原67+HIP输入、原.851独审gate7528B/ba9e7917…、8个初始化JSON和原target-fresh初态/8rank RNG九文件、完整model16和既有396框架；只hash状态文件，不反序列化。复制396源码到新目录，仅对其中callback做已审核的逐span派生，数学/optimizer/GC/checkpoint函数AST保持不变。输出view800、ledger、continuous-plan、新framework manifest、原runtime binding与stage-complete；stdout只计数/哈希，caption与状态正文不回PC。
+
+原初态来自本次目标自己创建的 `.851`：`R/results/training-gemma-usgs72-fresh-initial-domain25-v1/continuous/train/continuous-witness/rank-00/target-fresh-initial.pt`及各rank的`target-fresh-rng.pt`；通过原独审gate和每rank初始化元数据锁定真实SHA，不虚填新pin。named SHA必须e6b624e3342df4d84751be5b65c2722137ff17109f2dfb18db8c5fd4c916b98c。GPU回调仅用同FD全SHA+`torch.load(map_location='cpu',weights_only=True)`读取这些目标自生对象，验证476张量29,802,496元素、名称/shape/dtype/finite，复制初态并实际核所有rank同值，恢复各自原RNG并核fingerprint。优化器必须为空，global_step=0。它不是checkpoint恢复，不读任何原受限A100初态，不冒旧恢复数值PASS。
+
+GPU执行入口与原qualified supervisor相同形状：`worker.py continuous --run INTENT --run-sha SHA --admission BEFORE --admission-sha SHA`。原生8卡BF16/bs1/acc4/r16a32/SDPA/GC_OFF/512、AdamW/cosine、25更新及10/20/25 checkpoint不变，common Swift实际入口指向新隔离框架，只有新增callback和token观察。每rank100真实forward及25更新由原witness记录，合法首步LR0不冒未更新；至少一次参数移动和完整optimizer计数仍必需。记录真实input/shifted-supervised tokens，不能称与domain72等token。
+
+完整运维接线已提供：`launch.py/controller.py/supervisor.py/contract.py/devices.py/read_terminal.py`沿已合格`training-gemma-usgs72-continuous25-supervisor-v2`做独立profile，不改原包。新的ASSET为上述control25根，CORE为本次发布源；stage pin/framework SHA/runtime SHA从本次成功stage原件闭合，并强制其原编号CPU step在Slurm为同节点0GRES/C0，绝不把未来未知pin虚填常量。`owned_processes.py/held_child.py/rss_monitor.py/slurm_accounting.py`逐字节复用已资格源，更新callback匹配、初态mode与64/64计数/port29944。保held/tree/RSS-v2/2400单epoch/1980 work/2100 GPU/独立pre/post/accounting；必须等旧诊断真实终态/清理并经新fresh queue+8PCI/KFD/port准入，不能借原.852 clean。
+
+root发布后次序：①独立一次0GRES stage，job-name必须`training-gemma-generic64-control25-inputs-v1-stage`，外层300/Slurm240/内210；②实际C0后，用`launch.launch(transport_start=ROOT_CALLBACK, publication=PUB, local_output=NEW_PRIVATE)`一次。根回调按既有SQLite事务保留f13r1n12，登记UNKNOWN再发送；没有默认SSH/认证入口。训练request为2e96e8db20ee44c1a6a6a277e66f0d5e，dispatch为c2c9327d509249e4b329f6ece13d2a5e，stage为5c892c45f21f4f678174025a60ca4b23，均32位固定ID，禁止随机重置和重播。③原pre/GPU/post终态后，在同compute mount运行`read_terminal.consume(PUB, original_epoch, MF_SHA)`一次，只读原件并保原失败/UNKNOWN与RSS未知计数。本轮target调用为0、实际优化器更新0。
+
+后续效果接口`content_vs_format.measure(labels36, {base,domain25,generic25})`逐字节复用原response_protocol/frozen scorer，分开strictFINAL、内容解析、全36内容准确率、both-parsed的配对win/loss。它是纯函数，不自行读gold或调模型；必须由另一个实际三臂108输出封存+独审scope在开gold后调用。当前不声称已完成效果推理。原64数据在本包的含义是64条JSONL逐字节保留，不是假称文件26817B或张量buffer已作64-byte内存对齐。
+
+来源/许可边界：COCO64是原已批准内部训练参考，保原图像各自的来源与许可，不把注释许可当所有图片的再分发许可，不重试失败COCO16 credits。没有任何新Flickr调用或COCO下载。USGS开发集沿既有官方公开数值/衍生图及闭包分组，当前仅指定效果积分点；另行三臂预测全封存独审后才读gold，现无评分/模型能力/吞吐结论。
