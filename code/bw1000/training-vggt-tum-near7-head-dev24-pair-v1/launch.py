@@ -20,7 +20,7 @@ from prepare_training80_vggt_admission import published
 from report_training80_backlog import BACKLOG, QUEUE_DB, fleet_view, plan, queue_holds
 from tuning_queue import DIRECT_STAGE, SNAPSHOT_MAX_AGE_S, Queue, digest
 
-REQUEST = "58dac28ab5514d5e91ae9109faa84f7"
+REQUEST = "58dac28ab5514d5e91ae9109faa84f70"
 PARENT, NODE = "1103606", "f13r4n09"
 LABEL = HERE.name
 PACKAGE = HERE

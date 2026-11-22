@@ -28,6 +28,11 @@ class Pair(unittest.TestCase):
             checks={"frozen_aggregator_unchanged":True},
             artifacts=[{"path":"/pilot/"+receive.HEAD,"sha256":"c"*64}])
 
+    def test_dispatch_identity_is_full_hex_and_matches_receiver(self):
+        self.assertRegex(launch.REQUEST, r"^[0-9a-f]{32}$")
+        self.assertEqual(launch.REQUEST, receive.REQUEST)
+        self.assertEqual(launch.REQUEST, json.loads((launch.HERE/"CLAIM.json").read_bytes())["request"])
+
     def test_head_authority_binds_one_new_immutable_checkpoint(self):
         authority=receive.authority_from(self.proof,self.native,1792)
         self.assertEqual(set(authority),{"near7_25"})

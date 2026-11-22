@@ -13,7 +13,7 @@ import time
 
 ROOT = Path("/public/home/aclsylqidf/hygon-inference-refactor-20261014")
 LABEL = "training-vggt-tum-near7-head-dev24-pair-v1"
-REQUEST = "58dac28ab5514d5e91ae9109faa84f7"
+REQUEST = "58dac28ab5514d5e91ae9109faa84f70"
 INDEX = "coordination/training/vggt-tum-cross-camera-controller-files-v1.json"
 ORIGINAL_STAGE = ROOT / "results/training-vggt-tum-cross-camera-dev24-v1-staged"
 NEAR7_ROOT = ROOT / "results/training-vggt-tum-near7-sequence-holdout25-v1"
