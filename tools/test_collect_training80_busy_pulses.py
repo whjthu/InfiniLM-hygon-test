@@ -41,6 +41,34 @@ def slices(owners, points):
 
 
 class PulseTest(unittest.TestCase):
+    def test_surviving_parent_keeps_only_320_cards_and_rejects_missing_sample(self):
+        repo = Path(sampler.__file__).resolve().parents[1]
+        ledger = repo / "coordination/training/training40-survivor1103606-node-task-map-v1.json"
+        _, groups, owners = sampler.allocation(ledger.read_bytes())
+        self.assertEqual(set(groups), {"1103606"})
+        pins = {node: CARDS[:] for node in owners}
+        observations = slices(owners, 3)
+        receipt = sampler.summarize(owners, pins, observations, 250_000_000, True)
+        self.assertTrue(receipt["complete"])
+        self.assertEqual(receipt["expected_samples"], 960)
+        self.assertEqual(receipt["observed_unique_node_PCI"], 320)
+        self.assertEqual(receipt["points"][0]["nonzero_cards"], 320)
+        missing_node = next(iter(owners))
+        del observations[0]["rows"][missing_node]
+        partial = sampler.summarize(owners, pins, observations, 250_000_000, True)
+        self.assertIsNone(partial["fleet_mean_busy_percent"])
+        self.assertEqual(partial["missing_samples"], 8)
+
+    def test_single_parent_zero_gres_accounting(self):
+        placement, _, _ = fleet()
+        parent = "1103606"
+        selected = {parent: placement[parent]}
+        step = {parent: parent + ".42"}
+        row = [step[parent], "busy-label", "COMPLETED", "0:0", "6", parent, "cpu=40,mem=10G,node=40"]
+        self.assertTrue(sampler.qualified_accounting({parent: row}, step, selected, lambda _: set(selected[parent])))
+        bad = [*row[:-1], row[-1] + ",gres/dcu=8"]
+        self.assertFalse(sampler.qualified_accounting({parent: bad}, step, selected, lambda _: set(selected[parent])))
+
     def test_dual_parent_full_denominators_and_strict_threshold(self):
         _, owners, pins = fleet()
         for planned in (3, 5):

@@ -17,6 +17,7 @@ from uuid import uuid4
 
 from check_training80_point_clock import HOST, MAX_LOCAL_NS, PARENTS
 from sample_training80_busy import PCI, node_map, require, require_pins
+from training_dispatch_allocation import allocation
 
 
 PYTHON = "/usr/local/python3.12/bin/python3"
@@ -31,11 +32,16 @@ def token(value, length):
     return isinstance(value, str) and re.fullmatch("[0-9a-f]{" + str(length) + "}", value) is not None
 
 
-def pin_json(path, maximum=262144):
+def pin_bytes(path, maximum=262144):
     with path.open("rb") as handle:
         raw = handle.read(maximum + 1)
     require(len(raw) <= maximum, "metadata exceeds exact scope")
-    return json.loads(raw), hashlib.sha256(raw).hexdigest()
+    return raw, hashlib.sha256(raw).hexdigest()
+
+
+def pin_json(path, maximum=262144):
+    raw, digest = pin_bytes(path, maximum)
+    return json.loads(raw), digest
 
 
 def store(path, data):
@@ -157,6 +163,7 @@ class Receiver:
 
 def summarize(owners, pins, pulses, threshold_ns, accounting_ok):
     require_pins(owners, pins)
+    expected_cards = sum(len(cards) for cards in pins.values())
     output = []
     all_busy, all_cards_observed = [], set()
     for seq, pulse in enumerate(pulses):
@@ -171,21 +178,23 @@ def summarize(owners, pins, pulses, threshold_ns, accounting_ok):
         point_busy = [value for row, _ in rows.values() for value in row["busy"].values()]
         all_busy.extend(point_busy)
         all_cards_observed.update((node, pci) for node, (row, _) in rows.items() for pci in row["busy"])
-        complete = span is not None and span <= threshold_ns and not incomplete and len(point_busy) == 640
-        output.append(dict(sequence=seq, nonce=pulse.get("nonce"), expected_nodes=80, expected_samples=640,
+        complete = span is not None and span <= threshold_ns and not incomplete and len(point_busy) == expected_cards
+        output.append(dict(sequence=seq, nonce=pulse.get("nonce"), expected_nodes=len(owners), expected_samples=expected_cards,
                            responded_nodes=len(rows), missing_nodes=missing,
                            missing_PCI_by_node=incomplete, valid_samples=len(point_busy),
                            sample_span_upper_bound_ns=span, controller_send_monotonic_ns=sent,
                            controller_last_receipt_monotonic_ns=max(arrivals) if arrivals else None,
                            complete=complete,
                            fleet_mean_busy_percent=sum(point_busy) / len(point_busy) if complete and accounting_ok else None,
+                           nonzero_cards=sum(value > 0 for value in point_busy) if complete and accounting_ok else None,
+                           max_busy_percent=max(point_busy) if complete and accounting_ok else None,
                            worker_reports=[dict(row, controller_receipt_monotonic_ns=arrival)
                                            for row, arrival in (rows[node] for node in sorted(rows))]))
     complete = accounting_ok and all(point["complete"] for point in output)
-    return dict(complete=complete, planned_nodes=80, expected_unique_node_PCI=640,
+    return dict(complete=complete, planned_nodes=len(owners), expected_unique_node_PCI=expected_cards,
                 observed_unique_node_PCI=len(all_cards_observed),
-                expected_samples=640 * len(pulses), valid_samples=len(all_busy),
-                missing_samples=640 * len(pulses) - len(all_busy), sample_span_threshold_ns=threshold_ns,
+                expected_samples=expected_cards * len(pulses), valid_samples=len(all_busy),
+                missing_samples=expected_cards * len(pulses) - len(all_busy), sample_span_threshold_ns=threshold_ns,
                 planned_pulse_interval_ns=INTERVAL_NS,
                 fleet_mean_busy_percent=sum(all_busy) / len(all_busy) if complete else None,
                 all_fleet_points_strictly_above_80_percent=(
@@ -216,6 +225,11 @@ def check_live_parents(expected, deadline):
         parent, state, size, expression = line.split("|")
         require(parent in expected and parent not in seen and state == "RUNNING" and size == "40"
                 and hostnames(expression, deadline) == set(expected[parent]), "live parent allocation changed")
+        [owned] = query(["scontrol", "show", "job", parent, "-o"], deadline)
+        fields = dict(part.split("=", 1) for part in owned.split() if "=" in part)
+        require(fields.get("JobId") == parent and fields.get("JobState") == "RUNNING"
+                and fields["UserId"].endswith(f"({os.getuid()})")
+                and "gres/dcu=320" in fields["AllocTRES"].split(","), "parent ownership or GPU allocation differs")
         seen.add(parent)
     require(seen == set(expected), "live parent allocation absent")
 
@@ -238,7 +252,7 @@ def terminal(rows):
 
 
 def qualified_accounting(rows, worker_steps, expected, get_hosts):
-    if set(rows) != PARENTS or set(worker_steps) != PARENTS or not terminal(rows):
+    if not expected or not set(expected) <= PARENTS or set(rows) != set(expected) or set(worker_steps) != set(expected) or not terminal(rows):
         return False
     for parent, row in rows.items():
         if row[0] != worker_steps[parent] or row[2:4] != ["COMPLETED", "0:0"]:
@@ -265,12 +279,12 @@ def slurm_argv(parent, nodes, label, request, points, pins_path, pins_sha):
 
 
 def collect(ledger_path, pins_path, request, points, threshold_ns, output):
-    ledger, ledger_sha = pin_json(ledger_path)
+    ledger_raw, ledger_sha = pin_bytes(ledger_path)
     pins, pins_sha = pin_json(pins_path)
-    owners = node_map(ledger)
+    _, groups, owners = allocation(ledger_raw)
     require_pins(owners, pins)
     require(all(HOST.fullmatch(node) for node in owners), "invalid node label")
-    expected = {p: sorted(node for node, owner in owners.items() if owner[0] == p) for p in sorted(PARENTS)}
+    expected = {p: sorted(node for node, owner in owners.items() if owner[0] == p) for p in sorted(groups)}
     labels = {p: f"training80-busy-pulse-{request}-{p}" for p in expected}
     origin = time.monotonic_ns()
     origin_utc = datetime.now(timezone.utc).isoformat()
