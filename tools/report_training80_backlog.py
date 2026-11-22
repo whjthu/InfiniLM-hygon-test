@@ -24,6 +24,10 @@ QUEUE_DB = REPO / 'local-only' / 'tuning' / 'queue.sqlite3'
 KINDS = ('training', 'validation', 'inference', 'operator', 'data')
 STATES = ('blocked', 'reconcile', 'ready', 'submitted', 'terminal')
 PRIORITY = {kind: index for index, kind in enumerate(KINDS)}
+# The completed GLM .941 run used a 33-digit ID. Its original identity and
+# workload must remain in the deduplication index after the write gate is fixed.
+GLM941_ORIGINAL_REQUEST = '93148263aba346dda17b534d419d81c83'
+GLM941_TERMINAL_SHA256 = '240dcb8986383f3d786264a96828f008062f977ecc72feba1343a0508c726628'
 
 
 def need(condition, message):
@@ -226,8 +230,12 @@ def queue_holds(connection):
     fields = {row[1] for row in connection.execute('PRAGMA table_info(runs)')}
     direct_columns = {'stage', 'handle'} <= fields
     extra_fields = ',stage,handle' if direct_columns else ''
-    if direct_columns and 'binding' in fields:
+    has_binding = direct_columns and 'binding' in fields
+    has_result = has_binding and 'result' in fields
+    if has_binding:
         extra_fields += ',binding'
+    if has_result:
+        extra_fields += ',result'
     include_closed = ' OR (stage=? AND state IN (?,?))' if direct_columns else ''
     bindings = (*ACTIVE, DIRECT_STAGE, *DIRECT_CLOSED_STATES) if direct_columns else ACTIVE
     rows = connection.execute(f'SELECT id,state,nodes{extra_fields} FROM runs WHERE state IN ({marks})'
@@ -240,9 +248,16 @@ def queue_holds(connection):
         if extra and extra[0] == DIRECT_STAGE:
             handle = json.loads(extra[1])
             request = handle.get('request_id')
-            need(hex_value(request, 32), 'direct handoff request identity missing')
+            if not hex_value(request, 32):
+                terminal = json.loads(extra[3] or 'null') if has_result else None
+                need(state == 'TERMINAL' and request == GLM941_ORIGINAL_REQUEST
+                     and run == digest(dict(stage=DIRECT_STAGE, request=request))
+                     and isinstance(terminal, dict) and terminal.get('request_id') == request
+                     and terminal.get('evidence_SHA256') == GLM941_TERMINAL_SHA256
+                     and terminal.get('terminal') is True and terminal.get('post_clean') is True,
+                     'direct handoff request identity missing')
             row['direct_request'] = request
-            if len(extra) == 3:
+            if has_binding:
                 binding = json.loads(extra[2])
                 if 'workload_SHA256' in binding:
                     work = binding['workload_SHA256']

@@ -8,7 +8,7 @@ import unittest
 from unittest.mock import patch
 
 from report_training80_backlog import TRAINING80_LEDGER, plan, read_queue_holds
-from tuning_queue import digest
+from tuning_queue import DIRECT_STAGE, digest
 
 
 class BacklogTest(unittest.TestCase):
@@ -201,6 +201,27 @@ class BacklogTest(unittest.TestCase):
         self.assertEqual(result['queue_held_nodes'], ['a01r4n16'])
         self.assertEqual(result['rows'][0]['dispatch_state'], 'awaiting_original_queue_release')
         self.assertEqual(db.read_bytes(), previous)
+
+    def test_known_historical_glm_terminal_remains_in_workload_index(self):
+        db = self.repo / 'historical.sqlite3'
+        request = '93148263aba346dda17b534d419d81c83'
+        run = digest(dict(stage=DIRECT_STAGE, request=request))
+        workload = 'c' * 64
+        terminal = dict(request_id=request, terminal=True, post_clean=True,
+                        evidence_SHA256='240dcb8986383f3d786264a96828f008062f977ecc72feba1343a0508c726628')
+        connection = sqlite3.connect(db)
+        self.addCleanup(connection.close)
+        with connection:
+            connection.execute('create table runs (id text, state text, nodes text, stage text, handle text, binding text, result text)')
+            connection.execute('insert into runs values (?, ?, ?, ?, ?, ?, ?)',
+                (run, 'TERMINAL', '["f12r2n13"]', DIRECT_STAGE, json.dumps(dict(request_id=request)),
+                 json.dumps(dict(request=request, workload_SHA256=workload)), json.dumps(terminal)))
+        self.assertEqual(read_queue_holds(db), [dict(run=run, state='TERMINAL', nodes=[],
+            direct_request=request, direct_workload_SHA256=workload)])
+        with connection:
+            connection.execute('update runs set state = ?', ('UNKNOWN',))
+        with self.assertRaisesRegex(ValueError, 'direct handoff request identity missing'):
+            read_queue_holds(db)
 
 
 if __name__ == '__main__':

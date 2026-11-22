@@ -151,6 +151,7 @@ def claim_handoffs(queue, snapshot, backlog, requests, *, repo=REPO, now=None, b
 
 
 def reserve_handoff(queue, run, rebuilt, intent):
+    need(hex_value(rebuilt.get('request'), 32), 'new direct handoff requires a 32-digit request identity')
     placements = rebuilt['placement_by_parent']
     nodes = sorted(node for selected in placements.values() for node in selected)
     handle = dict(request_id=rebuilt['request'], intent=intent, nodes=nodes,

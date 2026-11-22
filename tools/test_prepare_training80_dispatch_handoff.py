@@ -5,7 +5,7 @@ from threading import Barrier
 import unittest
 from unittest.mock import patch
 
-from prepare_training80_dispatch_handoff import build_handoff, claim_handoff, claim_handoffs
+from prepare_training80_dispatch_handoff import build_handoff, claim_handoff, claim_handoffs, reserve_handoff
 from report_training80_backlog import invocation, read_queue_holds
 import test_report_training80_backlog as fixture
 from tuning_queue import Queue, digest
@@ -80,6 +80,15 @@ class HandoffTest(unittest.TestCase):
         self.fleet.put(job['launch']['attempt_receipts'][0], {'remote_outcome': 'UNKNOWN'})
         with self.assertRaisesRegex(ValueError, 'no current device-admitted'):
             self.direct_claim(queue, job, packet)
+        self.assertEqual(queue.summary()['runs'], {})
+
+    def test_reservation_write_refuses_a_33_digit_request(self):
+        job = self.trial()
+        [packet] = self.handoff([job])['coordinator_handoffs']
+        queue = Queue(self.fleet.repo / 'invalid-request.sqlite')
+        self.addCleanup(queue.db.close)
+        with self.assertRaisesRegex(ValueError, 'requires a 32-digit request identity'):
+            reserve_handoff(queue, 'f' * 64, dict(packet, request='a' * 33), 'local-only/intent.json')
         self.assertEqual(queue.summary()['runs'], {})
 
     def test_claim_rechecks_time_after_rebuilding_the_packet(self):
