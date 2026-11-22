@@ -97,7 +97,8 @@
     "results/bw1000/2026-11-22/training-zimage-COCO20-original1155-first-update-values-terminal.json": "4f2509407ceee82d750f4577d9922399550a62974ab517fb9b685489384d8e36",
     "results/bw1000/2026-11-22/training-zimage-COCO20-original1156-A100-initial-bytes-equal-terminal.json": "ef93e0b2c7cec1fcb7bf099afd506a87f8f1de3844e4fa883b5a558cf7482051",
     "results/bw1000/2026-11-22/training-zimage-COCO20-original1287-native25-resume20-terminal.json": "b0d82ba55186cb62b70034578a97c69d2de5e80163da77825f64062bd5dd61da",
-    "results/bw1000/2026-11-22/training-zimage-COCO20-original1291-recovery-checkpoint-delta.json": "36120a109bd855cb840b9476d45ccb642bbf8425a368093a0b2ecad242d33b25"
+    "results/bw1000/2026-11-22/training-zimage-COCO20-original1291-recovery-checkpoint-delta.json": "36120a109bd855cb840b9476d45ccb642bbf8425a368093a0b2ecad242d33b25",
+    "results/bw1000/2026-11-22/training-zimage-COCO20-original1294-1296-restored21-native-repeat.json": "572705b2659ed9f44f5616cf3b6707f56064b3282f0ea010de3b452d2d255b5a"
   },
   "cases": [
     {
@@ -711,7 +712,7 @@
       "a100_reference": "A100 首步通过。原恢复失败，另有确定性 Flash2 候选恢复通过。",
       "target_evidence": "海光 HIP attention 组件通过。Style18 原生 VAE 产出 12/12 有限潜变量。目标运行资产 20/20 已独立复算 SHA-256，三片底座和预置 adapter 的头部与 A100 原参考一致。原 COCO20 的 20 张 JPEG 与 CSV 逐字节匹配，海光零卡用原生代码完成 25 次 RGB256 预处理和 5 次重复校验。原数据清单与 A100 RGB256 对照仍缺。完整原源码在海光零卡首次导入时暴露了共享 Transformers 5.12.1 的 SigLIP 接口差异。配套隔离环境下，原入口和 48 个原生模块已导入成功。海光单卡 BF16 预置融合正常结束，521 个底座张量匹配同一 HIP 后端预期，240 个目标张量更新，476 个新 LoRA 可训练张量边界正确。A100 融合后实际值、原始首步数值及连续 25 步仍待对照。",
       "target_numerics": "未验证",
-      "target_recovery": "原 COCO20 海光完成连续 25 步和从第 20 步恢复的五步。逐步 loss 一致，最终 LoRA 最大绝对差超过原阈值，恢复未通过。",
+      "target_recovery": "原 COCO20 海光完成连续 25 步和从第 20 步恢复的五步。五步 loss 一致，最终 LoRA 最大绝对差超过原阈值，恢复未通过。补做同设备三次独立的第 21 步，裁剪前后梯度、参数与 AdamW 状态完全一致。本次未复现原五步轨迹的差异。",
       "target_performance": "待三轮同口径实测",
       "target_holdout_effect": "待留出集实测",
       "stage3_accepted": false,
@@ -807,6 +808,11 @@
           "path": "results/bw1000/2026-11-22/training-zimage-COCO20-original1291-recovery-checkpoint-delta.json",
           "bytes": 5737,
           "SHA256": "36120a109bd855cb840b9476d45ccb642bbf8425a368093a0b2ecad242d33b25"
+        },
+        "original_checkpoint20_native_step21_repeats": {
+          "path": "results/bw1000/2026-11-22/training-zimage-COCO20-original1294-1296-restored21-native-repeat.json",
+          "bytes": 6847,
+          "SHA256": "572705b2659ed9f44f5616cf3b6707f56064b3282f0ea010de3b452d2d255b5a"
         }
       },
       "a100_median_updates_per_second": null
