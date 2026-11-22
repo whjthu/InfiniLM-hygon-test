@@ -11,9 +11,9 @@ BASE = REPO / "code/bw1000"
 OLD = BASE / "training-gemma-usgs72-resume20to25-supervisor-v1"
 DOMAIN = BASE / "training-gemma-usgs72-fresh-initial-domain25-v1"
 QUESTION = BASE / "training-gemma-usgs72-question-only-control25-v1"
-LABEL = "training-gemma-usgs72-question-only-resume20-v1"
+LABEL = "training-gemma-usgs72-question-only-resume20-v2"
 DISPATCH = sha256((LABEL + "/dispatch").encode()).hexdigest()[:32]
-PORT = 29964
+PORT = 29965
 VIEW = "a2d2411778774856889797c3f1851b6f5df7fe67fd6a81ff113ab03d3da3d144"
 OUTCOME = "f2d166439f7b38e3820da24cb8c91af7aeea8ca59fcfe11dc69007237be8e5e9"
 NATIVE = "4db77eea4cce17bf30868bb2d6f7ddc0aff483f7549ef8f17276f727b1630e9c"
@@ -161,6 +161,7 @@ def materialize(output):
         ("(runtime/'training-gemma-usgs-render72-exposure25-resume20-v1',runtime/'training-gemma-usgs-render72-exposure25-resume20-v1','ro'),",
          "(runtime/'training-gemma-usgs72-fresh-initial-domain25-v1',runtime/'training-gemma-usgs72-fresh-initial-domain25-v1','ro'),")])
     files["supervisor.py"] = exact(files["supervisor.py"], [
+        ("    verify('GPU')", "    source = verify('GPU')"),
         ("stage['training_request_id']==REQUEST", "stage['training_request']==REQUEST"),
         ("original845 stage missing", "question-only1203 stage missing"),
         ("pin(CORE/'SOURCE_FILES.json')['SHA256']==CORE_MF_SHA", "pin(CORE/'SOURCE_FILES.json')==source")])
