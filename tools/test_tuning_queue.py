@@ -77,6 +77,30 @@ class TuningTest(unittest.TestCase):
         self.fleet['local_receipt']['received_monotonic']-=61
         with self.assertRaisesRegex(ValueError,'fresh'):self.q.plan(self.fleet)
 
+    def test_operator_admission_retirement_requires_the_original_proof(self):
+        from prepare_training80_dispatch_handoff import reserve_handoff
+
+        run = 'operator-admission-1'
+        intent = 'local-only/original-op/intent.json'
+        packet = dict(request='a' * 32, case='O01.operator-pair', kind='operator',
+                      workload_SHA256='b' * 64, placement_by_parent={'1103606': {'node0': 1}},
+                      handoff_SHA256='c' * 64, snapshot_payload_SHA256='d' * 64, invocation=None,
+                      launcher='operator.py', expires_local_monotonic=time.monotonic() + 30)
+        claimed = reserve_handoff(self.q, run, packet, intent)
+        self.q.submission(run, claimed['handle'], unknown=True)
+        proof = dict(request_id=packet['request'], intent=intent, failure_phase='OPERATOR_PRE_SLURM_ADMISSION',
+                     launch_attempted=False, matching_accounting_rows=0, post_clean=True, node='node0',
+                     evidence_SHA256='e' * 64, transport_returncode=1, remote_intent_absent=True,
+                     admission_SHA256=packet['snapshot_payload_SHA256'])
+        for changed in (dict(remote_intent_absent=False), dict(admission_SHA256='f' * 64),
+                        dict(matching_accounting_rows=1)):
+            with self.assertRaises(ValueError):
+                self.q.retire_remote_prelaunch_direct(run, {**proof, **changed})
+        self.assertEqual(self.q.summary()['runs'], {'UNKNOWN': 1})
+        self.q.retire_remote_prelaunch_direct(run, proof)
+        self.assertEqual(self.q.summary()['runs'], {'RETIRED_PRELAUNCH': 1})
+
+
     def test_unknown_and_expired_intent_still_reserves_nodes(self):
         self.active(True);self.ready('second');self.ready('third')
         # Advancing a reservation age does not release original ownership.

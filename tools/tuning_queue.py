@@ -663,12 +663,16 @@ class Queue:
                     'matching_accounting_rows', 'post_clean', 'node', 'evidence_SHA256'}
         phase = proof.get('failure_phase')
         detached = phase == 'DETACHED_PRE_SLURM_IMPORT'
+        operator_admission = phase == 'OPERATOR_PRE_SLURM_ADMISSION'
         scopes = {'PRE_SLURM_IMPORT': ('validation', 0), 'PRE_SLURM_INTENT': ('training', 8),
-                  'DETACHED_PRE_SLURM_IMPORT': ('training', 1)}
+                  'DETACHED_PRE_SLURM_IMPORT': ('training', 1),
+                  'OPERATOR_PRE_SLURM_ADMISSION': ('operator', 1)}
         if detached:
             required |= {'controller', 'controller_stderr_SHA256'}
         else:
             required.add('transport_returncode')
+        if operator_admission:
+            required |= {'remote_intent_absent', 'admission_SHA256'}
         require(set(proof) == required and phase in scopes
                 and proof['launch_attempted'] is False and type(proof['matching_accounting_rows']) is int
                 and proof['matching_accounting_rows'] == 0 and proof['post_clean'] is True,
@@ -683,13 +687,17 @@ class Queue:
         else:
             require(type(proof['transport_returncode']) is int and proof['transport_returncode'] > 0,
                     'failed foreground transport return code required')
+        if operator_admission:
+            require(proof['remote_intent_absent'] is True and isinstance(proof['admission_SHA256'], str)
+                    and re.fullmatch(r'[0-9a-f]{64}', proof['admission_SHA256']),
+                    'operator admission proof must precede its observably absent remote intent')
         evidence = proof['evidence_SHA256']
         require(isinstance(evidence, str) and re.fullmatch(r'[0-9a-f]{64}', evidence),
                 'exact pre-srun reconciliation evidence SHA required')
         active_state = 'SUBMITTED' if detached else 'UNKNOWN'
         self.db.execute('BEGIN IMMEDIATE')
         try:
-            row = self.db.execute('SELECT stage,state,handle,nodes FROM runs WHERE id=?',(ident,)).fetchone()
+            row = self.db.execute('SELECT stage,state,handle,nodes,binding FROM runs WHERE id=?',(ident,)).fetchone()
             require(row is not None and row['stage'] == DIRECT_STAGE and row['state'] == active_state,
                     'original direct claim state differs')
             handle = json.loads(row['handle'])
@@ -705,6 +713,9 @@ class Queue:
                     'original reservation or dispatch identity differs')
             if detached:
                 require(handle.get('controller') == proof['controller'], 'different original detached controller')
+            if operator_admission:
+                require(json.loads(row['binding']).get('snapshot_payload_SHA256') == proof['admission_SHA256'],
+                        'different original operator admission')
             result = dict(proof, transport_attempted=True, measurement_terminal=False, replay_allowed=False)
             self.db.execute('UPDATE runs SET state="RETIRED_PRELAUNCH",nodes="[]",result=? WHERE id=?',
                             (canonical(result).decode(),ident))
