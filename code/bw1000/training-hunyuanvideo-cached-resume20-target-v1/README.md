@@ -1,0 +1,3 @@
+# HunyuanVideo checkpoint 20 recovery
+
+Uses the deployed common T09.sft recipe and the target checkpoint from the original 25-update run. A fresh one-DCU process executes updates 21 through 25 using the original Muon schedule, cache, model, and read-only attention compatibility bind. Both HOST and GPU ingress verify the original independent terminal evidence and checkpoint bytes. Compare the native suffix and the final metadata, state, RNG, adapter and integrity tree digests on the target before releasing the original reservation. This qualifies same-platform recovery when all gates pass. A100 alignment and formal performance remain separate.
