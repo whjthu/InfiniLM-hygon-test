@@ -1,0 +1,52 @@
+{
+  "schema": "bw1000.o01.zimage-hip-square-mm-pair.v1",
+  "request": "b42373ccf5ce4369b2d1a3d993c85659",
+  "label": "O01-zimage-square-mm-blas-pair-v1",
+  "evidence": {
+    "step": "1103606.1787",
+    "checkpoint_global_step": 21,
+    "case": "T07.sft",
+    "public": "results/bw1000/2026-11-23/training-zimage-registered-1787-actual-gemm-operands-terminal.json",
+    "public_SHA256": "a3565707cdaffc4249b98aad784a9225da556a33ad56b776c0018c7012821087",
+    "private_operands_bytes": 6708,
+    "private_operands_SHA256": "b2fd2a1263cd3bbafe44ff5a21aec4ace0a597bbcfcb65d0eba02534333a77eb",
+    "actual_square_mm_calls_per_layout": 120
+  },
+  "admission": {
+    "parent": "1103606",
+    "one_root_admitted_O01_node": true,
+    "cards": 1,
+    "cpu": 4,
+    "memory_MiB": 8192,
+    "absolute_seconds": 240,
+    "physical_PCI_boot_and_runtime_required": true,
+    "fresh_root_reservation_and_independent_post_required": true,
+    "replay_unknown_or_terminal": false
+  },
+  "geometry": {
+    "MNK": [288, 3840, 3840],
+    "dtype": "BF16",
+    "lhs_shape": [288, 3840],
+    "lhs_stride": [3840, 1],
+    "rhs_shape": [3840, 3840],
+    "rhs_strides": [[3840, 1], [1, 3840]],
+    "input_kind": "controlled_synthetic_identical_logical_values_across_layouts"
+  },
+  "plan": {
+    "single_variable": "torch BLAS preference within each fixed layout",
+    "stock": "default",
+    "alternative": "cublaslt",
+    "pairs_per_layout": 3,
+    "pair_orders": [["default", "cublaslt"], ["cublaslt", "default"], ["default", "cublaslt"]],
+    "calls_per_arm": 64,
+    "calls_planned_total": 768,
+    "complete_outputs_bitwise_against_exact_FP32_CPU_BF16": true,
+    "same_kernels_are_negative_with_no_timed_ratio": true,
+    "measurements_have_no_active_profiler": true,
+    "kernel_vendor_name_is_not_DSO_proof": true,
+    "guarded_out_has_separate_same_route_check": true
+  },
+  "actual_GPU_steps_at_freeze": 0,
+  "formal_training_performance": false,
+  "GPU_GO": false
+}
