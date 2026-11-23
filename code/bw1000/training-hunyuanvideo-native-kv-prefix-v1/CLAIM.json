@@ -1,0 +1,38 @@
+{
+  "case": "T09.sft",
+  "experiment": "native-baseline-repeat-and-key-value-prefix",
+  "hypothesis": "Determine whether original Hygon Muon first-update replay after restoration is deterministic, then test if preserving the complete Q dimension improves candidate gradient fidelity.",
+  "framework_commit": "a68952cb2285d6593b665147249d14ec1f8cecbc",
+  "native_backend_sha256": "5ad1a2b49470138bbd61ff39240b9e17c1cb57dbc60e1bcd28973fcbba48c46f",
+  "observer_sha256": "b5540ddc10a58b26160f34b0d49b7c8bfdf666017266611e8ba97c067dcde0be",
+  "scope": {
+    "baseline_repeat_relative_l2": 0.0001,
+    "baseline_repeat_max_tensor_relative_l2": 0.001,
+    "candidate_relative_l2": 0.01,
+    "candidate_max_tensor_relative_l2": 0.05,
+    "same_device_first_update_pair": true,
+    "first_update_arms": [
+      "original masked math",
+      "original masked math after restore",
+      "full Q and K/V prefix after restore"
+    ],
+    "mask_checks_per_phase": 54,
+    "warmup": 5,
+    "measured_steps": 20,
+    "checkpoints": [
+      10,
+      20,
+      25
+    ]
+  },
+  "resources": {
+    "dcu": 1,
+    "whole_epoch_seconds": 1440,
+    "gpu_step_seconds_max": 1200,
+    "independent_zero_dcu_post": true
+  },
+  "formal_A100_performance": false,
+  "default_enabled": false,
+  "max_invocations": 1,
+  "replay_allowed": false
+}
