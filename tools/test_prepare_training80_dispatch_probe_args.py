@@ -10,6 +10,7 @@ from prepare_training80_dispatch_probe_args import probe_arguments
 from report_training80_backlog import TRAINING80_LEDGER
 import test_report_training80_backlog as backlog_fixtures
 import test_training_slurm_membership as membership_fixtures
+from training_dispatch_allocation import SURVIVOR_LEDGER
 from tuning_queue import Queue
 
 
@@ -102,6 +103,26 @@ class DispatchProbeArgumentsTest(unittest.TestCase):
         self.assertEqual(report['reconcile_candidates'], {'trial-1': ['f13r1n10']})
         self.assertEqual(report['blocked_candidate_held_nodes'], {'trial-2': ['f13r1n10']})
         self.assertEqual(report['collector_arguments'], ['--held-node', 'f13r1n10'])
+
+    def test_survivor_preserves_original_holds_and_excludes_failed_parent_ports(self):
+        training = self.fixture.trial(1, node='f13r1n10')
+        retired = self.fixture.trial(2, node='f11r4n09')
+        preflight = dict(case='T04.sft', node='a14r3n04', requested_DCU=8,
+                         target_preflight_state='WAITING_AUTHENTICATED_TARGET', frozen_rendezvous_port=29918)
+        with self.subTest(nodes=40):
+            report = probe_arguments(
+                self.fixture.repo, {'items': [training, retired]}, self.ledger,
+                [{'nodes': ['f11r4n10', 'f13r1n12']}], [preflight],
+                priority_only=True, active_ledger=SURVIVOR_LEDGER.read_bytes(),
+            )
+            self.assertEqual(report['active_allocation_nodes'], 40)
+            self.assertEqual(report['priority_by_parent'], {'1103606': ['f13r1n10']})
+            self.assertEqual(report['held_nodes'], ['f13r1n12'])
+            self.assertEqual(report['required_ports'], [29907])
+            self.assertEqual(report['ready_device_jobs'], [training['id']])
+            self.assertEqual(report['candidates_outside_active_allocation'],
+                             {retired['id']: ['f11r4n09'], preflight['case']: ['a14r3n04']})
+            self.assertTrue(report['priority_only_enabled'])
 
 
 class DispatchProbeCollectionTest(unittest.TestCase):

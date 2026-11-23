@@ -9,24 +9,32 @@ from report_training80_backlog import (BACKLOG, PRIORITY, QUEUE_DB, REPO, TRAINI
                                       direct_launch_state, direct_request_states, direct_workloads, hex_value,
                                       invocation, need, pin_file, prior_workload_claims, read_original_holds, read_queue_holds,
                                       verify_launch)
+from training_dispatch_allocation import allocation
 from tuning_queue import DIRECT_CLOSED_STATES
 
 
-def probe_arguments(repo, backlog, ledger, holds, preflight=(), *, priority_only=False):
+def probe_arguments(repo, backlog, ledger, holds, preflight=(), *, priority_only=False, active_ledger=None):
     repo = repo.resolve()
-    ownership = {node: parent for zone in ledger['groups'].values()
-                 for parent, nodes in zone['allocations'].items() for node in nodes}
-    need(len(ownership) == 80, 'expected the frozen 80-node inventory')
+    historical = {node: parent for zone in ledger['groups'].values()
+                  for parent, nodes in zone['allocations'].items() for node in nodes}
+    need(len(historical) == 80, 'expected the frozen 80-node inventory')
+    ownership = historical
+    if active_ledger is not None:
+        _, _, current = allocation(active_ledger)
+        ownership = {node: parent for node, (parent, _) in current.items()}
+        need(all(historical.get(node) == parent for node, parent in ownership.items()),
+             'active allocation differs from the frozen roster')
     queue_held = {node for row in holds for node in row['nodes'] if node in ownership}
     direct_states = direct_request_states(holds)
     workloads = direct_workloads(holds)
-    original_holds, errors, resolved = read_original_holds(repo, backlog['items'], ownership, holds)
+    original_holds, errors, resolved = read_original_holds(repo, backlog['items'], historical, holds)
     priority = {}
     ports = set()
     verified = []
     blocked = {}
     prior_claims = {}
     excluded_requests = set()
+    outside_allocation = {}
 
     def select(nodes, checked_ports):
         need(all(node in ownership for node in nodes), 'priority candidate is outside the node ledger')
@@ -43,6 +51,11 @@ def probe_arguments(repo, backlog, ledger, holds, preflight=(), *, priority_only
                 continue
             if job['state'] in ('reconcile', 'submitted'):
                 pin_file(repo, job['evidence'], ('coordination/tasks/', 'results/bw1000/', 'analysis/bw1000/', 'local-only/'))
+            outside = sorted(set(nodes) - ownership.keys())
+            if outside:
+                if job['state'] != 'terminal':
+                    outside_allocation[ident] = outside
+                continue
             if job['state'] != 'ready' or ident in original_holds:
                 continue
             prior = prior_workload_claims(job, workloads)
@@ -67,11 +80,12 @@ def probe_arguments(repo, backlog, ledger, holds, preflight=(), *, priority_only
         if row['target_preflight_state'] != UNVERIFIED_ATTEMPT_MARKER:
             continue
         request, node, parent = (row[key] for key in ('request', 'node', 'parent'))
-        need(hex_value(request, 32) and node in ownership and parent == ownership[node] and request not in marker_holds,
+        need(hex_value(request, 32) and historical.get(node) == parent and request not in marker_holds,
              'unverified original attempt must bind one exact request and ledger node')
         if direct_states.get(request) not in DIRECT_CLOSED_STATES:
             marker_holds[request] = dict(case=row['case'], parent=parent, nodes=[node], error=row['local_attempt_error'])
-    held = queue_held | {node for record in (*original_holds.values(), *marker_holds.values()) for node in record['nodes']}
+    held = queue_held | {node for record in (*original_holds.values(), *marker_holds.values())
+                         for node in record['nodes'] if node in ownership}
     ready_device_jobs = []
     for job in verified:
         ident = job['id']
@@ -96,7 +110,9 @@ def probe_arguments(repo, backlog, ledger, holds, preflight=(), *, priority_only
                 or direct_states.get(row.get('request')) in DIRECT_CLOSED_STATES):
             continue
         node = row['node']
-        if node in held:
+        if node not in ownership:
+            outside_allocation[row['case']] = [node]
+        elif node in held:
             blocked[row['case']] = [node]
         else:
             port = row['frozen_rendezvous_port']
@@ -118,6 +134,8 @@ def probe_arguments(repo, backlog, ledger, holds, preflight=(), *, priority_only
                 verified_original_non_submissions=resolved,
                 prior_workload_claims=prior_claims,
                 blocked_candidate_held_nodes=blocked, invalid_or_manual_launches=errors,
+                candidates_outside_active_allocation=outside_allocation,
+                active_allocation_nodes=len(ownership),
                 prepared_preflight_priority_nodes=preflight_priority,
                 priority_only_requested=priority_only,
                 priority_only_enabled=priority_only and bool(ready_device_jobs),
@@ -133,13 +151,16 @@ def main():
     parser.add_argument('--backlog', type=Path, default=BACKLOG)
     parser.add_argument('--queue-db', type=Path, default=QUEUE_DB)
     parser.add_argument('--worklist', type=Path, default=WORKLIST)
+    parser.add_argument('--ledger', type=Path, default=TRAINING80_LEDGER)
     parser.add_argument('--priority-only', action='store_true',
                         help='use a priority-only scan when there is verified GPU launch work')
     args = parser.parse_args()
     ledger_raw = TRAINING80_LEDGER.read_bytes()
+    active_raw = args.ledger.read_bytes()
     preflight = prepare(REPO, json.loads(args.worklist.read_bytes()), ledger_raw)['candidates']
     report = probe_arguments(REPO, json.loads(args.backlog.read_bytes()), json.loads(ledger_raw),
-                             read_queue_holds(args.queue_db), preflight, priority_only=args.priority_only)
+                             read_queue_holds(args.queue_db), preflight, priority_only=args.priority_only,
+                             active_ledger=active_raw)
     print(json.dumps(report, ensure_ascii=False, indent=2, allow_nan=False))
 
 

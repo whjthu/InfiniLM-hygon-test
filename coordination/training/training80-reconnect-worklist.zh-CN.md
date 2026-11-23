@@ -12,6 +12,8 @@
 & 'C:/Users/WangHaojie/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe' -B -X utf8 tools/prepare_training80_dispatch_probe_args.py
 ```
 
+现场只剩父作业 `1103606` 时，增加参数 `--ledger coordination/training/training40-survivor1103606-node-task-map-v1.json`。旧父作业的任务与未决请求继续按原身份对账。生成的目标探测参数只包含当前 40 台内的优先节点、端口和保留。其他候选显示在 `candidates_outside_active_allocation`，完成独立迁移和新认领后才能占用存活节点。
+
 认证恢复后，根协调者从既有认证客户端调用 `collect_training80_dispatch_snapshot.py`，将输出里的 `collector_arguments` 数组逐项附给 `collect` 模式。采集器会优先检查训练候选所在节点，随后检查其他候选和常规节点。优先节点单独分批，各父作业的候选优先批次提交到同一个有界 CPU 探测池。持有原未决句柄的节点仍计入完整 80 节点 Slurm 账本，其设备记录保留为 `LOCAL_QUEUE_HELD`，等原请求对账清楚后再判定设备准入。多节点候选遇到任一持有节点时整项排除，对应的专用端口也不会加入采集参数。所有设备准入结论仍需实际 PCI、KFD、进程、端口检查和复查编号 step。
 
 有待补位候选且需要尽快取回准入时，可给参数生成器传 `--priority-only`。至少有一个启动条件已核、节点未被内部预约且请求使用加速卡的候选时，参数生成器才启用窄查。只有待预检任务、零卡工作或已被预约的候选时，参数保留优先节点和持有保护，并使用全池采集。采集器两次读取 80 台的 Slurm 状态。在窄查中，对未出现编号 step 的每个优先节点独立发出一个零卡的 CPU 探测，其他待探测设备标为 `DEFERRED_BY_PRIORITY_ONLY`。如果当次没有可探测的优先节点，回执使用 `FULL_FLEET_FALLBACK`。参数生成器的 `priority_only_enabled` 记录决策，实际 `device_probe_scope` 以采集回执为准。
