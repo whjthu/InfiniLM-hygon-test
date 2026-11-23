@@ -37,3 +37,9 @@ python -B code/bw1000/training-trellis-khronos-heldout4-v1/render_conditions.py 
 ```
 
 当前条件图已逐项核验 PNG 解码、裁剪边界和前后深度遮挡。它们用于独立公开留出评估，正式配方与同输入 A100 数值验收仍按原用例执行。
+
+## 原生预处理
+
+`prepare_native_conditions.py --conditions <固定条件图目录> --output <新私有目录>` 对四张原 RGBA PNG 执行统一框架的 `_prepare_rgba`。它核对条件清单、文件、解码像素和框架源码摘要，保存原生 RGB、裁剪坐标和摘要。实际生成入口接收原 RGBA 文件，并逐项核对本次记录的 RGB 像素摘要。直接把裁剪后的 RGB 送回入口会再次裁剪。
+
+四张图分别有 8、5、3、1 个前景像素落在原生裁剪框之外。使用原实现以保持三组生成输入一致。配准时应以记录的实际裁剪窗口为基础，导出坐标与参考坐标的独立配准仍待验证。
