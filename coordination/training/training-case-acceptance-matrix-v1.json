@@ -731,13 +731,18 @@
       "a100_reference": "A100 首步通过。原恢复失败，另有确定性 Flash2 候选恢复通过。",
       "target_evidence": "海光 HIP attention 组件通过。Style18 原生 VAE 产出 12/12 有限潜变量。目标运行资产 20/20 已独立复算 SHA-256，三片底座和预置 adapter 的头部与 A100 原参考一致。原 COCO20 的 20 张 JPEG 与 CSV 逐字节匹配，海光零卡用原生代码完成 25 次 RGB256 预处理和 5 次重复校验。原数据清单与 A100 RGB256 对照仍缺。完整原源码在海光零卡首次导入时暴露了共享 Transformers 5.12.1 的 SigLIP 接口差异。配套隔离环境下，原入口和 48 个原生模块已导入成功。海光单卡 BF16 预置融合正常结束，521 个底座张量匹配同一 HIP 后端预期，240 个目标张量更新，476 个新 LoRA 可训练张量边界正确。A100 融合后实际值、原始首步数值及连续 25 步仍待对照。",
       "target_numerics": "统一候选 99e8f001 已从 T07.sft 注册入口完成单卡原生零更新前向和真实首步。独立审计确认固定输入、前向前 RNG、预测、loss、梯度裁剪前后、参数更新及 AdamW 状态与原海光首步完全一致。待原 A100 全量数值对照。",
-      "target_recovery": "原 COCO20 海光完成连续 25 步和从第 20 步恢复的五步。五步 loss 一致，最终 LoRA 最大绝对差超过原阈值，恢复未通过。补做同设备三次独立的第 21 步，裁剪前后梯度、参数与 AdamW 状态完全一致。本次未复现原五步轨迹的差异。 HIP 确定性 Flash2 候选完成真实 25+5 步，触发 2040 次确定性反向调用。独立对照表明输入、噪声和 timestep 一致，第 21 步首次预测已分叉，五步最大 loss 差 0.0010086894，超过 0.000001。恢复仍未通过。 海光 COCO20 分组有限值检查候选在同一物理卡上从原第 20 步检查点恢复，实际完成第 21–25 步。五步 loss、476 个张量的六类边界以及第 25 步检查点均与原连续运行一致；清场通过。",
-      "target_performance": "待三轮同口径实测",
+      "target_recovery": "原 COCO20 海光完成连续 25 步和从第 20 步恢复的五步。五步 loss 一致，最终 LoRA 最大绝对差超过原阈值，恢复未通过。补做同设备三次独立的第 21 步，裁剪前后梯度、参数与 AdamW 状态完全一致。本次未复现原五步轨迹的差异。 HIP 确定性 Flash2 候选完成真实 25+5 步，触发 2040 次确定性反向调用。独立对照表明输入、噪声和 timestep 一致，第 21 步首次预测已分叉，五步最大 loss 差 0.0010086894，超过 0.000001。恢复仍未通过。 海光 COCO20 分组有限值检查候选在同一物理卡上从原第 20 步检查点恢复，实际完成第 21–25 步。五步 loss、476 个张量的六类边界以及第 25 步检查点均与原连续运行一致；清场通过。 统一候选 3b1152eb 已经通过注册入口在同一张物理卡上实际完成连续 25 步，从真实第 20 步检查点启新进程恢复第 21–25 步。独立零卡审计确认 5 步输入和 loss、476 个 LoRA 张量、全量优化器、调度器和 RNG 状态及第 25 步文件完全一致。",
+      "target_performance": "原单卡 A100 三轮中位数为 1.09523949 updates/s。海光待正式三轮同口径实测。",
       "target_holdout_effect": "待留出集实测",
       "stage3_accepted": false,
       "reference_evidence": "results/bw1000/2026-11-12/training-zimage-explicit-Flash2-deterministic-native-recovery-candidate.json",
       "hygon_evidence": "results/bw1000/2026-11-13/training-zimage-added-1103606-27-hip-attention-numerical.json",
       "supplemental_evidence": {
+        "registered_native_HIP_continuous25_and_fresh_resume20_exact": {
+          "path": "results/bw1000/2026-11-23/training-zimage-registered-1759-1761-1763-recovery-exact.json",
+          "SHA256": "06ec4aee146003a9894973781f1aa610bf199cff334462b43bb35242609a1b1f",
+          "bytes": 19441
+        },
         "registered_native_HIP_first_update_with_original_rng_and_independent_pair": {
           "path": "results/bw1000/2026-11-23/training-zimage-registered-1752-1756-hip-exact-first-update.json",
           "SHA256": "0ef02b55d5e450e81f5674ea0b07e10bdb654c69a4e025e8c37d7b63af2834ea",
@@ -869,7 +874,7 @@
           "SHA256": "faa4db3f382be734edd2bdba1d996527919116c950d157c11a5e7375548b7630"
         }
       },
-      "a100_median_updates_per_second": null
+      "a100_median_updates_per_second": 1.0952394925494389
     },
     {
       "case": "T07.flow-grpo",
