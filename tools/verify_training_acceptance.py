@@ -296,6 +296,45 @@ def verify(root, *, private_roots=()):
             verify_formal_attachment(zimage_windows), timing_audits["generation"],
             a100_windows["T07.sft"], verify_formal_attachment,
         )
+    verified_engineering_candidate = None
+    common_candidate = matrix.get("common_engineering_framework_candidate")
+    if common_candidate is not None:
+        lineage = verify_formal_attachment(common_candidate["evidence"])
+        source = verify_formal_attachment(common_candidate["source_scope"])["source_proof"]
+        zimage, dp2 = lineage["T07_sft"], lineage["T09_dp2"]
+        dp2_claim = verify_formal_attachment(dp2["hygon_claim"])
+        dp2_actual = verify_formal_attachment(dp2["hygon_actual_evidence"])
+        require(verified_integrated_candidate is not None and verified_zimage_windows is not None
+                and lineage["ancestor"] == verified_integrated_candidate["candidate_commit"]
+                and lineage["candidate_commit"] == source["candidate_commit"] == zimage["actual_framework_commit"]
+                == verified_zimage_windows["framework_commit"]
+                and lineage["tree"] == source["git_tree"] and lineage["source_files_verified"] == source["files"]
+                and lineage["registry"] == source["registry"] == ids and lineage["fresh_bundle_import_verified"] is True
+                and lineage["candidate_manifest"]["SHA256"] == source["private_artifacts"]["candidate-manifest.json"]["SHA256"]
+                and lineage["bundle"]["SHA256"] == source["private_artifacts"]["candidate.bundle"]["SHA256"]
+                and zimage["evidence"] == zimage_windows
+                and zimage["actual_step"] == verified_zimage_windows["actual_gpu_step"]
+                and zimage["registered_complete_window_help_verified"] is True,
+                "common candidate source or Z-Image execution differs")
+        require(dp2["hygon_actual_evidence"]["path"] == case_by_id["T09.dp2"]["hygon_evidence"]
+                and dp2["a100_launch"]["SHA256"] == case_by_id["T09.dp2"]["launch_SHA256"]
+                == dp2_claim["original_launch_SHA256"]
+                and dp2["actual_backend_SHA256"] == dp2_claim["fixed_DP2_backend_SHA256"]
+                == dp2_actual["independent_read_only_audit"]["audit"]["backend_SHA256"]
+                and dp2["actual_older_same_backend_step"]
+                == dp2_actual["independent_read_only_audit"]["audit"]["slurm"]["runs"]["0"]["step"]
+                and dp2["exact_original_CLI_plan_verified"] is dp2["altered_launch_rejected"] is True
+                and dp2["expected_GPU_ranks"] == 2 and dp2["SP"] == 1
+                and dp2["checkpoints"] == dp2_claim["expected_checkpoint_steps"] == [10, 20, 25]
+                and dp2["full_runtime_requalification_on_candidate"] is False
+                and lineage["gpu_or_training_launches_this_check"] == lineage["formal_stage3_accepted"] == 0,
+                "DP2 source provenance, launch identity or evidence scope differs")
+        verified_engineering_candidate = {
+            "candidate_commit": lineage["candidate_commit"], "tree": lineage["tree"], "case_count": len(ids),
+            "source_files": lineage["source_files_verified"], "T07_actual_step": zimage["actual_step"],
+            "T09_unchanged_backend_step": dp2["actual_older_same_backend_step"],
+            "T09_full_runtime_requalified": False,
+        }
     no_boundary_description = [name for name, audit in generation_timing['cases'].items()
                                if audit['repeats'][0]['reported_timing_boundary'] is None]
     recovered_boundaries = verify_formal_attachment(matrix['original_A100_recovered_RL_clock_boundaries'])
@@ -342,6 +381,7 @@ def verify(root, *, private_roots=()):
             "verified_deployed_registry_source": verified_registry,
             "verified_DP2_framework_overlay_source": verified_overlay,
             "verified_integrated_portable_candidate": verified_integrated_candidate,
+            "verified_common_engineering_framework_candidate": verified_engineering_candidate,
             "verified_zimage_same_platform_engineering_recovery": verified_zimage_recovery,
             "verified_zimage_engineering_windows": verified_zimage_windows,
             "verified_A100_engineering_medians_updates_per_second": a100_windows,
