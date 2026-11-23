@@ -666,15 +666,19 @@ class Queue:
         phase = proof.get('failure_phase')
         detached = phase == 'DETACHED_PRE_SLURM_IMPORT'
         operator_admission = phase == 'OPERATOR_PRE_SLURM_ADMISSION'
+        validation_pin = phase == 'VALIDATION_PRE_SLURM_INPUT_PIN'
         scopes = {'PRE_SLURM_IMPORT': ('validation', 0), 'PRE_SLURM_INTENT': ('training', 8),
                   'DETACHED_PRE_SLURM_IMPORT': ('training', 1),
-                  'OPERATOR_PRE_SLURM_ADMISSION': ('operator', 1)}
+                  'OPERATOR_PRE_SLURM_ADMISSION': ('operator', 1),
+                  'VALIDATION_PRE_SLURM_INPUT_PIN': ('validation', 1)}
         if detached:
             required |= {'controller', 'controller_stderr_SHA256'}
         else:
             required.add('transport_returncode')
-        if operator_admission:
+        if operator_admission or validation_pin:
             required |= {'remote_intent_absent', 'admission_SHA256'}
+        if validation_pin:
+            required |= {'transport_stderr_SHA256', 'post_cleanup_SHA256'}
         require(set(proof) == required and phase in scopes
                 and proof['launch_attempted'] is False and type(proof['matching_accounting_rows']) is int
                 and proof['matching_accounting_rows'] == 0 and proof['post_clean'] is True,
@@ -689,10 +693,15 @@ class Queue:
         else:
             require(type(proof['transport_returncode']) is int and proof['transport_returncode'] > 0,
                     'failed foreground transport return code required')
-        if operator_admission:
+        if operator_admission or validation_pin:
             require(proof['remote_intent_absent'] is True and isinstance(proof['admission_SHA256'], str)
                     and re.fullmatch(r'[0-9a-f]{64}', proof['admission_SHA256']),
-                    'operator admission proof must precede its observably absent remote intent')
+                    'original admission proof and observably absent remote intent are required')
+        if validation_pin:
+            require(all(isinstance(proof[key], str) and re.fullmatch(r'[0-9a-f]{64}', proof[key])
+                        for key in ('transport_stderr_SHA256', 'post_cleanup_SHA256'))
+                    and proof['post_cleanup_SHA256'] != proof['admission_SHA256'],
+                    'input pin rejection requires transport evidence and independent cleanup')
         evidence = proof['evidence_SHA256']
         require(isinstance(evidence, str) and re.fullmatch(r'[0-9a-f]{64}', evidence),
                 'exact pre-srun reconciliation evidence SHA required')
@@ -715,9 +724,9 @@ class Queue:
                     'original reservation or dispatch identity differs')
             if detached:
                 require(handle.get('controller') == proof['controller'], 'different original detached controller')
-            if operator_admission:
+            if operator_admission or validation_pin:
                 require(json.loads(row['binding']).get('snapshot_payload_SHA256') == proof['admission_SHA256'],
-                        'different original operator admission')
+                        'different original dispatch admission')
             result = dict(proof, transport_attempted=True, measurement_terminal=False, replay_allowed=False)
             self.db.execute('UPDATE runs SET state="RETIRED_PRELAUNCH",nodes="[]",result=? WHERE id=?',
                             (canonical(result).decode(),ident))

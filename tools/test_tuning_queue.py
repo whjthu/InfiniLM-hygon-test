@@ -100,6 +100,30 @@ class TuningTest(unittest.TestCase):
         self.q.retire_remote_prelaunch_direct(run, proof)
         self.assertEqual(self.q.summary()['runs'], {'RETIRED_PRELAUNCH': 1})
 
+    def test_input_pin_rejection_releases_only_with_independent_cleanup(self):
+        from prepare_training80_dispatch_handoff import reserve_handoff
+
+        run = 'validation-input-pin'
+        intent = 'local-only/validation/intent.json'
+        packet = dict(request='a' * 32, case='T12.validation', kind='validation',
+                      workload_SHA256='b' * 64, placement_by_parent={'1103606': {'node0': 1}},
+                      handoff_SHA256='c' * 64, snapshot_payload_SHA256='d' * 64, invocation=None,
+                      launcher='evaluate.py', expires_local_monotonic=time.monotonic() + 30)
+        claimed = reserve_handoff(self.q, run, packet, intent)
+        self.q.submission(run, claimed['handle'], unknown=True)
+        proof = dict(request_id=packet['request'], intent=intent, failure_phase='VALIDATION_PRE_SLURM_INPUT_PIN',
+                     launch_attempted=False, matching_accounting_rows=0, post_clean=True, node='node0',
+                     evidence_SHA256='e' * 64, transport_returncode=1, remote_intent_absent=True,
+                     admission_SHA256=packet['snapshot_payload_SHA256'],
+                     transport_stderr_SHA256='f' * 64, post_cleanup_SHA256='1' * 64)
+        for changed in (dict(post_cleanup_SHA256=proof['admission_SHA256']),
+                        dict(transport_stderr_SHA256='malformed'), dict(post_clean=False)):
+            with self.assertRaises(ValueError):
+                self.q.retire_remote_prelaunch_direct(run, {**proof, **changed})
+        self.assertEqual(self.q.summary()['runs'], {'UNKNOWN': 1})
+        self.q.retire_remote_prelaunch_direct(run, proof)
+        self.assertEqual(self.q.summary()['runs'], {'RETIRED_PRELAUNCH': 1})
+
 
     def test_unknown_and_expired_intent_still_reserves_nodes(self):
         self.active(True);self.ready('second');self.ready('third')
