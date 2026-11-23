@@ -10,7 +10,7 @@ from training_formal_metrics import (
     complete_window, sha, stage_three, verify_hunyuan_a100_recorded_updates, verify_hunyuan_dp2_a100_windows,
 )
 from training_A100_engineering_timing import VGGT_CASE, check_generation, check_vggt, check_vlm
-from training_framework_identity import verify_overlay_source, verify_registry_source
+from training_framework_identity import manifest_tree, verify_overlay_source, verify_registry_source
 from training_function import verify_function
 from training_numerics import (
     ZERO_LR_VLM_REQUESTS, comparison_plan as numerics_plan, original_vlm_update_schedule, verify_numerics,
@@ -335,6 +335,64 @@ def verify(root, *, private_roots=()):
             "T09_unchanged_backend_step": dp2["actual_older_same_backend_step"],
             "T09_full_runtime_requalified": False,
         }
+    replay_case = case_by_id["T09.dp2"]
+    replay_refs = replay_case["supplemental_evidence"]
+    replay_reference = replay_refs.get("first_flow_replay_common_candidate")
+    verified_replay_candidate = None
+    if replay_reference is not None:
+        report = verify_formal_attachment(replay_reference)
+        reimport = report["independent_bundle_reimport"]
+        route_checks = report["local_source_and_route_checks"]
+        expected_changes = {
+            matrix["entry"],
+            "generation/src/gencuda/backends/hunyuanvideo_data_parallel.py",
+            "generation/src/gencuda/hunyuanvideo_dp2_flow_replay.py",
+        }
+        mismatch = replay_refs["original_A100_Hygon_first_flow_input_fingerprint_mismatch"]
+        require(verified_engineering_candidate is not None
+                and report["original_input_reconciliation"] == mismatch
+                and reimport["case"] == replay_case["case"]
+                and reimport["parent"] == verified_engineering_candidate["candidate_commit"]
+                and reimport["source_files"] == verified_engineering_candidate["source_files"] + 1
+                and reimport["registry_cases"] == ids
+                and set(reimport["changed_files"]) == expected_changes
+                and route_checks["rendered_sources"] == {
+                    path: pin["SHA256"] for path, pin in reimport["changed_files"].items()
+                }
+                and route_checks["registered_cases"] == len(ids)
+                and route_checks["original_DP2_plan_accepted"] is True
+                and reimport["A100_input_capture_runs"] == reimport["actual_replay_GPU_steps"] == 0
+                and report["hardware_capture_executed"] is report["two_rank_replay_executed"] is False
+                and report["formal_stage3_accepted"] is reimport["formal_numerics_qualified"] is False,
+                "DP2 diagnostic candidate lineage or qualification differs")
+        sources = reimport["inputs"]
+        require(set(sources) == {"CAPTURE_PLAN.json", "render.py", "hunyuanvideo_dp2_flow_replay.py"},
+                "DP2 diagnostic candidate has unexpected published inputs")
+        for pin in sources.values():
+            require(len(pinned_attachment(pin, 64 << 10)) == pin["bytes"], "DP2 diagnostic source size differs")
+        plan = json.loads(pinned_attachment(sources["CAPTURE_PLAN.json"], 64 << 10))
+        require(plan["case"] == replay_case["case"] and plan["launch_SHA256"] == replay_case["launch_SHA256"]
+                and plan["first_flow_comparison_SHA256"] == mismatch["SHA256"]
+                and set(plan["expected_flow_SHA256"]) == {"0", "1"},
+                "DP2 diagnostic capture plan differs from the original paired launch")
+        manifest_pin = reimport["manifest"]
+        manifest_verified = False
+        if (root / manifest_pin["path"]).is_file():
+            raw = pinned(manifest_pin["path"], manifest_pin["SHA256"], 256 << 10)
+            manifest = json.loads(raw)
+            files = manifest["files"]
+            require(len(raw) == manifest_pin["bytes"]
+                    and manifest["commit"] == reimport["candidate_commit"]
+                    and manifest_tree(files) == manifest["tree"] == reimport["git_tree"]
+                    and len(files) == reimport["source_files"]
+                    and all(files[path] == reimport["changed_files"][path] for path in expected_changes),
+                    "DP2 diagnostic private manifest Git tree differs")
+            manifest_verified = True
+        verified_replay_candidate = {
+            "candidate_commit": reimport["candidate_commit"], "tree": reimport["git_tree"],
+            "source_files": reimport["source_files"], "case_count": len(ids),
+            "local_manifest_git_tree_verified": manifest_verified, "actual_replay_GPU_steps": 0,
+        }
     no_boundary_description = [name for name, audit in generation_timing['cases'].items()
                                if audit['repeats'][0]['reported_timing_boundary'] is None]
     recovered_boundaries = verify_formal_attachment(matrix['original_A100_recovered_RL_clock_boundaries'])
@@ -382,6 +440,7 @@ def verify(root, *, private_roots=()):
             "verified_DP2_framework_overlay_source": verified_overlay,
             "verified_integrated_portable_candidate": verified_integrated_candidate,
             "verified_common_engineering_framework_candidate": verified_engineering_candidate,
+            "verified_DP2_first_flow_replay_candidate": verified_replay_candidate,
             "verified_zimage_same_platform_engineering_recovery": verified_zimage_recovery,
             "verified_zimage_engineering_windows": verified_zimage_windows,
             "verified_A100_engineering_medians_updates_per_second": a100_windows,
