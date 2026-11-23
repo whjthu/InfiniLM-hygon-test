@@ -13,10 +13,9 @@ REF = Path("/public/home/aclsylqidf/hygon-inference-refactor-20261014")
 APPTAINER = "/public/software/apps/apptainer/1.3.4/bin/apptainer"
 PARENT = "1103606"
 NODE = "f13r2n08"
-LABEL = "training-zimage-coco-perceptual-6af890912e50"
-REQUEST = "6af890912e504c318e7136cb8894786b"
-ORIGINAL_LABEL = "training-zimage-coco-perceptual-958b18734f32"
-ORIGINAL_REQUEST = "958b18734f324e55b404355d1a884282"
+LABEL = "training-zimage-coco-perceptual-a4dcb9bb7216"
+REQUEST = "a4dcb9bb72164fc087a00c89380d4e15"
+PREDECESSORS = ("958b18734f324e55b404355d1a884282", "6af890912e504c318e7136cb8894786b")
 COLUMNS = "JobIDRaw,JobName%100,State,ExitCode,ElapsedRaw,NodeList,AllocTRES"
 
 
@@ -37,8 +36,11 @@ def pin(path, digest):
             f"target pin missing or differs: {path.name}")
 
 
-def lines(*command):
-    return subprocess.check_output(command, timeout=7, text=True).splitlines()
+def lines(stage, *command):
+    try:
+        return subprocess.check_output(command, timeout=7, text=True, stderr=subprocess.PIPE).splitlines()
+    except subprocess.TimeoutExpired as error:
+        raise ValueError(f"Slurm {stage} read timed out before submission") from error
 
 
 def start(claim_bytes, source, training_contract, publication):
@@ -54,17 +56,19 @@ def start(claim_bytes, source, training_contract, publication):
     require(root == REF / ("results/training-zimage-t07-coco-perceptual-screen-" + REQUEST),
             "result namespace differs")
 
-    [allocation] = lines("scontrol", "show", "job", "-o", PARENT)
+    [allocation] = lines("allocation", "scontrol", "show", "job", "-o", PARENT)
     fields = dict(item.split("=", 1) for item in allocation.split() if "=" in item)
     require(fields["JobId"] == PARENT and fields["JobState"] == "RUNNING"
             and fields["UserId"].endswith(f"({os.getuid()})")
-            and NODE in lines("scontrol", "show", "hostnames", fields["NodeList"]), "parent allocation differs")
-    original = REF / ("results/training-zimage-t07-coco-perceptual-screen-" + ORIGINAL_REQUEST)
-    labels = {LABEL, ORIGINAL_LABEL}
-    require(not root.exists() and not original.exists() and not any(row.split("|")[1:2] == [label] for row in lines(
-        "sacct", "-n", "-P", "-j", PARENT, "-o", COLUMNS) for label in labels)
+            and NODE in lines("node membership", "scontrol", "show", "hostnames", fields["NodeList"]),
+            "parent allocation differs")
+    original_roots = [REF / ("results/training-zimage-t07-coco-perceptual-screen-" + req) for req in PREDECESSORS]
+    labels = {LABEL, *("training-zimage-coco-perceptual-" + req[:12] for req in PREDECESSORS)}
+    require(not root.exists() and not any(path.exists() for path in original_roots)
+        and not any(row.split("|")[1:2] == [label] for row in lines(
+            "accounting", "sacct", "-n", "-P", "-j", PARENT, "-o", COLUMNS) for label in labels)
         and not any("Name=" + label in row.split() for row in lines(
-            "scontrol", "show", "step", PARENT, "--oneliner") for label in labels),
+            "controller", "scontrol", "show", "step", PARENT, "--oneliner") for label in labels),
             "original or corrected label/result already exists")
     pin(archive / "receipt.json", inputs["terminal_receipt_SHA256"])
     pin(archive / "private-media.json", inputs["media_manifest_SHA256"])
@@ -74,16 +78,13 @@ def start(claim_bytes, source, training_contract, publication):
 
     image = REF / "containers/dtk26-sandbox-r1"
     deps = REF / "results/training-zimage-target-native-meta-CPU-v2/dependencies/site"
+    require(image.is_dir() and Path(APPTAINER).is_file(), "pinned image or Apptainer missing")
     apptainer = [APPTAINER, "exec", "--cleanenv", "--no-home", "--pwd", "/"]
     runtime = ["env", "PYTHONNOUSERSITE=1", "PYTHONDONTWRITEBYTECODE=1", "OMP_NUM_THREADS=1",
                "ROCR_VISIBLE_DEVICES=", "HIP_VISIBLE_DEVICES=", "CUDA_VISIBLE_DEVICES="]
     if (deps / "PIL" / "__init__.py").is_file():
         apptainer += ["--bind", f"{deps}:/audit-deps:ro"]
         runtime += ["PYTHONPATH=/audit-deps"]
-    sanity = 'from PIL import Image, features; assert hasattr(Image,"Resampling") and features.check_codec("jpg")'
-    subprocess.run(apptainer + [str(image), *runtime, "python3", "-B", "-c", sanity],
-                   check=True, timeout=12, capture_output=True)
-
     os.umask(0o077)
     root.mkdir(mode=0o700)
     save(root / "worker.py", source)
@@ -97,12 +98,17 @@ def start(claim_bytes, source, training_contract, publication):
                       '[ "$seconds" -gt 0 ] || exit 124; '
                       '[ "$seconds" -le 390 ] || seconds=390; '
                       'exec timeout --kill-after=5s "${seconds}s" "$@"')
+    boot = ('import os,runpy,sys; from PIL import Image,features; '
+            'assert os.environ.get("SLURM_STEP_GPUS", "") in ("", "(null)"); '
+            'assert hasattr(Image,"Resampling") and features.check_codec("jpg"); '
+            'print("decoder_ready",flush=True); sys.argv=sys.argv[1:]; '
+            'runpy.run_path(sys.argv[0],run_name="__main__")')
     execution = ["srun", "--jobid=" + PARENT, "--job-name=" + LABEL, "--exact", "--immediate=6",
                  "--nodes=1", "--ntasks=1", "--cpus-per-task=2", "--mem=4096M", "--gres=none",
                  "--nodelist=" + NODE, "--time=00:07:00", "--kill-on-bad-exit=1",
                  *apptainer, "--bind", f"{root}:/screen:rw", "--bind", f"{archive}:/coco:ro", str(image), *runtime,
                  "/bin/sh", "-c", bounded_worker, "zimage-perceptual", str(int(intent["deadline_epoch"])),
-                 "python3", "-B", "-u", "/screen/worker.py",
+                 "python3", "-B", "-u", "-c", boot, "/screen/worker.py",
                  "--archive-directory", "/coco", "--original-training-manifest", "/screen/training-contract.json",
                  "--result-directory", "/screen"]
     with (root / "worker.stdout.private").open("xb") as out, (root / "worker.stderr.private").open("xb") as err:

@@ -1,0 +1,88 @@
+{
+  "schema": "training.zimage.coco.perceptual_screen.claim.v3",
+  "case": "T07.sft",
+  "owner": "bw1000/root",
+  "request": "a4dcb9bb72164fc087a00c89380d4e15",
+  "label": "training-zimage-coco-perceptual-a4dcb9bb7216",
+  "result_directory": "results/training-zimage-t07-coco-perceptual-screen-a4dcb9bb72164fc087a00c89380d4e15",
+  "maximum_target_invocations": 1,
+  "replay_unknown": false,
+  "resources": {
+    "parent": "1103606",
+    "node": "f13r2n08",
+    "CPU": 2,
+    "memory_MiB": 4096,
+    "DCU": 0,
+    "slurm_seconds": 420,
+    "worker_seconds": 390
+  },
+  "source": {
+    "path": "tools/scan_zimage_coco_perceptual_overlap.py",
+    "SHA256": "25d7cfc743a637a7332bd1c5239dcce85143a731662c022047e9ed694f15e24f"
+  },
+  "launcher": {
+    "path": "tools/launch_zimage_coco_perceptual_overlap.py",
+    "SHA256": "26d2dc285fe0c0316e7c7984617c747a15d79774acbe0e3487e0d4d4d19e8292"
+  },
+  "inputs": {
+    "archive_directory": "results/training-zimage-t07-coco-val2017-publisher-media-v1-continuation",
+    "zip_SHA256": "4f7e2ccb2866ec5041993c9cf2a952bbed69647b115d0f74da7ce8f4bef82f05",
+    "terminal_receipt_SHA256": "ebcc835c25a5c2022136bca91def57e52836019eb5ecc26a8788884571952f50",
+    "media_manifest_SHA256": "aa090e40fa22caef1dcf9fc3851af15c9734ac210e80dfb54c67b58d6c4cf7ac",
+    "training_contract": {
+      "path": "coordination/training/zimage-original-COCO20-fixed-inputs-v1.json",
+      "bytes": 7517,
+      "SHA256": "070013087a083bdec7defafaef92e781579e4ea491665536c48abe2336a21f55"
+    }
+  },
+  "runtime": {
+    "existing_image": "containers/dtk26-sandbox-r1",
+    "existing_dependency_candidates": [
+      "image Pillow",
+      "results/training-zimage-target-native-meta-CPU-v2/dependencies/site Pillow"
+    ],
+    "before_scan": "Verify the JPEG codec and decoder API inside the allocated zero-GRES runtime, then verify original image bytes and record decoder hashes.",
+    "decoder_check_placement": "inside the owned zero-GRES worker, same 390-second bound as the scan",
+    "decoder_ready_marker": "decoder_ready"
+  },
+  "comparisons": {
+    "training_development": 5120,
+    "training_blind": 94480,
+    "development_development": 32640,
+    "development_blind": 1209344,
+    "blind_blind": 11155726,
+    "total": 12497310
+  },
+  "screen": {
+    "phash_max_hamming": 6,
+    "dhash_max_hamming": 8,
+    "require_both": true,
+    "candidate_ids_private": true,
+    "manual_review_required": true
+  },
+  "local_fixture": {
+    "Pillow": "13.0.0",
+    "resized_JPEG_reencode_recognized": true,
+    "unrelated_pair_rejected": true,
+    "same_split_pair_counted": true
+  },
+  "heldout_effect_passed": false,
+  "stage3_accepted": false,
+  "predecessors": [
+    {
+      "publication": "76c0d27b1a516e21f79ad824299a17be76afac88",
+      "request": "958b18734f324e55b404355d1a884282",
+      "label": "training-zimage-coco-perceptual-958b18734f32",
+      "dispatch_guard": "old namespace, sacct and scontrol original label must all be absent",
+      "observed": "authenticated launcher FileNotFoundError",
+      "launcher_reply_SHA256": "7a6be972ed682ffe81c33eb5e4e9c4493741128c1cb44309fd055d37f9542c54"
+    },
+    {
+      "request": "6af890912e504c318e7136cb8894786b",
+      "label": "training-zimage-coco-perceptual-6af890912e50",
+      "publication": "d3b7de0560b89d2f352aa38197d4d24bc0612748",
+      "auth_outcome": "TimeoutExpired before Slurm Popen",
+      "independent_target_absence_required": true
+    }
+  ]
+}
