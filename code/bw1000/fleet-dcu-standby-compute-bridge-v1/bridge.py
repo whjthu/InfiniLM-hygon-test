@@ -86,10 +86,14 @@ def start():
         startticks = None
     write_json(directory / "launcher.json", dict(request=request, pid=proc.pid, startticks=startticks))
     result_path = RESULTS / f"{STANDBY}-{request}" / "submission-receipt.json"
+    bridge_stdout = directory / "stdout.private"
     end = time.monotonic() + 36
     while time.monotonic() < end:
-        if result_path.is_file() and (directory / "compute.json").is_file():
-            raw = bounded(result_path)
+        # The login mount can learn of a new compute-created directory late. The
+        # frozen launcher prints the identical receipt to the already open file.
+        candidate = result_path if result_path.is_file() else bridge_stdout
+        if candidate.stat().st_size and (directory / "compute.json").is_file():
+            raw = bounded(candidate)
             try:
                 result = json.loads(raw)
             except json.JSONDecodeError:
