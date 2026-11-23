@@ -1,6 +1,7 @@
 """Verify the common training entry and Git tree against the original deployment."""
 
 import hashlib
+import json
 import re
 
 
@@ -63,3 +64,51 @@ def verify_registry_source(candidate, entry, registry, observed, manifest, entry
         raise ValueError("compute registry entry differs from the published source bytes")
     return {"framework_commit": candidate, "framework_tree": tree, "framework_files": len(files),
             "entry_SHA256": entry_hash}
+
+
+def verify_overlay_source(descriptor, read_pinned):
+    """Derive an actual-run tree from its frozen base and published replacements."""
+    base_reference = descriptor["base_manifest"]
+    base = json.loads(read_pinned(base_reference["path"], base_reference["SHA256"]))
+    files = dict(base["files"])
+    if (base["framework_commit"] != descriptor["base_framework_commit"]
+            or base["framework_tree"] != descriptor["base_framework_tree"]
+            or manifest_tree(files) != base["framework_tree"]):
+        raise ValueError("overlay base framework identity differs")
+    changed = set()
+    for replacement in descriptor["replacements"]:
+        path = replacement["path"]
+        original = files[path]
+        raw = read_pinned(replacement["replacement_source"], replacement["SHA256"])
+        if (path in changed or original["SHA256"] != replacement["original_SHA256"]
+                or original["mode"] != replacement["mode"] or original["SHA256"] == replacement["SHA256"]
+                or len(raw) != replacement["bytes"] or git_object("blob", raw) != replacement["git_blob"]):
+            raise ValueError(f"invalid framework replacement: {path}")
+        files[path] = {key: replacement[key] for key in ("mode", "bytes", "SHA256", "git_blob")}
+        changed.add(path)
+
+    entry = descriptor["common_entry"]
+    candidate_tree = manifest_tree(files)
+    inventory = {name: record["SHA256"] for name, record in files.items()}
+    observed_inventory = hashlib.sha256(json.dumps(inventory, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    if (len(files) != descriptor["files_total"] or len(files) - len(changed) != descriptor["untouched_files"]
+            or entry["path"] in changed or files[entry["path"]]["SHA256"] != entry["SHA256"]
+            or candidate_tree != descriptor["candidate_framework_tree"]
+            or observed_inventory != descriptor["exact_private_framework_inventory_SHA256"]):
+        raise ValueError("overlay tree, inventory or common entry differs")
+    witness = descriptor["verified_private_preflight"]
+    preflight = json.loads(read_pinned(witness["path"], witness["SHA256"]))["run"]
+    if (preflight["passed"] is not True or witness["step"] != preflight["actual_CPU_step"]
+            or len(files) != preflight["framework_files_rechecked_here"]
+            or observed_inventory != preflight["private_framework_inventory_SHA256"]):
+        raise ValueError("overlay source differs from compute preflight inventory")
+    witness = descriptor["verified_training"]
+    training = json.loads(read_pinned(witness["path"], witness["SHA256"]))
+    training_receipt = training["independent_read_only_audit"]["audit"]
+    backend_pins = {files[path]["SHA256"] for path in changed}
+    if (training["case"] != descriptor["case"] or training_receipt["case"] != descriptor["case"]
+            or training_receipt["checked_external_slurm_accounting"] is not True
+            or witness["step"] not in training_receipt["slurm"]["steps"]
+            or training_receipt["backend_SHA256"] not in backend_pins):
+        raise ValueError("overlay source differs from live training outcome")
+    return {"framework_tree": candidate_tree, "framework_files": len(files)}

@@ -8,7 +8,7 @@ from training_formal_metrics import (
     stage_three, verify_hunyuan_a100_recorded_updates, verify_hunyuan_dp2_a100_windows,
 )
 from training_A100_engineering_timing import VGGT_CASE, check_generation, check_vggt, check_vlm
-from training_framework_identity import verify_registry_source
+from training_framework_identity import verify_overlay_source, verify_registry_source
 from training_function import verify_function
 from training_numerics import (
     ZERO_LR_VLM_REQUESTS, comparison_plan as numerics_plan, original_vlm_update_schedule, verify_numerics,
@@ -145,6 +145,13 @@ def verify(root, *, private_roots=()):
     timing_audits = matrix['original_A100_engineering_timing_audits']
     require(set(timing_audits) == {'generation', 'vlm', 'vggt'}, 'unexpected original timing audit bindings')
     case_by_id = {case['case']: case for case in cases}
+    overlay_index = case_by_id["T09.dp2"].get("qualified_framework_overlay")
+    verified_overlay = None
+    if overlay_index is not None:
+        overlay = verify_formal_attachment(overlay_index)
+        require(overlay["case"] == "T09.dp2" and overlay["base_framework_commit"] == matrix["framework_commit"],
+                "verified overlay refers to a different case or base framework")
+        verified_overlay = verify_overlay_source(overlay, pinned)
     generation_timing = verify_formal_attachment(timing_audits['generation'])
     a100_windows.update(check_generation(case_by_id, generation_timing))
     no_boundary_description = [name for name, audit in generation_timing['cases'].items()
@@ -191,6 +198,7 @@ def verify(root, *, private_roots=()):
     require(markdown_ids == ids, "Markdown and JSON training case order differs")
     return {"cases": len(ids), "stage3_passed": index["stage3_passed"], "evidence_files": len(pins),
             "verified_deployed_registry_source": verified_registry,
+            "verified_DP2_framework_overlay_source": verified_overlay,
             "verified_A100_engineering_medians_updates_per_second": a100_windows,
             "A100_engineering_cases_without_archived_timing_boundary_description": no_boundary_description,
             "A100_engineering_clock_boundaries_verified_from_original_source": sorted(recovered_boundaries['cases']),
