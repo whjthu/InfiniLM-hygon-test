@@ -1,0 +1,41 @@
+{
+  "case": "T07.sft",
+  "experiment": "group-finite-checks-on-real-coco20-native-trajectory",
+  "hypothesis": "Per-tensor host scalar reads in the preserved finite checks cost more than one device-side boolean reduction.",
+  "layout": {
+    "native_trainable_tensors": 476,
+    "dcu": 1,
+    "precision": "BF16",
+    "dataset": "original COCO20",
+    "actual_optimizer_updates": 25,
+    "checkpoints": [
+      10,
+      20,
+      25
+    ]
+  },
+  "controls": {
+    "finite_semantics": "The original per-tensor isfinite reduction; group only the boolean device results.",
+    "paired_steps": [
+      6,
+      7,
+      8
+    ],
+    "paired_phases": [
+      "preclip",
+      "postclip",
+      "updated"
+    ],
+    "same_real_tensor_for_both_arms": true,
+    "native_loss_and_gradients_unchanged": true,
+    "require_all_25_trajectory_rows_match_prior": true
+  },
+  "resources": {
+    "whole_epoch_seconds": 720,
+    "worker_seconds": 650,
+    "maximum_gpu_step_seconds": 540
+  },
+  "formal_performance": false,
+  "max_invocations": 1,
+  "replay_allowed": false
+}
