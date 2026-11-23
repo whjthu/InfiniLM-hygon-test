@@ -26,3 +26,14 @@ python -B code/bw1000/training-trellis-khronos-heldout4-v1/score.py \
 ```
 
 评分保留四对象、十二条预测的固定分母。该程序核对传入摘要与配对绑定，实际模型导出、检查点来源与配准仍由独立回执核验。
+
+## 固定条件图
+
+`render_conditions.py` 从同一批冻结网格生成四张 256 × 256 RGBA 条件图。所有对象共用 Y-up 参考坐标、正交相机、固定照明和像素中心采样。着色使用不透明几何表面，背景透明。每个对象的 PNG 摘要同时登记为后续三组预测共用的 `conditioning_SHA256`。参考侧的相机记录在 `CONDITIONS.json`，模型导出侧仍需固定自己的坐标转换并提供独立配准证据。
+
+```shell
+python -B code/bw1000/training-trellis-khronos-heldout4-v1/render_conditions.py \
+  --reference-root <参考目录> --output <新条件图目录>
+```
+
+当前条件图已逐项核验 PNG 解码、裁剪边界和前后深度遮挡。它们用于独立公开留出评估，正式配方与同输入 A100 数值验收仍按原用例执行。
