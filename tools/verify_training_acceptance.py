@@ -168,6 +168,46 @@ def verify(root, *, private_roots=()):
                 and imported["new_case_acceptance"] == imported["executed_GPU_steps"] == 0,
                 "portable source bundle, imported registry and verified overlay differ")
         verified_overlay["portable_candidate_commit"] = imported["candidate_commit"]
+    verified_integrated_candidate = None
+    integrated = status.get("unified_training_portable_candidate")
+    if integrated is not None:
+        result = verify_formal_attachment(integrated["evidence"])
+        local = result["independent_local_import"]
+        remote = result["target_materialized_source"]
+        bundle = result["target_stored_bundle"]
+        help_check = result["target_registered_diagnostic_help"]
+        require(verified_overlay is not None
+                and local["parent_commit"] == verified_overlay.get("portable_candidate_commit")
+                and local["candidate_commit"] == remote["candidate_commit"] == integrated["candidate_commit"]
+                and local["tree"] == remote["git_tree"] == integrated["tree"]
+                and local["files"] == remote["target_source_files"] == verified_overlay["framework_files"] + 1
+                and local["registry"] == remote["target_registry"] == ids
+                and local["bundle_sha256"] == bundle["bundle_sha256"]
+                and local["bundle_bytes"] == bundle["bytes"]
+                and local["fresh_import_verified"] and remote["source_checkout_verified"]
+                and remote["registry_executed_in_place"]
+                and help_check["passed"] and help_check["registered_case"] == "T07.sft"
+                and result["executed_hardware_training_steps_on_candidate"] == 0
+                and integrated["device_acceptance"] is False,
+                "integrated candidate, target source and original DP2 parent differ")
+        changes = local["replaced_members"]
+        introduced = "generation/src/gencuda/zimage_fixed_reference.py"
+        require(set(changes) == {
+            introduced, "generation/src/gencuda/zimage_first_update.py",
+            "generation/src/gencuda/zimage_native_record.py", "tools/hygon_training_recipe.py",
+            "tools/hygon_zimage_native_record.py",
+        } and changes["tools/hygon_training_recipe.py"]["SHA256"] == help_check["entry_sha256"],
+                "integrated candidate changed an unexpected provider")
+        for name, pin in changes.items():
+            overlay_path = ("training-zimage-coco20-recorded-reference-v2" if name == introduced
+                            else "training-common-zimage-fixed-first-overlay-v1")
+            raw = pinned_attachment({"path": f"code/bw1000/{overlay_path}/framework-delta/{name}",
+                                     "SHA256": pin["SHA256"]}, 128 << 10)
+            require(len(raw) == pin["bytes"], "integrated source member length differs")
+        verified_integrated_candidate = {
+            "candidate_commit": local["candidate_commit"], "tree": local["tree"], "source_files": local["files"],
+            "case_count": len(ids), "target_registry_verified": True, "device_acceptance": False,
+        }
     generation_timing = verify_formal_attachment(timing_audits['generation'])
     a100_windows.update(check_generation(case_by_id, generation_timing))
     no_boundary_description = [name for name, audit in generation_timing['cases'].items()
@@ -215,6 +255,7 @@ def verify(root, *, private_roots=()):
     return {"cases": len(ids), "stage3_passed": index["stage3_passed"], "evidence_files": len(pins),
             "verified_deployed_registry_source": verified_registry,
             "verified_DP2_framework_overlay_source": verified_overlay,
+            "verified_integrated_portable_candidate": verified_integrated_candidate,
             "verified_A100_engineering_medians_updates_per_second": a100_windows,
             "A100_engineering_cases_without_archived_timing_boundary_description": no_boundary_description,
             "A100_engineering_clock_boundaries_verified_from_original_source": sorted(recovered_boundaries['cases']),
