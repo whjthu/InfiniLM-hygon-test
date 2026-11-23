@@ -1,0 +1,133 @@
+{
+  "schema": "bw1000.training.hunyuanvideo.dp2-first-flow-replay-common-candidate.v1",
+  "original_input_reconciliation": {
+    "path": "results/bw1000/2026-11-24/training-hunyuanvideo-DP2-original-A100-and-Hygon-first-flow-mismatch.json",
+    "bytes": 3065,
+    "SHA256": "ef1f21c8dd6cee58d4416a26d40c0f5381199068fb69cacfc12e2d76c54d4d98"
+  },
+  "independent_bundle_reimport": {
+    "case": "T09.dp2",
+    "observed_utc": "2026-11-23T20:08:13.017283+00:00",
+    "state": "REPLAY_CANDIDATE_IMPORTED_AND_SOURCE_VERIFIED",
+    "parent": "55cfdaf75699605ab891ac8529f1157dc8778c0d",
+    "candidate_commit": "9338c7ebedf7ed8886887949956042c912b36d6b",
+    "git_tree": "a8772bc4f5e3aa182a47c4967209f78ff798f35b",
+    "branch": "refs/heads/framework-dp2-first-flow-replay",
+    "source_files": 397,
+    "registry_cases": [
+      "T01.sft",
+      "T02.sft",
+      "T03.sft",
+      "T04.sft",
+      "T05.sft",
+      "T06.sft",
+      "T06.ddpo",
+      "T07.sft",
+      "T07.flow-grpo",
+      "T08.flow-matching-lora",
+      "T08.motion-rft",
+      "T09.sft",
+      "T09.dp2",
+      "T09.sage-grpo",
+      "T10.shape-flow-lora",
+      "T11.material-head",
+      "T12.camera-head"
+    ],
+    "changed_files": {
+      "generation/src/gencuda/backends/hunyuanvideo_data_parallel.py": {
+        "mode": 420,
+        "bytes": 40549,
+        "git_blob": "d4b602db272af8202a7e5621b2f7aaeec1dc819d",
+        "SHA256": "d6dcba6f9f495e843d51598e748b578f7583f9ecab7059990a23b97366349656"
+      },
+      "generation/src/gencuda/hunyuanvideo_dp2_flow_replay.py": {
+        "mode": 420,
+        "bytes": 8488,
+        "git_blob": "f129c062410e75ce3f931b21c0e4987c08392b9c",
+        "SHA256": "6f8c771717ff2808233d2ac684ddf81da94c41cba23c66c2cbb15e839db33cf2"
+      },
+      "tools/hygon_training_recipe.py": {
+        "mode": 420,
+        "bytes": 17374,
+        "git_blob": "8482d9feab500324bb142ee218d7e4c0e2ebc3aa",
+        "SHA256": "64f3ea8eedd18db910ca863b4731194810e81dce9e4c6dce10095ceb24894ff5"
+      }
+    },
+    "inputs": {
+      "CAPTURE_PLAN.json": {
+        "path": "code/bw1000/training-hunyuanvideo-dp2-first-flow-replay-v1/CAPTURE_PLAN.json",
+        "SHA256": "e67398ba3b99eeb14b46d65475666b75380dcb1d2ac649b5470bced4765edd3e",
+        "bytes": 601
+      },
+      "render.py": {
+        "path": "code/bw1000/training-hunyuanvideo-dp2-first-flow-replay-v1/render.py",
+        "SHA256": "cc6b89d62b1151ba6a424bf0ea7f616e8d8d6f6edb18fd6afda4f15b07615dfe",
+        "bytes": 9518
+      },
+      "hunyuanvideo_dp2_flow_replay.py": {
+        "path": "code/bw1000/training-hunyuanvideo-dp2-first-flow-replay-v1/hunyuanvideo_dp2_flow_replay.py",
+        "SHA256": "6f8c771717ff2808233d2ac684ddf81da94c41cba23c66c2cbb15e839db33cf2",
+        "bytes": 8488
+      }
+    },
+    "bundle": {
+      "path": "local-only/common-training-hunyuanvideo-dp2-first-flow-replay-v1-verified/candidate.bundle",
+      "SHA256": "1e671247edf98309ea53a3f25a99f0d588258f222ee5f181e7c9c68b00ff172e",
+      "bytes": 1174101
+    },
+    "manifest": {
+      "path": "local-only/common-training-hunyuanvideo-dp2-first-flow-replay-v1-verified/candidate-manifest.json",
+      "SHA256": "f5f875dace63efa9a3bdb98504adc162df61ccf72286a6d40a2793c33bd41032",
+      "bytes": 96977
+    },
+    "local_CLI_rejections": 6,
+    "local_validation_fixtures": 11,
+    "A100_input_capture_runs": 0,
+    "actual_replay_GPU_steps": 0,
+    "formal_numerics_qualified": false
+  },
+  "local_source_and_route_checks": {
+    "rendered_sources": {
+      "tools/hygon_training_recipe.py": "64f3ea8eedd18db910ca863b4731194810e81dce9e4c6dce10095ceb24894ff5",
+      "generation/src/gencuda/backends/hunyuanvideo_data_parallel.py": "d6dcba6f9f495e843d51598e748b578f7583f9ecab7059990a23b97366349656",
+      "generation/src/gencuda/hunyuanvideo_dp2_flow_replay.py": "6f8c771717ff2808233d2ac684ddf81da94c41cba23c66c2cbb15e839db33cf2"
+    },
+    "registered_cases": 17,
+    "original_DP2_plan_accepted": true,
+    "invalid_CLI_scopes_rejected": 6,
+    "fixture_checks": 11,
+    "real_A100_capture_runs": 0,
+    "actual_replay_GPU_steps": 0
+  },
+  "diagnostic_evidence_boundaries": [
+    "per-rank original A100 flow SHA",
+    "same starting LoRA and cache identity",
+    "forward prediction and loss",
+    "averaged per-rank gradient before clipping",
+    "gradient and norm after clipping",
+    "one native Muon update and full updated optimizer state"
+  ],
+  "hardware_capture_executed": false,
+  "two_rank_replay_executed": false,
+  "formal_stage3_accepted": false,
+  "resource_observation": {
+    "proof": {
+      "path": "local-only/training80-current-parent-and-numbered-coverage-20261124-0408.json",
+      "bytes": 2358,
+      "SHA256": "d67a40e66dd84aad13b7ede6cbb8839ad635e6a337b133a7546e6556dfb0378a"
+    },
+    "observed_Beijing": "2026-11-24T04:08:59.431795+08:00",
+    "parent_held_DCU": {
+      "1103606": 320,
+      "1194900": 320
+    },
+    "numbered_running_DCU": 608,
+    "uncovered_nodes": [
+      "f12r2n12",
+      "f12r3n03",
+      "f13r4n06",
+      "f13r4n09"
+    ],
+    "full_fleet_synchronized_busy_percent": null
+  }
+}
