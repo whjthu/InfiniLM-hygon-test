@@ -1,0 +1,53 @@
+{
+  "schema": "O01.zimage.hipprof.zero_gres_preflight.claim.v1",
+  "owner": "bw1000/root",
+  "request": "4998d6ab291347c48f2ebc053947ed5c",
+  "label": "O01-hipprof-zero-gres-4998d6ab2913",
+  "result_dir": "results/O01-zimage-hipprof-zero-gres-4998d6ab291347c48f2ebc053947ed5c",
+  "source": {
+    "path": "tools/probe_zimage_hipprof_zero_gres.py",
+    "SHA256": "14be6d019ff70d841f1687c3f98a8ed8e2890a35f5c4f55d8c6d6aa710741952"
+  },
+  "resources": {
+    "parent": "1103606",
+    "node": "f12r2n11",
+    "CPU": 2,
+    "memory_MiB": 4096,
+    "DCU": 0,
+    "slurm_seconds": 180,
+    "per_profiler_process_seconds": 20
+  },
+  "predecessor": {
+    "request": "4241e3d58506499cb859abead6f937de",
+    "GPU_step": "1103606.1985",
+    "private_terminal_SHA256": "2572d8cdd921e190997a686b1018a3e18948c0ed00ab94479c3527ef280a07be",
+    "result": "results/bw1000/2026-11-24/O01-zimage-transposed-lt-unseen-original1985-profiler-harness-failure.json"
+  },
+  "container": {
+    "image": "containers/dtk26-sandbox-r1",
+    "entry": "/opt/dtk/env.sh",
+    "uses_existing_ROCm_binds": true,
+    "visibility_empty": true,
+    "workdir": "/",
+    "binds": [
+      "new result dir as /pair-run:rw and /pair-package:ro",
+      "qualified /pair-build:ro",
+      "original /training-runtime:ro",
+      "/usr/local/hyhal as /opt/hyhal:ro"
+    ],
+    "tracer": "/opt/dtk/hip/bin/hipprof",
+    "tracer_SHA256": "5fe2db93fb58b7c4e6e5cbf792fa90f81bb660ff54c3556dead235294f3b6a94"
+  },
+  "calls": [
+    "hipprof -h",
+    "hipprof original tracing flags with /bin/true"
+  ],
+  "qualification": {
+    "local_elf_fixture": true,
+    "local_vanishing_entry_fixture": true,
+    "local_spawn_ENOENT_fixture": true,
+    "actual_target_proof_pending": true,
+    "algorithm_test": false
+  },
+  "no_replay": true
+}
