@@ -1,0 +1,121 @@
+{
+  "schema": "bw1000.o01.zimage-hipblaslt-solution-preconditions.v1",
+  "paired_route_input": {
+    "step": "1103606.1877",
+    "path": "results/bw1000/2026-11-23/O01-zimage-hipprof-route-original1877-terminal.json",
+    "SHA256": "a721540a162c222e651b4d6a5c23b74d9e0be8ced93e456b9d3e301b405251e6"
+  },
+  "target_image": "dtk26-sandbox-r1",
+  "target_read_only": {
+    "actual_runtime_provider_from_trace": false,
+    "headers": {
+      "opt/dtk/include/hipblaslt/hipblaslt-ext.hpp": {
+        "SHA256": "e381c98dfd58cd1a8539b5985eb3db8df2080818cd4cba03538b1b871da9164d",
+        "bytes": 88675,
+        "symbols": [
+          "hipblasLtMatmul",
+          "matmulIsAlgoSupported"
+        ]
+      },
+      "opt/dtk/include/hipblaslt/hipblaslt.h": {
+        "SHA256": "3d04be988e619a3230ec08aefc8b1d8d92c03a573d7ebf723d4fe332bdf5ccdb",
+        "bytes": 58680,
+        "symbols": [
+          "hipblasLtMatmulAlgoGetHeuristic",
+          "hipblasLtMatmulDescCreate",
+          "hipblasLtMatrixLayoutCreate",
+          "hipblasLtMatmulPreferenceSetAttribute",
+          "hipblasLtMatmul"
+        ]
+      }
+    },
+    "libs": {
+      "opt/dtk/lib/libhipblaslt.so.0.10": {
+        "aliases": [
+          "opt/dtk/lib/libhipblaslt.so",
+          "opt/dtk/lib/libhipblaslt.so.0"
+        ],
+        "bytes": 7310024,
+        "defined_symbols": [
+          "hipblasLtMatmul",
+          "hipblasLtMatmulAlgoGetHeuristic",
+          "hipblasLtMatmulDescCreate",
+          "hipblasLtMatmulPreferenceSetAttribute",
+          "hipblasLtMatrixLayoutCreate"
+        ]
+      }
+    },
+    "read_only_ELF": true,
+    "exact_ELF_and_CXX_symbols": {
+      "CXX_defined": [
+        "getAlgosFromIndex",
+        "getAllAlgos",
+        "getIndexFromAlgo",
+        "matmulIsAlgoSupported"
+      ],
+      "header_symbol_line_ranges": {
+        "getAlgosFromIndex": [
+          [
+            1526,
+            1527,
+            1528,
+            1529,
+            1530,
+            1531,
+            1532,
+            1533
+          ]
+        ],
+        "getAllAlgos": [
+          [
+            1441,
+            1442,
+            1443,
+            1444,
+            1445,
+            1446,
+            1447,
+            1448
+          ]
+        ],
+        "getIndexFromAlgo": [
+          [
+            1463,
+            1464,
+            1465,
+            1466,
+            1467,
+            1468,
+            1469,
+            1470
+          ]
+        ],
+        "matmulIsAlgoSupported": [
+          [
+            1558,
+            1559,
+            1560,
+            1561,
+            1562,
+            1563,
+            1564,
+            1565
+          ]
+        ]
+      },
+      "library_SHA256": "03c8f72e2d1a8172127e98cfd41040631e69a7f92821879387cf31df25b0549d",
+      "library_bytes": 7310024,
+      "published_header_SHA256": "e381c98dfd58cd1a8539b5985eb3db8df2080818cd4cba03538b1b871da9164d"
+    }
+  },
+  "decision": {
+    "default_Lt_routes_promoted": false,
+    "evidence": "Both observed Lt dispatches took longer in their respective single profiled observation. No unprofiled paired result exists.",
+    "next_native_candidate": "transposed RHS [1,3840], current observed MT256x256x16 solution anchor, vary only supported solution identity at the same workspace bound",
+    "numeric_and_schedule": "BF16 unchanged, same dimensions and physical accelerator; recover original kernel signature and preserve exact numerical reference before timing an alternative.",
+    "native_consumer_compiled": false,
+    "native_algorithm_enumeration_run": false,
+    "actual_algorithm_workspace_verified": false,
+    "A100_or_training_qualified": false
+  }
+}
