@@ -7,7 +7,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from training_recovery import STATE_FIELDS, verify_recovery
+from training_recovery import STATE_FIELDS, verify_recovery, verify_registered_zimage_recovery
 from verify_training_acceptance import verify as verify_matrix
 
 
@@ -251,6 +251,40 @@ class RecoveryGateTest(unittest.TestCase):
         self.continuous['checkpoints'].pop(1)
         with self.assertRaisesRegex(ValueError, 'incomplete continuous checkpoint'):
             self.verify()
+
+
+class RegisteredZImageRecoveryTest(unittest.TestCase):
+    def test_archived_hip_pair_requires_exact_checkpoint_and_audit(self):
+        repo = Path(__file__).resolve().parents[1]
+        matrix = json.loads((repo / 'coordination/training/training-case-acceptance-matrix-v1.json').read_bytes())
+        cases = matrix['cases']
+        row = next(case for case in cases if case['case'] == 'T07.sft')
+        refs = row['supplemental_evidence']
+
+        def read(pin):
+            body = (repo / pin['path']).read_bytes()
+            self.assertEqual(hashlib.sha256(body).hexdigest(), pin['SHA256'])
+            return body
+
+        source_pin = refs['registered_native_HIP_recovery_source_scope']
+        source = json.loads(read(source_pin))
+        source_root = Path(source_pin['path']).parent.as_posix() + '/framework-delta'
+        report = json.loads(read(refs['registered_native_HIP_continuous25_and_fresh_resume20_exact']))
+
+        def validate(value):
+            return verify_registered_zimage_recovery(
+                value, source, source_root, [case['case'] for case in cases], read,
+            )
+
+        self.assertEqual(validate(report)['actual_updates'], {'continuous': 25, 'resume20': 5})
+        forked = copy.deepcopy(report)
+        forked['actual_execution_and_cleanup']['files']['resume20/restore.json']['fields']['checkpoint_SHA256'] = '0' * 64
+        with self.assertRaisesRegex(ValueError, 'restored checkpoint20'):
+            validate(forked)
+        incomplete = copy.deepcopy(report)
+        del incomplete['independent_numeric_and_state_comparison']['comparison']['exact_checkpoint25_contents']['rng']
+        with self.assertRaisesRegex(ValueError, 'same-platform recovery audit'):
+            validate(incomplete)
 
 
 if __name__ == '__main__':

@@ -11,6 +11,11 @@ STATE_FIELDS = (
     'parameters_SHA256', 'optimizer_SHA256', 'scheduler_SHA256', 'rng_SHA256',
     'data_cursor_SHA256',
 )
+ZIMAGE_FINAL_CHECKPOINT_FIELDS = {
+    'buffers', 'integrity_sha256', 'lr_scheduler', 'metadata', 'modes', 'optimizer',
+    'optimizer_implementation', 'optimizer_parameter_names', 'optimizer_placements',
+    'optimizer_progress', 'rng', 'scheduler', 'trainable',
+}
 
 
 def recovery_plan(case, verify_raw):
@@ -45,6 +50,106 @@ def rank_values(rows, ranks):
          and all(type(row['rank']) is int for row in rows)
          and [row['rank'] for row in rows] == list(range(ranks)), 'incomplete recovery rank inventory')
     return rows
+
+
+def verify_registered_zimage_recovery(report, source, source_root, registry, verify_bytes):
+    """Bind the recorded HIP recovery to its registered source, jobs and checkpoint."""
+    install = report['target_source_installation']
+    proof = source['source_proof']
+    framework = proof['candidate_commit']
+    need(report['case'] == source['case'] == 'T07.sft'
+         and report['candidate'] == install['candidate_commit'] == framework
+         and install['request'] == source['request']
+         and install['publication'] == report['published_scope']
+         and install['registered_case_count'] == len(registry) == 17
+         and proof['registry'] == registry
+         and install['source_files'] == proof['source_members']
+         and install['target_source_rehash_verified'] is True
+         and install['fresh_resume_without_checkpoint_refused'] is True,
+         'Z-Image recovery source or registered case identity differs')
+    for path, pin in proof['changed_members'].items():
+        raw = verify_bytes(dict(path=f'{source_root}/{path}', SHA256=pin['SHA256']))
+        need(len(raw) == pin['bytes'], 'Z-Image recovery source member length differs')
+    entry_sha = proof['changed_members']['tools/hygon_training_recipe.py']['SHA256']
+
+    execution = report['actual_execution_and_cleanup']
+    files = execution['files']
+    columns = ['JobIDRaw', 'JobName', 'State', 'ExitCode', 'ElapsedRaw', 'NodeList', 'AllocTRES']
+
+    def fields(name):
+        member = files[name]
+        need(sha(member['SHA256']) and member['bytes'] > 0, 'unbound Z-Image recovery record')
+        return member['fields']
+
+    def terminal(step, rows, expected_dcu):
+        matches = [row for row in rows if row[0] == step]
+        need(len(matches) == 1, 'missing or duplicate Z-Image recovery step')
+        row = completed_numbered_step(columns, matches[0], step, scope='Z-Image engineering recovery')
+        need(allocated_dcu(row['AllocTRES']) == expected_dcu, 'wrong DCU scope in Z-Image recovery')
+        return row
+
+    runs = {}
+    steps = []
+    labels = []
+    for mode, expected in (('continuous', list(range(1, 26))), ('resume20', list(range(21, 26)))):
+        invoked = fields(mode + '-registered-invocation.json')
+        result = fields(mode + '/result.json')
+        owner = fields(mode + '-worker-result.json')
+        progress = fields(mode + '/progress.json')
+        step = owner['slurm']
+        row = terminal(step, execution['accounting'], 1)
+        need(invoked['registered_case'] == report['case'] and invoked['candidate'] == framework
+             and invoked['entry_SHA256'] == entry_sha
+             and invoked['binding_SHA256'] == source['retained_real_binding']['SHA256']
+             and invoked['mode'] == owner['phase'] == result['mode'] == mode
+             and invoked['planned_global_steps'] == owner['completed_global_steps']
+             == result['completed_global_steps'] == progress['completed_global_steps'] == expected
+             and result['actual_optimizer_updates'] == owner['actual_optimizer_updates']
+             == report['actual_updates'][mode] == len(expected)
+             and result['passed'] is owner['passed'] is result['frozen_parameters_unchanged'] is True,
+             'Z-Image recovery optimizer steps, registered input binding or training result differs')
+        steps.append(step)
+        labels.append(row['NodeList'])
+        runs[mode] = result['checkpoints']
+    continuous, resume = runs['continuous'], runs['resume20']
+    need([item['global_step'] for item in continuous] == [10, 20, 25]
+         and [item['global_step'] for item in resume] == [25],
+         'Z-Image recovery checkpoint schedule differs')
+    restore = fields('resume20/restore.json')
+    after20 = continuous[1]
+    need(restore['restored_boundary_exact'] is True
+         and restore['checkpoint_SHA256'] == after20['SHA256'] == fields('resume20-worker-result.json')['checkpoint20_SHA256']
+         and restore['next']['global_step'] == 21
+         and restore['next']['sample_cursor'] == after20['next_data_cursor']
+         and restore['rng_devices'] == after20['RNG_devices'] == [0]
+         and all(sha(continuous[-1][key]) and continuous[-1][key] == resume[-1][key]
+                 for key in ('SHA256', 'adapter_SHA256', 'integrity_SHA256')),
+         'Z-Image recovery restored checkpoint20 or final checkpoint25 differs')
+
+    audit = report['independent_numeric_and_state_comparison']
+    comparison = audit['comparison']
+    post = fields('post.json')
+    cleaned = terminal(post['step'], execution['accounting'], 0)
+    audit_step, = report['independent_audit_accounting']['accounting']
+    terminal(audit_step[0], [audit_step], 0)
+    need(len(set([*steps, post['step'], audit_step[0]])) == 4
+         and labels == [post['node'], post['node']] and cleaned['NodeList'] == post['node']
+         and audit['accounting'][0][0] == audit_step[0]
+         and audit['producer_outcome_SHA256'] == files['outcome.json']['SHA256']
+         and fields('outcome.json')['post_clean'] is True
+         and comparison['actual_slurm_steps'] == steps
+         and comparison['same_pci'] is comparison['paired_input_fingerprints_equal'] is True
+         and comparison['paired_steps'] == list(range(21, 26))
+         and comparison['paired_loss_abs'] == [0] * 5
+         and comparison['max_adapter_abs'] == comparison['adapter_tensors_with_differences'] == 0
+         and set(comparison['exact_checkpoint25_contents']) == ZIMAGE_FINAL_CHECKPOINT_FIELDS
+         and all(value is True for value in comparison['exact_checkpoint25_contents'].values())
+         and comparison['A100_comparison_executed'] is False,
+         'Z-Image independent same-platform recovery audit differs')
+    return dict(framework_commit=framework, registered_cases=len(registry),
+                actual_steps=steps, audit_step=audit_step[0], cleanup_step=post['step'],
+                actual_updates=report['actual_updates'], final_checkpoint_SHA256=resume[-1]['SHA256'],
+                cross_platform_numerics=False, formal_performance=False)
 
 
 def state(rows, ranks):

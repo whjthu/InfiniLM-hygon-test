@@ -2,7 +2,7 @@
 import argparse
 import hashlib
 import json
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 from training_formal_metrics import (
     stage_three, verify_hunyuan_a100_recorded_updates, verify_hunyuan_dp2_a100_windows,
@@ -13,7 +13,7 @@ from training_function import verify_function
 from training_numerics import (
     ZERO_LR_VLM_REQUESTS, comparison_plan as numerics_plan, original_vlm_update_schedule, verify_numerics,
 )
-from training_recovery import recovery_plan, verify_recovery
+from training_recovery import recovery_plan, verify_recovery, verify_registered_zimage_recovery
 from training_sample_artifacts import verifier as sample_artifact_verifier
 
 
@@ -145,6 +145,16 @@ def verify(root, *, private_roots=()):
     timing_audits = matrix['original_A100_engineering_timing_audits']
     require(set(timing_audits) == {'generation', 'vlm', 'vggt'}, 'unexpected original timing audit bindings')
     case_by_id = {case['case']: case for case in cases}
+    verified_zimage_recovery = None
+    zimage_refs = case_by_id['T07.sft'].get('supplemental_evidence', {})
+    zimage_source = zimage_refs.get('registered_native_HIP_recovery_source_scope')
+    if zimage_source is not None:
+        zimage_terminal = zimage_refs['registered_native_HIP_continuous25_and_fresh_resume20_exact']
+        source_root = PurePosixPath(zimage_source['path']).parent / 'framework-delta'
+        verified_zimage_recovery = verify_registered_zimage_recovery(
+            verify_formal_attachment(zimage_terminal), verify_formal_attachment(zimage_source),
+            source_root, ids, pinned_attachment,
+        )
     overlay_index = case_by_id["T09.dp2"].get("qualified_framework_overlay")
     verified_overlay = None
     if overlay_index is not None:
@@ -256,6 +266,7 @@ def verify(root, *, private_roots=()):
             "verified_deployed_registry_source": verified_registry,
             "verified_DP2_framework_overlay_source": verified_overlay,
             "verified_integrated_portable_candidate": verified_integrated_candidate,
+            "verified_zimage_same_platform_engineering_recovery": verified_zimage_recovery,
             "verified_A100_engineering_medians_updates_per_second": a100_windows,
             "A100_engineering_cases_without_archived_timing_boundary_description": no_boundary_description,
             "A100_engineering_clock_boundaries_verified_from_original_source": sorted(recovered_boundaries['cases']),
