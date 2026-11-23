@@ -2,10 +2,12 @@
 import argparse
 import hashlib
 import json
+import math
 from pathlib import Path, PurePosixPath
+from statistics import median
 
 from training_formal_metrics import (
-    stage_three, verify_hunyuan_a100_recorded_updates, verify_hunyuan_dp2_a100_windows,
+    complete_window, sha, stage_three, verify_hunyuan_a100_recorded_updates, verify_hunyuan_dp2_a100_windows,
 )
 from training_A100_engineering_timing import VGGT_CASE, check_generation, check_vggt, check_vlm
 from training_framework_identity import verify_overlay_source, verify_registry_source
@@ -23,6 +25,73 @@ TRAINING_GROUPS = {f"T{i:02d}" for i in range(1, 13)}
 def require(condition, message):
     if not condition:
         raise ValueError(message)
+
+
+def verify_zimage_engineering_windows(report, reference, a100_median, read_json):
+    """Bind the measured Z-Image windows to their original claim and A100 clock audit."""
+    manifest_item = report["source_manifest"]
+    manifest = read_json(manifest_item)
+    claim_pin = manifest["files"]["CLAIM.json"]
+    claim_path = PurePosixPath(manifest_item["path"]).with_name("CLAIM.json")
+    claim = read_json(dict(claim_pin, path=claim_path.as_posix()))
+    seal = read_json(report["source_seal"])["terminal"]
+    require(report["case"] == claim["case"] == "T07.sft"
+            and report["request"] == claim["request"] and report["label"] == claim["label"]
+            and report["claim_SHA256"] == claim_pin["SHA256"]
+            and report["framework_commit"] == claim["common_candidate"]["candidate_commit"] == seal["framework"]
+            and seal["manifest_SHA256"] == claim["common_candidate"]["manifest_sha256"]
+            and seal["SHA256"] == claim["common_candidate"]["source_stage_sha256"]
+            and seal["case_count"] == 17, "Z-Image engineering source identity differs")
+    baseline = report["accounting"]["baseline"]
+    require(report["accounting_columns"] == ["JobIDRaw", "JobName%100", "State", "ExitCode",
+                                             "ElapsedRaw", "NodeList", "AllocTRES"]
+            and set(report["accounting"]) == {"baseline", "control", "pre", "post"}
+            and all(isinstance(row, list) and len(row) == 7 and all(isinstance(field, str) for field in row)
+                    for row in report["accounting"].values())
+            and len({row[0] for row in report["accounting"].values()}) == 4
+            and baseline[0] == report["actual_gpu_step"] and report["same_PCI_verified"] is True
+            and report["independent_post_clean"] is True and report["original_controller_passed"] is True
+            and report["failure"] is None, "Z-Image engineering run or cleanup is unresolved")
+    for role, row in report["accounting"].items():
+        node = claim["control_node"] if role == "control" else claim["node"]
+        gres = [part for part in row[6].split(",") if part.startswith("gres/")]
+        require(row[0].startswith(claim["parent"] + ".") and row[0].rsplit(".", 1)[1].isdigit()
+                and row[1:4] == [claim["label"] + "-" + role, "COMPLETED", "0:0"] and row[5] == node
+                and gres == (["gres/dcu=1"] if role == "baseline" else []), "Z-Image engineering Slurm step differs")
+    repeats = report["repeats"]
+    require(set(repeats) == {"repeat01", "repeat02", "repeat03"}
+            and report["qualified_repeats"] == report["planned_repeats"] == report["independent_process_count"] == 3
+            and report["completed_optimizer_updates"] == claim["actual_optimizer_updates_planned"] == 75
+            and report["rate_units"] == "updates_per_second"
+            and claim["checkpoint_ordinals"] == [10, 20, 25], "Z-Image engineering repeat scope differs")
+    rates = []
+    for row in repeats.values():
+        clock = row["clock"]
+        seconds = complete_window(clock)
+        start, end = clock["start_ns"], clock["end_ns"]
+        require(row["passed"] is True and clock["clock"] == "monotonic_ns" and clock["warmup_updates"] == 5
+                and clock["includes_input_fetch_and_durable_checkpoint_io"] is True
+                and clock["profile"] is False and clock["first_update_capture"] is False
+                and clock["checkpoint_ordinals"] == [10, 20, 25]
+                and type(start) is int and type(end) is int and end > start >= 0
+                and math.isclose(seconds, (end - start) / 10**9, rel_tol=1e-12)
+                and math.isclose(clock["updates_per_second"], 20 / seconds, rel_tol=1e-12)
+                and [cp["global_step"] for cp in row["checkpoints"]] == [10, 20, 25]
+                and all(type(cp["bytes"]) is int and cp["bytes"] > 0 and sha(cp["SHA256"])
+                        for cp in row["checkpoints"]), "Z-Image engineering clock or checkpoints differ")
+        rates.append(20 / seconds)
+    hygon_median = median(rates)
+    ratio = hygon_median / a100_median
+    require(report["A100_timing_evidence"]["path"] == reference["path"]
+            and report["A100_timing_evidence"]["SHA256"] == report["a100_source_SHA256"] == reference["SHA256"]
+            and report["a100_median"] == a100_median
+            and math.isclose(report["hygon_median"], hygon_median, rel_tol=1e-12)
+            and math.isclose(report["engineering_rate_ratio"], ratio, rel_tol=1e-12)
+            and report["formal_A100_numerics"] is report["heldout_effect_verified"] is report["stage_three_accepted"] is False,
+            "Z-Image engineering summary or qualification differs")
+    return {"actual_gpu_step": baseline[0], "framework_commit": report["framework_commit"], "repeats": len(rates),
+            "hygon_median_updates_per_second": hygon_median, "a100_median_updates_per_second": a100_median,
+            "engineering_rate_ratio": ratio, "stage_three_accepted": False}
 
 
 def verify(root, *, private_roots=()):
@@ -220,6 +289,13 @@ def verify(root, *, private_roots=()):
         }
     generation_timing = verify_formal_attachment(timing_audits['generation'])
     a100_windows.update(check_generation(case_by_id, generation_timing))
+    zimage_windows = zimage_refs.get("registered_native_HIP_three_complete_engineering_windows")
+    verified_zimage_windows = None
+    if zimage_windows is not None:
+        verified_zimage_windows = verify_zimage_engineering_windows(
+            verify_formal_attachment(zimage_windows), timing_audits["generation"],
+            a100_windows["T07.sft"], verify_formal_attachment,
+        )
     no_boundary_description = [name for name, audit in generation_timing['cases'].items()
                                if audit['repeats'][0]['reported_timing_boundary'] is None]
     recovered_boundaries = verify_formal_attachment(matrix['original_A100_recovered_RL_clock_boundaries'])
@@ -267,6 +343,7 @@ def verify(root, *, private_roots=()):
             "verified_DP2_framework_overlay_source": verified_overlay,
             "verified_integrated_portable_candidate": verified_integrated_candidate,
             "verified_zimage_same_platform_engineering_recovery": verified_zimage_recovery,
+            "verified_zimage_engineering_windows": verified_zimage_windows,
             "verified_A100_engineering_medians_updates_per_second": a100_windows,
             "A100_engineering_cases_without_archived_timing_boundary_description": no_boundary_description,
             "A100_engineering_clock_boundaries_verified_from_original_source": sorted(recovered_boundaries['cases']),
