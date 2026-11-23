@@ -109,6 +109,7 @@ def start():
 class StandbyChildren:
     """Keep only srun children from the frozen launcher under the compute step."""
 
+    DEVNULL = subprocess.DEVNULL
     check_output = staticmethod(subprocess.check_output)
 
     def __init__(self):
