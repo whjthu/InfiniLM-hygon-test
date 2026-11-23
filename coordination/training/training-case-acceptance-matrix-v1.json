@@ -1083,7 +1083,7 @@
       "original_cards": 2,
       "a100_reference": "已审计原双 rank 计时、训练与恢复记录。",
       "target_evidence": "目标 Slurm 1103606.1612 使用原双卡 SP=1 配方完成 25 步及两次恢复；统一入口运行于 a68952cb 基础快照与两份已核对的 DP2 后端文件。",
-      "target_numerics": "海光两 rank 的训练副本在全程一致；A100 同输入零更新前向、首步梯度和优化器状态对照待验。",
+      "target_numerics": "原 A100 三轮中同一 rank 的首步 flow 输入指纹完全一致；海光与 A100 的配方、初始 LoRA 一致，但两个 rank 的首步输入指纹均不同，换 rank 后仍无匹配。固定输入回放和首步梯度、更新及优化器状态尚待验证。",
       "target_recovery": "从第 10、20 步用全新双 rank 进程恢复，独立复核后续 15、5 步逐条一致且检查点内容及边界匹配。",
       "target_performance": "同口径海光单轮 0.141178 次更新/秒，为 A100 三轮中位数的 71.04%；三轮正式性能仍待验证。",
       "target_holdout_effect": "待留出集实测",
@@ -1123,6 +1123,11 @@
         "actual_common_recipe_and_private_provider_mounts": {
           "path": "results/bw1000/2026-11-23/training-hunyuanvideo-dp2-preflight-v4-original1565-pass.json",
           "SHA256": "444a4df80999c41b383a433a79a50922e4f1212776132b5c66158c3827945301"
+        },
+        "original_A100_Hygon_first_flow_input_fingerprint_mismatch": {
+          "path": "results/bw1000/2026-11-24/training-hunyuanvideo-DP2-original-A100-and-Hygon-first-flow-mismatch.json",
+          "bytes": 3065,
+          "SHA256": "ef1f21c8dd6cee58d4416a26d40c0f5381199068fb69cacfc12e2d76c54d4d98"
         }
       }
     },
