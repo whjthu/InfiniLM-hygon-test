@@ -1,0 +1,66 @@
+{
+  "schema": "bw1000.fleet-dcu-standby-f13r4n03.v1",
+  "owner": "bw1000/root/standby_resource_monitor",
+  "parent": "1194900",
+  "node": "f13r4n03",
+  "GPU_cards": 8,
+  "CPU_cores": 8,
+  "memory_MiB": 16384,
+  "maximum_GPU_nodes": 1,
+  "synthetic": true,
+  "preemptible": true,
+  "replay_allowed": false,
+  "original_probe": {
+    "step": "1194900.378",
+    "label": "training80-admit-zero189-overlap-da23271e45384f55bcf7475b6b513409",
+    "source_receipt": "local-only/training80-1655-f13r4n03-overlap-original-da23271e45384f55bcf7475b6b513409.json",
+    "source_receipt_SHA256": "c53666a8a4ab9a57af95e4640bb28343c2ddbcb0a85a484c98d154f261a76987"
+  },
+  "protected_zero_GRES_accounting_conflicts": {
+    "1194900.189": {
+      "name": "training80-admit-b0c43a4cae196c1f4f0a4a9ee71c0950",
+      "resources": "cpu=1,mem=256M,node=1",
+      "preserve_reservation": true,
+      "replay_allowed": false
+    }
+  },
+  "zero_GRES_controls": {},
+  "pci": [
+    "0000:09:00.0",
+    "0000:36:00.0",
+    "0000:55:00.0",
+    "0000:77:00.0",
+    "0000:85:00.0",
+    "0000:b5:00.0",
+    "0000:d5:00.0",
+    "0000:f5:00.0"
+  ],
+  "dependencies_SHA256": {
+    "pilot": "597fc5f98d31de70777f4df665c50f6ef19537be86b664d42d66872804e25fc6",
+    "worker": "dc8820e17b8d4d2886325c6093ad8884e6a5a1085e0eedd40eb53cfb12235059",
+    "controller": "be504e7670b40d77e503c60c93d76bf2a75003768d764d54884c5f8272976bba"
+  },
+  "probe_source_SHA256": {
+    "collect_training80_dispatch_snapshot.py": "635c29d46aed1924bfa2642c532d30d1152d779acd4baf1d0d7cc38b8098183c",
+    "read_training_slurm_membership.py": "8d071a48cad3a36ae0f917a2b5c7714abecc749cca55c8a38d1942fb2cc679be",
+    "sample_training80_busy.py": "6e4a964b9fe4af69974a73dc1f5d3338d1c7cacc7d68426d0890c58cd158e324",
+    "training_dispatch_allocation.py": "e603bbbb1ef6dd539d667d547675022c2a5236fba2d7bf873dbff44950ed80b6",
+    "tuning_queue.py": "1efeacc8331d7d230a1fc53a8512c82f462b67e69993df43ce196066aef37d45"
+  },
+  "stages": {
+    "pilot": {
+      "request": "e5b27f6cc36b4659ab7c8083fca7486f",
+      "worker_seconds": 120,
+      "slurm_seconds": 420,
+      "max_invocations": 1
+    },
+    "standby": {
+      "request": "479d0b2c7f3c490ba978209862b125c5",
+      "worker_seconds": 10500,
+      "slurm_seconds": 10800,
+      "max_invocations": 1,
+      "requires_pilot_two_point_growth": true,
+      "requires_pilot_terminal_and_independent_cleanup": true
+    }
+  }
+}
