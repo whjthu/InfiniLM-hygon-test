@@ -14,3 +14,15 @@ python -B code/bw1000/training-trellis-khronos-heldout4-v1/build.py \
 以父子节点的全局变换还原场景，保留索引三角面和原图元范围。参考点和未来预测使用同一个以参考包围盒中心及最长边定义的 Y-up 坐标系。每个对象按面积采样 2,048 个参考点，零面积三角面保留在原始分母内。glTF 的 POSITION 边界在访问器声明的 float32 精度下精确核对。 [glTF 2.0 Accessor Bounds](https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#accessors-bounds)
 
 输出包含逐对象失败记录。当前四项均生成了参考数据，正式 A100 对照、模型预测、Chamfer-L1 与 F-score@1% 待实测。几何原件和 NPZ 保存在本地忽略目录。
+
+## 配对评分
+
+`score.py` 读取每个对象的同一条件输入、坐标配准和采样种子下生成的三份点云。输入 manifest 使用 `TRELLIS_PUBLIC_HELDOUT4_PAIRED_PREDICTIONS_V1`，`frame` 为 `reference-normalized-glTF-Yup-v1`。顶层的 `checkpoints` 固定 `initial`、`hygon`、`a100` 三组的 `SHA256` 和 `effective_updates`。两组训练后检查点使用相同有效更新数。每个 `objects` 条目固定 `seed`、`conditioning_SHA256` 和 `registration_SHA256`。在 `predictions` 中按组登记这个绑定、`frame`、`checkpoint_SHA256`、`receipt_SHA256` 及 `points_SHA256`。点云分别保存为 `<对象>-<组>.npz`，每份固定为连续 float32 的 2,048 × 3 `points`。
+
+```shell
+python -B code/bw1000/training-trellis-khronos-heldout4-v1/score.py \
+  --reference-root <参考目录> --prediction-root <预测目录> \
+  --manifest <预测清单> --manifest-SHA256 <SHA256> --output <新结果文件>
+```
+
+评分保留四对象、十二条预测的固定分母。该程序核对传入摘要与配对绑定，实际模型导出、检查点来源与配准仍由独立回执核验。
