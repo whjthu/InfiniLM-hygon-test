@@ -38,6 +38,9 @@ def render(base_manifest, base, extra, scope):
     }.items():
         if re.fullmatch(regex, scope[key]) is None:
             raise ValueError("Invalid privately bound execution scope")
+    host_mount_device = scope["host_mount_device"]
+    if type(host_mount_device) is not int or not 0 <= host_mount_device < 2**64:
+        raise ValueError("Invalid observed HOST mount device")
 
     # Resolve the old scope literals from its pinned claim, so no live topology is in the renderer.
     previous = json.loads(base["CLAIM.json"])
@@ -53,6 +56,9 @@ def render(base_manifest, base, extra, scope):
         f'PROFILE_INVENTORY_SHA256 = {json.dumps(scope["profile_inventory_SHA256"])}')
     contract = patch(contract, 'and actual.get("node") == NODE',
                      'and actual.get("node") == WEIGHT_RECEIPT_NODE')
+    # Rebind only the HOST mount-local device number. Preserve inode, size, timestamps and compute/full-SHA evidence.
+    contract = patch(contract, 'HOST_MODEL_STAMP = [54, *MODEL_STAMP[1:]]',
+                     f'HOST_MODEL_STAMP = [{host_mount_device}, *MODEL_STAMP[1:]]')
 
     commands = patch(base["commands.py"],
         'exec python3 -B -u "$@"',
