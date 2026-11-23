@@ -24,10 +24,32 @@ MAX_OUTPUT_BYTES = 2 * 1024 * 1024
 NODES_PER_PROBE = 8
 PARALLEL_PROBES = 4
 PROBE_TIMEOUT_S = 10
+PROBE_TERM_GRACE_S = 2
 
 
 def digest(raw):
     return hashlib.sha256(raw).hexdigest()
+
+
+def run_device_probe(argv, *, capture_output, timeout, check):
+    """Give srun time to relay TERM before killing only its local launcher."""
+    require(capture_output and not check, 'unexpected probe subprocess options')
+    probe = subprocess.Popen(argv, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE, start_new_session=True)
+    try:
+        stdout, stderr = probe.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired as expired:
+        probe.terminate()
+        try:
+            _, _ = probe.communicate(timeout=PROBE_TERM_GRACE_S)
+        except subprocess.TimeoutExpired:
+            probe.kill()
+            probe.wait(timeout=PROBE_TERM_GRACE_S)
+        raise expired
+    finally:
+        probe.stdout.close()
+        probe.stderr.close()
+    return subprocess.CompletedProcess(argv, probe.returncode, stdout, stderr)
 
 
 def validate_ports(ports):
@@ -124,7 +146,7 @@ def read_worker_rows(raw, request, parent, nodes, ports, uid):
 
 
 def collect(request, ledger_raw, pins, ports, *, priority_nodes=(), held_nodes=(), priority_only=False,
-            run=subprocess.run, clock=time.monotonic):
+            run=None, clock=time.monotonic):
     require(re.fullmatch(r'[0-9a-f]{32}', request), 'request ID must be the original 32 hex digest')
     kind, groups, owners = allocation(ledger_raw)
     require_pins(owners, pins)
@@ -132,6 +154,8 @@ def collect(request, ledger_raw, pins, ports, *, priority_nodes=(), held_nodes=(
     priority_nodes = validate_scope_nodes(priority_nodes, owners)
     held_nodes = set(validate_scope_nodes(held_nodes, owners))
     uid = os.getuid()
+    query_run = subprocess.run if run is None else run
+    probe_run = run_device_probe if run is None else run
     started = clock()
     deadline = started + 48
     hostlists = {}
@@ -143,7 +167,7 @@ def collect(request, ledger_raw, pins, ports, *, priority_nodes=(), held_nodes=(
             return hostlists[args]
         remaining = deadline - clock()
         require(remaining > 0, 'Slurm observation budget expired')
-        raw = run(args, capture_output=True, timeout=min(8, remaining), check=True).stdout
+        raw = query_run(args, capture_output=True, timeout=min(8, remaining), check=True).stdout
         require(len(raw) <= MAX_OUTPUT_BYTES, 'Slurm output exceeded bounds')
         lines = raw.decode('utf-8').strip().splitlines()
         if is_expansion:
@@ -162,16 +186,18 @@ def collect(request, ledger_raw, pins, ports, *, priority_nodes=(), held_nodes=(
         batch_request = digest(f'{request}:{parent}:{index}'.encode('ascii'))[:32]
         receipt = dict(request_id=batch_request, requested_nodes=nodes)
         remaining = deadline - clock() - 12
-        if remaining <= 0:
+        cleanup_budget = 2 * PROBE_TERM_GRACE_S
+        if remaining <= cleanup_budget:
             return {}, dict(receipt, state='BUDGET_EXPIRED')
         count = str(len(nodes))
-        args = ['srun', '--jobid=' + parent, '--job-name=training80-admit-' + batch_request,
+        args = ['srun', '--threads=1', '--jobid=' + parent, '--job-name=training80-admit-' + batch_request,
                 '--exact', '--immediate=5', '--nodes=' + count, '--ntasks=' + count,
                 '--ntasks-per-node=1', '--nodelist=' + ','.join(nodes), '--cpus-per-task=1',
                 '--mem=256M', '--gres=none', '--time=00:01:00', '--kill-on-bad-exit=0', HOST_PYTHON,
                 '-B', str(Path(__file__).resolve()), 'node', batch_request, parent, json.dumps(ports)]
         try:
-            result = run(args, capture_output=True, timeout=min(PROBE_TIMEOUT_S, remaining), check=False)
+            result = probe_run(args, capture_output=True, timeout=min(PROBE_TIMEOUT_S, remaining - cleanup_budget),
+                               check=False)
             rows = read_worker_rows(result.stdout, batch_request, parent, nodes, ports, uid)
             state = 'SRUN_FAILED_WITHOUT_ROWS' if result.returncode and not rows else 'RETURNED'
             return rows, dict(receipt, state=state, returncode=result.returncode, received_nodes=sorted(rows),

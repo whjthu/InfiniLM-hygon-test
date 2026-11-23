@@ -23,6 +23,27 @@ def step(members, count):
 
 
 class StepUsageTest(unittest.TestCase):
+    def test_device_probe_gives_slurm_a_bounded_term_grace(self):
+        from collect_training80_dispatch_snapshot import PROBE_TERM_GRACE_S, run_device_probe
+
+        argv = ['srun', '--threads=1']
+        for needs_kill in (False, True):
+            with self.subTest(needs_kill=needs_kill), patch(
+                    'collect_training80_dispatch_snapshot.subprocess.Popen') as start:
+                process = start.return_value
+                expiration = subprocess.TimeoutExpired(argv, 5)
+                after_term = subprocess.TimeoutExpired(argv, PROBE_TERM_GRACE_S) if needs_kill else (b'partial', b'')
+                process.communicate.side_effect = [expiration, after_term]
+                with self.assertRaises(subprocess.TimeoutExpired) as raised:
+                    run_device_probe(argv, capture_output=True, timeout=5, check=False)
+                self.assertIs(raised.exception, expiration)
+                process.terminate.assert_called_once()
+                self.assertEqual(process.communicate.call_args.kwargs, {'timeout': PROBE_TERM_GRACE_S})
+                self.assertEqual(process.kill.call_count, int(needs_kill))
+                self.assertEqual(process.wait.call_count, int(needs_kill))
+                process.stdout.close.assert_called_once()
+                process.stderr.close.assert_called_once()
+
     def test_cpu_device_check_reads_kfd_holders_and_requested_socket_ports(self):
         from collect_training80_dispatch_snapshot import device_status
 
