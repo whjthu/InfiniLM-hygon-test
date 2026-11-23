@@ -30,6 +30,7 @@
     "SHA256": "cc7c857a61f895cee99d9d86656d57fb0371a1d66c49e365c183a260e8ed8a32"
   },
   "evidence_SHA256": {
+    "results/bw1000/2026-11-23/training-hunyuanvideo-dp2-live-original1612-terminal-recovery-and-standby.json": "715248822167207b824007a1c76237ebfd0bfe0e39bc203c608b2b90ed3e4aac",
     "results/bw1000/2026-11-14/training-qwen-1087656-220-native25-independent-terminal-and-checkpoint-inventory.json": "a9eed82cb336b2024bdbb126e9c68054aeda0c1f33dd21456ad863ce36f945d7",
     "results/bw1000/2026-11-14/training-qwen-1087656-223-capture-content-and-a100-differences.json": "6cef563755a59a4d87eccfe6245e9ec7e179dd4952bcf3b0c86dfc286c83bad4",
     "results/bw1000/2026-11-14/training-qwen-1087656-235-same-checkpoint25-tensor-differences.json": "9ae5436d0c83e135e75e1502bd6d92917baa28f15c4b75998c19a8b025cf5ff8",
@@ -1012,15 +1013,15 @@
       "launch_SHA256": "181b1ca706a7d62741298192c3391a0336acf0c60624aa9f2645e90a55934a6f",
       "original_cards": 2,
       "a100_reference": "已审计原双 rank 计时、训练与恢复记录。",
-      "target_evidence": "基础 SFT 海光侧验收及 DP2 实跑待完成。",
-      "target_numerics": "未验证",
-      "target_recovery": "海光未验证",
-      "target_performance": "待三轮同口径实测",
+      "target_evidence": "目标 Slurm 1103606.1612 使用原双卡 SP=1 配方完成 25 步及两次恢复；统一入口运行于 a68952cb 基础快照与两份已核对的 DP2 后端文件。",
+      "target_numerics": "海光两 rank 的训练副本在全程一致；A100 同输入零更新前向、首步梯度和优化器状态对照待验。",
+      "target_recovery": "从第 10、20 步用全新双 rank 进程恢复，独立复核后续 15、5 步逐条一致且检查点内容及边界匹配。",
+      "target_performance": "同口径海光单轮 0.141178 次更新/秒，为 A100 三轮中位数的 71.04%；三轮正式性能仍待验证。",
       "target_holdout_effect": "待留出集实测",
       "stage3_accepted": false,
       "reference_evidence": "results/bw1000/2026-11-13/training-hunyuanvideo-dp2-A100-slowest-rank-and-recovery-audit.json",
       "a100_rank_window_audit": "results/bw1000/2026-11-13/training-hunyuanvideo-dp2-A100-slowest-rank-and-recovery-audit.json",
-      "hygon_evidence": null,
+      "hygon_evidence": "results/bw1000/2026-11-23/training-hunyuanvideo-dp2-live-original1612-terminal-recovery-and-standby.json",
       "a100_median_updates_per_second": 0.19871607975371872,
       "recovery_plan": {
         "original_launch_SHA256": "181b1ca706a7d62741298192c3391a0336acf0c60624aa9f2645e90a55934a6f",
@@ -1043,6 +1044,16 @@
         "comparison_limits": {
           "loss_absolute": 0,
           "parameter_relative_l2": 0
+        }
+      },
+      "supplemental_evidence": {
+        "same_platform_DP2_and_checkpoint_recovery": {
+          "path": "results/bw1000/2026-11-23/training-hunyuanvideo-dp2-live-original1612-terminal-recovery-and-standby.json",
+          "SHA256": "715248822167207b824007a1c76237ebfd0bfe0e39bc203c608b2b90ed3e4aac"
+        },
+        "actual_common_recipe_and_private_provider_mounts": {
+          "path": "results/bw1000/2026-11-23/training-hunyuanvideo-dp2-preflight-v4-original1565-pass.json",
+          "SHA256": "444a4df80999c41b383a433a79a50922e4f1212776132b5c66158c3827945301"
         }
       }
     },
