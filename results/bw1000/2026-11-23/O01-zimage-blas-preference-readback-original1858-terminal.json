@@ -1,0 +1,137 @@
+{
+  "schema": "bw1000.o01.zimage-blas-preference-readback.terminal.v1",
+  "request": "42076a83bf4d4c7bb4eb917ceeea103a",
+  "publication": "15b14992b6e2487011866845cc6e24ff12c704bd",
+  "target": "same target Torch and HIP training image, 2 CPU, 0 DCU",
+  "accounting_columns": [
+    "JobIDRaw",
+    "JobName",
+    "State",
+    "ExitCode",
+    "ElapsedRaw",
+    "NodeList",
+    "AllocTRES"
+  ],
+  "accounting": [
+    [
+      "1103606.1858",
+      "zimage-blas-cpu-readback-42076a83bf4d",
+      "COMPLETED",
+      "0:0",
+      "6",
+      "f12r2n13",
+      "cpu=2,mem=4G,node=1"
+    ]
+  ],
+  "epoch": 1795441501.178143,
+  "files": {
+    "intent.json": {
+      "SHA256": "805ff3f1307a136427f91e426603913e62e286e7bec4a54ae6b16a1683bff476",
+      "bytes": 374,
+      "fields": {
+        "deadline": 1795441598.955672,
+        "epoch": 1795441468.955672,
+        "memory_MiB": 4096,
+        "node": "f12r2n13",
+        "parent": "1103606",
+        "planned_CPUs": 2,
+        "planned_DCU": 0,
+        "publication": "15b14992b6e2487011866845cc6e24ff12c704bd",
+        "replay_allowed": false,
+        "request": "42076a83bf4d4c7bb4eb917ceeea103a",
+        "source_SHA256": "b194a30f5914530e9346f3fdd35592a3b6465592a1e21e20d82f77c62f384589"
+      }
+    },
+    "launcher.json": {
+      "SHA256": "62bb262a050b52d32687d50a5afb560ac8c91785980c018b4fb961601221f060",
+      "bytes": 120,
+      "fields": {
+        "actual_GPU_submitted": 0,
+        "phase": "launcher_created",
+        "pid": 2738656,
+        "request": "42076a83bf4d4c7bb4eb917ceeea103a"
+      }
+    },
+    "stderr.private": {
+      "SHA256": "2f7c6a311d6f6cfeab7a86416e34c9d91e999ac823c328eaa0f1ced3bc2deffc",
+      "bytes": 344
+    },
+    "stdout.jsonl": {
+      "SHA256": "9ba01310293edff7d7b29c46a65d713cb0aa795a88fe6df593940d918688f3a3",
+      "bytes": 1793,
+      "metadata_receipts": [
+        {
+          "GPU_initialized": false,
+          "HIP": "6.3.26113",
+          "initial": "_BlasBackend.Cublas",
+          "node": "f12r2n13",
+          "passed": true,
+          "preference_module_SHA256": "9e435abe39660b47021b23a594d6472db073cdf057a888cef158f9cc0f307ebc",
+          "restored": "_BlasBackend.Cublas",
+          "rows": [
+            {
+              "after": "_BlasBackend.Cublaslt",
+              "before": "_BlasBackend.Cublas",
+              "enum": "_BlasBackend.Default",
+              "getter_equals_enum": false,
+              "native_getter": "_BlasBackend.Cublaslt",
+              "requested": "default",
+              "returned": "_BlasBackend.Cublaslt",
+              "returned_equals_enum": false,
+              "warnings": []
+            },
+            {
+              "after": "_BlasBackend.Cublas",
+              "before": "_BlasBackend.Cublaslt",
+              "enum": "_BlasBackend.Cublas",
+              "getter_equals_enum": true,
+              "native_getter": "_BlasBackend.Cublas",
+              "requested": "cublas",
+              "returned": "_BlasBackend.Cublas",
+              "returned_equals_enum": true,
+              "warnings": []
+            },
+            {
+              "after": "_BlasBackend.Cublaslt",
+              "before": "_BlasBackend.Cublas",
+              "enum": "_BlasBackend.Cublaslt",
+              "getter_equals_enum": true,
+              "native_getter": "_BlasBackend.Cublaslt",
+              "requested": "cublaslt",
+              "returned": "_BlasBackend.Cublaslt",
+              "returned_equals_enum": true,
+              "warnings": []
+            },
+            {
+              "after": "_BlasBackend.Cublaslt",
+              "before": "_BlasBackend.Cublaslt",
+              "enum": "_BlasBackend.Default",
+              "getter_equals_enum": false,
+              "native_getter": "_BlasBackend.Cublaslt",
+              "requested": "default",
+              "returned": "_BlasBackend.Cublaslt",
+              "returned_equals_enum": false,
+              "warnings": []
+            }
+          ],
+          "setter_return_statements": [
+            "torch._C._set_blas_preferred_backend(_BlasBackends[backend])",
+            "torch._C._set_blas_preferred_backend(backend)",
+            "return torch._C._get_blas_preferred_backend()"
+          ],
+          "step": "1103606.1858",
+          "tests_actual_kernel_dispatch": false,
+          "torch": "2.10.0"
+        }
+      ]
+    }
+  },
+  "sacct_rc": 0,
+  "scope": {
+    "tested": "setter return, effective getter, native getter and restoration in a fresh zero-GRES process",
+    "inherited": "Cublas",
+    "explicit_default_effective": "Cublaslt",
+    "qualified_GPU_dispatch": false,
+    "qualified_training_performance": false
+  }
+}
