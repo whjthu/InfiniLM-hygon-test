@@ -63,6 +63,19 @@ def write(path,data):
 def dump(value):return (json.dumps(value,sort_keys=True,allow_nan=False)+"\n").encode()
 def pin(value):return sha256(value).hexdigest()
 
+def wait_evidence(require_receipt, *, ttl=10, clock=time.monotonic, pause=time.sleep,
+                  fetch=accounting, visible=OUT.is_file):
+    until=clock()+ttl
+    while True:
+        rows=fetch()
+        artifact=visible()
+        if len(rows)>1:
+            raise ValueError("DUPLICATE_OBSERVER_ACCOUNTING")
+        complete=len(rows)==1 and rows[0][2] not in ("RUNNING","PENDING","COMPLETING")
+        if (complete and (artifact or not require_receipt)) or clock()>=until:
+            return rows,artifact
+        pause(min(0.3,max(0.0,until-clock())))
+
 def main():
     os.umask(0o077)
     source=base64.b64decode(sys.stdin.buffer.read(40000),validate=True)
@@ -87,13 +100,11 @@ def main():
     write(STAGE/"intent.json",dump(record))
     with (STAGE/"slurm.stdout").open("xb") as out,(STAGE/"slurm.stderr").open("xb") as err:
         q=subprocess.run(argv,stdin=subprocess.DEVNULL,stdout=out,stderr=err,timeout=64,check=False)
-    until=time.monotonic()+10
-    actual=accounting()
-    while (not actual or actual[0][2]=="RUNNING") and time.monotonic()<until:
-        time.sleep(.3);actual=accounting()
+    actual,artifact=wait_evidence(q.returncode==0)
     record.update(actual_accounting_columns=C,actual_accounting=actual,worker_after=current(),srun_rc=q.returncode,
-                  observed_epoch=time.time(),stderr_SHA256=pin((STAGE/"slurm.stderr").read_bytes()))
-    if q.returncode==0:
+                  observed_epoch=time.time(),stderr_SHA256=pin((STAGE/"slurm.stderr").read_bytes()),
+                  result_artifact_visible=artifact,result_state="TERMINAL_EVIDENCE_UNVERIFIED")
+    if q.returncode==0 and artifact and len(actual)==1 and actual[0][2:4]==["COMPLETED","0:0"]:
         private=OUT.read_bytes()
         assert 0<len(private)<=16384
         detail=json.loads(private)
@@ -104,6 +115,7 @@ def main():
         record.update(result=dict(receipt_SHA256=pin(private),receipt_bytes=len(private),partial_weights=16,
                                  actual_value_bytes_read=detail["actual_value_bytes_read"],indexer_payload_bytes_read=0,
                                  actual_GPU_calls=0,full_checkpoint_bound=False,elapsed_monotonic_s=detail["elapsed_monotonic_s"]))
+        record["result_state"]="PARTIAL_RANGE_RECEIPT_VERIFIED"
     write(STAGE/"result.json",dump(record))
     print(dump(record).decode(),end="")
 
