@@ -13,7 +13,8 @@ import sqlite3
 import time
 
 from record_qwen_usgs_dev80_absence import JOB as DEV80_JOB, NODES as DEV80_NODES, read_record as dev80_absence
-from training_dispatch_allocation import FULL_KIND, SURVIVOR_KIND, SURVIVOR_LEDGER, allocation, survivor_placements
+from training_dispatch_allocation import (DEVICE_RECEIPT_KINDS, REPLACEMENT_KIND, REPLACEMENT_LEDGER,
+                                          SURVIVOR_KIND, SURVIVOR_LEDGER, allocation, survivor_placements)
 from tuning_queue import (ACTIVE, DIRECT_CLOSED_STATES, DIRECT_STAGE, SNAPSHOT_MAX_AGE_S, TRAINING80_LEDGER,
                           digest, training80_inventory)
 from verify_training80_manifest import verify_package_members
@@ -149,7 +150,7 @@ def fleet_view(snapshot, now, boot_anchor, ledger_path):
     ledger_raw = ledger_path.read_bytes()
     kind, groups, covered = allocation(ledger_raw)
     snapshot_kind = snapshot.get('snapshot_kind')
-    is_device_receipt = snapshot_kind in (FULL_KIND, SURVIVOR_KIND)
+    is_device_receipt = snapshot_kind in DEVICE_RECEIPT_KINDS
     need(not is_device_receipt or snapshot_kind == kind, 'dispatch receipt and allocation scope differ')
     membership = snapshot['membership'] if is_device_receipt else snapshot
     ledger_sha = sha256(ledger_raw).hexdigest()
@@ -181,8 +182,8 @@ def fleet_view(snapshot, now, boot_anchor, ledger_path):
         fresh = (abs(boot_anchor - anchor) < 2 and now >= received and roundtrip >= 0 and
                  now - received + roundtrip <= SNAPSHOT_MAX_AGE_S)
         if fresh:
-            placements = (training80_inventory(snapshot) if kind == FULL_KIND else
-                          survivor_placements(membership, snapshot['nodes'], covered))
+            placements = (survivor_placements(membership, snapshot['nodes'], covered) if kind == SURVIVOR_KIND
+                          else training80_inventory(snapshot))
             for node, (zone, parent, slurm_clear) in placements.items():
                 probe = snapshot['nodes'][node]
                 pci = probe['PCIs']
@@ -224,6 +225,14 @@ def verify_launch(repo, job):
         need(all(key in value and type(value[key]) is type(item) and value[key] == item
                  for key, item in expected.items()), f'{field} does not close the exact dispatch prerequisite')
     return 'reconcile' if has_original_intent(repo, launch['attempt_receipts']) else 'ready'
+
+
+def replacement_parent_matches(repo, job, owners):
+    moved = {node for node in job['placement'] if owners.get(node) == '1194900'}
+    if not moved:
+        return True
+    claim = json.loads(pin_file(repo, job['launch']['claim'], ('code/bw1000/', 'coordination/tasks/')))
+    return str(claim.get('parent')) == '1194900' and moved == set(job['placement'])
 
 
 def queue_holds(connection):
@@ -311,11 +320,12 @@ def plan(snapshot, backlog, *, repo=REPO, ledger_path=None, holds=(), now=None, 
     now = time.monotonic() if now is None else now
     boot_anchor = time.time() - time.monotonic() if boot_anchor is None else boot_anchor
     if ledger_path is None:
-        ledger_path = (SURVIVOR_LEDGER if snapshot.get('snapshot_kind') == SURVIVOR_KIND else TRAINING80_LEDGER)
+        ledger_path = {SURVIVOR_KIND: SURVIVOR_LEDGER, REPLACEMENT_KIND: REPLACEMENT_LEDGER}.get(
+            snapshot.get('snapshot_kind'), TRAINING80_LEDGER)
     membership, nodes, fresh = fleet_view(snapshot, now, boot_anchor, ledger_path)
     known_nodes = set(nodes)
-    if len(nodes) == 40:
-        known_nodes.update(allocation(TRAINING80_LEDGER.read_bytes())[2])
+    known_nodes.update(allocation(TRAINING80_LEDGER.read_bytes())[2])
+    owners = {node: row['parent'] for node, row in nodes.items()}
     minimum = backlog['minimum_ready_training']
     need(type(minimum) is int and minimum >= 5, 'minimum ready training must be at least five')
     identities, workload_ids, request_ids, rows, proposed = set(), set(), set(), [], []
@@ -404,7 +414,7 @@ def plan(snapshot, backlog, *, repo=REPO, ledger_path=None, holds=(), now=None, 
                     command = invocation(repo, job)
                     if command is None:
                         state = 'manual_launcher_binding_required'
-                    elif unavailable:
+                    elif unavailable or not replacement_parent_matches(repo, job, owners):
                         state = 'awaiting_current_allocation'
                     else:
                         row['invocation'] = command
@@ -449,7 +459,7 @@ def plan(snapshot, backlog, *, repo=REPO, ledger_path=None, holds=(), now=None, 
         needs_preparation=training_states['blocked'] + training_states['manual_launcher_binding_required'],
         needs_reconciliation=training_states['reconcile'], invalid_evidence=training_states['invalid_launch_evidence'],
         recorded_submitted=training_states['submitted'], recorded_terminal=training_states['terminal'])
-    if len(nodes) == 40:
+    if len(nodes) == 40 or training_states['awaiting_current_allocation']:
         training_pipeline['outside_live_allocation'] = training_states['awaiting_current_allocation']
     groups = {}
     for node, value in sorted(nodes.items()):

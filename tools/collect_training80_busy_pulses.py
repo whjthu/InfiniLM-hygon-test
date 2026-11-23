@@ -26,6 +26,7 @@ TERMINAL = {"COMPLETED", "FAILED", "CANCELLED", "TIMEOUT", "NODE_FAIL", "OUT_OF_
             "PREEMPTED", "BOOT_FAIL", "DEADLINE", "REVOKED"}
 INTERVAL_NS = 2_000_000_000
 REPLY_WAIT_NS = 3_000_000_000
+SUPPORTED_PARENTS = PARENTS | {"1194900"}
 
 
 def token(value, length):
@@ -102,7 +103,7 @@ def run_worker(identity, expected, points, incoming, send, drm):
 def worker(request, points, pins_file, pins_sha, parent_expected):
     node = socket.gethostname().split(".")[0]
     parent, step = os.environ["SLURM_JOB_ID"], os.environ["SLURM_STEP_ID"]
-    require(HOST.fullmatch(node) and parent == parent_expected and parent in PARENTS
+    require(HOST.fullmatch(node) and parent == parent_expected and parent in SUPPORTED_PARENTS
             and step.isdecimal(), "unexpected worker Slurm provenance")
     pins, actual = pin_json(pins_file)
     require(actual == pins_sha and node in pins, "worker PCI pins changed")
@@ -252,7 +253,8 @@ def terminal(rows):
 
 
 def qualified_accounting(rows, worker_steps, expected, get_hosts):
-    if not expected or not set(expected) <= PARENTS or set(rows) != set(expected) or set(worker_steps) != set(expected) or not terminal(rows):
+    if (not expected or not set(expected) <= SUPPORTED_PARENTS or set(rows) != set(expected)
+            or set(worker_steps) != set(expected) or not terminal(rows)):
         return False
     for parent, row in rows.items():
         if row[0] != worker_steps[parent] or row[2:4] != ["COMPLETED", "0:0"]:

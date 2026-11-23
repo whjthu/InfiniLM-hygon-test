@@ -12,7 +12,7 @@ import time
 
 from read_training_slurm_membership import snapshot
 from sample_training80_busy import require_pins
-from training_dispatch_allocation import FULL_KIND, SURVIVOR_KIND, allocation
+from training_dispatch_allocation import DEVICE_RECEIPT_KINDS, allocation
 from tuning_queue import receive_snapshot, require
 
 
@@ -251,7 +251,7 @@ def receive(raw, request_started_monotonic, request_id):
     """Call once with the authenticated transport's original response and monotonic start."""
     require(len(raw) <= MAX_OUTPUT_BYTES, 'dispatch snapshot exceeded bounds')
     payload = json.loads(raw)
-    require(isinstance(payload, dict) and payload.get('snapshot_kind') in (FULL_KIND, SURVIVOR_KIND) and
+    require(isinstance(payload, dict) and payload.get('snapshot_kind') in DEVICE_RECEIPT_KINDS and
             payload.get('request_id') == request_id,
             'wrong dispatch snapshot request')
     return receive_snapshot(payload, request_started_monotonic, request_id, digest(raw))

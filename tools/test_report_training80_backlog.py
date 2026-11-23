@@ -8,7 +8,8 @@ import unittest
 from unittest.mock import patch
 
 from report_training80_backlog import TRAINING80_LEDGER, plan, read_queue_holds
-from training_dispatch_allocation import SURVIVOR_KIND, SURVIVOR_LEDGER, SURVIVOR_PARENT
+from training_dispatch_allocation import (REPLACEMENT_KIND, REPLACEMENT_LEDGER, SURVIVOR_KIND, SURVIVOR_LEDGER,
+                                          SURVIVOR_PARENT, allocation)
 from tuning_queue import DIRECT_STAGE, digest
 
 
@@ -53,7 +54,7 @@ class BacklogTest(unittest.TestCase):
         path.write_bytes(raw)
         return dict(path=name, SHA256=sha256(raw).hexdigest())
 
-    def trial(self, index=1, kind='training', node='a01r4n16'):
+    def trial(self, index=1, kind='training', node='a01r4n16', parent=None):
         request = format(index, '032x')
         work = format(index, '064x')
         commit = format(index, '040x')
@@ -61,7 +62,7 @@ class BacklogTest(unittest.TestCase):
         prefix = f'local-only/trial-{index}'
         placement = {node: 8 if kind == 'training' else 1}
         minimum = 1 if kind == 'training' else None
-        claim = self.put(f'{base}/CLAIM.json', dict(request=request, GPU_GO=True))
+        claim = self.put(f'{base}/CLAIM.json', dict(request=request, GPU_GO=True, parent=parent))
         launcher_path = self.repo / base / 'launch.py'
         launcher_bytes = b'def main(publication, request, transport=None): pass\n'
         launcher_path.write_bytes(launcher_bytes)
@@ -150,6 +151,29 @@ class BacklogTest(unittest.TestCase):
         proof['total_cards'] = 640
         with self.assertRaises(ValueError):
             self.run_plan(snapshot=self.seal_surviving_snapshot(proof))
+
+    def test_replacement_requires_new_parent_on_a_reused_hostname(self):
+        raw = REPLACEMENT_LEDGER.read_bytes()
+        kind, groups, owners = allocation(raw)
+        proof = deepcopy(self.snapshot)
+        proof.update(snapshot_kind=kind, nodes={})
+        proof['membership'].update(ledger_SHA256=sha256(raw).hexdigest(), parents={})
+        for parent, zones in groups.items():
+            coverage = {zone: {node: dict(state='NO_NUMBERED_STEP', numbered_step_assigned_DCU_bounds=[0, 0])
+                               for node in nodes} for zone, nodes in zones.items()}
+            proof['membership']['parents'][parent] = {
+                **self.membership['parents'][SURVIVOR_PARENT], 'coverage_by_group_and_node': coverage,
+            }
+        template = self.snapshot['nodes']['f13r1n10']
+        for node, (parent, zone) in owners.items():
+            proof['nodes'][node] = {**template, 'parent': parent, 'zone': zone}
+        reused = 'f12r3n04'
+        jobs = [self.trial(1, node=reused, parent='1087656'), self.trial(2, node=reused, parent='1194900')]
+        result = self.run_plan(*jobs, snapshot=self.seal_surviving_snapshot(proof))
+        self.assertEqual(kind, REPLACEMENT_KIND)
+        self.assertEqual(result['allocated_DCU'], 640)
+        self.assertEqual(result['proposed_for_root'], [jobs[1]['id']])
+        self.assertEqual(result['training_pipeline']['outside_live_allocation'], 1)
 
     def test_fresh_priority_distinct_nodes_and_training_count(self):
         result = self.run_plan(self.trial(1, 'operator'), self.trial(2), self.trial(3, 'validation', 'a01r4n14'))

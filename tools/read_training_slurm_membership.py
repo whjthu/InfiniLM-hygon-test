@@ -262,13 +262,13 @@ def snapshot(groups, *, owner_uid=None, run_query=None):
 
 
 def main():
+    from training_dispatch_allocation import allocation
+
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('ledger', type=Path)
     args = parser.parse_args()
     raw = args.ledger.read_bytes()
-    ledger = json.loads(raw)
-    groups = {parent: {name: group['allocations'][parent] for name, group in ledger['groups'].items()}
-              for parent in ('1087656', '1103606')}
+    _, groups, _ = allocation(raw)
     result = snapshot(groups, owner_uid=os.getuid() if hasattr(os, 'getuid') else None)
     result['ledger_SHA256'] = hashlib.sha256(raw).hexdigest()
     print(json.dumps(result, indent=2, allow_nan=False))

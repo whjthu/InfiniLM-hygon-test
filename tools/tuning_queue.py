@@ -17,6 +17,8 @@ import subprocess
 import time
 from uuid import uuid4
 
+from training_dispatch_allocation import REPLACEMENT_KIND, REPLACEMENT_LEDGER, allocation
+
 ACTIVE = ('RESERVED', 'DISPATCHING', 'SUBMITTED', 'UNKNOWN')
 DIRECT_STAGE = 'training80-direct'
 DIRECT_CLOSED_STATES = ('TERMINAL', 'RETIRED_PRELAUNCH')
@@ -220,12 +222,13 @@ def refit_provisional_loans(waiting, free, selected, *, maximum_choices=8192):
 
 def training80_inventory(fleet):
     """Bind fresh Slurm coverage and device observations to the same parent and group."""
-    raw = TRAINING80_LEDGER.read_bytes()
+    ledger_path = REPLACEMENT_LEDGER if fleet.get('snapshot_kind') == REPLACEMENT_KIND else TRAINING80_LEDGER
+    raw = ledger_path.read_bytes()
     membership = fleet.get('membership') or {}
     require(membership.get('ledger_SHA256') == hashlib.sha256(raw).hexdigest(),
             'training80 membership must bind the active node ledger')
-    ledger = json.loads(raw)
-    expected_parents = {job['JobId'] for job in ledger['jobs']}
+    _, groups, _ = allocation(raw)
+    expected_parents = set(groups)
     parents = membership['parents']
     require(len(expected_parents) == 2 and set(parents) == expected_parents and
             membership['distinct_nodes'] == 80 and membership['allocated_DCU'] == 640,
@@ -237,16 +240,15 @@ def training80_inventory(fleet):
                 'training80 parent allocation differs from the active ledger')
         require(observation.get('owned_by_observer') is True and observation.get('step_locations_exact') is True,
                 'training80 parent ownership or numbered step locations are unverified')
-        expected_members = {name for zone in ledger['groups'].values() for name in zone['allocations'][parent]}
+        expected_members = {name for names in groups[parent].values() for name in names}
         active_nodes = set()
         for step in observation['active_steps'].values():
             members = set(step['member_nodes'])
             require(members and members <= expected_members, 'training80 step escaped its parent allocation')
             active_nodes.update(members)
         coverage = observation['coverage_by_group_and_node']
-        require(set(coverage) == set(ledger['groups']), 'training80 group coverage is incomplete')
-        for zone, group in ledger['groups'].items():
-            expected_nodes = group['allocations'][parent]
+        require(set(coverage) == set(groups[parent]), 'training80 group coverage is incomplete')
+        for zone, expected_nodes in groups[parent].items():
             require(set(coverage[zone]) == set(expected_nodes), 'training80 group node coverage drift')
             for name in expected_nodes:
                 require(name not in placements, 'duplicate training80 ledger node')

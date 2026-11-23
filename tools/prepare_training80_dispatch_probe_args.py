@@ -8,8 +8,8 @@ from prepare_training80_reconnect_worklist import UNVERIFIED_ATTEMPT_MARKER, WOR
 from report_training80_backlog import (BACKLOG, PRIORITY, QUEUE_DB, REPO, TRAINING80_LEDGER,
                                       direct_launch_state, direct_request_states, direct_workloads, hex_value,
                                       invocation, need, pin_file, prior_workload_claims, read_original_holds, read_queue_holds,
-                                      verify_launch)
-from training_dispatch_allocation import allocation
+                                      replacement_parent_matches, verify_launch)
+from training_dispatch_allocation import REPLACEMENT_KIND, allocation
 from tuning_queue import DIRECT_CLOSED_STATES
 
 
@@ -19,15 +19,18 @@ def probe_arguments(repo, backlog, ledger, holds, preflight=(), *, priority_only
                   for parent, nodes in zone['allocations'].items() for node in nodes}
     need(len(historical) == 80, 'expected the frozen 80-node inventory')
     ownership = historical
+    replacement = False
     if active_ledger is not None:
-        _, _, current = allocation(active_ledger)
+        kind, _, current = allocation(active_ledger)
+        replacement = kind == REPLACEMENT_KIND
         ownership = {node: parent for node, (parent, _) in current.items()}
-        need(all(historical.get(node) == parent for node, parent in ownership.items()),
-             'active allocation differs from the frozen roster')
+        if not replacement:
+            need(all(historical.get(node) == parent for node, parent in ownership.items()),
+                 'active allocation differs from the frozen roster')
     queue_held = {node for row in holds for node in row['nodes'] if node in ownership}
     direct_states = direct_request_states(holds)
     workloads = direct_workloads(holds)
-    original_holds, errors, resolved = read_original_holds(repo, backlog['items'], historical, holds)
+    original_holds, errors, resolved = read_original_holds(repo, backlog['items'], historical.keys() | ownership.keys(), holds)
     priority = {}
     ports = set()
     verified = []
@@ -57,6 +60,9 @@ def probe_arguments(repo, backlog, ledger, holds, preflight=(), *, priority_only
                     outside_allocation[ident] = outside
                 continue
             if job['state'] != 'ready' or ident in original_holds:
+                continue
+            if replacement and not replacement_parent_matches(repo, job, ownership):
+                outside_allocation[ident] = nodes
                 continue
             prior = prior_workload_claims(job, workloads)
             if prior:
@@ -110,7 +116,7 @@ def probe_arguments(repo, backlog, ledger, holds, preflight=(), *, priority_only
                 or direct_states.get(row.get('request')) in DIRECT_CLOSED_STATES):
             continue
         node = row['node']
-        if node not in ownership:
+        if node not in ownership or (replacement and ownership[node] != row.get('parent', historical.get(node))):
             outside_allocation[row['case']] = [node]
         elif node in held:
             blocked[row['case']] = [node]

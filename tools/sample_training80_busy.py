@@ -20,11 +20,11 @@ def require(ok, detail):
         raise ValueError(detail)
 
 
-def node_map(ledger):
+def node_map(ledger, parents=PARENTS):
     owners = {}
-    counts = {parent: 0 for parent in PARENTS}
+    counts = {parent: 0 for parent in parents}
     for group, row in ledger['groups'].items():
-        require(set(row['allocations']) == PARENTS, 'parent set differs from the allocation ledger')
+        require(set(row['allocations']) == parents, 'parent set differs from the allocation ledger')
         for parent, nodes in row['allocations'].items():
             for node in nodes:
                 require(node not in owners, 'node assigned twice')
