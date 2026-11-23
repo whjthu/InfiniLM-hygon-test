@@ -58,7 +58,7 @@ def control_argv(directory):
             PYTHON, "-I", "-S", "-B", str(directory / "bridge.py"), "compute", directory.name.split("-")[-1]]
 
 
-def start():
+def start(*, launch_only=False):
     message = sys.stdin.buffer.read(MAX_MESSAGE + 1)
     require(0 < len(message) <= MAX_MESSAGE, "Bridge message exceeds its bound")
     envelope = json.loads(message)
@@ -76,8 +76,14 @@ def start():
     write_json(directory / "intent.json", dict(request=request, entry_SHA256=envelope["entry_SHA256"],
                bridge_SHA256=envelope["bridge_SHA256"], epoch=epoch, deadline_epoch=epoch + BRIDGE_SECONDS,
                parent=PARENT, node=NODE, replay_allowed=False))
+    argv = control_argv(directory)
+    if launch_only:
+        # Let the authenticated login caller release its PID before srun starts
+        # the launch threads. The delay and exec use the same child PID.
+        argv = [PYTHON, "-I", "-S", "-B", "-c",
+                "import os,sys,time;time.sleep(0.75);os.execvp(sys.argv[1],sys.argv[1:])", *argv]
     with (directory / "stdout.private").open("xb") as out, (directory / "stderr.private").open("xb") as err:
-        proc = subprocess.Popen(control_argv(directory), stdin=subprocess.DEVNULL, stdout=out, stderr=err,
+        proc = subprocess.Popen(argv, stdin=subprocess.DEVNULL, stdout=out, stderr=err,
                                 start_new_session=True)
     proc_stat = Path(f"/proc/{proc.pid}/stat")
     try:
@@ -85,6 +91,10 @@ def start():
     except FileNotFoundError:
         startticks = None
     write_json(directory / "launcher.json", dict(request=request, pid=proc.pid, startticks=startticks))
+    if launch_only:
+        print(json.dumps(dict(request=request, bridge_launch_pending=True, control_label=f"{PREFIX}-{request[:12]}",
+                              planned_DCU=0), sort_keys=True), flush=True)
+        return 0
     result_path = RESULTS / f"{STANDBY}-{request}" / "submission-receipt.json"
     bridge_stdout = directory / "stdout.private"
     end = time.monotonic() + 36
@@ -175,5 +185,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("mode", choices=("start", "compute"))
     parser.add_argument("request", nargs="?")
+    parser.add_argument("--launch-only", action="store_true")
     args = parser.parse_args()
-    raise SystemExit(start() if args.mode == "start" else compute(args.request))
+    raise SystemExit(start(launch_only=args.launch_only) if args.mode == "start" else compute(args.request))
