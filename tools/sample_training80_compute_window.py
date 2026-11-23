@@ -34,6 +34,27 @@ def write_json(path, record):
         json.dump(record, stream, separators=(",", ":"), sort_keys=True, allow_nan=False)
 
 
+def start(root, request):
+    """Release the login caller before Slurm creates its launch threads."""
+    require(re.fullmatch(r"[0-9a-f]{32}", request) and root.name == f"training80-syncbusy-{request}",
+            "Incorrect sampling request namespace")
+    intent = read_json(root / "host-intent.json", 4096)
+    require(intent["request"] == request and intent["replay_allowed"] is False, "Sampling intent differs")
+    argv = ["srun", "--jobid=1103606", "--job-name=training80-syncbusy-" + request[:12] + "-control",
+            "--exact", "--immediate=6", "--threads=1", "--nodes=1", "--ntasks=1", "--nodelist=" + CONTROL,
+            "--cpus-per-task=2", "--gres=none", "--mem=512M", "--time=00:01:20", "--kill-on-bad-exit=1",
+            PYTHON, "-B", str(Path(__file__).resolve()), "capture", str(root), request]
+    launch = [PYTHON, "-I", "-S", "-B", "-c",
+              "import os,sys,time;time.sleep(0.75);os.execvp(sys.argv[1],sys.argv[1:])", *argv]
+    with (root / "controller.private.log").open("xb") as log:
+        process = subprocess.Popen(launch, stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT,
+                                   start_new_session=True)
+    receipt = dict(request=request, launcher_pid=process.pid, state="LOCAL_LAUNCHER_STARTED",
+                   committed_sampling_DCU=0, actual_step_known=False)
+    write_json(root / "launcher.json", receipt)
+    print(json.dumps(receipt, sort_keys=True), flush=True)
+
+
 def scope(root):
     ledger = read_json(root / "ledger.json", 65536, LEDGER_SHA256)
     pins = read_json(root / "pci.json", 65536, PCI_SHA256)
@@ -118,11 +139,13 @@ def capture(root, request):
 if __name__ == "__main__":
     os.umask(0o077)
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("mode", choices=("node", "capture"))
+    parser.add_argument("mode", choices=("node", "capture", "start"))
     parser.add_argument("root", type=Path)
     parser.add_argument("identity")
     args = parser.parse_args()
     if args.mode == "node":
         node(args.root, float(args.identity))
+    elif args.mode == "start":
+        start(args.root, args.identity)
     else:
         raise SystemExit(capture(args.root, args.identity))
