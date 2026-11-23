@@ -17,9 +17,9 @@ SPAN = 16 << 20
 PREFETCH = 3
 
 
-def fetch(span):
+def fetch(span, resource_url=URL):
     first, end = span
-    request = urllib.request.Request(URL, headers={"Range": f"bytes={first}-{end}", "Accept-Encoding": "identity"})
+    request = urllib.request.Request(resource_url, headers={"Range": f"bytes={first}-{end}", "Accept-Encoding": "identity"})
     length = end - first + 1
     with urllib.request.urlopen(request, timeout=30) as response:
         need(response.status == 206 and response.headers.get("Content-Range") == f"bytes {first}-{end}/{ARCHIVE_BYTES}",
@@ -29,22 +29,26 @@ def fetch(span):
         return data
 
 
-def copy_mirror(destination):
-    spans = iter((start, min(start+SPAN, ARCHIVE_BYTES)-1) for start in range(0, ARCHIVE_BYTES, SPAN))
+def copy_spans(destination, *, begin, span_size, prefetch, state, read_span):
+    spans = iter((start, min(start+span_size, ARCHIVE_BYTES)-1)
+                 for start in range(begin, ARCHIVE_BYTES, span_size))
     futures = deque()
-    state = sha256()
-    with ThreadPoolExecutor(max_workers=PREFETCH) as executor:
-        for span in (next(spans, None) for _ in range(PREFETCH)):
+    with ThreadPoolExecutor(max_workers=prefetch) as executor:
+        for span in (next(spans, None) for _ in range(prefetch)):
             if span is not None:
-                futures.append(executor.submit(fetch, span))
+                futures.append(executor.submit(read_span, span))
         while futures:
             data = futures.popleft().result()
             need(destination.write(data) == len(data), "short SSH write")
             state.update(data)
             span = next(spans, None)
             if span is not None:
-                futures.append(executor.submit(fetch, span))
+                futures.append(executor.submit(read_span, span))
     return state.hexdigest()
+
+
+def copy_mirror(destination):
+    return copy_spans(destination, begin=0, span_size=SPAN, prefetch=PREFETCH, state=sha256(), read_span=fetch)
 
 
 def transfer(ssh_argv, request, roster, training):
