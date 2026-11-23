@@ -50,6 +50,10 @@ def build(prior,recovery,destination):
                                    "manifest_sha256":proof["artifacts"]["candidate-manifest.json"]["SHA256"]},
                  profile_source_step="1103606.1759",expected_checkpoint20_SHA256=scope["checkpoint20_SHA256"],
                  actual_optimizer_updates_planned=2)
+    recovery_source=json.loads((RECOVERY/"SOURCE_SCOPE.json").read_bytes())["source_proof"]
+    if proof["parent_commit"]!=recovery_source["candidate_commit"]:
+        raise ValueError("Profile must inherit the qualified recovery entry")
+    claim["registered_binding"]["cli_SHA256"] = recovery_source["changed_members"]["tools/hygon_training_recipe.py"]["SHA256"]
     claim["framework_update_members"]["zimage_native_record.py"] = dict(
         proof["changed_members"]["generation/src/gencuda/zimage_native_record.py"],source="verified_integrated_candidate")
     files["CLAIM.json"]=encode(claim)
