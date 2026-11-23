@@ -1,0 +1,111 @@
+{
+  "schema": "bw1000.training.zimage.registered-hip-complete-window.source.v1",
+  "case": "T07.sft",
+  "qualified_for_target_dispatch": false,
+  "source_proof": {
+    "candidate_commit": "55cfdaf75699605ab891ac8529f1157dc8778c0d",
+    "git_tree": "408102430d23268a6724a9ded8642717f9b5c921",
+    "parent_commit": "8db9440c5de49712c88dbeadf1e0ecff9f31dd72",
+    "git_ref": "refs/heads/framework-zimage-complete-window",
+    "files": 396,
+    "changed_members": {
+      "generation/src/gencuda/zimage_native_record.py": {
+        "SHA256": "20273da4fa308465ef2c1672895043c7e6b7621ee05c9ad14ee78e75129c7c71",
+        "bytes": 33156,
+        "git_blob": "b0e3230d151abe990defdf24805eaa70147b994f",
+        "mode": 420
+      },
+      "tools/hygon_zimage_native_record.py": {
+        "SHA256": "2fd3a016d99c756ff0a645d1d92a438b7dc0b9bfaea35e3f99c5e684d18af57f",
+        "bytes": 5786,
+        "git_blob": "756b1fb17d40005b49b24cb2e1196e24ec58a629",
+        "mode": 420
+      },
+      "tests/test_zimage_complete_window.py": {
+        "SHA256": "0bb99d92f04b86ac61491b533e478af385821e884fedc78699308260e6e3d862",
+        "bytes": 5213,
+        "git_blob": "4a0860c3700d3f815e9ff31fd88f4fd4666146cd",
+        "mode": 420
+      }
+    },
+    "registry": [
+      "T01.sft",
+      "T02.sft",
+      "T03.sft",
+      "T04.sft",
+      "T05.sft",
+      "T06.sft",
+      "T06.ddpo",
+      "T07.sft",
+      "T07.flow-grpo",
+      "T08.flow-matching-lora",
+      "T08.motion-rft",
+      "T09.sft",
+      "T09.dp2",
+      "T09.sage-grpo",
+      "T10.shape-flow-lora",
+      "T11.material-head",
+      "T12.camera-head"
+    ],
+    "CLI_help_verified": true,
+    "fresh_bundle_all_blobs_verified": true,
+    "tests": [
+      {
+        "file": "test_zimage_native_record_binding.py",
+        "output": "........\n----------------------------------------------------------------------\nRan 8 tests in 0.007s\n\nOK"
+      },
+      {
+        "file": "test_zimage_complete_window.py",
+        "output": "..\n----------------------------------------------------------------------\nRan 2 tests in 0.018s\n\nOK"
+      }
+    ],
+    "private_artifacts": {
+      "candidate-manifest.json": {
+        "bytes": 99103,
+        "SHA256": "b9073489c0e89650e3037dc65590f253249cc90f7c4ace53b90711e16b8a8991"
+      },
+      "candidate.bundle": {
+        "bytes": 1159576,
+        "SHA256": "b28c225845b974cac7f12e1d274dfa0c02e830029b925b0f9d745bf15be07f2a"
+      }
+    },
+    "formal_hardware_runs": 0,
+    "first_local_proof_attempt": "UTF8 decode failed on CLI help from child; same child verified with explicit UTF8 switch"
+  },
+  "entry": [
+    "T07.sft",
+    "--native-engineering",
+    "--mode",
+    "continuous",
+    "--measure-complete-window"
+  ],
+  "clock_bounds": {
+    "warmup": 5,
+    "measured": 20,
+    "maximum_20_update_seconds_at_stage3_A100_ratio": 20.289829186577762,
+    "start": "after warmup fence, before input fetch for global update 6",
+    "end": "immediately after the atomic, synced checkpoint for global update 25 returns",
+    "includes_checkpoint_save_steps": [
+      10,
+      20,
+      25
+    ],
+    "excludes": [
+      "admission",
+      "loading",
+      "warmup",
+      "profile",
+      "first-update capture",
+      "post-window artifact hashing and evidence log",
+      "recovery",
+      "final rendering"
+    ]
+  },
+  "A100_reference": {
+    "path": "analysis/bw1000/training-generation-a100-original-24-windows-v1.json",
+    "SHA256": "bdb15fe3549901800b94904fc3c9a8b1c0206f32ee3b553237eed85d7b94eb3c",
+    "cards": 1,
+    "median_updates_per_second": 1.0952394925494389
+  },
+  "formal_gate": "Original A100 full-value first-step comparison, target admission, three unprofiled exact runs and holdout remain separate."
+}
