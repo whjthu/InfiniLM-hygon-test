@@ -1,0 +1,28 @@
+{
+  "case": "T09.sft",
+  "experiment": "paired-mask-equivalent-prefix-math-sdpa",
+  "workload": "Synthetic BF16 tensors at the exact observed native single-example attention shape and strides, with the original cache-derived valid length.",
+  "comparison": {
+    "baseline": "Full boolean key mask and original padding of queries, forced Torch MATH backend.",
+    "candidate": "Narrow Q/K/V to the valid prefix, run the same MATH backend and pad the result.",
+    "numerical_relative_l2_max": 0.01,
+    "numerical_scope": [
+      "output",
+      "dq",
+      "dk",
+      "dv",
+      "zero padding in outputs and gradients"
+    ],
+    "pairs": 3,
+    "same_backend": true
+  },
+  "resources": {
+    "dcu": 1,
+    "whole_epoch_seconds": 180,
+    "maximum_gpu_step_seconds": 105,
+    "independent_zero_dcu_pre_and_post": true
+  },
+  "formal_model_performance": false,
+  "max_invocations": 1,
+  "replay_allowed": false
+}
