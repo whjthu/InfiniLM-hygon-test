@@ -56,7 +56,14 @@ def accounting_rows(raw):
 def original_inputs(original, claim):
     source = claim["source_work"]
     pins = source["small_receipts"]
-    observed = {name: checked_read(original, name, digest) for name, digest in pins.items()}
+    observed = {}
+    for name, digest in pins.items():
+        if name == "continuous/steps.jsonl":
+            size = source["original_steps_log_bytes"]
+            require(len(checked_read(original, name, digest, size_limit=size)) == size,
+                    "Original training log size differs")
+        else:
+            observed[name] = checked_read(original, name, digest)
     original_claim = json.loads(observed["CLAIM.json"])
     worker = json.loads(observed["continuous/worker-result.json"])
     require(json.loads(observed["outcome.json"])["passed"] is True
