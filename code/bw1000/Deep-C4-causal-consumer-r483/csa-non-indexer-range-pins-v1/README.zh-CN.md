@@ -4,4 +4,6 @@
 
 在经实际账务确认的 1 CPU、1 GiB、零卡步骤中调用 `read_ranges.py --checkpoint CHECKPOINT --metadata METADATA --output NEW_PRIVATE_RESULT`。步骤使用 `CLAIM.json` 的唯一标签，90 秒 Slurm 上限及 45 秒读取预算。现有八卡保底需由发起者现场确认仍是原句柄，步骤完成后再次核实。
 
+`launch_once.py` 从海光工作区调用既有认证路径。现场 Slurm 按步骤号查询时可能返回该父作业的多条记录。入口逐行解析，以步骤号筛选唯一原运行记录，并核对资源和节点。传输未知时从固定意图和账务对账。
+
 本结果只证明这 16 项范围的原字节身份。完整 23 项加载、实际 Native 枚举和 OFF/ON 设备数值比较继续依照已冻结计划验收。
