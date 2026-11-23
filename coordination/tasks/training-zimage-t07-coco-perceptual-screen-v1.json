@@ -1,0 +1,66 @@
+{
+  "schema": "training.zimage.coco.perceptual_screen.claim.v1",
+  "case": "T07.sft",
+  "owner": "bw1000/root",
+  "request": "958b18734f324e55b404355d1a884282",
+  "label": "training-zimage-coco-perceptual-958b18734f32",
+  "result_directory": "results/training-zimage-t07-coco-perceptual-screen-958b18734f324e55b404355d1a884282",
+  "maximum_target_invocations": 1,
+  "replay_unknown": false,
+  "resources": {
+    "parent": "1103606",
+    "node": "f13r2n08",
+    "CPU": 2,
+    "memory_MiB": 4096,
+    "DCU": 0,
+    "slurm_seconds": 420,
+    "worker_seconds": 390
+  },
+  "source": {
+    "path": "tools/scan_zimage_coco_perceptual_overlap.py",
+    "SHA256": "25d7cfc743a637a7332bd1c5239dcce85143a731662c022047e9ed694f15e24f"
+  },
+  "launcher": {
+    "path": "tools/launch_zimage_coco_perceptual_overlap.py",
+    "SHA256": "2d5c002e10fbd8e7ca0f402ca1926ea23af85ba370ec5802f766ed8e7114e05e"
+  },
+  "inputs": {
+    "archive_directory": "results/training-zimage-t07-coco-val2017-publisher-media-v1-continuation",
+    "zip_SHA256": "4f7e2ccb2866ec5041993c9cf2a952bbed69647b115d0f74da7ce8f4bef82f05",
+    "terminal_receipt_SHA256": "ebcc835c25a5c2022136bca91def57e52836019eb5ecc26a8788884571952f50",
+    "media_manifest_SHA256": "aa090e40fa22caef1dcf9fc3851af15c9734ac210e80dfb54c67b58d6c4cf7ac",
+    "training_manifest": "results/training-zimage-original-coco20-media-stage-v1/inputs/manifest-zimage-20.json",
+    "training_manifest_SHA256": "070013087a083bdec7defafaef92e781579e4ea491665536c48abe2336a21f55"
+  },
+  "runtime": {
+    "existing_image": "containers/dtk26-sandbox-r1",
+    "existing_dependency_candidates": [
+      "image Pillow",
+      "results/training-zimage-target-native-meta-CPU-v2/dependencies/site Pillow"
+    ],
+    "before_scan": "Pillow with JPEG codec, healthy source, CPU-only Slurm and original byte pins must be verified. Record decoder version and hashes."
+  },
+  "comparisons": {
+    "training_development": 5120,
+    "training_blind": 94480,
+    "development_development": 32640,
+    "development_blind": 1209344,
+    "blind_blind": 11155726,
+    "total": 12497310
+  },
+  "screen": {
+    "phash_max_hamming": 6,
+    "dhash_max_hamming": 8,
+    "require_both": true,
+    "candidate_ids_private": true,
+    "manual_review_required": true
+  },
+  "local_fixture": {
+    "Pillow": "13.0.0",
+    "resized_JPEG_reencode_recognized": true,
+    "unrelated_pair_rejected": true,
+    "same_split_pair_counted": true
+  },
+  "heldout_effect_passed": false,
+  "stage3_accepted": false
+}
