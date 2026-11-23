@@ -733,11 +733,21 @@
       "target_numerics": "统一候选 99e8f001 已从 T07.sft 注册入口完成单卡原生零更新前向和真实首步。独立审计确认固定输入、前向前 RNG、预测、loss、梯度裁剪前后、参数更新及 AdamW 状态与原海光首步完全一致。待原 A100 全量数值对照。",
       "target_recovery": "原 COCO20 海光完成连续 25 步和从第 20 步恢复的五步。五步 loss 一致，最终 LoRA 最大绝对差超过原阈值，恢复未通过。补做同设备三次独立的第 21 步，裁剪前后梯度、参数与 AdamW 状态完全一致。本次未复现原五步轨迹的差异。 HIP 确定性 Flash2 候选完成真实 25+5 步，触发 2040 次确定性反向调用。独立对照表明输入、噪声和 timestep 一致，第 21 步首次预测已分叉，五步最大 loss 差 0.0010086894，超过 0.000001。恢复仍未通过。 海光 COCO20 分组有限值检查候选在同一物理卡上从原第 20 步检查点恢复，实际完成第 21–25 步。五步 loss、476 个张量的六类边界以及第 25 步检查点均与原连续运行一致；清场通过。 统一候选 3b1152eb 已经通过注册入口在同一张物理卡上实际完成连续 25 步，从真实第 20 步检查点启新进程恢复第 21–25 步。独立零卡审计确认 5 步输入和 loss、476 个 LoRA 张量、全量优化器、调度器和 RNG 状态及第 25 步文件完全一致。",
       "target_performance": "同一海光单卡上三个新进程完成原 COCO20 各 25 步。第 6 步取数前至第 25 步检查点持久化的吞吐中位数为 1.25802996 updates/s，原单卡 A100 三轮中位数为 1.09523949 updates/s，比值 114.86%。海光前后 PCI/KFD 清场及 9 份检查点已独立核对。正式 A100 全量数值和留出集效果门槛仍待验。",
-      "target_holdout_effect": "待留出集实测",
+      "target_holdout_effect": "已按官方 COCO val2017 标注核对并排除原训练 20 个 Flickr 来源。候选开发集 256 张、盲测集 4,724 张各自无来源交叉。实际 JPEG 字节和近重复核验、共享起始噪声、配对检查点与 CLIP Score/FID 评分仍待。",
       "stage3_accepted": false,
       "reference_evidence": "results/bw1000/2026-11-12/training-zimage-explicit-Flash2-deterministic-native-recovery-candidate.json",
       "hygon_evidence": "results/bw1000/2026-11-13/training-zimage-added-1103606-27-hip-attention-numerical.json",
       "supplemental_evidence": {
+        "proposed_COCO_development_and_blind_source_groups": {
+          "path": "results/bw1000/2026-11-24/training-zimage-t07-coco-heldout-source-roster.json",
+          "bytes": 3045,
+          "SHA256": "a2d7a0fa36f6ff9a0a2cc49efdf644b12b675d6116dd7fb031208f057b8043e4"
+        },
+        "current_original_A100_capture_access_boundary": {
+          "path": "results/bw1000/2026-11-24/training-zimage-original-A100-current-access-boundary.json",
+          "bytes": 1084,
+          "SHA256": "cdfbbaeb3cc0a157004d2f9aa6097c8a03eabea7b029489a521c7e807a27d741"
+        },
         "registered_native_HIP_three_complete_engineering_windows": {
           "path": "results/bw1000/2026-11-23/training-zimage-registered-1921-three-complete-windows-terminal.json",
           "SHA256": "34c245bb13bc547b46829f8c41d34d5c7a4241dc00327168716b5f9ca4d0ca3e",
