@@ -152,6 +152,22 @@ def verify(root, *, private_roots=()):
         require(overlay["case"] == "T09.dp2" and overlay["base_framework_commit"] == matrix["framework_commit"],
                 "verified overlay refers to a different case or base framework")
         verified_overlay = verify_overlay_source(overlay, pinned)
+    portable = case_by_id["T09.dp2"].get("portable_framework_bundle")
+    if portable is not None:
+        require(verified_overlay is not None, "portable source bundle must identify a verified overlay")
+        result = verify_formal_attachment(portable)
+        imported = result["independent_fresh_import"]
+        staged = result["private_target_bundle_reopen"]["receiver"]
+        require(imported["verified_by_fresh_bundle_import"] is True
+                and imported["source_files"] == verified_overlay["framework_files"]
+                and imported["git_tree"] == staged["git_tree"] == verified_overlay["framework_tree"]
+                and imported["candidate_commit"] == staged["git_commit"]
+                and imported["bundle_sha256"] == staged["bundle_sha256"]
+                and imported["bundle_bytes"] == staged["bytes"]
+                and imported["registered_cases"] == ids
+                and imported["new_case_acceptance"] == imported["executed_GPU_steps"] == 0,
+                "portable source bundle, imported registry and verified overlay differ")
+        verified_overlay["portable_candidate_commit"] = imported["candidate_commit"]
     generation_timing = verify_formal_attachment(timing_audits['generation'])
     a100_windows.update(check_generation(case_by_id, generation_timing))
     no_boundary_description = [name for name, audit in generation_timing['cases'].items()
