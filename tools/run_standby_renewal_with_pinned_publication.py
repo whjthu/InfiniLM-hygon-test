@@ -165,7 +165,7 @@ def reserve_after_publication_timeout(journal, node, step, intent, base, proof):
     return False
 
 
-def run_batch(batch, dispatch):
+def run_batch(batch, dispatch, *, reserve_override=None):
     need(digest(FROZEN.read_bytes()) == FROZEN_SHA256, "frozen ordinary journal controller changed")
     need(digest(ORIGINAL_TIMEOUT_PROOF.read_bytes()) == ORIGINAL_TIMEOUT_PROOF_SHA256,
          "original confirmed prepublication-timeout verifier changed")
@@ -193,8 +193,8 @@ def run_batch(batch, dispatch):
         return subprocess.run(argv, *args, **kwargs)
 
     original.__globals__['subprocess'] = SimpleNamespace(run=route, TimeoutExpired=subprocess.TimeoutExpired)
-    original.__globals__['reserve_node'] = lambda journal, node, step, intent: reserve_after_publication_timeout(
-        journal, node, step, intent, base, proof)
+    original.__globals__['reserve_node'] = reserve_override or (
+        lambda journal, node, step, intent: reserve_after_publication_timeout(journal, node, step, intent, base, proof))
     return original(batch, dispatch)
 
 

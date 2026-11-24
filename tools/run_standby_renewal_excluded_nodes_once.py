@@ -19,6 +19,8 @@ LOCAL = REPO / "local-only"
 JOURNAL = LOCAL / "training80-1738-ordinary-renewal-dispatch"
 FROZEN = LOCAL / "run-training80-2035-ordinary-renewal-once.py"
 FROZEN_SHA256 = "62156f03554141703c55746165e4be8f7e41f4abb7b192d079bc764eb963e720"
+EARLY_PUBLICATION = REPO / "tools/run_standby_renewal_with_pinned_publication.py"
+EARLY_PUBLICATION_SHA256 = "e900334ac5be3a74fbde60f5c99457706dd9e802b7f749f0c375a1ecca48424e"
 CONTROLLER_SHA256 = "be504e7670b40d77e503c60c93d76bf2a75003768d764d54884c5f8272976bba"
 HELPER_SHA256 = "530f4d14b026abf79ed82887ad95490242ac436c7f8e05ed6f32908553e106bd"
 PROCESS_LIMIT = 262144
@@ -102,6 +104,13 @@ def load_attempt(journal, local, wrapper, batch, expected_outcome):
     intent, intent_sha = exact_json(parent / 'standby-intent.json')
     route, route_sha = exact_json(parent / 'bridge-route.json')
     original_admission, admission_sha = exact_json(parent / 'stdout.json', 2 * 1024 * 1024)
+    installed_receipt, receipt_sha = exact_json(parent / 'receipt.json', 2 * 1024 * 1024)
+    recorded = installed_receipt.pop('local_receipt')
+    admission_payload_sha = digest(json.dumps(original_admission, sort_keys=True, separators=(',', ':'),
+                                              ensure_ascii=False, allow_nan=False).encode())
+    need(installed_receipt == original_admission and recorded['raw_response_SHA256'] == admission_sha
+         and recorded['payload_SHA256'] == admission_payload_sha and recorded['request_id'] == admission_id,
+         "original worker's canonical admission payload differs from the raw authenticated response")
     expected_nodes = identity_set(intent['nodes'], label="envelope")
     need(intent['request'] == route['request'] == request and intent['receipt_request'] == admission_id
          and intent['publication'] == route['publication'] and HEX40.fullmatch(intent['publication'])
@@ -116,7 +125,8 @@ def load_attempt(journal, local, wrapper, batch, expected_outcome):
     return dict(wrapper=wrapper,outcome_SHA256=outcome_sha,stdout_SHA256=outcome['stdout_SHA256'],
                 request=request,admission_id=admission_id,intent=intent,intent_SHA256=intent_sha,
                 bridge_SHA256=route['bridge_SHA256'],bridge_route_SHA256=route_sha,
-                original_admission=original_admission,admission_SHA256=admission_sha,
+                original_admission=original_admission,admission_SHA256=admission_payload_sha,raw_admission_SHA256=admission_sha,
+                original_receipt_SHA256=receipt_sha,
                 terminal_receipt=outcome['terminal_receipt'],prior_nodes=prior_nodes,expected_nodes=expected_nodes)
 
 
@@ -287,15 +297,17 @@ def main():
     proof = dict(excluded=excluded,predecessors=needed,binding=dict(wrapper_invocation=args.wrapper,
          original_outcome_SHA256=args.outcome_sha,original_stdout_SHA256=attempt['stdout_SHA256'],
          original_entry_SHA256=attempt['intent']['payload_SHA256'], original_terminal_SHA256=terminal_sha,
-         original_device_admission_SHA256=attempt['admission_SHA256'], capture_id=args.capture_id, authenticated_read_SHA256=actual))
+         original_device_admission_SHA256=attempt['admission_SHA256'],original_device_raw_SHA256=attempt['raw_admission_SHA256'],
+         original_local_receipt_SHA256=attempt['original_receipt_SHA256'], capture_id=args.capture_id, authenticated_read_SHA256=actual))
     if not args.dispatch:
         print(json.dumps(dict(excluded_nodes=sorted(excluded),reserved_nodes=sorted(attempt['prior_nodes']),
              in_original_GPU_envelope=sorted(attempt['expected_nodes']),replay_allowed=False,new_GRES=0),sort_keys=True))
         return
-    run = base['run']
-    run.__globals__['reserve_node'] = lambda journal, node, step, intent: reserve_proven(
+    need(digest(read(EARLY_PUBLICATION, 65536)) == EARLY_PUBLICATION_SHA256, "pinned early publication route differs")
+    run = runpy.run_path(str(EARLY_PUBLICATION))['run_batch']
+    reserve = lambda journal, node, step, intent: reserve_proven(
         journal, node, step, intent, proof, base['store'], base['did_not_send'])
-    print(json.dumps(run(args.batch, True),sort_keys=True))
+    print(json.dumps(run(args.batch, True, reserve_override=reserve),sort_keys=True))
 
 
 if __name__ == '__main__':
