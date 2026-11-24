@@ -1,0 +1,267 @@
+{
+  "actual_clip_results": {
+    "GPU_steps": 0,
+    "candidate_tensor_SHA256": "a307d5748b08bf75f9be719688dc26ab48f4c2bd2c9f73948dbedbb0abe29a8d",
+    "candidate_tensor_bytes": 544410,
+    "feature_dimensions": 201,
+    "geometry_candidate_frames": 384,
+    "human_motion_or_text_qualification": false,
+    "native_target_match_verified": false,
+    "reports": {
+      "Female1": {
+        "first_root_forward_horizontal_XZ": [
+          5.599886465019895e-19,
+          0.6877670266767189
+        ],
+        "ground_Y_min_m": 3.9967403608898167e-08,
+        "max_rest_branch_direction_residual_deg": 37.830996577197276,
+        "normalized_abs_max": 11.334365844726562,
+        "normalized_abs_over_8": 15,
+        "normalized_values": 25728,
+        "original_BVH_sha256": "b42b1f60a27ab93b2e333f35f91fedad0fa78b0415efeb85afee764715b833b4",
+        "root_horizontal_extent_m": [
+          0.28955230081540884,
+          3.345985818644141
+        ],
+        "rotation6d_roundtrip_max_error": 3.293679817772954e-08,
+        "split": "training",
+        "target_joint0_kept_as_native_pose_root": [
+          -0.0017950580222532153,
+          -0.19082699716091156,
+          0.028219124302268028
+        ]
+      },
+      "Male1": {
+        "first_root_forward_horizontal_XZ": [
+          1.399484739963322e-17,
+          0.5316178084653798
+        ],
+        "ground_Y_min_m": 5.5781987917669085e-09,
+        "max_rest_branch_direction_residual_deg": 38.096120117712104,
+        "normalized_abs_max": 102.50255584716797,
+        "normalized_abs_over_8": 1065,
+        "normalized_values": 25728,
+        "original_BVH_sha256": "6185cec7ffd99e5c1e7ab8f7a4c9bfdd2d4eb6795d86c686436ae99faf49b9aa",
+        "root_horizontal_extent_m": [
+          0.5882021883107743,
+          3.4921361612932804
+        ],
+        "rotation6d_roundtrip_max_error": 3.562162342873876e-08,
+        "split": "training",
+        "target_joint0_kept_as_native_pose_root": [
+          -0.0017950580222532153,
+          -0.19082699716091156,
+          0.028219124302268028
+        ]
+      },
+      "Male2": {
+        "first_root_forward_horizontal_XZ": [
+          8.033240577643645e-19,
+          0.5612879130662706
+        ],
+        "ground_Y_min_m": 5.8814073167212655e-08,
+        "max_rest_branch_direction_residual_deg": 40.09024474859665,
+        "normalized_abs_max": 112.67806243896484,
+        "normalized_abs_over_8": 896,
+        "normalized_values": 25728,
+        "original_BVH_sha256": "f7dd79efbef187daed5b4c212d1c9d863886e33dc2ed593f459d9089282443d7",
+        "root_horizontal_extent_m": [
+          1.3190336137445005,
+          4.344061778350589
+        ],
+        "rotation6d_roundtrip_max_error": 3.3527769116581396e-08,
+        "split": "development",
+        "target_joint0_kept_as_native_pose_root": [
+          -0.0017950580222532153,
+          -0.19082699716091156,
+          0.028219124302268028
+        ]
+      }
+    },
+    "training_READY": false
+  },
+  "case": "T08.flow-matching-lora",
+  "conversion_definitions": [
+    "Use the exact subject-wise C3D B10 calibration to choose a common 0.01 m/BVH unit pilot scale.",
+    "Fit each joint rest basis to mapped children with an SVD for branches or shortest arc for a single child. For a leaf, reuse the parent basis. Preserve source world rotations through those corrections and derive target local rotations.",
+    "Center the first root translation on the horizontal plane, align the first horizontal root facing to +Z and shift clip Y with the full publisher mesh lowest point.",
+    "Encode matrix columns in native six-dimensional layout, keep native root-independent posed joints, and apply the frozen producer normalizer including its three standard-deviation fallback entries."
+  ],
+  "disposition": "Do not pass this candidate to training. All values over normalized absolute 8 in this diagnostic lie in rotation channels. The two male clips exceed 100 in individual channels. Investigate exporter rest orientation and over-rotation using an independent neutral Stand take for each subject.",
+  "first_execution": "The local matrix orthogonality guard rejected the initial float32 template directions. Widening rest vectors to Float64 before normalization and fitting corrected that computation; the failed execution emitted no arrays.",
+  "formal_training_ready": false,
+  "gpu_steps": 0,
+  "local_checks": {
+    "pass_asset_pin_and_fallback_edges": 4,
+    "pass_geometry_edges": 4
+  },
+  "mounted_asset_equality_verified": false,
+  "normalization_partition": {
+    "Female1": {
+      "joints": {
+        "over8": 0,
+        "peak": 6.145219802856445
+      },
+      "root": {
+        "over8": 0,
+        "peak": 4.024259567260742
+      },
+      "rotation": {
+        "over8": 15,
+        "peak": 11.334365844726562
+      },
+      "worst_columns": [
+        57,
+        59,
+        58,
+        142,
+        139,
+        145
+      ],
+      "worst_peaks": [
+        11.334365844726562,
+        7.8972859382629395,
+        7.832779884338379,
+        6.145219802856445,
+        6.134101390838623,
+        5.810996055603027
+      ]
+    },
+    "Male1": {
+      "joints": {
+        "over8": 0,
+        "peak": 6.328166961669922
+      },
+      "root": {
+        "over8": 0,
+        "peak": 4.206217288970947
+      },
+      "rotation": {
+        "over8": 1065,
+        "peak": 102.50255584716797
+      },
+      "worst_columns": [
+        57,
+        39,
+        93,
+        75,
+        120,
+        61
+      ],
+      "worst_peaks": [
+        102.50255584716797,
+        54.66212844848633,
+        36.657554626464844,
+        31.869714736938477,
+        18.120037078857422,
+        14.950387954711914
+      ]
+    },
+    "Male2": {
+      "joints": {
+        "over8": 0,
+        "peak": 6.238833904266357
+      },
+      "root": {
+        "over8": 0,
+        "peak": 5.265803337097168
+      },
+      "rotation": {
+        "over8": 896,
+        "peak": 112.67806243896484
+      },
+      "worst_columns": [
+        57,
+        39,
+        93,
+        75,
+        120,
+        61
+      ],
+      "worst_peaks": [
+        112.67806243896484,
+        58.34270477294922,
+        38.06304168701172,
+        33.0377311706543,
+        18.248266220092773,
+        15.986970901489258
+      ]
+    }
+  },
+  "private_proof_sha256": {
+    "assets": "09f2d11985cce70b3f5a79301e5dee1d7c06bc3880df54b8ed16ba989a98fb1f",
+    "geometry": "3104f1948deee198f9ee5bb30a6b17fc93d018e5372a60ebf01c5b9d970d24b8",
+    "partitions": "3f8641d98bff9264e1e276da70fa41f2d19b03dd81f8c42516fa7f6862ade8f5"
+  },
+  "publisher_assets": {
+    "asset_bytes_and_sha256": {
+      "Mean.npy": {
+        "SHA256": "a4bbe5f68881fe793d509f262ad3dc698a91f79158a9bde9d6f24d46ef9652bd",
+        "bytes": 1736
+      },
+      "Std.npy": {
+        "SHA256": "6cc86d1ca4b47fbd0e84b677c4397e51b6615abcb34e38fdd9daabbe6a5685cc",
+        "bytes": 1736
+      },
+      "faces.bin": {
+        "SHA256": "777b0806d2843c797ed18644eecc11466ff822b33b02d263c22f8ad3730e9bb5",
+        "bytes": 290376
+      },
+      "j_template.bin": {
+        "SHA256": "4f488cc9d0b650a816f5a8eda49eda7bc796f490e9130a6e0dec5be137d7b929",
+        "bytes": 624
+      },
+      "joint_names.json": {
+        "SHA256": "f29139c07a3e8c160cb3512428aac6e272697ade096a7e682024c47424e064d1",
+        "bytes": 698
+      },
+      "kintree.bin": {
+        "SHA256": "98a20fa3b53193790b63d9ac3a9c917f2f70fbe6e053dca495c75317ff4b756a",
+        "bytes": 208
+      },
+      "skinIndice.bin": {
+        "SHA256": "846794fb90ea01e069435ad242caefb3d5c2f913fef3255c247f48836ddc1bda",
+        "bytes": 194048
+      },
+      "skinWeights.bin": {
+        "SHA256": "343eac2902627ee6b45b547eb7d9f1526562eca7ba178d1dc71f9e466f307a77",
+        "bytes": 388096
+      },
+      "v_template.bin": {
+        "SHA256": "b9fbe1f34bfe8a07442d11166e169318022a18da8bc62ce0a9930dfdb3171050",
+        "bytes": 291072
+      }
+    },
+    "faces": 48396,
+    "feature_dimensions": 201,
+    "frozen_producer_std_fallback_indices": [
+      135,
+      136,
+      137
+    ],
+    "joints": 52,
+    "motion_201_rows_generated": 0,
+    "mounted_training_asset_equality_verified": false,
+    "publisher_rest_root_not_zero": [
+      -0.0017950580222532153,
+      -0.19082699716091156,
+      0.028219124302268028
+    ],
+    "publisher_revision": "76957e3fedc64e80c7288d3630b3d32c7c17e6de",
+    "skin_joint_max_index": 51,
+    "skin_weight_sums_range": [
+      0.9999998807907104,
+      1.0000001192092896
+    ],
+    "text_condition_rows_generated": 0,
+    "training_READY": false,
+    "vertices": 24256
+  },
+  "scope": "Local NumPy retarget diagnostic with three exact B10 clips, 128 native frames each. Training format witness only.",
+  "source_sha256": {
+    "tools/build_hymotion_accad_wooden_pilot.py": "34f37cf16abafa204bd9f53b5c76864f27dd725d7074617d0edb0debde48da66",
+    "tools/verify_hymotion_publisher_feature_assets.py": "d9dd9bc726d05e03fad4e5006c9437f43de5141466baf564f9cf8f1cfc7b1e2b"
+  },
+  "target_native_RTE_verified": false,
+  "tech_report": "https://arxiv.org/html/2512.23464v1"
+}
