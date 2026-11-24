@@ -205,7 +205,22 @@ class RealPlacementFixtureTest(unittest.TestCase):
         self.assertEqual(len(group_rows), 80)
         self.assertTrue(all(row['state'] == 'NO_NUMBERED_STEP' for row in group_rows))
         self.assertEqual(report["maximum_numbered_step_assigned_DCU"], 0)
+        self.assertEqual(report["maximum_running_numbered_step_assigned_DCU"], 0)
         self.assertIsNone(report["busy_measurement"])
+
+    def test_nonrunning_records_keep_placement_protection_without_inflating_running_count(self):
+        parent = '1087656'
+        self.rows[parent] = [row.replace('State=RUNNING', 'State=TIMEOUT')
+                             if row.startswith('StepId=' + parent + '.540 ') else row for row in self.rows[parent]]
+        with patch('read_training_slurm_membership.query', side_effect=self.query):
+            report = snapshot(self.groups)
+        self.assertEqual((report['minimum_running_numbered_step_assigned_DCU'],
+                          report['maximum_running_numbered_step_assigned_DCU']), (560, 560))
+        self.assertEqual(report['minimum_numbered_step_assigned_DCU'], 561)
+        entry = report['parents'][parent]
+        self.assertEqual(entry['active_steps'][parent + '.540']['state'], 'TIMEOUT')
+        self.assertIn('f12r3n20', entry['running_numbered_step_usage']['nodes_without_numbered_DCU_step'])
+        self.assertEqual(entry['coverage_by_group_and_node']['O01']['f12r3n20']['state'], 'PARTIALLY_ASSIGNED')
 
     def test_queue_can_consider_clear_nodes_during_known_multi_group_steps(self):
         with patch('read_training_slurm_membership.query', side_effect=self.query):

@@ -230,6 +230,8 @@ def snapshot(groups, *, owner_uid=None, run_query=None):
                 membership_qualified=(len(step_groups) == 1 and not outside_ledger and not outside_parent),
             )
         usage = numbered_step_usage(steps, parent_nodes, cards_per_node=8)
+        running_steps = {handle: step for handle, step in steps.items() if step['state'] == 'RUNNING'}
+        running_usage = numbered_step_usage(running_steps, parent_nodes, cards_per_node=8)
         ledger_exact = parent_nodes == set(expected)
         step_locations_exact = (ledger_exact and all(
             step['member_nodes'] and not step['outside_parent_nodes'] for step in steps.values()
@@ -238,6 +240,7 @@ def snapshot(groups, *, owner_uid=None, run_query=None):
             state=state, nodes=len(nodes), allocated_DCU=dcu,
             ledger_exact=ledger_exact, owned_by_observer=owned, step_locations_exact=step_locations_exact,
             active_steps=steps, numbered_step_usage=usage,
+            running_numbered_step_usage=running_usage,
             coverage_by_group_and_node=group_coverage(expected, usage, cards_per_node=8,
                                                       valid_parent=state == 'RUNNING' and step_locations_exact),
         )
@@ -246,16 +249,16 @@ def snapshot(groups, *, owner_uid=None, run_query=None):
         and all(step['membership_qualified'] for step in parent['active_steps'].values())
         for parent in parents.values()
     )
-    usage = [row['numbered_step_usage'] for row in parents.values()]
-
-    def combined(field):
-        counts = [row[field] for row in usage]
+    def combined(source, field):
+        counts = [row[source][field] for row in parents.values()]
         return None if None in counts else sum(counts)
 
     return dict(parents=parents, distinct_nodes=len(all_nodes),
                 allocated_DCU=sum(parent['allocated_DCU'] for parent in parents.values()),
-                minimum_numbered_step_assigned_DCU=combined('minimum_assigned_DCU'),
-                maximum_numbered_step_assigned_DCU=combined('maximum_assigned_DCU'),
+                minimum_numbered_step_assigned_DCU=combined('numbered_step_usage', 'minimum_assigned_DCU'),
+                maximum_numbered_step_assigned_DCU=combined('numbered_step_usage', 'maximum_assigned_DCU'),
+                minimum_running_numbered_step_assigned_DCU=combined('running_numbered_step_usage', 'minimum_assigned_DCU'),
+                maximum_running_numbered_step_assigned_DCU=combined('running_numbered_step_usage', 'maximum_assigned_DCU'),
                 dispatch_candidates=dispatch_candidates(parents),
                 busy_measurement=None, membership_qualified=membership_qualified,
                 observed_epoch=time.time(), observation_seconds=time.monotonic() - started)

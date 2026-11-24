@@ -478,6 +478,8 @@ def plan(snapshot, backlog, *, repo=REPO, ledger_path=None, holds=(), now=None, 
                 numbered_step_membership_counts=dict(Counter(node['membership'] for node in nodes.values())),
                 minimum_numbered_step_assigned_DCU=membership['minimum_numbered_step_assigned_DCU'],
                 maximum_numbered_step_assigned_DCU=membership['maximum_numbered_step_assigned_DCU'],
+                minimum_running_numbered_step_assigned_DCU=membership.get('minimum_running_numbered_step_assigned_DCU'),
+                maximum_running_numbered_step_assigned_DCU=membership.get('maximum_running_numbered_step_assigned_DCU'),
                 measured_busy_percent=None, fresh_device_receipt=fresh, admission_clear_nodes=sum(
                     node['admission'] == 'clear' for node in nodes.values()),
                 device_probe_scope=snapshot.get('device_probe_scope') if fresh else None,
