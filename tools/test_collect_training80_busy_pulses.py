@@ -4,6 +4,7 @@ from copy import deepcopy
 import io
 import json
 from pathlib import Path, PurePosixPath
+import subprocess
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -41,6 +42,35 @@ def slices(owners, points):
 
 
 class PulseTest(unittest.TestCase):
+    def test_request_dedup_omits_full_accounting_columns_for_long_parent(self):
+        parent = "1103606"
+        label = "training80-busy-pulse-" + REQUEST + "-" + parent
+        step = parent + ".2350"
+        history = "".join(f"{parent}.{i}|{'a' * 100}\n" for i in range(1, 2350))
+        history = (history + f"{step}|{label}\n").encode()
+        self.assertGreater(len(history), 262_144)
+        with patch.object(sampler.subprocess, "run", return_value=subprocess.CompletedProcess(
+                [], 0, stdout=history, stderr=b"")) as run:
+            self.assertEqual(sampler.find_accounting_step(parent, label, float("inf")), step)
+            self.assertIsNone(sampler.find_accounting_step(parent, "new-request", float("inf")))
+        self.assertEqual(run.call_args.args[0],
+                         ["sacct", "-n", "-P", "-j", parent, "--format=JobIDRaw,JobName%100"])
+
+    def test_terminal_accounting_queries_only_observed_step_and_verifies_label(self):
+        parent, step, label = "1103606", "1103606.2350", "exact-pulse"
+        row = [step, label, "COMPLETED", "0:0", "9", "n[01-40]", "cpu=40,mem=10G,node=40"]
+        with patch.object(sampler, "query", return_value=["|".join(row)]) as query:
+            self.assertEqual(sampler.account(parent, label, 10, step), row)
+        query.assert_called_once_with(
+            ["sacct", "-n", "-P", "-j", step, "--format=" + ",".join(sampler.COLUMNS)], 10)
+        with patch.object(sampler, "find_accounting_step", return_value=step), patch.object(
+                sampler, "query", return_value=["|".join(row)]):
+            with self.assertRaisesRegex(ValueError, "label differs"):
+                sampler.account(parent, "wrong-label", 10)
+        with patch.object(sampler, "query", return_value=[f"{step}|{label}", f"{parent}.2351|{label}"]):
+            with self.assertRaisesRegex(ValueError, "ambiguous original"):
+                sampler.find_accounting_step(parent, label, 10)
+
     def test_surviving_parent_keeps_only_320_cards_and_rejects_missing_sample(self):
         repo = Path(sampler.__file__).resolve().parents[1]
         ledger = repo / "coordination/training/training40-survivor1103606-node-task-map-v1.json"

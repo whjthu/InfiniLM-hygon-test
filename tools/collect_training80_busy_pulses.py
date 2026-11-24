@@ -22,6 +22,8 @@ from training_dispatch_allocation import allocation
 
 PYTHON = "/usr/local/python3.12/bin/python3"
 COLUMNS = ("JobIDRaw", "JobName%100", "State", "ExitCode", "ElapsedRaw", "NodeList", "AllocTRES")
+LABEL_COLUMNS = COLUMNS[:2]
+LABEL_SCAN_MAX_BYTES = 1_048_576
 TERMINAL = {"COMPLETED", "FAILED", "CANCELLED", "TIMEOUT", "NODE_FAIL", "OUT_OF_MEMORY",
             "PREEMPTED", "BOOT_FAIL", "DEADLINE", "REVOKED"}
 INTERVAL_NS = 2_000_000_000
@@ -204,11 +206,11 @@ def summarize(owners, pins, pulses, threshold_ns, accounting_ok):
                 counter="sysfs_gpu_busy_percent", GPU_requested=0, sustained_interval_qualified=False)
 
 
-def query(argv, deadline):
+def query(argv, deadline, max_stdout_bytes=262_144):
     seconds = (deadline - time.monotonic_ns()) / 1e9
     require(seconds > 0, "scheduler evidence deadline exhausted")
     done = subprocess.run(argv, capture_output=True, timeout=min(5, seconds), check=False)
-    require(done.returncode == 0 and len(done.stdout) <= 262144 and len(done.stderr) <= 65536,
+    require(done.returncode == 0 and len(done.stdout) <= max_stdout_bytes and len(done.stderr) <= 65_536,
             "scheduler evidence command failed")
     return done.stdout.decode("utf-8").strip().splitlines()
 
@@ -235,16 +237,35 @@ def check_live_parents(expected, deadline):
     require(seen == set(expected), "live parent allocation absent")
 
 
-def account(parent, label, deadline):
-    rows = query(["sacct", "-n", "-P", "-j", parent, "--format=" + ",".join(COLUMNS)], deadline)
+def find_accounting_step(parent, label, deadline):
+    rows = query(["sacct", "-n", "-P", "-j", parent, "--format=" + ",".join(LABEL_COLUMNS)],
+                 deadline, max_stdout_bytes=LABEL_SCAN_MAX_BYTES)
+    selected = []
+    for line in rows:
+        row = line.split("|")
+        require(len(row) == len(LABEL_COLUMNS), "scheduler accounting label row malformed")
+        step, name = row
+        if name == label:
+            require(re.fullmatch(parent + r"\.[0-9]+", step), "accounting step is foreign")
+            selected.append(step)
+    require(len(selected) <= 1, "ambiguous original step")
+    return selected[0] if selected else None
+
+
+def account(parent, label, deadline, observed_step=None):
+    step = observed_step or find_accounting_step(parent, label, deadline)
+    if step is None:
+        return None
+    require(re.fullmatch(parent + r"\.[0-9]+", step), "accounting step is foreign")
+    rows = query(["sacct", "-n", "-P", "-j", step, "--format=" + ",".join(COLUMNS)], deadline)
     selected = []
     for line in rows:
         row = line.split("|")
         require(len(row) == len(COLUMNS), "scheduler accounting row malformed")
-        if row[1] == label:
-            require(re.fullmatch(parent + r"\.[0-9]+", row[0]), "accounting step is foreign")
+        if row[0] == step:
+            require(row[1] == label, "accounting step label differs")
             selected.append(row)
-    require(len(selected) <= 1, "ambiguous original step")
+    require(len(selected) <= 1, "ambiguous exact accounting step")
     return selected[0] if selected else None
 
 
@@ -307,7 +328,8 @@ def collect(ledger_path, pins_path, request, points, threshold_ns, output):
     with selectors.DefaultSelector() as selector:
         try:
             check_live_parents(expected, readiness_deadline)
-            require(all(account(p, label, readiness_deadline) is None for p, label in labels.items()),
+            require(all(find_accounting_step(p, label, readiness_deadline) is None
+                        for p, label in labels.items()),
                     "request already has a numbered Slurm step")
             phase = "sampling"
             for parent, argv in commands.items():
@@ -360,7 +382,7 @@ def collect(ledger_path, pins_path, request, points, threshold_ns, output):
         accounting_deadline = time.monotonic_ns() + 12_000_000_000
         while True:
             for parent, label in labels.items():
-                accounting[parent] = account(parent, label, accounting_deadline)
+                accounting[parent] = account(parent, label, accounting_deadline, receiver.parent_steps.get(parent))
             if terminal(accounting) or time.monotonic_ns() + 1_000_000_000 >= accounting_deadline:
                 break
             time.sleep(.5)
