@@ -75,7 +75,7 @@ def run(claim, sources):
     require(claim["protected_zero_GRES_accounting_conflicts"] == PROTECTED_CPU,
             "original zero-GRES reservation changed")
     controls = claim["zero_GRES_controls"]
-    require(len(controls) == 13 and all(re.fullmatch(PARENT + r"\.[0-9]+", h) and
+    require(len(controls) == 12 and all(re.fullmatch(PARENT + r"\.[0-9]+", h) and
             re.fullmatch(r"training80-standby-compute-[0-9a-f]{12}", name) for h, name in controls.items()),
             "live control scope changed")
     require(set(sources) == {"pilot", "controller", "worker"}
@@ -109,6 +109,7 @@ def run(claim, sources):
         (root / "worker.py").write_bytes(sources["worker"])
         folder = root / NODE
         folder.mkdir()
+        probe_started = time.monotonic()
         pre = pilot["probe"](request, claim)
         pilot["save"](root / "probe-candidate.json", pre)
         deadline = time.monotonic() + 5
@@ -122,7 +123,8 @@ def run(claim, sources):
             time.sleep(0.25)
         require(observed[0][1] == "training80-admit-control-pilot-" + request
                 and observed[0][5:] == [NODE, "cpu=1,mem=256M,node=1"], "fresh zero-GRES probe identity changed")
-        admit(pilot, controller, claim)
+        protected = admit(pilot, controller, claim)
+        require(time.monotonic() - probe_started <= 35, "fresh probe window expired before dispatch")
         label = f"training80-dcu-standby-{request[:12]}-{NODE}"
         seconds = claim["worker_seconds"]
         pilot["save"](folder / "expected.json", dict(node=NODE, parent=PARENT, pci=claim["pci"],
@@ -134,7 +136,7 @@ def run(claim, sources):
             child = subprocess.Popen([argv[0], "--threads=1", *argv[1:]], stdin=subprocess.DEVNULL,
                                      stdout=out, stderr=err, start_new_session=True)
         result = dict(request=request, label=label, node=NODE, parent=PARENT, pre=pre, previous=preceding,
-                      launcher_pid=child.pid, preserved_controls=len(controls)+1, worker_seconds=seconds)
+                      launcher_pid=child.pid, preserved_controls=protected, worker_seconds=seconds)
         pilot["save"](root / "submit.json", result)
         pilot["save"](root / "submission-receipt.json", dict(request=request, node=NODE, parent=PARENT,
                       synthetic=True, submit_records=[result]))
@@ -142,8 +144,24 @@ def run(claim, sources):
 
 
 def admit(pilot, controller, claim):
-    pilot["guard"](claim, controller)
-    controls = set(claim["zero_GRES_controls"]) | set(PROTECTED_CPU)
+    declared = claim["zero_GRES_controls"]
+    active = {}
+    for line in pilot["query"]("scontrol", "show", "step", PARENT, "--oneliner"):
+        row = controller["pinned_fields"](line)
+        step = row.get("StepId")
+        if step in declared and row.get("NodeList") == NODE:
+            require((row.get("Name"), row.get("State"), row.get("TRES")) ==
+                    (declared[step], "RUNNING", "cpu=2,mem=2G,node=1"), "known control identity differs")
+            active[step] = declared[step]
+    frozen_closed = {"1103606.2552": "training80-standby-compute-f67445c1a320"}
+    require(claim["accounting_required_closed_zero_GRES_controls"] == frozen_closed, "terminal control scope changed")
+    closed = {**frozen_closed, **{step: label for step, label in declared.items() if step not in active}}
+    for step, label in closed.items():
+        [row] = pilot["rows"](step)
+        require(row[1:4] == [label, "COMPLETED", "0:0"]
+                and row[5:] == [NODE, "cpu=2,mem=2G,node=1"], "declining control set lacks exact C0")
+    pilot["guard"]({**claim, "zero_GRES_controls": active}, controller)
+    controls = set(active) | set(PROTECTED_CPU)
     expand = {}
     for line in pilot["query"]("squeue", "--steps", "-h", "-j", PARENT, "-o", "%i|%N"):
         step, hosts = line.split("|")
@@ -154,7 +172,9 @@ def admit(pilot, controller, claim):
         if hosts not in expand:
             listed = [hosts] if re.fullmatch(r"f[0-9]+r[0-9]+n[0-9]+", hosts) else pilot["query"](
                 "scontrol", "show", "hostnames", hosts)
-            require(listed and all(re.fullmatch(r"f[0-9]+r[0-9]+n[0-9]+", member) for member in listed),
+            require(listed and len(set(listed)) == len(listed)
+                    and all(re.fullmatch(r"f[0-9]+r[0-9]+n[0-9]+", member) for member in listed),
                     "unresolved queued host expansion")
             expand[hosts] = frozenset(listed)
         require(NODE not in expand[hosts] or step in controls, "additional target step reported by squeue")
+    return sorted(controls)
