@@ -17,6 +17,8 @@ import subprocess
 import time
 from types import FunctionType
 
+import calendar58
+
 
 ROOT = Path(__file__).resolve().parents[3]
 SOURCE = ROOT / "tools/run_training80_0544_ordinary_refill_once.py"
@@ -319,14 +321,49 @@ def run_group(ledger, *, request, wave, group, calendar_sha, publication, observ
     return execute(ledger, request, roster, publication, action, publisher, state, audit, fixture=fixture)
 
 
+def calendar_scope(coordinator, calendar, calendar_sha):
+    need(calendar is not None and calendar.is_absolute() and calendar.is_relative_to(ROOT / "local-only")
+         and hex_id(calendar_sha, 64) and calendar_sha != OLD_CALENDAR_SHA, "NEW_EXPLICIT_CALENDAR_REQUIRED")
+    if calendar_sha == calendar58.VERIFIED_SHA or calendar.name == calendar58.VERIFIED_FILE:
+        return calendar58.validate(calendar, calendar_sha, coordinator)
+    pinned(calendar, calendar_sha)
+    coordinator.update(CALENDAR=calendar, CALENDAR_SHA=calendar_sha)
+    return coordinator["groups"](), None
+
+
+def dispatch_group(ledger, group, rows, request, wave, calendar_sha, coordinator, base, publisher, action,
+                   *, require_all=False, clock=time.time, audit=AUDIT_ROOT, fixture=None):
+    prior = ledger.status(request)
+    if prior["state"] != "ABSENT":
+        return dict(prior, new_claims=0)
+    need(rows[0]["planned_end_epoch"] - 65 <= clock() <= rows[-1]["planned_end_epoch"] + 180,
+         "FRESH_FUTURE_WAVE_ADMISSION_WINDOW")
+    state = publisher["precheck"]()
+    receipt, _, released = coordinator["observe"](group, rows, base)
+    roster = tuple((row["parent"], row["node"], row["previous"]) for row in released)
+    if not roster:
+        return {"state": "NO_RELEASED_CANDIDATES", "new_claims": 0}
+    if require_all and released != rows:
+        return {"state": "EXACT_GROUP_AWAITING_ALL_ORIGINAL_TERMINALS", "released": len(roster),
+                "planned": len(rows), "new_claims": 0}
+    try:
+        return run_group(ledger, request=request, wave=wave, group=group,
+                         calendar_sha=calendar_sha, publication=state["head"], observation_sha=digest(receipt.read_bytes()),
+                         roster=roster, action=action, publisher=publisher, state=state, audit=audit, fixture=fixture)
+    except Conflict:
+        return {"state": "GROUP_ATOMIC_CONFLICT", "new_claims": 0, "replay_allowed": False}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("mode", choices=("check", "init-ledger", "status", "dispatch"))
+    parser.add_argument("mode", choices=("check", "check-calendar", "init-ledger", "status", "dispatch"))
     parser.add_argument("--calendar", type=Path)
     parser.add_argument("--calendar-sha")
     parser.add_argument("--wave")
     parser.add_argument("--group", type=int)
     parser.add_argument("--request")
+    parser.add_argument("--adoption", type=Path)
+    parser.add_argument("--adoption-sha")
     args = parser.parse_args()
     database = AUDIT_ROOT / "claim-ledger-v1.sqlite3"
     if args.mode == "init-ledger":
@@ -339,42 +376,30 @@ def main():
         print(json.dumps(Ledger(database).status(args.request), sort_keys=True))
         return
     coordinator = legacy()
+    if args.mode == "check-calendar":
+        groups, scope = calendar_scope(coordinator, args.calendar, args.calendar_sha)
+        if scope is None:
+            scope = {"state": "EXACT_FUTURE_CALENDAR_CHECKED", "candidates": sum(map(len, groups)), "remote_calls": 0}
+        print(json.dumps(scope, sort_keys=True))
+        return
     base, publisher = coordinator["modules"]()
     action = frozen_action(publisher)
     if args.mode == "check":
         pinned(EVIDENCE, EVIDENCE_SHA)
         print(json.dumps({"state": "EXACT_SOURCE_ADMISSION_AND_BRIDGE_COMPILED", "remote_calls": 0}))
         return
-    need(args.calendar is not None and args.calendar.is_absolute() and args.calendar.is_relative_to(ROOT / "local-only")
-         and hex_id(args.calendar_sha, 64) and args.calendar_sha != OLD_CALENDAR_SHA
-         and hex_id(args.request, 32)
+    need(hex_id(args.request, 32)
          and args.wave is not None and re.fullmatch(r"training80-vnext-[a-z0-9-]{3,46}", args.wave)
          and type(args.group) is int and args.group >= 1, "NEW_EXPLICIT_WAVE_REQUIRED")
-    pinned(args.calendar, args.calendar_sha)
-    coordinator.update(CALENDAR=args.calendar, CALENDAR_SHA=args.calendar_sha, WAVE=args.wave)
-    groups = coordinator["groups"]()
+    groups, scope = calendar_scope(coordinator, args.calendar, args.calendar_sha)
+    coordinator.update(WAVE=args.wave)
+    need((scope is not None) == (args.wave == calendar58.WAVE), "EXACT_58_WAVE_IDENTITY")
+    if scope is not None:
+        calendar58.require_adoption(args.adoption, args.adoption_sha, args.wave, database, scope, coordinator["LOCAL"])
     need(args.group <= len(groups), "EXACT_FUTURE_GROUP")
     rows = groups[args.group - 1]
-    ledger = Ledger(database)
-    prior = ledger.status(args.request)
-    if prior["state"] != "ABSENT":
-        print(json.dumps(prior, sort_keys=True))
-        return
-    need(rows[0]["planned_end_epoch"] - 65 <= time.time() <= rows[-1]["planned_end_epoch"] + 180,
-         "FRESH_FUTURE_WAVE_ADMISSION_WINDOW")
-    state = publisher["precheck"]()
-    receipt, _, released = coordinator["observe"](args.group, rows, base)
-    roster = tuple((row["parent"], row["node"], row["previous"]) for row in released)
-    if not roster:
-        print(json.dumps({"state": "NO_RELEASED_CANDIDATES", "new_claims": 0}))
-        return
-    try:
-        result = run_group(ledger, request=args.request, wave=args.wave, group=args.group,
-                           calendar_sha=args.calendar_sha, publication=state["head"], observation_sha=digest(receipt.read_bytes()),
-                           roster=roster, action=action, publisher=publisher, state=state, audit=AUDIT_ROOT)
-    except Conflict:
-        print(json.dumps({"state": "GROUP_ATOMIC_CONFLICT", "new_claims": 0, "replay_allowed": False}))
-        return
+    result = dispatch_group(Ledger(database), args.group, rows, args.request, args.wave, args.calendar_sha,
+                            coordinator, base, publisher, action, require_all=scope is not None)
     print(json.dumps(result, sort_keys=True))
 
 
