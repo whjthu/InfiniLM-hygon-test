@@ -1,6 +1,14 @@
 # 海光 640 卡训练与领域模型运营
 
-训练 48 台 384 卡，Kimi-K3、GLM-5.3、DeepSeek-v4 共 24 台 192 卡，算子调优 8 台 64 卡。节点归属见 [80 节点账本](training80-active-node-task-map-v1.json)，训练进度按 [17 项验收矩阵](training-case-acceptance-matrix-v1.json) 跟踪。
+满额 80 台时，Kimi-K3、GLM-5.3、DeepSeek-v4 的常态并发合计最多 12 台、96 卡，算子调优并发最多 2 台、16 卡。与旧计划相比，腾出的 18 台、144 卡纳入训练优先的共享容量。推理和算子仅在实验真正就绪时借用所需节点，未使用的额度也可供训练和领域模型使用。按当前实际 Slurm 分配和 [80 节点账本](training80-replacement1194900-node-task-map-v1.json) 核对父作业及设备归属，用 [17 项验收矩阵](training-case-acceptance-matrix-v1.json) 跟踪训练进度。
+
+## 推理与算子按需借用
+
+- 推理每个模型常态最多 4 台。按目标模型及已核验拓扑使用最少卡数。能在单机或两台完成的诊断优先用相应规模。需要更多节点时，凭模型容量证据或小规模配对结果，登记具体拓扑、最长时限、可验证结果和归还条件后临时借用。
+- 算子通常在单卡上依次做同输入数值及配对计时。第二台用于独立复验或确有多卡通信需求的对照。候选至少有真实调用点和固定操作数或形状。局部收益经过真实调用方回归后再决定是否采用。
+- 已在运行的试验和状态未明的预约继续跟踪原句柄。可用节点优先给已就绪的基础训练和领域训练，其次是恢复、留出评测及可验证的系统工作。其余按现有可中断保底回填。新派发沿用父作业、拓扑、设备准入和独立清场流程。
+- 每个性能条目写出固定负载、设备拓扑、对照和候选绝对值、变化、失败分母、正确性与显存代价，以及采用、保留或停止的决定。推理整模型结论采用同拓扑的固定请求，报告逐用户 decode、TTFT、ITL P95、有效吞吐和质量。编译、源码检查、硬件组件和整模型结果在日报中各自标注。
+- 最近可复核结论是 GLM 的驻留配对无稳定预填充收益，Kimi 的 Wave32 组件全接口耗时中位比约 1.0，DeepSeek 的 24 卡诊断三臂为 2.351、2.366、2.381 tok/s，三个路由使用了不同节点。共享算子 Pack16 当前已到目标环境的零卡依赖检查，后续以原调用方的同卡数值和全接口耗时为判定。 [GLM 实测](../../results/bw1000/2026-11-22/GLM474-original1180-three-resident-pairs-terminal.json) · [Kimi 实测](../../results/bw1000/2026-11-22/Kimi461-wave-two-dso-original781-six-arm-independent-terminal.json) · [DeepSeek 实测](../../results/bw1000/2026-11-23/Deep-rope-tp8-route-attribution-original1433-1435-terminal.json) · [Pack16 准备证据](../../results/bw1000/2026-11-24/O01-pack16-json-v3-original2662-zero-GRES-dependencies-pass.json)
 
 ## 职责与派发
 
@@ -24,5 +32,53 @@
 | 模型训练 | 12 模型与 17 用例逐项指标，真实提交、实际完成步、恢复对照、三轮吞吐与 A100 比例、留出效果与证据缺口。 |
 | 数据集 | 每版许可证与来源检查状态、训练/开发/盲测样本和来源组数、去重和泄漏检查、主题配额及缺项。 |
 | 领域产出 | 可复现检查点、训练预算、盲测领域收益及通用能力回归；附失败样本或失败计数。 |
+
+五个 VLM 的 TextVQA 证据用 `tools/textvqa_effect.py` 生成。提供原 TextVQA v0.5.1 验证集标注、含原 MMF 评分源码的框架目录，以及带 SHA-256 的样本计划、配对检查点和预测清单。计划的 `sample_ids` 为冻结题号字符串。预测清单的 `sample_plan_SHA256` 绑定该计划，`arms` 中为 `A100`、`Hygon`、`Hygon_before` 各填 `path`、`SHA256` 和 `checkpoint_SHA256`。每行预测保留原 `question_id` 和 `answer`，失败行填 `status=failed` 及 `reason`。输入文件留在私有存储。
+
+生成的 `textvqa-metric-row.json` 可登记到正式指标。附件只保存原件引用、逐题计分和聚合值，逐题得分用 1/30 的整数单位表示。验收器重算三个检查点的完整样本分母，失败题计零，缺失题或重复题使本次证据失效。实际模型生成、训练集隔离、COCO CIDEr 及其他用例门槛仍需各自的原件和实测。
+
+五个 VLM 的正式效果证据在 `holdout.metric_bindings` 分别为 `TextVQA` 和 `COCO CIDEr` 登记各自的 `dataset_SHA256` 和 `scorer_SHA256`。每项的样本计划、逐样本清单、原始分数和检查点绑定使用该项的身份。两个指标须使用同一组 `A100`、`Hygon` 和 `Hygon_before` 检查点。
+
+COCO CIDEr 使用 `tools/coco_cider_effect.py`。在同一 CPU 评分环境运行 `describe-scorer --wheel WHEEL --java JAVA`，保存返回的 JSON。以该文件 SHA-256 作为 COCO 的 `scorer_SHA256`，以原 COCO caption 标注文件 SHA-256 作为 `dataset_SHA256`。按已冻结的评测划分传入实际 `sample_ids`，每个 ID 使用 COCO 影像编号的十进制字符串。预测清单和检查点绑定沿用三方证据结构，预测 JSONL 每行保留 `image_id` 和原 `caption`，失败行填 `status=failed` 及 `reason`。`score --help` 列出文件和 SHA 参数。
+
+`coco-cider-metric-row.json` 可交给正式验收器。三方使用同一个参考语料计算 CIDEr，显式失败以空预测计零，缺失、重复或额外图像使证据失效。验收器从逐图分数重算完整分母上的均值。原预测及评分环境留在实验存储。真实评测须使用冻结的原划分、三方模型输出与配对检查点。 [COCO 评分说明](https://github.com/cocodataset/cocodataset.github.io/blob/master/dataset/captions-eval.htm) [pycocoevalcap 1.2 发布记录](https://pypi.org/project/pycocoevalcap/1.2/#files)
+
+计分和正式验收都会对照原训练图像绑定，拒绝包含原 COCO64 图像 ID 的计划。已用官方 `val2017` 标注原件核对，完整清单与原训练重叠 64 张。按 ID 排除后有 4,936 张候选图和 24,694 条说明。原正式 CIDEr 划分、图像内容交叉和近重复仍待实查。 [排除核对记录](../../analysis/bw1000/training-vlm-coco-val2017-original-training-exclusion-v1.json)
+
+候选图和原 64 张训练图的 Flickr 原照片 ID 均能从官方标注解析，两组重叠为零。正式计划可在推理前运行 `verify-media --plan PLAN --plan-sha256 SHA --annotations ANNOTATIONS --images-root IMAGES`，按发布方文件名读取全部样本并保存文件大小和 SHA-256。正式计分也读取同一媒体目录，核对三方成功预测记录中的 `image_SHA256`，并拒绝与任一训练图字节相同的媒体。实际候选图的字节核验和近重复检查尚未执行。 [来源 ID 核对记录](../../analysis/bw1000/training-vlm-coco-val2017-candidate-source-photo-id-reconciliation-v1.json)
+
+正式恢复证据由 `tools/verify_training_acceptance.py` 核验。连续训练和各恢复分支都要引用独立保存的 Slurm 终态凭据，绑定原配方、框架、执行身份和起止全局步。保留至少 `JobIDRaw`、`State`、`ExitCode`、`AllocTRES` 四列。连续训练在各规定检查点引用独立文件清单，保留原检查点摘要、文件相对路径、字节数、SHA-256 及逐 rank 状态摘要。恢复分支核对加载时的状态、后续输入、loss 和参数，并比对最终调度器、数据游标与累积边界。大检查点继续保留在实验存储。
+
+五个 VLM 的 A100 工程基线已从原归档核对。15 份启动配置和最终训练状态通过原 SHA 校验，汇总中 120 份逐 rank 记录都能还原为与原清单 SHA 严格一致的 JSON 字节。每个模型的三轮启动仅在输出目录和端口不同。以最慢 rank 的完整窗口测量 640 个样本，包含第 10、20、25 步检查点 I/O。海光三轮实测和正式对照仍待执行。 [五个 VLM 原始计时核对](../../analysis/bw1000/training-vlm-a100-original-120-rank-windows-v1.json)
+
+SDXL、Z-Image、HY-Motion 的基础与强化学习用例，以及 TRELLIS.2 和 SF3D，已核验 24 轮原 A100 启动配置、结果和逐步日志。每轮保留 5 步预热和 20 步计时。DDPO、Flow GRPO 和 MotionRFT 的报告吞吐以每更新 4 条 rollout 计，证据同时保留 80 条 rollout 的吞吐和 20 次策略更新的吞吐。正式比对仍按各自原窗口及 I/O 边界执行。 [生成、动作和几何基线核对](../../analysis/bw1000/training-generation-a100-original-24-windows-v1.json)
+
+VGGT 三轮原配置和逐步日志按独立归档清单校验，75 条 loss 与原始记录逐条一致。A100 完整窗口包含 40 帧和第 10、20、25 步检查点及最终完整性检查，中位数为 0.95003 帧/秒。第 10、20 步之后各有约 9.6–10.1 秒间隔，末步时间戳到完整窗口结束的差约 19.7 秒，具体操作归因待 profile。完整时长来自附带原结果 SHA 的摘要，原 `result.json` 未在本轮读取。训练前失败的第三次尝试单列，保留其原退出结果。 [VGGT 原始计时核对](../../analysis/bw1000/training-vggt-a100-original-complete-clock-v1.json)
+
+HunyuanVideo 的三项 A100 工程参考分别核验。SFT 检查从第 0 步开始的三轮完整窗口和单列的模型加载耗时。DP2 使用各轮最慢 rank 的完整窗口。SAGE-GRPO 将结果摘要与原策略更新日志审计逐轮对账，使用 20 个更新的完整墙钟。三轮 SAGE 的完整墙钟均比逐步耗时之和多约 177–179 秒。正式性能仍需匹配配方、检查点 I/O 边界和实际执行证据。 [A100 原清单交叉核对](../../analysis/bw1000/training-hunyuanvideo-a100-timing-manifest-crosscheck-v1.json)
+
+已按原归档 SHA 核验 SFT 与 SAGE-GRPO 的六份启动配置和六份逐步日志。SFT 的反向加更新占完整窗口约 85%。SAGE-GRPO 的策略更新占约 74%，相邻更新的原记录之间共约 167–169 秒，时间戳跨度之外另有约 9.8–9.9 秒。这些区间仍按完整墙钟计入吞吐，具体操作归因待 profile。 [原始日志核对](../../analysis/bw1000/training-hunyuanvideo-a100-original-step-timeline-v1.json)
+
+HunyuanVideo SFT 的原数值策略绑定 10 月的单文件 A100 参考。11 月的六阶段采集与其具有相同的启动配置 SHA-256 和首步 loss，十项共同输入的形状和 dtype 一致。三项原中间量在 11 月采集审计中没有记录。两份采集之间的张量值等价仍待验证，原策略须保留对其原参考的绑定。 [原策略和采集核对](../../analysis/bw1000/training-hunyuanvideo-a100-original-policy-and-capture-reconciliation-v1.json)
+
+正式功能验收使用同一份海光首步数值收据。`hygon_execution` 与数值门槛中的 `Hygon` 引用一致。`launch_evidence` 保存实际进入统一框架的用例、源码树和入口摘要、训练模式及 Slurm 步骤。`terminal_evidence` 保存绑定该启动收据的独立 Slurm 终态，核对原配方的确切 DCU 数。功能门槛要求生效的注册表来自最终框架提交，并确认零更新前向和一次真实优化器更新。较早提交的注册实查继续作为中期证据保留。
+
+在 Slurm 登录节点运行 `python -B tools/read_training_slurm_membership.py coordination/training/training80-active-node-task-map-v1.json`，记录父作业分配、编号步骤和各节点已分配卡数。当步骤节点重叠或设备分配字段缺失时，按输出的上下界报告。未被编号 DCU 步骤覆盖的节点仍需核对保留任务、PCI/KFD 和进程占用，才能进入派发。驱动 busy 来自单独的同步采样窗口。
+
+逐组使用 `coverage_by_group_and_node` 排补位顺序。先实查 `NO_NUMBERED_STEP` 节点以承接原配方的整机工作。`CPU_STEP_ONLY` 还要核对已有步骤的 CPU 和内存。`PARTIALLY_ASSIGNED` 仅在确认具体设备互斥及宿主资源余量后安排小卡数任务。其余未核清的节点先对账。检查结果中的 `FULLY_ASSIGNED` 表示该节点的 8 卡都被编号步骤分配，任务是否在有效计算仍需结合实际训练步、输出进度和设备采样核对。
+
+`tools/training80_shared_step.py` 为单节点小卡数工程任务提供实机准入入口。冻结的派发端使用 `srun_args` 和 `srun_env` 请求精确的 DCU、CPU 和内存资源，并在同一个计算步骤、同一个设备权限边界内先运行 `guard`。计划须绑定当前同节点每个步骤已核验的 PCI，CPU 步骤用空列表表示。`guard` 重查同节点实际 Slurm 步骤和父作业归属，核对 HIP 实际可见 PCI、DRM 渲染及主设备的有效权限，再次检查步骤清单无变更后生成准入收据。该入口适用于工程回填，正式吞吐仍使用原配方的独立测量窗口。当前仅本地回归通过，真实共享步骤验证及派发接入待执行。[Slurm 步骤资源规则](https://slurm.schedmd.com/srun.html)
+
+整机补位需要两个父作业与账本一致、归采样进程的用户所有，并且能定位每个编号步骤的全部节点。已知位置的同父作业跨组步骤仍保留在 `active_steps`，其所有节点退出本轮整机补位。余下节点继续按各自原组核对；无法定位步骤时停止该轮准入。
+
+640 卡整机计划按就绪顺序接纳任务。同组先到任务有多种合法落点时，规划阶段保留这些选项，使后到任务可使用其唯一合格的父作业或节点。每个步骤仍在一个父作业内运行。已预留、已提交或执行状态未知的节点继续排除，计划卡数与实际提交和驱动 busy 分开记录。
+
+全部本组任务排定后，队列尝试跨组补位。发布的任务认领及其队列绑定须明确借用组 `backfill_zones`，并将借用节点和父作业加到允许范围，保留同一 `deadline_s`。每次只从单一出借组和单一父作业取节点。预留事件记录出借组、使用组、节点、时限和归还条件。时限到达后仍需核验原 Slurm 步骤的实际终态和独立清理结果，再归还节点。
+
+队列可调整仍在规划中的单节点和多节点借用，给其他就绪任务腾出合格落点。每个多节点任务整组迁移到一个获准的出借组和父作业。本组安排、正式预留和在途步骤保持原分配。只有所有受影响的任务均能保留完整落点时才采纳重排。候选搜索达到上限时保留已经排定的合法方案。
+
+协调进程在认领前退出时，下一份有效快照的 `plan` 会列出过期且仍无执行句柄的票据式预留。`reserve --claimable` 在同一写事务中复核计划、清理这些预留并签发新票据，随后派发端再正式认领。已经进入 `DISPATCHING`、`SUBMITTED` 或 `UNKNOWN` 的步骤以及旧式无票据预留继续按原记录对账。
+
+整机准入采样只对没有编号步骤的候选节点执行。每个 CPU 探测步骤最多 8 台，最多并行 4 个步骤，两父作业交错执行。每批有独立请求标识，保存实收节点与返回状态。某批无法启动或返回不匹配的记录时，其节点保持未核实，其他批的有效记录仍可使用。采样结束再读一次 Slurm 占用，期间出现新步骤的节点退出本轮补位。
 
 督导以 15 分钟为检查间隔目标。重大资源中断、全线训练停滞、就绪任务长期未启动或数值回退即时报告。北京时间 18:00 后首轮成功检查发出当日日报并注明观测时段。日报同时给出下一轮最先派发的任务、预计用卡及空档原因，据真实吞吐、等待与盲测结果调整任务次序和数据配比。
