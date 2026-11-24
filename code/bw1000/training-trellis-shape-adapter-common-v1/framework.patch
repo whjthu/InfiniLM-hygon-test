@@ -1,0 +1,241 @@
+From 3f37d53b1efcea039d2ed808e3b5a1a1916cd596 Mon Sep 17 00:00:00 2001
+From: whjthu <haojie0429@gmail.com>
+Date: Tue, 24 Nov 2026 08:01:33 +0800
+Subject: [PATCH] Load trained TRELLIS Shape Flow adapters for generation
+
+
+diff --git a/generation/src/gencuda/backends/trellis2_generation.py b/generation/src/gencuda/backends/trellis2_generation.py
+index c86968a..6816922 100644
+--- a/generation/src/gencuda/backends/trellis2_generation.py
++++ b/generation/src/gencuda/backends/trellis2_generation.py
+@@ -631,0 +632,6 @@ def run_trellis2_inference(
++    shape_adapter = None
++    shape_adapter_info = None
++    if "shape_flow_adapter" in config:
++        from .. import trellis_shape_adapter
++
++        shape_adapter, shape_adapter_info = trellis_shape_adapter.preflight(config["shape_flow_adapter"])
+@@ -802,3 +808,14 @@ def run_trellis2_inference(
+-    shape_model = models.from_pretrained(
+-        str(weights / "ckpts" / "slat_flow_img2shape_dit_1_3B_512_bf16")
+-    )
++    if shape_adapter is None:
++        shape_model = models.from_pretrained(
++            str(weights / "ckpts" / "slat_flow_img2shape_dit_1_3B_512_bf16")
++        )
++    else:
++        from ..trellis_training_contract import inspect_weights
++        from .trellis2_training import load_base_weights
++
++        native_config, _, identity = inspect_weights(weights)
++        shape_model = getattr(models, native_config["name"])(**native_config["args"])
++        load_base_weights(shape_model, identity)
++        trellis_shape_adapter.apply(shape_model, shape_adapter)
++        stage_timings["cpu_shape_adapter_and_base_load_seconds"] = perf_counter() - started
++        started = perf_counter()
+@@ -992,0 +1010,2 @@ def run_trellis2_inference(
++    if shape_adapter_info is not None:
++        metrics["shape_flow_adapter"] = shape_adapter_info
+diff --git a/generation/src/gencuda/trellis_shape_adapter.py b/generation/src/gencuda/trellis_shape_adapter.py
+new file mode 100644
+index 0000000..75994d1
+--- /dev/null
++++ b/generation/src/gencuda/trellis_shape_adapter.py
+@@ -0,0 +1,83 @@
++"""Load the original TRELLIS Shape Flow training artifact for paired generation."""
++
++from __future__ import annotations
++
++from hashlib import sha256
++import json
++from pathlib import Path
++from typing import Any
++
++from .trellis_training_contract import (
++    COMPONENT, CONFIG_SHA, PIPELINE_SHA, WEIGHTS_SHA, adapter_shapes, is_sha, require,
++)
++
++
++def _pinned_bytes(path: str, expected: str, limit: int) -> bytes:
++    require(type(path) is str and bool(path) and is_sha(expected), "invalid Shape Flow artifact pin")
++    artifact = Path(path)
++    require(artifact.is_file() and not artifact.is_symlink(), "Shape Flow artifact must be a regular file")
++    with artifact.open("rb") as stream:
++        data = stream.read(limit + 1)
++    require(0 < len(data) <= limit and sha256(data).hexdigest() == expected, "Shape Flow artifact digest differs")
++    return data
++
++
++def preflight(config: Any) -> tuple[bytes, dict[str, Any]]:
++    required = {"adapter", "adapter_sha256", "training_manifest", "training_manifest_sha256", "effective_updates"}
++    require(type(config) is dict and set(config) == required, "invalid Shape Flow adapter configuration")
++    updates = config["effective_updates"]
++    require(type(updates) is int and 0 < updates <= 2**24, "invalid Shape Flow update count")
++    report = json.loads(_pinned_bytes(config["training_manifest"], config["training_manifest_sha256"], 2**20))
++    require(type(report) is dict, "invalid Shape Flow training manifest")
++    require(report.get("schema_version") == 2 and report.get("command") == "train" and
++            report.get("model") == COMPONENT and report.get("status") == "completed" and
++            report.get("execution", {}).get("status") == "completed", "Shape Flow training manifest is incomplete")
++    metrics = report.get("metrics", {})
++    contract = metrics.get("training_identity", {})
++    identity = contract.get("identities", {}).get("weights", {})
++    training_config = contract.get("config", {})
++    global_step = metrics.get("global_optimizer_step")
++    require(contract.get("component") == COMPONENT and type(global_step) is int and global_step == updates
++            and training_config.get("lora_rank") == 2
++            and training_config.get("lora_alpha") == 4.0 and metrics.get("trainable_tensors") == 24
++            and metrics.get("trainable_elements") == 96256, "Shape Flow step or training schema differs")
++    require((identity.get("sha256"), identity.get("config_sha256"), identity.get("pipeline_sha256")) ==
++            (WEIGHTS_SHA, CONFIG_SHA, PIPELINE_SHA), "Shape Flow training base differs")
++    artifacts = [row for row in report.get("artifacts", [])
++                 if Path(row["path"].replace("\\", "/")).name == "adapter-final.safetensors"]
++    require(len(artifacts) == 1 and artifacts[0].get("sha256") == config["adapter_sha256"],
++            "Shape Flow adapter is not bound to the training manifest")
++    data = _pinned_bytes(config["adapter"], config["adapter_sha256"], 512 * 1024)
++    return data, {
++        "adapter_sha256": config["adapter_sha256"],
++        "training_manifest_sha256": config["training_manifest_sha256"],
++        "effective_updates": updates,
++        "base_sha256": WEIGHTS_SHA,
++        "base_config_sha256": CONFIG_SHA,
++        "pipeline_sha256": PIPELINE_SHA,
++        "rank": 2,
++        "alpha": 4.0,
++    }
++
++
++def apply(model: Any, data: bytes) -> None:
++    import torch
++    from safetensors.torch import load
++    from .backends.trellis2_training import inject_lora, trainable_parameters
++
++    values = load(data)
++    expected = adapter_shapes()
++    require(set(values) == set(expected), "Shape Flow adapter tensor keys differ")
++    for name, shape in expected.items():
++        value = values[name]
++        require(value.dtype == torch.float32 and tuple(value.shape) == shape and
++                bool(torch.isfinite(value).all()), f"invalid Shape Flow adapter tensor: {name}")
++    require(all(parameter.device.type == "cpu" for parameter in model.parameters()),
++            "Shape Flow adapter must be applied before moving the model")
++    # Training's injection initializes A. Keep paired generation's RNG sequence intact.
++    with torch.random.fork_rng(devices=[]):
++        inject_lora(model)
++    with torch.no_grad():
++        for name, parameter in trainable_parameters(model).items():
++            parameter.copy_(values[name])
++    model.requires_grad_(False)
+diff --git a/generation/tests/test_trellis_shape_adapter.py b/generation/tests/test_trellis_shape_adapter.py
+new file mode 100644
+index 0000000..5e14df4
+--- /dev/null
++++ b/generation/tests/test_trellis_shape_adapter.py
+@@ -0,0 +1,108 @@
++import copy
++from hashlib import sha256
++import importlib.util
++import json
++from pathlib import Path
++import tempfile
++import unittest
++
++from gencuda import trellis_shape_adapter as adapter
++from gencuda.trellis_training_contract import COMPONENT, CONFIG_SHA, PIPELINE_SHA, TARGETS, WEIGHTS_SHA, adapter_shapes
++
++
++class TrainingReceiptTest(unittest.TestCase):
++    def setUp(self):
++        self.directory = tempfile.TemporaryDirectory()
++        self.addCleanup(self.directory.cleanup)
++        self.root = Path(self.directory.name)
++        self.data = b"fixture for the provenance gate"
++        self.adapter_path = self.root / "adapter-final.safetensors"
++        self.adapter_path.write_bytes(self.data)
++        self.digest = sha256(self.data).hexdigest()
++        self.report = {
++            "schema_version": 2, "command": "train", "model": COMPONENT,
++            "status": "completed", "execution": {"status": "completed"},
++            "metrics": {
++                "global_optimizer_step": 25, "trainable_tensors": 24, "trainable_elements": 96256,
++                "training_identity": {
++                    "component": COMPONENT, "config": {"lora_rank": 2, "lora_alpha": 4.0},
++                    "identities": {"weights": {"sha256": WEIGHTS_SHA, "config_sha256": CONFIG_SHA,
++                                               "pipeline_sha256": PIPELINE_SHA}},
++                },
++            },
++            "artifacts": [{"sha256": self.digest, "path": "/run/adapter-final.safetensors"}],
++        }
++
++    def config(self, report):
++        path = self.root / "manifest.json"
++        data = json.dumps(report).encode()
++        path.write_bytes(data)
++        return {"adapter": str(self.adapter_path), "adapter_sha256": self.digest,
++                "training_manifest": str(path), "training_manifest_sha256": sha256(data).hexdigest(),
++                "effective_updates": 25}
++
++    def test_binds_manifest_and_exact_adapter_bytes(self):
++        data, receipt = adapter.preflight(self.config(self.report))
++        self.assertEqual(data, self.data)
++        self.assertEqual((receipt["effective_updates"], receipt["base_sha256"]), (25, WEIGHTS_SHA))
++
++    def test_rejects_incomplete_or_unpaired_training(self):
++        for label, mutate in (
++            ("running", lambda r: r["execution"].update(status="running")),
++            ("other step", lambda r: r["metrics"].update(global_optimizer_step=24)),
++            ("other base", lambda r: r["metrics"]["training_identity"]["identities"]["weights"].update(sha256="0" * 64)),
++            ("other adapter", lambda r: r["artifacts"][0].update(sha256="0" * 64)),
++        ):
++            with self.subTest(label=label):
++                report = copy.deepcopy(self.report)
++                mutate(report)
++                with self.assertRaises(ValueError):
++                    adapter.preflight(self.config(report))
++
++    def test_rejects_changed_bytes(self):
++        config = self.config(self.report)
++        self.adapter_path.write_bytes(self.data + b" changed")
++        with self.assertRaises(ValueError):
++            adapter.preflight(config)
++
++
++@unittest.skipUnless(all(importlib.util.find_spec(name) for name in ("torch", "safetensors")),
++                     "requires Torch and safetensors")
++class AdapterTensorTest(unittest.TestCase):
++    def test_apply_changes_prediction_preserving_rng(self):
++        import torch
++        from safetensors.torch import save
++
++        model = torch.nn.Module()
++        for name, (outputs, inputs) in TARGETS.items():
++            parents, leaf = name.split(".")[:-1], name.split(".")[-1]
++            parent = model
++            for attr in parents:
++                if not hasattr(parent, attr):
++                    parent.add_module(attr, torch.nn.Module())
++                parent = getattr(parent, attr)
++            parent.add_module(leaf, torch.nn.Linear(inputs, outputs, bias=False))
++        target = next(iter(TARGETS))
++        layer = model.get_submodule(target)
++        value = torch.zeros(1, layer.in_features)
++        value[0, 0] = 1.0
++        before = layer(value).detach()
++        weights = {name: torch.zeros(shape) for name, shape in adapter_shapes().items()}
++        weights[target + ".lora_A"][0, 0] = 1.0
++        weights[target + ".lora_B"][0, 0] = 1.0
++        invalid = dict(weights)
++        invalid[target + ".lora_B"] = weights[target + ".lora_B"].half()
++        with self.assertRaises(ValueError):
++            adapter.apply(model, save(invalid))
++        self.assertIs(model.get_submodule(target), layer)
++        rng_before = torch.get_rng_state().clone()
++        adapter.apply(model, save(weights))
++        self.assertTrue(torch.equal(rng_before, torch.get_rng_state()))
++        self.assertFalse(any(parameter.requires_grad for parameter in model.parameters()))
++        expected = before.clone()
++        expected[0, 0] += 2.0
++        torch.testing.assert_close(model.get_submodule(target)(value), expected, rtol=0, atol=0)
++
++
++if __name__ == "__main__":
++    unittest.main()
