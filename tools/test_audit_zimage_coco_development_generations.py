@@ -5,10 +5,12 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import Mock, patch
 
 from PIL import Image
 
 import audit_zimage_coco_development_generations as collector
+import render_zimage_coco_development_pairs as renderer
 from render_zimage_coco_development_pairs import DEVELOPMENT_COUNT, shard_plan
 
 
@@ -94,6 +96,38 @@ class AuditTest(unittest.TestCase):
         self.write_events(directory, events, trailing="{")
         with self.assertRaisesRegex(ValueError, "extra generation events"):
             collector.audit([directory], self.rows, Replay())
+
+    def test_verified_checkpoint_bytes_are_the_only_bytes_deserialized(self):
+        path = self.root / 'state.private.pt'
+        fixture = b'small checkpoint fixture'
+        checkpoint = {
+            'metadata': {'global_step': 25, 'completed_optimizer_steps': 25, 'next_data_cursor': 5},
+            'integrity_sha256': renderer.CHECKPOINT_INTEGRITY_SHA256,
+            'adapter_sha256': renderer.ADAPTER_SHA256,
+        }
+
+        def load(stream, **kwargs):
+            self.assertEqual(kwargs, {'map_location': 'cpu', 'weights_only': False})
+            path.write_bytes(b'changed after verification')
+            self.assertEqual(stream.read(), fixture)
+            return checkpoint
+
+        torch = Mock()
+        torch.load.side_effect = load
+        deadline = Mock()
+        with patch.multiple(renderer, CHECKPOINT_BYTES=len(fixture), CHECKPOINT_SHA256=sha256(fixture).hexdigest()):
+            for bad in (b'', fixture[:-1], fixture + b'x', b'x' * len(fixture)):
+                path.write_bytes(bad)
+                with self.assertRaisesRegex(ValueError, 'step-25 checkpoint bytes differ'):
+                    renderer.read_original_checkpoint(path, torch, deadline)
+            torch.load.assert_not_called()
+            path.write_bytes(fixture)
+            self.assertIs(renderer.read_original_checkpoint(path, torch, deadline), checkpoint)
+            checkpoint['metadata']['completed_optimizer_steps'] = 24
+            path.write_bytes(fixture)
+            with self.assertRaisesRegex(ValueError, 'completed checkpoint state differs'):
+                renderer.read_original_checkpoint(path, torch, deadline)
+        self.assertEqual(torch.load.call_count, 2)
 
 
 if __name__ == "__main__":

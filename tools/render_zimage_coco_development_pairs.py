@@ -1,6 +1,7 @@
 """Render frozen COCO development inputs with the original and trained adapters."""
 
 from hashlib import sha256
+from io import BytesIO
 import json
 import os
 from pathlib import Path
@@ -13,6 +14,7 @@ PROMPTS_SHA256 = "0251ad4ad34b50ce2c8e66d41548e6b42603a8b932d39210c444ab599eebea
 NOISE_SHA256 = "5c4cb6303071502ebdee928dbd13df10678143dbfba1b8e38086ba832a33c4c4"
 CHECKPOINT_SHA256 = "0c27c2e9c5b7359acccdffdeeecb995ab9614a7fb39cd253c712645dc70c7668"
 ADAPTER_SHA256 = "98ad7562fec41994407f7fd6cba450e8a33fe9dbf00c3f22638d77d8530ce665"
+CHECKPOINT_INTEGRITY_SHA256 = "81d51a8096703f5c708a64437efca230331a49c54b01c29f1ca503d8210d8b32"
 CHECKPOINT_BYTES = 60_424_609
 ARMS = ("before", "after")
 
@@ -53,7 +55,32 @@ def read_inputs(prompt_path, noise_manifest_path, roster_path):
     return rows, replay
 
 
-def load_adapters(model, torch, np, binding, checkpoint_path):
+def read_original_checkpoint(path, torch, deadline):
+    """Deserialize the exact verified source bytes, including the saved NumPy RNG."""
+    data = BytesIO()
+    checksum = sha256()
+    with path.open("rb") as stream:
+        while data.tell() < CHECKPOINT_BYTES:
+            deadline()
+            block = stream.read(min(4 << 20, CHECKPOINT_BYTES - data.tell()))
+            if not block:
+                break
+            data.write(block)
+            checksum.update(block)
+        require(data.tell() == CHECKPOINT_BYTES and not stream.read(1)
+                and checksum.hexdigest() == CHECKPOINT_SHA256, "step-25 checkpoint bytes differ")
+    data.seek(0)
+    deadline()
+    checkpoint = torch.load(data, map_location="cpu", weights_only=False)
+    identity = checkpoint["metadata"]
+    require(identity["global_step"] == identity["completed_optimizer_steps"] == 25
+            and identity["next_data_cursor"] == 5
+            and checkpoint["integrity_sha256"] == CHECKPOINT_INTEGRITY_SHA256
+            and checkpoint["adapter_sha256"] == ADAPTER_SHA256, "completed checkpoint state differs")
+    return checkpoint
+
+
+def load_adapters(model, torch, np, binding, checkpoint_path, *, deadline):
     """Read the source-bound Hygon initial state and the completed COCO20 checkpoint."""
     from gencuda import hy_resume_checkpoint as common
     from gencuda import zimage_hip_replay_binding as hip
@@ -64,11 +91,7 @@ def load_adapters(model, torch, np, binding, checkpoint_path):
             "expected the original Hygon COCO20 training identity")
     initial, _, rng_sha = hip.initial_state(torch, np, common, binding)
     require(rng_sha == binding["original_rng_SHA256"], "original initial RNG signature differs")
-    require(checkpoint_path.stat().st_size == CHECKPOINT_BYTES
-            and file_digest(checkpoint_path) == CHECKPOINT_SHA256, "step-25 checkpoint bytes differ")
-    checkpoint = common.load_checkpoint(checkpoint_path)
-    require(checkpoint["metadata"]["global_step"] == 25
-            and checkpoint["metadata"]["next_data_cursor"] == 5, "completed checkpoint state differs")
+    checkpoint = read_original_checkpoint(checkpoint_path, torch, deadline)
     trained = checkpoint["state"]["trainable"]
     require(common.tree_sha256(trained) == ADAPTER_SHA256, "completed adapter values differ")
     named = {name: tensor for name, tensor in model.named_parameters() if tensor.requires_grad}
@@ -151,7 +174,7 @@ def render(model, torch, np, *, binding, checkpoint, prompts, noise_manifest, ro
     """Use an already loaded and audited native model inside its bounded GPU step."""
     rows, replay = read_inputs(Path(prompts), Path(noise_manifest), Path(roster))
     deadline()
-    named, states = load_adapters(model, torch, np, binding, Path(checkpoint))
+    named, states = load_adapters(model, torch, np, binding, Path(checkpoint), deadline=deadline)
     model.eval()
     return execute_pairs(pipe=model.pipe, torch=torch, replay=replay, rows=rows, named=named,
                          states=states, output=Path(output), first=first, stop=stop, deadline=deadline)
