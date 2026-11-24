@@ -87,17 +87,23 @@ def write_line(stream, row):
     os.fsync(stream.fileno())
 
 
+def shard_plan(first, stop):
+    require(type(first) is int and type(stop) is int and 0 <= first < stop <= DEVELOPMENT_COUNT,
+            "invalid frozen development shard")
+    return {"scope": "COCO development only", "cohort_pairs": DEVELOPMENT_COUNT,
+            "first": first, "stop": stop, "planned_pairs": stop - first,
+            "planned_outputs": 2 * (stop - first), "denoising_steps": 8, "guidance": 1.0,
+            "source_checkpoint_SHA256": CHECKPOINT_SHA256}
+
+
 def execute_pairs(*, pipe, torch, replay, rows, named, states, output, first, stop, deadline):
     """Render an exact contiguous shard without changing the 256-pair denominator."""
-    require(len(rows) == DEVELOPMENT_COUNT and type(first) is int and type(stop) is int
-            and 0 <= first < stop <= DEVELOPMENT_COUNT, "invalid frozen development shard")
+    require(len(rows) == DEVELOPMENT_COUNT, "invalid frozen development cohort")
+    plan = shard_plan(first, stop)
     output.mkdir(mode=0o700)
-    planned = 2 * (stop - first)
+    planned = plan["planned_outputs"]
     with (output / "plan.jsonl").open("x", encoding="utf-8") as manifest:
-        write_line(manifest, {"scope": "COCO development only", "cohort_pairs": DEVELOPMENT_COUNT,
-                              "first": first, "stop": stop, "planned_pairs": stop - first,
-                              "planned_outputs": planned, "denoising_steps": 8, "guidance": 1.0,
-                              "source_checkpoint_SHA256": CHECKPOINT_SHA256})
+        write_line(manifest, plan)
     counts = {"completed": 0, "failed": 0, "complete_pairs": 0}
     with (output / "generations.jsonl").open("x", encoding="utf-8") as stream:
         for index in range(first, stop):
