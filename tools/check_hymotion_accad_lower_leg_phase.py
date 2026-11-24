@@ -93,7 +93,7 @@ def phase_comparison(source, target, stance):
     }
 
 
-def audit(directory, candidate):
+def read_paired_takes(directory, candidate):
     cohort = directory / "cohort-calibration-walking-c3d"
     calibration = verified_json(cohort / "calibration-B10-B11-original-first.json", COHORT_CALIBRATION_SHA)["results"]
     selection = verified_json(directory / "locomotion-selected-85.private.json", SELECTION_SHA)["records"]
@@ -105,7 +105,7 @@ def audit(directory, candidate):
         raise ValueError("frozen target geometry differs")
     target_joints = inspect_wooden(directory / "wooden-publisher-76957e3")["target_joints"]
     names = [joint["name"] for joint in target_joints]
-    results = {}
+    takes = {}
     with np.load(BytesIO(geometry), allow_pickle=False) as slots:
         for group, (c3d_size, c3d_pin, markers) in COHORTS.items():
             witness = calibration[group]["pairs"]["10"]
@@ -125,13 +125,24 @@ def audit(directory, candidate):
             if inspect_mapping(joints, target_joints)["status"] != "NAME_AND_PARENT_GRAPH_MATCH":
                 raise ValueError("anatomical correspondence differs")
             source_names, source = source_positions(joints, frames)
-            target = slots[f"{group}_raw"][:, 135:].reshape(WINDOW, 22, 3).astype("f8")
-            source_angle = leg_angles(source, SOURCE_CHAINS, source_names)
-            target_angle = leg_angles(target, TARGET_CHAINS, names)
-            stance = stance_intervals(coords, valid)
-            results[group] = {label: {side: phase_comparison(values[:, i], target_angle[label][:, i], stance[:, i])
-                                      for i, side in enumerate(("left", "right"))}
-                              for label, values in source_angle.items()}
+            target_features = slots[f"{group}_raw"].astype("f8")
+            takes[group] = dict(source_names=source_names, source=source, source_root=frames[:, :3],
+                                target_names=names, target=target_features[:, 135:].reshape(WINDOW, 22, 3),
+                                target_root=target_features[:, :3], marker_coords=coords,
+                                stance=stance_intervals(coords, valid), calibration=witness)
+    return pin, takes
+
+
+def audit(directory, candidate):
+    pin, takes = read_paired_takes(directory, candidate)
+    results = {}
+    for group, take in takes.items():
+        source_angle = leg_angles(take["source"], SOURCE_CHAINS, take["source_names"])
+        target_angle = leg_angles(take["target"], TARGET_CHAINS, take["target_names"])
+        stance = take["stance"]
+        results[group] = {label: {side: phase_comparison(values[:, i], target_angle[label][:, i], stance[:, i])
+                                  for i, side in enumerate(("left", "right"))}
+                          for label, values in source_angle.items()}
     return {"frame_count_per_take": WINDOW, "source_marker_calibration_SHA256": COHORT_CALIBRATION_SHA,
             "target_geometry_SHA256": pin, "take_results": results, "training_READY": False}
 
