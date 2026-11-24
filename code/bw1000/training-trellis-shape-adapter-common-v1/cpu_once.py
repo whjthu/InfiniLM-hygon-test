@@ -2,10 +2,10 @@
 
 import base64
 from hashlib import sha256
-import getpass
 import json
 import os
 from pathlib import Path
+import re
 import signal
 import subprocess
 import sys
@@ -53,10 +53,12 @@ def main():
     for name, body in sources.items():
         if (len(body), sha256(body).hexdigest()) != (pins[name]["bytes"], pins[name]["SHA256"]):
             raise ValueError("CPU source identity differs")
-    current = query("squeue", "-h", "-j", PARENT, "-o", "%i|%u|%T|%D|%N").split("|")
-    if current[:4] != [PARENT, getpass.getuser(), "RUNNING", "40"]:
+    current = query("squeue", "-h", "-j", PARENT, "-o", "%i|%T|%D|%N").split("|")
+    job_info = query("scontrol", "show", "job", PARENT, "--oneliner")
+    owner = re.search(r"(?:^|\s)UserId=[^()\s]+\(([0-9]+)\)", job_info)
+    if current[:3] != [PARENT, "RUNNING", "40"] or owner is None or int(owner[1]) != os.geteuid():
         raise RuntimeError("owned allocation differs")
-    if NODE not in query("scontrol", "show", "hostnames", current[4]).splitlines():
+    if NODE not in query("scontrol", "show", "hostnames", current[3]).splitlines():
         raise RuntimeError("node is outside the owned allocation")
     if accounting():
         raise RuntimeError("original test already has an accounting record")
