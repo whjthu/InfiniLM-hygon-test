@@ -88,8 +88,8 @@ def inspect(project=PROJECT):
     labels = {parent: f"training80-long-busy-{RUN_REQUEST}-{parent}" for parent in STEPS}
     deadline = time.monotonic_ns() + 35_000_000_000
     rows = {parent: slurm.account(parent, labels[parent], deadline, step) for parent, step in STEPS.items()}
-    controller_live = controller.proc_start_ticks(CONTROLLER["controller_PID"]) == CONTROLLER["controller_start_ticks"]
-    report = {"request": RUN_REQUEST, "accounting": rows, "same_controller_live": controller_live,
+    local_pid_match = controller.proc_start_ticks(CONTROLLER["controller_PID"]) == CONTROLLER["controller_start_ticks"]
+    report = {"request": RUN_REQUEST, "accounting": rows, "controller_pid_tick_match_on_read_host": local_pid_match,
               "ready_SHA256": ready_sha, "install_SHA256": install_sha, "replay_allowed": False}
     terminal_path = output / "host-outcome.json"
     if not slurm.terminal(rows) or not terminal_path.is_file():
