@@ -26,6 +26,9 @@ COLS = 'JobIDRaw,JobName%120,State,ExitCode,ElapsedRaw,NodeList,AllocTRES,Start,
 ENV = dict(os.environ, TZ='UTC', SLURM_TIME_FORMAT='%Y-%m-%dT%H:%M:%S')
 TERMINAL = {'COMPLETED', 'FAILED', 'CANCELLED', 'TIMEOUT', 'OUT_OF_MEMORY', 'NODE_FAIL'}
 MEMBERS = {'host.py', 'inside.py', 'scope.py', 'mount_observation.py', 'runtime_pci.py', 'smoke.py'}
+NUMERIC_SCOPE = '3503bdccdfbc426b97e2fe7d8592c04f'
+NUMERIC_MANIFEST = 'd562e06d0910a01e1520af3645464a1228dbf5eaa71239a658d676a7403a47e6'
+GPU_AUTHORITY = {}
 
 
 def need(condition, reason):
@@ -145,6 +148,28 @@ def bundle(payload):
     return sources
 
 
+def select_bound_scope(payload):
+    """Select the published successor only by its exact frozen manifest bytes."""
+    global REQUEST, LABEL, MANIFEST, STAGE, AUDIT, MEMBERS, GPU_AUTHORITY
+    raw = base64.b64decode(payload['sources']['SOURCE_FILES.json'], validate=True)
+    if digest(raw) != NUMERIC_MANIFEST:
+        return
+    doc = json.loads(raw)
+    label = 't09-miopen-conv3d-numeric-3503bdccdfbc'
+    members = MEMBERS | {'maps_probe.py', 'stage_seals.py', 'read_sealed.py'}
+    need(doc['request'] == NUMERIC_SCOPE and doc['label'] == label
+         and set(doc['files']) == members
+         and doc['old_scope_replayed'] is False,
+         'EXACT_PUBLISHED_NUMERIC_FIRST_SCOPE')
+    REQUEST, LABEL, MANIFEST, MEMBERS = NUMERIC_SCOPE, label, NUMERIC_MANIFEST, members
+    STAGE = ROOT / 'incoming' / LABEL
+    AUDIT = ROOT / 'results' / (LABEL + '-controller')
+    GPU_AUTHORITY = dict(
+        sealed_3596_eperm_SHA256='b097d74cde7b830b82eb76109bfafa56ee29276f0b79c1ab3c3c5d64b6dc2f7a',
+        authorized_provider_aliases=['/opt/dtk/lib/libMIOpen.so.1.0', '/opt/dtk/lib/libMIOpen.so.1'],
+    )
+
+
 def phase_command(phase, authority_pin):
     return [
         'srun', '--jobid=' + PARENT, '--exact', '--nodes=1', '--ntasks=1', '--immediate=5',
@@ -201,6 +226,7 @@ def execute(payload):
             need(owned_file(STAGE / name) == raw, 'REMOTE_STAGE_READBACK_DIFFERS')
         epoch = time.time()
         deadline = epoch + 240
+        result['epoch'] = epoch
         common = dict(request=REQUEST, manifest_SHA256=MANIFEST, parent=PARENT, node=NODE,
                       root_approved=True, private_proof_archive_SHA256=ARCHIVE,
                       no_actual_model_gold_inputs=True, physical_and_scheduler_clearance=True,
@@ -223,10 +249,11 @@ def execute(payload):
              'EXACT_FRESH_PRE_AND_CLEAN_PHYSICAL_GATE')
         node_clear()
         pre_pin = digest(pre_raw)
+        pre_result['sealed_SHA256'] = pre_pin
         result['state'] = 'ORIGINAL_GPU_OBSERVATION_PENDING'
         gpu_result = result['phase_results']['gpu'] = run_phase(
             'gpu', common, pre_SHA256=pre_pin, sealed_3583_independent_SHA256=SEALED,
-            current_route_SHA256=pre_pin)
+            current_route_SHA256=pre_pin, **GPU_AUTHORITY)
         gpu_result['terminal'] = terminal('gpu', deadline)
         need(gpu_result['terminal'], 'ORIGINAL_GPU_TERMINAL_NOT_OBSERVED')
         intent_raw = owned_file(STAGE / 'gpu-intent.json')
@@ -234,6 +261,7 @@ def execute(payload):
         need(intent['request'] == REQUEST and intent['step'] == gpu_result['terminal'][0]
              and intent['pre_SHA256'] == pre_pin and intent['epoch'] == epoch,
              'EXACT_ORIGINAL_NUMBERED_GPU_INTENT')
+        gpu_result['sealed_intent_SHA256'] = digest(intent_raw)
         gpu_result['provider_reports'] = []
         for line in owned_file(AUDIT / 'gpu.stdout', 131072).splitlines():
             try:
@@ -248,10 +276,12 @@ def execute(payload):
             'post', common, pre_SHA256=pre_pin, gpu_intent_SHA256=digest(intent_raw),
             gpu_step=intent['step'])
         post['terminal'] = terminal('post', deadline)
-        post_document = json.loads(owned_file(STAGE / 'post.json'))
+        post_raw = owned_file(STAGE / 'post.json')
+        post_document = json.loads(post_raw)
         need(post['returncode'] == 0 and post['terminal'] and post['terminal'][0] == post_document['step']
              and post['terminal'][2:4] == ['COMPLETED', '0:0']
              and post_document.get('independent_physical_clearance') is True, 'EXACT_INDEPENDENT_POST')
+        post['sealed_SHA256'] = digest(post_raw)
         result['state'] = 'THREE_ORIGINAL_PHASES_OBSERVED'
     except (OSError, ValueError, KeyError, subprocess.SubprocessError) as err:
         result['error_class'] = type(err).__name__
@@ -266,4 +296,6 @@ def execute(payload):
 
 if __name__ == '__main__':
     os.umask(0o077)
-    print(json.dumps(execute(json.load(sys.stdin)), sort_keys=True, allow_nan=False), flush=True)
+    payload = json.load(sys.stdin)
+    select_bound_scope(payload)
+    print(json.dumps(execute(payload), sort_keys=True, allow_nan=False), flush=True)
