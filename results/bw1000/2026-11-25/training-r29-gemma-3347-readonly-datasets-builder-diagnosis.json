@@ -1,0 +1,151 @@
+{
+  "SFT_route_result": "The original argument class reached Transformers TrainingArguments validation and raised ValueError in the CPU-only step. The specific argument conflict was not recorded.",
+  "actual": {
+    "accounting": [
+      [
+        "1103606.3347",
+        "training-gemma-usgs-r29-sampler-diagnosis-CPU-v2-aecf42f2d9c5",
+        "FAILED",
+        "1:0",
+        "21",
+        "f13r1n12",
+        "cpu=4,mem=8G,node=1",
+        "2026-11-25T07:38:54",
+        "2026-11-25T07:39:15"
+      ]
+    ],
+    "independent": {
+      "accounting_state": "FAILED",
+      "accounting_step": "1103606.3347",
+      "provider_projection_only": true,
+      "training_ready": false,
+      "worker_result_present": true
+    },
+    "replay_allowed": false,
+    "request": "08b8b196818e4e2986dedccd3b63673a",
+    "scope_request": "aecf42f2d9c543c4b80b05b7d52436ef",
+    "state": "INDEPENDENT_R29_TERMINAL_SCOPE_OBSERVED",
+    "worker": {
+      "actual_gpu": 0,
+      "actual_optimizer_updates": 0,
+      "actual_training_ranks": 0,
+      "current_phase": "swift_unshuffled_call",
+      "diagnostic": {
+        "errors": [
+          {
+            "errno": 30,
+            "errno_symbol": "EROFS",
+            "path_classes": [
+              "SHARED_PATH_OTHER"
+            ],
+            "type": "OSError"
+          }
+        ],
+        "frames": [
+          {
+            "function": "load_dataset_builder",
+            "line": 1353,
+            "module": "datasets.load"
+          },
+          {
+            "function": "__init__",
+            "line": 385,
+            "module": "datasets.builder"
+          },
+          {
+            "function": "makedirs",
+            "line": 215,
+            "module": "os"
+          },
+          {
+            "function": "makedirs",
+            "line": 215,
+            "module": "os"
+          },
+          {
+            "function": "makedirs",
+            "line": 215,
+            "module": "os"
+          },
+          {
+            "function": "makedirs",
+            "line": 225,
+            "module": "os"
+          }
+        ],
+        "raw_text_included": false
+      },
+      "original_sft_binding_diagnosis": {
+        "errors": [
+          {
+            "errno": null,
+            "errno_symbol": null,
+            "path_classes": [],
+            "type": "ValueError"
+          }
+        ],
+        "frames": [
+          {
+            "function": "__post_init__",
+            "line": 233,
+            "module": "swift.arguments.sft_args"
+          },
+          {
+            "function": "get_training_args",
+            "line": 72,
+            "module": "swift.trainers.trainer_factory"
+          },
+          {
+            "function": "__init__",
+            "line": 168,
+            "module": "swift.trainers.arguments"
+          },
+          {
+            "function": "__post_init__",
+            "line": 299,
+            "module": "swift.trainers.arguments"
+          },
+          {
+            "function": "__post_init__",
+            "line": 1550,
+            "module": "transformers.training_args"
+          },
+          {
+            "function": "_validate_args",
+            "line": 1712,
+            "module": "transformers.training_args"
+          }
+        ],
+        "raw_text_included": false
+      },
+      "passed": false,
+      "phases": [
+        "input_open",
+        "request_scratch_create_and_cache",
+        "native_provider_import"
+      ],
+      "production_adoption": false,
+      "route": "DIRECT_SWIFT_LOAD_DATASET_COMPONENT_ONLY",
+      "scratch": {
+        "actual_datasets_cache_class": "REQUEST_SCRATCH_CACHE",
+        "created": true,
+        "python_temp_class": "REQUEST_SCRATCH_CACHE",
+        "removed": true,
+        "write_rename_unlink": true
+      },
+      "step": "1103606.3347",
+      "training_ready": false
+    },
+    "worker_SHA256": "d35964988dcd0a8b38dc9359a2bc8c11d23241b7a09f933acc8b3b9a7d070e68"
+  },
+  "actual_parameters_updated": 0,
+  "fallback_cause": "The direct Swift datasets builder requested a directory creation on a read-only shared path (EROFS) while scratch and effective HF_DATASETS_CACHE were confirmed writable and later removed.",
+  "holdout_scores_created": 0,
+  "native_production_sampler_qualified": false,
+  "replay_allowed": false,
+  "schema": 1,
+  "scope": "Precise target diagnosis of original Gemma sampling failure",
+  "source_publication": "8fd47ac1bf93289ec9ae0886a60a73246e7537ee",
+  "specific_shared_directory_identified": false,
+  "terminal_receipt_SHA256": "bb25f636d504c6d26a9de0f85ed1272f4202f6cba2bcec050bd2cc379fecf38b"
+}
