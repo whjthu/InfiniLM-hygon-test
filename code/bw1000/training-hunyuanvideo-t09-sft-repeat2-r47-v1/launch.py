@@ -6,7 +6,8 @@ import re
 import stat
 import subprocess
 
-from contract import LABEL, REQUEST, RUN, WHOLE, Budget, need, save
+from contract import LABEL, REQUEST, RUN, WHOLE, need, save
+from windows_roundtrip import TransitBudget, check_roundtrip
 from held_child import cleanup_held
 from placement import NODE, PARENT, placement_config
 
@@ -46,7 +47,8 @@ def prepare(publication, stub, package):
              and 0<info.st_size<=1<<20,"T09_LOCAL_SOURCE_MEMBER_EXTENT")
         need(sha256(path.read_bytes()).hexdigest()==record["SHA256"],"T09_LOCAL_SOURCE_MEMBER_SHA")
     epoch=stub["epoch"]
-    budget=Budget(epoch)
+    clock=stub['windows_roundtrip']
+    budget=TransitBudget(epoch,clock,budget=WHOLE)
     need(budget.left()>WHOLE-90,"T09_ORIGINAL_ADMISSION_EPOCH_ALREADY_STALE")
     argv=[str(RUN/"src/controller.py"),"--workspace",str(RUN),"--epoch",str(epoch),
           "--source-manifest-sha256",manifest["SHA256"],"--preflight-sha256",stub["preflight_SHA256"],
@@ -80,6 +82,8 @@ def main(publication, transport):
     rc=None
     error=None
     try:
+        clock=stub["windows_roundtrip"]
+        check_roundtrip(clock,clock["remote_observed_epoch"],clock["authenticated_receipt_SHA256"])
         need(budget.left()>WHOLE-90,"T09_ORIGINAL_EPOCH_CHANGED_BEFORE_SEND")
         save(attempt/"attempt.json",dict(context,dispatch_attempted=True))
         child=transport(context)

@@ -87,6 +87,12 @@ class Budget:
         return max(0, min(self.origin + offset - wall, self.mono_end - (WHOLE - offset) - mono))
 
 
+def host_model_identity(value):
+    return (type(value) is list and len(value)==5 and all(type(v) is int and v>=0 for v in value)
+            and PLACEMENT["host_model_observed_devs"]==[47,53] and value[0] in (47,53)
+            and value[1:]==MODEL_STAMP[1:])
+
+
 def validate_preflight(p, origin):
     need(p.get("state") == "T09_CACHED_NATIVE_TARGET_PREFLIGHT_PASS" and p.get("passed") is True
          and p.get("root_GO") is True, "No approved original asset preflight")
@@ -99,7 +105,7 @@ def validate_preflight(p, origin):
     current = model.get("file_identity")
     need(type(current) is list and len(current) == 5 and all(type(v) is int and v >= 0 for v in current),
          "Weight fingerprint malformed")
-    need(current == COMPUTE_MODEL_STAMP and model.get("host_file_identity") == HOST_MODEL_STAMP,
+    need(current == COMPUTE_MODEL_STAMP and host_model_identity(model.get("host_file_identity")),
          "Exact HOST/compute dual observations differ")
     need(model.get("verification") == "EXECUTION_MOUNT_FULL_SHA256"
          and current[1:] == model["host_file_identity"][1:] == MODEL_STAMP[1:],
@@ -132,12 +138,12 @@ def validate_preflight(p, origin):
 def validate_model_observation(p, actual, *, execution_mount):
     need(type(execution_mount) is bool, "Explicit HOST versus execution mount selection required")
     model = p["model"]
-    need(model.get("host_file_identity") == HOST_MODEL_STAMP and model.get("file_identity") == COMPUTE_MODEL_STAMP
+    need(host_model_identity(model.get("host_file_identity")) and model.get("file_identity") == COMPUTE_MODEL_STAMP
          and model["host_file_identity"][1:] == model["file_identity"][1:] == MODEL_STAMP[1:],
          "Pinned HOST/compute declarations differ")
-    expected = COMPUTE_MODEL_STAMP if execution_mount else HOST_MODEL_STAMP
-    need(actual == expected, "Exact selected HOST or compute weight inode changed")
-    return expected[:]
+    need(actual==COMPUTE_MODEL_STAMP if execution_mount else host_model_identity(actual),
+         "Exact selected HOST or compute weight inode changed")
+    return actual[:]
 
 
 def validate_assets(p, *, execution_mount):

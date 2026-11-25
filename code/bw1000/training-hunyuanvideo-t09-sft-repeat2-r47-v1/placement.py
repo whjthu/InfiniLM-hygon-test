@@ -44,7 +44,9 @@ def step_tres(raw,phase):
 def placement_config():
     need(PARENT in ALLOWED and NODE in ALLOWED[PARENT] and PARENT!="1087656"
          and all(type(PLACEMENT[k]) is int and PLACEMENT[k]>=0 for k in ("host_model_dev","execution_model_dev"))
-         and PLACEMENT["device_architecture"]=="gfx936",
+         and PLACEMENT["device_architecture"]=="gfx936"
+         and PLACEMENT["host_model_observed_devs"]==[47,53] and PLACEMENT["host_model_dev"] in (47,53)
+         and PLACEMENT["execution_model_dev"]==49,
          "T09_SCOPE_NO_EXACT_CURRENT_PLACEMENT")
     return PLACEMENT
 
