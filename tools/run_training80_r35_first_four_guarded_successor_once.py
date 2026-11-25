@@ -44,6 +44,19 @@ def _fn(function, **globals_):
                         function.__defaults__, function.__closure__)
 
 
+def predecessor_reader_helper(path):
+    helper = runpy.run_path(path)
+    ssh = helper['ssh']
+
+    def default_ssh_logging(workspace):
+        argv = ssh(workspace)
+        if argv[:3] != ['ssh', '-v', '-T']:
+            raise ValueError('fixed predecessor SSH logging options changed')
+        return [argv[0], *argv[2:]]
+
+    return {**helper, 'ssh': default_ssh_logging}
+
+
 def modules():
     fixed = ROOT / R34[0]
     if fixed.resolve(strict=True) != fixed or sha256(fixed.read_bytes()).hexdigest() != R34[1]:
@@ -188,7 +201,10 @@ def qualify(x):
     common=dict(STEM=STEM)
     read_path=_fn(old['read_path'],**common)
     slot_paths=_fn(old['slot_paths'],**common)
-    read=_fn(old['observe_predecessor'],read_program=read_program,read_path=read_path)
+    # The inherited capture includes SSH stderr. Remove only the diagnostic flag;
+    # retain target stderr and every existing authentication and host check option.
+    read=_fn(old['observe_predecessor'],read_program=read_program,read_path=read_path,
+             runpy=SimpleNamespace(run_path=predecessor_reader_helper))
     terminal=_fn(old['terminal'],read_program=read_program,terminal_identity=terminal_identity)
     dispatch=_fn(old['dispatch'],slot_paths=slot_paths,read_path=read_path,publication=publication,terminal=terminal,
                  render=render,exact_no_other_claims=fence)
