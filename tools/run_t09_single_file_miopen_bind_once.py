@@ -31,6 +31,20 @@ DETACH_MEMBERS = {"host.py", "guest.py", "mount_observation.py"}
 DETACH_ARCHIVES = {"3600": "d356addd3ef90db2dbe92dc1d86831126962260bf97ac5378dd863c03e7a8228",
                    "3605": "b16aaa3df85d75479345cac12d0788853818f4ca7b3175c1e8509bf802d50783"}
 
+DETACH_V2_MANIFEST = "a7c8efebb6417245538cee2334235883c13d12e26a97223c8699703bcbbb1a0f"
+DETACH_V2_SCOPE = "dd958369d8c4419aadb7974f4255f617"
+DETACH_V2_LABEL = "t09-trace-detach-dd958369d8c4"
+DETACH_V2_MEMBERS = DETACH_MEMBERS | {"tracer_owner.py"}
+DETACH_V2_ARCHIVES = DETACH_ARCHIVES | {"3610": "04b91e830ba056a2a437a48d37b71f4d89843a7dee4374410e3c51ef99d4ef97"}
+
+def scope_inputs(manifest):
+    if manifest == DETACH_V2_MANIFEST:
+        return DETACH_V2_SCOPE, DETACH_V2_LABEL, DETACH_V2_MEMBERS, DETACH_V2_ARCHIVES
+    if manifest == DETACH_MANIFEST:
+        return DETACH_SCOPE, DETACH_LABEL, DETACH_MEMBERS, DETACH_ARCHIVES
+    require(manifest == MANIFEST, "EXACT_PACKAGE_MANIFEST")
+    return SCOPE, LABEL, MEMBERS, None
+
 
 def require(ok, code):
     if not ok:
@@ -51,13 +65,11 @@ def bundle(payload):
             and re.fullmatch("[0-9a-f]{40}", payload["publication"]), "EXACT_TRANSPORT_BUNDLE")
     raw = base64.b64decode(payload["sources"]["SOURCE_FILES.json"], validate=True)
     manifest_pin = digest(raw)
-    require(manifest_pin in (MANIFEST, DETACH_MANIFEST), "EXACT_PACKAGE_MANIFEST")
-    is_detach = manifest_pin == DETACH_MANIFEST
-    scope, label, members = (DETACH_SCOPE, DETACH_LABEL, DETACH_MEMBERS) if is_detach else (SCOPE, LABEL, MEMBERS)
+    scope, label, members, archives = scope_inputs(manifest_pin)
     require(set(payload["sources"]) == members | {"SOURCE_FILES.json"}, "EXACT_SOURCE_SET")
     sources = {name: base64.b64decode(raw, validate=True) for name, raw in payload["sources"].items()}
     meta = json.loads(raw)
-    fixed_lineage = meta.get("archives") == DETACH_ARCHIVES if is_detach else meta.get("old_3598_archive_SHA256") == ARCHIVE
+    fixed_lineage = meta.get("archives") == archives if archives is not None else meta.get("old_3598_archive_SHA256") == ARCHIVE
     require(meta["request"] == scope and meta["label"] == label and meta["actual_GPU_planned"] == 0
             and fixed_lineage and set(meta["files"]) == members, "EXACT_MODEL_FREE_SCOPE")
     for name in members:
@@ -67,16 +79,17 @@ def bundle(payload):
     require(digest(guard) == DEPENDENCY, "EXACT_EXISTING_SCHEDULER_GUARD")
     functions = {"__name__": "scheduler_guard"}
     exec(compile(guard, "<pinned local scheduler guard>", "exec"), functions)
-    return sources, functions, is_detach
+    return sources, functions, manifest_pin
 
 
 def launch_argv(manifest, authority):
-    if manifest == DETACH_MANIFEST:
-        stage = STAGE.parent / DETACH_LABEL
+    _, label, _, archives = scope_inputs(manifest)
+    if archives is not None:
+        stage = STAGE.parent / label
         return [
             "srun", "--jobid=" + PARENT, "--exact", "--nodes=1", "--ntasks=1", "--nodelist=" + NODE,
             "--immediate=5", "--cpus-per-task=2", "--mem=2048M", "--gres=none", "--time=00:02:00",
-            "--job-name=" + DETACH_LABEL, "/usr/local/python3.12/bin/python3", "-B", (stage / "host.py").as_posix(),
+            "--job-name=" + label, "/usr/local/python3.12/bin/python3", "-B", (stage / "host.py").as_posix(),
             "run-once", "--manifest-sha", manifest, "--authority-sha", authority,
         ]
     return [
@@ -106,8 +119,9 @@ def terminal(read_rows, terminal_states, epoch, deadline, label, cpu, gib):
 
 
 def execute(payload):
-    sources, tools, is_detach = bundle(payload)
-    scope, label, manifest = (DETACH_SCOPE, DETACH_LABEL, DETACH_MANIFEST) if is_detach else (SCOPE, LABEL, MANIFEST)
+    sources, tools, manifest = bundle(payload)
+    scope, label, _, archives = scope_inputs(manifest)
+    is_detach = archives is not None
     stage, audit = STAGE.parent / label, AUDIT.parent / (label + "-controller")
     bound_authority = stage.with_name(label + ".authority.json")
     result = {"request": payload["request"], "scope": scope, "state": "PRECHECK",
@@ -132,7 +146,7 @@ def execute(payload):
         result["epoch"] = epoch
         authority = dict(request=scope, node=NODE, parent=PARENT, epoch=epoch, deadline=deadline)
         if is_detach:
-            authority.update(label=label, archives=DETACH_ARCHIVES, source_manifest_SHA256=manifest,
+            authority.update(label=label, archives=archives, source_manifest_SHA256=manifest,
                              ordinary_zero_GRES_GO=True)
         else:
             authority.update(manifest_SHA256=manifest, archive_SHA256=ARCHIVE,
@@ -164,7 +178,7 @@ def execute(payload):
                     "error_code", "copy_phase_SHA256", "compute_host_copy_readback_SHA256", "import_phase_SHA256",
                     "tracer_exit_rc", "actual_container_launcher_exit", "traced_tasks", "detached_tasks",
                     "actual_gpu", "actual_model_calls", "actual_optimizer_updates", "first_trace_match",
-                    "final_trace_match", "trace_pin")
+                    "final_trace_match", "trace_pin", "tracer_owner_SHA256", "signal_attempted", "signal_sent", "tracer_signal_method")
             result["worker"] = {k: body[k] for k in keys if k in body}
             result["worker_outcome_SHA256"] = digest(raw)
         result["state"] = "ORIGINAL_TERMINAL_OBSERVED" if result["actual_terminal"] else "ORIGINAL_TERMINAL_UNKNOWN"
