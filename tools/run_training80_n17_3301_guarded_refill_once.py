@@ -163,7 +163,7 @@ def read_original(material,nonce):
         except (OSError,ValueError,AssertionError,StopIteration,subprocess.SubprocessError) as e:
             rc,out,err=None,b'',str(e).encode()
         at=time.monotonic(); found=None
-        if rc==0 and not err and 0<len(out)<=16384:
+        if rc==0 and 0<len(out)<=16384 and len(err)<=8192:
             try:
                 body=json.loads(out)
                 [target]=body['targets']
@@ -171,14 +171,15 @@ def read_original(material,nonce):
             except (ValueError,TypeError,KeyError):
                 pass
         json.dump(dict(rc=rc,observed=found,read_id=nonce,source_SHA256=dig(source),boot_epoch_anchor=anchor,received_monotonic=at,
-                       RTT=at-t0,stdout_SHA256=dig(out),stderr_SHA256=dig(err),replay_allowed=False),stream,sort_keys=True,allow_nan=False)
+                       RTT=at-t0,stdout_SHA256=dig(out),stderr_SHA256=dig(err),stderr_bytes=len(err),replay_allowed=False),stream,sort_keys=True,allow_nan=False)
     return dict(file=path.name,SHA256=dig(pin(path)),qualified=bool(found and found.get('proved_terminal_with_cgroup')),GPU=0)
 
 
 def checked(material,nonce,proof,*,fresh):
     observed=proof['observed'];row,out,terminal_sha,guard_sha=material[8:]
     require(proof['rc']==0 and proof['read_id']==nonce and proof['replay_allowed'] is False and 0<=proof['RTT']<=45
-            and proof['stderr_SHA256']==dig(b'') and isinstance(observed,dict)
+            and type(proof.get('stderr_bytes')) is int and 0<=proof['stderr_bytes']<=8192
+            and re.fullmatch(r'[a-f0-9]{64}',proof['stderr_SHA256']) and isinstance(observed,dict)
             and proof['source_SHA256']==dig(render_read(material,nonce).encode()) and observed['proved_terminal_with_cgroup'] is True
             and observed['node']==NODE and observed['step']==PREVIOUS and observed['request']==OLD
             and observed['scontrol_target_steps']==observed['squeue_target_steps']==[]
@@ -274,18 +275,23 @@ def fixtures(material):
     point=dict(node=NODE,request=OLD,step=PREVIOUS,proved_terminal_with_cgroup=True,scontrol_target_steps=[],squeue_target_steps=[],
                worker_SHA256=row['worker_SHA256'],expected_SHA256=row['expected_SHA256'],terminal_SHA256=term,submit_SHA256=row['submit_SHA256'],
                old_guard_SHA256=gs,worker_cgroup_SHA256='f'*64,accounting=sample(gpu,10603),original_zero_GRES_accounting=sample(cpu,1))
-    proof=dict(rc=0,read_id=nonce,replay_allowed=False,RTT=1,stderr_SHA256=dig(b''),
+    proof=dict(rc=0,read_id=nonce,replay_allowed=False,RTT=1,stderr_SHA256=dig(b''),stderr_bytes=0,
                source_SHA256=dig(render_read(material,nonce).encode()),observed=point)
     evidence=checked(material,nonce,proof,fresh=False)
+    require(checked(material,nonce,dict(proof,stderr_SHA256=dig(b'notice'),stderr_bytes=6),fresh=False)==evidence,
+            'bounded diagnostic output changed verified read-only evidence')
     binary,*_=make_guard(material,evidence,None)
     old['offline_staging_fixture'](binary['launch'],conf[6])
     for delta in (dict(worker_cgroup_SHA256=None),dict(scontrol_target_steps=['new']),dict(terminal_SHA256='f'*64)):
         try:checked(material,nonce,dict(proof,observed=dict(point,**delta)),fresh=False)
         except (ValueError,TypeError):continue
         raise ValueError('n17 unsafe receipt accepted locally')
+    try:checked(material,nonce,dict(proof,stderr_bytes=8193),fresh=False)
+    except ValueError:pass
+    else:raise ValueError('n17 accepted oversized read-only diagnostics')
     return dict(request=REQUEST,worker_seconds=binary['worker_seconds'],compiled_host_SHA256=dig(binary['launch'].encode()),
                 state='PREPARED_ONLY_LIVE_CGROUP_PROOF_REQUIRED',staging_positive=1,staging_vetoes=2,
-                receipt_positive=1,receipt_vetoes=3,GPU=0,SCNet=0,Git=0)
+                receipt_positive=2,receipt_vetoes=4,GPU=0,SCNet=0,Git=0)
 
 
 def main():
