@@ -1,0 +1,56 @@
+{
+  "schema": "GEMMA_USGS_FIXED_BLIND36_PILOT_V1",
+  "site": "bw1000",
+  "sealed_dataset_manifest": {
+    "bytes": 14864,
+    "SHA256": "4fbf6f2f8c03731eb84882fd56f63f2c4586f92d5c5d149b9dfd667973f961dc"
+  },
+  "public_proof_and_helpers_SHA256": {
+    "results/bw1000/2026-11-26/training-t02-gemma-usgs-blind36-cohort-identity-and-exposure-boundary.json": "2427a0e7e4a81de56cb7bd2f8c8450f2444672dcf30f4a66f8237d0366a27dbe",
+    "results/bw1000/2026-11-22/Gemma-USGS72-matched-dev36-original1212-scored-terminal.json": "461da03e4ce655df60dac2423d67b8b344b06d814b8b628ccf46b2da76d41286",
+    "code/bw1000/training-gemma-usgs72-matched-dev36-supervisor-v1/core/frozen_score.py": "f8ccc667c6343ab7eeda6795e76896bd21d0310c32fcbf6e295e066989fe4c8b",
+    "code/bw1000/training-gemma-usgs72-matched-dev36-supervisor-v1/core/response_protocol.py": "37d0bdc4f085b0210740dba227706d1416753d85c57bf37c722cc662f21eba2f",
+    "code/bw1000/training-gemma-usgs72-matched-dev36-supervisor-v1/core/content_vs_format.py": "2ca9861dd843b7206f1326f3a36ebaca2afa34839a7f1c0667f33f9dd8da73fc"
+  },
+  "arms": {
+    "base": {
+      "identity": "Actual original 851 target-created initial LoRA",
+      "named_SHA256": "e6b624e3342df4d84751be5b65c2722137ff17109f2dfb18db8c5fd4c916b98c"
+    },
+    "domain25": {
+      "identity": "Actual USGS72 trained image-question checkpoint 25",
+      "manifest_SHA256": "897b5aadef83c6c4cdab76d2a3d9a24c83e3eb47c6e97a48e7f71e8e24b3515c"
+    },
+    "question25": {
+      "identity": "Actual matched-format question-only checkpoint 25",
+      "manifest_SHA256": "04804488f5ab562243b537a4e6dc3cfad7263bd2bec6794cfe46e8eb2aa0baa4"
+    }
+  },
+  "model": "Gemma-3-4B-IT",
+  "template": "gemma3_vision",
+  "max_input_tokens": 512,
+  "max_pixels": 262144,
+  "generation_cap": 256,
+  "truncation": "raise",
+  "sampling": "greedy",
+  "questions_per_arm": 36,
+  "charts": 6,
+  "event_groups": 2,
+  "planned_generations": 108,
+  "primary_metric": "Original exact content correctness over all 36 planned questions per arm, including capped, missing, failed or uninterpretable outputs in the denominator",
+  "comparisons": [
+    "domain25 vs base",
+    "domain25 vs question25"
+  ],
+  "report_also": [
+    "per-event-group paired win/tie/loss",
+    "answer format compliance",
+    "paired complete parse subset as descriptive only",
+    "actual natural EOS, capped, missing, rejected and erroneous outputs"
+  ],
+  "gold_boundary": "No evaluation process may access gold. The independent scorer may read the fixed answers after every original arm's prediction artifact and complete failure accounting are closed.",
+  "interpretation": "Two independent groups support a small pilot only. Keep all results and the original recovery failure. Formal delivery needs broader independent evidence.",
+  "training_READY": false,
+  "GPU_GO": false,
+  "formal_delivery_credit": 0
+}
