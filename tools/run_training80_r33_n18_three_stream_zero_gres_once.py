@@ -198,6 +198,13 @@ def fixtures(host):
              and 'child only' not in json.dumps(got),'bounded three-stream evidence fixture differs')
 
 
+def bind_sender(original):
+    bound=FunctionType(original.__code__,dict(original.__globals__,__file__=str(Path(__file__).resolve()),
+                                             WRAPPER=WRAPPER,CLAIM=CLAIM,STEM=STEM,NODE=NODE,REQUEST=REQUEST))
+    need(Path(bound.__globals__['__file__']).resolve()==WRAPPER,'published sender retains the wrong source identity')
+    return bound
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     mode=parser.add_mutually_exclusive_group(required=True)
@@ -206,6 +213,7 @@ def main():
     args=parser.parse_args()
     diag,r31,material,host=prepared(args)
     fixtures(host)
+    sender=bind_sender(diag['run_once'])
     if args.check:
         result=dict(request=REQUEST,node=NODE,parent=PARENT,previous=PREVIOUS,host_SHA256=digest(host.encode()),claim_SHA256=material[-1],
                     no_original_raw_content_retained_by_guard=True,offline_channel_fixtures=2,GPU=0,Git=0,SCNet=0,Slurm=0)
@@ -215,9 +223,7 @@ def main():
         for dependency in (DIAG,diag['CLAIM'],R31,r31['CLAIM']):
             need(publisher['git']('cat-file','blob',args.publication+':'+dependency.relative_to(ROOT).as_posix())==pin(dependency),
                  'published exact diagnostic ancestor differs')
-        sender=diag['run_once']
-        bound=FunctionType(sender.__code__,dict(sender.__globals__,WRAPPER=WRAPPER,CLAIM=CLAIM,STEM=STEM,NODE=NODE,REQUEST=REQUEST))
-        result=bound(material,args.publication,host)
+        result=sender(material,args.publication,host)
     print(json.dumps(result,sort_keys=True,allow_nan=False))
 
 
