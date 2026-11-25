@@ -3,6 +3,7 @@
 import argparse
 import ast
 from contextlib import closing
+from datetime import datetime
 from hashlib import sha256
 import json
 import os
@@ -93,7 +94,9 @@ def load(draft=False):
                 and old_material[4]['request_ids'][i]==original_claim
                 and any(old['node']==node and old['previous']==ancestor for old in old_material[-1][i]),
                 'original ordinary group or worker identity differs')
-        row.update(submit_SHA256=progress['submit_SHA256'], ledger_old=ancestor, ledger_request=original_claim,
+        prepare_epoch = datetime.fromisoformat(row['prep_Beijing']).timestamp()
+        require(abs(prepare_epoch + 900 - row['planned_end_epoch']) < 0.000002, 'ordinary preparation epoch differs')
+        row.update(prepare_epoch=prepare_epoch, submit_SHA256=progress['submit_SHA256'], ledger_old=ancestor, ledger_request=original_claim,
                    new_request=request, published_group=i+1)
         require(claim['targets'][node] == dict(parent=row['parent'], previous_step=step, prior_standby_request=row['request'],
                     original_group_request=original_claim, original_group=i+1, prior_device_mode='ORDINARY_BRIDGE_BF16',
