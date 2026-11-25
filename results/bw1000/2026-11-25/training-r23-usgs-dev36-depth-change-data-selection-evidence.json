@@ -1,0 +1,114 @@
+{
+  "Gemma_original_step": "1103606.1212",
+  "Qwen_original_step": "1103606.1033",
+  "actual_hardware_measurements": 0,
+  "archive_sources": {
+    "results/bw1000/2026-11-22/Gemma-USGS72-matched-dev36-original1212-scored-terminal.json": "461da03e4ce655df60dac2423d67b8b344b06d814b8b628ccf46b2da76d41286",
+    "results/bw1000/2026-11-22/training-qwen-usgs-multievent72-original1033-dev36-terminal.json": "1d54166fdbe74c5dc631632b55c49abb81bd59320df847d02ff3130006fb0cf0"
+  },
+  "base_to_domain_totals": {
+    "gemma": [
+      11,
+      16
+    ],
+    "qwen": [
+      31,
+      30
+    ]
+  },
+  "blind_acceptance_results": 0,
+  "by_task": {
+    "depth_change": {
+      "denominator": 6,
+      "gemma": [
+        4,
+        0
+      ],
+      "qwen": [
+        6,
+        3
+      ]
+    },
+    "maximum_depth": {
+      "denominator": 6,
+      "gemma": [
+        0,
+        5
+      ],
+      "qwen": [
+        4,
+        6
+      ]
+    },
+    "maximum_reported_number": {
+      "denominator": 6,
+      "gemma": [
+        1,
+        4
+      ],
+      "qwen": [
+        5,
+        6
+      ]
+    },
+    "minimum_depth": {
+      "denominator": 6,
+      "gemma": [
+        0,
+        2
+      ],
+      "qwen": [
+        5,
+        5
+      ]
+    },
+    "minimum_reported_number": {
+      "denominator": 6,
+      "gemma": [
+        2,
+        3
+      ],
+      "qwen": [
+        5,
+        5
+      ]
+    },
+    "reported_number_change": {
+      "denominator": 6,
+      "gemma": [
+        4,
+        2
+      ],
+      "qwen": [
+        6,
+        5
+      ]
+    }
+  },
+  "cross_model_item_level_overlap_verified": false,
+  "denominator": 36,
+  "depth_task_pair_exact": "Qwen 3 and Gemma 4 baseline-correct to adapter-wrong flips. No gains in either; both adapters were 36/36 content-parse valid globally.",
+  "development_set_kept": true,
+  "domain_models_accepted": 0,
+  "fresh_optimizer_updates": 0,
+  "new_rows_selected": 0,
+  "scorer": {
+    "core_SHA256": "f8ccc667c6343ab7eeda6795e76896bd21d0310c32fcbf6e295e066989fe4c8b",
+    "definition": "Exact normalized displayed-value / label match with explicit natural EOS and no cap, all36 retained. Strict FINAL and parse validity are separate measurements.",
+    "normalizer_SHA256": "37d0bdc4f085b0210740dba227706d1416753d85c57bf37c722cc662f21eba2f"
+  },
+  "shared_inputs_pin": "25d138c9d4eff76a4c042128375e9679052f4023a0a05d322e0a6f4ad13c59e6",
+  "state": "SHARED_USGS_DEVELOPMENT_COHORT_SIGNED_DEPTH_DIFFERENCE_TRAINING_CANDIDATE",
+  "train_only_criterion": {
+    "actual_new_rows_selected": 0,
+    "motivation": "Both adapters lose previously correct endpoint-difference cases while both improve maximum-depth identification. Sign balancing is a training design choice, with no inferred sign-specific failure.",
+    "name": "Sign-balanced displayed-depth difference",
+    "rule": "Use distinct train-only source charts to form 1:1 pairs of strictly positive and strictly negative depth_change examples. Compute the sign from the same two fixed endpoint values after their displayed rounding; independently recompute the signed two-decimal result. If either sign is unavailable for pairing, stop at the smaller qualified count. Deduplicate charts and exclude all development and independent final-blind source IDs, chart hashes and event closure groups before sampling.",
+    "split_policy": "Dev36 stays frozen development only; the final blind stays independent and sealed. Split disjointness is verified by the data owner against identity manifests without exposing final blind content."
+  },
+  "verified_local_audit": {
+    "SHA256": "46cf0ba13911211e6141c0b925754d5e795d4ed55bd3d09a02699feda101ee23",
+    "bytes": 18702,
+    "file": "training-usgs-dev36-qwen1033-gemma1212-r23-aggregate-audit.json"
+  }
+}
