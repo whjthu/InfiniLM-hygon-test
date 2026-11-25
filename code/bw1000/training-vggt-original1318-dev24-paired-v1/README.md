@@ -1,0 +1,25 @@
+# VGGT .1318 continuous 25 vs original base on Dev24
+
+This paired development audit binds the original `1103606.1318` continuous step-25 camera head, independently traced through the successful zero-GRES `1103606.3090` CPU readback. The target readback qualified 22 of the 24 original windows and reported NumPy 1.25.0. The camera export SHA is `da50b4d1d650977da2b0fa5fb6aab680a263fc95a64b5e614ac9aff5d0439b2c` and the native module SHA is `2d4c2983dd567e2283d61cb160a05d36876b9b425f5ad5a9d8f0d4f78bbb8985`. The actual scorer hashes the export and unchanged base weights before loading and then verifies the live module hashes.
+
+The 24-window denominator includes Freiburg1 plant window 01 with a timestamp gap and Freiburg2 dishes window 01 below the displacement floor. Each arm receives the same 22 ordered available inputs. There are 44 expected prediction events, 48 planned scoring slots, and four original missing slots. Failed, invalid and missing windows remain in the scoring denominator. Optimizer updates are zero. This is a fixed development score.
+
+## Local verification
+
+```powershell
+python -B -X utf8 code/bw1000/training-vggt-original1318-dev24-paired-v1/check_local.py local-only/vggt-1318-r17-independent-absent.json
+```
+
+The check reads the actual .3090 independent receipt and head-authority follow-up. It runs the original CPU input loader on the 22 real frozen RGB224/pose pairs and captures the real rendered GPU argv using a placement fixture. The .1038 and .1506 raw scorers have different artifact identities. Their execution ASTs and the new scorer match after normalizing the two-arm argument aliases. The original COO inputs, canonical scorer math and base weights are pinned independently. The old .1506 arm uses the .498 head and has a different adapter identity. The target preflight rechecks the old installed scorer/artifact identities with their original input and base. A true equivalence returns the existing per-window stream locator and hash and calls for independent numerical readback. It cannot reserve or launch a GPU. The local replay exercises positive and negative equivalence logic.
+
+## Future owner entry and independent post
+
+Prepare an operator-approved scope JSON with `request`, `parent`, `node`, `only_exclusive_node: true` and `approved_operational_scope: true`. The published allocation map determines the precise membership group. `1103606/f13r1n09` belongs to I02 and was used for the local renderer fixture. Its original ordinary pre-bridge claim remains intact. Actual use requires fresh no-numbered-step membership, fresh same-node full PCI/KFD/FD clearance, and no blocking business, ordinary or unresolved ownership. If only shared-device placement is possible, the exclusive entry closes. A separately approved existing shared-device workflow would be required.
+
+Use `launch.py --scope PRIVATE_SCOPE --publication ACTUAL_COMMIT --cpu-terminal PRIVATE_3090_ENVELOPE --output PRIVATE_PREFLIGHT_SOURCE` to render a read-only source program. Send that program to the authorized isolated HOST Python on stdin only after the operator adopts the exact source. It rechecks the stored .3090 result and source receipt, the .1318 continuous head, actual original Dev24 RGB hashes and the two earlier result identities. Its positive result and exact SHA feed the `ship_once` entry after fresh admission. The API shares the original .1506 SQLite reservation and protected-node flow. Supply the existing authorized held transport and publication check. The request-specific owner, source hash, handoff, intent and output paths are recorded. Ambiguous dispatch is left for reconciliation.
+
+The controller reuses the original pre, native and post scheduling path. One GPU step uses 1 DCU, 4 CPUs and 64 GiB. The GPU allocation is capped at 1200 s, the controller at 1500 s and the whole request at 1800 s from one original epoch. Original Dev24 inputs and the .1318 export are mounted read-only. The worker checks the assigned PCI/KFD identity and records the actual HIP shared object path and SHA. The current published membership helper is a deliberate new scheduling dependency. The scorer SHA is unchanged.
+
+For independent acceptance, collect exact numeric phase accounting with the nine columns `JobIDRaw,JobName%100,State,ExitCode,ElapsedRaw,NodeList,AllocTRES,Start,End` in UTC plus a fresh post-probe for the same parent and node. Pass a private phase-keyed accounting JSON and the original post-probe to `audit_terminal.py`. The proof must bind numeric pre/GPU/post, exact resource geometry, single epoch, same boot and PCI inventory, KFD/FD cleanup and the originally assigned HIP SO. Its input argument for roundoff is the published .1506 helper. The independent reader recomputes the same exact per-window predictions and aggregates. Only a complete original score can pass the fixed AUC@30, AUC@15 and failure thresholds. An incomplete run preserves the original denominator and observed event count.
+
+This delivery prepares source and captures commands locally. No GPU or scheduler call occurred and no reservation was created.
