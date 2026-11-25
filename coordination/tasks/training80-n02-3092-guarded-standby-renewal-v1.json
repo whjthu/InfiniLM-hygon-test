@@ -1,0 +1,45 @@
+{
+  "scope": "training80-n02-3092-guarded-standby-renewal-v1",
+  "state": "PLANNING_NO_DISPATCH",
+  "launcher": "tools/run_training80_n02_3092_guarded_refill_once.py",
+  "node": "f13r1n02",
+  "parent": "1103606",
+  "request": "fb95a1f66e744a34924e3d56a212f1b8",
+  "previous_request": "6a96939821164a63bfb2e8a789453fff",
+  "previous_GPU": "1103606.3092",
+  "previous_probe": "1103606.3091",
+  "old_worker_start": 1795568114.086273,
+  "old_worker_budget_s": 10708,
+  "preparation_epoch": 1795577922.086273,
+  "natural_budget_epoch": 1795578822.086273,
+  "preparation_CST": "2026-11-25T11:38:42.086273+08:00",
+  "natural_budget_CST": "2026-11-25T11:53:42.086273+08:00",
+  "ordinary_first_preparation_CST": "2026-11-25T11:40:35.038+08:00",
+  "ordinary_first_budget_CST": "2026-11-25T11:55:35.038+08:00",
+  "proof": {
+    "startup": {
+      "path": "local-only/training80-f13r1n02-group13-guarded-bf16-v1-selector-monotonic-read-beb2beb06fb0424bb49bb1b5293bd9ba.json",
+      "SHA256": "cc9a655406056ba0ed35080997241a04306713440611747d49ba95d803aa5267"
+    },
+    "counter_cross_check": {
+      "path": "local-only/training80-n02-3092-two-independent-persisted-first-reads-cross-check.json",
+      "SHA256": "64347d6d8ed58b35188a36671c950d34e5e5ace304946c9573b44cf77503a8e2"
+    },
+    "ordinary": {
+      "path": "local-only/training80-0841-vnext-58-actual-terminal-and-two-point-verified-v1.json",
+      "SHA256": "e6cf9395afee2fada97ba163766491bbaa28f27cc9e4cdc5e843dc8001eb395e"
+    }
+  },
+  "resources": {
+    "GPU_per_node": 8,
+    "CPU_cores": 8,
+    "mem_MiB": 16384,
+    "max_worker_seconds": 10800,
+    "Slurm_cap_seconds": 11100,
+    "preemptible": true
+  },
+  "replay_allowed": false,
+  "max_invocations": 1,
+  "operation": "Before 11:38 prepare source publication, local authority and observations. The compound time is a schedule only. Read true .3092 C0/End, exact natural worker receipt and both target views empty; then consume one locally fresh terminal read at the unique send boundary and recheck it with the existing shared lock, independently take new clean 0-GRES observation and pass to the unchanged BF16 standby launcher once.",
+  "coordination": "Ordinary may prepare read-only while this node is excluded. At actual release give n02 the only SCNet writer slot, then explicitly yield it to the first ordinary group. No early stop or repeat of an ambiguous send."
+}
