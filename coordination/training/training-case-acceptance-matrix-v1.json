@@ -1,5 +1,5 @@
 {
-  "coordination_snapshot": "2026-11-19: T03 CPU360 and T04 CPU378 validated target native input and PEFT structure. Prior A100 recoveries retained. Target formal stage 3 remains unqualified. 2026-11-20: T01 eight-rank single-projection diagnostic and independent two-update audit completed; summary-only A100 comparison. T01 原尺寸 VJP 与两次更新独审，T04 两份完整分片及两份原在途分片已纳入索引。 2026-11-22: Gemma 领域配方的真实连续与恢复结果、HunyuanVideo 海光单卡原缓存工程窗口及同平台恢复已纳入索引。",
+  "coordination_snapshot": "2026-11-19: T03 CPU360 and T04 CPU378 validated target native input and PEFT structure. Prior A100 recoveries retained. Target formal stage 3 remains unqualified. 2026-11-20: T01 eight-rank single-projection diagnostic and independent two-update audit completed; summary-only A100 comparison. T01 原尺寸 VJP 与两次更新独审，T04 两份完整分片及两份原在途分片已纳入索引。 2026-11-22: Gemma 领域配方的真实连续与恢复结果、HunyuanVideo 海光单卡原缓存工程窗口及同平台恢复已纳入索引。 2026-11-26: 加入 T07 Style18 恢复失配、T09 单卡工程计时和 T02 扩大确认集来源拒绝原件。",
   "framework_commit": "a68952cb2285d6593b665147249d14ec1f8cecbc",
   "entry": "tools/hygon_training_recipe.py",
   "node_ledger": {
@@ -379,7 +379,7 @@
       "target_numerics": "未验证",
       "target_recovery": "原 A100 同配方待验证。独立 USGS72 领域配方完成 5 步续训，160 对输入匹配，首个恢复 forward 的 rank 0 loss 分叉后更新分叉。",
       "target_performance": "待三轮同口径实测",
-      "target_holdout_effect": "正式 TextVQA/CIDEr 留出实测待完成。独立 USGS 开发集 36 题的答案内容得分为领域训练 16、共同初态 11、通用描述训练 8。通用对照的任务和答复格式均有差异，尚无法归因领域语义收益。",
+      "target_holdout_effect": "正式 TextVQA/CIDEr 留出实测待完成。独立 USGS 开发集 36 题的答案内容得分为领域训练 16、共同初态 11、通用描述训练 8。通用对照的任务和答复格式均有差异，尚无法归因领域语义收益。 独立 USGS 扩大确认集的 12 份正文中，11 份通过来源核验。原规则停在分组前，未生成答案。",
       "stage3_accepted": false,
       "reference_evidence": "results/bw1000/2026-11-11/training-gemma-original-native25-two-updates-and-three-checkpoints-independent.json",
       "hygon_evidence": "coordination/tasks/training-gemma-original-initial-trainables-v1.json",
@@ -414,6 +414,11 @@
           "SHA256": "0df42bcb4b001c330077f424a49a931e5d24b309cf22b4a0ef85825501bb0efe",
           "bytes": 7642,
           "formal_stage3": false
+        },
+        "USGS_confirmation_body12_original_provenance_failure": {
+          "path": "results/bw1000/2026-11-26/training-t02-gemma-confirmatory96-body12-provenance-mismatch-held.json",
+          "bytes": 1321,
+          "SHA256": "3879e38aac9ab8404157c72b3490f2f471588c5386f259af6aef51c5ad7defbc"
         }
       }
     },
@@ -762,7 +767,7 @@
       "a100_reference": "A100 首步通过。原恢复失败，另有确定性 Flash2 候选恢复通过。",
       "target_evidence": "海光 HIP attention 组件通过。Style18 原生 VAE 产出 12/12 有限潜变量。目标运行资产 20/20 已独立复算 SHA-256，三片底座和预置 adapter 的头部与 A100 原参考一致。原 COCO20 的 20 张 JPEG 与 CSV 逐字节匹配，海光零卡用原生代码完成 25 次 RGB256 预处理和 5 次重复校验。原数据清单与 A100 RGB256 对照仍缺。完整原源码在海光零卡首次导入时暴露了共享 Transformers 5.12.1 的 SigLIP 接口差异。配套隔离环境下，原入口和 48 个原生模块已导入成功。海光单卡 BF16 预置融合正常结束，521 个底座张量匹配同一 HIP 后端预期，240 个目标张量更新，476 个新 LoRA 可训练张量边界正确。A100 融合后实际值、原始首步数值及连续 25 步仍待对照。",
       "target_numerics": "统一候选 99e8f001 已从 T07.sft 注册入口完成单卡原生零更新前向和真实首步。独立审计确认固定输入、前向前 RNG、预测、loss、梯度裁剪前后、参数更新及 AdamW 状态与原海光首步完全一致。待原 A100 全量数值对照。",
-      "target_recovery": "原 COCO20 海光完成连续 25 步和从第 20 步恢复的五步。五步 loss 一致，最终 LoRA 最大绝对差超过原阈值，恢复未通过。补做同设备三次独立的第 21 步，裁剪前后梯度、参数与 AdamW 状态完全一致。本次未复现原五步轨迹的差异。 HIP 确定性 Flash2 候选完成真实 25+5 步，触发 2040 次确定性反向调用。独立对照表明输入、噪声和 timestep 一致，第 21 步首次预测已分叉，五步最大 loss 差 0.0010086894，超过 0.000001。恢复仍未通过。 海光 COCO20 分组有限值检查候选在同一物理卡上从原第 20 步检查点恢复，实际完成第 21–25 步。五步 loss、476 个张量的六类边界以及第 25 步检查点均与原连续运行一致；清场通过。 统一候选 3b1152eb 已经通过注册入口在同一张物理卡上实际完成连续 25 步，从真实第 20 步检查点启新进程恢复第 21–25 步。独立零卡审计确认 5 步输入和 loss、476 个 LoRA 张量、全量优化器、调度器和 RNG 状态及第 25 步文件完全一致。",
+      "target_recovery": "原 COCO20 海光完成连续 25 步和从第 20 步恢复的五步。五步 loss 一致，最终 LoRA 最大绝对差超过原阈值，恢复未通过。补做同设备三次独立的第 21 步，裁剪前后梯度、参数与 AdamW 状态完全一致。本次未复现原五步轨迹的差异。 HIP 确定性 Flash2 候选完成真实 25+5 步，触发 2040 次确定性反向调用。独立对照表明输入、噪声和 timestep 一致，第 21 步首次预测已分叉，五步最大 loss 差 0.0010086894，超过 0.000001。恢复仍未通过。 海光 COCO20 分组有限值检查候选在同一物理卡上从原第 20 步检查点恢复，实际完成第 21–25 步。五步 loss、476 个张量的六类边界以及第 25 步检查点均与原连续运行一致；清场通过。 统一候选 3b1152eb 已经通过注册入口在同一张物理卡上实际完成连续 25 步，从真实第 20 步检查点启新进程恢复第 21–25 步。独立零卡审计确认 5 步输入和 loss、476 个 LoRA 张量、全量优化器、调度器和 RNG 状态及第 25 步文件完全一致。 另行核验 Style18 从第 10 步恢复的 15 次实际更新。第 11–16 步的 loss 和裁剪前梯度范数完全一致，第 17 步首次出现记录差异。最大 loss 差约 0.00100833，恢复数值未通过。",
       "target_performance": "同一海光单卡上三个新进程完成原 COCO20 各 25 步。第 6 步取数前至第 25 步检查点持久化的吞吐中位数为 1.25802996 updates/s，原单卡 A100 三轮中位数为 1.09523949 updates/s，比值 114.86%。海光前后 PCI/KFD 清场及 9 份检查点已独立核对。正式 A100 全量数值和留出集效果门槛仍待验。",
       "target_holdout_effect": "官方 COCO val2017 图像归档已封存。256 张开发和 4,724 张盲测候选的实际 JPEG 与原 20 张训练图无字节重叠，候选内部无字节重复。对全 5,000 张图像按固定 pHash 和 dHash 阈值筛查了 12,497,310 对，未触发人工复核候选。共享初始噪声、配对检查点及 CLIP Score/FID 仍待。",
       "stage3_accepted": false,
@@ -937,6 +942,11 @@
           "path": "results/bw1000/2026-11-22/training-zimage-original1355-step10-state-and-rng-pair.json",
           "bytes": 2699,
           "SHA256": "faa4db3f382be734edd2bdba1d996527919116c950d157c11a5e7375548b7630"
+        },
+        "Style18_CP10_actual15_first_recorded_scalar_drift_step17": {
+          "path": "results/bw1000/2026-11-26/training-t07-3650-style18-first-recorded-loss-and-grad-norm-drift-step17.json",
+          "bytes": 10334,
+          "SHA256": "d825bebc01c21e0549eba0fb10358cd1572970ccce59b9fcdea167223e5ac8fb"
         }
       },
       "a100_median_updates_per_second": 1.0952394925494389
@@ -1018,7 +1028,7 @@
       "target_evidence": "海光单卡原缓存 Muon 工程窗口完成 25 步，独立核验实际终态和检查点。原 A100 同输入首步仍缺 before.pt 和 inputs.pt。",
       "target_numerics": "同输入 A100 首步数值待验证。",
       "target_recovery": "海光单卡新进程从第 20 步恢复，21–25 步 loss、梯度范数及最终检查点与海光连续运行精确匹配。原 GPU 步记录 FAILED，原因是原比较器门禁；后续独立零卡比较成功。 新进程从第10步恢复的原 .884 步正常结束，逐步验证第11–25步及最终检查点归档逐字节相同。",
-      "target_performance": "待三轮同口径实测",
+      "target_performance": "海光单卡最新工程复测完成 25 次真实更新，20 个计时步用时 123.6766 秒，含检查点 I/O。0.161712 次更新/秒，约为同口径 A100 三轮中位数的 73.09%。正式三轮待完成。",
       "target_holdout_effect": "待留出集实测",
       "stage3_accepted": false,
       "reference_evidence": "results/bw1000/2026-11-13/training-hunyuanvideo-sft-A100-fresh-process-resume20-terminal.json",
@@ -1057,6 +1067,11 @@
           "SHA256": "98011dffef6501ab4dacdfbc67c6d090cf386ba4e34f80ea7d2b00509da9834d",
           "bytes": 2222,
           "formal_stage3": false
+        },
+        "native_single_DCU_repeat2_original3640_unprofiled": {
+          "path": "results/bw1000/2026-11-26/training-t09-3640-independent-25-updates-untraced-repeat2-timing.json",
+          "bytes": 3637,
+          "SHA256": "34d113536c88f7ebc9fa06c3218324f4cb5f31e89cc382077c6e032f01fc46e4"
         }
       },
       "a100_median_updates_per_second": 0.2212546978937898,
