@@ -114,7 +114,8 @@
     "results/bw1000/2026-11-22/training-zimage-COCO20-original1294-1296-restored21-native-repeat.json": "572705b2659ed9f44f5616cf3b6707f56064b3282f0ea010de3b452d2d255b5a",
     "results/bw1000/2026-11-22/training-qwen-Dev80-original1313-1314-160-generations-scored.json": "2e7aa0f2b3d4e801d0600f16b5a8a386283e878f708c39f8c059c46196a51e5c",
     "results/bw1000/2026-11-22/training-vggt-eight-pairs-original1318-native25-resume20-terminal.json": "aee19d547e04bf99c3f0512e2e8ef07a335ef7f27bd6270e0a2dc41d32a52963",
-    "results/bw1000/2026-11-22/training-internvl-current-runtime-original1356-terminal.json": "bd3e3e8546671870ba8c7f81f3bde0e4778ee263ea4bf81bcc23f83c9051cb1a"
+    "results/bw1000/2026-11-22/training-internvl-current-runtime-original1356-terminal.json": "bd3e3e8546671870ba8c7f81f3bde0e4778ee263ea4bf81bcc23f83c9051cb1a",
+    "results/bw1000/2026-11-27/training-gemma-usgs-confirmatory96-original3682-first-offline-score.json": "d36d05412bd96f5437d079fde7c43bf2cf858a8aff69c3b5cbcc1851a8f21fd0"
   },
   "cases": [
     {
@@ -379,7 +380,7 @@
       "target_numerics": "未验证",
       "target_recovery": "原 A100 同配方待验证。独立 USGS72 领域配方完成 5 步续训，160 对输入匹配，首个恢复 forward 的 rank 0 loss 分叉后更新分叉。",
       "target_performance": "待三轮同口径实测",
-      "target_holdout_effect": "正式 TextVQA/CIDEr 留出实测待完成。独立 USGS 开发集 36 题的答案内容得分为领域训练 16、共同初态 11、通用描述训练 8。通用对照的任务和答复格式均有差异，尚无法归因领域语义收益。 独立 USGS 扩大确认集的 12 份正文中，11 份通过来源核验。原规则停在分组前，未生成答案。",
+      "target_holdout_effect": "正式 TextVQA/CIDEr 留出实测待完成。独立 USGS 开发集 36 题的答案内容得分为领域训练 16、共同初态 11、通用描述训练 8。通用对照的任务和答复格式均有差异，尚无法归因领域语义收益。 独立 USGS 扩大确认集的 12 份正文中，11 份通过来源核验。原规则停在分组前，未生成答案。 随后的独立 96 题确认集达到预注册领域效果门槛。USGS 地震图表问答 52/96，未适配底座 40/96，仅问题训练对照 23/96；相对底座提升 12.5 个百分点，八个事件组的配对 95% 区间为 [3.125, 20.833] 个百分点。",
       "stage3_accepted": false,
       "reference_evidence": "results/bw1000/2026-11-11/training-gemma-original-native25-two-updates-and-three-checkpoints-independent.json",
       "hygon_evidence": "coordination/tasks/training-gemma-original-initial-trainables-v1.json",
@@ -420,6 +421,22 @@
           "bytes": 1321,
           "SHA256": "3879e38aac9ab8404157c72b3490f2f471588c5386f259af6aef51c5ad7defbc"
         }
+      },
+      "domain_confirmatory_evidence": {
+        "path": "results/bw1000/2026-11-27/training-gemma-usgs-confirmatory96-original3682-first-offline-score.json",
+        "SHA256": "d36d05412bd96f5437d079fde7c43bf2cf858a8aff69c3b5cbcc1851a8f21fd0",
+        "questions": 96,
+        "trained_correct": 52,
+        "base_correct": 40,
+        "question_only_correct": 23,
+        "gain_percentage_points": 12.5,
+        "paired_group_95_percentage_points": [
+          3.125,
+          20.833333333333332
+        ],
+        "domain_effect_gate_passed": true,
+        "domain_delivery_credit": 0,
+        "formal_training_case_credit": 0
       }
     },
     {
