@@ -1,0 +1,276 @@
+{
+  "bmm_median_s": 1.6061349462890626,
+  "checkpoint_deliverable": false,
+  "completed_updates": 7,
+  "fleet_numbered_observation": {
+    "allocated_DCU": 640,
+    "driver_busy": null,
+    "observed_UTC": "2026-11-26T00:55:24.091787+00:00",
+    "running_numbered_DCU": 320,
+    "source": {
+      "SHA256": "e84c599e595346f74a23116837193e6b7f40ffb45280da354ff2edbfad93200b",
+      "bytes": 1892,
+      "path": "local-only/training80-after-two-legacy-refills-and-t09-first-GPU-scheduler-03d6f5268075423e8673af78086c94c4/receipt.json"
+    }
+  },
+  "formal_training_increment": 0,
+  "framework_mount_ingress": {
+    "actual_verified": 393,
+    "passed": true,
+    "phase": "READY_FOR_ORIGINAL_NATIVE_INGRESS",
+    "planned": 393,
+    "reason": null
+  },
+  "host_carrier": {
+    "SHA256": "d084868e16c6b75df28318c94cf56b41981cfa60f37282894d191b4e3d70fca2",
+    "bytes": 32610,
+    "path": "code/bw1000/training-hunyuanvideo-t09-backward67-gpu-prefix-v1-host-carrier.py"
+  },
+  "independent_output": {
+    "SHA256": "568b6c02a2b9b217539e84b4a805a1f5cd0084168ac03a1f272e392024b9f31c",
+    "bytes": 7829
+  },
+  "independent_release": true,
+  "independent_terminal_receipt": {
+    "SHA256": "a5d9b1ef6da86f3efaaaec0920a5d26aefc0ae8069205489be477a960b182050",
+    "bytes": 3094,
+    "path": "local-only/t09-prefix7-b328350d-original-independent-terminal-once-ddae8c7d31d148a4bf2efee52043bf4a/receipt.json"
+  },
+  "interpretation": "The phase includes all work inside backward. These observations bind each kernel to its framework operator, but no recomputation range was present. Operator summed kernel times are distinct from critical path speedup. Raw traces stay at the target.",
+  "missing_updates": 0,
+  "native_profile": {
+    "completed_warmup": 5,
+    "device_attribution_qualified": true,
+    "formal_performance": false,
+    "no_checkpoint_deliverable": true,
+    "prefix_stop_verified": true,
+    "profiled_steps": [
+      {
+        "cpu_backward_marker_us": 4101626.916015625,
+        "hardware_attribution": "OBSERVED_UNIQUE_BACKWARD_EXTERNAL_IDS",
+        "kernel_correlation_counts": {
+          "unique_backward_CPU_external_id": 16882
+        },
+        "kernel_union_device_us": 4050320.734375,
+        "linked_kernel_union_device_us": 4050320.734375,
+        "observed_activity_counts": {
+          "gpu_memcpy": 754,
+          "kernel": 16882
+        },
+        "raw_trace_SHA256": "a650847751bcaa17be27054573862962ba9f6ac45caa45daa7af0a673020b77b",
+        "raw_trace_bytes": 53798899,
+        "step": 6
+      },
+      {
+        "cpu_backward_marker_us": 4102020.5078125,
+        "hardware_attribution": "OBSERVED_UNIQUE_BACKWARD_EXTERNAL_IDS",
+        "kernel_correlation_counts": {
+          "unique_backward_CPU_external_id": 16882
+        },
+        "kernel_union_device_us": 4051547.5966796875,
+        "linked_kernel_union_device_us": 4051547.5966796875,
+        "observed_activity_counts": {
+          "gpu_memcpy": 754,
+          "kernel": 16882
+        },
+        "raw_trace_SHA256": "2ba14588e863ab5ae4ab3e65018d68fad4d0e72641b61a73433b3949d8e4f501",
+        "raw_trace_bytes": 53965175,
+        "step": 7
+      }
+    ],
+    "recomputation_device_time": "UNKNOWN"
+  },
+  "next_analysis_boundary": "Split bmm by actual source caller and checkpoint recomputation before selecting a single change. Fixed inputs, one variable and quantitative comparison required.",
+  "operator_breakdown": [
+    {
+      "kernel_sum_device_us": 4050330.59375,
+      "kernel_union_device_us": 4050320.734375,
+      "operator_top8": [
+        {
+          "calls": 323,
+          "known_op": "aten::bmm",
+          "op_SHA256": "5d343f92a5e5aa9f7b045c171bda1dfa85d71d47ef72c2c0a07f95d7637fdd22",
+          "summed_device_us": 1606274.40625
+        },
+        {
+          "calls": 3647,
+          "known_op": "aten::mul",
+          "op_SHA256": "e84669ae5887d02d2960d16e35663de1ff635a672ef97cc6ea1e5de4356a887d",
+          "summed_device_us": 396179.0498046875
+        },
+        {
+          "calls": 54,
+          "known_op": "aten::_softmax_backward_data",
+          "op_SHA256": "10eb84dc1d66ce664a31490ffe852b6a7fd1d551abbeef70be65d26e097f101d",
+          "summed_device_us": 367039.1650390625
+        },
+        {
+          "calls": 4030,
+          "known_op": "aten::copy_",
+          "op_SHA256": "59e0ec007491f900cf9ee19ee30cae30526479afb607ff99f6786e9ac738ccc0",
+          "summed_device_us": 357210.78515625
+        },
+        {
+          "calls": 54,
+          "known_op": "aten::_softmax",
+          "op_SHA256": "14b2a8fc8b4f7ceb14d7daf185113c0b5d733a5d28d4a70be5233e81e0a0e1fe",
+          "summed_device_us": 303502.71875
+        },
+        {
+          "calls": 958,
+          "known_op": "aten::add_",
+          "op_SHA256": "75ac14e9b76b9dab82abe97168bfda15bd174ee6f95148a5162ea87574af0c22",
+          "summed_device_us": 223447.4091796875
+        },
+        {
+          "calls": 108,
+          "known_op": "aten::where",
+          "op_SHA256": "f2bc975e6ddbdcec4a413cf9baa0a84d11e8187ade669ed30ffd205199be07ca",
+          "summed_device_us": 160617.423828125
+        },
+        {
+          "calls": 1404,
+          "known_op": "aten::addmm",
+          "op_SHA256": "0ed41c9b5f8d8ed32c1dfe2d5d7eb25a84cd383c9fd3891308db28c20331fea8",
+          "summed_device_us": 153597.2451171875
+        }
+      ],
+      "recomputation": "UNKNOWN_NO_DISTINCT_RECOMPUTATION_SCOPE",
+      "step": 6,
+      "stream_count": 1,
+      "summary": {
+        "SHA256": "90a2c9cdddb60504ea5ec859fb42a89e2a89ca6d5a1ff50af22f418bd27629be",
+        "bytes": 3995
+      },
+      "trace_events": 164169
+    },
+    {
+      "kernel_sum_device_us": 4051553.828125,
+      "kernel_union_device_us": 4051547.5966796875,
+      "operator_top8": [
+        {
+          "calls": 323,
+          "known_op": "aten::bmm",
+          "op_SHA256": "5d343f92a5e5aa9f7b045c171bda1dfa85d71d47ef72c2c0a07f95d7637fdd22",
+          "summed_device_us": 1605995.486328125
+        },
+        {
+          "calls": 3647,
+          "known_op": "aten::mul",
+          "op_SHA256": "e84669ae5887d02d2960d16e35663de1ff635a672ef97cc6ea1e5de4356a887d",
+          "summed_device_us": 395525.4716796875
+        },
+        {
+          "calls": 54,
+          "known_op": "aten::_softmax_backward_data",
+          "op_SHA256": "10eb84dc1d66ce664a31490ffe852b6a7fd1d551abbeef70be65d26e097f101d",
+          "summed_device_us": 366961.5859375
+        },
+        {
+          "calls": 4030,
+          "known_op": "aten::copy_",
+          "op_SHA256": "59e0ec007491f900cf9ee19ee30cae30526479afb607ff99f6786e9ac738ccc0",
+          "summed_device_us": 358745.0166015625
+        },
+        {
+          "calls": 54,
+          "known_op": "aten::_softmax",
+          "op_SHA256": "14b2a8fc8b4f7ceb14d7daf185113c0b5d733a5d28d4a70be5233e81e0a0e1fe",
+          "summed_device_us": 303550.6923828125
+        },
+        {
+          "calls": 958,
+          "known_op": "aten::add_",
+          "op_SHA256": "75ac14e9b76b9dab82abe97168bfda15bd174ee6f95148a5162ea87574af0c22",
+          "summed_device_us": 223798.9140625
+        },
+        {
+          "calls": 108,
+          "known_op": "aten::where",
+          "op_SHA256": "f2bc975e6ddbdcec4a413cf9baa0a84d11e8187ade669ed30ffd205199be07ca",
+          "summed_device_us": 160619.01171875
+        },
+        {
+          "calls": 1404,
+          "known_op": "aten::addmm",
+          "op_SHA256": "0ed41c9b5f8d8ed32c1dfe2d5d7eb25a84cd383c9fd3891308db28c20331fea8",
+          "summed_device_us": 153591.3408203125
+        }
+      ],
+      "recomputation": "UNKNOWN_NO_DISTINCT_RECOMPUTATION_SCOPE",
+      "step": 7,
+      "stream_count": 1,
+      "summary": {
+        "SHA256": "f7e573d8cc81d221654bcbb2b914d110772838f5aed8c839774ba5d52a63a987",
+        "bytes": 4000
+      },
+      "trace_events": 164169
+    }
+  ],
+  "operator_projection": {
+    "SHA256": "681d649019c9a2fb40637912e89246259c517a894e5d1ea40ae70d0f99741568",
+    "bytes": 4036,
+    "path": "local-only/t09-prefix7-b328350d-operator-top8-original-summary-b628bb41f6184bd1b9263f18c83eca67/receipt.json"
+  },
+  "original_1_DCU_GPU_step": [
+    "1103606.3665",
+    "t09-backward67-prefix-b328350dc06b-gpu",
+    "COMPLETED",
+    "0:0",
+    "143",
+    "f13r3n13",
+    "cpu=8,gres/dcu=1,mem=125G,node=1",
+    "2026-11-26T00:51:46",
+    "2026-11-26T00:54:09"
+  ],
+  "original_outcome": {
+    "SHA256": "a51fc566c3a1618d1796d287f0dfa60b4c475bc0a9cb1484b0f1cb4a2a36530f",
+    "bytes": 19458
+  },
+  "original_owner": {
+    "SHA256": "a4318a7a428c87371171b7ad722f32629b0d9fda65ca117fcdd10168cbc29e8b",
+    "bytes": 1045,
+    "path": "local-only/t09-prefix7-original-one-owner-b328350d-first-b328350dc06b42d7805ae1fbae00eb3b/receipt.json"
+  },
+  "original_terminal": {
+    "SHA256": "44852f86d21b667e0fe13a81fb85cfd553400fe6d1aaa15b8f650f80aae31d04",
+    "bytes": 1461,
+    "path": "local-only/t09-prefix7-b328350d-actual-original-watch-after-fleet-47263ce8a3244bf2bf7c9df6c8f45d05/receipt.json"
+  },
+  "physical_zero_GRES_step": "1103606.3663",
+  "planned_updates": 7,
+  "post": [
+    "1103606.3666",
+    "t09-backward67-prefix-b328350dc06b-post",
+    "COMPLETED",
+    "0:0",
+    "0",
+    "f13r3n13",
+    "cpu=1,mem=1G,node=1",
+    "2026-11-26T00:54:11",
+    "2026-11-26T00:54:11"
+  ],
+  "pre": [
+    "1103606.3664",
+    "t09-backward67-prefix-b328350dc06b-pre",
+    "COMPLETED",
+    "0:0",
+    "1",
+    "f13r3n13",
+    "cpu=1,mem=1G,node=1",
+    "2026-11-26T00:51:38",
+    "2026-11-26T00:51:39"
+  ],
+  "real_running": {
+    "SHA256": "24b60d63589953fefe2190bc55d459a29846bc876c9f2b24a458108d2291bdab",
+    "bytes": 1016,
+    "path": "local-only/t09-prefix7-b328350d-actual-original-watch-2b3d8e6ca29f4e46b743ebad736e3ffc/receipt.json"
+  },
+  "recomputation_device_time": "UNKNOWN",
+  "source_manifest": {
+    "SHA256": "385aba78b54293cedf9925532397a42266a1fa78e678e8826f4dad5a87c75667",
+    "bytes": 4453
+  },
+  "source_publication": "792bd57e39221fbff68986d6bc86e73f835cad72",
+  "state": "REAL_SINGLE_DCU_PREFIX7_AND_TWO_BACKWARD_PROFILES_WITH_INDEPENDENT_RELEASE"
+}
