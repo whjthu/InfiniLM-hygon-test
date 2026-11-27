@@ -6,7 +6,7 @@ from pathlib import Path
 import tempfile
 
 from contract import ARMS, CAP, CP_ADAPTER, CP_FILES, CP_INVENTORY_SHA, CP_RELOAD_SHA, HEX, PROMPT_SHA, RELOAD_ROW, SLOTS, actual_reload, archive, encode, generation, inputs, seal
-from host import build_command, parent_clear
+from host import HOME_SOURCE, PROVIDER_SOURCE, build_command, parent_clear
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[2]
@@ -49,6 +49,8 @@ def main():
     recorded = json.dumps(envelope, sort_keys=True).encode()
     from contract import sha
     assert sha(recorded) == CP_RELOAD_SHA
+    assert sha((REPO/"code/bw1000/training-domain-pilot-v1/internvl_gqa_miopen_home.py").read_bytes()) == HOME_SOURCE
+    assert sha((REPO/"code/bw1000/training-minicpm-usgs-native88-CPU-v1/providers.py").read_bytes()) == PROVIDER_SOURCE
     assert actual_reload(recorded, [RELOAD_ROW])["adapter"]==CP_ADAPTER
     reject(lambda: actual_reload(encode(dict(envelope, result=dict(envelope["result"], actual_GPU=1))),
                                          [RELOAD_ROW]),"ACTUAL_INDEPENDENT_CP2_ZERO_GRES_RELOAD")
