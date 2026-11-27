@@ -10,7 +10,7 @@
 | VGGT-1B · 室内双帧相对位姿 | 复用原相机头 CP25，冻结 aggregator，224 像素双帧在线提特征。按 TUM RGB-D 录制隔离。 | 用原底座与 CP25 评冻结 household 20 槽，保留 1 个几何不合格槽，报告 AUC@30/15/5。目标产物传输原审批仍适用。 |
 | Z-Image-Turbo · 科学图表风格 | 复用 Style18 CP25，按同一融合 Turbo 底座、8 个提示、2 个种子成对生成。 | 先锁两名独立评审和盲序，再组织 16 对领域与通用对照。领域主指标为风格和结构同时合格率。 |
 | Qwen3-VL-8B-Instruct · 街景 OCR 问答 | TextVQA 训练问答加 TextOCR 读字和位置辅助监督。沿用已过原生处理的 26 条问答和 15 条 OCR 样本。 | 先查原预约和唯一接续窗口，在原八卡 BF16 配方核前两个真实更新和参数差，再按图像去重、按小字等难度分层做官方计分。 |
-| InternVL3.5-8B-HF · 物体关系问答 | 官方 GQA balanced train 的 `types.semantic == "rel"`，短答案 SFT。每个来源组只取一条，按图像 ID、来源组和内容摘要排除开发及盲测交叉。 | 原 A100 25 步是 USGS，供复用原生配方和入口。先从已核的关系标注绑定 64 条逐图准入样本，再用真实训练图验 HF processor、标签和 8 卡首次正学习率参数差。独立盲测报关系题准确率、官方 consistency。 |
+| InternVL3.5-8B-HF · 物体关系问答 | 使用 GQA balanced train 的 64 条逐图核验关系题，沿用原生 HF 短答案 SFT 和八卡配方。 | 已完成 25 步，八个 rank 的最终参数哈希一致。分别从 CP20 恢复到第 25 步，以及在新进程加载 CP25，与底座同跑预先冻结的 96 道验证题。主报关系题准确率，保留失败及分组分母。这批验证题使用 GQA validation。 |
 | HunyuanVideo 1.5 · 桌面商品转台 | 已有一个 ABO 真实资产的 9 帧 848×480 原生缓存。保留 Q/V LoRA、480p 原生入口及 Muon，按 SKU 家族留出。 | 目标容器的原生入口及优化器钩子已通过 CPU 验证。独立单卡候选的下一证据是实跑前后向、正学习率及参数变化。评主体一致性、闪烁与 Video CLIP。 |
 | SDXL 1.0 · 商品棚拍 | ABO 目录主图或 CC0 配对商品渲染，使用图中实际可见的 caption。UNet Attention LoRA，冻结文本编码器和 VAE。 | 并行做一张训练图的身份与预处理验证，以及原同输入反向差异定位。按商品家族/背景模板隔离，报棚拍适用率、CLIP Score、FID 与分母。 |
 | MiniCPM-V-4.6 · 包装规格和不可读拒答 | 首选 ABO 包装正面图加人工读出的数值及单位，补许可明确的可控渲染。冻结视觉和对齐模块，保留 5 步预热。 | 原生读入一条可读及一条不可读任务，核监督 mask，再验证首次参数变化。真实未见 SKU 盲测报数字加单位准确率及误答率。 |
@@ -21,7 +21,7 @@
 
 ## 资源接续与验收
 
-- 检查点路线先闭合独立评分及可加载产物。Qwen、HunyuanVideo 紧接着验证真实更新。InternVL、LLaVA、SDXL、MiniCPM、SF3D、TRELLIS 和 HY-Motion 的数据与原生入口并行准备。其中 SF3D 的同视角配对和 InternVL 的数据切片先走 CPU。
+- 检查点路线先闭合 Gemma、InternVL、VGGT 和 Z-Image 的独立评分、恢复或重载。Qwen、HunyuanVideo 推进正学习率步的参数变化检查。LLaVA、SDXL、MiniCPM、SF3D、TRELLIS 和 HY-Motion 并行准备真实样本、原生缓存和首批训练入口。
 - 训练储备按具有新作业身份、数据、权重、启动入口、正学习率更新计划和实际可放置资源的任务计数。就绪一项即接替对应节点的保底。五个 VLM 的原八卡性能和 17 项基础配方仍各自按 A100 验收。
 - 开发集用于冻结训练长度和指标阈值。冻结后同输入对比原底座与候选，保留缺失、生成失败和未通过的分母。首轮领域交付至少有可加载文件、实际更新、盲测提升和新进程复验。Gemma 原 96 题已揭盲，后续版本使用新的独立事件组。
 - 共享商品资产的目录照片、网格、像素材质和视频分别对应各自原始文件。用物体家族、原图身份和内容摘要阻断跨用途的训练与评测交叉。COCO、GQA 逐图记录权利来源。
@@ -45,9 +45,11 @@
 | 并行工作 | 首批任务和完成证据 |
 |---|---|
 | 用已有权重先拿到可判断的结论 | Gemma 复用 96 题盲测，独立重载已过，专门查第 21 步恢复后的首个参数和优化器差异。VGGT 直接做 TUM 留出两臂 AUC。Z-Image 锁定独立盲评人和顺序后生成两臂。每条分别交付可加载产物和独立结果。 |
-| 优先接替保底的真实训练 | Qwen 先核同一预约，再试原 8 卡配方的正学习率更新。HunyuanVideo 的 35 个目标文件已安装、权重挂载通过登录节点同一文件描述符复核，等待目标节点当前保底终态和独立清场后按原路线接续。InternVL 的 4 条 GQA 真图已经通过目标原生 CPU processor 和 collator，下一次先绑定按原图去重的 64 条合格训练行，再用原 8 卡配方核参数变化。 |
+| 优先接替保底的真实训练 | Qwen 先核同一预约，再试原 8 卡配方的正学习率更新。HunyuanVideo 复用已安装的训练入口和领域缓存，先核原作业实际结果，再判断是否需要接续。InternVL 的 CP20 恢复作业按已核验的检查点内容绑定八卡，比较第 21–25 步、最终参数及优化器状态。 |
 | 补齐共享数据和原生输入 | 按资产 ID 与家族复用 ABO 目录元数据。SDXL 先做一张棚拍训练图并定位反向差异，MiniCPM 优先验证可见规格与拒答标签，TRELLIS.2 核完整网格和原生 latent，SF3D 核同视角 PBR 标签。ABO 配对不足时用 Poly Haven CC0 完整资产。LLaVA 优先做有物体存在标注的描述小批，HY-Motion 先闭合一个 128 帧、201 维 ACCAD 缓存。 |
 
 实际维护至少 5 项训练储备。每项先核实数据、权重、原生入口、正数更新和可放置资源，提交一项就补一项准备。现有 CPU 或挂载验证只推进各自阶段。HunyuanVideo 的单缓存首步独立记录，涉及 17 项原配方的卡数和 A100 比例继续单独验收。
 
 [GQA target 结果](../../results/bw1000/2026-11-27/specialized-internvl-GQA-native-four-real-inputs-4365.json) · [HunyuanVideo 目标安装和挂载复核](../../results/bw1000/2026-11-27/specialized-hunyuanvideo-abo-n14-v2-stage-and-actual-login-descriptor.json) · [ABO 官方数据](https://amazon-berkeley-objects.s3.amazonaws.com/index.html) · [Poly Haven 资产许可](https://polyhaven.com/license) · [TRELLIS.2 原生数据工具](https://github.com/microsoft/TRELLIS.2/blob/main/data_toolkit/README.md)
+
+InternVL 的 96 题按 48 条关系查询、48 条关系验证冻结。第一轮与底座使用相同输入和生成设置，领域准确率至少提升 3 个百分点，且按图像配对 bootstrap 的 95% 区间下界大于零。原训练作业正常退出，清场由独立作业核实。 [25 步训练与检查点](../../results/bw1000/2026-11-27/specialized-internvl-GQA25-4385-continuous-pass-cp25-and-independent-4388-clean.json) · [96 题留出与原始来源核验](../../results/bw1000/2026-11-27/specialized-internvl-GQA-independent-val96-and-official-testdev-data-boundary.json)
