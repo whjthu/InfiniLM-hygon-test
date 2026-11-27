@@ -99,16 +99,14 @@ except (ValueError, OSError, KeyError) as error:
 
 
 def pack(root):
-    rows = evaluation.inputs(root, INPUT_SHA)
-    names = ["INPUT.json", "prompts.json", *(row["image"] for row in rows)]
+    assets = evaluation.frozen_members(root)
+    if evaluation.digest(assets["INPUT.json"]) != INPUT_SHA:
+        raise ValueError("Frozen input manifest differs")
     output = BytesIO()
-    size = 0
     with ZipFile(output, "w", compression=ZIP_STORED) as archive:
-        for name in names:
-            raw = evaluation.read(root / name, 2 << 20)
-            size += len(raw)
+        for name, raw in assets.items():
             archive.writestr(ZipInfo(name), raw)
-    if size != INPUT_BYTES:
+    if sum(map(len, assets.values())) != INPUT_BYTES:
         raise ValueError("Frozen input byte total differs")
     return output.getvalue()
 
@@ -128,7 +126,7 @@ def main():
     modes.add_argument("--publication")
     args = parser.parse_args()
     local = REPO / "local-only"
-    packet = pack(local / "internvl-gqa-val96-input-only-v1")
+    packet = pack(local / "internvl-gqa-val96-blind-frozen-v1")
     source = program(packet, args.publication)
     if args.check:
         print(json.dumps({"request": REQUEST, "input_SHA256": INPUT_SHA, "archive_SHA256": digest(packet),

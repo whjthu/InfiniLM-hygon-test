@@ -67,8 +67,8 @@ def prompt_rows(data):
     return rows
 
 
-def prepare(frozen, output):
-    """Copy only pinned user prompts and the matching publisher JPEGs."""
+def frozen_members(frozen):
+    """Read only pinned user prompts, the matching publisher JPEGs and their lineage."""
     prompts = read(frozen / "prompts.json", 1 << 18, PROMPTS_SHA)
     rows = prompt_rows(prompts)
     lineage = json.loads(read(frozen / "lineage.private.json", 1 << 18, LINEAGE_SHA))
@@ -83,12 +83,16 @@ def prepare(frozen, output):
     need(sum(map(len, assets.values())) < 20 << 20, "Evaluation transfer exceeds fixed byte budget")
     manifest = {"schema": "INTERNVL_GQA_VAL96_INPUT_V1", "images": COUNT, "gold_included": False,
                 "members": {name: fields(data) for name, data in assets.items()}}
+    return {"INPUT.json": encode(manifest), **assets}
+
+
+def prepare(frozen, output):
+    assets = frozen_members(frozen)
     output.mkdir(mode=0o700)
     (output / "media").mkdir(mode=0o700)
     for name, data in assets.items():
         write(output / name, data)
-    write(output / "INPUT.json", encode(manifest))
-    return fields(encode(manifest))
+    return fields(assets["INPUT.json"])
 
 
 def inputs(root, input_sha):
