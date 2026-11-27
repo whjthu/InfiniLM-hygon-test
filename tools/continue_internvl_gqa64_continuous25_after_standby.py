@@ -12,7 +12,7 @@ from render_internvl_gqa64_first2 import REPO
 from run_hygon_bound_payload import digest, document, send
 
 
-REQUEST = "72fb511d59b14872a2289ddf152343d"
+REQUEST = "72fb511d59b14872a2289ddf152343d0"
 ORIGINAL_PUBLICATION = "7b1df167d693846f4313ed4becccdbcc487325d1"
 HOST = r'''
 import fcntl,json,os,re,subprocess,sys,time
@@ -21,7 +21,7 @@ from pathlib import Path
 
 R=Path('/public/home/aclsylqidf/hygon-inference-refactor-20261014/results')
 original='e23c26259c4344bc837a693ae9c2f11a'
-request='72fb511d59b14872a2289ddf152343d'
+request='72fb511d59b14872a2289ddf152343d0'
 label='training-internvl-gqa64-continuous25-hip-v1'
 stage=R/(label+'-source-'+original)
 assert os.getuid()==154459 and stage.resolve(strict=True)==stage
@@ -117,6 +117,8 @@ def main():
     parser.add_argument("--post-sha256")
     args=parser.parse_args()
     compile(HOST,"<GQA25 after clean standby>", "exec")
+    if not re.fullmatch("[0-9a-f]{32}", REQUEST):
+        raise ValueError("Invalid continuation transport identity")
     if args.check:
         print(json.dumps({"request":REQUEST,"host_SHA256":digest(HOST.encode()),"remote_calls":0}))
         return 0
