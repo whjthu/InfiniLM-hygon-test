@@ -187,12 +187,12 @@ def collect(request, ledger_raw, pins, ports, *, priority_nodes=(), held_nodes=(
     candidates = {parent: [] for parent in groups}
     stale_rows = {}
 
-    def exact_query(trace, *args):
+    def exact_query(trace, *args, stop_at=None):
         command = dict(command=' '.join(args[:3]), seconds=None)
         trace.append(command)
         before = clock()
         try:
-            remaining = deadline - before
+            remaining = (deadline if stop_at is None else min(deadline, stop_at)) - before
             require(remaining > 0, 'exact stale-step witness budget expired')
             result = query_run(args, capture_output=True, timeout=min(4, remaining), check=True)
             command.update(returncode=result.returncode, stderr_SHA256=digest(result.stderr))
@@ -220,20 +220,27 @@ def collect(request, ledger_raw, pins, ports, *, priority_nodes=(), held_nodes=(
     def attach_probe_accounting(record, row, label):
         trace = record['accounting_commands'] = []
         step, node = row['step'], row['node']
+        # Slurm may expose the step's COMPLETED record a few seconds after srun exits.
+        # Keep time for the second membership snapshot and exact scheduler checks.
+        accounting_deadline = min(clock() + 8, deadline - 12)
         try:
-            for _ in range(3):
+            while clock() < accounting_deadline:
                 values = [line.split('|') for line in exact_query(trace, 'sacct', '-nP', '-j', step,
-                          '-o', ','.join(PROBE_COLUMNS)) if line.split('|', 1)[0] == step]
-                if len(values) == 1 and len(values[0]) == len(PROBE_COLUMNS) and values[0][2] != 'RUNNING':
-                    successful_probe_accounting(values[0], step, node, label)
-                    record['probe_accounting'] = values[0]
-                    return
+                          '-o', ','.join(PROBE_COLUMNS), stop_at=accounting_deadline) if line.split('|', 1)[0] == step]
                 require(len(values) <= 1, 'duplicate stale-step probe accounting')
-                if deadline - clock() < 10:
-                    break
-                time.sleep(0.2)
+                if values:
+                    require(len(values[0]) == len(PROBE_COLUMNS), 'incomplete stale-step probe accounting row')
+                    if values[0][2] not in ('RUNNING', 'COMPLETING'):
+                        successful_probe_accounting(values[0], step, node, label)
+                        record['probe_accounting'] = values[0]
+                        return
+                pause = min(0.5, accounting_deadline - clock())
+                if pause > 0:
+                    time.sleep(pause)
         except (OSError, ValueError, subprocess.SubprocessError) as error:
             record['probe_accounting_error'] = type(error).__name__
+        else:
+            record['probe_accounting_error'] = 'TERMINAL_NOT_VISIBLE_WITHIN_WINDOW'
 
     if stale_step_probe_only:
         initial_proofs = observe_stale_scope(initial)

@@ -35,6 +35,7 @@ class ProductionProbeTest(unittest.TestCase):
         count = 0
         exact_reads = []
         probe_steps = {}
+        accounting_reads = {}
 
         def members(parent):
             return sorted(node for zone in groups[parent].values() for node in zone)
@@ -99,9 +100,12 @@ class ProductionProbeTest(unittest.TestCase):
             elif args[:3] == ('sacct', '-nP', '-j'):
                 step = args[3]
                 node, label = probe_steps[step]
+                accounting_reads[step] = accounting_reads.get(step, 0) + 1
                 state = 'FAILED' if terminal_error == 'failed' else 'COMPLETED'
                 tres = 'cpu=1,mem=256M,node=1,gres/dcu=1' if terminal_error == 'gres' else 'cpu=1,mem=256M,node=1'
                 lines = [f'{step}|{label}|{state}|0:0|1|{node}|{tres}|2026-11-27T13:23:06|2026-11-27T13:23:07']
+                if terminal_error == 'delayed' and accounting_reads[step] < 4:
+                    lines = []
             else:
                 raise AssertionError(args)
             return subprocess.CompletedProcess(argv, 0, ('\n'.join(lines)).encode(), err)
@@ -183,6 +187,14 @@ class ProductionProbeTest(unittest.TestCase):
                 self.assertEqual(batches, [node])
                 self.assertFalse(witness['physical_probe_witness_complete'])
                 self.assertNotIn('probe_accounting', witness)
+
+    def test_delayed_terminal_read_does_not_restart_probe(self):
+        node = 'f13r4n03'
+        report, batches = self.collect(priority=(node,), terminal_error='delayed')
+        witness = report['stale_step_probe_only']['nodes'][node]
+        self.assertEqual(batches, [node])
+        self.assertEqual(len(witness['accounting_commands']), 4)
+        self.assertTrue(witness['physical_probe_witness_complete'])
 
 
 if __name__ == '__main__':
