@@ -1,6 +1,7 @@
 """Load the recovered OneVision model and verify its real CPU LoRA structure."""
 
 from dataclasses import dataclass
+from contextlib import contextmanager
 import faulthandler
 from hashlib import sha256
 import inspect
@@ -9,6 +10,7 @@ import json
 import os
 from pathlib import Path
 import random
+import re
 import sys
 from tempfile import TemporaryDirectory
 import time
@@ -19,6 +21,7 @@ MODEL_SOURCE = "bb7ee743a32a2aa03789445794fe328ea21edb9b6e9f110d4bc5576f0ad29198
 MODEL_RECEIPT_SHA = "3710c08069b372f95a4870beb9126d658d86a3fc050ec4fdf029bfe639fa592c"
 VISION_MANIFEST_SHA = "75ee6a875b49a53c749cf7091de9c070c3276ef488a1af6ba3d2dab0571d551b"
 CACHE_PROVIDER = {"bytes": 73550, "SHA256": "7935a009f4131f1c21b53fb731f06813bcbaf8a34fe216cb9e83707aaafcf949"}
+FINALIZER_PROVIDER = "d0919dc79081ba7cbe90299cd909c5daf8ed2e626224986521b43cc8762fb98c"
 
 
 def need(condition, reason):
@@ -34,6 +37,78 @@ def pinned_document(path, pin):
 
 def phase(name):
     print(json.dumps(dict(llava_cpu_phase=name, monotonic_seconds=time.monotonic()), sort_keys=True), file=sys.stderr, flush=True)
+
+
+def audit(record):
+    print(json.dumps({"llava_cpu_audit": record}, sort_keys=True, allow_nan=False), file=sys.stderr, flush=True)
+
+
+def key_summary(keys):
+    names = sorted(str(key) for key in keys)
+    return dict(count=len(names), examples=names[:6], SHA256=sha256(json.dumps(names).encode()).hexdigest())
+
+
+@contextmanager
+def observe_checkpoint_assignment():
+    from transformers import modeling_utils
+
+    provider = Path(modeling_utils.__file__).read_bytes()
+    need(sha256(provider).hexdigest() == FINALIZER_PROVIDER, "Transformers finalizer provider differs")
+    owner = modeling_utils.PreTrainedModel
+    descriptor = vars(owner)["_finalize_model_loading"]
+    need(isinstance(descriptor, staticmethod), "Unexpected model finalizer scope")
+    original = descriptor.__func__
+    observed = []
+
+    def capture(info):
+        return {name: key_summary(getattr(info, name))
+                for name in ("missing_keys", "unexpected_keys", "mismatched_keys")}
+
+    def finalize(model, load_config, loading_info):
+        before = capture(loading_info)
+        audit(dict(stage="checkpoint_assignment_before_finalizer", **before))
+        result = original(model, load_config, loading_info)
+        after = capture(result)
+        observed.append(after)
+        audit(dict(stage="checkpoint_assignment_after_finalizer", **after))
+        return result
+
+    owner._finalize_model_loading = staticmethod(finalize)
+    try:
+        yield observed
+    finally:
+        owner._finalize_model_loading = descriptor
+
+
+def target_audit(core, actual, expected):
+    names = [name for name, _ in core.named_modules() if name]
+    if not isinstance(actual, str):
+        return dict(stage="adapter_target_selection", actual_selector_type=type(actual).__name__,
+                    original_selector=expected, same_membership=False)
+    actual_re, expected_re = re.compile(actual), re.compile(expected)
+    left, right = ({name for name in names if matcher.fullmatch(name)} for matcher in (actual_re, expected_re))
+    return dict(stage="adapter_target_selection", original_selector=expected, actual_selector=actual,
+                selectors_textually_equal=actual == expected, original_target_count=len(right),
+                actual_target_count=len(left), same_membership=left == right and bool(right),
+                missing_modules=key_summary(right - left), extra_modules=key_summary(left - right))
+
+
+def parameter_audit(actual, expected):
+    left = {row["name"]: row for row in actual}
+    right = {row["name"]: row for row in expected}
+    need(len(left) == len(actual) and len(right) == len(expected), "Duplicate trainable parameter name")
+    shared = left.keys() & right.keys()
+    changes = {}
+    for field in ("shape", "dtype", "numel"):
+        names = sorted(n for n in shared if left[n][field] != right[n][field])
+        changes[field] = dict(count=len(names), examples=[
+            dict(name=n, actual=left[n][field], expected=right[n][field]) for n in names[:4]
+        ])
+    return dict(stage="adapter_parameter_manifest", actual_tensors=len(actual), expected_tensors=len(expected),
+                actual_elements=sum(row["numel"] for row in actual),
+                missing_parameters=key_summary(right.keys() - left.keys()),
+                extra_parameters=key_summary(left.keys() - right.keys()), differences=changes,
+                manifest_exact=actual == expected)
 
 
 def preimport_verified_class(root, compatibility):
@@ -108,9 +183,10 @@ def main(root, binding_path, receipt_path):
     native_class = preimport_verified_class(root, llava_onevision)
     phase("verified_eager_import_completed")
     started = time.monotonic()
-    core, processor = get_model_processor(str(root), model_type="llava_onevision1_5", load_model=True,
-                                          download_model=False, device_map="cpu", attn_impl="eager",
-                                          torch_dtype=torch.bfloat16)
+    with observe_checkpoint_assignment() as checkpoint:
+        core, processor = get_model_processor(str(root), model_type="llava_onevision1_5", load_model=True,
+                                              download_model=False, device_map="cpu", attn_impl="eager",
+                                              torch_dtype=torch.bfloat16)
     load_seconds = time.monotonic() - started
     phase("swift_weight_and_rope_loader_returned")
     model_source = Path(inspect.getsourcefile(type(core))).read_bytes()
@@ -135,14 +211,21 @@ def main(root, binding_path, receipt_path):
     tuner.tuner_type = "lora"
     tuner.tuner_backend = "peft"
     tuner.use_swift_lora = False
-    modules = get_target_modules(tuner, core)
+    target = target_audit(core, get_target_modules(tuner, core), binding["target_modules"])
+    audit(target)
+    if target["same_membership"]:
+        tuner.target_modules = binding["target_modules"]
     phase("adapter_prepare_started")
     model = prepare_adapter(tuner, core, task_type="CAUSAL_LM")
     phase("adapter_prepare_returned")
     trainable = sorted((name, p) for name, p in model.named_parameters() if p.requires_grad)
-    need(parameter_manifest(trainable) == binding["trainable_manifest"]
-         and modules == binding["target_modules"] and len(trainable) == 504,
-         "Original exact LoRA parameter contract differs")
+    parameters = parameter_audit(parameter_manifest(trainable), binding["trainable_manifest"])
+    audit(parameters)
+    need(target["same_membership"] and parameters["manifest_exact"] and len(trainable) == 504,
+         "Original LoRA target membership or parameter contract differs")
+    need(len(checkpoint) == 1 and all(checkpoint[0][field]["count"] == 0
+                                     for field in ("missing_keys", "unexpected_keys", "mismatched_keys")),
+         "Checkpoint assignment differs after native finalization")
     need(all(p.device.type == "cpu" and bool(torch.isfinite(p).all()) for _, p in trainable)
          and not torch.cuda.is_initialized(), "Adapter contains invalid values or escaped CPU scope")
     phase("adapter_parameters_verified")
