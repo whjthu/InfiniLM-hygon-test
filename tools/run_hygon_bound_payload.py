@@ -46,17 +46,18 @@ def document(value):
     return (json.dumps(value, sort_keys=True, allow_nan=False) + "\n").encode()
 
 
-def send(ssh_argv, *, request, program, data, send_token, authority_seconds=18, outcome_seconds=160):
+def send(ssh_argv, *, request, program, data, send_token, authority_seconds=18, outcome_seconds=160,
+         packet_cap=CAP, write_seconds=20):
     """Return explicit authority, send attempt, receipt and original outcome boundaries."""
     if not re.fullmatch(r"[0-9a-f]{32}", request) or send_token.exists():
         raise ValueError("request identity is invalid or already committed for send")
     compile(program, "<project payload>", "exec")
     packet = document({"program": program, "data": b64encode(data).decode("ascii")})
     payload = b64encode(packet)
-    if len(payload) > CAP:
+    if not 0 < packet_cap <= 32 << 20 or not 0 < write_seconds <= 180 or len(payload) > packet_cap:
         raise ValueError("project payload exceeds the authenticated packet cap")
     binding = {"request": request, "nonce": uuid4().hex, "payload_sha256": digest(packet)}
-    remote = f"BINDING={binding!r}\nCAP={CAP}\n" + GATE
+    remote = f"BINDING={binding!r}\nCAP={packet_cap}\n" + GATE
     command = [*ssh_argv, shlex.join(["/usr/local/python3.12/bin/python3", "-I", "-S", "-B", "-c", remote])]
     result = {"request": request, "authority_verified": False, "payload_send_attempted": False,
               "payload_flushed": False, "remote_received": False, "response": None,
@@ -131,7 +132,7 @@ def send(ssh_argv, *, request, program, data, send_token, authority_seconds=18, 
             writer = Thread(target=write_payload, daemon=True)
             writer.start()
             try:
-                send_error = send_status.get(timeout=20)
+                send_error = send_status.get(timeout=write_seconds)
             except Empty:
                 raise TimeoutError("authenticated payload write timed out") from None
             if send_error:

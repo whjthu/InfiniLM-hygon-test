@@ -1,0 +1,41 @@
+{
+  "owner": "bw1000",
+  "case": "T03.domain-gqa64-native-sft",
+  "task": "Stage answer-free evaluation inputs and freeze independent score rules for InternVL GQA CP25",
+  "stage": "user_only_input_stage",
+  "request": "8fbbbada771e402a9ed57aa0229b27f9",
+  "original_training_step": "1103606.4385",
+  "original_training_request": "e23c26259c4344bc837a693ae9c2f11a",
+  "input_binding": {
+    "source_split": "GQA balanced validation relationship subset",
+    "input_manifest_SHA256": "98f729fce9e6af91edb10bbf4dcc9b0d06f1322a38247c7001d05b02a21fc46b",
+    "archive_SHA256": "3ab9eb67bfb62249b808f12cfe22a6c4affa48fe4ab2802c954a5f9e02ab2387",
+    "archive_bytes": 14108076,
+    "original_media_and_prompts_bytes": 14097308,
+    "scope": "96 publisher JPEGs with verified source metadata, matching user prompts and manifest",
+    "gold_included": false,
+    "outbound_predictions": false
+  },
+  "paired_evaluation_contract": {
+    "total_slots": 192,
+    "arms": ["unadapted base", "original checkpoint-25 adapter"],
+    "same_native_input_per_pair": true,
+    "slots_per_arm": 96,
+    "strata": {"query": 48, "verify": 48},
+    "decode": "greedy, max 64 new tokens",
+    "scoring": "whole answer exact match after NFKC, case, whitespace and trailing punctuation normalization",
+    "cap_error_and_missing_are_incorrect": true,
+    "threshold_gain_pp": 3,
+    "threshold_paired_bootstrap_95_percent_lower_bound_gt_pp": 0,
+    "resampling_unit": "unique source image",
+    "resamples": 20000,
+    "sealed_prediction_receipt_required_before_gold": true,
+    "official_Test_Dev_metric": false,
+    "formal_delivery_qualification": false
+  },
+  "launch_cpu_login_only": true,
+  "GPU_GO": false,
+  "original_training_replay": false,
+  "expected_result": "Remote read-back proof for all 98 regular members. A separate published worker and original checkpoint admission are needed for the paired GPU run.",
+  "local_validation": "Real 98-member bundle read-back, exact duplicate-stage rejection, complete synthetic 96-pair scorer exercise and modified-arm rejection. The real gold file was not opened."
+}
