@@ -10,7 +10,7 @@
 | VGGT-1B · 室内双帧相对位姿 | 复用原相机头 CP25，冻结 aggregator，224 像素双帧在线提特征。按 TUM RGB-D 录制隔离。 | 用原底座与 CP25 评冻结 household 20 槽，保留 1 个几何不合格槽，报告 AUC@30/15/5。目标产物传输原审批仍适用。 |
 | Z-Image-Turbo · 科学图表风格 | 复用 Style18 CP25，按同一融合 Turbo 底座、8 个提示、2 个种子成对生成。 | 先锁两名独立评审和盲序，再组织 16 对领域与通用对照。领域主指标为风格和结构同时合格率。 |
 | Qwen3-VL-8B-Instruct · 街景 OCR 问答 | TextVQA 训练问答加 TextOCR 读字和位置辅助监督。沿用已过原生处理的 26 条问答和 15 条 OCR 样本。 | 先查原预约和唯一接续窗口，在原八卡 BF16 配方核前两个真实更新和参数差，再按图像去重、按小字等难度分层做官方计分。 |
-| InternVL3.5-8B-HF · 物体关系问答 | 官方 GQA balanced train 的 `types.semantic == relation`，短答案 SFT。每个来源组只取一条，按图像 ID、来源组和内容摘要排除开发及盲测交叉。 | 原 A100 25 步是 USGS，供复用原生配方和入口。新入口输出 64 条候选，下一步用真实训练图验 HF processor、标签和 8 卡首次正学习率参数差。独立盲测报关系题准确率、官方 consistency。 |
+| InternVL3.5-8B-HF · 物体关系问答 | 官方 GQA balanced train 的 `types.semantic == "rel"`，短答案 SFT。每个来源组只取一条，按图像 ID、来源组和内容摘要排除开发及盲测交叉。 | 原 A100 25 步是 USGS，供复用原生配方和入口。先从已核的关系标注绑定 64 条逐图准入样本，再用真实训练图验 HF processor、标签和 8 卡首次正学习率参数差。独立盲测报关系题准确率、官方 consistency。 |
 | HunyuanVideo 1.5 · 桌面商品转台 | 已有一个 ABO 真实资产的 9 帧 848×480 原生缓存。保留 Q/V LoRA、480p 原生入口及 Muon，按 SKU 家族留出。 | 目标容器的原生入口及优化器钩子已通过 CPU 验证。独立单卡候选的下一证据是实跑前后向、正学习率及参数变化。评主体一致性、闪烁与 Video CLIP。 |
 | SDXL 1.0 · 商品棚拍 | ABO 目录主图或 CC0 配对商品渲染，使用图中实际可见的 caption。UNet Attention LoRA，冻结文本编码器和 VAE。 | 并行做一张训练图的身份与预处理验证，以及原同输入反向差异定位。按商品家族/背景模板隔离，报棚拍适用率、CLIP Score、FID 与分母。 |
 | MiniCPM-V-4.6 · 包装规格和不可读拒答 | 首选 ABO 包装正面图加人工读出的数值及单位，补许可明确的可控渲染。冻结视觉和对齐模块，保留 5 步预热。 | 原生读入一条可读及一条不可读任务，核监督 mask，再验证首次参数变化。真实未见 SKU 盲测报数字加单位准确率及误答率。 |
@@ -30,7 +30,7 @@
 
 `build_gqa_relation_train.py` 消费固定 SHA256 的官方 `train_balanced_questions.json`、逐图媒体许可清单和只含身份的留出排除清单。准入图像条目记录相对路径、原图内容 SHA256、来源组、来源网址和许可。留出清单记录图像 ID、来源组和原图内容 SHA256，开发与最终留出的并集即可，不进入答案。按固定种子排序后每组最多取一条，训练行与出处回执仅保存在实验工作区。目标原生处理和真实更新单独验证。
 
-已从官方 ZIP 读取 128 KiB 索引并核实训练成员。该成员压缩后约 109 MB，解压后约 813 MB。后续只取这一成员及通过逐图核验的图像。本机测试核实了重复生成、三类留出排除、文件哈希及出错时无输出，当前真实 GQA 行数为 0。
+已下载官方 ZIP 中约 109 MB 的唯一训练成员。流式校验原压缩流和解压后标注，覆盖 943,000 条训练问题，其中 438,964 条是关系问答，涉及 58,206 个图像 ID。用 `--questions-compressed-sha` 和 `--questions-uncompressed-bytes` 可直接消费压缩成员。逐图核验和留出绑定后才形成真实训练行。 [原始训练成员盘点](../../results/bw1000/2026-11-27/specialized-internvl-GQA-original-member-stream-inventory.json)
 
 [GQA 官方数据和字段](https://cs.stanford.edu/people/dorarad/gqa/download.html) · [GQA 官方评价](https://cs.stanford.edu/people/dorarad/gqa/evaluate.html) · [TextOCR 官方数据与 TextVQA 图像对应](https://textvqa.org/textocr/dataset/) · [COCO 逐图许可说明](https://cocodataset.org/dataset/termsofuse.htm) · [CHAIR 原论文](https://aclanthology.org/D18-1437/) · [POPE 原论文](https://arxiv.org/abs/2305.10355)
 

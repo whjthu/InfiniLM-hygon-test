@@ -1,15 +1,18 @@
 """Build an InternVL relation-QA Swift slice from admitted GQA balanced training assets."""
 import argparse
+import codecs
 from collections import Counter
 from hashlib import sha256
 import json
 from pathlib import Path, PurePosixPath
 import re
+import zlib
 
 from build_textvqa_street_scene import item
 
 
 TRAIN_SOURCE_NAME = "train_balanced_questions.json"
+BLOCK = 1024 * 1024
 
 
 def digest(data):
@@ -36,6 +39,96 @@ def load_pinned(path, expected):
     return json.loads(pinned(path, expected), object_pairs_hook=unique_object)
 
 
+def deflate_parts(path, expected_sha, expected_packed_sha, expected_size):
+    plain_sha, packed_sha = sha256(), sha256()
+    plain_size = 0
+    inflater = zlib.decompressobj(-zlib.MAX_WBITS)
+    utf8 = codecs.getincrementaldecoder("utf-8")()
+    with path.open("rb") as source:
+        while packed := source.read(65536):
+            packed_sha.update(packed)
+            while packed:
+                raw = inflater.decompress(packed, BLOCK)
+                packed = inflater.unconsumed_tail
+                plain_size += len(raw)
+                if plain_size > expected_size or inflater.unused_data:
+                    raise ValueError("unexpected compressed question member extent")
+                plain_sha.update(raw)
+                if raw:
+                    yield utf8.decode(raw)
+    tail = utf8.decode(b"", final=True)
+    if tail:
+        yield tail
+    if (not inflater.eof or inflater.flush() or plain_size != expected_size
+            or plain_sha.hexdigest() != expected_sha or packed_sha.hexdigest() != expected_packed_sha):
+        raise ValueError("question member extent or SHA256 differs")
+
+
+def question_rows(parts):
+    """Read a single top-level object without materializing all question text."""
+    decoder = json.JSONDecoder(object_pairs_hook=unique_object)
+    chunks = iter(parts)
+    text, pos = "", 0
+
+    def refill():
+        nonlocal text, pos
+        for chunk in chunks:
+            if chunk:
+                text, pos = text[pos:] + chunk, 0
+                return True
+        return False
+
+    def current():
+        nonlocal pos
+        while True:
+            while pos < len(text) and text[pos] in " \t\r\n":
+                pos += 1
+            if pos < len(text):
+                return text[pos]
+            if not refill():
+                return None
+
+    def value():
+        nonlocal pos
+        current()
+        while True:
+            try:
+                obj, pos = decoder.raw_decode(text, pos)
+                return obj
+            except json.JSONDecodeError:
+                if len(text) - pos > BLOCK or not refill():
+                    raise
+
+    if current() != "{":
+        raise ValueError("expected a question map")
+    pos += 1
+    seen = set()
+    if current() != "}":
+        while True:
+            if current() != '"':
+                raise ValueError("expected question ID string")
+            question_id = value()
+            if question_id in seen or current() != ":":
+                raise ValueError("duplicate question ID or missing colon")
+            seen.add(question_id)
+            pos += 1
+            if current() != "{":
+                raise ValueError("expected a question record")
+            yield question_id, value()
+            if current() != ",":
+                break
+            pos += 1
+    if current() != "}":
+        raise ValueError("unterminated question map")
+    pos += 1
+    if current() is not None:
+        raise ValueError("unexpected trailing question data")
+
+
+def is_balanced_relation(row):
+    return row["isBalanced"] is True and row["types"]["semantic"] in {"rel", "relation"}
+
+
 def media_path(root, relative):
     if not isinstance(relative, str) or not re.fullmatch(r"[A-Za-z0-9_./-]+", relative):
         raise ValueError("invalid relative image path")
@@ -53,8 +146,8 @@ def nonempty(value):
 
 
 def build(questions, admitted, holdout, root, count, seed):
-    if not isinstance(questions, dict) or not isinstance(admitted, dict):
-        raise ValueError("expected question and admitted-image maps")
+    if not isinstance(admitted, dict):
+        raise ValueError("expected an admitted-image map")
     if not isinstance(holdout, dict) or set(holdout) != {"image_ids", "source_groups", "image_SHA256"}:
         raise ValueError("expected identities-only holdout exclusion")
     if any(not isinstance(values, list) or not values or not all(map(nonempty, values))
@@ -75,8 +168,12 @@ def build(questions, admitted, holdout, root, count, seed):
 
     candidates = []
     rejected = Counter()
-    for question_id, row in questions.items():
-        if row["isBalanced"] is not True or row["types"]["semantic"] != "relation":
+    total = 0
+    if isinstance(questions, dict):
+        questions = questions.items()
+    for question_id, row in questions:
+        total += 1
+        if not is_balanced_relation(row):
             rejected["other_question_type"] += 1
             continue
         image_id = row["imageId"]
@@ -110,7 +207,7 @@ def build(questions, admitted, holdout, root, count, seed):
             break
     if len(rows) != count:
         raise ValueError(f"only {len(rows)} distinct admitted relation examples available")
-    proof = {"source_questions": len(questions), "relation_candidates": len(candidates),
+    proof = {"source_questions": total, "relation_candidates": len(candidates),
              "selection_rejections": dict(rejected), "selected": len(rows), "seed": seed, "lineage": lineage,
              "native_processor_rows": 0, "optimizer_updates": 0, "training_ready": False}
     return rows, proof
@@ -123,14 +220,25 @@ def main():
         parser.add_argument(f"--{name}-sha", required=True)
     parser.add_argument("--media-root", required=True, type=Path)
     parser.add_argument("--output-dir", required=True, type=Path)
+    parser.add_argument("--questions-compressed-sha")
+    parser.add_argument("--questions-uncompressed-bytes", type=int)
     parser.add_argument("--count", type=int, default=64)
     parser.add_argument("--seed", default="internvl-gqa-relation-train-v1")
     args = parser.parse_args()
-    if args.questions.name != TRAIN_SOURCE_NAME:
-        parser.error("use the pinned balanced training member")
     pins = {name: getattr(args, f"{name}_sha") for name in ("questions", "admitted", "holdout")}
-    questions, admitted, holdout = (load_pinned(getattr(args, name), pin)
-                                     for name, pin in pins.items())
+    if args.questions.name == TRAIN_SOURCE_NAME + ".deflate":
+        if (not args.questions_compressed_sha or not args.questions_uncompressed_bytes
+                or args.questions_uncompressed_bytes < 0):
+            parser.error("compressed member needs its SHA256 and expanded byte count")
+        pins["questions_compressed"] = args.questions_compressed_sha
+        questions = question_rows(deflate_parts(args.questions, pins["questions"],
+                                               pins["questions_compressed"], args.questions_uncompressed_bytes))
+    elif args.questions.name == TRAIN_SOURCE_NAME:
+        questions = load_pinned(args.questions, pins["questions"])
+    else:
+        parser.error("use the pinned balanced training member")
+    admitted = load_pinned(args.admitted, pins["admitted"])
+    holdout = load_pinned(args.holdout, pins["holdout"])
     rows, proof = build(questions, admitted, holdout, args.media_root.resolve(strict=True),
                         args.count, args.seed)
     train = "".join(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n"
