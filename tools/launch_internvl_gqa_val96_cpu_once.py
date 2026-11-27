@@ -16,8 +16,8 @@ HERE = Path(__file__).resolve().parent
 REPO = HERE.parent
 SOURCE = REPO / "code/bw1000/training-domain-pilot-v1"
 MEMBERS = ("internvl_gqa_val96.py", "internvl_gqa_val96_native.py", "internvl_gqa_val96_cpu.py")
-REQUEST = "acedef31f7ee433a8a3c48a4fb1beb50"
-LABEL = "training-internvl-gqa-val96-cpu-native-v1"
+REQUEST = "e362a0729ae5483bbb1c3164623372cd"
+LABEL = "training-internvl-gqa-val96-cpu-native-v2"
 UPLOAD_PIN = "bd65e3b2cfe4779168ffb937e5aaf8559594c9f8d8307486cc031870f9f3ac46"
 INPUT_PIN = "98f729fce9e6af91edb10bbf4dcc9b0d06f1322a38247c7001d05b02a21fc46b"
 
@@ -96,7 +96,7 @@ def main():
     args = ["srun","--jobid="+parent,"--job-name="+LABEL,"--exact","--immediate=5","--cpu-bind=cores",
             "-N1","-n1","-w",node,"-c4","--mem=8192M","--gres=none","--time=00:03:00",
             "/usr/bin/timeout","--kill-after=5s","165s",apptainer,"exec","--contain","--rocm","--no-home","--pwd","/"]
-    for bind in (f"{book}/input:/gqa-input:ro",f"{metadata}:/gqa-model-metadata:ro",f"{source}:/gqa-source:ro",
+    for bind in (f"{book}/input:/gqa-input:ro",f"{metadata}:/InternVL3_5-8B-HF:ro",f"{source}:/gqa-source:ro",
                  f"{work}:/gqa-out:rw",f"{framework}:/gqa-framework:ro",f"{runtime}:/swift-runtime:ro"):
         args.extend(("--bind",bind))
     shell = ("set -euo pipefail; source /opt/dtk/env.sh >&2; "
@@ -106,7 +106,7 @@ def main():
              "export HOME=/tmp TMPDIR=/tmp HF_HOME=/tmp/gqa-hf XDG_CACHE_HOME=/tmp/gqa-xdg "
              "PYTHONPATH=/gqa-framework:/swift-runtime/site; exec /usr/bin/python3 -B -u \"$@\"")
     args.extend([str(image),"/bin/bash","--noprofile","--norc","-c",shell,"gqa96-cpu",
-                 "/gqa-source/internvl_gqa_val96_cpu.py","--inputs","/gqa-input","--metadata","/gqa-model-metadata",
+                 "/gqa-source/internvl_gqa_val96_cpu.py","--inputs","/gqa-input","--metadata","/InternVL3_5-8B-HF",
                  "--output","/gqa-out/native.json","--parent",parent,"--node",node,"--deadline",str(deadline)])
     store(run/"intent.json",{"request":REQUEST,"stage":"CPU_ONLY","epoch":epoch,"deadline":deadline,
                             "target_args":args,"commit":package["publication"],
@@ -129,11 +129,13 @@ def main():
     require(re.fullmatch(parent + r"(?:\.\d+)?",account_for), "Unexpected CPU accounting handle")
     rows = []
     bound = time.monotonic() + 9
-    while not rows and time.monotonic() < bound:
+    while time.monotonic() < bound:
         rows = [line.split("|") for line in query("sacct","-nP","-j",account_for,"-o",cols)]
         rows = [row for row in rows if len(row) == 9 and re.fullmatch(parent + r"\.\d+", row[0]) and row[1] == LABEL]
-        if not rows:
-            time.sleep(1.0)
+        if len(rows) == 1 and rows[0][2].split()[0] in {
+                "COMPLETED","FAILED","CANCELLED","TIMEOUT","OUT_OF_MEMORY","NODE_FAIL","PREEMPTED"} and rows[0][8] != "Unknown":
+            break
+        time.sleep(1.0)
     no_dcu = (len(rows) == 1 and rows[0][5] == node and "gres/" not in rows[0][6])
     passed = (rc == 0 and no_dcu and rows[0][2:4] == ["COMPLETED","0:0"] and proof is not None
               and proof["step"] == rows[0][0] and proof["input_SHA256"] == INPUT_PIN

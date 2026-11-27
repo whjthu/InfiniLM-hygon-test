@@ -16,7 +16,7 @@ from internvl_gqa_val96 import need
 
 
 INPUT_SHA = "98f729fce9e6af91edb10bbf4dcc9b0d06f1322a38247c7001d05b02a21fc46b"
-MODEL = Path("/internvl-model")
+MODEL = Path("/InternVL3_5-8B-HF")
 CHECKPOINT = Path("/gqa-domain25")
 ADAPTER_NAME = "internvl_gqa_domain25"
 ADAPTER_PINS = {
@@ -122,7 +122,8 @@ def run(args):
                                            torch_dtype=torch.bfloat16, attn_impl="sdpa")
     load_seconds = time.monotonic() - started
     deadline()
-    need(not hasattr(model, "peft_config") and {str(p.device) for p in model.parameters()} == {"cuda:0"},
+    need(processor.model_meta.template == "internvl_hf" and not hasattr(model, "peft_config")
+         and {str(p.device) for p in model.parameters()} == {"cuda:0"},
          "The unadapted original model must live on the allocated card")
     model.eval()
     model.requires_grad_(False)

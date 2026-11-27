@@ -1,0 +1,106 @@
+{
+  "GPU_requested": 0,
+  "actual_drivers_busy_observed": false,
+  "candidate_mount": "/InternVL3_5-8B-HF",
+  "evidence_type": "actual_original_cpu_preprocessing_failure",
+  "fix": "Bind the same metadata using the exact model group basename registered by real Swift.",
+  "individual_private_evidence_SHA256": {
+    "internvl-gqa96-cpu-acedef31f7ee433a8a3c48a4fb1beb50-5384e1037bd9404083a2689e28c323db.json": "d9e0238198b8140cdeaec5d0b9f3ae6ba74f1b7a28ae127c5eda36bef976d92c",
+    "internvl-gqa96-diagnose-f4af3ae89e6748bea712a174e428507d.json": "240a4fdcc7c91de1af1bae8e8951bca48301abdccaf079ec783f5b410c8aa418",
+    "internvl-gqa96-loader-path-a441b7f028f344338c97ca4e583db5e9.json": "e74e694cdeb45ba525639d4fa3d138b9c48dbb0201b76f1ca76a9bfbf0b03138"
+  },
+  "input_manifest_SHA256": "98f729fce9e6af91edb10bbf4dcc9b0d06f1322a38247c7001d05b02a21fc46b",
+  "input_rows_completed": 0,
+  "model_metadata": {
+    "architectures": [
+      "InternVLForConditionalGeneration"
+    ],
+    "model_type": "internvl"
+  },
+  "native_infer_modes": {
+    "infer_engine/infer_engine.py": {
+      "SHA256": "857f18c2b25a1e6787679a3f96b8fa96f5de7efd040e6933bb62e0a798634969",
+      "mode_calls": [
+        "args.get_template(processor)"
+      ]
+    },
+    "infer_engine/transformers_engine.py": {
+      "SHA256": "b1c229267347569f63bc2afd0e263c2d0d919535e596db454e05b8f825493dbb",
+      "mode_calls": [
+        "self.template.get_generate_ids(batched_generate_ids, num_prompt_tokens)",
+        "self.template.get_generate_ids(raw_batched_generate_ids, num_prompt_tokens)",
+        "self.template.set_mode('transformers')",
+        "self.template.data_collator(batched_inputs)"
+      ]
+    }
+  },
+  "observed_accounting": [
+    [
+      "1103606.4390",
+      "training80-dcu-standby-de51eae65bd2-f13r1n14",
+      "RUNNING",
+      "0:0",
+      "1593",
+      "f13r1n14",
+      "cpu=8,gres/dcu=8,mem=16G,node=1",
+      "2026-11-27T14:00:24",
+      "Unknown"
+    ],
+    [
+      "1103606.4391",
+      "training-internvl-gqa-val96-cpu-native-v1",
+      "FAILED",
+      "1:0",
+      "20",
+      "f13r1n14",
+      "cpu=4,mem=8G,node=1",
+      "2026-11-27T14:25:40",
+      "2026-11-27T14:26:00"
+    ]
+  ],
+  "original_selection_source": {
+    "selectors": {
+      "get_matched_model_meta": [
+        "def get_matched_model_meta(model_id_or_path: str) -> Optional[ModelMeta]:",
+        "model_name = get_model_name(model_id_or_path).lower()",
+        "for model_type, model_meta in MODEL_MAPPING.items():",
+        "model_group = ModelMeta.get_matched_model_group(model_meta, model_name)",
+        "if model_group is not None:",
+        "model_meta = deepcopy(model_meta)",
+        "for k, v in asdict(model_group).items():",
+        "if v is not None and k in model_meta.__dict__:",
+        "setattr(model_meta, k, v)",
+        "return model_meta"
+      ],
+      "get_model_name": [
+        "def get_model_name(model_id_or_path: str) -> Optional[str]:",
+        "return match_.group(1)",
+        "model_name = model_id_or_path.rsplit('/', 1)[-1]",
+        "model_name = model_name.replace('___', '.')",
+        "return model_name"
+      ]
+    },
+    "sha": "78e73070ab92a352ad1ebf34580d2e090a460c95e4661c8722203e50310bf9a9"
+  },
+  "reason": "Qualified model metadata differs",
+  "replay_original": false,
+  "stderr_SHA256": "121a92b15d9cb0a60dc41101f3895d90aa2ae4e90a28b5cd9ef038178daba52a",
+  "submitted_request": "acedef31f7ee433a8a3c48a4fb1beb50",
+  "traceback_frames": [
+    [
+      "internvl_gqa_val96_cpu.py",
+      83,
+      "<module>"
+    ],
+    [
+      "internvl_gqa_val96_cpu.py",
+      51,
+      "check"
+    ],
+    [
+      "internvl_gqa_val96.py",
+      26,
+      "need"
+    ]
+  ]
+}
