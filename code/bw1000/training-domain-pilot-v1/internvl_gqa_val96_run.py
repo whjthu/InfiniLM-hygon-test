@@ -15,18 +15,16 @@ import traceback
 import internvl_gqa_val96 as data
 from internvl_gqa_val96 import need
 import internvl_gqa_val96_native as native
+from internvl_gqa_miopen_home import prepare as prepare_miopen_home
 
 
 ROOT = Path("/public/home/aclsylqidf/hygon-inference-refactor-20261014")
 R = ROOT / "results"
 HERE = Path(__file__).resolve().parent
 WORK = HERE.parent
-REQUEST = "9b386eceea2e4e75b16886fb49a29d43"
-LABEL = "training-internvl-gqa-val96-paired-hip-v2"
+REQUEST = "8a65a847659c47c497ebd8e1508a958b"
+LABEL = "training-internvl-gqa-val96-paired-hip-v3"
 PARENT, NODE = "1103606", "f13r1n14"
-PREDECESSOR = PARENT + ".4390"
-STANDBY = "training80-dcu-standby-de51eae65bd247278b9e2c7e624f4773"
-STANDBY_LABEL = "training80-dcu-standby-de51eae65bd2-f13r1n14"
 INPUTS = R / "training-internvl-gqa-val96-user-only-v1/input"
 INPUT_PROOF = R / "training-internvl-gqa-val96-cpu-native-v2/work/native.json"
 CHECKPOINT = R / "training-internvl-gqa64-continuous25-hip-v1/train/checkpoint-25"
@@ -106,7 +104,8 @@ def confirm_submission(epoch):
     need(time.time() < epoch + WHOLE, "Original controller deadline expired")
     manifest = read(HERE / "SOURCE.json")
     need(manifest["request"] == REQUEST and set(manifest["files"]) == {
-        "internvl_gqa_val96.py", "internvl_gqa_val96_native.py", "internvl_gqa_val96_run.py"},
+        "internvl_gqa_val96.py", "internvl_gqa_val96_native.py", "internvl_gqa_val96_run.py",
+        "internvl_gqa_miopen_home.py"},
         "Paired evaluation source population differs")
     for name, stamp in manifest["files"].items():
         need(data.fields(data.read(HERE / name, 65536)) == stamp, "Published source changed")
@@ -125,6 +124,43 @@ def original():
     return node, snapshot
 
 
+def preflight_homes():
+    probe = """import json, os, sys
+from pathlib import Path
+sys.path.insert(0, '/gqa-source')
+from internvl_gqa_miopen_home import prepare, verify
+base = Path('/tmp/gqa-rank-homes')
+base.mkdir(mode=0o700)
+identities = set()
+probes = 0
+for rank in range(8):
+    home = base / str(rank)
+    child = prepare(home, os.environ)
+    os.environ.clear()
+    os.environ.update(child)
+    proof = verify(home)
+    identities.add((proof['filesystem_device'], proof['directory_inode']))
+    probes += proof['write_probes']
+assert len(identities) == 8 and probes == 24
+print(json.dumps({'homes': len(identities), 'probes': probes}))
+"""
+    check_node_tmp()
+    with tempfile.TemporaryDirectory(prefix="internvl-gqa-home-check-", dir="/tmp") as scratch:
+        args = [APPTAINER, "exec", "--contain", "--no-home", "--pwd", "/", "--bind",
+                f"{HERE}:/gqa-source:ro", "--bind", f"{scratch}:/tmp:rw",
+                str(ROOT / "containers/dtk26-sandbox-r1"), "/usr/bin/python3", "-I", "-S", "-B", "-c", probe]
+        ran = subprocess.run(args, stdin=subprocess.DEVNULL, capture_output=True, check=True, timeout=20)
+    summary = json.loads(ran.stdout)
+    need(summary == {"homes": 8, "probes": 24}, "Container did not verify eight isolated homes")
+    return summary
+
+
+def check_node_tmp():
+    filesystem = subprocess.check_output(["findmnt", "--noheadings", "-o", "FSTYPE", "--target", "/tmp"],
+                                         text=True, timeout=5).strip()
+    need(filesystem == "ext4", "Expected previously qualified node-local filesystem")
+
+
 def node_phase(phase, epoch):
     confirm_submission(epoch)
     need(socket.gethostname().split(".")[0] == NODE and os.environ["SLURM_JOB_ID"] == PARENT,
@@ -139,7 +175,8 @@ def node_phase(phase, epoch):
                     "pci": inventory.drm_inventory(),
                     "boot_id": Path("/proc/sys/kernel/random/boot_id").read_text().strip(),
                     "model_views": len(views), "mount_members": len(plan["binds"]),
-                    "cpu_sha": native.PROCESSED_INPUT_SHA, "full_fd_inventory_performed": False}
+                    "cpu_sha": native.PROCESSED_INPUT_SHA, "full_fd_inventory_performed": False,
+                    "container_homes": preflight_homes()}
         save("prepare-devices.json", observed)
         return 0
     if phase in {"pre", "post"}:
@@ -165,9 +202,7 @@ def node_phase(phase, epoch):
         binds.append(f"{source}:{native.MODEL}{target[len('/internvl-model'):]}:ro")
     save("gpu-devices.json", {"step": step, "PCI": available["pci"], "boot_id": available["boot_id"],
                               "request": REQUEST, "base_mounts": len(binds), "localized_views": len(views)})
-    fs = subprocess.check_output(["findmnt", "--noheadings", "-o", "FSTYPE", "--target", "/tmp"],
-                                 text=True, timeout=5).strip()
-    need(fs == "ext4", "Expected previously qualified node-local filesystem")
+    check_node_tmp()
     with tempfile.TemporaryDirectory(prefix="internvl-gqa-val96-", dir="/tmp") as scratch:
         specs = [*binds, f"{HERE}:/gqa-source:ro", f"{INPUTS}:/gqa-input:ro",
                  f"{INPUT_PROOF}:/gqa-native-inputs.json:ro", f"{CHECKPOINT}:/gqa-domain25:ro",
@@ -178,7 +213,7 @@ def node_phase(phase, epoch):
             argv.extend(("--bind", spec))
         shell = ('set -euo pipefail; ulimit -c 0; source /opt/dtk/env.sh >&2; '
                  'export PYTHONNOUSERSITE=1 PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=2 OPENBLAS_NUM_THREADS=1; '
-                 'export HF_HOME=/tmp/hf XDG_CACHE_HOME=/tmp/xdg TOKENIZERS_PARALLELISM=false PYTHONPATH=/gqa-framework:/swift-runtime/site; '
+                 'export TOKENIZERS_PARALLELISM=false PYTHONPATH=/gqa-framework:/swift-runtime/site; '
                  'exec /usr/bin/python3 -B -u "$@"')
         args = [*argv, str(ROOT / "containers/dtk26-sandbox-r1"), "/bin/bash", "--noprofile", "--norc",
                 "-c", shell, "gqa96-gpu", "/gqa-source/internvl_gqa_val96_run.py",
@@ -195,6 +230,9 @@ def rank_launcher(epoch, step):
     children = []
     started = time.monotonic()
     codes = []
+    homes = Path("/tmp/gqa-rank-homes")
+    homes.mkdir(mode=0o700)
+    environments = [prepare_miopen_home(homes / str(rank), os.environ) for rank in range(8)]
     try:
         for rank in range(8):
             script = Path("/gqa-source/internvl_gqa_val96_native.py")
@@ -203,7 +241,8 @@ def rank_launcher(epoch, step):
                     "--output", f"/gqa-run/rank-{rank}", "--epoch", str(epoch), "--deadline", str(epoch + GPU_LIMIT - 20),
                     "--rank", str(rank)]
             with (work / f"rank-{rank}.log").open("xb") as log:
-                children.append(subprocess.Popen(argv, stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT))
+                children.append(subprocess.Popen(argv, stdin=subprocess.DEVNULL, stdout=log,
+                                                 stderr=subprocess.STDOUT, env=environments[rank]))
         for child in children:
             codes.append(child.wait(timeout=max(1, epoch + GPU_LIMIT - time.time() - 12)))
     finally:
@@ -257,27 +296,32 @@ def launch_phase(name, epoch, *, detached=False):
     return proof
 
 
-def release_standby(epoch, pretest):
+def release_standby(epoch, pretest, handoff):
+    predecessor = handoff["standby_step"]
+    request = handoff["standby_request"]
+    standby = "training80-dcu-standby-" + request
+    label = "training80-dcu-standby-" + request[:12] + "-" + NODE
     live, pending = placement()
-    [row] = account(PREDECESSOR)
-    need(row[1] == STANDBY_LABEL and row[5:7] == [NODE, "cpu=8,gres/dcu=8,mem=16G,node=1"]
-         and live == {PREDECESSOR: (STANDBY_LABEL, "RUNNING")} and pending <= {PREDECESSOR}
+    [row] = account(predecessor)
+    need(row[1] == label and row[5:7] == [NODE, "cpu=8,gres/dcu=8,mem=16G,node=1"]
+         and live == {predecessor: (label, "RUNNING")} and pending <= {predecessor}
          and row[2] == "RUNNING", "Only the exact active project standby can be replaced")
-    directory = R / STANDBY / NODE
-    expected, worker = (read(directory / name) for name in ("expected.json", "worker.json"))
-    need(expected["label"] == STANDBY_LABEL and expected["node"] == worker["node"] == NODE
-         and expected["parent"] == PARENT and worker["step"] == PREDECESSOR
+    directory = R / standby / NODE
+    expected = read(directory / "expected.json", 65536, handoff["standby_expected_sha"])
+    worker = read(directory / "worker.json", 65536, handoff["standby_worker_sha"])
+    need(expected["label"] == label and expected["node"] == worker["node"] == NODE
+         and expected["parent"] == PARENT and worker["step"] == predecessor
          and worker["synthetic"] is True and sorted(worker["pci"]) == sorted(expected["pci"]) == pretest["pci"],
          "Standby process and physical ownership differ")
     need(epoch <= time.time() < epoch + 120, "Standby handoff budget expired")
-    save("signal-intent.json", {"request": REQUEST, "target": PREDECESSOR, "prior": row})
-    signal = subprocess.run(["scancel", "--signal=TERM", PREDECESSOR], stdin=subprocess.DEVNULL,
+    save("signal-intent.json", {"request": REQUEST, "target": predecessor, "prior": row})
+    signal = subprocess.run(["scancel", "--signal=TERM", predecessor], stdin=subprocess.DEVNULL,
                             capture_output=True, timeout=10)
     save("signal-result.json", {"rc": signal.returncode, "error_SHA256": data.digest(signal.stderr)})
     need(signal.returncode == 0, "Exact standby signal was not acknowledged")
     until = time.monotonic() + 40
     while time.monotonic() < until:
-        rows = account(PREDECESSOR)
+        rows = account(predecessor)
         if terminal(rows) and placement() == ({}, set()):
             save("standby-terminal.json", {"row": rows[0], "request": REQUEST})
             need(rows[0][2:4] == ["COMPLETED", "0:0"], "Standby termination was not clean in Slurm")
@@ -336,19 +380,28 @@ def controller(epoch):
     confirm_submission(epoch)
     need(data.digest(data.read(INPUTS.parent / "verified-upload.json", 65536)) == UPLOAD_PIN,
          "Actual 98-member no-answer upload required")
-    predecessor = R / "training-internvl-gqa-val96-paired-hip-v1"
-    failed = account("1103606.4393")
-    need(terminal(failed) and failed[0][2:4] == ["FAILED", "1:0"]
-         and not any((predecessor / name).exists() for name in
-                     ("signal-intent.json", "gpu-srun.json", "gpu-visible.json")), "Original failed scope is unresolved")
+    claim = read(WORK / "original-claim.json")
+    handoff = read(WORK / "handoff.json", 8192, claim["private_deployment_SHA256"])
+    past = R / "training-internvl-gqa-val96-paired-hip-v2"
+    failed = account(handoff["prior_gpu_step"])
+    ended = account(handoff["prior_clean_step"])
+    proof = read(past / "outcome.json", 65536, handoff["prior_outcome_sha"])
+    cleaned = read(past / "post-devices.json", 65536, handoff["prior_post_sha"])
+    need(terminal(failed) and failed[0][2:4] == ["FAILED", "1:0"] and terminal(ended)
+         and ended[0][2:4] == ["COMPLETED", "0:0"] and proof["actual_step"] == failed[0][0]
+         and proof["post_step"] == cleaned["step"] == ended[0][0] and cleaned["kfd_holder_count"] == 0
+         and cleaned["full_fd_inventory_performed"] is True
+         and proof["sealed_paired_predictions"] is None, "Original failed scope is unresolved")
+    standby_step = handoff["standby_step"]
+    label = "training80-dcu-standby-" + handoff["standby_request"][:12] + "-" + NODE
     since = time.monotonic()
     with (R / ".training80-dcu-standby.lock").open("ab") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         live, pending = placement()
-        need(live == {PREDECESSOR: (STANDBY_LABEL, "RUNNING")} and pending <= {PREDECESSOR},
+        need(live == {standby_step: (label, "RUNNING")} and pending <= {standby_step},
              "No eligible standby-to-paired-evaluation handoff")
         prepare = launch_phase("prepare", epoch)
-        release_standby(epoch, prepare)
+        release_standby(epoch, prepare, handoff)
         before = launch_phase("pre", epoch)
         need(prepare["pci"] == before["pci"] and prepare["boot_id"] == before["boot_id"]
              and placement() == ({}, set()), "Physical placement changed after independent device check")

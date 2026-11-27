@@ -20,8 +20,9 @@ sys.path.insert(0, str(SOURCE))
 import internvl_gqa_val96_run as scope
 
 
-MEMBERS = ["internvl_gqa_val96.py", "internvl_gqa_val96_native.py", "internvl_gqa_val96_run.py"]
-CLAIM = REPO / "coordination/tasks/training-internvl-gqa-val96-paired-hip-v2.json"
+MEMBERS = ["internvl_gqa_val96.py", "internvl_gqa_val96_native.py", "internvl_gqa_val96_run.py",
+           "internvl_gqa_miopen_home.py"]
+CLAIM = REPO / "coordination/tasks/training-internvl-gqa-val96-paired-hip-v3.json"
 REMOTE = r'''
 from base64 import b64decode
 from hashlib import sha256
@@ -49,8 +50,16 @@ def main():
     assert re.fullmatch('[0-9a-f]{40}',packet['publication'])
     claim=json.loads(b64decode(packet['claim'],validate=True))
     assert claim['request']==REQUEST and claim['experiment']==LABEL and claim['root_GPU_GO'] is True
-    assert claim['formal_domain_delivery'] is False and claim['authorized_standby_handle']=='1103606.4390'
-    assert claim['placement']=={'parent':'1103606','node':'f13r1n14','CPU':48,'memory_MiB':224000,'DCUs':8}
+    assert claim['formal_domain_delivery'] is False
+    assert claim['resources']=={'CPU':48,'memory_MiB':224000,'DCUs':8}
+    raw_handoff=b64decode(packet['handoff'],validate=True)
+    assert 0<len(raw_handoff)<=8192 and digest(raw_handoff)==claim['private_deployment_SHA256']
+    handoff=json.loads(raw_handoff)
+    handles=('prior_gpu_step','prior_clean_step','standby_step')
+    assert set(handoff)=={*handles,'standby_request','standby_expected_sha','standby_worker_sha','prior_outcome_sha','prior_post_sha'}
+    assert all(re.fullmatch(r'\d+\.\d+',handoff[name]) for name in handles)
+    assert re.fullmatch(r'[0-9a-f]{32}',handoff['standby_request'])
+    assert all(re.fullmatch(r'[0-9a-f]{64}',value) for k,value in handoff.items() if k.endswith('_sha'))
     files={key:b64decode(value,validate=True) for key,value in packet['files'].items()}
     assert set(files)==set(MEMBERS) and all(digest(raw)==claim['source_SHA256'][name] for name,raw in files.items())
     work=Path('/public/home/aclsylqidf/hygon-inference-refactor-20261014/results')/LABEL
@@ -70,8 +79,12 @@ def main():
     manifest={'request':REQUEST,'files':{name:{'bytes':len(raw),'SHA256':digest(raw)} for name,raw in files.items()}}
     pin=saved(source/'SOURCE.json',manifest)
     saved(work/'original-claim.json',claim)
+    with (work/'handoff.json').open('xb') as out:
+        out.write(raw_handoff)
+        out.flush()
+        os.fsync(out.fileno())
     saved(work/'submission-intent.json',{'request':REQUEST,'publication':packet['publication'],
-          'epoch':epoch,'source_SHA256':pin,'original_standby':'1103606.4390'})
+          'epoch':epoch,'source_SHA256':pin,'original_standby':handoff['standby_step']})
     argv=[sys.executable,'-B',str(source/'internvl_gqa_val96_run.py'),'controller',str(epoch)]
     with (work/'controller.log').open('xb') as log:
         child=subprocess.Popen(argv,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
@@ -115,10 +128,14 @@ def main():
         if found != path.read_bytes().replace(b"\r\n", b"\n"):
             raise ValueError("Requested original publication differs from this checkout")
     claim = CLAIM.read_bytes()
-    if json.loads(claim)["host_admission_SHA256"] != digest(source.encode()):
+    claim_data = json.loads(claim)
+    if claim_data["host_admission_SHA256"] != digest(source.encode()):
         raise ValueError("Published host admission differs")
     check_local_holds()
     local = REPO / "local-only"
+    handoff = (local / (scope.LABEL + "-private-handoff.json")).read_bytes()
+    if digest(handoff) != claim_data["private_deployment_SHA256"]:
+        raise ValueError("Private placement differs from its published digest")
     helper = local / "run-minicpm-sdpa-target-asset-preflight-original.py"
     raw = helper.read_bytes()
     if digest(raw) != "530f4d14b026abf79ed82887ad95490242ac436c7f8e05ed6f32908553e106bd":
@@ -126,7 +143,8 @@ def main():
     transport = ModuleType("existing_ssh")
     exec(compile(raw, str(helper), "exec"), vars(transport))
     payload = {"files": {key: b64encode(raw).decode() for key, raw in files.items()},
-               "claim": b64encode(claim).decode(), "publication": args.publication}
+               "claim": b64encode(claim).decode(), "handoff": b64encode(handoff).decode(),
+               "publication": args.publication}
     result = send(transport.ssh(REPO.parent), request=scope.REQUEST, program=source, data=document(payload),
                   send_token=local / f"internvl-gqa96-hip-{scope.REQUEST}-send.json", outcome_seconds=40)
     receipt = local / f"internvl-gqa96-hip-{scope.REQUEST}-{uuid4().hex}.json"

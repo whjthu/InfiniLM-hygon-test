@@ -14,6 +14,7 @@ import time
 
 import internvl_gqa_val96 as experiment
 from internvl_gqa_val96 import need
+from internvl_gqa_miopen_home import verify as verify_miopen_home
 
 
 INPUT_SHA = "98f729fce9e6af91edb10bbf4dcc9b0d06f1322a38247c7001d05b02a21fc46b"
@@ -139,6 +140,9 @@ def run(args):
     for name, pin in ENGINE_PINS.items():
         experiment.read(Path("/swift-runtime/site/swift") / name, 2 << 20, pin)
     os.environ.update(HF_HUB_OFFLINE="1", TRANSFORMERS_OFFLINE="1")
+    miopen = verify_miopen_home(Path("/tmp/gqa-rank-homes") / str(args.rank))
+    args.output.mkdir(mode=0o700)
+    experiment.write(args.output / "miopen-home.json", experiment.encode(miopen))
     import numpy as np
     import torch
     from safetensors.torch import load_file
@@ -151,7 +155,6 @@ def run(args):
          "Exactly eight allocated visible HIP devices required")
     torch.cuda.set_device(args.rank)
     pci = physical_pci(args.rank)
-    args.output.mkdir(mode=0o700)
     experiment.write(args.output / "device.json", experiment.encode(
         {"step": args.step, "request": args.request, "rank": args.rank, "PCI": pci, "PID": os.getpid()}))
     random.seed(42)
@@ -261,8 +264,11 @@ def run(args):
                     value = record(slot, status, current["input_sha"], choice.message.content, tokens)
                 except Exception as error:
                     value = record(slot, "error", current["input_sha"])
-                    original_generation_failure = {"arm": arm, "slot": slot, "class": type(error).__name__,
-                                                   "message_SHA256": experiment.digest(str(error).encode())}
+                    original_generation_failure = {
+                        "arm": arm, "slot": slot, "class": type(error).__name__,
+                        "message_SHA256": experiment.digest(str(error).encode()),
+                        "generation_entered": current["eos"] is not None, "native_ids_returned": current["raw"] is not None,
+                    }
             experiment.write(args.output / f"{arm}-{slot:03d}.json", experiment.encode(value))
             rows.append(value)
         arm_facts[arm] = dict(Counter(row["status"] for row in rows))
