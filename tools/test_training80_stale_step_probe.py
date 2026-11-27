@@ -22,7 +22,7 @@ REQUEST = '3' * 32
 
 
 class ProductionProbeTest(unittest.TestCase):
-    def collect(self, *, held=(), initial_error=None, final_error=None):
+    def collect(self, *, held=(), priority=(), initial_error=None, final_error=None, terminal_error=None):
         raw = REPLACEMENT_LEDGER.read_bytes()
         _, groups, owners = allocation(raw)
         pins = {node: [f'0000:{index:02x}:00.0' for index in range(8)] for node in owners}
@@ -34,6 +34,7 @@ class ProductionProbeTest(unittest.TestCase):
         batches = []
         count = 0
         exact_reads = []
+        probe_steps = {}
 
         def members(parent):
             return sorted(node for zone in groups[parent].values() for node in zone)
@@ -57,7 +58,9 @@ class ProductionProbeTest(unittest.TestCase):
                 node, = [arg.split('=', 1)[1] for arg in args if arg.startswith('--nodelist=')]
                 parent = owners[node][0]
                 batches.append(node)
-                lines.append(json.dumps(dict(node=node, parent=parent, request_id=args[-3], step=parent+'.9991',
+                step = parent + '.' + str(9990 + len(batches))
+                probe_steps[step] = (node, 'training80-admit-' + args[-3])
+                lines.append(json.dumps(dict(node=node, parent=parent, request_id=args[-3], step=step,
                                              observer_uid=1234, ports_checked=[43000], PCIs=pins[node],
                                              kfd_process_count=0, own_device_fd_process_count=0,
                                              occupied_requested_ports=[])))
@@ -93,15 +96,25 @@ class ProductionProbeTest(unittest.TestCase):
                     err = b'warning'
                 if args[3] == '1103606.1644' and count == 2 and final_error == 'stat-live':
                     lines = ['1103606.1644|1|100K']
+            elif args[:3] == ('sacct', '-nP', '-j'):
+                step = args[3]
+                node, label = probe_steps[step]
+                state = 'FAILED' if terminal_error == 'failed' else 'COMPLETED'
+                tres = 'cpu=1,mem=256M,node=1,gres/dcu=1' if terminal_error == 'gres' else 'cpu=1,mem=256M,node=1'
+                lines = [f'{step}|{label}|{state}|0:0|1|{node}|{tres}|2026-11-27T13:23:06|2026-11-27T13:23:07']
             else:
                 raise AssertionError(args)
             return subprocess.CompletedProcess(argv, 0, ('\n'.join(lines)).encode(), err)
 
         started = time.monotonic()
         with patch('collect_training80_dispatch_snapshot.os.getuid', return_value=1234, create=True):
-            report = collect(REQUEST, raw, pins, [43000], held_nodes=held, stale_step_probe_only=True, run=run)
+            report = collect(REQUEST, raw, pins, [43000], held_nodes=held, priority_nodes=priority,
+                             stale_step_probe_only=True, run=run)
         received = receive(json.dumps(report).encode(), started, REQUEST)
-        self.assertCountEqual(exact_reads, [(phase, handle) for phase in (1, 2) for handle in frozen])
+        expected = [(phase, handle) for phase in (1, 2) for handle, (node, _, _) in STALE_STEP_PROBE_SCOPE.items()
+                    if node not in held and (not priority or node in priority)
+                    and (phase, handle, final_error) != (2, '1194900.189', 'other-step')]
+        self.assertEqual(exact_reads, expected)
         return received, batches
 
     def test_positive_probe_cannot_reserve_or_change_raw(self):
@@ -156,6 +169,20 @@ class ProductionProbeTest(unittest.TestCase):
                 self.assertTrue(report['nodes'][node]['device_probe_observed'])
                 self.assertFalse(report['stale_step_probe_only']['nodes'][node]['physical_probe_witness_complete'])
                 self.assertFalse(training80_inventory(report)[node][2])
+
+    def test_single_target_requires_independent_terminal(self):
+        node = 'f13r4n03'
+        report, batches = self.collect(priority=(node,))
+        self.assertEqual(batches, [node])
+        self.assertEqual(report['stale_step_probe_only']['nodes']['f13r4n09']['initial'], {'not_selected': True})
+        self.assertTrue(report['stale_step_probe_only']['nodes'][node]['physical_probe_witness_complete'])
+        for admission_error in ('failed', 'gres'):
+            with self.subTest(admission_error=admission_error):
+                report, batches = self.collect(priority=(node,), terminal_error=admission_error)
+                witness = report['stale_step_probe_only']['nodes'][node]
+                self.assertEqual(batches, [node])
+                self.assertFalse(witness['physical_probe_witness_complete'])
+                self.assertNotIn('probe_accounting', witness)
 
 
 if __name__ == '__main__':

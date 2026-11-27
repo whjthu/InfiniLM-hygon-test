@@ -12,9 +12,10 @@ import time
 
 from read_training_slurm_membership import snapshot
 from sample_training80_busy import require_pins
-from training_dispatch_allocation import (DEVICE_RECEIPT_KINDS, REPLACEMENT_KIND, STALE_STEP_PROBE_SCHEMA,
-                                          STALE_STEP_PROBE_SCOPE, allocation, confirm_stale_step,
-                                          stale_step_candidate, stale_step_verified)
+from training_dispatch_allocation import (DEVICE_RECEIPT_KINDS, PROBE_COLUMNS, REPLACEMENT_KIND,
+                                          STALE_STEP_PROBE_SCOPE, STALE_STEP_TERMINAL_SCHEMA,
+                                          allocation, confirm_stale_step, stale_step_candidate,
+                                          stale_step_verified, successful_probe_accounting)
 from tuning_queue import receive_snapshot, require
 
 
@@ -158,6 +159,7 @@ def collect(request, ledger_raw, pins, ports, *, priority_nodes=(), held_nodes=(
     require(not stale_step_probe_only or kind == REPLACEMENT_KIND, 'probe-only mode requires the replacement ledger')
     require(not stale_step_probe_only or not any(os.environ.get(key) for key in ('SLURM_OVERLAP', 'SRUN_OVERLAP')),
             'probe-only mode forbids inherited Slurm overlap')
+    require(not stale_step_probe_only or bool(ports), 'stale-step probes require explicit port checks')
     uid = os.getuid()
     query_run = subprocess.run if run is None else run
     probe_run = run_device_probe if run is None else run
@@ -185,32 +187,61 @@ def collect(request, ledger_raw, pins, ports, *, priority_nodes=(), held_nodes=(
     candidates = {parent: [] for parent in groups}
     stale_rows = {}
 
-    def exact_query(*args):
-        remaining = deadline - clock()
-        require(remaining > 0, 'exact stale-step witness budget expired')
-        result = query_run(args, capture_output=True, timeout=min(3, remaining), check=True)
-        require(result.returncode == 0 and result.stderr == b'' and len(result.stdout) <= MAX_OUTPUT_BYTES,
-                'exact stale-step witness did not return quietly')
-        return result.stdout.decode('utf-8').strip().splitlines()
+    def exact_query(trace, *args):
+        command = dict(command=' '.join(args[:3]), seconds=None)
+        trace.append(command)
+        before = clock()
+        try:
+            remaining = deadline - before
+            require(remaining > 0, 'exact stale-step witness budget expired')
+            result = query_run(args, capture_output=True, timeout=min(4, remaining), check=True)
+            command.update(returncode=result.returncode, stderr_SHA256=digest(result.stderr))
+            require(result.returncode == 0 and result.stderr == b'' and len(result.stdout) <= MAX_OUTPUT_BYTES,
+                    'exact stale-step witness did not return quietly')
+            return result.stdout.decode('utf-8').strip().splitlines()
+        except subprocess.CalledProcessError as error:
+            command.update(returncode=error.returncode, stderr_SHA256=digest(error.stderr or b''))
+            raise
+        finally:
+            command['seconds'] = clock() - before
 
     def observe_stale(membership, handle):
         raw_matches = stale_step_candidate(membership, handle)
-        proof = confirm_stale_step(exact_query, handle)
-        return dict(proof, raw_singleton_timeout=raw_matches)
+        if not raw_matches:
+            return dict(raw_singleton_timeout=False, query_complete=False)
+        trace = []
+        proof = confirm_stale_step(lambda *args: exact_query(trace, *args), handle)
+        return dict(proof, raw_singleton_timeout=True, commands=trace)
 
     def observe_stale_scope(membership):
-        with ThreadPoolExecutor(max_workers=PARALLEL_PROBES) as executor:
-            proofs = executor.map(lambda handle: observe_stale(membership, handle), STALE_STEP_PROBE_SCOPE)
-            return dict(zip(STALE_STEP_PROBE_SCOPE, proofs))
+        return {handle: observe_stale(membership, handle) for handle, (node, _, _) in STALE_STEP_PROBE_SCOPE.items()
+                if node not in held_nodes and (not priority_nodes or node in priority_nodes)}
+
+    def attach_probe_accounting(record, row, label):
+        trace = record['accounting_commands'] = []
+        step, node = row['step'], row['node']
+        try:
+            for _ in range(3):
+                values = [line.split('|') for line in exact_query(trace, 'sacct', '-nP', '-j', step,
+                          '-o', ','.join(PROBE_COLUMNS)) if line.split('|', 1)[0] == step]
+                if len(values) == 1 and len(values[0]) == len(PROBE_COLUMNS) and values[0][2] != 'RUNNING':
+                    successful_probe_accounting(values[0], step, node, label)
+                    record['probe_accounting'] = values[0]
+                    return
+                require(len(values) <= 1, 'duplicate stale-step probe accounting')
+                if deadline - clock() < 10:
+                    break
+                time.sleep(0.2)
+        except (OSError, ValueError, subprocess.SubprocessError) as error:
+            record['probe_accounting_error'] = type(error).__name__
 
     if stale_step_probe_only:
         initial_proofs = observe_stale_scope(initial)
         for handle, (name, _, _) in STALE_STEP_PROBE_SCOPE.items():
             parent = handle.split('.')[0]
             require(name in owners and owners[name][0] == parent, 'stale-step probe node differs from ledger')
-            proof = initial_proofs[handle]
-            targets_match = not priority_nodes or name in priority_nodes
-            allowed = stale_step_verified(proof) and name not in held_nodes and targets_match
+            proof = initial_proofs.get(handle, {'not_selected': True})
+            allowed = stale_step_verified(proof)
             stale_rows[name] = dict(handle=handle, initial=proof, probe_eligible=allowed)
             if allowed:
                 candidates[parent].append(name)
@@ -222,7 +253,7 @@ def collect(request, ledger_raw, pins, ports, *, priority_nodes=(), held_nodes=(
     def probe(parent, index, nodes):
         batch_request = digest(f'{request}:{parent}:{index}'.encode('ascii'))[:32]
         receipt = dict(request_id=batch_request, requested_nodes=nodes)
-        remaining = deadline - clock() - 12
+        remaining = deadline - clock() - (17 if stale_step_probe_only else 12)
         cleanup_budget = 2 * PROBE_TERM_GRACE_S
         if remaining <= cleanup_budget:
             return {}, dict(receipt, state='BUDGET_EXPIRED')
@@ -275,7 +306,11 @@ def collect(request, ledger_raw, pins, ports, *, priority_nodes=(), held_nodes=(
             observed_rows.update(rows)
             if stale_step_probe_only:
                 name, = receipt['requested_nodes']
-                stale_rows[name]['probe_returned_zero'] = receipt.get('returncode') == 0 and name in rows
+                record = stale_rows[name]
+                record['probe_returned_zero'] = receipt.get('returncode') == 0 and name in rows
+                if record['probe_returned_zero']:
+                    record['probe_request'] = receipt['request_id']
+                    attach_probe_accounting(record, rows[name], 'training80-admit-' + receipt['request_id'])
             for name in set(receipt['requested_nodes']).difference(rows):
                 absent_rows[name] = 'ROW_MISSING' if receipt['state'] == 'RETURNED' else receipt['state']
     for report in reports.values():
@@ -284,9 +319,9 @@ def collect(request, ledger_raw, pins, ports, *, priority_nodes=(), held_nodes=(
     membership['ledger_SHA256'] = digest(ledger_raw)
     final_proofs = observe_stale_scope(membership) if stale_rows else {}
     for name, record in stale_rows.items():
-        record['final'] = final_proofs[record['handle']]
+        record['final'] = final_proofs.get(record['handle'], {'not_selected': True})
         record['physical_probe_witness_complete'] = (record['probe_eligible'] is True and
-            record.get('probe_returned_zero') is True and stale_step_verified(record['final']))
+            record.get('probe_returned_zero') is True and 'probe_accounting' in record and stale_step_verified(record['final']))
     nodes = {}
     for name, (parent, zone) in owners.items():
         observation = membership['parents'][parent]
@@ -321,7 +356,7 @@ def collect(request, ledger_raw, pins, ports, *, priority_nodes=(), held_nodes=(
                 device_probe_scope=scope, deferred_device_probe_nodes=sorted(deferred),
                 measured_busy_percent=None, snapshot_kind=kind)
     if stale_step_probe_only:
-        result['stale_step_probe_only'] = dict(schema=STALE_STEP_PROBE_SCHEMA, nodes=stale_rows)
+        result['stale_step_probe_only'] = dict(schema=STALE_STEP_TERMINAL_SCHEMA, nodes=stale_rows)
     return result
 
 

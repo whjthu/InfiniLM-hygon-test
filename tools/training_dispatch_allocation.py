@@ -6,6 +6,7 @@ from pathlib import Path
 import re
 import subprocess
 
+from read_training_slurm_membership import allocated_dcu, completed_numbered_step
 from sample_training80_busy import node_map, require
 
 
@@ -26,6 +27,19 @@ STALE_STEP_PROBE_SCOPE = {
     '1194900.189': ('f13r4n03', 'training80-admit-b0c43a4cae196c1f4f0a4a9ee71c0950', 'cpu=1,mem=256M,node=1'),
 }
 STALE_STEP_PROBE_SCHEMA = 'training80-four-numbered-timeouts-physical-probe-only-v1'
+STALE_STEP_TERMINAL_SCHEMA = 'training80-timeout-physical-probe-with-accounting-v2'
+PROBE_COLUMNS = 'JobIDRaw,JobName%120,State,ExitCode,ElapsedRaw,NodeList%100,AllocTRES%100,Start,End'.split(',')
+
+
+def successful_probe_accounting(values, step, node, label):
+    row = completed_numbered_step(PROBE_COLUMNS, values, step, scope='stale-step physical probe')
+    require(row['NodeList'] == node and row['JobName'] == label and allocated_dcu(row['AllocTRES']) == 0 and
+            set(row['AllocTRES'].split(',')) == {'cpu=1', 'mem=256M', 'node=1'} and
+            len(row['AllocTRES'].split(',')) == 3 and row['ElapsedRaw'].isascii() and
+            row['ElapsedRaw'].isdecimal() and 0 <= int(row['ElapsedRaw']) <= 60 and
+            all(re.fullmatch(r'\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d', row[k]) for k in ('Start', 'End')) and
+            row['Start'] <= row['End'], 'stale-step probe accounting resource scope differs')
+    return row
 
 
 def stale_step_candidate(membership, handle):
@@ -75,8 +89,9 @@ def confirm_stale_step(run_query, handle):
             if step == handle or node in nodes:
                 proof['queue_clear'] = False
         proof['statistics_empty'] = not run_query('sstat', '-nP', '-j', handle, '-o', 'JobID,NTasks,MaxRSS')
-    except (OSError, UnicodeError, ValueError, subprocess.SubprocessError):
+    except (OSError, UnicodeError, ValueError, subprocess.SubprocessError) as error:
         proof['query_complete'] = False
+        proof['error_type'] = type(error).__name__
     else:
         proof['query_complete'] = True
     return proof
@@ -92,7 +107,8 @@ def stale_step_projection(fleet):
     projection = fleet.get('stale_step_probe_only')
     if projection is None:
         return {}
-    require(fleet.get('snapshot_kind') == REPLACEMENT_KIND and projection.get('schema') == STALE_STEP_PROBE_SCHEMA,
+    schema = projection.get('schema')
+    require(fleet.get('snapshot_kind') == REPLACEMENT_KIND and schema in (STALE_STEP_PROBE_SCHEMA, STALE_STEP_TERMINAL_SCHEMA),
             'stale-step probe scope differs from the active fleet')
     rows = projection['nodes']
     require({row['handle']: node for node, row in rows.items()} ==
@@ -102,6 +118,16 @@ def stale_step_projection(fleet):
         handle = row['handle']
         complete = (row.get('probe_eligible') is True and row.get('probe_returned_zero') is True and
                     stale_step_verified(row.get('initial')) and stale_step_verified(row.get('final')))
+        if schema == STALE_STEP_TERMINAL_SCHEMA:
+            device = fleet['nodes'][node]
+            terminal = row.get('probe_accounting')
+            if terminal is not None:
+                step = device['device_probe_step']
+                request = row['probe_request']
+                require(isinstance(step, str) and re.fullmatch(re.escape(handle.split('.')[0]) + r'\.[0-9]+', step) and
+                        isinstance(request, str) and re.fullmatch(r'[a-f0-9]{32}', request), 'invalid probe identity')
+                successful_probe_accounting(terminal, step, node, 'training80-admit-' + request)
+            complete = complete and terminal is not None and bool(device['ports_checked'])
         require(row.get('physical_probe_witness_complete') is complete and
                 (not complete or stale_step_candidate(fleet['membership'], handle)),
                 'stale-step probe completion differs from raw membership or exact observations')
