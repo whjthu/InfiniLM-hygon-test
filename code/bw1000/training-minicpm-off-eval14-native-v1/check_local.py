@@ -44,9 +44,14 @@ def main():
     pins = archive(original)
     assert pins==CP_ADAPTER and HEX.fullmatch(CP_INVENTORY_SHA) and HEX.fullmatch(CP_RELOAD_SHA)
     assert all(HEX.fullmatch(p["SHA256"]) for p in CP_FILES.values())
-    cp = json.loads(original)["independent_CP2_CPU_reload"]
-    assert actual_reload(encode(cp), [RELOAD_ROW])["adapter"]==CP_ADAPTER
-    reject(lambda: actual_reload(encode(dict(cp, actual_GPU=1)),[RELOAD_ROW]),"ACTUAL_INDEPENDENT_CP2_ZERO_GRES_RELOAD")
+    local_reload = REPO/"local-only/minicpm-two-cp2-reload-9ce5f64ab2c248689c239c9b6253b32b.json"
+    envelope = json.loads(local_reload.read_bytes())["response"]
+    recorded = json.dumps(envelope, sort_keys=True).encode()
+    from contract import sha
+    assert sha(recorded) == CP_RELOAD_SHA
+    assert actual_reload(recorded, [RELOAD_ROW])["adapter"]==CP_ADAPTER
+    reject(lambda: actual_reload(encode(dict(envelope, result=dict(envelope["result"], actual_GPU=1))),
+                                         [RELOAD_ROW]),"ACTUAL_INDEPENDENT_CP2_ZERO_GRES_RELOAD")
     assert generation([1,2,3,0], [3], 0)==("eos",3) and generation([2]*CAP,[3],0)==("cap",CAP)
     reject(lambda: generation([1,2],[3],0), "NATIVE_GENERATION_INCOMPLETE")
     reject(lambda: generation([1,3,2],[3],0), "POST_EOS_NONPAD")

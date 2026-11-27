@@ -126,8 +126,14 @@ def archive(raw):
 
 
 def actual_reload(raw, rows):
-    value = json.loads(raw)
-    need(rows == [RELOAD_ROW] and value["request"] =="c6dab1cb20894c45a2bf140a15fb0f2f"
+    envelope = json.loads(raw)
+    need(rows == [RELOAD_ROW] and envelope["accounting_UTC"] == RELOAD_ROW
+         and envelope["zero_GRES_verified"] is True and envelope["rc"] == 0 and envelope["errors"] == []
+         and envelope["request"] == "9ce5f64ab2c248689c239c9b6253b32b"
+         and envelope["training_request"] == "c6dab1cb20894c45a2bf140a15fb0f2f",
+         "ACTUAL_INDEPENDENT_CP2_RELOAD_ENVELOPE")
+    value = envelope["result"]
+    need(value["request"] == envelope["training_request"]
          and value["adapter"] == CP_ADAPTER and value["actual_GPU"] == 0
          and value["actual_optimizer_updates"] == value["planned_optimizer_updates"] == 2
          and value["native_forwards"] == value["planned_native_forwards"] == 64
