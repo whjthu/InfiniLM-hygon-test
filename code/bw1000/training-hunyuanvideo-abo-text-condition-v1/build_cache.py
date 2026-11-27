@@ -31,6 +31,7 @@ NATIVE_TENSORS = {
     "byt5_text_mask": ((1, 256), "torch.int64"),
 }
 NODE, PARENT = "f13r3n14", "1103606"
+SOURCE_SEED = 20261127
 
 
 def write_json(path, value):
@@ -94,6 +95,11 @@ def check_tensors(tensors, torch):
     return fields
 
 
+def metadata(render):
+    return dict(frames=9, height=480, width=848, prompt=CAPTION, seed=SOURCE_SEED,
+                source_image=str(render.with_name("frame-00.private.png")))
+
+
 def build(args):
     step = exact_cpu_step(args.request)
     require(args.out.parent.name == args.request and args.out.is_absolute(), "PRIVATE_OUTPUT_NAME")
@@ -148,19 +154,24 @@ def build(args):
     require(bound_shards(args.qwen) == shards, "QWEN_INPUT_FILES_CHANGED_DURING_NATIVE_LOAD")
     completed = time.monotonic()
     path = args.out / "sample.private.pt"
+    extra = metadata(args.render)
     with path.open("xb") as output:
-        torch.save(values, output)
+        torch.save({**values, **extra}, output)
         output.flush()
         os.fsync(output.fileno())
     raw = path.read_bytes()
     require(0 < len(raw) < 4 << 20, "BOUNDED_FIVE_TENSOR_CACHE")
     checked = torch.load(path, map_location="cpu", weights_only=True)
-    require(check_tensors(checked, torch) == result_fields, "IMMEDIATE_WEIGHTS_ONLY_READBACK")
+    require(set(checked) == set(NATIVE_TENSORS) | set(extra)
+            and {name: checked[name] for name in extra} == extra
+            and check_tensors({name: checked[name] for name in NATIVE_TENSORS}, torch) == result_fields,
+            "IMMEDIATE_WEIGHTS_ONLY_READBACK")
     report = dict(request=args.request, actual_step=step, frame_receipt_sha256=FRAME_RECEIPT,
                   caption_sha256=digest(CAPTION.encode()), actual_GPU=0, actual_optimizer_updates=0,
                   actual_native_text_forwards=1, actual_native_empty_glyph_calls=1, native_candidate_cache_rows=1,
                   qualified_training_rows=0, formal_domain_delivery_increment=0, actual_text_device="cpu",
                   native_fields=result_fields, pt_cache=dict(bytes=len(raw), SHA256=digest(raw)),
+                  non_tensor_field_types={name: type(value).__name__ for name, value in extra.items()},
                   torch=str(torch.__version__), model_class=type(model).__name__,
                   hidden_state_skip_layer=2, text_dtype="float16", model_load_seconds=loaded-load_start,
                   encode_and_validate_seconds=completed-loaded, wall_seconds=time.monotonic()-begin)
