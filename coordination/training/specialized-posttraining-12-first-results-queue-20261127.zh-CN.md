@@ -39,3 +39,15 @@
 [USGS 素材权利与署名](https://www.usgs.gov/information-policies-and-instructions/copyrights-and-credits) · [ABO 官方数据](https://amazon-berkeley-objects.s3.amazonaws.com/index.html) · [Poly Haven 许可](https://polyhaven.com/license) · [TRELLIS.2 官方训练数据工具](https://github.com/microsoft/TRELLIS.2/blob/main/data_toolkit/README.md) · [VBench 指标定义](https://openaccess.thecvf.com/content/CVPR2024/supplemental/Huang_VBench_Comprehensive_Benchmark_CVPR_2024_supplemental.pdf) · [TUM RGB-D](https://cvg.cit.tum.de/data/datasets/rgbd-dataset) · [ACCAD](https://accad.ohio-state.edu/research/motion-lab/mocap-system-and-data) · [CMU Graphics Lab 动捕](https://mocap.cs.cmu.edu/)
 
 [原 12 底座执行单](specialized-posttraining-12-accelerated-execution-20261127.zh-CN.md) · [Gemma 发布证据](../../results/bw1000/2026-11-27/specialized-gemma-usgs-cp25-release-audit.json) · [HunyuanVideo 训练入口目标容器证据](../../results/bw1000/2026-11-27/specialized-hunyuanvideo-abo-4313-import-failure-4314-bound-runtime-CPU.json) · [SF3D 图集验证](../../results/bw1000/2026-11-27/specialized-sf3d-polyhaven-metal-tool-chest-native-atlas-target-readback.json) · [InternVL 数据入口](../../code/bw1000/training-domain-pilot-v1/build_gqa_relation_train.py)
+
+## 本轮优先验收和派发顺序
+
+| 并行工作 | 首批任务和完成证据 |
+|---|---|
+| 用已有权重先拿到可判断的结论 | Gemma 复用 96 题盲测，独立重载已过，专门查第 21 步恢复后的首个参数和优化器差异。VGGT 直接做 TUM 留出两臂 AUC。Z-Image 锁定独立盲评人和顺序后生成两臂。每条分别交付可加载产物和独立结果。 |
+| 优先接替保底的真实训练 | Qwen 先核同一预约，再试原 8 卡配方的正学习率更新。HunyuanVideo 的 35 个目标文件已安装、权重挂载通过登录节点同一文件描述符复核，等待目标节点当前保底终态和独立清场后按原路线接续。InternVL 的 4 条 GQA 真图已经通过目标原生 CPU processor 和 collator，下一次先绑定按原图去重的 64 条合格训练行，再用原 8 卡配方核参数变化。 |
+| 补齐共享数据和原生输入 | 按资产 ID 与家族复用 ABO 目录元数据。SDXL 先做一张棚拍训练图并定位反向差异，MiniCPM 优先验证可见规格与拒答标签，TRELLIS.2 核完整网格和原生 latent，SF3D 核同视角 PBR 标签。ABO 配对不足时用 Poly Haven CC0 完整资产。LLaVA 优先做有物体存在标注的描述小批，HY-Motion 先闭合一个 128 帧、201 维 ACCAD 缓存。 |
+
+实际维护至少 5 项训练储备。每项先核实数据、权重、原生入口、正数更新和可放置资源，提交一项就补一项准备。现有 CPU 或挂载验证只推进各自阶段。HunyuanVideo 的单缓存首步独立记录，涉及 17 项原配方的卡数和 A100 比例继续单独验收。
+
+[GQA target 结果](../../results/bw1000/2026-11-27/specialized-internvl-GQA-native-four-real-inputs-4365.json) · [HunyuanVideo 目标安装和挂载复核](../../results/bw1000/2026-11-27/specialized-hunyuanvideo-abo-n14-v2-stage-and-actual-login-descriptor.json) · [ABO 官方数据](https://amazon-berkeley-objects.s3.amazonaws.com/index.html) · [Poly Haven 资产许可](https://polyhaven.com/license) · [TRELLIS.2 原生数据工具](https://github.com/microsoft/TRELLIS.2/blob/main/data_toolkit/README.md)
