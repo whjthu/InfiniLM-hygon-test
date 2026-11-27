@@ -120,14 +120,14 @@ def normalize(answer):
     return text.rstrip(".?!").rstrip()
 
 
-def prediction_rows(raw, arm, input_sha):
+def prediction_rows(raw, arm, input_sha, slots=range(1, COUNT + 1)):
     data = json.loads(raw)
     need(set(data) == {"schema", "arm", "input_SHA256", "rows"}
          and (data["schema"], data["arm"], data["input_SHA256"]) == (
              "INTERNVL_GQA_VAL96_PREDICTION_V1", arm, input_sha), "Unexpected prediction binding")
     rows = data["rows"]
-    need(isinstance(rows, list) and len(rows) == COUNT, "Every held-out slot must be recorded")
-    for slot, row in enumerate(rows, 1):
+    need(isinstance(rows, list) and len(rows) == len(slots), "Every assigned held-out slot must be recorded")
+    for slot, row in zip(slots, rows):
         need(set(row) == {"slot", "status", "text", "processed_input_SHA256", "generated_tokens"}
              and type(row["slot"]) is int and row["slot"] == slot, "Missing, duplicate or misordered prediction slot")
         status, body, token_count, pin = (

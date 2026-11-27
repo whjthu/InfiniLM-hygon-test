@@ -1,7 +1,8 @@
-"""Run the fixed 96-image base/CP25 comparison in a new single-DCU Swift process."""
+"""Run an assigned share of the paired GQA work in one fresh Swift process per DCU."""
 
 import argparse
 from collections import Counter
+import ctypes
 from hashlib import sha256
 from importlib import metadata
 import json
@@ -104,6 +105,22 @@ def select_generation(raw, eos, pad):
     return ("cap", len(effective)) if len(effective) == experiment.CAP else (None, len(effective))
 
 
+def rank_slots(rank, world):
+    need(world == 8 and 0 <= rank < world and experiment.COUNT % world == 0, "Original eight-card pairing differs")
+    return range(rank + 1, experiment.COUNT + 1, world)
+
+
+def physical_pci(device):
+    library = ctypes.CDLL("libamdhip64.so")
+    address = ctypes.create_string_buffer(32)
+    need(library.hipDeviceGetPCIBusId(address, len(address), device) == 0, "HIP device PCI query failed")
+    value = address.value.decode("ascii").lower()
+    if re.fullmatch(r"[0-9a-f]{2}:[0-9a-f]{2}\.[0-7]", value):
+        value = "0000:" + value
+    need(re.fullmatch(r"[0-9a-f]{4,8}:[0-9a-f]{2}:[0-9a-f]{2}\.[0-7]", value), "Invalid HIP PCI")
+    return value
+
+
 def run(args):
     def deadline():
         need(args.epoch <= time.time() < args.deadline, "Original evaluation deadline exhausted")
@@ -113,8 +130,10 @@ def run(args):
          and args.step == os.environ.get("SLURM_JOB_ID", "") + "." + os.environ.get("SLURM_STEP_ID", "")
          and 0 < args.deadline - args.epoch <= 3300 and args.input.is_absolute() and args.output.is_absolute(),
          "Original admitted step identity required")
-    prompts = experiment.inputs(args.input, INPUT_SHA)
-    frozen_native = prior_input_proof(args.input_proof, prompts)
+    slots = rank_slots(args.rank, args.world)
+    all_prompts = experiment.inputs(args.input, INPUT_SHA)
+    frozen_native = prior_input_proof(args.input_proof, all_prompts)
+    prompts = [all_prompts[slot - 1] for slot in slots]
     adapter_before = pinned_adapter(deadline)
     need({name: metadata.version(name) for name in VERSIONS} == VERSIONS, "Qualified runtime differs")
     for name, pin in ENGINE_PINS.items():
@@ -128,21 +147,25 @@ def run(args):
     from swift.template import get_template
     from vlm.runtime.first_update_audit import fingerprint
 
-    need(torch.version.hip == "6.3.26113" and not torch.version.cuda and torch.cuda.device_count() == 1,
-         "Exactly one allocated visible HIP device required")
-    torch.cuda.set_device(0)
+    need(torch.version.hip == "6.3.26113" and not torch.version.cuda and torch.cuda.device_count() == args.world,
+         "Exactly eight allocated visible HIP devices required")
+    torch.cuda.set_device(args.rank)
+    pci = physical_pci(args.rank)
+    args.output.mkdir(mode=0o700)
+    experiment.write(args.output / "device.json", experiment.encode(
+        {"step": args.step, "request": args.request, "rank": args.rank, "PCI": pci, "PID": os.getpid()}))
     random.seed(42)
     np.random.seed(42)
     torch.manual_seed(42)
     torch.cuda.manual_seed_all(42)
     started = time.monotonic()
     model, processor = get_model_processor(str(MODEL), model_type="internvl", load_model=True,
-                                           download_model=False, device_map={"": 0},
+                                           download_model=False, device_map={"": args.rank},
                                            torch_dtype=torch.bfloat16, attn_impl="sdpa")
     load_seconds = time.monotonic() - started
     deadline()
     need(processor.model_meta.template == "internvl_hf" and not hasattr(model, "peft_config")
-         and {str(p.device) for p in model.parameters()} == {"cuda:0"},
+         and {str(p.device) for p in model.parameters()} == {f"cuda:{args.rank}"},
          "The unadapted original model must live on the allocated card")
     model.eval()
     model.requires_grad_(False)
@@ -160,7 +183,6 @@ def run(args):
          and all(re.search(r"\.lora_[AB]\.weight$", k) and bool(torch.isfinite(p).all()) for k, p in state.items())
          and all(stats(CHECKPOINT / name) == witness for name, witness in adapter_before.items()),
          "Pinned CP25 state or file lifetime differs")
-    args.output.mkdir(mode=0o700)
     arm_facts = {}
     paired_pins = {}
     current = {}
@@ -246,15 +268,15 @@ def run(args):
         arm_facts[arm] = dict(Counter(row["status"] for row in rows))
         raw = experiment.encode({"schema": "INTERNVL_GQA_VAL96_PREDICTION_V1", "arm": arm,
                                  "input_SHA256": INPUT_SHA, "rows": rows})
-        experiment.prediction_rows(raw, arm, INPUT_SHA)
+        experiment.prediction_rows(raw, arm, INPUT_SHA, slots)
         experiment.write(args.output / f"{arm}.json", raw)
         raw_pins[arm] = experiment.fields(raw)
     complete = original_generation_failure is None and adapter_checked
     seal = experiment.encode({"schema": "INTERNVL_GQA_VAL96_SEALED_V1", "input_SHA256": INPUT_SHA, "arms": raw_pins})
     if complete:
         experiment.write(args.output / "SEALED.json", seal)
-    outcome = {"step": args.step, "request": args.request, "fresh_process": True,
-               "planned": 192, "counts": arm_facts, "load_seconds": load_seconds, "model_loads": 1,
+    outcome = {"step": args.step, "request": args.request, "fresh_process": True, "rank": args.rank, "PCI": pci,
+               "planned": 2 * len(slots), "counts": arm_facts, "load_seconds": load_seconds, "model_loads": 1,
                "live_checkpoint_tensors_verified": len(state) if adapter_checked else 0,
                "seal_SHA256": experiment.digest(seal) if complete else None,
                "input_SHA256": INPUT_SHA, "CPU_processed_input_proof_SHA256": PROCESSED_INPUT_SHA,
@@ -272,6 +294,8 @@ def main():
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--epoch", required=True, type=float)
     parser.add_argument("--deadline", required=True, type=float)
+    parser.add_argument("--rank", required=True, type=int)
+    parser.add_argument("--world", type=int, default=8)
     return run(parser.parse_args())
 
 
