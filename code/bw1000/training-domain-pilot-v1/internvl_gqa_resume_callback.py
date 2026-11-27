@@ -177,6 +177,12 @@ class GQARecovery(TrainerCallback):
         self.saves.append(state.global_step)
         return control
 
+    def on_step_end(self, args, state, control, **kwargs):
+        need(state.global_step == self.step, "Native recovered Trainer and callback steps differ")
+        if state.global_step == 25:
+            control.should_save = True
+        return control
+
     def on_train_end(self, args, state, control, **kwargs):
         self.clock()
         need(state.global_step == self.step == 25 and self.rng_checks == 1

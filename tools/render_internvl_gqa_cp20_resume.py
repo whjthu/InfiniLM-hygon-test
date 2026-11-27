@@ -7,8 +7,8 @@ from pathlib import Path
 import render_internvl_gqa64_continuous25 as original
 
 
-REQUEST = "5146842eeddb4698abdc2d08d8ac7e16"
-LABEL = "training-internvl-gqa64-cp20-resume-hip-v1"
+REQUEST = "c7b91ff58f764ca58bb441f02d881341"
+LABEL = "training-internvl-gqa64-cp20-resume-hip-v2"
 ORIGINAL_MANIFEST = "52444c213cac9529bb150e8b5d10aa107c8cc9c29a162a6b490060223ad92ed7"
 WHOLE, NATIVE, SLURM = 1740, 1380, 1500
 FAMILY = original.ARTIFACT_READER.parent
@@ -54,7 +54,13 @@ def render(claim_bytes):
     edit(files, "native.py", [
         ("from internvl_gqa25_artifacts import gather", "from internvl_gqa_resume_summary import gather"),
         ('    argv=[sys.executable,"-B",*launch["command"]]',
-         '''    argv=[sys.executable,"-B",*launch["command"],"--resume_from_checkpoint","/gqa-recovery-cp20",
+         '''    command = list(launch["command"])
+    start = command.index("--callbacks") + 1
+    stop = next((i for i in range(start, len(command)) if command[i].startswith("--")), len(command))
+    need(command[start:stop] == ["internvl_usgs72_first2_engineering", "nvidia_baseline"],
+         "Original diagnostic and measurement callback roster differs")
+    del command[stop - 1]  # The original timing callback rejects nonzero entry steps.
+    argv=[sys.executable,"-B",*command,"--resume_from_checkpoint","/gqa-recovery-cp20",
           "--resume_only_model","false","--ignore_data_skip","false"]'''),
         ("planned_update_slots=25,original_schedule_steps=25,", "planned_update_slots=5,original_schedule_steps=25,"),
         ("planned_input_slots=800,first_two_witness_slots=64,binding_SHA256=",

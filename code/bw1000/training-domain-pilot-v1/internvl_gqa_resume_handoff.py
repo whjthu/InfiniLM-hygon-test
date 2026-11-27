@@ -65,6 +65,12 @@ def dispatch():
     need(not RUN.exists() and not (RESULTS / (LABEL + "-controller")).exists(), "Recovery namespace is occupied")
     need(re.fullmatch(r"[0-9a-f]{40}", intent["publication"]) and intent["request"] == REQUEST,
          "Unsigned recovery source")
+    previous = RESULTS / "training-internvl-gqa64-cp20-resume-hip-v1-controller/outcome.json"
+    failed = json.loads(pin(previous, expected=deployment["prior_attempt_outcome_SHA256"]))
+    old_rows = scheduling.account(deployment["prior_attempt_gpu_step"])
+    need(scheduling.terminal(old_rows) and old_rows[0][2:4] == ["FAILED", "1:0"]
+         and failed["phases"]["gpu"]["row"][0] == old_rows[0][0] and failed["resource_clean"] is True,
+         "Prior GPU attempt is unresolved")
     audit = json.loads(pin(RESULTS / "training-internvl-gqa-cp20-resume-cpu-v2/result.json",
                            expected=deployment["cpu_audit_SHA256"]))
     need(audit["rc"] == 0 and audit["summary"]["step"] == deployment["audit_step"]

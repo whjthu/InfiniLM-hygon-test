@@ -16,7 +16,7 @@ from run_hygon_bound_payload import digest, document, send
 
 
 REPO = Path(__file__).resolve().parents[1]
-CLAIM = REPO / "coordination/tasks/training-internvl-gqa64-cp20-resume-hip-v1.json"
+CLAIM = REPO / "coordination/tasks/training-internvl-gqa64-cp20-resume-hip-v2.json"
 REMOTE = r'''
 from base64 import b64decode
 import gzip,json,os,re,subprocess,sys,time
