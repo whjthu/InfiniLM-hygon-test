@@ -16,6 +16,7 @@ from internvl_gqa_val96 import need
 
 
 INPUT_SHA = "98f729fce9e6af91edb10bbf4dcc9b0d06f1322a38247c7001d05b02a21fc46b"
+PROCESSED_INPUT_SHA = "0b4514748751d2544dfc30993e0f37747b42f1a59b0aab0d56a11e78b617187d"
 MODEL = Path("/InternVL3_5-8B-HF")
 CHECKPOINT = Path("/gqa-domain25")
 ADAPTER_NAME = "internvl_gqa_domain25"
@@ -73,6 +74,23 @@ def native_input_pin(value, fingerprint):
     return experiment.digest(experiment.encode(traces))
 
 
+def prior_input_proof(path, prompts):
+    proof = json.loads(experiment.read(path, 1 << 17, PROCESSED_INPUT_SHA))
+    need(proof["input_SHA256"] == INPUT_SHA and proof["step"] == "1103606.4392"
+         and proof["phase"] == "CPU_NATIVE_USER_ONLY_INPUTS"
+         and proof["input_fields"] == ["attention_mask", "input_ids", "pixel_values"]
+         and all(proof[key] is False for key in ("model_weights_loaded", "GPU_initialized", "gold_read"))
+         and len(proof["rows"]) == len(prompts) == experiment.COUNT, "Exact native CPU pilot required")
+    expected = {}
+    for row, prompt in zip(proof["rows"], prompts):
+        need((row["slot"], row["kind"]) == (prompt["slot"], prompt["type"])
+             and experiment.HEX.fullmatch(row["processed_SHA256"])
+             and type(row["input_tokens"]) is int and 0 < row["input_tokens"] <= 4096,
+             "Native CPU input records differ from frozen prompt identities")
+        expected[row["slot"]] = (row["processed_SHA256"], row["input_tokens"])
+    return expected
+
+
 def select_generation(raw, eos, pad):
     need(len(raw) <= experiment.CAP and all(type(v) is int and v >= 0 for v in raw),
          "Invalid native generated IDs")
@@ -96,6 +114,7 @@ def run(args):
          and 0 < args.deadline - args.epoch <= 3300 and args.input.is_absolute() and args.output.is_absolute(),
          "Original admitted step identity required")
     prompts = experiment.inputs(args.input, INPUT_SHA)
+    frozen_native = prior_input_proof(args.input_proof, prompts)
     adapter_before = pinned_adapter(deadline)
     need({name: metadata.version(name) for name in VERSIONS} == VERSIONS, "Qualified runtime differs")
     for name, pin in ENGINE_PINS.items():
@@ -152,6 +171,8 @@ def run(args):
         value = collate(*params, **options)
         need(current["input_sha"] is None, "Expected one native collation per request")
         current["input_sha"] = native_input_pin(value, fingerprint)
+        need((current["input_sha"], value["input_ids"].shape[-1]) == frozen_native[current["slot"]],
+             "Native GPU driver input differs from the frozen CPU preflight")
         other = paired_pins.get(current["slot"])
         need(other is None or current["input_sha"] == other, "Native processed pair differs")
         paired_pins[current["slot"]] = current["input_sha"]
@@ -236,7 +257,8 @@ def run(args):
                "planned": 192, "counts": arm_facts, "load_seconds": load_seconds, "model_loads": 1,
                "live_checkpoint_tensors_verified": len(state) if adapter_checked else 0,
                "seal_SHA256": experiment.digest(seal) if complete else None,
-               "input_SHA256": INPUT_SHA, "gold_read": False, "failure": original_generation_failure}
+               "input_SHA256": INPUT_SHA, "CPU_processed_input_proof_SHA256": PROCESSED_INPUT_SHA,
+               "gold_read": False, "failure": original_generation_failure}
     experiment.write(args.output / "outcome.json", experiment.encode(outcome))
     return int(not complete)
 
@@ -246,6 +268,7 @@ def main():
     parser.add_argument("--request", required=True)
     parser.add_argument("--step", required=True)
     parser.add_argument("--input", required=True, type=Path)
+    parser.add_argument("--input-proof", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--epoch", required=True, type=float)
     parser.add_argument("--deadline", required=True, type=float)
