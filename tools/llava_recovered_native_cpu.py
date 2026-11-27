@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import random
 import sys
+from tempfile import TemporaryDirectory
 import time
 
 
@@ -102,4 +103,8 @@ def main(root, binding_path, receipt_path):
 
 
 if __name__ == "__main__":
-    print(json.dumps(main(*(Path(x) for x in sys.argv[1:])), sort_keys=True, allow_nan=False))
+    # Swift's dynamic module loader places its file locks in the ModelScope cache.
+    with TemporaryDirectory(dir="/tmp", prefix="llava-modelscope-") as cache:
+        os.environ["MODELSCOPE_CACHE"] = cache
+        result = main(*(Path(x) for x in sys.argv[1:]))
+    print(json.dumps(dict(result, modelscope_cache_private_and_removed=True), sort_keys=True, allow_nan=False))
