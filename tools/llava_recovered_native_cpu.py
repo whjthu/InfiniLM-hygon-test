@@ -1,6 +1,7 @@
 """Load the recovered OneVision model and verify its real CPU LoRA structure."""
 
 from dataclasses import dataclass
+import faulthandler
 from hashlib import sha256
 import inspect
 from importlib import metadata
@@ -29,6 +30,10 @@ def pinned_document(path, pin):
     raw = path.read_bytes()
     need(0 < len(raw) <= 1 << 20 and sha256(raw).hexdigest() == pin, "Frozen document differs")
     return json.loads(raw)
+
+
+def phase(name):
+    print(json.dumps(dict(llava_cpu_phase=name, monotonic_seconds=time.monotonic()), sort_keys=True), file=sys.stderr, flush=True)
 
 
 def preimport_verified_class(root, compatibility):
@@ -79,6 +84,7 @@ def main(root, binding_path, receipt_path):
         st = path.stat()
         need(st.st_size == pin["bytes"] and (st.st_ino, str(st.st_mtime_ns)) == (pin["inode"], pin["mtime_ns"]),
              "Recovered model inode or extent differs")
+    phase("receipt_members_bound")
 
     import numpy as np
     import torch
@@ -100,11 +106,13 @@ def main(root, binding_path, receipt_path):
     from vlm.runtime.native_recipe_contract import parameter_manifest
 
     native_class = preimport_verified_class(root, llava_onevision)
+    phase("verified_eager_import_completed")
     started = time.monotonic()
     core, processor = get_model_processor(str(root), model_type="llava_onevision1_5", load_model=True,
                                           download_model=False, device_map="cpu", attn_impl="eager",
                                           torch_dtype=torch.bfloat16)
     load_seconds = time.monotonic() - started
+    phase("swift_weight_and_rope_loader_returned")
     model_source = Path(inspect.getsourcefile(type(core))).read_bytes()
     need(type(core) is native_class and sha256(model_source).hexdigest() == MODEL_SOURCE == binding["model_source_SHA256"]
          and processor.model_meta.template == "llava_onevision1_5"
@@ -128,13 +136,16 @@ def main(root, binding_path, receipt_path):
     tuner.tuner_backend = "peft"
     tuner.use_swift_lora = False
     modules = get_target_modules(tuner, core)
+    phase("adapter_prepare_started")
     model = prepare_adapter(tuner, core, task_type="CAUSAL_LM")
+    phase("adapter_prepare_returned")
     trainable = sorted((name, p) for name, p in model.named_parameters() if p.requires_grad)
     need(parameter_manifest(trainable) == binding["trainable_manifest"]
          and modules == binding["target_modules"] and len(trainable) == 504,
          "Original exact LoRA parameter contract differs")
     need(all(p.device.type == "cpu" and bool(torch.isfinite(p).all()) for _, p in trainable)
          and not torch.cuda.is_initialized(), "Adapter contains invalid values or escaped CPU scope")
+    phase("adapter_parameters_verified")
     return dict(schema="LLAVA_RECOVERED_ORIGINAL_ACTUAL_NATIVE_CPU_LOAD_V1", model_source_SHA256=MODEL_SOURCE,
                 model_receipt_SHA256=MODEL_RECEIPT_SHA, bound_template=processor.model_meta.template,
                 dtype="torch.bfloat16", attention="eager", load_seconds=load_seconds,
@@ -149,5 +160,9 @@ if __name__ == "__main__":
     # Swift's dynamic module loader places its file locks in the ModelScope cache.
     with TemporaryDirectory(dir="/tmp", prefix="llava-modelscope-") as cache:
         os.environ["MODELSCOPE_CACHE"] = cache
-        result = main(*(Path(x) for x in sys.argv[1:]))
+        faulthandler.dump_traceback_later(45, repeat=True)
+        try:
+            result = main(*(Path(x) for x in sys.argv[1:]))
+        finally:
+            faulthandler.cancel_dump_traceback_later()
     print(json.dumps(dict(result, modelscope_cache_private_and_removed=True), sort_keys=True, allow_nan=False))
