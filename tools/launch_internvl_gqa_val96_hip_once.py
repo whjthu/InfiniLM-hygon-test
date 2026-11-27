@@ -21,7 +21,7 @@ import internvl_gqa_val96_run as scope
 
 
 MEMBERS = ["internvl_gqa_val96.py", "internvl_gqa_val96_native.py", "internvl_gqa_val96_run.py"]
-CLAIM = REPO / "coordination/tasks/training-internvl-gqa-val96-paired-hip-v1.json"
+CLAIM = REPO / "coordination/tasks/training-internvl-gqa-val96-paired-hip-v2.json"
 REMOTE = r'''
 from base64 import b64decode
 from hashlib import sha256

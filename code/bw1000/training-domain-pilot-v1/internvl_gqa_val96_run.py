@@ -21,8 +21,8 @@ ROOT = Path("/public/home/aclsylqidf/hygon-inference-refactor-20261014")
 R = ROOT / "results"
 HERE = Path(__file__).resolve().parent
 WORK = HERE.parent
-REQUEST = "65545675030641f690ac38818ed530c2"
-LABEL = "training-internvl-gqa-val96-paired-hip-v1"
+REQUEST = "9b386eceea2e4e75b16886fb49a29d43"
+LABEL = "training-internvl-gqa-val96-paired-hip-v2"
 PARENT, NODE = "1103606", "f13r1n14"
 PREDECESSOR = PARENT + ".4390"
 STANDBY = "training80-dcu-standby-de51eae65bd247278b9e2c7e624f4773"
@@ -130,19 +130,22 @@ def node_phase(phase, epoch):
     need(socket.gethostname().split(".")[0] == NODE and os.environ["SLURM_JOB_ID"] == PARENT,
          "Compute worker placement differs")
     node, inventory = original()
-    if phase in {"prepare", "pre", "post"}:
+    if phase == "prepare":
+        a, plan, views = node.actual_model_plan(EXPORT_SHA)
+        a.verify_originals(plan)
+        need(len(plan["binds"]) == 18 and len(views) == 20, "Underlying base model mounts differ")
+        data.read(INPUT_PROOF, 1 << 17, native.PROCESSED_INPUT_SHA)
+        observed = {"step": PARENT + "." + os.environ["SLURM_STEP_ID"], "node": NODE,
+                    "pci": inventory.drm_inventory(),
+                    "boot_id": Path("/proc/sys/kernel/random/boot_id").read_text().strip(),
+                    "model_views": len(views), "mount_members": len(plan["binds"]),
+                    "cpu_sha": native.PROCESSED_INPUT_SHA, "full_fd_inventory_performed": False}
+        save("prepare-devices.json", observed)
+        return 0
+    if phase in {"pre", "post"}:
         observed = inventory.snapshot(False)
         need(observed["full_fd_inventory_performed"] is True, "Original complete ownership inventory required")
-        if phase == "prepare":
-            a, plan, views = node.actual_model_plan(EXPORT_SHA)
-            a.verify_originals(plan)
-            need(len(plan["binds"]) == 18 and len(views) == 20, "Underlying base model mounts differ")
-            observed.update(model_views=len(views), mount_members=len(plan["binds"]),
-                            cpu_sha=native.PROCESSED_INPUT_SHA)
-            need(data.digest(data.read(INPUT_PROOF, 1 << 17)) == native.PROCESSED_INPUT_SHA,
-                 "Native input proof differs")
-        else:
-            need(observed["kfd_holder_count"] == 0, "Device holders remain after the predecessor")
+        need(observed["kfd_holder_count"] == 0, "Unexpected GPU device holders in the independent HOST check")
         save(phase + "-devices.json", observed)
         return 0
 
@@ -333,6 +336,11 @@ def controller(epoch):
     confirm_submission(epoch)
     need(data.digest(data.read(INPUTS.parent / "verified-upload.json", 65536)) == UPLOAD_PIN,
          "Actual 98-member no-answer upload required")
+    predecessor = R / "training-internvl-gqa-val96-paired-hip-v1"
+    failed = account("1103606.4393")
+    need(terminal(failed) and failed[0][2:4] == ["FAILED", "1:0"]
+         and not any((predecessor / name).exists() for name in
+                     ("signal-intent.json", "gpu-srun.json", "gpu-visible.json")), "Original failed scope is unresolved")
     since = time.monotonic()
     with (R / ".training80-dcu-standby.lock").open("ab") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
