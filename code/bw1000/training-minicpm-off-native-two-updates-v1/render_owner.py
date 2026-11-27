@@ -5,6 +5,13 @@ from render_worker import change, check_scope
 from scope_contract import INPUT_ROOT, need, sha
 
 
+OWNER_DEPS = {
+    "prepare_minicpm_usgs_pair_target_v3.py": "0193860f93482ce22ef23a9193740ef9fb603389e2e1b4f5cd598a3c735109bc",
+    "read_training_slurm_membership.py": "9b3b0ca57c7ade5c28874faf46aa6925178ec0536f666842a085a76825d06de7",
+    "slurm_accounting.py": "15a42839fd887a52e415104dcef2a4a548480be5da380f8cbd6980ddb55d3c0b",
+}
+
+
 def render_owner(original, scope, stage_sha):
     check_scope(scope)
     need(sha(original) == "11e6629bd3c4d1e8e3158ef2a188b80f296178a6bf63abe9169191cc9a875ba3"
@@ -12,17 +19,20 @@ def render_owner(original, scope, stage_sha):
     source = original.decode()
     a = source.index("from prepare_minicpm_usgs_pair_target_v3 import")
     b = source.index("def pin(", a)
-    source = source[:a] + f'''REPO = Path({str(INPUT_ROOT).split('/incoming/')[0]!r})
-RESULTS = REPO/'results'
-sys.path.insert(0,str(REPO/'tools'))
-from prepare_minicpm_usgs_pair_target_v3 import CORE_ASSETS_SHA, CORE_SHA, need, small, write
-from read_training_slurm_membership import allocated_dcu
-
+    source = source[:a] + f'''RESULTS = Path({str(INPUT_ROOT).split('/incoming/')[0]!r})/'results'
 LABEL, REQUEST = {scope['label']!r}, {scope['request']!r}
 PARENT, NODE, PORT = {scope['parent']!r}, {scope['node']!r}, {scope['port']}
 RUN = RESULTS/LABEL
+ACCOUNTING_HELPER = RUN/'src'/'owner-deps'
+for name, expected in {OWNER_DEPS!r}.items():
+    member = ACCOUNTING_HELPER/name
+    if member.resolve(strict=True)!=member or not member.is_file() or not 0<member.stat().st_size<=1048576 or sha256(member.read_bytes()).hexdigest()!=expected:
+        raise ValueError('OFF_OWNER_DEPENDENCY')
+sys.path.insert(0,str(ACCOUNTING_HELPER))
+from prepare_minicpm_usgs_pair_target_v3 import CORE_ASSETS_SHA, CORE_SHA, need, small, write
+from read_training_slurm_membership import allocated_dcu
+
 HOST_PYTHON = '/usr/local/python3.12/bin/python3'
-ACCOUNTING_HELPER = REPO/'code/bw1000/training-qwen-native25-hip-v3'
 COLUMNS = 'JobIDRaw,JobName%100,State,ExitCode,ElapsedRaw,NodeList,AllocTRES,Start,End'
 PHASES = {{'pre': (0, 2, 2048, 60), 'gpu': (8, 64, 224000, 2100), 'post': (0, 2, 2048, 90)}}
 WHOLE, NATIVE, WORKER_CLEANUP = 2400, 1980, 2080

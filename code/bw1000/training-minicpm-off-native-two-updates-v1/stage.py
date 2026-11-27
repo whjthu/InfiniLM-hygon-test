@@ -8,7 +8,7 @@ import subprocess
 import sys
 
 from render_worker import CORE_SHA, FRAMEWORK_SHA, check_scope, command_plan, render_worker
-from render_owner import render_owner
+from render_owner import OWNER_DEPS, render_owner
 from scope_contract import INPUT_ROOT, INPUT_SHA, exact_4479, need, sha, view_bytes
 
 HERE = Path(__file__).resolve().parent
@@ -56,8 +56,11 @@ def stage(scope_file, publication, source_manifest_sha):
     original = module("off_original_prepare", REPO / "tools/prepare_minicpm_usgs_pair_target_v3.py", PREPARE_SHA)
     need(original["FRAMEWORK_SHA"] == FRAMEWORK_SHA and original["RESULTS"].parent == TARGET, "OFF_ORIGINAL_STAGE_ROOT")
     stable, small, write = (original[x] for x in ("stable_file", "small", "write"))
-    for name, digest in EXACT_DEPS.items():
-        small(REPO / name, digest)
+    owner_sources = {
+        Path(name).name: small(REPO / name, digest)
+        for name, digest in {**EXACT_DEPS, "tools/prepare_minicpm_usgs_pair_target_v3.py": PREPARE_SHA}.items()
+    }
+    need({name: sha(raw) for name, raw in owner_sources.items()} == OWNER_DEPS, "OFF_OWNER_DEPENDENCY_CLOSURE")
     run = TARGET / "results" / scope["label"]
     need(not run.exists() and not run.is_symlink(), "OFF_STAGE_ALREADY_PRESENT")
     original_run = TARGET / "results" / ORIGINAL_LABEL
@@ -95,6 +98,9 @@ def stage(scope_file, publication, source_manifest_sha):
     (run / "src").mkdir(mode=0o700)
     for name, raw in {**sources, "SOURCE_FILES.json": core}.items():
         write(run / "src" / name, raw)
+    (run / "src/owner-deps").mkdir(mode=0o700)
+    for name, raw in owner_sources.items():
+        write(run / "src/owner-deps" / name, raw)
     overlay = {name: small(HERE / name) for name in OVERLAY}
     overlay["off_inputs.py"] = small(validator, OFF_INPUT_CODE_SHA)
     overlay_pins = {name: {k: v for k, v in write(run/"src"/name, raw).items() if k != "path"} for name, raw in overlay.items()}
@@ -107,7 +113,7 @@ def stage(scope_file, publication, source_manifest_sha):
     stage = dict(state="OFF_SIX_TO_800_STAGED", request=scope["request"], parent=scope["parent"], node=scope["node"], port=scope["port"],
                  publication=publication, scope_SHA256=sha(scope_raw), source_manifest_SHA256=source_manifest_sha,
                  source_rows=6, train_media=4, input_manifest_SHA256=INPUT_SHA, framework=framework,
-                 plan=plan_pin, model_files=model_pins, initial=init_file, overlay=overlay_pins,
+                 plan=plan_pin, model_files=model_pins, initial=init_file, overlay=overlay_pins, owner_deps=OWNER_DEPS,
                  actual_GPU_steps=0, actual_optimizer_updates=0)
     stage_pin = write(run/"asset-stage-record.json", stage)
     original_target = REPO / "code/bw1000/training-minicpm-usgs-exposure25-resume20-target-v2"

@@ -66,6 +66,7 @@ def main():
     assert plan["required_assets"]["plugins"][-1] == run+"/src/off_callback.py" or run+"/src/off_callback.py" in plan["required_assets"]["plugins"]
     worker_bytes = render_worker((TARGET/"worker.py").read_bytes(), scope, "b"*64)
     owner_bytes = render_owner((REPO/"tools/control_minicpm_usgs_pair_target_v3.py").read_bytes(), scope, "b"*64)
+    assert b"ACCOUNTING_HELPER = RUN/'src'/'owner-deps'" in owner_bytes and b"OFF_OWNER_DEPENDENCY" in owner_bytes
     for name, raw in (("worker", worker_bytes), ("owner", owner_bytes)):
         ast.parse(raw, filename=name, feature_version=(3, 10))
         assert b"training-domain-usgs-table-reading-v1" not in raw
