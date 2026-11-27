@@ -61,14 +61,27 @@ class MuonWitness:
         self.steps.append({"global_step":step,"rates":rates})
 
 
-def run_common(torch, argv, ctx, cli_path, backend):
+def load_common_cli(cli_path):
     cli_path=Path(cli_path)
     raw_source, source=read(cli_path, 1<<20)
     need(source["SHA256"]==CLI_SHA and sha256(raw_source).hexdigest()==CLI_SHA,"ABO_EXACT_DEPLOYED_COMMON_CLI")
+    tools=str(cli_path.parent)
+    sys.path.insert(0,tools)
+    try:
+        module=runpy.run_path(str(cli_path),run_name="_pinned_abo_common_training")
+    finally:
+        sys.path.remove(tools)
+    recipe=module["vlm"]
+    need(Path(recipe.__file__).resolve()==(cli_path.parent/"hygon_vlm_recipe.py").resolve(),
+         "ABO_EXACT_COMMON_CLI_SIBLING_PROVIDER")
+    return module,source
+
+
+def run_common(torch, argv, ctx, cli_path, backend):
+    module,source=load_common_cli(cli_path)
     _,cache=read(CACHE,CACHE_BYTES)
     need(cache["bytes"]==CACHE_BYTES and cache["SHA256"]==CACHE_SHA,"ABO_EXACT_CACHE_CURRENT_BYTES")
     mapper, mapper_pin=load(RUN/"assets.json")
-    module=runpy.run_path(str(cli_path),run_name="_pinned_abo_common_training")
     entry=module["main"]
     namespace=entry.__globals__
     builder=namespace["build_generation_plan"]
