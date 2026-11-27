@@ -25,3 +25,9 @@
 - **早停和交付**。先取得正学习率参数变化，再完成连续更新和恢复。用开发集决定训练长度，正式盲测前固定主指标、最小改善、配对分组、失败分母、通用能力保持及同预算对照。同底座首选在冻结盲测无收益时归档结果，转备选。交付须有原底座身份、可加载权重或适配器、新进程复验和启动命令。
 
 [前序执行单及证据索引](specialized-posttraining-12-accelerated-execution-20261127.zh-CN.md) · [InternVL 八 rank 原失败](../../results/bw1000/2026-11-27/specialized-internvl-4638-cpu-sampler-gloo-filestore-no-permutation.json) · [Gemma 与 HunyuanVideo 实测补记](../../results/bw1000/2026-11-27/training-cluster-daily-2055-domain-readback-and-fleet.zh-CN.md)
+
+## 本轮实际产物
+
+- LLaVA 的 CLEVR 小批已落盘。独立解码核验 96 张原图、零内容哈希重复。64 条训练行含场景图监督，16 条开发行和 16 条校准行不带答案。只读了官方 ZIP 的约 69.5 MB 范围。目标权重和原生处理仍待核，真实图片盲测另走 COCO 外测。 [样本与独立解码回执](../../results/bw1000/2026-11-27/specialized-llava-clevr-official96-stage-and-independent-decode.json)
+- InternVL 的目标零 GRES 诊断 `1103606.4639` 已终结。八个进程全部完成载入并进入 Gloo 初始化，返回 0/8，采样未开始，监督器回收了全部进程。下一次只改 FileStore 到独立验证的节点本地文件系统，保留采样器和运行设置。 [目标终态及八 rank 证据](../../results/bw1000/2026-11-27/specialized-internvl-4639-eight-ranks-stalled-in-gloo-init.json)
+- Z-Image 复核了现有 8 个提示、16 对和 32 个计划生成槽，以及原 CP25 与基础状态摘要。沿原渲染包推进，仍需两名已确认的独立评审、生成前盲序和目标端准入。 [原生执行交接](../../code/bw1000/training-zimage-style18-native-heldout-render-v1/HANDOFF.md)
