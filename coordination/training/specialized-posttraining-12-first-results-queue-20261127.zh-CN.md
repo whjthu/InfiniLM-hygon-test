@@ -32,6 +32,8 @@
 
 已下载官方 ZIP 中约 109 MB 的唯一训练成员。流式校验原压缩流和解压后标注，覆盖 943,000 条训练问题，其中 438,964 条是关系问答，涉及 58,206 个图像 ID。用 `--questions-compressed-sha` 和 `--questions-uncompressed-bytes` 可直接消费压缩成员。逐图核验和留出绑定后才形成真实训练行。 [原始训练成员盘点](../../results/bw1000/2026-11-27/specialized-internvl-GQA-original-member-stream-inventory.json)
 
+用 Visual Genome 的 COCO/Flickr 双身份和 COCO 逐图许可筛出 4,331 个无歧义的 CC BY 2.0 元数据候选。首批 8 个实际 JPEG 来自 Stanford GQA 官方图像包，均通过 ZIP CRC、JPEG 读回及尺寸核对。按来源组固定 4 个训练、2 个开发预留和 2 个独立预留，生成 4 条真实 Swift 格式输入。下一项是目标环境原生 processor 验证。正式发布前补齐权利人署名，正式评测另行冻结。 [原图与训练输入实查](../../results/bw1000/2026-11-27/specialized-internvl-GQA-coco-vg-original-jpegs-and-four-training-rows.json)
+
 [GQA 官方数据和字段](https://cs.stanford.edu/people/dorarad/gqa/download.html) · [GQA 官方评价](https://cs.stanford.edu/people/dorarad/gqa/evaluate.html) · [TextOCR 官方数据与 TextVQA 图像对应](https://textvqa.org/textocr/dataset/) · [COCO 逐图许可说明](https://cocodataset.org/dataset/termsofuse.htm) · [CHAIR 原论文](https://aclanthology.org/D18-1437/) · [POPE 原论文](https://arxiv.org/abs/2305.10355)
 
 [USGS 素材权利与署名](https://www.usgs.gov/information-policies-and-instructions/copyrights-and-credits) · [ABO 官方数据](https://amazon-berkeley-objects.s3.amazonaws.com/index.html) · [Poly Haven 许可](https://polyhaven.com/license) · [TRELLIS.2 官方训练数据工具](https://github.com/microsoft/TRELLIS.2/blob/main/data_toolkit/README.md) · [VBench 指标定义](https://openaccess.thecvf.com/content/CVPR2024/supplemental/Huang_VBench_Comprehensive_Benchmark_CVPR_2024_supplemental.pdf) · [TUM RGB-D](https://cvg.cit.tum.de/data/datasets/rgbd-dataset) · [ACCAD](https://accad.ohio-state.edu/research/motion-lab/mocap-system-and-data) · [CMU Graphics Lab 动捕](https://mocap.cs.cmu.edu/)
