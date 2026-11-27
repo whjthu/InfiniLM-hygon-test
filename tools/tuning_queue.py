@@ -17,7 +17,7 @@ import subprocess
 import time
 from uuid import uuid4
 
-from training_dispatch_allocation import REPLACEMENT_KIND, REPLACEMENT_LEDGER, allocation
+from training_dispatch_allocation import REPLACEMENT_KIND, REPLACEMENT_LEDGER, allocation, stale_step_projection
 
 ACTIVE = ('RESERVED', 'DISPATCHING', 'SUBMITTED', 'UNKNOWN')
 DIRECT_STAGE = 'training80-direct'
@@ -234,6 +234,7 @@ def training80_inventory(fleet):
             membership['distinct_nodes'] == 80 and membership['allocated_DCU'] == 640,
             'training80 Slurm inventory is incomplete')
     placements = {}
+    physical_probe_only = stale_step_projection(fleet)
     for parent, observation in parents.items():
         require(observation['state'] == 'RUNNING' and observation['ledger_exact'] is True and
                 observation['nodes'] == 40 and observation['allocated_DCU'] == 320,
@@ -253,7 +254,7 @@ def training80_inventory(fleet):
             for name in expected_nodes:
                 require(name not in placements, 'duplicate training80 ledger node')
                 state = coverage[zone][name]
-                slurm_clear = (name not in active_nodes and state['state'] == 'NO_NUMBERED_STEP' and
+                slurm_clear = (name not in physical_probe_only and name not in active_nodes and state['state'] == 'NO_NUMBERED_STEP' and
                                state['numbered_step_assigned_DCU_bounds'] == [0, 0])
                 placements[name] = (zone, parent, slurm_clear)
     require(len(placements) == 80 and set(placements) == set(fleet['nodes']),
@@ -519,10 +520,18 @@ class Queue:
         if placements is not None:
             planned_nodes = {name for job in selected for name in job['nodes']}
             planned_runs = {job['run'] for job in selected}
+            physical_probe_only = stale_step_projection(fleet)
             coverage = {}
             for name, (zone, parent, slurm_clear) in sorted(placements.items()):
                 node = fleet['nodes'][name]
-                if not slurm_clear or node['active_steps']:
+                candidate = physical_probe_only.get(name, {})
+                if name in physical_probe_only and name in queue_held_nodes:
+                    state = 'queue_held'
+                elif (candidate.get('physical_probe_witness_complete') is True and
+                      all(node.get(key) is True for key in
+                          ('device_probe_observed', 'KFD_clean', 'PID_clean', 'ports_clean', 'membership_valid'))):
+                    state = 'physical_probe_only'
+                elif not slurm_clear or node['active_steps']:
                     state = 'slurm_step_present_or_unverified'
                 elif name in queue_held_nodes:
                     state = 'queue_held'

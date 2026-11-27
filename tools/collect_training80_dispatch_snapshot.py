@@ -12,7 +12,9 @@ import time
 
 from read_training_slurm_membership import snapshot
 from sample_training80_busy import require_pins
-from training_dispatch_allocation import DEVICE_RECEIPT_KINDS, allocation
+from training_dispatch_allocation import (DEVICE_RECEIPT_KINDS, REPLACEMENT_KIND, STALE_STEP_PROBE_SCHEMA,
+                                          STALE_STEP_PROBE_SCOPE, allocation, confirm_stale_step,
+                                          stale_step_candidate, stale_step_verified)
 from tuning_queue import receive_snapshot, require
 
 
@@ -146,13 +148,16 @@ def read_worker_rows(raw, request, parent, nodes, ports, uid):
 
 
 def collect(request, ledger_raw, pins, ports, *, priority_nodes=(), held_nodes=(), priority_only=False,
-            run=None, clock=time.monotonic):
+            stale_step_probe_only=False, run=None, clock=time.monotonic):
     require(re.fullmatch(r'[0-9a-f]{32}', request), 'request ID must be the original 32 hex digest')
     kind, groups, owners = allocation(ledger_raw)
     require_pins(owners, pins)
     ports = validate_ports(ports)
     priority_nodes = validate_scope_nodes(priority_nodes, owners)
     held_nodes = set(validate_scope_nodes(held_nodes, owners))
+    require(not stale_step_probe_only or kind == REPLACEMENT_KIND, 'probe-only mode requires the replacement ledger')
+    require(not stale_step_probe_only or not any(os.environ.get(key) for key in ('SLURM_OVERLAP', 'SRUN_OVERLAP')),
+            'probe-only mode forbids inherited Slurm overlap')
     uid = os.getuid()
     query_run = subprocess.run if run is None else run
     probe_run = run_device_probe if run is None else run
@@ -178,9 +183,41 @@ def collect(request, ledger_raw, pins, ports, *, priority_nodes=(), held_nodes=(
     require(all(parent['state'] == 'RUNNING' and parent['owned_by_observer'] and parent['step_locations_exact']
                 for parent in initial['parents'].values()), 'initial Slurm ownership or step locations unverified')
     candidates = {parent: [] for parent in groups}
-    for row in initial['dispatch_candidates']['ordered_node_checks']:
-        if row['state'] == 'NO_NUMBERED_STEP' and row['node'] not in held_nodes:
-            candidates[row['parent']].append(row['node'])
+    stale_rows = {}
+
+    def exact_query(*args):
+        remaining = deadline - clock()
+        require(remaining > 0, 'exact stale-step witness budget expired')
+        result = query_run(args, capture_output=True, timeout=min(3, remaining), check=True)
+        require(result.returncode == 0 and result.stderr == b'' and len(result.stdout) <= MAX_OUTPUT_BYTES,
+                'exact stale-step witness did not return quietly')
+        return result.stdout.decode('utf-8').strip().splitlines()
+
+    def observe_stale(membership, handle):
+        raw_matches = stale_step_candidate(membership, handle)
+        proof = confirm_stale_step(exact_query, handle)
+        return dict(proof, raw_singleton_timeout=raw_matches)
+
+    def observe_stale_scope(membership):
+        with ThreadPoolExecutor(max_workers=PARALLEL_PROBES) as executor:
+            proofs = executor.map(lambda handle: observe_stale(membership, handle), STALE_STEP_PROBE_SCOPE)
+            return dict(zip(STALE_STEP_PROBE_SCOPE, proofs))
+
+    if stale_step_probe_only:
+        initial_proofs = observe_stale_scope(initial)
+        for handle, (name, _, _) in STALE_STEP_PROBE_SCOPE.items():
+            parent = handle.split('.')[0]
+            require(name in owners and owners[name][0] == parent, 'stale-step probe node differs from ledger')
+            proof = initial_proofs[handle]
+            targets_match = not priority_nodes or name in priority_nodes
+            allowed = stale_step_verified(proof) and name not in held_nodes and targets_match
+            stale_rows[name] = dict(handle=handle, initial=proof, probe_eligible=allowed)
+            if allowed:
+                candidates[parent].append(name)
+    else:
+        for row in initial['dispatch_candidates']['ordered_node_checks']:
+            if row['state'] == 'NO_NUMBERED_STEP' and row['node'] not in held_nodes:
+                candidates[row['parent']].append(row['node'])
 
     def probe(parent, index, nodes):
         batch_request = digest(f'{request}:{parent}:{index}'.encode('ascii'))[:32]
@@ -210,7 +247,11 @@ def collect(request, ledger_raw, pins, ports, *, priority_nodes=(), held_nodes=(
     batch_specs = probe_batches(candidates, priority_nodes, isolate_priority=priority_only)
     scope = 'FULL_FLEET'
     deferred = set()
-    if priority_only:
+    if stale_step_probe_only:
+        scope = 'FOUR_HISTORICAL_TIMEOUTS_PHYSICAL_PROBE_ONLY'
+        batch_specs = [(0, index, parent, index, [name])
+                       for parent, names in candidates.items() for index, name in enumerate(names)]
+    elif priority_only:
         priority_batches = [batch for batch in batch_specs if batch[0] == 0]
         if priority_batches:
             scope = 'PRIORITY_ONLY'
@@ -232,12 +273,20 @@ def collect(request, ledger_raw, pins, ports, *, priority_nodes=(), held_nodes=(
             reports[parent]['batches'].append(receipt)
             reports[parent]['received_nodes'].extend(rows)
             observed_rows.update(rows)
+            if stale_step_probe_only:
+                name, = receipt['requested_nodes']
+                stale_rows[name]['probe_returned_zero'] = receipt.get('returncode') == 0 and name in rows
             for name in set(receipt['requested_nodes']).difference(rows):
                 absent_rows[name] = 'ROW_MISSING' if receipt['state'] == 'RETURNED' else receipt['state']
     for report in reports.values():
         report['received_nodes'].sort()
     membership = snapshot(groups, owner_uid=uid, run_query=query)
     membership['ledger_SHA256'] = digest(ledger_raw)
+    final_proofs = observe_stale_scope(membership) if stale_rows else {}
+    for name, record in stale_rows.items():
+        record['final'] = final_proofs[record['handle']]
+        record['physical_probe_witness_complete'] = (record['probe_eligible'] is True and
+            record.get('probe_returned_zero') is True and stale_step_verified(record['final']))
     nodes = {}
     for name, (parent, zone) in owners.items():
         observation = membership['parents'][parent]
@@ -266,11 +315,14 @@ def collect(request, ledger_raw, pins, ports, *, priority_nodes=(), held_nodes=(
                                              and observation['step_locations_exact']), active_steps=sorted(active),
                            device_probe_step=row.get('step'), probe_error=probe_error)
     require(clock() <= deadline, 'observation budget expired')
-    return dict(request_id=request, observed_epoch=membership['observed_epoch'], complete=True, total_cards=len(owners) * 8,
+    result = dict(request_id=request, observed_epoch=membership['observed_epoch'], complete=True, total_cards=len(owners) * 8,
                 membership=membership, nodes=nodes, probes=reports,
                 requested_priority_nodes=priority_nodes, requested_held_nodes=sorted(held_nodes),
                 device_probe_scope=scope, deferred_device_probe_nodes=sorted(deferred),
                 measured_busy_percent=None, snapshot_kind=kind)
+    if stale_step_probe_only:
+        result['stale_step_probe_only'] = dict(schema=STALE_STEP_PROBE_SCHEMA, nodes=stale_rows)
+    return result
 
 
 def receive(raw, request_started_monotonic, request_id):
@@ -295,6 +347,7 @@ def main():
     host.add_argument('--priority-node', action='append', default=[])
     host.add_argument('--held-node', action='append', default=[])
     host.add_argument('--priority-only', action='store_true')
+    host.add_argument('--stale-step-probe-only', action='store_true')
     node = modes.add_parser('node')
     node.add_argument('request')
     node.add_argument('parent')
@@ -307,7 +360,7 @@ def main():
         require(digest(raw) == args.pci_pins_sha256, 'PCI inventory bytes differ from the pinned source')
         print(json.dumps(collect(args.request, args.ledger.read_bytes(), json.loads(raw), args.port,
                      priority_nodes=args.priority_node, held_nodes=args.held_node,
-                     priority_only=args.priority_only), allow_nan=False))
+                     priority_only=args.priority_only, stale_step_probe_only=args.stale_step_probe_only), allow_nan=False))
 
 
 if __name__ == '__main__':

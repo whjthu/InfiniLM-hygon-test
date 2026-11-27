@@ -3,6 +3,8 @@
 from hashlib import sha256
 import json
 from pathlib import Path
+import re
+import subprocess
 
 from sample_training80_busy import node_map, require
 
@@ -17,6 +19,93 @@ REPLACEMENT_LEDGER = SURVIVOR_LEDGER.with_name('training80-replacement1194900-no
 REPLACEMENT_LEDGER_SHA256 = '11d4cc4798f6533dc4bcf31d82dc2c206035aa498ab3842878a7cb56d688f71d'
 SURVIVOR_LEDGER_SHA256 = '52ef543081bf351b70da3b50a68e84fdfed9a2522f3e26f582e3eb6f6623181e'
 SURVIVOR_PARENT = '1103606'
+STALE_STEP_PROBE_SCOPE = {
+    '1103606.1644': ('f13r4n06', 'training80-dcu-standby-af719c997048-f13r4n06', 'cpu=8,gres/dcu=8,mem=16G,node=1'),
+    '1103606.1646': ('f13r4n09', 'training80-dcu-standby-af719c997048-f13r4n09', 'cpu=8,gres/dcu=8,mem=16G,node=1'),
+    '1194900.188': ('f12r3n03', 'training80-dcu-standby-c5db5fbaf6cc-f12r3n03', 'cpu=8,gres/dcu=8,mem=16G,node=1'),
+    '1194900.189': ('f13r4n03', 'training80-admit-b0c43a4cae196c1f4f0a4a9ee71c0950', 'cpu=1,mem=256M,node=1'),
+}
+STALE_STEP_PROBE_SCHEMA = 'training80-four-numbered-timeouts-physical-probe-only-v1'
+
+
+def stale_step_candidate(membership, handle):
+    """Require exact singleton TIMEOUT in an otherwise empty node's raw inventory."""
+    node, _, tres = STALE_STEP_PROBE_SCOPE[handle]
+    parent = membership['parents'].get(handle.split('.')[0], {})
+    if not (parent.get('state') == 'RUNNING' and parent.get('ledger_exact') is True and
+            parent.get('owned_by_observer') is True and parent.get('step_locations_exact') is True):
+        return False
+    local = {step: row for step, row in parent['active_steps'].items() if node in row['member_nodes']}
+    step = local.get(handle, {})
+    return (len(local) == 1 and step.get('member_nodes') == [node] and step.get('state') == 'TIMEOUT' and
+            step.get('membership_qualified') is True and step.get('allocated_TRES') == tres)
+
+
+def confirm_stale_step(run_query, handle):
+    """Return a fail-closed read-only witness using rc0 and quiet stderr at the call site."""
+    node, label, tres = STALE_STEP_PROBE_SCOPE[handle]
+    parent = handle.split('.')[0]
+    proof = dict(controller_exact_timeout=False, queue_clear=False, statistics_empty=False)
+    try:
+        matches = []
+        for line in run_query('scontrol', 'show', 'step', handle, '--oneliner'):
+            terms = [part.split('=', 1) for part in line.split() if '=' in part]
+            fields = dict(terms)
+            require(re.fullmatch(re.escape(parent) + r'\.(?:[0-9]+|batch|extern)', fields.get('StepId', '')),
+                    'unexpected exact-step controller row')
+            if fields['StepId'] == handle:
+                require(len(terms) == len(fields), 'duplicate exact-step controller field')
+                matches.append(fields)
+        proof['controller_exact_timeout'] = len(matches) == 1 and all(
+            matches[0].get(key) == value for key, value in
+            dict(StepId=handle, Name=label, NodeList=node, State='TIMEOUT', TRES=tres).items())
+        proof['queue_clear'] = True
+        seen = set()
+        for line in run_query('squeue', '--steps', '-h', '-j', parent, '-o', '%i|%j|%N'):
+            step, name, members = line.split('|')
+            require(re.fullmatch(re.escape(parent) + r'\.(?:[0-9]+|batch|extern)', step) and name and step not in seen,
+                    'unexpected or duplicate live step in queue')
+            seen.add(step)
+            if step.endswith(('.batch', '.extern')):
+                continue
+            nodes = ([members] if re.fullmatch(r'f[0-9]+r[0-9]+n[0-9]+', members) else
+                     run_query('scontrol', 'show', 'hostnames', members))
+            require(nodes and all(re.fullmatch(r'f[0-9]+r[0-9]+n[0-9]+', name) for name in nodes),
+                    'unproven live queue node list')
+            if step == handle or node in nodes:
+                proof['queue_clear'] = False
+        proof['statistics_empty'] = not run_query('sstat', '-nP', '-j', handle, '-o', 'JobID,NTasks,MaxRSS')
+    except (OSError, UnicodeError, ValueError, subprocess.SubprocessError):
+        proof['query_complete'] = False
+    else:
+        proof['query_complete'] = True
+    return proof
+
+
+def stale_step_verified(proof):
+    return isinstance(proof, dict) and all(proof.get(key) is True for key in
+        ('controller_exact_timeout', 'queue_clear', 'statistics_empty', 'query_complete', 'raw_singleton_timeout'))
+
+
+def stale_step_projection(fleet):
+    """Read dispatch-side metadata without promoting any projected node to launch clearance."""
+    projection = fleet.get('stale_step_probe_only')
+    if projection is None:
+        return {}
+    require(fleet.get('snapshot_kind') == REPLACEMENT_KIND and projection.get('schema') == STALE_STEP_PROBE_SCHEMA,
+            'stale-step probe scope differs from the active fleet')
+    rows = projection['nodes']
+    require({row['handle']: node for node, row in rows.items()} ==
+            {handle: scope[0] for handle, scope in STALE_STEP_PROBE_SCOPE.items()} and len(rows) == len(STALE_STEP_PROBE_SCOPE),
+            'stale-step probe witness escaped the frozen roster')
+    for node, row in rows.items():
+        handle = row['handle']
+        complete = (row.get('probe_eligible') is True and row.get('probe_returned_zero') is True and
+                    stale_step_verified(row.get('initial')) and stale_step_verified(row.get('final')))
+        require(row.get('physical_probe_witness_complete') is complete and
+                (not complete or stale_step_candidate(fleet['membership'], handle)),
+                'stale-step probe completion differs from raw membership or exact observations')
+    return rows
 
 
 def allocation(raw):

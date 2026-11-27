@@ -14,7 +14,8 @@ import time
 
 from record_qwen_usgs_dev80_absence import JOB as DEV80_JOB, NODES as DEV80_NODES, read_record as dev80_absence
 from training_dispatch_allocation import (DEVICE_RECEIPT_KINDS, REPLACEMENT_KIND, REPLACEMENT_LEDGER,
-                                          SURVIVOR_KIND, SURVIVOR_LEDGER, allocation, survivor_placements)
+                                          SURVIVOR_KIND, SURVIVOR_LEDGER, allocation, stale_step_projection,
+                                          survivor_placements)
 from tuning_queue import (ACTIVE, DIRECT_CLOSED_STATES, DIRECT_STAGE, SNAPSHOT_MAX_AGE_S, TRAINING80_LEDGER,
                           digest, training80_inventory)
 from verify_training80_manifest import verify_package_members
@@ -184,14 +185,19 @@ def fleet_view(snapshot, now, boot_anchor, ledger_path):
         if fresh:
             placements = (survivor_placements(membership, snapshot['nodes'], covered) if kind == SURVIVOR_KIND
                           else training80_inventory(snapshot))
+            physical_probe_only = stale_step_projection(snapshot)
             for node, (zone, parent, slurm_clear) in placements.items():
                 probe = snapshot['nodes'][node]
                 pci = probe['PCIs']
                 need(probe['zone'] == zone and probe['parent'] == parent and len(pci) == len(set(pci)) == 8,
                      'collector PCI or node placement differs')
-                if slurm_clear and probe['active_steps'] == [] and all(probe.get(key) is True for key in
-                        ('device_probe_observed', 'KFD_clean', 'PID_clean', 'membership_valid')):
+                clean = all(probe.get(key) is True for key in
+                            ('device_probe_observed', 'KFD_clean', 'PID_clean', 'membership_valid'))
+                if slurm_clear and probe['active_steps'] == [] and clean:
                     nodes[node]['admission'] = 'clear'
+                elif (physical_probe_only.get(node, {}).get('physical_probe_witness_complete') is True
+                      and clean and probe.get('ports_clean') is True):
+                    nodes[node]['admission'] = 'physical_probe_only'
     return membership, nodes, fresh
 
 
