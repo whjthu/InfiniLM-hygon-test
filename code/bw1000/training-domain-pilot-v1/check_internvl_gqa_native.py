@@ -1,4 +1,5 @@
-"""Check the real InternVL CPU processor and collator on four bound GQA training rows."""
+"""Check the real InternVL CPU processor and collator on bound GQA training rows."""
+import argparse
 import copy
 from hashlib import sha256
 import importlib.metadata
@@ -18,7 +19,7 @@ def pin(path):
     return sha256(path.read_bytes()).hexdigest()
 
 
-def main(root):
+def main(root, expected_rows=4):
     binding = json.loads((root / "BINDING.json").read_bytes())
     data = root / "data"
     model_dir = root / "InternVL3_5-8B-HF"
@@ -30,12 +31,16 @@ def main(root):
         need(not filename.endswith(".safetensors") and pin(model_dir / filename) == expected["SHA256"],
              "EXACT_FROZEN_PROCESSOR_METADATA")
     rows = [json.loads(line) for line in train_path.read_bytes().splitlines()]
-    need(len(rows) == len(binding["images"]) == 4, "FIXED_FOUR_REAL_TRAINING_ROWS")
+    need(expected_rows in {4, 64} and len(rows) == len(binding["images"]) == expected_rows,
+         "FIXED_REAL_TRAINING_ROW_COUNT")
+    used_images = set()
     for row in rows:
         media, = row["images"]
         image = Path(media)
         need(image.parent == data and re.fullmatch(r"[0-9]+\.jpg", image.name)
              and pin(image) == binding["images"][image.name], "EXACT_OFFICIAL_STANFORD_JPEG")
+        need(image.name not in used_images, "DUPLICATE_TRAINING_IMAGE")
+        used_images.add(image.name)
         q, a = row["messages"]
         need(q["role"] == "user" and q["content"].startswith("<image>\n")
              and a["role"] == "assistant" and bool(a["content"].strip()), "ORIGINAL_TRAIN_SUPERVISION_ROLES")
@@ -99,7 +104,7 @@ def main(root):
              "FINITE_NATIVE_IMAGE_TENSOR_REQUIRED")
         records.append(dict(ordinal=ordinal + 1, full_tokens=len(ids), supervised_tokens=int(mask.sum()),
                             supervised_eos=eos_matches, original_prefix_masked=True, pixel_shape=list(pixels.shape)))
-    need(len(records) == 4 and not denied and not torch.cuda.is_initialized(), "ONLY_CPU_PROCESSOR_ALLOWED")
+    need(len(records) == expected_rows and not denied and not torch.cuda.is_initialized(), "ONLY_CPU_PROCESSOR_ALLOWED")
     providers = {label: pin(Path(inspect.getsourcefile(member))) for label, member in (
         ("get_model_processor", get_model_processor), ("get_template", get_template),
         ("collator", template.data_collator))}
@@ -109,4 +114,8 @@ def main(root):
 
 
 if __name__ == "__main__":
-    print(json.dumps(main(Path(sys.argv[1])), sort_keys=True), flush=True)
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("root", type=Path)
+    parser.add_argument("--expected-rows", type=int, choices=(4, 64), default=4)
+    args = parser.parse_args()
+    print(json.dumps(main(args.root, args.expected_rows), sort_keys=True), flush=True)
