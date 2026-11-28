@@ -14,6 +14,7 @@ from stage_sdxl_official_text_encoder import document, save, send, transport
 MANIFEST_SHA = "388a384f576c2e7d599f5475a7ff44fbdc7b6eebfec9a4581168184b7e099f3e"
 ASSET_BYTES = 916425313
 BATCH_BYTES = 12 << 20
+PLAN_SHA = "7ca159f8d2268b836b5d641c190bea7fd01fd5c32dfeff1fe70f47019e9469e9"
 
 
 def need(condition, reason):
@@ -169,9 +170,46 @@ print(json.dumps({'rc':0,'request':REQUEST,'manifest_SHA256':MANIFEST,'completed
 """
 
 
+def frozen_plan(directory):
+    raw = (directory / "PLAN.json").read_bytes()
+    need(digest(raw) == PLAN_SHA, "Frozen transfer plan differs")
+    return raw
+
+
+def target_status(directory, prefix, request):
+    outcome = send(transport(), request=request,
+                   program=f"MANIFEST={MANIFEST_SHA!r}\nREQUEST={request!r}\n" + STATUS,
+                   data=frozen_plan(directory), send_token=prefix.with_suffix(".send.json"), outcome_seconds=75)
+    save(prefix.with_suffix(".transport.json"), document(outcome))
+    return outcome
+
+
+def unsent_original(directory, index, roster_sha):
+    original = directory / f"batch-{index:03d}"
+    intent = json.loads(original.with_suffix(".intent.json").read_bytes())
+    raw = original.with_suffix(".transport.json").read_bytes()
+    prior = json.loads(raw)
+    need(intent["index"] == index and intent["roster_SHA256"] == roster_sha and intent["request"] == prior["request"]
+         and prior["remote_outcome"] == "PAYLOAD_NOT_SENT" and prior["authority_verified"] is False
+         and prior["payload_send_attempted"] is False and prior["payload_flushed"] is False
+         and prior["response"] is None, "Original batch transport did not prove zero payload attempts")
+    return dict(original_request=intent["request"], original_transport_SHA256=digest(raw))
+
+
+def check_absent(directory, prefix, index):
+    outcome = target_status(directory, prefix, uuid4().hex)
+    observed = outcome["response"]
+    need(outcome["remote_outcome"] == "RESPONSE_OBSERVED" and observed["rc"] == 0
+         and observed["request"] == outcome["request"] and observed["manifest_SHA256"] == MANIFEST_SHA
+         and index in observed["absent"] and all(index not in observed[key]
+             for key in ("completed", "incomplete", "failed_verification")),
+         "Fresh target check did not confirm the original batch is absent")
+    return dict(target_check_request=outcome["request"], target_check_SHA256=digest(document(outcome)))
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("mode", choices=("plan", "transfer", "status"))
+    parser.add_argument("mode", choices=("plan", "transfer", "status", "retry-unsent"))
     parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument("--local-root", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
@@ -191,24 +229,23 @@ def main():
         return 0
     if args.mode == "status":
         request = uuid4().hex
-        plan = (args.out / "PLAN.json").read_bytes()
-        need(digest(plan) == "7ca159f8d2268b836b5d641c190bea7fd01fd5c32dfeff1fe70f47019e9469e9",
-             "Frozen transfer plan differs")
-        prefix = args.out / f"status-{request}"
-        outcome = send(transport(), request=request,
-                       program=f"MANIFEST={MANIFEST_SHA!r}\nREQUEST={request!r}\n" + STATUS,
-                       data=plan, send_token=prefix.with_suffix(".send.json"), outcome_seconds=75)
-        save(prefix.with_suffix(".transport.json"), document(outcome))
+        outcome = target_status(args.out, args.out / f"status-{request}", request)
         print(json.dumps({key: outcome[key] for key in ("request", "remote_outcome", "response")}, sort_keys=True))
         return 0 if outcome["remote_outcome"] == "RESPONSE_OBSERVED" else 2
     index = args.batch
     need(type(index) is int and 0 <= index < len(planned), "Select an exact frozen batch")
     request = uuid4().hex
     body, roster_sha = packet(index, planned[index], args.local_root.resolve(strict=True))
-    frozen = json.loads((args.out / "PLAN.json").read_bytes())[index]
+    frozen = json.loads(frozen_plan(args.out))[index]
     need(frozen["index"] == index and frozen["roster_SHA256"] == roster_sha, "Frozen batch plan differs")
     prefix = args.out / f"batch-{index:03d}"
-    save(prefix.with_suffix(".intent.json"), document(dict(request=request, index=index, roster_SHA256=roster_sha)))
+    intent = dict(request=request, index=index, roster_SHA256=roster_sha)
+    if args.mode == "retry-unsent":
+        prefix = args.out / f"batch-{index:03d}-retry1"
+        need(not prefix.with_suffix(".intent.json").exists(), "One recovery attempt already exists")
+        intent.update(unsent_original(args.out, index, roster_sha))
+        intent.update(check_absent(args.out, args.out / f"batch-{index:03d}-retry-check-{request}", index))
+    save(prefix.with_suffix(".intent.json"), document(intent))
     program = f"MANIFEST={MANIFEST_SHA!r}\nROSTER={roster_sha!r}\nREQUEST={request!r}\nINDEX={index}\n" + REMOTE
     outcome = send(transport(), request=request, program=program, data=body,
                    send_token=prefix.with_suffix(".send.json"), packet_cap=28 << 20, write_seconds=110,
