@@ -121,7 +121,7 @@ def run(provider, token_root, tower_roots, captions_path):
             and not torch.cuda.is_initialized(), "Expected distinct conditions and zero GPU initialization")
     return dict(schema="SDXL_DOMAIN_TWO_CC0_NATIVE_DUAL_CLIP_CPU_V1", rows=rows, provider_SHA256=PROVIDER_SHA,
                 sequence_shape=list(sequence.shape), pooled_shape=list(pooled.shape), dtype="float32",
-                versions={name: metadata.version(name) for name in ("torch", "transformers", "diffusers")},
+                versions={name: metadata.version(name) for name in ("torch", "transformers")},
                 actual_towers_loaded=2, actual_captions_conditioned=2, gpu_initialized=False, optimizer_updates=0)
 
 
