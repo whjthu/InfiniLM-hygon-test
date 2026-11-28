@@ -7,3 +7,5 @@
 当前原生读取器认定的是历史 WaterBottle/Corset 样本组。要纳入统一框架的领域训练，请绑定新样本组，先实际读回原生冻结特征，核可训练的原 36 个张量，再记录真实优化器更新。当前结果覆盖样本制备与 CPU 核验。 [原生接口核查](../../../results/bw1000/2026-11-28/specialized-sf3d-metal-tool-chest-point-contract-and-head-compatibility.json)
 
 `prepare.py` 是单样本本机读取资格的原执行文件，复现时放在 `local-only/sf3d-cc0-constant-material-native-cohort-v1/`，同一检出还需保留原生 overlay 与上一步私有样本。它绑定原读取器摘要并保留 FP32 标签形状，原训练后端至少要求两个输入位置。 [本机读取回执](../../../results/bw1000/2026-11-28/specialized-sf3d-constant-pbr-one-view-native-parser-local.json)
+
+直接运行 `python -B prepare_cohort.py --local-root <项目的 local-only> --output <新输出目录名>`，将工具柜和漆木凳合成一个训练清单。该脚本核两份渲染回执、实际 RGBA 和材质标签，生成绑定原读取器的双样本配置。复现要保留各自的 `RESULT.json`、`sample.private/` 和原生 overlay。输出 `RESULT.json` 留存顺序反转拒绝实测、输入与标签身份。下一步在目标端提取冻结特征并核 36 个可训练张量。 [双样本读取回执](../../../results/bw1000/2026-11-28/specialized-sf3d-cc0-two-object-native-parser-local.json)
