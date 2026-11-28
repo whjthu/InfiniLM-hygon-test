@@ -72,7 +72,7 @@ test "$shm_owner" = 0 || test "$shm_owner" = "$(id -u)"
 shm=$(mktemp -d "/dev/shm/llava-cp2-order-$1.XXXXXXXX")
 test "$(stat -c %a "$shm")" = 700
 test ! -e "$shm/store"
-/usr/bin/python3 -B /llava-resume/cpu_order.py prepare --output /llava-order --checkpoint /llava-cp2
+/usr/bin/python3 -B /llava-resume/cpu_order.py prepare --output /llava-order --checkpoint "$3"
 cat > /tmp/cpu-ranks/rank_bootstrap.py <<'PYTHON'
 import os
 from pathlib import Path
@@ -104,16 +104,17 @@ def compute(work, request):
     tmp.mkdir(mode=0o700)
     rc = None
     try:
+        checkpoint_mount = f"/{CP2.name}"
         binds = [(work / "source", "/llava-resume", "ro"), (work / "authority", "/llava-cpu-authority", "ro"),
                  (work / "processor", "/llava-processor", "ro"), (work / "output", "/llava-order", "rw"),
-                 (TRAIN, "/llava-train-only", "ro"), (CP2, "/llava-cp2", "ro"), (RUNTIME, "/swift-runtime", "ro"),
+                 (TRAIN, "/llava-train-only", "ro"), (CP2, checkpoint_mount, "ro"), (RUNTIME, "/swift-runtime", "ro"),
                  (VISION, "/vision", "ro"), (tmp, "/tmp", "rw")]
         argv = [APPTAINER, "exec", "--contain", "--no-mount", "home,cwd", "--pwd", "/"]
         for src, dest, mode in binds:
             argv.extend(("--bind", f"{src}:{dest}:{mode}"))
         port = 30500 + int(request[:4], 16) % 2048
         argv.extend((str(IMAGE), "/usr/bin/timeout", "-k", "12s", "285s", "/bin/bash", "--noprofile", "--norc",
-                     "-c", GUEST, "llava-cp2-order", request, str(port)))
+                     "-c", GUEST, "llava-cp2-order", request, str(port), checkpoint_mount))
         rc = subprocess.run(argv, stdin=subprocess.DEVNULL, check=False).returncode
         return rc
     finally:
