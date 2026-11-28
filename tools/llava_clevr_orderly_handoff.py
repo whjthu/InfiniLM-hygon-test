@@ -19,17 +19,15 @@ NODE = "f13r1n14"
 PARENT = "1103606"
 CONTROL_NODE = "f12r2n13"
 PORT = 29871
-HOLDER = "1103606.4869"
-STANDBY_REQUEST = "3896796a9d4348b5af9652c1aee350d8"
+HOLDER = "1103606.4906"
+STANDBY_REQUEST = "5624e701d4c6452597a1adc7a466f166"
 STANDBY_LABEL = f"training80-dcu-standby-{STANDBY_REQUEST[:12]}-{NODE}"
 STANDBY = RESULTS / f"training80-dcu-standby-{STANDBY_REQUEST}"
-PRIOR_HANDOFF = RESULTS / "llava-t04-orderly-control-a8864abd9da34d2f8d1a915965ab9bd4/release.json"
-PRIOR_HANDOFF_SHA = "6abdfd3f039ef1751983c8acd2b860ae09081a7980db45625550d3e7cb10122d"
 PYTHON = "/usr/local/python3.12/bin/python3"
 COLUMNS = "JobIDRaw,JobName%128,State,ExitCode,ElapsedRaw,NodeList,AllocTRES%160,Start,End"
-STAGED = ROOT / "incoming/training-llava-clevr-first2-staged-31e516e9636748dda3087f892841fcee"
-STAGED_SHA = "d588aefbec4620e495fb73b50addfa68f07902a8b0ccbf7a7feda3ea4519e16f"
-SCIENCE = "3efa8e9363d3f2c99a887a17999fb3e3af016feb810a8f51ab21789d8c1f4035"
+STAGED = ROOT / "incoming/training-llava-clevr-first2-swift-prehook-c01f84a87d234b89a287be673bfd8d5e"
+STAGED_SHA = "58041d441428d424d7a1520d17a989d2b41b4f2d9330250dfb36d804f4b7ce24"
+SCIENCE = "b7058dc5ccc472eb2e5eeeb731908166416da7597814c3e8ac9669ad02504e45"
 TENSORS = "0b6ba7ff7701c165a114bc5460262dff4c053390312d086034e5019d8ecace93"
 SNAPSHOT = "2e8592caa8b573aa676884b63c65d5a378540d77c877d885424d934a5c4ebcb8"
 VISION = RESULTS / "training-qwen-vision014-CPU-v2/vision"
@@ -156,13 +154,6 @@ def release_holder(directory, request):
     returned = json.loads(read(terminal))
     require((returned["node"], returned["step"], returned["state"]) == (NODE, HOLDER, "WORKER_RETURNED"),
             "Standby did not return normally")
-    if not handoff and PRIOR_HANDOFF.is_file():
-        old = json.loads(read(PRIOR_HANDOFF, expected=PRIOR_HANDOFF_SHA))
-        require(old["holder_step"] == HOLDER and old["holder_label"] == STANDBY_LABEL
-                and old["mode"] == "ORDERLY_ROOT_HANDOFF" and old["accounting"] == row
-                and old["worker_SHA256"] == worker_sha and old["plan_SHA256"] == plan_sha,
-                "The previous orderly release does not bind this original standby")
-        handoff = True
     return row, worker["pci"], plan_sha, worker_sha, handoff
 
 
