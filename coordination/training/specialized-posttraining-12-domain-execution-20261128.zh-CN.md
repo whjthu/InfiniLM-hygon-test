@@ -25,6 +25,8 @@
 
 - SF3D 已生成并独立读回一张固定视角恒定 PBR 的 256×256 RGBA。20,600 个可见像素、97 个标量取点及三个原生标签形状均已验证，原生特征和训练待验。 [样本回执](../../results/bw1000/2026-11-28/specialized-sf3d-cc0-constant-pbr-cpu-render-and-independent-readback.json)
 - LLaVA 新控制步骤 `1103606.4978` 在旧保底终态证据的原始等待窗口内失败，训练 GPU 未派发。独立 `1103606.4979` 已核对应八卡、KFD/FD 及训练端口。下一次在当前机位独占与原证据均复核后，从已完成的保底终态接管。 [实际终态](../../results/bw1000/2026-11-28/specialized-llava-4978-release-proof-timeout-and-4979-clean.json)
+- LLaVA 后续八卡 `1103606.4983` 正常结束，两步累计 64 次有效前向和 16 条 rank 优化器返回。第一步学习率为 0，第二步学习率为 `0.0001`、参数差 L2 为 `0.426978`。CP2 的 17 个文件已校验，含优化器、调度器和八个 rank 的 RNG。`1103606.4984` 复核了同 boot、八 PCI、设备句柄及端口清场。下一项在统一 Swift 入口从 CP2 恢复，核后续数据顺序和数值，再推进 25 步与留出集。 [实际更新与 CP2](../../results/bw1000/2026-11-28/specialized-llava-4983-eight-rank-first2-cp2-and-4984-clean.json)
+- SF3D 新样本已在本机用原解析逻辑读取 RGBA 与三项 FP32 标签，错误顺序和清单被拒绝。后端至少需要两个样本，第二件用已核 CC0 漆木凳重渲染恒定非金属材质，再验证真实冻结编码器和 36 个原生可训练张量。 [本机读取边界](../../results/bw1000/2026-11-28/specialized-sf3d-constant-pbr-one-view-native-parser-local.json)
 
 | 底座 | 首交付能力和数据 | 下一次实际执行 | 领域验收 |
 |---|---|---|---|
