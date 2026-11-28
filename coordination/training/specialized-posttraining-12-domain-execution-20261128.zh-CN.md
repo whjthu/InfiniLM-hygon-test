@@ -143,3 +143,6 @@ InternVL 接续作业 `1103606.4783` 在第 4 步开始前因生产跳批函数�
 
 - **SDXL 四行训练与恢复已实际通过。** `1194900.2769` 正常结束。独立验收确认 25 步连续训练与 5 步新进程恢复、四份检查点、CP20 第 4 个 epoch 已消费 4 条的游标，以及恢复末态与连续训练末态完全一致。`1194900.2770` 独立清场通过。新 CP25 的领域盲测待跑。 [独立终态](../../results/bw1000/2026-11-28/specialized-sdxl-2769-four-native-rows-25-plus-5-exact-CP20-and-clean.json)
 - **LLaVA 盲测已在目标端就绪。** 16 份原图和原题已复核，32 个输出槽已冻结。上次读到 n14 仍有八卡保底步骤 `1103606.5220`，须完成有证据的接管后开跑。 [目标暂存与当前节点边界](../../results/bw1000/2026-11-28/specialized-llava-val16-v4-answerless-target-stage-and-n14-existing-standby.json)
+
+- **SDXL 新 CP25 已重新读回。** 连续和恢复的适配器均为 11,778,368 字节且内容相同。新六槽生成器固定原有提示、噪声和时间步，复用 12 张对照图，优先比较四行训练对两行训练。新六图待 GPU 执行。 [检查点证据及对照范围](../../results/bw1000/2026-11-28/specialized-sdxl-2769-continuous-cp25-adapter-pins-and-new-six-slot-plan.json)
+- **HY-Motion 已验证一条真实左转试次的根轨迹。** ACCAD Male2 B9 用前 64 帧拟合原 120Hz C3D 和 30Hz BVH，后 64 帧完整、独立 RMS 25.60 mm，低于 40 mm。原 41 点读取器拒绝该表演者的 82 点校准文件。Male2 继续留在开发组，完成标记绑定和 201 维检查后，再将方法应用到独立训练表演者。 [实际原件和结果](../../results/bw1000/2026-11-28/specialized-hymotion-accad-male2-b9-first-independent-root-geometry-and-calibration-roster.json) · [ACCAD 公开数据](https://accad.osu.edu/research/motion-lab/mocap-system-and-data)
