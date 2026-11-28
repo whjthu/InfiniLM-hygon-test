@@ -27,6 +27,7 @@ HELPER_PINS = {
     "probe.py": "446d4d0b27d9eff6488a6ebe07bce959fdf6e81b4f708e805c7c6cd237183aaf",
     "llava_recovered_native_cpu.py": "d94ddf5a68f9eeb2f3fe19396989fd87a2bd5df3bbfe0ab16ceb525f84e782ad",
     "cache_alias.py": "f843bf60d441c82813680f323796aaf9177df8256c8f25fada42fe5164ec9c94",
+    "llava_target_eager_import.py": "fd998f6c192cf6cf8021ba37d34397894852d4fb505759b6e9b46441d4d12ba1",
 }
 CLI_SHA = "97162d10eb5b82cdfadf1ec30a0eac50cc0bc9646140b8342806df9e8e6e07f0"
 CALLBACK = "llava_clevr_first2_native_v1"
@@ -108,6 +109,7 @@ def run(root, model, request, fingerprint_pin):
         need(0 < len(raw) <= 64 * 1024 and sha256(raw).hexdigest() == digest, "EXACT_READONLY_HELPER")
     import probe
     import llava_recovered_native_cpu as recovered
+    import llava_target_eager_import as target_eager
 
     rank = int(os.environ["RANK"])
     owner = json.loads(probe.read(root / "OWNER.json", 8192, os.environ["LLAVA_OWNER_SHA256"]))
@@ -159,7 +161,7 @@ def run(root, model, request, fingerprint_pin):
     from vlm.plugins import llava_onevision
     plugin = FRAMEWORK / "vlm/plugins/llava_onevision.py"
     need(Path(llava_onevision.__file__) == plugin, "ORIGINAL_ONEVISION_PLUGIN")
-    EXPECTED_CLASS = recovered.preimport_verified_class(model, llava_onevision)
+    EXPECTED_CLASS = target_eager.preimport(model, llava_onevision, recovered)
     os.environ.update(LLAVA_RUN=str(root), LLAVA_REQUEST=request, LLAVA_EPOCH=str(epoch),
                       LLAVA_DEADLINE=str(deadline), LLAVA_TENSORS_SHA256=fingerprint_pin)
     sys.argv = [str(entry), *cli(original, model, dataset, root / "train", HERE / "callback.py")]
