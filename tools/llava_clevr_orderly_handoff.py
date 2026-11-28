@@ -65,9 +65,17 @@ def save(path, value):
     return digest(raw)
 
 
+class SlurmQueryUnavailable(RuntimeError):
+    pass
+
+
 def query(*argv):
-    result = subprocess.run(argv, stdin=subprocess.DEVNULL, capture_output=True, timeout=7, check=True)
-    require(not result.stderr and len(result.stdout) <= 2 << 20, "Unexpected numbered Slurm query response")
+    try:
+        result = subprocess.run(argv, stdin=subprocess.DEVNULL, capture_output=True, timeout=7, check=True)
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
+        raise SlurmQueryUnavailable(f"{argv[0]} query failed with {type(error).__name__}") from error
+    if result.stderr or len(result.stdout) > 2 << 20:
+        raise SlurmQueryUnavailable(f"{argv[0]} returned {len(result.stdout)} bytes, stderr SHA256 {digest(result.stderr)}")
     return result.stdout.decode().splitlines()
 
 
@@ -121,6 +129,22 @@ def standby_receipts():
     return digest(expected_bytes), digest(worker_bytes), worker
 
 
+def wait_for_holder_return(terminal, deadline):
+    last_unavailable = None
+    while time.monotonic() < deadline:
+        try:
+            row = exact_row(HOLDER)
+            controller, queue = node_occupancy()
+        except SlurmQueryUnavailable as error:
+            last_unavailable = error
+        else:
+            require(set(controller) <= {HOLDER} and queue <= {HOLDER}, "New work appeared during the handoff")
+            if not controller and not queue and row[2:4] == ["COMPLETED", "0:0"] and terminal.is_file():
+                return row
+        time.sleep(min(1.5, max(0, deadline - time.monotonic())))
+    raise ValueError("The exact standby release has not been proved") from last_unavailable
+
+
 def release_holder(directory, request):
     plan_sha, worker_sha, worker = standby_receipts()
     before = exact_row(HOLDER)
@@ -142,15 +166,7 @@ def release_holder(directory, request):
                                 capture_output=True, timeout=8)
         save(directory / "standby-signal-result.json", dict(rc=signal.returncode, stderr_SHA256=digest(signal.stderr)))
         require(signal.returncode == 0, "Exact standby signal failed")
-    deadline = time.monotonic() + 80
-    while True:
-        row = exact_row(HOLDER)
-        controller, queue = node_occupancy()
-        require(set(controller) <= {HOLDER} and queue <= {HOLDER}, "New work appeared during the handoff")
-        if not controller and not queue and row[2:4] == ["COMPLETED", "0:0"] and terminal.is_file():
-            break
-        require(time.monotonic() < deadline, "The exact standby release has not been proved")
-        time.sleep(1.5)
+    row = wait_for_holder_return(terminal, time.monotonic() + 80)
     returned = json.loads(read(terminal))
     require((returned["node"], returned["step"], returned["state"]) == (NODE, HOLDER, "WORKER_RETURNED"),
             "Standby did not return normally")

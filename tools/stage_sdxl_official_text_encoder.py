@@ -113,6 +113,60 @@ reply(**values)
 """
 
 
+ASSEMBLE = r"""
+plan_bytes=(dest/'plan.json').read_bytes()
+assert 0<len(plan_bytes)<=262144 and pin(plan_bytes)==PLAN_PIN
+plan=json.loads(plan_bytes)
+expected=json.load(sys.stdin)
+assert plan['namespace']==NAMESPACE and len(plan['chunks'])==expected['parts']
+assert (plan['tower'],plan['revision'],plan['bytes'],plan['sha256'])==(expected['tower'],expected['revision'],expected['bytes'],expected['sha256'])
+config=(dest/'config.json').read_bytes()
+assert pin(config)==plan['config_sha256']
+published=dest/'model.safetensors'
+partial=dest/'model.safetensors.assembly-incomplete'
+intent=dest/'assembly-intent.json'
+seal=dest/'assembly-receipt.json'
+assert not any(os.path.lexists(p) for p in (published,partial,intent,seal))
+parts=[]
+position=0
+for index,row in enumerate(plan['chunks']):
+ assert row['index']==index and row['offset']==position and 0<row['bytes']<=4<<20
+ part=dest/f'part-{index:03d}.bin'
+ receipt=dest/f'part-{index:03d}.json'
+ assert not os.path.lexists(dest/f'part-{index:03d}.incomplete')
+ assert part.resolve(strict=True)==part and stat.S_ISREG(part.stat().st_mode) and part.stat().st_size==row['bytes']
+ assert receipt.resolve(strict=True)==receipt
+ ack=json.loads(receipt.read_bytes())
+ assert (ack['plan_sha256'],ack['state'],ack['index'],ack['bytes'],ack['sha256'])==(PLAN_PIN,'PART',index,row['bytes'],row['sha256'])
+ parts.append((part,row))
+ position+=row['bytes']
+assert position==plan['bytes']
+os.umask(0o077)
+save(intent,doc(dict(request=REQUEST,plan_sha256=PLAN_PIN,parts=len(parts),bytes=position)))
+whole=sha256()
+with partial.open('xb') as output:
+ for part,row in parts:
+  with part.open('rb') as source:
+   raw=source.read(row['bytes']+1)
+  assert len(raw)==row['bytes'] and pin(raw)==row['sha256']
+  output.write(raw)
+  whole.update(raw)
+ output.flush()
+ os.fsync(output.fileno())
+assert partial.stat().st_size==plan['bytes'] and whole.hexdigest()==plan['sha256']
+reread=sha256()
+with partial.open('rb') as source:
+ for raw in iter(lambda:source.read(4<<20),b''):
+  reread.update(raw)
+assert reread.hexdigest()==whole.hexdigest()
+os.link(partial,published)
+partial.unlink()
+values=dict(state='PUBLISHED',parts=len(parts),bytes=position,sha256=whole.hexdigest(),config_sha256=pin(config),whole_readback=True)
+save(seal,doc(dict(request=REQUEST,plan_sha256=PLAN_PIN,**values)))
+reply(**values)
+"""
+
+
 def transport():
     path = LOCAL / "run-minicpm-sdpa-target-asset-preflight-original.py"
     raw = path.read_bytes()
@@ -123,14 +177,14 @@ def transport():
     return client.ssh(REPO.parent)
 
 
-def transmit(ssh, root, namespace, plan_sha, suffix, data, *, label, index=None):
+def transmit(ssh, root, namespace, plan_sha, suffix, data, *, label, index=None, outcome_seconds=40):
     for _ in range(2):
         request = uuid4().hex
         bindings = dict(ROOT=ROOT, NAMESPACE=namespace, REQUEST=request, PLAN_PIN=plan_sha, INDEX=index)
         source = "\n".join(f"{key}={value!r}" for key, value in bindings.items()) + "\n" + BASE + suffix
         result = send(ssh, request=request, program=source, data=data, packet_cap=10 << 20,
                       send_token=root / f"{label}-{request}-send.json", authority_seconds=22,
-                      write_seconds=100, outcome_seconds=40)
+                      write_seconds=100, outcome_seconds=outcome_seconds)
         save(root / f"{label}-{request}.json", document(result))
         print(json.dumps(dict(label=label, request=request, outcome=result["remote_outcome"],
                               response=result["response"]), sort_keys=True), flush=True)
@@ -143,11 +197,35 @@ def transmit(ssh, root, namespace, plan_sha, suffix, data, *, label, index=None)
     raise RuntimeError(f"No original payload was sent for {label}")
 
 
+def assemble(tower):
+    namespace = f"sdxl-{tower.replace('_', '-')}-official-4621659-v1"
+    root = ASSETS / namespace
+    plan = (root / "plan.json").read_bytes()
+    actual = json.loads(plan)
+    size, expected = PINNED[tower]
+    require((actual["namespace"], actual["tower"], actual["revision"], actual["bytes"], actual["sha256"])
+            == (namespace, tower, REVISION, size, expected), "Assembly requires the original official plan")
+    pin = digest(plan)
+    parts = len(actual["chunks"])
+    require(json.loads((root / "all-parts-acknowledged.json").read_bytes()) == dict(plan_sha256=pin, parts=parts),
+            "All original upload acknowledgements are required before assembly")
+    response = transmit(transport(), root, namespace, pin, ASSEMBLE,
+                        document(dict(tower=tower, revision=REVISION, bytes=size, sha256=expected, parts=parts)),
+                        label="assembly", outcome_seconds=300)
+    require((response["state"], response["parts"], response["bytes"], response["sha256"], response["whole_readback"])
+            == ("PUBLISHED", parts, size, expected, True), "Target assembly receipt mismatch")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("tower", choices=PINNED)
-    ap.add_argument("--send", action="store_true")
+    mode = ap.add_mutually_exclusive_group()
+    mode.add_argument("--send", action="store_true")
+    mode.add_argument("--assemble", action="store_true")
     args = ap.parse_args()
+    if args.assemble:
+        assemble(args.tower)
+        return
     path, cfg, plan = prepare(args.tower)
     actual = json.loads(plan)
     pin = digest(plan)
