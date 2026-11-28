@@ -10,7 +10,7 @@ from pathlib import Path
 import stat
 
 
-PROVIDER_SHA = "420a01868d9748ddb2c165d3f76f0647e504d73506afc87f872c2d00e3c1c613"
+PROVIDER_SHA = "b3e85543eaeeb42edd67dca0ffbc54391e4d8fa33b44aa1522e24b31ffc6c7bd"
 TOWERS = (
     ((565, "39b8b2e4b1949e36969caa425b6c81c68bace99198dd9078ce05d16ad401fe7f"),
      (492_265_168, "5c3d6454dd2d23414b56aa1b5858a72487a656937847b6fea8d0606d7a42cdbc")),
