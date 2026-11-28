@@ -21,7 +21,7 @@ PARENT = "1103606"
 NODE = "f13r1n14"
 UID = 154459
 TENSORS = "0b6ba7ff7701c165a114bc5460262dff4c053390312d086034e5019d8ecace93"
-SCIENCE = "6684544502c3a9728cf1ac26789c89ff2ba3653d19310c333851dd34d8196a80"
+SCIENCE = "3efa8e9363d3f2c99a887a17999fb3e3af016feb810a8f51ab21789d8c1f4035"
 PINNED = {
     "snapshot.py": "2e8592caa8b573aa676884b63c65d5a378540d77c877d885424d934a5c4ebcb8",
     "slurm_accounting.py": "15a42839fd887a52e415104dcef2a4a548480be5da380f8cbd6980ddb55d3c0b",
@@ -35,8 +35,8 @@ STEP = re.compile(r"[1-9]\d*\.(?:0|[1-9]\d*)")
 HASH = re.compile(r"[a-f0-9]{64}")
 SUCCESS = ("COMPLETED", "0:0")
 GUARDIAN = "training80-dcu-standby-"
-STAGED = ROOT / "incoming/training-llava-clevr-first2-staged-6183a961974a4caca785d5ba76af4919"
-STAGED_SHA = "eb0d33a644177a3d706dacb51acdf573ce394864066483da093cd898ea64940d"
+STAGED = ROOT / "incoming/training-llava-clevr-first2-staged-31e516e9636748dda3087f892841fcee"
+STAGED_SHA = "d588aefbec4620e495fb73b50addfa68f07902a8b0ccbf7a7feda3ea4519e16f"
 INPUT = ROOT / "incoming/training-llava-clevr-native64-cpu-v1-d14768cf8bac/input"
 MODEL = ROOT / "results/training-llava-original-model18-v1/model"
 RUNTIME = ROOT / "results/training-vlm-swift-offline-runtime-v1"
