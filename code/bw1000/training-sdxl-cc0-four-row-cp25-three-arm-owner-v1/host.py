@@ -22,6 +22,7 @@ IMAGE = ROOT / "containers/dtk26-sandbox-r1"
 PARENT, NODE = "1194900", "f13r4n03"
 TRAINING_PROOF = "41337046173a5f602124966c37ea866fa3d687d393382b428705f8fdf9432219"
 CP25_MANIFEST = "b108ecd38a9ca05ffef58ce5454adc3db9169282d2a2f79a8a057613c4bbe14a"
+CP25_MANIFEST_BYTES = 462247
 OLD_RESULT = "d14e800d2744556a67b9410898522915b3938d52f79080f2f50a6d1751c8a08f"
 OLD_LATENTS = "97fd295d028a65269ee428d016eefc68d7d3ba80a59be7108682159cb61b4fe8"
 CP25_SHA = "7301c4f968e79b93c1ff183b03f2275789d61de06565d8b2c2ea091af27b876a"
@@ -29,7 +30,7 @@ BASE = "686c7cc61b2b8b3862ad47a58376700cf5d2f946ba7c8fca392023335eae16ab"
 R33_HOST = "d8de70e7e492b77c9ad0b504cf6179cd7f4299b2dfab4ba83a7fc8cd1a40853a"
 R33_PROOF = "e5557e400bb7777d54c4e2c86d9595f946b81994847903e81e0faa7c3f5f9dfc"
 RUNTIME = "ae871dd0e3f1193a63367eb7225413559e7973520f8beae96a55ea0d20a5e6af"
-RUNNER = "f96874ae6cd9f301a1d06b1a3f6e038dc9739e6e504372dc6c948a6263e07339"
+RUNNER = "f51ae82f30d34992d9db72e05efc956cb3337283c6457094685ae431b26c4a56"
 PLAN = "b4287b48cff81e86c740d446fa6314514f4102bad86f323dee6d83d679299dc4"
 NEW_ARM = "four_row_cp25"
 FILES = {"device.py": "native.py", "plan.py": "plan.py", "PLAN.json": "PLAN.json", "comparison.py": "comparison.py"}
@@ -103,7 +104,8 @@ def stage(args, base):
     runtime = json.loads(common.read(ARCHIVE / "continuity-runtime.json", RUNTIME, 16 << 10))
     image_id = continuity.proof(runtime, continuity.stamp())
     base.live_runtime(common)
-    common.read(CP25 / "genmlu-checkpoint.json", CP25_MANIFEST, 128 << 10)
+    checkpoint = common.read(CP25 / "genmlu-checkpoint.json", CP25_MANIFEST, CP25_MANIFEST_BYTES)
+    need(len(checkpoint) == CP25_MANIFEST_BYTES, "EXACT_2769_CP25_MANIFEST_EXTENT")
     common.read(ORIGINAL / "result.json", OLD_RESULT, 64 << 10)
     manifest = common.read(args.runner / "SOURCE_FILES.json", RUNNER, 16 << 10)
     manifest_doc = json.loads(manifest)

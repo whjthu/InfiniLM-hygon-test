@@ -17,6 +17,7 @@ INPUT_PROOF = "c1a5ed37c352ccf03f5a4ee9b4a3073e6b70dc8a63cdde1b960322b28efab472"
 ADAPTER_SHA = "7301c4f968e79b93c1ff183b03f2275789d61de06565d8b2c2ea091af27b876a"
 ADAPTER_BYTES = 11778368
 CHECKPOINT_SHA = "b108ecd38a9ca05ffef58ce5454adc3db9169282d2a2f79a8a057613c4bbe14a"
+CHECKPOINT_BYTES = 462247
 CHECKPOINT_STATE = "ee103bf1a4a1b2a43e45b444d132b42545d7a15111b8913bcf234077737609f1"
 TRAIN_STATE = "2d92bb833a6854c5b054a8824b2e52d3f5cd6e4a11a25747486f92d132e08dc7"
 CHECKPOINT_ROOT = Path("/four-row-a9a91b5727d8/continuous/checkpoint-25")
@@ -37,7 +38,9 @@ def checkpoint(args):
     need(args.adapter_sha == ADAPTER_SHA and args.checkpoint_manifest_sha == CHECKPOINT_SHA
          and args.adapter == CHECKPOINT_ROOT / MEMBER and args.checkpoint_manifest == CHECKPOINT_ROOT / MANIFEST,
          "EXACT_2769_CONTINUOUS_CP25_AUTHORITY")
-    manifest = json.loads(read(args.checkpoint_manifest, 128 << 10, args.checkpoint_manifest_sha))
+    raw_manifest = read(args.checkpoint_manifest, CHECKPOINT_BYTES, args.checkpoint_manifest_sha)
+    need(len(raw_manifest) == CHECKPOINT_BYTES, "EXACT_2769_CP25_MANIFEST_EXTENT")
+    manifest = json.loads(raw_manifest)
     keys = {"schema", "boundary", "step", "next_step", "contract", "files", "state_sha256", "integrity_sha256"}
     need(set(manifest) == keys and manifest["schema"] == "sdxl-native-lora-full-step-hip-v1"
          and (manifest["step"], manifest["next_step"]) == (25, 26)

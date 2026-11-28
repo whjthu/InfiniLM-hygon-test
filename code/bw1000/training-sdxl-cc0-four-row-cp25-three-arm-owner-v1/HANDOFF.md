@@ -19,7 +19,7 @@ stage="$R/incoming/sdxl-cc0-four-cp25-six-$prefix-stage"
 "$PY" -I -S -B "$stage/host.py" verify-terminal --request "$request" --stage-sha "$stage_sha"
 ```
 
-Use a fresh 32-hex request and the stage receipt SHA for both commands. The original staged .2675 dependencies remain at their canonical paths. The frozen science manifest SHA-256 is f96874ae6cd9f301a1d06b1a3f6e038dc9739e6e504372dc6c948a6263e07339. Stage consumes no Slurm step.
+Use a fresh 32-hex request and the stage receipt SHA for both commands. The original staged .2675 dependencies remain at their canonical paths. The frozen science manifest SHA-256 is f51ae82f30d34992d9db72e05efc956cb3337283c6457094685ae431b26c4a56. Stage consumes no Slurm step.
 
 Under the shared lock, verify-plan reruns the original scheduler guard, makes one exclusive intent and invokes one exact 2 CPU, 2048 MiB, 0 GRES step with a two-minute cap. Compute validates actual UID, node, cgroup and the live controller record. In the frozen DTK image, the stdlib native verify-plan reads the exact checkpoint manifest and adapter plus the original ledger and six BF16 noises. All material binds are read-only, there is no ROCm bind, and device visibility is explicitly disabled. If accounting lags or the result is unknown, use only verify-terminal to reconcile the same label and do not replay.
 

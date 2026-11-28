@@ -146,3 +146,6 @@ InternVL 接续作业 `1103606.4783` 在第 4 步开始前因生产跳批函数�
 
 - **SDXL 新 CP25 已重新读回。** 连续和恢复的适配器均为 11,778,368 字节且内容相同。新六槽生成器固定原有提示、噪声和时间步，复用 12 张对照图，优先比较四行训练对两行训练。新六图待 GPU 执行。 [检查点证据及对照范围](../../results/bw1000/2026-11-28/specialized-sdxl-2769-continuous-cp25-adapter-pins-and-new-six-slot-plan.json)
 - **HY-Motion 已验证一条真实左转试次的根轨迹。** ACCAD Male2 B9 用前 64 帧拟合原 120Hz C3D 和 30Hz BVH，后 64 帧完整、独立 RMS 25.60 mm，低于 40 mm。原 41 点读取器拒绝该表演者的 82 点校准文件。Male2 继续留在开发组，完成标记绑定和 201 维检查后，再将方法应用到独立训练表演者。 [实际原件和结果](../../results/bw1000/2026-11-28/specialized-hymotion-accad-male2-b9-first-independent-root-geometry-and-calibration-roster.json) · [ACCAD 公开数据](https://accad.osu.edu/research/motion-lab/mocap-system-and-data)
+
+- **LLaVA 的合成场景盲测已实际结束。** `1103606.5232` 在单卡上完成全部 32 个生成，底座和 CP25 各 16 个，全部达到原 128 token 上限，均无 EOS，按冻结口径每臂 **0/16** 可进入内容评分。修复通过了生成与独立清场，领域改善仍无证据。 [独立终态及截断汇总](../../results/bw1000/2026-11-28/specialized-llava-val16-v4-5232-two-arms-all-cap-and-clean.json)
+- **Gemma 下一项针对停在首前向的恢复差异。** 新源码只观测全局 20 步后的第一个微批，在 rank 0/1 记录前后 RNG、训练上下文和既有损失摘要。保持原 8 rank、4 次累积和 25 步调度，到实际更新 21 停止。本地已验，目标仍需新启动范围。 [诊断入口](../../code/bw1000/training-gemma-usgs72-resume21-light-witness-v1/HANDOFF.md)

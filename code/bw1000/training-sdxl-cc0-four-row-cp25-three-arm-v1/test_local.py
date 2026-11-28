@@ -42,8 +42,11 @@ def checkpoint_fixture(root, actual_proof):
     args = SimpleNamespace(training_proof=actual_proof, adapter_sha=sha, checkpoint_manifest_sha=pin,
                            adapter=adapter, checkpoint_manifest=manifest)
     reject(lambda: c.checkpoint(args), "EXACT_2769_CONTINUOUS_CP25_AUTHORITY")
-    with patch.multiple(c, CHECKPOINT_ROOT=cp, ADAPTER_SHA=sha, CHECKPOINT_SHA=pin, ADAPTER_BYTES=adapter.stat().st_size):
+    with patch.multiple(c, CHECKPOINT_ROOT=cp, ADAPTER_SHA=sha, CHECKPOINT_SHA=pin,
+                        CHECKPOINT_BYTES=manifest.stat().st_size, ADAPTER_BYTES=adapter.stat().st_size):
         assert c.checkpoint(args) == b"fixture-adapter"
+        with patch.object(c, "CHECKPOINT_BYTES", manifest.stat().st_size + 1):
+            reject(lambda: c.checkpoint(args), "EXACT_2769_CP25_MANIFEST_EXTENT")
         args.adapter = root / "resume" / c.MEMBER
         reject(lambda: c.checkpoint(args), "EXACT_2769_CONTINUOUS_CP25_AUTHORITY")
         args.adapter = adapter
