@@ -213,7 +213,8 @@ def main():
             and os.environ.get("SLURM_JOB_ID") == PARENT and os.environ["SLURM_STEP_ID"].isdigit()
             and os.environ.get("SLURM_STEP_GPUS") in (None, "", "(null)"), "Exact allocated control CPU scope required")
     control_step = PARENT + "." + os.environ["SLURM_STEP_ID"]
-    [step] = map(fields, query("scontrol", "show", "step", control_step, "--oneliner"))
+    [step] = [row for row in map(fields, query("scontrol", "show", "step", PARENT, "--oneliner"))
+              if row.get("StepId") == control_step]
     cgroup = Path("/proc/self/cgroup").read_text()
     require(re.search(rf"/job_{PARENT}(?:\.scope)?/step_{control_step.split('.')[1]}(?:\.scope)?(?:/|$)",
                       cgroup, re.MULTILINE) is not None, "Control PID is outside the numbered Slurm cgroup")
