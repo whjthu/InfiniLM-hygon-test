@@ -65,8 +65,13 @@ export HF_HOME=/tmp/hf MODELSCOPE_CACHE=/tmp/modelscope HOME=/tmp/home TMPDIR=/t
 export GLOO_SOCKET_IFNAME=lo PYTHONPATH=/swift-runtime/site:/vision OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1
 umask 077
 mkdir -p "$HOME" /tmp/elastic /tmp/cpu-ranks
-test "$(stat -f -c %T "$1")" = tmpfs
-test ! -e "$1/store"
+test "$(stat -f -c %T /dev/shm)" = tmpfs
+test "$(stat -c %a /dev/shm)" = 1777
+shm_owner=$(stat -c %u /dev/shm)
+test "$shm_owner" = 0 || test "$shm_owner" = "$(id -u)"
+shm=$(mktemp -d "/dev/shm/llava-cp2-order-$1.XXXXXXXX")
+test "$(stat -c %a "$shm")" = 700
+test ! -e "$shm/store"
 /usr/bin/python3 -B /llava-resume/cpu_order.py prepare --output /llava-order --checkpoint /llava-cp2
 cat > /tmp/cpu-ranks/rank_bootstrap.py <<'PYTHON'
 import os
@@ -85,38 +90,35 @@ runpy.run_path("/llava-resume/cpu_order.py", run_name="__main__")
 PYTHON
 /usr/bin/python3 -B -m torch.distributed.run --nnodes 1 --nproc-per-node 8 --master-addr 127.0.0.1 \
   --master-port "$2" --log-dir /tmp/elastic /tmp/cpu-ranks/rank_bootstrap.py rank \
-  --output /llava-order --processor /llava-processor --scratch /tmp/cpu-ranks --rendezvous "$1/store"
+  --output /llava-order --processor /llava-processor --scratch /tmp/cpu-ranks --rendezvous "$shm/store"
 /usr/bin/python3 -B /llava-resume/cpu_order.py merge --output /llava-order
+if test -f "$shm/store"; then rm -- "$shm/store"; fi
+rmdir -- "$shm"
 """
 
 
 def compute(work, request):
     require(os.environ["SLURM_JOB_ID"] == PARENT and os.environ["SLURMD_NODENAME"] == NODE
             and os.environ.get("SLURM_STEP_GPUS") in (None, "", "(null)"), "Unexpected allocated CPU node or GRES")
-    require(subprocess.check_output(["stat", "-f", "-c", "%T", "/dev/shm"], text=True).strip() == "tmpfs",
-            "Node-local tmpfs FileStore is required")
     tmp = Path("/tmp") / f"llava-cp2-order-{request}"
-    shm = Path("/dev/shm") / f"llava-cp2-order-{request}"
     tmp.mkdir(mode=0o700)
-    shm.mkdir(mode=0o700)
     rc = None
     try:
         binds = [(work / "source", "/llava-resume", "ro"), (work / "authority", "/llava-cpu-authority", "ro"),
                  (work / "processor", "/llava-processor", "ro"), (work / "output", "/llava-order", "rw"),
                  (TRAIN, "/llava-train-only", "ro"), (CP2, "/llava-cp2", "ro"), (RUNTIME, "/swift-runtime", "ro"),
-                 (VISION, "/vision", "ro"), (tmp, "/tmp", "rw"), (shm, str(shm), "rw")]
+                 (VISION, "/vision", "ro"), (tmp, "/tmp", "rw")]
         argv = [APPTAINER, "exec", "--contain", "--no-mount", "home,cwd", "--pwd", "/"]
         for src, dest, mode in binds:
             argv.extend(("--bind", f"{src}:{dest}:{mode}"))
         port = 30500 + int(request[:4], 16) % 2048
         argv.extend((str(IMAGE), "/usr/bin/timeout", "-k", "12s", "285s", "/bin/bash", "--noprofile", "--norc",
-                     "-c", GUEST, "llava-cp2-order", str(shm), str(port)))
+                     "-c", GUEST, "llava-cp2-order", request, str(port)))
         rc = subprocess.run(argv, stdin=subprocess.DEVNULL, check=False).returncode
         return rc
     finally:
         if rc == 0:
-            for path in (shm, tmp):
-                shutil.rmtree(path)
+            shutil.rmtree(tmp)
 
 
 def observe(label):
