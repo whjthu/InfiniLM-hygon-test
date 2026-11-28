@@ -137,3 +137,6 @@ InternVL 接续作业 `1103606.4783` 在第 4 步开始前因生产跳批函数�
 - **Gemma** 优先修复已观察到的 CP20 恢复第 21 步差异，并用同题独立盲测复用已封存的 52/96 对 40/96。恢复和通用保持补齐后核验候选包。
 - **LLaVA** 已有八卡真实更新及 CP25。目标 CPU 原生前向已确认视觉首轮带图、第二轮复用历史且不再传图，缓存长度为 0→227→228。正在将这条修复接回冻结的 Val16 两臂 GPU 盲测，准备后才启动正文生成。 [两次真实原生前向](../../results/bw1000/2026-11-28/specialized-llava-5226-native-cache-fix-227-prefill-one-decode-zero-gres.json)
 - **SDXL** 四条真实图像行已过目标原生读取。下一项严格执行 25 步连续 + 从本次 CP20 在新进程恢复 5 步，检查真实样本游标和最终状态。现有六对图片先完成独立盲评，保持三件盲测资产隔离。 [四行训练作业范围](../tasks/training-sdxl-cc0-four-full25-cp20-r33-owner-v1.json)
+
+- **SDXL 已取得真实训练步骤编号。** `1194900.2769` 在目标端实际运行，一张 DCU、8 CPU。独立零卡准入 `1194900.2767` 与 owner 前检 `1194900.2768` 均正常终结，等待连续训练与恢复的更新账。 [首次运行证据](../../results/bw1000/2026-11-28/specialized-sdxl-2769-four-row-native-full25-cp20-first-numbered-running.json)
+- **LLaVA Val16 修复已并入新执行包。** 冻结 16 个图文输入和 32 个输出槽，原底座与 CP25 各占 16 个槽。实际 GPU 执行必须同时验证基础权重、适配器、修复命中、完整分母和独立清场。 [配对盲测任务](../tasks/training-llava-clevr-val16-native-cache-v4.json)
