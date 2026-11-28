@@ -140,3 +140,6 @@ InternVL 接续作业 `1103606.4783` 在第 4 步开始前因生产跳批函数�
 
 - **SDXL 已取得真实训练步骤编号。** `1194900.2769` 在目标端实际运行，一张 DCU、8 CPU。独立零卡准入 `1194900.2767` 与 owner 前检 `1194900.2768` 均正常终结，等待连续训练与恢复的更新账。 [首次运行证据](../../results/bw1000/2026-11-28/specialized-sdxl-2769-four-row-native-full25-cp20-first-numbered-running.json)
 - **LLaVA Val16 修复已并入新执行包。** 冻结 16 个图文输入和 32 个输出槽，原底座与 CP25 各占 16 个槽。实际 GPU 执行必须同时验证基础权重、适配器、修复命中、完整分母和独立清场。 [配对盲测任务](../tasks/training-llava-clevr-val16-native-cache-v4.json)
+
+- **SDXL 四行训练与恢复已实际通过。** `1194900.2769` 正常结束。独立验收确认 25 步连续训练与 5 步新进程恢复、四份检查点、CP20 第 4 个 epoch 已消费 4 条的游标，以及恢复末态与连续训练末态完全一致。`1194900.2770` 独立清场通过。新 CP25 的领域盲测待跑。 [独立终态](../../results/bw1000/2026-11-28/specialized-sdxl-2769-four-native-rows-25-plus-5-exact-CP20-and-clean.json)
+- **LLaVA 盲测已在目标端就绪。** 16 份原图和原题已复核，32 个输出槽已冻结。上次读到 n14 仍有八卡保底步骤 `1103606.5220`，须完成有证据的接管后开跑。 [目标暂存与当前节点边界](../../results/bw1000/2026-11-28/specialized-llava-val16-v4-answerless-target-stage-and-n14-existing-standby.json)
