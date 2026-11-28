@@ -137,7 +137,8 @@ class LlavaClevrFirstTwo(TrainerCallback):
         self.original_loss = self.trainer.compute_loss
         self.trainer._prepare_inputs = self.prepare
         self.trainer.compute_loss = self.loss
-        self.handles.extend((model.register_forward_pre_hook(self.forward, with_kwargs=True),
+        # Swift's multimodal hook consumes input_ids when it prepares inputs_embeds.
+        self.handles.extend((model.register_forward_pre_hook(self.forward, with_kwargs=True, prepend=True),
                              optimizer.register_step_pre_hook(self.optimizer_pre),
                              optimizer.register_step_post_hook(self.optimizer_post)))
         self.report("start.json", initial_SHA256=initial, planned_forwards=8,
