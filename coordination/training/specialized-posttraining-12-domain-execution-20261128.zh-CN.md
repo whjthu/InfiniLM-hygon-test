@@ -154,3 +154,5 @@ InternVL 接续作业 `1103606.4783` 在第 4 步开始前因生产跳批函数�
 
 - **HY-Motion B9 校准标记已对齐。** 动作的 41 个 `male2:` 全名与校准文件中有效的 41 路顺序一致。其余 41 个无前缀通道在 360 帧全无有效点。已冻结按全名和有效性选轨，继续核关节语义和 128×201 原生缓存。 [标记核验](../../results/bw1000/2026-11-28/specialized-hymotion-b9-calibration-41-live-namespaced-tracks.json)
 - **SF3D 两条 CC0 样本进入权重门。** 目标端原 A100 权重目的目录仍缺两个固定文件。公开官方仓库有访问门槛。保留两条已读输入，等有权使用的精确底座到位后立刻提取特征，再启动 36 张量材质头的首轮更新。 [目标目录核验](../../results/bw1000/2026-11-28/specialized-sf3d-original-weight-destination-metadata-recheck.json)
+
+- **SDXL 新六图的对照评分已归档。** `1194900.2823` 零卡评分 6/6，无缺失。三资产家族等权 CLIP ViT-B/32 余弦，四行 CP25 比基座高 0.03243，比两行 CP25 低 0.00576。保留两行 CP25 作为主观盲评的优先候选，保留四行检查点及恢复证据。盲评、独立扩大样本和正式 FID 待验。 [原评分及独立复算](../../results/bw1000/2026-11-28/specialized-sdxl-2823-six-new-images-three-arm-clip-diagnostic.json)
