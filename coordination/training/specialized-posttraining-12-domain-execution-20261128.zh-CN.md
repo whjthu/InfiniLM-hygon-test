@@ -151,3 +151,6 @@ InternVL 接续作业 `1103606.4783` 在第 4 步开始前因生产跳批函数�
 - **Gemma 下一项针对停在首前向的恢复差异。** 新源码只观测全局 20 步后的第一个微批，在 rank 0/1 记录前后 RNG、训练上下文和既有损失摘要。保持原 8 rank、4 次累积和 25 步调度，到实际更新 21 停止。本地已验，目标仍需新启动范围。 [诊断入口](../../code/bw1000/training-gemma-usgs72-resume21-light-witness-v1/HANDOFF.md)
 
 - **SDXL 配对盲测图已备齐。** `1194900.2821` 用四行训练的 CP25 生成 6 张新图。独立终态和 `1194900.2822` 清场通过。复用原底座与两行 CP25 的 12 张对照图，核实六组原噪声和时间步一致。18 张图待评分，领域验收保持待定。 [独立生成与配对证据](../../results/bw1000/2026-11-28/specialized-sdxl-2821-four-row-cp25-six-images-and-three-arm-index.json)
+
+- **HY-Motion B9 校准标记已对齐。** 动作的 41 个 `male2:` 全名与校准文件中有效的 41 路顺序一致。其余 41 个无前缀通道在 360 帧全无有效点。已冻结按全名和有效性选轨，继续核关节语义和 128×201 原生缓存。 [标记核验](../../results/bw1000/2026-11-28/specialized-hymotion-b9-calibration-41-live-namespaced-tracks.json)
+- **SF3D 两条 CC0 样本进入权重门。** 目标端原 A100 权重目的目录仍缺两个固定文件。公开官方仓库有访问门槛。保留两条已读输入，等有权使用的精确底座到位后立刻提取特征，再启动 36 张量材质头的首轮更新。 [目标目录核验](../../results/bw1000/2026-11-28/specialized-sf3d-original-weight-destination-metadata-recheck.json)
