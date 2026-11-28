@@ -23,6 +23,8 @@ HOLDER = "1103606.4869"
 STANDBY_REQUEST = "3896796a9d4348b5af9652c1aee350d8"
 STANDBY_LABEL = f"training80-dcu-standby-{STANDBY_REQUEST[:12]}-{NODE}"
 STANDBY = RESULTS / f"training80-dcu-standby-{STANDBY_REQUEST}"
+PRIOR_HANDOFF = RESULTS / "llava-t04-orderly-control-a8864abd9da34d2f8d1a915965ab9bd4/release.json"
+PRIOR_HANDOFF_SHA = "6abdfd3f039ef1751983c8acd2b860ae09081a7980db45625550d3e7cb10122d"
 PYTHON = "/usr/local/python3.12/bin/python3"
 COLUMNS = "JobIDRaw,JobName%128,State,ExitCode,ElapsedRaw,NodeList,AllocTRES%160,Start,End"
 STAGED = ROOT / "incoming/training-llava-clevr-first2-staged-6183a961974a4caca785d5ba76af4919"
@@ -154,6 +156,13 @@ def release_holder(directory, request):
     returned = json.loads(read(terminal))
     require((returned["node"], returned["step"], returned["state"]) == (NODE, HOLDER, "WORKER_RETURNED"),
             "Standby did not return normally")
+    if not handoff and PRIOR_HANDOFF.is_file():
+        old = json.loads(read(PRIOR_HANDOFF, expected=PRIOR_HANDOFF_SHA))
+        require(old["holder_step"] == HOLDER and old["holder_label"] == STANDBY_LABEL
+                and old["mode"] == "ORDERLY_ROOT_HANDOFF" and old["accounting"] == row
+                and old["worker_SHA256"] == worker_sha and old["plan_SHA256"] == plan_sha,
+                "The previous orderly release does not bind this original standby")
+        handoff = True
     return row, worker["pci"], plan_sha, worker_sha, handoff
 
 

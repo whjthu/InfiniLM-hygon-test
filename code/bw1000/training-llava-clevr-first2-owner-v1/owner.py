@@ -288,7 +288,7 @@ def runtime_command(auth, run, scratch):
     return [*argv, IMAGE.as_posix(), "/bin/bash", "--noprofile", "--norc", "-c", shell, "t04-first2",
             "-m", "torch.distributed.run", "--nnodes", "1", "--nproc-per-node", "8", "--master-addr", "127.0.0.1",
             "--master-port", str(auth["port"]), "--log-dir", "/tmp/elastic",
-            "/llava-source/train.py", "--run", "/llava-run", "--model", "/t04-model",
+            "--", "/llava-source/train.py", "--run", "/llava-run", "--model", "/t04-model",
             "--request", auth["request"], "--fingerprint-sha256", TENSORS]
 
 

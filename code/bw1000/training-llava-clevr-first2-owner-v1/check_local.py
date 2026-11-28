@@ -32,6 +32,8 @@ class OwnerTests(unittest.TestCase):
         self.assertFalse(any("/usr/local/python3.12/bin/python3" in word for word in guest))
         self.assertIn("/usr/local/hyhal:/opt/hyhal:ro", guest)
         self.assertNotIn("/opt/hyhal:/opt/hyhal:ro", guest)
+        worker = guest.index("/llava-source/train.py")
+        self.assertEqual(guest[worker - 1:worker + 3], ["--", "/llava-source/train.py", "--run", "/llava-run"])
         self.assertTrue(owner.tres("cpu=8,gres/dcu=8,mem=16G,node=1", 8, 8, 16384))
         self.assertFalse(owner.tres("cpu=8,gres/dcu=8,mem=16G,node=1,node=1", 8, 8, 16384))
         self.assertFalse(owner.tres("cpu=2,gres/dcu=8,mem=2G,node=1", 0, 2, 2048))
