@@ -1,0 +1,78 @@
+{
+  "schema": "SDXL_NATIVE_AUDITED_FP32_VAE_OPERAND",
+  "terminating_accounting": [
+    "1194900.2759",
+    "sdxl-cp25-vae-dtype-cpu-edfefc60ca42",
+    "COMPLETED",
+    "0:0",
+    "6",
+    "f13r4n03",
+    "cpu=1,mem=2G,node=1",
+    "2026-11-28T10:01:27",
+    "2026-11-28T10:01:33"
+  ],
+  "actual_fp32_first_vae_projection_fixture": {
+    "actual_GPU_init": false,
+    "cast_output_dtype": "torch.float32",
+    "failed_exact_error_SHA256": "475df7df5842092869f7a4a34399a83fbbde018c7823ceb8fc5ca311f75841dd",
+    "step": "1194900.2759",
+    "torch": "2.10.0"
+  },
+  "exact_original_error_matched": true,
+  "native_pipeline_source_SHA256": "9a5a1d2dd98f38b0171a1bffd39d80e93bc1a8bdbeea5f36444f383c067d286b",
+  "native_source_bytes": 68003,
+  "source_branches": [
+    {
+      "line": 1235,
+      "source": "if torch.backends.mps.is_available():"
+    },
+    {
+      "line": 1237,
+      "source": "latents = latents.to(latents_dtype)"
+    },
+    {
+      "line": 1262,
+      "source": "needs_upcasting = self.vae.dtype == torch.float16 and self.vae.config.force_upcast"
+    },
+    {
+      "line": 1264,
+      "source": "if needs_upcasting:"
+    },
+    {
+      "line": 1266,
+      "source": "latents = latents.to(next(iter(self.vae.post_quant_conv.parameters())).dtype)"
+    },
+    {
+      "line": 1267,
+      "source": "elif latents.dtype != self.vae.dtype:"
+    },
+    {
+      "line": 1268,
+      "source": "if torch.backends.mps.is_available():"
+    },
+    {
+      "line": 1287,
+      "source": "image = self.vae.decode(latents, return_dict=False)[0]"
+    },
+    {
+      "line": 1290,
+      "source": "if needs_upcasting:"
+    }
+  ],
+  "original_failed_gpu": "1194900.2733",
+  "original_independent_clean": "1194900.2734",
+  "source_raw_receipts": [
+    {
+      "request": "edfefc60ca424ce9896a8d7d7c054269",
+      "SHA256": "0a49fb0ee137b7b96e97aad4ae318dc5b360694bb55afb9640b48013f5d6cbcd"
+    },
+    {
+      "request": "0b12ae676a194ae084a8f60c9b7c7a28",
+      "SHA256": "d43d7e7084cad42f3eacaaa2ea39eb9c4a7f80c582220b659dbce1f6769830bc"
+    }
+  ],
+  "actual_original_GPU_retry": 0,
+  "actual_new_full_VAE_calls": 0,
+  "actual_new_generated_images": 0,
+  "formal_domain_increment": 0
+}
