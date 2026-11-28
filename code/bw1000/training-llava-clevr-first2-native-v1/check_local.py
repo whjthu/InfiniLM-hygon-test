@@ -3,15 +3,32 @@
 import ast
 from hashlib import sha256
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 import train
 import verify
 
 
 class CandidateTests(unittest.TestCase):
+    def test_dynamic_modules_use_eight_distinct_new_cache_directories(self):
+        with tempfile.TemporaryDirectory() as root, patch.dict(os.environ):
+            scratch = Path(root)
+            paths = set()
+            for rank in range(8):
+                path = train.bind_dynamic_module_cache(scratch, rank)
+                self.assertTrue(path.is_dir())
+                self.assertEqual(os.environ["HF_MODULES_CACHE"], str(path))
+                paths.add(path)
+            self.assertEqual(len(paths), 8)
+            with self.assertRaises(FileExistsError):
+                train.bind_dynamic_module_cache(scratch, 0)
+            with self.assertRaisesRegex(ValueError, "BIND_RANK_CACHE_BEFORE_TRANSFORMERS_IMPORT"):
+                train.bind_dynamic_module_cache(scratch, 8)
+
     def test_native_cli_preserves_exact_t04_recipe(self):
         repo = Path(__file__).resolve().parents[3]
         path = repo / "code/bw1000/training-llava-A100-first-updates-v1/original-launch.json"

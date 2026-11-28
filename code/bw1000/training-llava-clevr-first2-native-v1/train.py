@@ -55,6 +55,17 @@ def cli(original, model, dataset, output, callback):
     return args
 
 
+def bind_dynamic_module_cache(scratch, rank):
+    need(type(rank) is int and 0 <= rank < 8 and not any(
+        name == "transformers" or name.startswith("transformers.") for name in sys.modules
+    ), "BIND_RANK_CACHE_BEFORE_TRANSFORMERS_IMPORT")
+    # Transformers copies native Python modules into this cache before importing them.
+    path = scratch / f"onevision-hf-modules-rank-{rank:02d}"
+    path.mkdir(mode=0o700)
+    os.environ["HF_MODULES_CACHE"] = str(path)
+    return path
+
+
 def roster(document, source, binding, expected_train):
     need(set(document) == {"binding_sha256", "train_sha256", "rows"}
          and document["binding_sha256"] == IMAGE_BIND and document["train_sha256"] == expected_train
@@ -128,6 +139,7 @@ def run(root, model, request, fingerprint_pin):
          and stat.S_IMODE(root.stat().st_mode) == 0o700, "PRIVATE_TRAIN_OUTPUT")
     need(all(os.environ.get(key) == "1" for key in
              ("HF_HUB_OFFLINE", "TRANSFORMERS_OFFLINE", "PYTHONDONTWRITEBYTECODE")), "OFFLINE_RUNTIME")
+    module_cache = bind_dynamic_module_cache(Path("/tmp"), rank)
     _, raw = inputs(probe, fingerprint_pin)
     dataset = root / "train-bound.jsonl"
     if rank == 0:
@@ -158,7 +170,10 @@ def run(root, model, request, fingerprint_pin):
     probe.read(entry, 583, CLI_SHA)
     for _ in probe.verified_files(HELPERS / "FRAMEWORK_FILES.json", probe.FRAMEWORK, FRAMEWORK, 393, nested=True):
         pass
+    from transformers.utils import hub
     from vlm.plugins import llava_onevision
+
+    need(Path(hub.HF_MODULES_CACHE) == module_cache, "EXACT_RANK_PRIVATE_MODULE_CACHE")
     plugin = FRAMEWORK / "vlm/plugins/llava_onevision.py"
     need(Path(llava_onevision.__file__) == plugin, "ORIGINAL_ONEVISION_PLUGIN")
     EXPECTED_CLASS = target_eager.preimport(model, llava_onevision, recovered)

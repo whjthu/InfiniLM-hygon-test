@@ -20,6 +20,8 @@ The helper root contains the pinned original files `probe.py` from `training-lla
 
 Register the input observer before Swift's multimodal pre-hook. The original .4901 run verified that all eight ranks entered the training loop with complete collated inputs. Swift then converted `input_ids` to `inputs_embeds` before the previous observer ran, and all ranks failed at that observer. Prepending the observer keeps the input fingerprint at the collated boundary and lets Swift apply its original transformation before the model call. A completed forward still requires a corresponding finite native loss record.
 
+Bind a new `HF_MODULES_CACHE` directory for every rank before Transformers imports. In .4912 a child could not resolve the original OneVision configuration class during dynamic import. The target Transformers copies local model Python source into `HF_MODULES_CACHE` and protects imports with a process-local lock. Separate directories keep simultaneous source copies independent. Model, dataset and non-module cache inputs retain their original bindings.
+
 `TENSORS.json` must come from an independently successful target zero-GRES diagnostic on the same original training inputs. Its fields are `binding_sha256`, `train_sha256` and `rows` with `ordinal`, `row_sha256`, `image_sha256`, `input_sha256` per row. The native fingerprint includes the four collated inputs `input_ids`, `labels`, `attention_mask`, `pixel_values`. Integer casts apply only to the first three. Pixel dtype, shape and list/tuple identity remain exact. The worker checks the prepared input and actual model forward separately. If a provider changes those tensors between the two boundaries, the rank preserves the type/shape evidence before refusing the forward.
 
 ## Inner launch
