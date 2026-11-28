@@ -2,6 +2,30 @@
 
 首批按每个底座一个可独立加载的领域适配器或头权重推进。先验收已取得的检查点，再接续训练；同时为尚未取得原生更新的底座准备最小可运行样本。下列留出数量是首轮执行预算，正式独立盲测按来源分组，在训练和查看候选结果前冻结。已有正式冻结的配方和阈值按原文件执行。
 
+## 加速排期与每个底座的下一件产物
+
+三组并行准备。目标端能使用现有检查点时，先完成独立评分或载入；还缺首步证据时，先交一条源文件可追溯、原生入口可读的训练样本。训练与评分使用统一框架中已合格的模型入口，样本准备在 CPU 单独进行。训练优先使用已核准的原拓扑，每次交接只替换实际需要的保底资源。
+
+| 优先组 | 底座 | 最近可交付的产物和后续进入条件 |
+|---|---|---|
+| A | Gemma | 封存 USGS CP25 领域盲测 52/96 对 40/96。补齐 TextVQA 2,275 张未核图片并排除训练重叠，接同题保持性和 COCO CIDEr；另定位从 CP20 恢复的第 21 步差异。已有候选权重优先兑现。 |
+| A | InternVL | 复用 GQA CP25、504 个逐值核验的 LoRA 张量及已冻结的 96 图。先对账原载体是否送达，再做 192 个配对预测。查询和判断各 48 题，按图 bootstrap。原传输结果未知时保留原请求。 |
+| A | MiniCPM | 优先独立评分现有七个商品组的 28 条封存输出，并保留可读与拒答分母。原端评分需要同端已有、允许使用的答案与冻结评分器。并行选 Open Food Facts 新商品组，逐图核共享条款及跨家族隔离，扩足后再做连续更新。 |
+| A | LLaVA | 对目标端已核的 64 个 CLEVR 样本走原八卡、eager 的 Swift 入口。首批取得 64 次前向、第二步正 LR 下的参数变化与 CP2；其后补真实图片的物体存在判断与自由描述，分别评分 POPE 和 CHAIR。 |
+| B | SF3D | 先在已验 CC0 网格上真实渲染物体级恒定 PBR，复核 RGBA、线性 albedo、roughness 和 metallic，再把新 cohort 接入冻结特征和原 36 张量材质头。空间变化的贴图继续用于逐点评测研究。 |
+| B | SDXL | 第二文本编码器继续原分片交接，整件校验后产两路官方文本条件，绑定已过 VAE 的工具柜和漆凳，再用原 UNet LoRA 跑首个有效更新。商品颜色与背景按资产家族分层。 |
+| B | HunyuanVideo | 继续取得合法单卡窗口的新进程 CP25 复载，验证 216 个 LoRA 张量和设备释放，通过后跑已固定的三商品配对生成。新训练素材复用 CC0 商品转台及同物体的原生 480p 文本和 VAE 缓存。 |
+| B | Z-Image-Turbo | 先固定独立双评审和盲序，再出 Style18 CP25 的 16 对图。评审条件持续不足时，单独准备 Met Open Access 明确标注的陶瓷，按器形与馆藏对象留出。 [大都会艺术博物馆开放馆藏](https://www.metmuseum.org/about-the-met/policies-and-documents/open-access) |
+| C | Qwen3-VL | 先查原八卡请求，再用 41 条已过原生输入的街景 OCR 监督取得有效更新。ST-VQA 扩小字与多行，先逐图核许可并按原图划分，TextVQA/TextOCR 同图只进入一个集合。 [ST-VQA 发布方](https://rrc.cvc.uab.es/?ch=11) · [原论文](https://openaccess.thecvf.com/content_ICCV_2019/html/Biten_Scene_Text_Visual_Question_Answering_ICCV_2019_paper.html) |
+| C | VGGT | 原 TUM 新进程对照按 20 槽计分，保留一个几何失败。TartanAir v2 备训练时先选一条室内左前相机轨迹，用 NED 位姿、640 像素原图内参和同帧深度核双向重投影，记录原配方 224 像素预处理后的内参。按录制和场景隔离，TUM 留作真实外测。 [TartanAir 相机数据](https://tartanair.org/modalities.html#raw-camera-pose) · [TUM](https://cvg.cit.tum.de/data/datasets/rgbd-dataset) |
+| C | TRELLIS.2 | 用训练组工具柜生成 O-Voxel 和 Shape latent，原 Shape Flow 数据集实读稀疏坐标、形状特征和条件视图，核 1024/2048 上限。录音机或电水壶可替补；保留独立网格组做 Chamfer-L1 与 F-score@1%。 [微软原生数据工具](https://github.com/microsoft/TRELLIS.2/blob/main/data_toolkit/README.md) |
+| C | HY-Motion | ACCAD 按发布者逐条配对标定与同步记录。备选 CMU Subject 91 用于转向，Subject 128 的 Run Stop Run 用于急停后再启动，两者按表演者留出。先核各自骨架、帧率、时序覆盖及原 `<40 mm` 几何门，再生成原生的 128×201 训练张量。 [ACCAD](https://accad.ohio-state.edu/research/motion-lab/mocap-system-and-data) · [CMU 转向](https://mocap.cs.cmu.edu/search.php?subjectnumber=91) · [CMU 急停](https://mocap.cs.cmu.edu/search.php?subjectnumber=128) |
+
+每个底座独立记录数据、训练、恢复、领域盲测和可加载权重五项证据。已形成真实权重的候选优先用现有检查点补证。单一底座的额外变体等首批全覆盖后再投入。共用商品原资产清单、许可、哈希和家族划分，SDXL、HunyuanVideo、TRELLIS.2 与 SF3D 分别保存自身原生数据回执。替补启用前冻结自己的验证集、门槛和原底座对照，保留首选失败结果。
+
+- SF3D 已生成并独立读回一张固定视角恒定 PBR 的 256×256 RGBA。20,600 个可见像素、97 个标量取点及三个原生标签形状均已验证，原生特征和训练待验。 [样本回执](../../results/bw1000/2026-11-28/specialized-sf3d-cc0-constant-pbr-cpu-render-and-independent-readback.json)
+- LLaVA 新控制步骤 `1103606.4978` 在旧保底终态证据的原始等待窗口内失败，训练 GPU 未派发。独立 `1103606.4979` 已核对应八卡、KFD/FD 及训练端口。下一次在当前机位独占与原证据均复核后，从已完成的保底终态接管。 [实际终态](../../results/bw1000/2026-11-28/specialized-llava-4978-release-proof-timeout-and-4979-clean.json)
+
 | 底座 | 首交付能力和数据 | 下一次实际执行 | 领域验收 |
 |---|---|---|---|
 | Qwen3-VL-8B-Instruct | 小字、多行街景 OCR。复用已过原生处理的 26 条 TextVQA 和 15 条 TextOCR；按原图去重，先保留可见答案，再补定位目标。 | 先查原唯一八卡请求，使用 `qwen3_vl`、BF16、SDPA、原 LoRA 冻结范围及 4096 上限，核首个正学习率和参数差，接 25 步。 | 独立 TextVQA 评分，按原图配对，报告小字、多行、反光和未作答分母。 [TextVQA](https://textvqa.org/dataset/) · [TextOCR](https://textvqa.org/textocr/dataset/) |
